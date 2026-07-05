@@ -614,7 +614,7 @@ class TC_GAME_API Creature : public Unit, public GridObject<Creature>, public Ma
         Optional<uint32> _trainerId;
         float _sparringHealthPct;
 
-        bool m_isFSBot;
+        bool m_isFSBot = false;
 };
 
 class TC_GAME_API AssistDelayEvent : public BasicEvent

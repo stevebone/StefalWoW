@@ -27,11 +27,37 @@
 #include "SharedDefines.h"
 #include <vector>
 
+#include "Followship_bots_warsong_gulch.h"
+
 class Battleground;
 class BattlegroundMap;
 class Creature;
 class Player;
 class Unit;
+
+struct FSB_BattlegroundData
+{
+    bool initialized = false;
+    uint32 bgTypeId = 0;
+    FSBBattleground::WarsongGulch::WSGState wsgState = FSBBattleground::WarsongGulch::WSGState::None;
+    FSBBattleground::WarsongGulch::WSGMovePhase wsgMovePhase = FSBBattleground::WarsongGulch::WSGMovePhase::None;
+    FSBBattleground::WarsongGulch::WSGExitPathChoice wsgExitPathChoice = FSBBattleground::WarsongGulch::WSGExitPathChoice::Path1;
+    FSBBattleground::WarsongGulch::WSGExitPathChoice wsgAttackPathChoice = FSBBattleground::WarsongGulch::WSGExitPathChoice::Path1;
+    uint8 wsgPathStep = 0;
+    uint8 wsgCenterIndex = 0;
+
+    void Reset()
+    {
+        initialized = false;
+        bgTypeId = 0;
+        wsgState = FSBBattleground::WarsongGulch::WSGState::None;
+        wsgMovePhase = FSBBattleground::WarsongGulch::WSGMovePhase::None;
+        wsgExitPathChoice = FSBBattleground::WarsongGulch::WSGExitPathChoice::Path1;
+        wsgAttackPathChoice = FSBBattleground::WarsongGulch::WSGExitPathChoice::Path1;
+        wsgPathStep = 0;
+        wsgCenterIndex = 0;
+    }
+};
 
 namespace WorldPackets::Battleground
 {
@@ -58,6 +84,8 @@ namespace FSBBattleground
     bool IsInProgress(Creature const* bot);
     bool IsFinished(Creature const* bot);
 
+    void InitializeBot(Creature* bot);
+
     void HandlePlayerKilledBot(ObjectGuid killerGuid, Unit* botVictim);
     void HandleBotKilledPlayer(Unit* botKiller, ObjectGuid victimGuid);
     void HandlePlayerDamagedBot(Unit* attacker, Unit* botVictim, uint32 damage);
@@ -79,4 +107,6 @@ namespace FSBBattleground
     std::vector<Creature*> CollectBotsOnTeam(BattlegroundMap* battlegroundMap, Team team);
     void SendRaidUpdateToPlayer(Player* player);
     void PeriodicRaidUpdate(BattlegroundMap* battlegroundMap);
+
+    Unit* FindHostileTargetInBattleground(Creature* bot);
 }

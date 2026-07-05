@@ -118,7 +118,7 @@ namespace FSBDeath
         bot->SetUnitFlag(UNIT_FLAG_IMMUNE_TO_NPC);
 
         bot->GetMotionMaster()->Clear();
-        bot->GetMotionMaster()->MovePoint(FSB_MOVEMENT_POINT_CORPSE, botCorpse, false);
+        bot->GetMotionMaster()->MovePoint(FSBMovement::MOVEMENT_POINT_CORPSE, botCorpse, false);
         TC_LOG_DEBUG("scripts.fsb.death", "FSB: Death Bot {} Started the corpse run from graveyard.", bot->GetName());
 
     }

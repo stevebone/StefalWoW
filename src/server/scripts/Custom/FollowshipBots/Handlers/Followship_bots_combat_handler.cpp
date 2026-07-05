@@ -28,6 +28,7 @@
 #include "Followship_bots_group_handler.h"
 #include "Followship_bots_movement_handler.h"
 #include "Followship_bots_dungeon_handler.h"
+#include "Followship_bots_battleground_handler.h"
 
 namespace FSBCombat
 {
@@ -250,6 +251,13 @@ namespace FSBCombat
 
             TC_LOG_DEBUG("scripts.fsb.combat", "FSB: GetNextAttackTarget Bot {} next target is their member attacker/victim {}", bot->GetName(), assistTarget->GetName());
             return assistTarget;
+        }
+
+        // 5. Battleground hostile target scan
+        if (Unit* bgTarget = FSBBattleground::FindHostileTargetInBattleground(bot))
+        {
+            TC_LOG_DEBUG("scripts.fsb.combat", "FSB: GetNextAttackTarget Bot {} next target is battleground hostile {}", bot->GetName(), bgTarget->GetName());
+            return bgTarget;
         }
 
         return nullptr;

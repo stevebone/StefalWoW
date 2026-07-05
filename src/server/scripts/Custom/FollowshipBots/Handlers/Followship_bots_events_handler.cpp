@@ -134,6 +134,50 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
         break;
     }
 
+    case FSB_EVENT_BATTLEGROUND_START:
+    {
+        bot->SetReactState(REACT_AGGRESSIVE);
+
+        // bot race/class mount and shapeshift
+        // TO-DO we need a dedicated method here to sometimes pick
+        // Spirit wolf for shaman
+        // Travel form for druid (needs handling of shapeshift change)
+        //FSBMovement::BotSetMountedState(bot, ai->botMounted);
+
+        if (FSB_BattlegroundData* bgData = ai->GetBattlegroundData())
+        {
+            if (bgData->bgTypeId == BATTLEGROUND_WS || bgData->bgTypeId == BATTLEGROUND_WG_CTF)
+            {
+                if (bgData->wsgState == FSBBattleground::WarsongGulch::WSGState::None)
+                {
+                    uint8 state = urand(1, 3);
+                    FSBBattleground::WarsongGulch::SetBotState(bot, bgData, static_cast<FSBBattleground::WarsongGulch::WSGState>(state));
+                }
+            }
+        }
+
+        ScheduleBotEvent(FSB_EVENT_BATTLEGROUND_TICK, 2s);
+        break;
+    }
+
+    case FSB_EVENT_WSG_USE_FLAG:
+    {
+        if (FSB_BattlegroundData* bgData = ai->GetBattlegroundData())
+            if (bgData->bgTypeId == BATTLEGROUND_WS || bgData->bgTypeId == BATTLEGROUND_WG_CTF)
+                FSBBattleground::WarsongGulch::TryUseEnemyFlag(bot, bgData);
+        break;
+    }
+
+    case FSB_EVENT_BATTLEGROUND_TICK:
+    {
+        if (FSB_BattlegroundData* bgData = ai->GetBattlegroundData())
+            if (bgData->bgTypeId == BATTLEGROUND_WS || bgData->bgTypeId == BATTLEGROUND_WG_CTF)
+                FSBBattleground::WarsongGulch::UpdateBot(bot, bgData);
+
+        ScheduleBotEvent(FSB_EVENT_BATTLEGROUND_TICK, 2s, 3s);
+        break;
+    }
+
     case FSB_EVENT_GENERIC_CHECK_HIRED_TIME:
     {
         uint64 spawnId = bot->GetSpawnId();
@@ -296,7 +340,7 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
             ai->botSitsByFire = true;
             float offsetx = RAND(-2.f, 2.f);
             float offsety = frand(-2.f, 2.f);
-            bot->GetMotionMaster()->MovePoint(FSB_MOVEMENT_POINT_NEAR_FIRE, go->GetPositionX() + offsetx, go->GetPositionY() + offsety, go->GetPositionZ());
+            bot->GetMotionMaster()->MovePoint(FSBMovement::MOVEMENT_POINT_NEAR_FIRE, go->GetPositionX() + offsetx, go->GetPositionY() + offsety, go->GetPositionZ());
             botEvents.ScheduleEvent(FSB_EVENT_RANDOM_ACTION_FINISH, 30s, 45s);
             TC_LOG_DEBUG("scripts.fsb.events", "FSB: Event RANDOM_ACTION_MOVE_FIRE for bot {} finished. We found object {} and are moving to sit by", bot->GetName(), go->GetName());
             break;

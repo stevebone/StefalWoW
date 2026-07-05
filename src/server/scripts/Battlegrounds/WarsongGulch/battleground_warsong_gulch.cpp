@@ -28,7 +28,10 @@
 #include "SpellAuras.h"
 #include "Timer.h"
 
+#include "Custom/FollowshipBots/Followship_bots_mgr.h"
 #include "Custom/FollowshipBots/Handlers/Followship_bots_battleground_handler.h"
+#include "Custom/FollowshipBots/Handlers/Followship_bots_events_handler.h"
+#include "Followship_bots_utils.h"
 
 struct battleground_warsong_gulch : BattlegroundScript
 {
@@ -187,9 +190,9 @@ struct battleground_warsong_gulch : BattlegroundScript
                     _assaultStackCount++;
 
                     // update assault debuff stacks
-                    DoForFlagKeepers([&](Player* player) -> void
+                    DoForFlagKeepers([&](Unit* unit) -> void
                     {
-                        ApplyAssaultDebuffToPlayer(player);
+                        ApplyAssaultDebuffToUnit(unit);
                     });
                 }
             }
@@ -200,6 +203,13 @@ struct battleground_warsong_gulch : BattlegroundScript
         {
             _raidUpdateTimer = 0;
             FSBBattleground::PeriodicRaidUpdate(battlegroundMap);
+        }
+
+        _captureCheckTimer += diff;
+        if (_captureCheckTimer >= 1000)
+        {
+            _captureCheckTimer = 0;
+            HandleFlagRoomCapturePoint();
         }
     }
 
@@ -246,6 +256,43 @@ struct battleground_warsong_gulch : BattlegroundScript
         FSBBattleground::ClearSpawnedBotGuids(battlegroundMap);
     }
 
+    void ProcessEvent(WorldObject* /*obj*/, uint32 eventId, WorldObject* invoker) override
+    {
+        if (eventId != FSB_EVENT_WSG_BOT_CAPTURE)
+            return;
+
+        Unit* unit = invoker ? invoker->ToUnit() : nullptr;
+        if (!unit)
+            return;
+
+        Creature* bot = unit->ToCreature();
+        if (!bot || !bot->IsBot())
+            return;
+
+        FSB_Race botRace = FSBMgr::Get()->GetBotRaceForEntry(bot->GetEntry());
+        Team team = FSBUtils::GetTeamFromFSBRace(botRace);
+        if (team != ALLIANCE && team != HORDE)
+        {
+            TC_LOG_DEBUG("scripts.fsb.battleground", "FSB WSG ProcessEvent: bot {} has invalid team ({})", bot->GetName(), team);
+            return;
+        }
+
+        TeamId const teamId = Battleground::GetTeamIndexByTeamId(team);
+        AreaTrigger* trigger = battlegroundMap->GetAreaTrigger(_capturePointAreaTriggers[teamId]);
+        if (!trigger)
+        {
+            TC_LOG_DEBUG("scripts.fsb.battleground", "FSB WSG ProcessEvent: bot {} no capture trigger for teamId {}", bot->GetName(), teamId);
+            return;
+        }
+
+        TC_LOG_DEBUG("scripts.fsb.battleground", "FSB WSG ProcessEvent: bot {} attempting capture at trigger {}", bot->GetName(), trigger->GetEntry());
+        if (CanCaptureFlag(trigger, unit))
+        {
+            TC_LOG_DEBUG("scripts.fsb.battleground", "FSB WSG ProcessEvent: bot {} capture approved", bot->GetName());
+            OnCaptureFlag(trigger, unit);
+        }
+    }
+
     void OnPlayerJoined(Player* player, bool inBattleground) override
     {
         BattlegroundScript::OnPlayerJoined(player, inBattleground);
@@ -253,12 +300,12 @@ struct battleground_warsong_gulch : BattlegroundScript
         FSBBattleground::SendRaidUpdateToPlayer(player);
     }
 
-    template <std::invocable<Player*> Action>
+    template <std::invocable<Unit*> Action>
     void DoForFlagKeepers(Action const& action) const
     {
         for (ObjectGuid flagGUID : _flags)
             if (GameObject const* flag = battlegroundMap->GetGameObject(flagGUID))
-                if (Player* carrier = ObjectAccessor::FindPlayer(flag->GetFlagCarrierGUID()))
+                if (Unit* carrier = ObjectAccessor::GetUnit(*flag, flag->GetFlagCarrierGUID()))
                     action(carrier);
     }
 
@@ -267,13 +314,13 @@ struct battleground_warsong_gulch : BattlegroundScript
         _bothFlagsKept = false;
         _assaultStackCount = 0;
         _flagAssaultTimer.Reset(FLAG_ASSAULT_TIMER);
-        DoForFlagKeepers([&](Player* player) -> void
+        DoForFlagKeepers([&](Unit* unit) -> void
         {
-            RemoveAssaultDebuffFromPlayer(player);
+            RemoveAssaultDebuffFromUnit(unit);
         });
     }
 
-    void ApplyAssaultDebuffToPlayer(Player* player) const
+    void ApplyAssaultDebuffToUnit(Unit* unit) const
     {
         if (_assaultStackCount == 0)
             return;
@@ -281,25 +328,25 @@ struct battleground_warsong_gulch : BattlegroundScript
         uint32 spellId = SPELL_FOCUSED_ASSAULT;
         if (_assaultStackCount >= FLAG_BRUTAL_ASSAULT_STACK_COUNT)
         {
-            player->RemoveAurasDueToSpell(SPELL_FOCUSED_ASSAULT);
+            unit->RemoveAurasDueToSpell(SPELL_FOCUSED_ASSAULT);
             spellId = SPELL_BRUTAL_ASSAULT;
         }
 
-        Aura* aura = player->GetAura(spellId);
+        Aura* aura = unit->GetAura(spellId);
         if (!aura)
         {
-            player->CastSpell(player, spellId, true);
-            aura = player->GetAura(spellId);
+            unit->CastSpell(unit, spellId, true);
+            aura = unit->GetAura(spellId);
         }
 
         if (aura)
             aura->SetStackAmount(_assaultStackCount);
     }
 
-    void RemoveAssaultDebuffFromPlayer(Player* player) const
+    void RemoveAssaultDebuffFromUnit(Unit* unit) const
     {
-        player->RemoveAurasDueToSpell(SPELL_FOCUSED_ASSAULT);
-        player->RemoveAurasDueToSpell(SPELL_BRUTAL_ASSAULT);
+        unit->RemoveAurasDueToSpell(SPELL_FOCUSED_ASSAULT);
+        unit->RemoveAurasDueToSpell(SPELL_BRUTAL_ASSAULT);
     }
 
     FlagState GetFlagState(TeamId team) const
@@ -320,13 +367,33 @@ struct battleground_warsong_gulch : BattlegroundScript
 
     void HandleFlagRoomCapturePoint()
     {
-        DoForFlagKeepers([&](Player* player) -> void
+        DoForFlagKeepers([&](Unit* unit) -> void
         {
-            TeamId const team = Battleground::GetTeamIndexByTeamId(battleground->GetPlayerTeam(player->GetGUID()));
-            if (AreaTrigger* trigger = battlegroundMap->GetAreaTrigger(_capturePointAreaTriggers[team]))
-                if (trigger->GetInsideUnits().contains(player->GetGUID()))
-                    if (CanCaptureFlag(trigger, player))
-                        OnCaptureFlag(trigger, player);
+                if (unit->ToPlayer())
+                {
+                    TeamId const team = Battleground::GetTeamIndexByTeamId(battleground->GetPlayerTeam(unit->GetGUID()));
+                    if (AreaTrigger* trigger = battlegroundMap->GetAreaTrigger(_capturePointAreaTriggers[team]))
+                        if (trigger->GetInsideUnits().contains(unit->GetGUID()))
+                            if (CanCaptureFlag(trigger, unit))
+                                OnCaptureFlag(trigger, unit);
+                }
+
+                if (Creature* bot = unit->ToCreature())
+                {
+                    if (bot->IsBot())
+                    {
+                        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+                        if (!baseAI)
+                            return;
+                        Team team = FSBUtils::GetTeamFromFSBRace(baseAI->botRace);
+                        TeamId const teamId = Battleground::GetTeamIndexByTeamId(team);
+
+                        if (AreaTrigger* trigger = battlegroundMap->GetAreaTrigger(_capturePointAreaTriggers[teamId]))
+                            if (trigger->GetInsideUnits().contains(unit->GetGUID()))
+                                if (CanCaptureFlag(trigger, unit))
+                                    OnCaptureFlag(trigger, unit);
+                    }
+                }
         });
     }
 
@@ -410,14 +477,16 @@ struct battleground_warsong_gulch : BattlegroundScript
         }
     }
 
-    void OnFlagStateChange(GameObject* flagInBase, FlagState oldValue, FlagState newValue, Player* player) override
+    void OnFlagStateChange(GameObject* flagInBase, FlagState oldValue, FlagState newValue, Unit* unit) override
     {
-        BattlegroundScript::OnFlagStateChange(flagInBase, oldValue, newValue, player);
+        BattlegroundScript::OnFlagStateChange(flagInBase, oldValue, newValue, unit);
 
         Team const team = flagInBase->GetEntry() == OBJECT_HORDE_FLAG_IN_BASE ? HORDE : ALLIANCE;
         TeamId const otherTeamId = Battleground::GetTeamIndexByTeamId(GetOtherTeam(team));
 
         UpdateFlagState(team, newValue);
+
+        Player* player = unit ? unit->ToPlayer() : nullptr;
 
         switch (newValue)
         {
@@ -456,41 +525,48 @@ struct battleground_warsong_gulch : BattlegroundScript
             }
             case FlagState::Dropped:
             {
-                player->RemoveAurasDueToSpell(SPELL_QUICK_CAP_TIMER);
-                RemoveAssaultDebuffFromPlayer(player);
-
-                uint32 recentlyDroppedSpellId = SPELL_RECENTLY_DROPPED_HORDE_FLAG;
-                if (team == ALLIANCE)
+                if (unit)
                 {
-                    recentlyDroppedSpellId = SPELL_RECENTLY_DROPPED_ALLIANCE_FLAG;
-                    battleground->SendBroadcastText(TEXT_ALLIANCE_FLAG_DROPPED, CHAT_MSG_BG_SYSTEM_ALLIANCE, player);
-                }
-                else
-                    battleground->SendBroadcastText(TEXT_HORDE_FLAG_DROPPED, CHAT_MSG_BG_SYSTEM_HORDE, player);
+                    unit->RemoveAurasDueToSpell(SPELL_QUICK_CAP_TIMER);
+                    RemoveAssaultDebuffFromUnit(unit);
 
-                player->CastSpell(player, recentlyDroppedSpellId, true);
+                    uint32 recentlyDroppedSpellId = SPELL_RECENTLY_DROPPED_HORDE_FLAG;
+                    if (team == ALLIANCE)
+                    {
+                        recentlyDroppedSpellId = SPELL_RECENTLY_DROPPED_ALLIANCE_FLAG;
+                        battleground->SendBroadcastText(TEXT_ALLIANCE_FLAG_DROPPED, CHAT_MSG_BG_SYSTEM_ALLIANCE, unit);
+                    }
+                    else
+                        battleground->SendBroadcastText(TEXT_HORDE_FLAG_DROPPED, CHAT_MSG_BG_SYSTEM_HORDE, unit);
+
+                    unit->CastSpell(unit, recentlyDroppedSpellId, true);
+                }
                 break;
             }
             case FlagState::Taken:
             {
                 if (team == HORDE)
                 {
-                    battleground->SendBroadcastText(TEXT_HORDE_FLAG_PICKED_UP, CHAT_MSG_BG_SYSTEM_HORDE, player);
+                    battleground->SendBroadcastText(TEXT_HORDE_FLAG_PICKED_UP, CHAT_MSG_BG_SYSTEM_HORDE, unit);
                     battleground->PlaySoundToAll(SOUND_HORDE_FLAG_PICKED_UP);
                 }
                 else
                 {
-                    battleground->SendBroadcastText(TEXT_ALLIANCE_FLAG_PICKED_UP, CHAT_MSG_BG_SYSTEM_ALLIANCE, player);
+                    battleground->SendBroadcastText(TEXT_ALLIANCE_FLAG_PICKED_UP, CHAT_MSG_BG_SYSTEM_ALLIANCE, unit);
                     battleground->PlaySoundToAll(SOUND_ALLIANCE_FLAG_PICKED_UP);
                 }
 
                 if (GetFlagState(otherTeamId) == FlagState::Taken)
                     _bothFlagsKept = true;
 
-                ApplyAssaultDebuffToPlayer(player);
+                if (unit)
+                {
+                    ApplyAssaultDebuffToUnit(unit);
 
-                flagInBase->CastSpell(player, SPELL_QUICK_CAP_TIMER, true);
-                player->StartCriteria(CriteriaStartEvent::BeSpellTarget, SPELL_QUICK_CAP_TIMER, Seconds(GameTime::GetGameTime() - flagInBase->GetFlagTakenFromBaseTime()));
+                    flagInBase->CastSpell(unit, SPELL_QUICK_CAP_TIMER, true);
+                    if (player)
+                        player->StartCriteria(CriteriaStartEvent::BeSpellTarget, SPELL_QUICK_CAP_TIMER, Seconds(GameTime::GetGameTime() - flagInBase->GetFlagTakenFromBaseTime()));
+                }
                 break;
             }
             case FlagState::Respawning:
@@ -501,33 +577,88 @@ struct battleground_warsong_gulch : BattlegroundScript
         }
     }
 
-    bool CanCaptureFlag(AreaTrigger* areaTrigger, Player* player) override
+    bool CanCaptureFlag(AreaTrigger* areaTrigger, Unit* unit) override
     {
         if (battleground->GetStatus() != STATUS_IN_PROGRESS)
             return false;
 
-        Team const team = battleground->GetPlayerTeam(player->GetGUID());
+        Team team = TEAM_OTHER;
+
+        if (unit->ToPlayer())
+            team = battleground->GetPlayerTeam(unit->GetGUID());
+
+        else
+        {
+            if (Creature* bot = unit->ToCreature())
+            {
+                if (bot->IsBot())
+                {
+                    auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+                    if (!baseAI)
+                        return false;
+                    team = FSBUtils::GetTeamFromFSBRace(baseAI->botRace);
+                }
+            }
+        }
+
         TeamId const teamId = Battleground::GetTeamIndexByTeamId(team);
         TeamId const otherTeamId = Battleground::GetTeamIndexByTeamId(GetOtherTeam(team));
 
         if (areaTrigger->GetGUID() != _capturePointAreaTriggers[teamId])
+        {
+            TC_LOG_DEBUG("scripts.fsb.battleground", "FSB WSG CanCaptureFlag: unit {} wrong area trigger (team={} teamId={} trigger={} expected={})",
+                unit->GetName(), team, teamId, areaTrigger->GetGUID().ToString(), _capturePointAreaTriggers[teamId].ToString());
             return false;
+        }
 
         // check if enemy flag's carrier is this player
-        if (GetFlagCarrierGUID(otherTeamId) != player->GetGUID())
+        ObjectGuid carrierGUID = GetFlagCarrierGUID(otherTeamId);
+        if (carrierGUID != unit->GetGUID())
+        {
+            TC_LOG_DEBUG("scripts.fsb.battleground", "FSB WSG CanCaptureFlag: unit {} is not enemy flag carrier (otherTeamId={} carrier={} self={})",
+                unit->GetName(), otherTeamId, carrierGUID.ToString(), unit->GetGUID().ToString());
             return false;
+        }
 
         // check that team's flag is in base
-        return GetFlagState(teamId) == FlagState::InBase;
+        FlagState ownFlagState = GetFlagState(teamId);
+        if (ownFlagState != FlagState::InBase)
+        {
+            TC_LOG_DEBUG("scripts.fsb.battleground", "FSB WSG CanCaptureFlag: unit {} own flag not in base (teamId={} state={})",
+                unit->GetName(), teamId, uint32(ownFlagState));
+            return false;
+        }
+
+        TC_LOG_DEBUG("scripts.fsb.battleground", "FSB WSG CanCaptureFlag: unit {} can capture (team={} teamId={})", unit->GetName(), team, teamId);
+        return true;
     }
 
-    void OnCaptureFlag(AreaTrigger* areaTrigger, Player* player) override
+    void OnCaptureFlag(AreaTrigger* areaTrigger, Unit* unit) override
     {
-        BattlegroundScript::OnCaptureFlag(areaTrigger, player);
+        BattlegroundScript::OnCaptureFlag(areaTrigger, unit);
+
+        TC_LOG_DEBUG("scripts.fsb.battleground", "FSB WSG OnCaptureFlag: unit {} capturing flag", unit->GetName());
 
         Team winner = TEAM_OTHER;
+        Team team = TEAM_OTHER;
 
-        Team const team = battleground->GetPlayerTeam(player->GetGUID());
+        if (unit->ToPlayer())
+            team = battleground->GetPlayerTeam(unit->GetGUID());
+
+        else
+        {
+            if (Creature* bot = unit->ToCreature())
+            {
+                if (bot->IsBot())
+                {
+                    auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+                    if (!baseAI)
+                        return;
+                    team = FSBUtils::GetTeamFromFSBRace(baseAI->botRace);
+                }
+            }
+        }
+
         TeamId const teamId = Battleground::GetTeamIndexByTeamId(team);
         TeamId const otherTeamId = Battleground::GetTeamIndexByTeamId(GetOtherTeam(team));
 
@@ -543,7 +674,7 @@ struct battleground_warsong_gulch : BattlegroundScript
         // 1. update the flag states
         for (ObjectGuid const& flagGuid: _flags)
             if (GameObject const* flag = battlegroundMap->GetGameObject(flagGuid))
-                flag->HandleCustomTypeCommand(GameObjectType::SetNewFlagState(FlagState::Respawning, player));
+                flag->HandleCustomTypeCommand(GameObjectType::SetNewFlagState(FlagState::Respawning, unit));
 
         // 2. update points
         if (battleground->GetTeamScore(teamId) < MAX_TEAM_SCORE)
@@ -554,31 +685,34 @@ struct battleground_warsong_gulch : BattlegroundScript
         // 3. chat message & sound
         if (team == ALLIANCE)
         {
-            battleground->SendBroadcastText(TEXT_CAPTURED_HORDE_FLAG, CHAT_MSG_BG_SYSTEM_HORDE, player);
+            if(unit->ToPlayer())
+                battleground->SendBroadcastText(TEXT_CAPTURED_HORDE_FLAG, CHAT_MSG_BG_SYSTEM_HORDE, unit);
             battleground->PlaySoundToAll(SOUND_FLAG_CAPTURED_ALLIANCE);
             battleground->RewardReputationToTeam(890, _reputationCapture, ALLIANCE);
-            player->CastSpell(player, SPELL_CAPTURED_ALLIANCE_COSMETIC_FX);
+            unit->CastSpell(unit, SPELL_CAPTURED_ALLIANCE_COSMETIC_FX);
         }
         else
         {
-            battleground->SendBroadcastText(TEXT_CAPTURED_ALLIANCE_FLAG, CHAT_MSG_BG_SYSTEM_ALLIANCE, player);
+            if (unit->ToPlayer())
+                battleground->SendBroadcastText(TEXT_CAPTURED_ALLIANCE_FLAG, CHAT_MSG_BG_SYSTEM_ALLIANCE, unit);
             battleground->PlaySoundToAll(SOUND_FLAG_CAPTURED_HORDE);
             battleground->RewardReputationToTeam(889, _reputationCapture, HORDE);
-            player->CastSpell(player, SPELL_CAPTURED_HORDE_COSMETIC_FX);
+            unit->CastSpell(unit, SPELL_CAPTURED_HORDE_COSMETIC_FX);
         }
 
         // 4. update criteria's for achievement, player score etc.
-        battleground->UpdatePvpStat(player, PVP_STAT_FLAG_CAPTURES, 1);      // +1 flag captures
+        if(unit->ToPlayer())
+            battleground->UpdatePvpStat(unit->ToPlayer(), PVP_STAT_FLAG_CAPTURES, 1);      // +1 flag captures
 
         // 5. Remove all related auras
-        RemoveAssaultDebuffFromPlayer(player);
+        RemoveAssaultDebuffFromUnit(unit);
 
         if (GameObject const* flag = battlegroundMap->GetGameObject(_flags[otherTeamId]))
-            player->RemoveAurasDueToSpell(flag->GetGOInfo()->newflag.pickupSpell, flag->GetGUID());
+            unit->RemoveAurasDueToSpell(flag->GetGOInfo()->newflag.pickupSpell, flag->GetGUID());
 
-        player->RemoveAurasDueToSpell(SPELL_QUICK_CAP_TIMER);
+        unit->RemoveAurasDueToSpell(SPELL_QUICK_CAP_TIMER);
 
-        player->RemoveAurasWithInterruptFlags(SpellAuraInterruptFlags::PvPActive);
+        unit->RemoveAurasWithInterruptFlags(SpellAuraInterruptFlags::PvPActive);
 
         battleground->RewardHonorToTeam(battleground->GetBonusHonorFromKill(2), team);
 
@@ -625,6 +759,7 @@ private:
     std::array<ObjectGuid, PVP_TEAMS_COUNT> _capturePointAreaTriggers;
 
     uint32 _raidUpdateTimer = 0;
+    uint32 _captureCheckTimer = 0;
 
     uint32 _honorWinKills;
     uint32 _honorEndKills;

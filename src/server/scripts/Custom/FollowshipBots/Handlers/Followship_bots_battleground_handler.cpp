@@ -110,6 +110,45 @@ namespace FSBBattleground
         return bg->GetStatus() == STATUS_WAIT_LEAVE;
     }
 
+    void InitializeBot(Creature* bot)
+    {
+        if (!bot)
+            return;
+
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
+            return;
+
+        if (baseAI->botHired)
+            return;
+
+        BattlegroundMap* bgMap = bot->GetMap()->ToBattlegroundMap();
+        if (!bgMap)
+            return;
+
+        Battleground* bg = bgMap->GetBG();
+        if (!bg)
+            return;
+
+        FSB_BattlegroundData* bgData = baseAI->GetBattlegroundData();
+
+        if (!bgData->initialized)
+        {
+            bgData->bgTypeId = bg->GetTypeID();
+            bgData->initialized = true;
+        }
+
+        switch (bg->GetTypeID())
+        {
+        case BATTLEGROUND_WS:
+        case BATTLEGROUND_WG_CTF:
+            WarsongGulch::InitializeBot(bot, bgData, bg);
+            break;
+        default:
+            break;
+        }
+    }
+
     void HandlePlayerKilledBot(ObjectGuid killerGuid, Unit* botVictim)
     {
         if (!killerGuid || !botVictim)
@@ -411,5 +450,126 @@ namespace FSBBattleground
             for (Creature* bot : bots)
                 FSBParty::SendBotMemberState(player, bot);
         }
+    }
+
+    Unit* FindHostileTargetInBattleground(Creature* bot)
+    {
+        if (!bot || !bot->IsAlive())
+            return nullptr;
+
+        BattlegroundMap* bgMap = bot->GetMap()->ToBattlegroundMap();
+        if (!bgMap)
+            return nullptr;
+
+        Battleground* bg = bgMap->GetBG();
+        if (!bg || bg->GetStatus() != STATUS_IN_PROGRESS)
+            return nullptr;
+
+        FSB_Race botRace = FSBMgr::Get()->GetBotRaceForEntry(bot->GetEntry());
+        Team botTeam = FSBUtils::GetTeamFromFSBRace(botRace);
+        if (botTeam != ALLIANCE && botTeam != HORDE)
+            return nullptr;
+
+        constexpr float ScanRange = 50.0f;
+
+        uint32 bgTypeId = bg->GetTypeID();
+        bool isCtf = (bgTypeId == BATTLEGROUND_WS || bgTypeId == BATTLEGROUND_WG_CTF);
+
+        struct Candidate
+        {
+            Unit* target;
+            bool isFlagCarrier;
+            float healthPct;
+            float distance;
+        };
+
+        std::vector<Candidate> candidates;
+
+        auto isValidTarget = [&](Unit* target) -> bool
+        {
+            if (!target || !target->IsAlive() || !target->IsInWorld() || target->IsDuringRemoveFromWorld())
+                return false;
+
+            if (!bot->IsWithinDistInMap(target, ScanRange))
+                return false;
+
+            if (!bot->IsValidAttackTarget(target))
+                return false;
+
+            if (target->HasBreakableByDamageCrowdControlAura())
+                return false;
+
+            if (target->HasUnitFlag(UNIT_FLAG_IMMUNE_TO_NPC) ||
+                target->HasUnitFlag(UNIT_FLAG_UNINTERACTIBLE) ||
+                target->HasUnitFlag(UNIT_FLAG_PACIFIED) ||
+                target->HasUnitFlag(UNIT_FLAG_NON_ATTACKABLE))
+                return false;
+
+            return true;
+        };
+
+        // Hostile players
+        for (auto const& [guid, bgPlayer] : bg->GetPlayers())
+        {
+            if (bgPlayer.Team == botTeam)
+                continue;
+
+            Player* player = ObjectAccessor::GetPlayer(bgMap, guid);
+            if (!player)
+                continue;
+
+            if (!isValidTarget(player))
+                continue;
+
+            bool isFlagCarrier = false;
+            if (isCtf)
+                isFlagCarrier = player->HasAura(WarsongGulch::Spells::WarsongFlag) ||
+                                player->HasAura(WarsongGulch::Spells::SilverwingFlag) ||
+                                player->HasAura(WarsongGulch::Spells::AllianceFlag) ||
+                                    player->HasAura(WarsongGulch::Spells::HordeFlag);
+
+            candidates.push_back({ player, isFlagCarrier, player->GetHealthPct(), bot->GetDistance(player) });
+        }
+
+        // Hostile bots
+        for (auto const& [guid, creature] : bgMap->GetObjectsStore().Data.Head)
+        {
+            if (!creature || !creature->IsBot())
+                continue;
+
+            Team creatureTeam = FSBUtils::GetTeamFromFSBRace(FSBMgr::Get()->GetBotRaceForEntry(creature->GetEntry()));
+            if (creatureTeam == botTeam)
+                continue;
+
+            if (!isValidTarget(creature))
+                continue;
+
+            bool isFlagCarrier = false;
+            if (isCtf)
+                isFlagCarrier = creature->HasAura(WarsongGulch::Spells::WarsongFlag) ||
+                                creature->HasAura(WarsongGulch::Spells::SilverwingFlag) ||
+                                creature->HasAura(WarsongGulch::Spells::AllianceFlag) ||
+                                creature->HasAura(WarsongGulch::Spells::HordeFlag);
+
+            candidates.push_back({ creature, isFlagCarrier, creature->GetHealthPct(), bot->GetDistance(creature) });
+        }
+
+        if (candidates.empty())
+            return nullptr;
+
+        auto best = std::min_element(candidates.begin(), candidates.end(),
+            [](Candidate const& a, Candidate const& b)
+        {
+            if (a.isFlagCarrier != b.isFlagCarrier)
+                return a.isFlagCarrier;
+            if (a.healthPct != b.healthPct)
+                return a.healthPct < b.healthPct;
+            return a.distance < b.distance;
+        });
+
+        TC_LOG_DEBUG("scripts.fsb.combat", "FSBBattleground::FindHostileTargetInBattleground: Bot {} selected target {} (flagCarrier={}, healthPct={}, distance={})",
+            bot->GetName(), best->target->GetName(), best->isFlagCarrier, best->healthPct, best->distance);
+
+        return best->target;
     }
 }

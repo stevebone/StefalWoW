@@ -25,6 +25,7 @@
 #include <algorithm>
 #include <mutex>
 #include <thread>
+#include "Battleground.h"
 #include "Chat.h"
 #include "ChatPackets.h"
 #include "Channel.h"
@@ -44,6 +45,7 @@
 #include "WowTime.h"
 
 #include "Followship_bots_mgr.h"
+#include "Followship_bots_utils.h"
 #include "Followship_bots_chat_handler.h"
 #include "Followship_bots_mail_handler.h"
 #include "GenAI_mail_prompts.h"
@@ -742,6 +744,28 @@ namespace FSBChat
         if (Channel* channel = GetLFGChannel(bot))
             SendBotChannelMessage(bot, channel, msg);
         else TC_LOG_DEBUG("scripts.fsb.chatter", "FSB: BotSendLFGChat Channel not found for bot {} with message {}", bot->GetName(), msg);
+    }
+
+    void BotSendRaidChat(Creature* bot, std::string const& msg)
+    {
+        if (!bot || !bot->IsInWorld() || msg.empty())
+            return;
+
+        BattlegroundMap* bgMap = bot->GetMap()->ToBattlegroundMap();
+        if (!bgMap)
+            return;
+
+        Battleground* bg = bgMap->GetBG();
+        if (!bg)
+            return;
+
+        Team team = FSBUtils::GetTeamFromFSBRace(FSBMgr::Get()->GetBotRaceForEntry(bot->GetEntry()));
+        if (team != ALLIANCE && team != HORDE)
+            return;
+
+        WorldPackets::Chat::Chat packet;
+        packet.Initialize(CHAT_MSG_RAID, LANG_UNIVERSAL, bot, nullptr, msg);
+        bg->SendPacketToTeam(team, packet.Write());
     }
 
     // Global (or file-static) storage for all running conversations

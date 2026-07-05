@@ -57,7 +57,8 @@ enum class FSB_ReplyType : uint8
     None,
     Say,
     Yell,
-    Whisper
+    Whisper,
+    Raid
 };
 
 enum class FSB_Class : uint8

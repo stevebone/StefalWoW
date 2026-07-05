@@ -569,6 +569,15 @@ void FSBMgr::SetInitialBotState(Creature* bot)
         bot->RemoveNpcFlag(UNIT_NPC_FLAG_GOSSIP);
     else bot->SetNpcFlag(UNIT_NPC_FLAG_GOSSIP);
 
+    if (FSBBattleground::IsInBG(bot) && !baseAI->botHired)
+        FSBBattleground::InitializeBot(bot);
+    else if (baseAI->botBattlegroundData)
+    {
+        baseAI->botBattlegroundData->Reset();
+        delete baseAI->botBattlegroundData;
+        baseAI->botBattlegroundData = nullptr;
+    }
+
     bot->SetReactState(REACT_DEFENSIVE);
 
     bot->SetFaction(FSBUtils::GetFactionForFSBRace(botRace));

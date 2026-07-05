@@ -157,6 +157,7 @@ namespace FSBChat
     void BotSendTradeChat(Creature* bot, std::string const& msg);
     void BotSendLocalDefenseChat(Creature* bot, std::string const& msg);
     void BotSendLFGChat(Creature* bot, std::string const& msg);
+    void BotSendRaidChat(Creature* bot, std::string const& msg);
 
     extern std::vector<ConversationTemplate> ChatTables;
     extern std::vector<ActiveConversation> activeConversations;

@@ -67,13 +67,6 @@ enum FSB_Actions
     FSB_ACTION_SOULSTONE_RESSURECT = 4,
 };
 
-enum FSB_MovementPoints
-{
-    FSB_MOVEMENT_POINT_CORPSE = 2,
-    FSB_MOVEMENT_POINT_OUT_FIRE = 10,
-    FSB_MOVEMENT_POINT_NEAR_FIRE = 11,
-};
-
 constexpr float FOLLOW_DISTANCE_CLOSE = 3.0f;
 constexpr float FOLLOW_DISTANCE_NORMAL = 5.0f;
 constexpr float FOLLOW_DISTANCE_WIDE = 8.0f;

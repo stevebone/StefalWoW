@@ -21,6 +21,7 @@
  */
 
 #include "Chat.h"
+#include "GameObject.h"
 #include "Log.h"
 #include "Map.h"
 #include "ObjectAccessor.h"
@@ -60,6 +61,7 @@
 #include "Followship_bots_party_handler.h"
 #include "Followship_bots_teleport_handler.h"
 #include "Followship_bots_battleground_handler.h"
+#include "Followship_bots_warsong_gulch.h"
 
 
 
@@ -535,24 +537,35 @@ public:
 
         void MovementInform(uint32 type, uint32 id) override
         {
+            if (type == EFFECT_MOTION_TYPE)
+            {
+                FSBMovement::HandleBattlegroundMovement(me, type, id);
+                return;
+            }
+
             if (type != POINT_MOTION_TYPE)
                 return;
 
             switch (id)
             {
-            case FSB_MOVEMENT_POINT_CORPSE:
+            case FSBMovement::MOVEMENT_POINT_CORPSE:
             {
                 FSBDeath::BotSetStateAfterCorpseRevive(me);
                 break;
             }
 
-            case FSB_MOVEMENT_POINT_NEAR_FIRE:
+            case FSBMovement::MOVEMENT_POINT_NEAR_FIRE:
             {
                 FSBEvents::ScheduleBotEvent(me, FSB_EVENT_RANDOM_ACTION_SIT_BY_FIRE, 1s, 3s);
                 break;
             }
+
             default:
+            {
+                if (FSBMovement::IsWsgMovementPoint(id))
+                    FSBMovement::HandleBattlegroundMovement(me, type, id);
                 break;
+            }
             }
         }
 

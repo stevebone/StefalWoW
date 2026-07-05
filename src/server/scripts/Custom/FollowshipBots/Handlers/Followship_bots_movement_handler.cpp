@@ -20,15 +20,19 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "DBCEnums.h"
 #include "Log.h"
+#include "Map.h"
 
 #include "Followship_bots_ai_base.h"
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_utils.h"
 
+#include "Followship_bots_battleground_handler.h"
 #include "Followship_bots_events_handler.h"
 #include "Followship_bots_movement_handler.h"
 #include "Followship_bots_spells_handler.h"
+#include "Followship_bots_warsong_gulch.h"
 
 namespace FSBMovement
 {
@@ -91,6 +95,25 @@ namespace FSBMovement
             return IDLE_MOTION_TYPE;
 
         return mm->GetCurrentMovementGeneratorType();
+    }
+
+    void HandleBattlegroundMovement(Creature* bot, uint32 type, uint32 id)
+    {
+        if (!bot || !bot->GetMap()->IsBattleground())
+            return;
+
+        FSB_BaseAI* ai = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!ai)
+            return;
+
+        FSB_BattlegroundData* bgData = ai->GetBattlegroundData();
+        if (!bgData)
+            return;
+
+        if (bgData->bgTypeId != BATTLEGROUND_WS && bgData->bgTypeId != BATTLEGROUND_WG_CTF)
+            return;
+
+        FSBBattleground::WarsongGulch::OnMovementInform(bot, bgData, type, id);
     }
 
     void BotSetMountedState(Creature* bot, bool& botMounted)
