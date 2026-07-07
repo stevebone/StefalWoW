@@ -497,14 +497,19 @@ public:
 
         void JustSummoned(Creature* summon) override // Runs every time the creature summons another creature
         {
-            if (summon && botClass == FSB_Class::Warlock)
+            if (summon)
             {
-                FSBWarlock::AdjustSummonHealth(me, summon);
-                botHasDemon = true;
-                TC_LOG_DEBUG("scripts.fsb.general", "FSB: JustSummoned Triggered for Warlock bot {} with summon {}", me->GetName(), summon->GetName());
-            }
+                summon->ApplyLevelScaling(1);
 
-            _summons.Summon(summon);
+                if (botClass == FSB_Class::Warlock)
+                {
+                    FSBWarlock::AdjustSummonHealth(me, summon);
+                    botHasDemon = true;
+                    TC_LOG_DEBUG("scripts.fsb.general", "FSB: JustSummoned Triggered for Warlock bot {} with summon {}", me->GetName(), summon->GetName());
+                }
+
+                _summons.Summon(summon);
+            }
         }
 
         void SummonedCreatureDies(Creature* summon, Unit* /*killer*/) override // Runs everytime the creature's summon dies - pet or minion
