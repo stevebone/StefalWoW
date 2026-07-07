@@ -626,6 +626,11 @@ namespace FSBBattleground::WarsongGulch
         }
     }
 
+    std::vector<uint32> GetPvpStatIds()
+    {
+        return { 928, 929 }; // PVP_STAT_FLAG_CAPTURES, PVP_STAT_FLAG_RETURNS
+    }
+
     void OnBotCapturedFlag(Creature* bot)
     {
         if (!bot || !bot->IsBot())

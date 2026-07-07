@@ -97,6 +97,7 @@ namespace FSBBattleground
     BotScoreData const* GetBotScore(ObjectGuid botGuid);
 
     void OnBuildPvPLogDataPacket(BattlegroundMap* battlegroundMap, WorldPackets::Battleground::PVPMatchStatistics& pvpLogData);
+    std::vector<uint32> GetBattlegroundPvpStatIds(BattlegroundMap* battlegroundMap);
     std::vector<ObjectGuid> const& GetSpawnedBotGuids(BattlegroundMap* battlegroundMap);
     void ClearSpawnedBotGuids(BattlegroundMap* battlegroundMap);
 

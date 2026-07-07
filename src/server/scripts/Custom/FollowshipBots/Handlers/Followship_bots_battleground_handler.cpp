@@ -353,6 +353,25 @@ namespace FSBBattleground
         return it != Impl::SpawnedBotGuids.end() ? it->second : empty;
     }
 
+    std::vector<uint32> GetBattlegroundPvpStatIds(BattlegroundMap* battlegroundMap)
+    {
+        if (!battlegroundMap)
+            return {};
+
+        Battleground* bg = battlegroundMap->GetBG();
+        if (!bg)
+            return {};
+
+        switch (bg->GetTypeID())
+        {
+            case BATTLEGROUND_WS:
+            case BATTLEGROUND_WG_CTF:
+                return WarsongGulch::GetPvpStatIds();
+            default:
+                return {};
+        }
+    }
+
     void OnBuildPvPLogDataPacket(BattlegroundMap* battlegroundMap, WorldPackets::Battleground::PVPMatchStatistics& pvpLogData)
     {
         if (!battlegroundMap)
@@ -360,6 +379,8 @@ namespace FSBBattleground
 
         int8 botCountAlliance = 0;
         int8 botCountHorde = 0;
+
+        std::vector<uint32> pvpStatIds = GetBattlegroundPvpStatIds(battlegroundMap);
 
         for (auto const& [guid, creature] : battlegroundMap->GetObjectsStore().Data.Head)
         {
@@ -397,6 +418,13 @@ namespace FSBBattleground
             }
 
             ScriptHelpers::AddCreatureToPvPLogData(pvpLogData, guid, uint8(FSBUtils::BotRaceToTC(botRace)), uint8(FSBUtils::FSBToTCClass(botClass)), botGender, creature->GetEntry(), team, killingBlows, honorableKills, deaths, damageDone, healingDone);
+
+            if (!pvpStatIds.empty())
+            {
+                auto& botEntry = pvpLogData.Statistics.back();
+                for (uint32 statId : pvpStatIds)
+                    botEntry.Stats.emplace_back(int32(statId), 0);
+            }
         }
 
         pvpLogData.PlayerCount[PVP_TEAM_ALLIANCE] += botCountAlliance;

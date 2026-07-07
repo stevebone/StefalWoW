@@ -228,4 +228,7 @@ namespace FSBBattleground::WarsongGulch
 
     // Called after a WSG bot successfully captures the flag.
     void OnBotCapturedFlag(Creature* bot);
+
+    // Returns the PVP stat IDs used by WSG for the scoreboard.
+    std::vector<uint32> GetPvpStatIds();
 }
