@@ -920,10 +920,13 @@ namespace FSBChat
                         }
                         else
                         {
-                            std::string fallback = FSBConvPrompts::GetFallbackConversationLine(conv);
-                            TC_LOG_DEBUG("scripts.fsb.genai", "FSB GenAI: bot {} spoke FALLBACK: {}", speaker->GetName(), fallback);
-                            BotSendGeneralChat(speaker, fallback);
-                            conv.history.emplace_back(speaker->GetName(), fallback);
+                            // LLM returned empty/failed response - fall back to a static scripted conversation
+                            TC_LOG_DEBUG("scripts.fsb.genai", "FSB GenAI: bot {} conversation LLM empty; falling back to static StartBotConversation", speaker->GetName());
+                            size_t nextIdx = it - activeConversations.begin();
+                            it = activeConversations.erase(it);
+                            StartBotConversation(speaker);
+                            it = activeConversations.begin() + nextIdx;
+                            continue;
                         }
                     }
 

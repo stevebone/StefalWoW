@@ -1074,5 +1074,4 @@ namespace FSBConvPrompts
     std::string BuildTopicDescription(Creature* bot, ConversationTopic const& topic);
     std::string BuildConversationSystemPrompt(Creature* bot);
     void DispatchConversationTurn(Creature* speaker, FSBChat::ActiveConversation& conv);
-    std::string GetFallbackConversationLine(FSBChat::ActiveConversation const& conv);
 }

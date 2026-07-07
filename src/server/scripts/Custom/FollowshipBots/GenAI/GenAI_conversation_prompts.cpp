@@ -323,23 +323,4 @@ namespace FSBConvPrompts
         }).detach();
     }
 
-    std::string GetFallbackConversationLine(FSBChat::ActiveConversation const& conv)
-    {
-        if (conv.history.empty())
-            return "So, what do you all think?";
-
-        static const char* fallbacks[] =
-        {
-            "Haha, exactly!",
-            "I couldn't agree more.",
-            "Wait, what?",
-            "Tell me about it.",
-            "You don't say.",
-            "No kidding!",
-            "That's one way to look at it.",
-            "Sounds about right."
-        };
-
-        return fallbacks[urand(0, int(std::size(fallbacks)) - 1)];
-    }
 }
