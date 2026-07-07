@@ -326,6 +326,11 @@ namespace WorldPackets
         class SetSheathed;
     }
 
+    namespace Contribution
+    {
+        class ContributionContribute;
+    }
+
     namespace Duel
     {
         class CanDuel;
@@ -1819,6 +1824,7 @@ class TC_GAME_API WorldSession
         void HandleObjectUpdateFailedOpcode(WorldPackets::Misc::ObjectUpdateFailed& objectUpdateFailed);
         void HandleObjectUpdateRescuedOpcode(WorldPackets::Misc::ObjectUpdateRescued& objectUpdateRescued);
         void HandleCloseInteraction(WorldPackets::Misc::CloseInteraction& closeInteraction);
+        void HandleContributionContribute(WorldPackets::Contribution::ContributionContribute& contribute);
         void HandleConversationLineStarted(WorldPackets::Misc::ConversationLineStarted& conversationLineStarted);
         void HandleKeyboundOverride(WorldPackets::Spells::KeyboundOverride& keyboundOverride);
         void HandleQueryCountdownTimer(WorldPackets::Misc::QueryCountdownTimer& queryCountdownTimer);

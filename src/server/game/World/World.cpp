@@ -62,6 +62,7 @@
 #include "IPLocation.h"
 #include "InstanceLockMgr.h"
 #include "ItemBonusMgr.h"
+#include "ContributionMgr.h"
 #include "LFGMgr.h"
 #include "Language.h"
 #include "ManagedWorldStateMgr.h"
@@ -1617,6 +1618,9 @@ bool World::SetInitialWorldSettings()
 
     TC_LOG_INFO("server.loading", "Loading Managed World States...");
     sManagedWorldStateMgr->Load();                            // must be after world state values are available to restore persisted progress
+
+    TC_LOG_INFO("server.loading", "Loading Contribution collectors...");
+    sContributionMgr->Load();
 
     TC_LOG_INFO("server.loading", "Loading Game Event Data...");               // must be after loading pools fully
     sGameEventMgr->LoadFromDB();
