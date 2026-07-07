@@ -29,6 +29,8 @@
 #include "Timer.h"
 #include "ScriptHelpers.h"
 
+#include <unordered_map>
+
 #include "Custom/FollowshipBots/Followship_bots_mgr.h"
 #include "Custom/FollowshipBots/Handlers/Followship_bots_battleground_handler.h"
 #include "Custom/FollowshipBots/Handlers/Followship_bots_events_handler.h"
@@ -749,6 +751,20 @@ struct battleground_warsong_gulch : BattlegroundScript
         return BattlegroundScript::GetPrematureWinner();
     }
 
+    uint32 GetData(uint32 dataId) const override
+    {
+        auto it = _botStateData.find(dataId);
+        if (it != _botStateData.end())
+            return it->second;
+        return BattlegroundScript::GetData(dataId);
+    }
+
+    void SetData(uint32 dataId, uint32 value) override
+    {
+        _botStateData[dataId] = value;
+        BattlegroundScript::SetData(dataId, value);
+    }
+
     void SetLastFlagCapture(Team team)
     {
         _lastFlagCaptureTeam = team;
@@ -770,6 +786,8 @@ private:
     uint32 _honorWinKills;
     uint32 _honorEndKills;
     uint32 _reputationCapture;
+
+    std::unordered_map<uint32, uint32> _botStateData;
 };
 
 void AddSC_battleground_warsong_gulch()

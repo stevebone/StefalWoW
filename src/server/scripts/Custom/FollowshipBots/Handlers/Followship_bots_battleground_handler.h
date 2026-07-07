@@ -68,6 +68,12 @@ namespace FSBBattleground
 {
     // Data index used with BattlegroundScript::GetData / SetData
     constexpr uint32 BotsSpawnedDataId = 0;
+    constexpr uint32 DataCurrentBaseDefendersAlliance = 1;
+    constexpr uint32 DataCurrentMiddleDefendersAlliance = 2;
+    constexpr uint32 DataCurrentFlagAttackersAlliance = 3;
+    constexpr uint32 DataCurrentBaseDefendersHorde = 4;
+    constexpr uint32 DataCurrentMiddleDefendersHorde = 5;
+    constexpr uint32 DataCurrentFlagAttackersHorde = 6;
 
     struct BotScoreData
     {

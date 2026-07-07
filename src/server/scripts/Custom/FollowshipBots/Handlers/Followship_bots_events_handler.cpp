@@ -154,8 +154,8 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
             {
                 if (bgData->wsgState == FSBBattleground::WarsongGulch::WSGState::None)
                 {
-                    uint8 state = urand(1, 3);
-                    FSBBattleground::WarsongGulch::SetBotState(bot, bgData, static_cast<FSBBattleground::WarsongGulch::WSGState>(state));
+                    FSBBattleground::WarsongGulch::SetBotState(bot, bgData,
+                        FSBBattleground::WarsongGulch::GetWSGBotState(bot, bgData->wsgState));
                 }
             }
         }
@@ -181,8 +181,8 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
                 if (FSBBattleground::WarsongGulch::BotHasFlagAura(bot))
                     break;
 
-                uint8 state = urand(1, 3);
-                FSBBattleground::WarsongGulch::SetBotState(bot, bgData, static_cast<FSBBattleground::WarsongGulch::WSGState>(state));
+                FSBBattleground::WarsongGulch::SetBotState(bot, bgData,
+                    FSBBattleground::WarsongGulch::GetWSGBotState(bot, bgData->wsgState));
                 FSBBattleground::WarsongGulch::UpdateBot(bot, bgData);
             }
         }

@@ -325,7 +325,7 @@ namespace FSBBattleground::WarsongGulch
         if (baseAI && baseAI->botHired)
             return;
 
-        if (bot->IsInCombat())
+        if (bot->IsInCombat() && bgData->wsgState != WSGState::ReturnFlag)
             return;
 
         MovementGeneratorType moveType = FSBMovement::GetMovementType(bot);
@@ -441,6 +441,47 @@ namespace FSBBattleground::WarsongGulch
     {
         if (!bot || !bgData)
             return;
+
+        // Update tracked state counts via ZoneScript GetData/SetData (per team)
+        if (ZoneScript* zoneScript = bot->GetZoneScript())
+        {
+            bool isAlliance = GetBotTeam(bot) == ALLIANCE;
+            uint32 baseDefendersId = isAlliance ? FSBBattleground::DataCurrentBaseDefendersAlliance : FSBBattleground::DataCurrentBaseDefendersHorde;
+            uint32 middleDefendersId = isAlliance ? FSBBattleground::DataCurrentMiddleDefendersAlliance : FSBBattleground::DataCurrentMiddleDefendersHorde;
+            uint32 flagAttackersId = isAlliance ? FSBBattleground::DataCurrentFlagAttackersAlliance : FSBBattleground::DataCurrentFlagAttackersHorde;
+
+            WSGState oldState = bgData->wsgState;
+
+            switch (oldState)
+            {
+                case WSGState::DefendBase:
+                    zoneScript->SetData(baseDefendersId, zoneScript->GetData(baseDefendersId) - 1);
+                    break;
+                case WSGState::HoldCenter:
+                    zoneScript->SetData(middleDefendersId, zoneScript->GetData(middleDefendersId) - 1);
+                    break;
+                case WSGState::AttackFlag:
+                    zoneScript->SetData(flagAttackersId, zoneScript->GetData(flagAttackersId) - 1);
+                    break;
+                default:
+                    break;
+            }
+
+            switch (newState)
+            {
+                case WSGState::DefendBase:
+                    zoneScript->SetData(baseDefendersId, zoneScript->GetData(baseDefendersId) + 1);
+                    break;
+                case WSGState::HoldCenter:
+                    zoneScript->SetData(middleDefendersId, zoneScript->GetData(middleDefendersId) + 1);
+                    break;
+                case WSGState::AttackFlag:
+                    zoneScript->SetData(flagAttackersId, zoneScript->GetData(flagAttackersId) + 1);
+                    break;
+                default:
+                    break;
+            }
+        }
 
         bgData->wsgState = newState;
         bgData->wsgMovePhase = WSGMovePhase::None;
@@ -629,6 +670,70 @@ namespace FSBBattleground::WarsongGulch
     std::vector<uint32> GetPvpStatIds()
     {
         return { 928, 929 }; // PVP_STAT_FLAG_CAPTURES, PVP_STAT_FLAG_RETURNS
+    }
+
+    bool IsEnemyFlagTaken(Creature* bot)
+    {
+        if (!bot)
+            return false;
+
+        Team botTeam = GetBotTeam(bot);
+        uint32 enemyFlagEntry = botTeam == ALLIANCE ? ObjectHordeFlag : ObjectAllianceFlag;
+
+        BattlegroundMap* bgMap = bot->GetMap()->ToBattlegroundMap();
+        if (!bgMap)
+            return false;
+
+        bool found = false;
+        for (auto const& [guid, go] : bgMap->GetObjectsStore().Data.FindContainer<GameObject>())
+        {
+            if (!go || go->GetEntry() != enemyFlagEntry)
+                continue;
+
+            found = true;
+            TC_LOG_DEBUG("scripts.fsb.battleground", "FSB WSG: IsEnemyFlagTaken bot {} found enemy flag {} state={}", bot->GetName(), enemyFlagEntry, static_cast<uint8>(go->GetFlagState()));
+            return go->GetFlagState() == FlagState::Taken;
+        }
+
+        if (!found)
+            TC_LOG_DEBUG("scripts.fsb.battleground", "FSB WSG: IsEnemyFlagTaken bot {} found no gameobject with entry {}", bot->GetName(), enemyFlagEntry);
+
+        return false;
+    }
+
+    WSGState GetWSGBotState(Creature* bot, WSGState /*currentState*/)
+    {
+        bool enemyFlagTaken = IsEnemyFlagTaken(bot);
+
+        ZoneScript* zoneScript = bot ? bot->GetZoneScript() : nullptr;
+
+        std::vector<WSGState> available;
+        if (zoneScript)
+        {
+            bool isAlliance = GetBotTeam(bot) == ALLIANCE;
+            uint32 baseDefendersId = isAlliance ? FSBBattleground::DataCurrentBaseDefendersAlliance : FSBBattleground::DataCurrentBaseDefendersHorde;
+            uint32 middleDefendersId = isAlliance ? FSBBattleground::DataCurrentMiddleDefendersAlliance : FSBBattleground::DataCurrentMiddleDefendersHorde;
+            uint32 flagAttackersId = isAlliance ? FSBBattleground::DataCurrentFlagAttackersAlliance : FSBBattleground::DataCurrentFlagAttackersHorde;
+
+            if (zoneScript->GetData(baseDefendersId) < MaxBaseDefenders)
+                available.push_back(WSGState::DefendBase);
+            if (zoneScript->GetData(middleDefendersId) < MaxMiddleDefenders)
+                available.push_back(WSGState::HoldCenter);
+            if (!enemyFlagTaken && zoneScript->GetData(flagAttackersId) < MaxFlagAttackers)
+                available.push_back(WSGState::AttackFlag);
+        }
+        else
+        {
+            available.push_back(WSGState::DefendBase);
+            available.push_back(WSGState::HoldCenter);
+            if (!enemyFlagTaken)
+                available.push_back(WSGState::AttackFlag);
+        }
+
+        if (available.empty())
+            return WSGState::HoldCenter;
+
+        return available[urand(0, available.size() - 1)];
     }
 
     void OnBotCapturedFlag(Creature* bot)

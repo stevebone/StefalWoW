@@ -178,8 +178,8 @@ namespace FSBDeath
             {
                 if (bgData->bgTypeId == BATTLEGROUND_WS || bgData->bgTypeId == BATTLEGROUND_WG_CTF)
                 {
-                    uint8 state = urand(1, 3);
-                    FSBBattleground::WarsongGulch::SetBotState(bot, bgData, static_cast<FSBBattleground::WarsongGulch::WSGState>(state));
+                    FSBBattleground::WarsongGulch::SetBotState(bot, bgData,
+                        FSBBattleground::WarsongGulch::GetWSGBotState(bot, bgData->wsgState));
                     FSBBattleground::WarsongGulch::UpdateBot(bot, bgData);
                 }
             }

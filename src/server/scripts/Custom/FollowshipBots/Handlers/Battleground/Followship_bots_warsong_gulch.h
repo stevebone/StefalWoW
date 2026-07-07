@@ -73,6 +73,10 @@ namespace FSBBattleground::WarsongGulch
     static constexpr uint32 ObjectHordeFlag = 227740;
     static constexpr uint32 ObjectAllianceFlag = 227741;
 
+    static constexpr uint8 MaxBaseDefenders = 2;
+    static constexpr uint8 MaxMiddleDefenders = 3;
+    static constexpr uint8 MaxFlagAttackers = 4;
+
     static constexpr Position FSB_WSG_GRAVEYARD_ALLIANCE(1410.592f, 1562.315f, 328.3285f, 0.0f);
     static constexpr Position FSB_WSG_GRAVEYARD_HORDE(1058.005f, 1373.705f, 328.5538f, 0.0f);
 
@@ -231,4 +235,7 @@ namespace FSBBattleground::WarsongGulch
 
     // Returns the PVP stat IDs used by WSG for the scoreboard.
     std::vector<uint32> GetPvpStatIds();
+
+    bool IsEnemyFlagTaken(Creature* bot);
+    WSGState GetWSGBotState(Creature* bot, WSGState currentState);
 }

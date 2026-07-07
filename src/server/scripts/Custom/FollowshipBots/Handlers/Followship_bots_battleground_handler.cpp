@@ -516,7 +516,16 @@ namespace FSBBattleground
                         bot->HasAura(WarsongGulch::Spells::HordeFlag);
         }
 
-        float scanRange = isCarrier ? 30.0f : 50.0f;
+        float scanRange = 50.0f;
+        if (isCarrier)
+            scanRange = 20.0f;
+        else if (isCtf)
+        {
+            if (auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI()))
+                if (FSB_BattlegroundData* bgData = baseAI->GetBattlegroundData())
+                    if (bgData->wsgState == WarsongGulch::WSGState::ProtectCarrier)
+                        scanRange = 20.0f;
+        }
 
         struct Candidate
         {
