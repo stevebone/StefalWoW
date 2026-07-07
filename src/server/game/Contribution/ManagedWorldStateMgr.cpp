@@ -16,9 +16,13 @@
  */
 
 #include "ManagedWorldStateMgr.h"
+#include "ConditionMgr.h"
 #include "DB2Stores.h"
 #include "Log.h"
+#include "Player.h"
 #include "Timer.h"
+#include "World.h"
+#include "WorldSession.h"
 #include "WorldStateMgr.h"
 #include <algorithm>
 
@@ -40,6 +44,12 @@ void ManagedWorldStateMgr::Load()
 {
     uint32 const oldMSTime = getMSTime();
     _states.clear();
+    _buffsByState.clear();
+
+    // Index the stage buffs by their managed world state so OnReachedTarget / login can apply them cheaply.
+    for (ManagedWorldStateBuffEntry const* buff : sManagedWorldStateBuffStore)
+        if (buff->BuffSpellID)
+            _buffsByState[uint32(buff->ManagedWorldStateID)].push_back(buff);
 
     for (ManagedWorldStateEntry const* entry : sManagedWorldStateStore)
     {
@@ -140,6 +150,54 @@ void ManagedWorldStateMgr::OnReachedTarget(StateData& state)
     ++state.Stage;
     PushStage(state);
     PushOccurrences(state);
+    ApplyBuffsForOccurrence(state);
+}
+
+void ManagedWorldStateMgr::ApplyBuffsForOccurrence(StateData const& state) const
+{
+    auto itr = _buffsByState.find(state.Entry->ID);
+    if (itr == _buffsByState.end())
+        return;
+
+    for (ManagedWorldStateBuffEntry const* buff : itr->second)
+    {
+        // Apply each buff exactly as its occurrence threshold is newly reached (occurrences advance one at a time).
+        if (buff->OccurrenceValue != uint32(state.Occurrences))
+            continue;
+
+        for (auto const& [accountId, session] : sWorld->GetAllSessions())
+        {
+            Player* player = session->GetPlayer();
+            if (!player || !player->IsInWorld())
+                continue;
+
+            if (buff->PlayerConditionID && !ConditionMgr::IsPlayerMeetingCondition(player, buff->PlayerConditionID))
+                continue;
+
+            player->CastSpell(player, uint32(buff->BuffSpellID), true);
+        }
+    }
+}
+
+void ManagedWorldStateMgr::ApplyActiveBuffs(Player* player) const
+{
+    for (auto const& [stateId, state] : _states)
+    {
+        auto itr = _buffsByState.find(stateId);
+        if (itr == _buffsByState.end())
+            continue;
+
+        for (ManagedWorldStateBuffEntry const* buff : itr->second)
+        {
+            if (uint32(state.Occurrences) < buff->OccurrenceValue)
+                continue;
+
+            if (buff->PlayerConditionID && !ConditionMgr::IsPlayerMeetingCondition(player, buff->PlayerConditionID))
+                continue;
+
+            player->CastSpell(player, uint32(buff->BuffSpellID), true);
+        }
+    }
 }
 
 void ManagedWorldStateMgr::PushProgress(StateData const& state) const

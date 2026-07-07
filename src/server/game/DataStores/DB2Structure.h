@@ -2935,6 +2935,15 @@ struct ManagedWorldStateInputEntry
     int32 ValidInputConditionID;
 };
 
+struct ManagedWorldStateBuffEntry
+{
+    uint32 ID;
+    int32 BuffSpellID;
+    uint32 PlayerConditionID;
+    uint32 OccurrenceValue;
+    int32 ManagedWorldStateID;
+};
+
 struct MapEntry
 {
     uint32 ID;

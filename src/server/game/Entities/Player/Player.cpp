@@ -86,6 +86,7 @@
 #include "LootMgr.h"
 #include "LootPackets.h"
 #include "Mail.h"
+#include "ManagedWorldStateMgr.h"
 #include "MailPackets.h"
 #include "MapManager.h"
 #include "MapUtils.h"
@@ -25036,6 +25037,9 @@ void Player::SendInitialPacketsBeforeAddToMap()
 void Player::SendInitialPacketsAfterAddToMap()
 {
     UpdateVisibilityForPlayer();
+
+    // Re-apply any managed-world-state stage buffs (war-effort rewards) this character is currently eligible for.
+    sManagedWorldStateMgr->ApplyActiveBuffs(this);
 
     // Send map wide vignettes before UpdateZone, that will send zone wide vignettes
     // But first send on new map will wipe all vignettes on client

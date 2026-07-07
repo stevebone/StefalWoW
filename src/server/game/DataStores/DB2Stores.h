@@ -193,6 +193,7 @@ TC_GAME_API extern DB2Storage<LockEntry>                            sLockStore;
 TC_GAME_API extern DB2Storage<MailTemplateEntry>                    sMailTemplateStore;
 TC_GAME_API extern DB2Storage<ManagedWorldStateEntry>               sManagedWorldStateStore;
 TC_GAME_API extern DB2Storage<ManagedWorldStateInputEntry>          sManagedWorldStateInputStore;
+TC_GAME_API extern DB2Storage<ManagedWorldStateBuffEntry>           sManagedWorldStateBuffStore;
 TC_GAME_API extern DB2Storage<MapEntry>                             sMapStore;
 TC_GAME_API extern DB2Storage<MapChallengeModeEntry>                sMapChallengeModeStore;
 TC_GAME_API extern DB2Storage<MapDifficultyEntry>                   sMapDifficultyStore;

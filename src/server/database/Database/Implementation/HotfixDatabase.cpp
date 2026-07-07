@@ -508,6 +508,9 @@ void HotfixDatabaseConnection::DoPrepareStatements()
     PrepareStatement(HOTFIX_SEL_MANAGED_WORLD_STATE_INPUT, "SELECT ID, ManagedWorldStateID, QuestID, ValidInputConditionID FROM managed_world_state_input"
         " WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
     PREPARE_MAX_ID_STMT(HOTFIX_SEL_MANAGED_WORLD_STATE_INPUT, "SELECT MAX(ID) + 1 FROM managed_world_state_input", CONNECTION_SYNCH);
+    PrepareStatement(HOTFIX_SEL_MANAGED_WORLD_STATE_BUFF, "SELECT ID, BuffSpellID, PlayerConditionID, OccurrenceValue, ManagedWorldStateID FROM managed_world_state_buff"
+        " WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
+    PREPARE_MAX_ID_STMT(HOTFIX_SEL_MANAGED_WORLD_STATE_BUFF, "SELECT MAX(ID) + 1 FROM managed_world_state_buff", CONNECTION_SYNCH);
 
     // ConversationLine.db2
     PrepareStatement(HOTFIX_SEL_CONVERSATION_LINE, "SELECT ID, BroadcastTextID, Unused1020, SpellVisualKitID, AdditionalDuration, "

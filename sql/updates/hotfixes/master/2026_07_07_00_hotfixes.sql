@@ -66,3 +66,14 @@ CREATE TABLE `managed_world_state_input` (
   `VerifiedBuild` int NOT NULL DEFAULT '0',
   PRIMARY KEY (`ID`,`VerifiedBuild`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+DROP TABLE IF EXISTS `managed_world_state_buff`;
+CREATE TABLE `managed_world_state_buff` (
+  `ID` int unsigned NOT NULL DEFAULT '0',
+  `BuffSpellID` int NOT NULL DEFAULT '0',
+  `PlayerConditionID` int unsigned NOT NULL DEFAULT '0',
+  `OccurrenceValue` int unsigned NOT NULL DEFAULT '0',
+  `ManagedWorldStateID` int NOT NULL DEFAULT '0',
+  `VerifiedBuild` int NOT NULL DEFAULT '0',
+  PRIMARY KEY (`ID`,`VerifiedBuild`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

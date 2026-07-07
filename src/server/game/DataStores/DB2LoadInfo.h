@@ -3989,6 +3989,20 @@ struct ManagedWorldStateInputLoadInfo
     static constexpr DB2LoadInfo Instance{ Fields, 4, &ManagedWorldStateInputMeta::Instance, HOTFIX_SEL_MANAGED_WORLD_STATE_INPUT };
 };
 
+struct ManagedWorldStateBuffLoadInfo
+{
+    static constexpr DB2FieldMeta Fields[5] =
+    {
+        { .IsSigned = false, .Type = FT_INT, .Name = "ID" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "BuffSpellID" },
+        { .IsSigned = false, .Type = FT_INT, .Name = "PlayerConditionID" },
+        { .IsSigned = false, .Type = FT_INT, .Name = "OccurrenceValue" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "ManagedWorldStateID" },
+    };
+
+    static constexpr DB2LoadInfo Instance{ Fields, 5, &ManagedWorldStateBuffMeta::Instance, HOTFIX_SEL_MANAGED_WORLD_STATE_BUFF };
+};
+
 struct MapLoadInfo
 {
     static constexpr DB2FieldMeta Fields[29] =

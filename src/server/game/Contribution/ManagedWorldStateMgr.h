@@ -20,8 +20,11 @@
 
 #include "Define.h"
 #include <unordered_map>
+#include <vector>
 
+class Player;
 struct ManagedWorldStateEntry;
+struct ManagedWorldStateBuffEntry;
 
 // Runtime for ManagedWorldState.db2: a realm-wide progress driver that accumulates toward a target during its "up"
 // window and depletes during its "down" window, exposing the value through the Progress / CurrentStage / Occurrences
@@ -51,6 +54,10 @@ public:
     // bounds and pushes the updated world states. Returns false if the id is unknown. Used by the Contribute path.
     bool AddProgress(uint32 managedWorldStateId, int32 amount);
 
+    // Applies every managed-world-state stage buff the player is currently eligible for (occurrence already reached
+    // + PlayerCondition met). Called on login so stage rewards persist for players who arrive after the stage flip.
+    void ApplyActiveBuffs(Player* player) const;
+
 private:
     enum class Phase : uint8 { Up, Down };
 
@@ -67,11 +74,13 @@ private:
 
     void ApplyMinuteTick(StateData& state);
     void OnReachedTarget(StateData& state);
+    void ApplyBuffsForOccurrence(StateData const& state) const;
     void PushProgress(StateData const& state) const;
     void PushStage(StateData const& state) const;
     void PushOccurrences(StateData const& state) const;
 
     std::unordered_map<uint32, StateData> _states;
+    std::unordered_map<uint32 /*managedWorldStateId*/, std::vector<ManagedWorldStateBuffEntry const*>> _buffsByState;
 };
 
 #define sManagedWorldStateMgr ManagedWorldStateMgr::instance()

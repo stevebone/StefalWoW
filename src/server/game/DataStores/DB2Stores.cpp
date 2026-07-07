@@ -119,6 +119,7 @@ DB2Storage<ContributionEntry>                   sContributionStore("Contribution
 DB2Storage<CreatureXContributionEntry>          sCreatureXContributionStore("CreatureXContribution.db2", &CreatureXContributionLoadInfo::Instance);
 DB2Storage<ManagedWorldStateEntry>              sManagedWorldStateStore("ManagedWorldState.db2", &ManagedWorldStateLoadInfo::Instance);
 DB2Storage<ManagedWorldStateInputEntry>         sManagedWorldStateInputStore("ManagedWorldStateInput.db2", &ManagedWorldStateInputLoadInfo::Instance);
+DB2Storage<ManagedWorldStateBuffEntry>          sManagedWorldStateBuffStore("ManagedWorldStateBuff.db2", &ManagedWorldStateBuffLoadInfo::Instance);
 DB2Storage<ConversationLineEntry>               sConversationLineStore("ConversationLine.db2", &ConversationLineLoadInfo::Instance);
 DB2Storage<CorruptionEffectsEntry>              sCorruptionEffectsStore("CorruptionEffects.db2", &CorruptionEffectsLoadInfo::Instance);
 DB2Storage<CraftingQualityEntry>                sCraftingQualityStore("CraftingQuality.db2", &CraftingQualityLoadInfo::Instance);
@@ -876,6 +877,7 @@ uint32 DB2Manager::LoadStores(std::string const& dataPath, LocaleConstant defaul
     LOAD_DB2(sMailTemplateStore);
     LOAD_DB2(sManagedWorldStateStore);
     LOAD_DB2(sManagedWorldStateInputStore);
+    LOAD_DB2(sManagedWorldStateBuffStore);
     LOAD_DB2(sMapStore);
     LOAD_DB2(sMapChallengeModeStore);
     LOAD_DB2(sMapDifficultyStore);
