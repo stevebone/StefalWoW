@@ -3062,6 +3062,11 @@ bool Creature::HasScalableLevels() const
     return m_unitData->ContentTuningID != 0;
 }
 
+void Creature::RemoveCivilianFlag()
+{
+    const_cast<CreatureTemplate*>(GetCreatureTemplate())->flags_extra &= ~CREATURE_FLAG_EXTRA_CIVILIAN;
+}
+
 void Creature::ApplyLevelScaling()
 {
     ApplyLevelScaling(GetCreatureDifficulty()->ContentTuningID);
