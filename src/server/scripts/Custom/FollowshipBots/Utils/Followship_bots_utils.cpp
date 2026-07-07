@@ -245,7 +245,7 @@ namespace FSBUtils
         case FSB_Race::Gnome:               return LANG_GNOMISH;
         case FSB_Race::Draenei:             return LANG_DRAENEI;
         case FSB_Race::Worgen:              return LANG_WORGEN;
-        case FSB_Race::Pandaren:            return LANG_PANDAREN_NEUTRAL;
+        case FSB_Race::Pandaren:            return LANG_PANDAREN_ALLIANCE;
         case FSB_Race::VoidElf:             return LANG_THALASSIAN;
         case FSB_Race::Orc:                 return LANG_ORCISH;
         case FSB_Race::Undead:              return LANG_GUTTERSPEAK;
