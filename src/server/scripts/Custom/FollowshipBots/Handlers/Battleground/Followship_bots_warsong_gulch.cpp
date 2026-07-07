@@ -350,7 +350,7 @@ namespace FSBBattleground::WarsongGulch
         if (!bot->IsAlive())
             return;
 
-        if (bot->IsInCombat() && (bgData->wsgState != WSGState::ReturnFlag || bgData->wsgState != WSGState::AttackFlag))
+        if (bot->IsInCombat() && bgData->wsgState != WSGState::ReturnFlag && bgData->wsgState != WSGState::AttackFlag)
             return;
 
         if (FSBRecovery::BotHasRecoveryActive(bot))
@@ -683,10 +683,12 @@ namespace FSBBattleground::WarsongGulch
         }
         case FSBMovement::MOVEMENT_POINT_WSG_OBJECTIVE:
             // Reached the enemy flag position; use the flag after a 1s delay.
+            bot->GetMotionMaster()->Clear();
             FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_WSG_USE_FLAG, 1s);
             break;
         case FSBMovement::MOVEMENT_POINT_WSG_RETURN_FLAG:
             // Home with the flag; trigger the capture directly from the bot AI.
+            bot->GetMotionMaster()->Clear();
             bgData->wsgMovePhase = WSGMovePhase::AtObjective;
             if (ZoneScript* zoneScript = bot->GetZoneScript())
             {

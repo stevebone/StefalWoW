@@ -24,7 +24,7 @@
 
 #include "Followship_bots_db.h"
 #include "Followship_bots_defines.h"
-#include "Followship_bots_utils.h"
+#include "Utils/Followship_bots_utils.h"
 
 struct FSBEntryRaceClassMap
 {
