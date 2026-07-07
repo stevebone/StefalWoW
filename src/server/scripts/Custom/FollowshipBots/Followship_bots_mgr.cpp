@@ -585,6 +585,7 @@ void FSBMgr::SetInitialBotState(Creature* bot)
 
     bot->SetReactState(REACT_DEFENSIVE);
 
+    bot->ApplyLevelScaling(1); // Sets Content Tuning override
     bot->SetFaction(FSBUtils::GetFactionForFSBRace(botRace));
     baseAI->botLanguage = FSBUtils::GetLanguageForFSBRace(botRace);
     FSBStats::ApplyBotBaseClassStats(bot, botClass);

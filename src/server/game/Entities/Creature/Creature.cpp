@@ -3064,20 +3064,24 @@ bool Creature::HasScalableLevels() const
 
 void Creature::ApplyLevelScaling()
 {
-    CreatureDifficulty const* creatureDifficulty = GetCreatureDifficulty();
+    ApplyLevelScaling(GetCreatureDifficulty()->ContentTuningID);
+}
 
-    if (Optional<ContentTuningLevels> levels = sDB2Manager.GetContentTuningData(creatureDifficulty->ContentTuningID, {}))
+void Creature::ApplyLevelScaling(int32 contentTuningId)
+{
+    if (Optional<ContentTuningLevels> levels = sDB2Manager.GetContentTuningData(contentTuningId, {}))
     {
         SetUpdateFieldValue(m_values.ModifyValue(&Unit::m_unitData).ModifyValue(&UF::UnitData::ScalingLevelMin), levels->MinLevel);
         SetUpdateFieldValue(m_values.ModifyValue(&Unit::m_unitData).ModifyValue(&UF::UnitData::ScalingLevelMax), levels->MaxLevel);
     }
 
+    CreatureDifficulty const* creatureDifficulty = GetCreatureDifficulty();
     int32 mindelta = std::min(creatureDifficulty->DeltaLevelMax, creatureDifficulty->DeltaLevelMin);
     int32 maxdelta = std::max(creatureDifficulty->DeltaLevelMax, creatureDifficulty->DeltaLevelMin);
     int32 delta = mindelta == maxdelta ? mindelta : irand(mindelta, maxdelta);
 
     SetUpdateFieldValue(m_values.ModifyValue(&Unit::m_unitData).ModifyValue(&UF::UnitData::ScalingLevelDelta), delta);
-    SetUpdateFieldValue(m_values.ModifyValue(&Unit::m_unitData).ModifyValue(&UF::UnitData::ContentTuningID), creatureDifficulty->ContentTuningID);
+    SetUpdateFieldValue(m_values.ModifyValue(&Unit::m_unitData).ModifyValue(&UF::UnitData::ContentTuningID), contentTuningId);
 }
 
 uint64 Creature::GetMaxHealthByLevel(uint8 level) const
