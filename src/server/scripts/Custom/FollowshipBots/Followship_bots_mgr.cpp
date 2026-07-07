@@ -551,6 +551,7 @@ void FSBMgr::SetInitialBotState(Creature* bot)
     auto& botRole = baseAI->botRole;
     SetBotClassAndRace(bot, botClass, botRace);
     baseAI->botClassStats = FSBStats::GetBotClassStats(botClass);
+    baseAI->botTCRace = FSBUtils::BotRaceToTC(botRace);
     baseAI->botHasDemon = false;
 
     // For shaman we set self resurrect flag for reincarnation

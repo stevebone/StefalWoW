@@ -27,11 +27,11 @@
 #include "ScriptMgr.h"
 #include "SpellAuras.h"
 #include "Timer.h"
+#include "ScriptHelpers.h"
 
 #include "Custom/FollowshipBots/Followship_bots_mgr.h"
 #include "Custom/FollowshipBots/Handlers/Followship_bots_battleground_handler.h"
 #include "Custom/FollowshipBots/Handlers/Followship_bots_events_handler.h"
-#include "Custom/FollowshipBots/Utils/Followship_bots_utils.h"
 
 struct battleground_warsong_gulch : BattlegroundScript
 {
@@ -269,8 +269,13 @@ struct battleground_warsong_gulch : BattlegroundScript
         if (!bot || !bot->IsBot())
             return;
 
-        FSB_Race botRace = FSBMgr::Get()->GetBotRaceForEntry(bot->GetEntry());
-        Team team = FSBUtils::GetTeamFromFSBRace(botRace);
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
+            return;
+
+        auto botRace = baseAI->botTCRace;
+        Team team = ScriptHelpers::GetTeamForRace(botRace);
+
         if (team != ALLIANCE && team != HORDE)
         {
             TC_LOG_DEBUG("scripts.fsb.battleground", "FSB WSG ProcessEvent: bot {} has invalid team ({})", bot->GetName(), team);
@@ -386,7 +391,7 @@ struct battleground_warsong_gulch : BattlegroundScript
                         auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
                         if (!baseAI)
                             return;
-                        Team team = FSBUtils::GetTeamFromFSBRace(baseAI->botRace);
+                        Team team = ScriptHelpers::GetTeamForRace(baseAI->botTCRace);
                         TeamId const teamId = Battleground::GetTeamIndexByTeamId(team);
 
                         if (AreaTrigger* trigger = battlegroundMap->GetAreaTrigger(_capturePointAreaTriggers[teamId]))
@@ -597,7 +602,7 @@ struct battleground_warsong_gulch : BattlegroundScript
                     auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
                     if (!baseAI)
                         return false;
-                    team = FSBUtils::GetTeamFromFSBRace(baseAI->botRace);
+                    team = ScriptHelpers::GetTeamForRace(baseAI->botTCRace);
                 }
             }
         }
@@ -655,7 +660,7 @@ struct battleground_warsong_gulch : BattlegroundScript
                     auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
                     if (!baseAI)
                         return;
-                    team = FSBUtils::GetTeamFromFSBRace(baseAI->botRace);
+                    team = ScriptHelpers::GetTeamForRace(baseAI->botTCRace);
                 }
             }
         }

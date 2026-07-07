@@ -54,6 +54,7 @@ public:
         botRole(FSB_Roles::FSB_ROLE_NONE),
         botClass(FSB_Class::None),
         botRace(FSB_Race::None),
+        botTCRace(RACE_NONE),
         botGender(GENDER_NONE),
         botMoveState(FSB_MovementStates::FSB_MOVE_STATE_IDLE),
         botChatterType(FSB_ChatterType::None),
@@ -104,6 +105,7 @@ public:
     FSB_Roles botRole; 
     FSB_Class botClass;
     FSB_Race botRace;
+    Races botTCRace;
     Gender botGender;
     FSB_MovementStates botMoveState;
     FSB_ChatterType botChatterType;

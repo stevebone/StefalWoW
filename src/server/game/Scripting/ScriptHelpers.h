@@ -88,6 +88,8 @@ namespace ScriptHelpers
     // Wrapper function to add a creature entry to a PvP match statistics packet
     // This constructs the player statistics entry internally in the core to avoid needing BattlegroundPackets.h in scripts
     TC_GAME_API void AddCreatureToPvPLogData(WorldPackets::Battleground::PVPMatchStatistics& pvpLogData, ObjectGuid guid, uint8 race, uint8 classId, Gender gender, uint32 creatureId, Team team, uint32 killingBlows = 0, uint32 honorableKills = 0, uint32 deaths = 0, uint32 damageDone = 0, uint32 healingDone = 0);
+
+    TC_GAME_API Team GetTeamForRace(uint8 race);
 }
 
 #endif // SC_SCRIPTHELPERS_H

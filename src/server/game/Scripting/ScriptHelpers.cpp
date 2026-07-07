@@ -18,6 +18,8 @@
 #include "ScriptHelpers.h"
 #include "BattlegroundPackets.h"
 #include "Creature.h"
+#include "DB2Stores.h"
+#include "DB2Structure.h"
 #include "ObjectAccessor.h"
 #include "Player.h"
 #include "PartyPackets.h"
@@ -508,5 +510,20 @@ namespace ScriptHelpers
         }
 
         pvpLogData.Statistics.push_back(playerData);
+    }
+
+    Team GetTeamForRace(uint8 race)
+    {
+        ChrRacesEntry const* rEntry = sChrRacesStore.LookupEntry(race);
+        if (!rEntry)
+            return ALLIANCE;
+
+        switch (rEntry->Alliance)
+        {
+            case 0: return ALLIANCE;
+            case 1: return HORDE;
+            case 2: return PANDARIA_NEUTRAL;
+            default: return ALLIANCE;
+        }
     }
 }

@@ -366,9 +366,13 @@ namespace FSBBattleground
             if (!creature || !creature->IsBot())
                 continue;
 
-            FSB_Race botRace = FSBMgr::Get()->GetBotRaceForEntry(creature->GetEntry());
-            FSB_Class botClass = FSBMgr::Get()->GetBotClassForEntry(creature->GetEntry());
-            Gender botGender = FSBMgr::Get()->GetBotGenderForEntry(creature->GetEntry());
+            auto baseAI = dynamic_cast<FSB_BaseAI*>(creature->AI());
+            if (!baseAI)
+                continue;
+
+            FSB_Race botRace = baseAI->botRace;
+            FSB_Class botClass = baseAI->botClass;
+            Gender botGender = baseAI->botGender;
             Team team = FSBUtils::GetTeamFromFSBRace(botRace);
 
             if (team == ALLIANCE)
