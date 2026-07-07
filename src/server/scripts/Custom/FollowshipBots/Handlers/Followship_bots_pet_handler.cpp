@@ -131,8 +131,10 @@ namespace FSBPet
         pet->SetModTimeRate(1.0f);
         pet->SetSpellEmpowerStage(-1);
 
-        pet->SetSpeedRate(MOVE_WALK, creatureInfo->speed_walk);
-        pet->SetSpeedRate(MOVE_RUN, creatureInfo->speed_run);
+        pet->ApplyLevelScaling(1);
+
+        pet->SetSpeedRate(MOVE_WALK, owner->GetSpeed(MOVE_WALK));
+        pet->SetSpeedRate(MOVE_RUN, owner->GetSpeed(MOVE_RUN));
         pet->SetSpeedRate(MOVE_SWIM, 1.0f); // using 1.0 rate
         pet->SetSpeedRate(MOVE_FLIGHT, 1.0f); // using 1.0 rate
 
