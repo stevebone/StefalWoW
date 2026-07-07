@@ -25,10 +25,6 @@
 #include "Battleground.h"
 #include "Creature.h"
 #include "DBCEnums.h"
-#include "Followship_bots_battleground_handler.h"
-#include "Followship_bots_chatter_handler.h"
-#include "Followship_bots_chat_handler.h"
-#include "Followship_bots_events_handler.h"
 #include "GameObject.h"
 #include "Log.h"
 #include "Map.h"
@@ -42,6 +38,12 @@
 #include <array>
 #include <string>
 #include <vector>
+
+#include "Followship_bots_battleground_handler.h"
+#include "Followship_bots_chatter_handler.h"
+#include "Followship_bots_chat_handler.h"
+#include "Followship_bots_events_handler.h"
+#include "Followship_bots_recovery_handler.h"
 
 namespace FSBBattleground::WarsongGulch
 {
@@ -118,9 +120,35 @@ namespace FSBBattleground::WarsongGulch
         return botTeam; // ReturnFlag, DefendBase, ProtectCarrier
     }
 
+    uint8 GetClosestPathStep(Creature* bot, WSGPath const& path, uint8 fromStep)
+    {
+        if (!bot || path.count == 0)
+            return 0;
+
+        if (fromStep >= path.count)
+            return path.count - 1;
+
+        Position botPos = bot->GetPosition();
+        uint8 bestStep = fromStep;
+        float bestDistSq = botPos.GetExactDistSq(path.points[fromStep]);
+
+        for (uint8 i = fromStep + 1; i < path.count; ++i)
+        {
+            float distSq = botPos.GetExactDistSq(path.points[i]);
+            if (distSq < bestDistSq)
+            {
+                bestDistSq = distSq;
+                bestStep = i;
+            }
+        }
+
+        return bestStep;
+    }
+
     void MoveToExitStep(Creature* bot, FSB_BattlegroundData* bgData)
     {
         WSGPath const& path = GetExitPath(GetExitTeam(bot, bgData), bgData->wsgExitPathChoice);
+        bgData->wsgPathStep = GetClosestPathStep(bot, path, bgData->wsgPathStep);
         uint8 step = std::min<uint8>(bgData->wsgPathStep, path.count - 1);
         bot->GetMotionMaster()->MovePoint(FSBMovement::MOVEMENT_POINT_WSG_EXIT, path.points[step]);
     }
@@ -128,6 +156,7 @@ namespace FSBBattleground::WarsongGulch
     void MoveToAttackStep(Creature* bot, FSB_BattlegroundData* bgData)
     {
         WSGPath const& path = GetAttackPathTowards(GetAttackTargetTeam(bot, bgData), bgData->wsgAttackPathChoice);
+        bgData->wsgPathStep = GetClosestPathStep(bot, path, bgData->wsgPathStep);
         uint8 step = std::min<uint8>(bgData->wsgPathStep, path.count - 1);
         bot->GetMotionMaster()->MovePoint(FSBMovement::MOVEMENT_POINT_WSG_ATTACK, path.points[step]);
     }
@@ -321,11 +350,14 @@ namespace FSBBattleground::WarsongGulch
         if (!bot->IsAlive())
             return;
 
-        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
-        if (baseAI && baseAI->botHired)
+        if (bot->IsInCombat() && (bgData->wsgState != WSGState::ReturnFlag || bgData->wsgState != WSGState::AttackFlag))
             return;
 
-        if (bot->IsInCombat() && bgData->wsgState != WSGState::ReturnFlag)
+        if (FSBRecovery::BotHasRecoveryActive(bot))
+            return;
+
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (baseAI && baseAI->botHired)
             return;
 
         MovementGeneratorType moveType = FSBMovement::GetMovementType(bot);

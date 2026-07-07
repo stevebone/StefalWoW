@@ -213,6 +213,10 @@ namespace FSBBattleground::WarsongGulch
     void MoveToCenter(Creature* bot, FSB_BattlegroundData* bgData, bool withOffset, bool pickNew);
     void MoveToFlagPoint(Creature* bot, FSB_BattlegroundData* bgData);
 
+    // Returns the index of the path point (>= fromStep) closest to the bot's current position.
+    // Used to resume an interrupted path without walking back to the original step.
+    uint8 GetClosestPathStep(Creature* bot, WSGPath const& path, uint8 fromStep);
+
     inline bool BotHasFlagAura(Creature* bot)
     {
         return bot->HasAura(Spells::WarsongFlag) || bot->HasAura(Spells::SilverwingFlag)
