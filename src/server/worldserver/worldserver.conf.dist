@@ -4631,6 +4631,7 @@ Followship.Bots.GenAI.Enabled = 0
 # 2 = Anthropic   (api.anthropic.com, Anthropic format, SSL, system parameter enabled)
 # 3 = LlamaServer (localhost, OpenAI format, no SSL, system parameter disabled)
 # 4 = LMStudio    (localhost, OpenAI format, no SSL, system parameter disabled)
+# 5 = OpenRouter  (openrouter.ai, OpenAI format, SSL, system parameter disabled)
 # Default: 0
 Followship.Bots.GenAI.Provider = 0
 
