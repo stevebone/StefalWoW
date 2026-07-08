@@ -329,6 +329,7 @@ namespace WorldPackets
     namespace Covenant
     {
         class ActivateSoulbind;
+        class RequestCovenantCallings;
     }
 
     namespace Duel
@@ -1836,6 +1837,7 @@ class TC_GAME_API WorldSession
 
         // Covenant
         void HandleActivateSoulbind(WorldPackets::Covenant::ActivateSoulbind& packet);
+        void HandleRequestCovenantCallings(WorldPackets::Covenant::RequestCovenantCallings& packet);
 
         // Adventure Map
         void HandleCheckIsAdventureMapPoiValid(WorldPackets::AdventureMap::CheckIsAdventureMapPoiValid& CheckIsAdventureMapPoiValid);

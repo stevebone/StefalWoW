@@ -34,6 +34,27 @@ namespace Covenant
 
         int32 SoulbindID = 0;
     };
+
+    // CMSG_REQUEST_COVENANT_CALLINGS (0x3A0269). Empty payload; the client asks which covenant callings (bounties) are available.
+    class RequestCovenantCallings final : public ClientPacket
+    {
+    public:
+        explicit RequestCovenantCallings(WorldPacket&& packet) : ClientPacket(CMSG_REQUEST_COVENANT_CALLINGS, std::move(packet)) { }
+
+        void Read() override { }
+    };
+
+    // SMSG_COVENANT_CALLINGS_AVAILABILITY_RESPONSE (0x600024). Deserializer reads Bits<1> CallingsUnlocked, then uint32 count, then count x uint32 Bounty.db2 ID.
+    class CovenantCallingsAvailabilityResponse final : public ServerPacket
+    {
+    public:
+        CovenantCallingsAvailabilityResponse() : ServerPacket(SMSG_COVENANT_CALLINGS_AVAILABILITY_RESPONSE, 1 + 4) { }
+
+        WorldPacket const* Write() override;
+
+        bool CallingsUnlocked = false;
+        std::vector<int32> BountyIDs;
+    };
 }
 }
 

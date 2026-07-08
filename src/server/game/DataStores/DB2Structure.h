@@ -545,6 +545,23 @@ struct BattlemasterListXMapEntry
     uint32 BattlemasterListID;
 };
 
+struct BountyEntry
+{
+    uint32 ID;
+    int32 QuestID;
+    uint16 FactionID;
+    uint32 IconFileDataID;
+    uint32 TurninPlayerConditionID;
+    int32 BountySetID;
+};
+
+struct BountySetEntry
+{
+    uint32 ID;
+    uint32 VisiblePlayerConditionID;
+    int32 LockedQuestID;
+};
+
 #define MAX_BROADCAST_TEXT_EMOTES 3
 
 struct BroadcastTextEntry

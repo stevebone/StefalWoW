@@ -21,3 +21,15 @@ void WorldPackets::Covenant::ActivateSoulbind::Read()
 {
     _worldPacket >> SoulbindID;
 }
+
+WorldPacket const* WorldPackets::Covenant::CovenantCallingsAvailabilityResponse::Write()
+{
+    _worldPacket.WriteBit(CallingsUnlocked);
+    _worldPacket.FlushBits();
+
+    _worldPacket << uint32(BountyIDs.size());
+    for (int32 bountyId : BountyIDs)
+        _worldPacket << int32(bountyId);
+
+    return &_worldPacket;
+}

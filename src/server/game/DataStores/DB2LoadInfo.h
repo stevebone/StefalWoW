@@ -771,6 +771,33 @@ struct BattlemasterListXMapLoadInfo
     static constexpr DB2LoadInfo Instance{ Fields, 3, &BattlemasterListXMapMeta::Instance, HOTFIX_SEL_BATTLEMASTER_LIST_X_MAP };
 };
 
+struct BountyLoadInfo
+{
+    static constexpr DB2FieldMeta Fields[6] =
+    {
+        { .IsSigned = false, .Type = FT_INT, .Name = "ID" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "QuestID" },
+        { .IsSigned = false, .Type = FT_SHORT, .Name = "FactionID" },
+        { .IsSigned = false, .Type = FT_INT, .Name = "IconFileDataID" },
+        { .IsSigned = false, .Type = FT_INT, .Name = "TurninPlayerConditionID" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "BountySetID" },
+    };
+
+    static constexpr DB2LoadInfo Instance{ Fields, 6, &BountyMeta::Instance, HOTFIX_SEL_BOUNTY };
+};
+
+struct BountySetLoadInfo
+{
+    static constexpr DB2FieldMeta Fields[3] =
+    {
+        { .IsSigned = false, .Type = FT_INT, .Name = "ID" },
+        { .IsSigned = false, .Type = FT_INT, .Name = "VisiblePlayerConditionID" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "LockedQuestID" },
+    };
+
+    static constexpr DB2LoadInfo Instance{ Fields, 3, &BountySetMeta::Instance, HOTFIX_SEL_BOUNTY_SET };
+};
+
 struct BroadcastTextLoadInfo
 {
     static constexpr DB2FieldMeta Fields[17] =

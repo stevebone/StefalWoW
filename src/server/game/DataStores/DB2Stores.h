@@ -66,6 +66,8 @@ TC_GAME_API extern DB2Storage<BattlePetSpeciesEntry>                sBattlePetSp
 TC_GAME_API extern DB2Storage<BattlePetSpeciesStateEntry>           sBattlePetSpeciesStateStore;
 TC_GAME_API extern DB2Storage<BattlemasterListEntry>                sBattlemasterListStore;
 TC_GAME_API extern DB2Storage<BattlemasterListXMapEntry>            sBattlemasterListXMapStore;
+TC_GAME_API extern DB2Storage<BountyEntry>                          sBountyStore;
+TC_GAME_API extern DB2Storage<BountySetEntry>                       sBountySetStore;
 TC_GAME_API extern DB2Storage<BroadcastTextEntry>                   sBroadcastTextStore;
 TC_GAME_API extern DB2Storage<CampaignEntry>                        sCampaignStore;
 TC_GAME_API extern DB2Storage<CampaignXQuestLineEntry>              sCampaignXQuestLineStore;
@@ -553,6 +555,7 @@ public:
     uint32 GetConduitForItem(uint32 itemId) const;               // SoulbindConduitItem: ItemID -> SoulbindConduitID (0 if none)
     int32 GetConduitRankForItemLevel(uint32 itemLevel) const;    // SoulbindConduitRankProperties: item level -> RankIndex (-1 if none)
     std::vector<RenownRewardsEntry const*> const* GetRenownRewards(int32 covenantId, int32 level) const;
+    std::vector<BountyEntry const*> const* GetBountiesForBountySet(int32 bountySetId) const;
     std::vector<SpecializationSpellsEntry const*> const* GetSpecializationSpells(uint32 specId) const;
     bool IsSpecSetMember(int32 specSetId, uint32 specId) const;
     static bool IsValidSpellFamiliyName(SpellFamilyNames family);

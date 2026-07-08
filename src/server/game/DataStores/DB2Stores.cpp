@@ -83,6 +83,8 @@ DB2Storage<BattlePetSpeciesEntry>               sBattlePetSpeciesStore("BattlePe
 DB2Storage<BattlePetSpeciesStateEntry>          sBattlePetSpeciesStateStore("BattlePetSpeciesState.db2", &BattlePetSpeciesStateLoadInfo::Instance);
 DB2Storage<BattlemasterListEntry>               sBattlemasterListStore("BattlemasterList.db2", &BattlemasterListLoadInfo::Instance);
 DB2Storage<BattlemasterListXMapEntry>           sBattlemasterListXMapStore("BattlemasterListXMap.db2", &BattlemasterListXMapLoadInfo::Instance);
+DB2Storage<BountyEntry>                          sBountyStore("Bounty.db2", &BountyLoadInfo::Instance);
+DB2Storage<BountySetEntry>                       sBountySetStore("BountySet.db2", &BountySetLoadInfo::Instance);
 DB2Storage<BroadcastTextEntry>                  sBroadcastTextStore("BroadcastText.db2", &BroadcastTextLoadInfo::Instance);
 DB2Storage<BroadcastTextDurationEntry>          sBroadcastTextDurationStore("BroadcastTextDuration.db2", &BroadcastTextDurationLoadInfo::Instance);
 DB2Storage<CampaignEntry>                       sCampaignStore("Campaign.db2", &CampaignLoadInfo::Instance);
@@ -540,6 +542,7 @@ namespace
     std::unordered_map<std::pair<int32, int32>, SoulbindConduitRankEntry const*> _soulbindConduitRanks;
     std::unordered_map<uint32 /*itemId*/, uint32 /*conduitId*/> _conduitsByItem;
     std::unordered_map<std::pair<int32 /*covenantId*/, int32 /*level*/>, std::vector<RenownRewardsEntry const*>> _renownRewards;
+    std::unordered_map<int32 /*bountySetId*/, std::vector<BountyEntry const*>> _bountiesByBountySet;
     SpecializationSpellsContainer _specializationSpellsBySpec;
     std::unordered_set<std::pair<int32, uint32>> _specsBySpecSet;
     std::unordered_set<uint8> _spellFamilyNames;
@@ -723,6 +726,8 @@ uint32 DB2Manager::LoadStores(std::string const& dataPath, LocaleConstant defaul
     LOAD_DB2(sBattlePetSpeciesStateStore);
     LOAD_DB2(sBattlemasterListStore);
     LOAD_DB2(sBattlemasterListXMapStore);
+    LOAD_DB2(sBountyStore);
+    LOAD_DB2(sBountySetStore);
     LOAD_DB2(sBroadcastTextStore);
     LOAD_DB2(sBroadcastTextDurationStore);
     LOAD_DB2(sCampaignStore);
@@ -1554,6 +1559,9 @@ void DB2Manager::IndexLoadedStores()
 
     for (RenownRewardsEntry const* renownReward : sRenownRewardsStore)
         _renownRewards[{ renownReward->CovenantID, renownReward->Level }].push_back(renownReward);
+
+    for (BountyEntry const* bounty : sBountyStore)
+        _bountiesByBountySet[bounty->BountySetID].push_back(bounty);
 
     for (SpecializationSpellsEntry const* specSpells : sSpecializationSpellsStore)
         _specializationSpellsBySpec[specSpells->SpecID].push_back(specSpells);
@@ -3047,6 +3055,11 @@ uint32 DB2Manager::GetConduitForItem(uint32 itemId) const
 std::vector<RenownRewardsEntry const*> const* DB2Manager::GetRenownRewards(int32 covenantId, int32 level) const
 {
     return Trinity::Containers::MapGetValuePtr(_renownRewards, { covenantId, level });
+}
+
+std::vector<BountyEntry const*> const* DB2Manager::GetBountiesForBountySet(int32 bountySetId) const
+{
+    return Trinity::Containers::MapGetValuePtr(_bountiesByBountySet, bountySetId);
 }
 
 int32 DB2Manager::GetConduitRankForItemLevel(uint32 itemLevel) const
