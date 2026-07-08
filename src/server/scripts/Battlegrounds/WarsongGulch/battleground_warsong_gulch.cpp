@@ -31,9 +31,9 @@
 
 #include <unordered_map>
 
-#include "Followship_bots_mgr.h"
-#include "Followship_bots_battleground_handler.h"
-#include "Followship_bots_events_handler.h"
+#include "Custom\FollowshipBots\Followship_bots_mgr.h"
+#include "Custom\FollowshipBots\Handlers\Followship_bots_battleground_handler.h"
+#include "Custom\FollowshipBots\Handlers\Followship_bots_events_handler.h"
 
 struct battleground_warsong_gulch : BattlegroundScript
 {
