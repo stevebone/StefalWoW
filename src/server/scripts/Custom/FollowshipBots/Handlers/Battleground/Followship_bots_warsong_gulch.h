@@ -26,9 +26,6 @@
 #include "SharedDefines.h"
 
 #include "../../AI/Followship_bots_ai_base.h"
-#include "Followship_bots_mgr.h"
-#include "../Followship_bots_movement_handler.h"
-#include "../../Utils/Followship_bots_utils.h"
 
 class Battleground;
 class Player;
@@ -169,10 +166,7 @@ namespace FSBBattleground::WarsongGulch
         Position(1240.8289f, 1339.2724f, 312.3503f, 2.32f)
     };
 
-    inline Team GetBotTeam(Creature* bot)
-    {
-        return FSBUtils::GetTeamFromFSBRace(FSBMgr::Get()->GetBotRaceForEntry(bot->GetEntry()));
-    }
+    Team GetBotTeam(Creature* bot);
 
     inline Team GetEnemyTeam(Team team)
     {

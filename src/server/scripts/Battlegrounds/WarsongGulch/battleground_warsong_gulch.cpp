@@ -28,10 +28,8 @@
 #include "SpellAuras.h"
 #include "Timer.h"
 #include "ScriptHelpers.h"
-
 #include <unordered_map>
 
-#include "Custom/FollowshipBots/Followship_bots_mgr.h"
 #include "Custom/FollowshipBots/Handlers/Followship_bots_battleground_handler.h"
 #include "Custom/FollowshipBots/Handlers/Followship_bots_events_handler.h"
 

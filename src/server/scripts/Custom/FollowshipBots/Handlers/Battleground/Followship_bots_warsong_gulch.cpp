@@ -44,9 +44,17 @@
 #include "Followship_bots_chat_handler.h"
 #include "Followship_bots_events_handler.h"
 #include "Followship_bots_recovery_handler.h"
+#include "Followship_bots_movement_handler.h"
+#include "Followship_bots_mgr.h"
 
 namespace FSBBattleground::WarsongGulch
 {
+    Team GetBotTeam(Creature* bot)
+    {
+        FSB_BaseAI* botAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        return FSBUtils::GetTeamFromFSBRace(botAI->botRace);
+    }
+
     std::array<std::string, 20> const SpawnChatLines = {{
         "Hello everyone!",
         "How is everyone today?",
@@ -332,7 +340,11 @@ namespace FSBBattleground::WarsongGulch
             if (!creature || !creature->IsBot() || creature == bot)
                 continue;
 
-            Team creatureTeam = FSBUtils::GetTeamFromFSBRace(FSBMgr::Get()->GetBotRaceForEntry(creature->GetEntry()));
+            auto baseAI = dynamic_cast<FSB_BaseAI*>(creature->AI());
+            if (baseAI && baseAI->botHired)
+                continue;
+
+            Team creatureTeam = FSBUtils::GetTeamFromFSBRace(baseAI->botRace);
             if (creatureTeam != botTeam)
                 continue;
 
