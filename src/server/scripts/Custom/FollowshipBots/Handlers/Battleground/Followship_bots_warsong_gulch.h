@@ -25,10 +25,10 @@
 #include "Position.h"
 #include "SharedDefines.h"
 
-#include "Followship_bots_ai_base.h"
+#include "../../AI/Followship_bots_ai_base.h"
 #include "Followship_bots_mgr.h"
-#include "Followship_bots_movement_handler.h"
-#include "Followship_bots_utils.h"
+#include "../Followship_bots_movement_handler.h"
+#include "../../Utils/Followship_bots_utils.h"
 
 class Battleground;
 class Player;
