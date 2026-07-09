@@ -30,8 +30,8 @@
 #include "ScriptHelpers.h"
 #include <unordered_map>
 
-#include "Custom/FollowshipBots/Handlers/Followship_bots_battleground_handler.h"
-#include "Custom/FollowshipBots/Handlers/Followship_bots_events_handler.h"
+#include "Followship_bots_battleground_handler.h"
+#include "Followship_bots_events_handler.h"
 
 struct battleground_warsong_gulch : BattlegroundScript
 {
