@@ -25,6 +25,7 @@
 #include "Log.h"
 #include "Map.h"
 #include "PhasingHandler.h"
+#include "ScriptHelpers.h"
 #include "TemporarySummon.h"
 #include "DB2Stores.h"
 #include <random>
@@ -552,6 +553,8 @@ void FSBMgr::SetInitialBotState(Creature* bot)
     SetBotClassAndRace(bot, botClass, botRace);
     baseAI->botClassStats = FSBStats::GetBotClassStats(botClass);
     baseAI->botTCRace = FSBUtils::BotRaceToTC(botRace);
+    ScriptHelpers::SetBotRace(bot->GetGUID(), uint8(baseAI->botTCRace));
+    bot->SetClass(uint8(FSBUtils::FSBToTCClass(botClass)));
     baseAI->botHasDemon = false;
 
     // For shaman we set self resurrect flag for reincarnation

@@ -27,14 +27,12 @@
 #include "Followship_bots_party_handler.h"
 
 #include "Battleground.h"
-#include "BattlegroundPackets.h"
 #include "BattlegroundScore.h"
 #include "Creature.h"
 #include "Log.h"
 #include "Map.h"
 #include "ObjectAccessor.h"
 #include "Player.h"
-#include "ScriptHelpers.h"
 #include "Unit.h"
 #include "WorldSession.h"
 
@@ -215,50 +213,6 @@ namespace FSBBattleground
     namespace Impl
     {
         std::unordered_map<BattlegroundMap*, std::vector<ObjectGuid>> SpawnedBotGuids;
-        std::unordered_map<ObjectGuid, BotScoreData> BotScores;
-    }
-
-    void RecordBotKillingBlow(Unit* bot)
-    {
-        if (!bot)
-            return;
-
-        BotScoreData& score = Impl::BotScores[bot->GetGUID()];
-        ++score.KillingBlows;
-        ++score.HonorableKills;
-    }
-
-    void RecordBotDeath(Unit* bot)
-    {
-        if (!bot)
-            return;
-
-        BotScoreData& score = Impl::BotScores[bot->GetGUID()];
-        ++score.Deaths;
-    }
-
-    void RecordBotDamageDone(Unit* bot, uint32 damage)
-    {
-        if (!bot || !damage)
-            return;
-
-        BotScoreData& score = Impl::BotScores[bot->GetGUID()];
-        score.DamageDone += damage;
-    }
-
-    void RecordBotHealingDone(Unit* bot, uint32 heal)
-    {
-        if (!bot || !heal)
-            return;
-
-        BotScoreData& score = Impl::BotScores[bot->GetGUID()];
-        score.HealingDone += heal;
-    }
-
-    BotScoreData const* GetBotScore(ObjectGuid botGuid)
-    {
-        auto it = Impl::BotScores.find(botGuid);
-        return it != Impl::BotScores.end() ? &it->second : nullptr;
     }
 
     void AddBotSpawnGuid(BattlegroundMap* battlegroundMap, ObjectGuid guid)
@@ -268,13 +222,6 @@ namespace FSBBattleground
 
     void ClearSpawnedBotGuids(BattlegroundMap* battlegroundMap)
     {
-        auto it = Impl::SpawnedBotGuids.find(battlegroundMap);
-        if (it != Impl::SpawnedBotGuids.end())
-        {
-            for (ObjectGuid botGuid : it->second)
-                Impl::BotScores.erase(botGuid);
-        }
-
         Impl::SpawnedBotGuids.erase(battlegroundMap);
     }
 
@@ -351,139 +298,6 @@ namespace FSBBattleground
         static std::vector<ObjectGuid> const empty;
         auto it = Impl::SpawnedBotGuids.find(battlegroundMap);
         return it != Impl::SpawnedBotGuids.end() ? it->second : empty;
-    }
-
-    std::vector<uint32> GetBattlegroundPvpStatIds(BattlegroundMap* battlegroundMap)
-    {
-        if (!battlegroundMap)
-            return {};
-
-        Battleground* bg = battlegroundMap->GetBG();
-        if (!bg)
-            return {};
-
-        switch (bg->GetTypeID())
-        {
-            case BATTLEGROUND_WS:
-            case BATTLEGROUND_WG_CTF:
-                return WarsongGulch::GetPvpStatIds();
-            default:
-                return {};
-        }
-    }
-
-    void OnBuildPvPLogDataPacket(BattlegroundMap* battlegroundMap, WorldPackets::Battleground::PVPMatchStatistics& pvpLogData)
-    {
-        if (!battlegroundMap)
-            return;
-
-        int8 botCountAlliance = 0;
-        int8 botCountHorde = 0;
-
-        std::vector<uint32> pvpStatIds = GetBattlegroundPvpStatIds(battlegroundMap);
-
-        for (auto const& [guid, creature] : battlegroundMap->GetObjectsStore().Data.Head)
-        {
-            if (!creature || !creature->IsBot())
-                continue;
-
-            auto baseAI = dynamic_cast<FSB_BaseAI*>(creature->AI());
-            if (!baseAI)
-                continue;
-
-            FSB_Race botRace = baseAI->botRace;
-            FSB_Class botClass = baseAI->botClass;
-            Gender botGender = baseAI->botGender;
-            Team team = FSBUtils::GetTeamFromFSBRace(botRace);
-
-            if (team == ALLIANCE)
-                ++botCountAlliance;
-            else if (team == HORDE)
-                ++botCountHorde;
-            else
-                continue;
-
-            uint32 killingBlows = 0;
-            uint32 honorableKills = 0;
-            uint32 deaths = 0;
-            uint32 damageDone = 0;
-            uint32 healingDone = 0;
-            if (BotScoreData const* score = GetBotScore(guid))
-            {
-                killingBlows = score->KillingBlows;
-                honorableKills = score->HonorableKills;
-                deaths = score->Deaths;
-                damageDone = score->DamageDone;
-                healingDone = score->HealingDone;
-            }
-
-            ScriptHelpers::AddCreatureToPvPLogData(pvpLogData, guid, uint8(FSBUtils::BotRaceToTC(botRace)), uint8(FSBUtils::FSBToTCClass(botClass)), botGender, creature->GetEntry(), team, killingBlows, honorableKills, deaths, damageDone, healingDone);
-
-            if (!pvpStatIds.empty())
-            {
-                auto& botEntry = pvpLogData.Statistics.back();
-                for (uint32 statId : pvpStatIds)
-                    botEntry.Stats.emplace_back(int32(statId), 0);
-            }
-        }
-
-        pvpLogData.PlayerCount[PVP_TEAM_ALLIANCE] += botCountAlliance;
-        pvpLogData.PlayerCount[PVP_TEAM_HORDE] += botCountHorde;
-    }
-
-    void SendRaidUpdateToPlayer(Player* player)
-    {
-        if (!player || !player->GetSession() || !player->IsInWorld())
-            return;
-
-        if (player->IsBeingTeleportedNear() || player->IsBeingTeleportedFar() || player->IsBeingTeleported())
-            return;
-
-        if (player->GetSession()->PlayerLoading())
-            return;
-
-        BattlegroundMap* bgMap = player->GetMap()->ToBattlegroundMap();
-        if (!bgMap)
-            return;
-
-        std::vector<Creature*> bots = CollectBotsOnTeam(bgMap, player->GetTeam());
-        if (!bots.empty())
-            FSBParty::SendBattlegroundRaidUpdate(player, bots);
-    }
-
-    void PeriodicRaidUpdate(BattlegroundMap* battlegroundMap)
-    {
-        if (!battlegroundMap)
-            return;
-
-        Battleground* bg = battlegroundMap->GetBG();
-        if (!bg)
-            return;
-
-        for (auto const& [guid, _] : bg->GetPlayers())
-        {
-            Player* player = ObjectAccessor::GetPlayer(battlegroundMap, guid);
-            if (!player)
-                continue;
-
-            if (!player->GetSession() || !player->IsInWorld())
-                continue;
-
-            if (player->IsBeingTeleportedNear() || player->IsBeingTeleportedFar() || player->IsBeingTeleported())
-                continue;
-
-            if (player->GetSession()->PlayerLoading())
-                continue;
-
-            std::vector<Creature*> bots = CollectBotsOnTeam(battlegroundMap, player->GetTeam());
-            if (bots.empty())
-                continue;
-
-            FSBParty::SendBattlegroundRaidUpdate(player, bots);
-
-            for (Creature* bot : bots)
-                FSBParty::SendBotMemberState(player, bot);
-        }
     }
 
     Unit* FindHostileTargetInBattleground(Creature* bot)

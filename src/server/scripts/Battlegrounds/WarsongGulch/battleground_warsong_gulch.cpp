@@ -30,9 +30,6 @@
 #include "ScriptHelpers.h"
 #include <unordered_map>
 
-#include "Followship_bots_battleground_handler.h"
-#include "Followship_bots_events_handler.h"
-
 struct battleground_warsong_gulch : BattlegroundScript
 {
     static constexpr Seconds FLAG_ASSAULT_TIMER = 30s;
@@ -198,13 +195,6 @@ struct battleground_warsong_gulch : BattlegroundScript
             }
         }
 
-        _raidUpdateTimer += diff;
-        if (_raidUpdateTimer >= 2000)
-        {
-            _raidUpdateTimer = 0;
-            FSBBattleground::PeriodicRaidUpdate(battlegroundMap);
-        }
-
         _captureCheckTimer += diff;
         if (_captureCheckTimer >= 1000)
         {
@@ -230,14 +220,12 @@ struct battleground_warsong_gulch : BattlegroundScript
 
         // players joining later are not eligibles
         TriggerGameEvent(EVENT_START_BATTLE);
-
-        FSBBattleground::PeriodicRaidUpdate(battlegroundMap);
     }
 
     void OnBuildPvPLogDataPacket(WorldPackets::Battleground::PVPMatchStatistics& pvpLogData) const override
     {
         BattlegroundScript::OnBuildPvPLogDataPacket(pvpLogData);
-        FSBBattleground::OnBuildPvPLogDataPacket(battlegroundMap, pvpLogData);
+        ScriptHelpers::AddBotsToPvPLogData(battlegroundMap, pvpLogData);
     }
 
     void OnEnd(Team winner) override
@@ -252,58 +240,6 @@ struct battleground_warsong_gulch : BattlegroundScript
         // Complete map_end rewards (even if no team wins)
         battleground->RewardHonorToTeam(battleground->GetBonusHonorFromKill(_honorEndKills), ALLIANCE);
         battleground->RewardHonorToTeam(battleground->GetBonusHonorFromKill(_honorEndKills), HORDE);
-
-        FSBBattleground::ClearSpawnedBotGuids(battlegroundMap);
-    }
-
-    void ProcessEvent(WorldObject* /*obj*/, uint32 eventId, WorldObject* invoker) override
-    {
-        if (eventId != FSB_EVENT_WSG_BOT_CAPTURE)
-            return;
-
-        Unit* unit = invoker ? invoker->ToUnit() : nullptr;
-        if (!unit)
-            return;
-
-        Creature* bot = unit->ToCreature();
-        if (!bot || !bot->IsBot())
-            return;
-
-        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
-        if (!baseAI)
-            return;
-
-        auto botRace = baseAI->botTCRace;
-        Team team = ScriptHelpers::GetTeamForRace(botRace);
-
-        if (team != ALLIANCE && team != HORDE)
-        {
-            TC_LOG_DEBUG("scripts.fsb.battleground", "FSB WSG ProcessEvent: bot {} has invalid team ({})", bot->GetName(), team);
-            return;
-        }
-
-        TeamId const teamId = Battleground::GetTeamIndexByTeamId(team);
-        AreaTrigger* trigger = battlegroundMap->GetAreaTrigger(_capturePointAreaTriggers[teamId]);
-        if (!trigger)
-        {
-            TC_LOG_DEBUG("scripts.fsb.battleground", "FSB WSG ProcessEvent: bot {} no capture trigger for teamId {}", bot->GetName(), teamId);
-            return;
-        }
-
-        TC_LOG_DEBUG("scripts.fsb.battleground", "FSB WSG ProcessEvent: bot {} attempting capture at trigger {}", bot->GetName(), trigger->GetEntry());
-        if (CanCaptureFlag(trigger, unit))
-        {
-            TC_LOG_DEBUG("scripts.fsb.battleground", "FSB WSG ProcessEvent: bot {} capture approved", bot->GetName());
-            OnCaptureFlag(trigger, unit);
-            FSBBattleground::WarsongGulch::OnBotCapturedFlag(bot);
-        }
-    }
-
-    void OnPlayerJoined(Player* player, bool inBattleground) override
-    {
-        BattlegroundScript::OnPlayerJoined(player, inBattleground);
-
-        FSBBattleground::SendRaidUpdateToPlayer(player);
     }
 
     template <std::invocable<Unit*> Action>
@@ -388,10 +324,7 @@ struct battleground_warsong_gulch : BattlegroundScript
                 {
                     if (bot->IsBot())
                     {
-                        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
-                        if (!baseAI)
-                            return;
-                        Team team = ScriptHelpers::GetTeamForRace(baseAI->botTCRace);
+                        Team team = ScriptHelpers::GetBotTeam(bot);
                         TeamId const teamId = Battleground::GetTeamIndexByTeamId(team);
 
                         if (AreaTrigger* trigger = battlegroundMap->GetAreaTrigger(_capturePointAreaTriggers[teamId]))
@@ -598,12 +531,7 @@ struct battleground_warsong_gulch : BattlegroundScript
             if (Creature* bot = unit->ToCreature())
             {
                 if (bot->IsBot())
-                {
-                    auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
-                    if (!baseAI)
-                        return false;
-                    team = ScriptHelpers::GetTeamForRace(baseAI->botTCRace);
-                }
+                    team = ScriptHelpers::GetBotTeam(bot);
             }
         }
 
@@ -656,12 +584,7 @@ struct battleground_warsong_gulch : BattlegroundScript
             if (Creature* bot = unit->ToCreature())
             {
                 if (bot->IsBot())
-                {
-                    auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
-                    if (!baseAI)
-                        return;
-                    team = ScriptHelpers::GetTeamForRace(baseAI->botTCRace);
-                }
+                    team = ScriptHelpers::GetBotTeam(bot);
             }
         }
 
@@ -719,6 +642,10 @@ struct battleground_warsong_gulch : BattlegroundScript
         unit->RemoveAurasDueToSpell(SPELL_QUICK_CAP_TIMER);
 
         unit->RemoveAurasWithInterruptFlags(SpellAuraInterruptFlags::PvPActive);
+
+        if (Creature* bot = unit->ToCreature())
+            if (bot->IsBot())
+                bot->AI()->SetData(ScriptHelpers::DATA_BOT_CAPTURED_FLAG, 1);
 
         battleground->RewardHonorToTeam(battleground->GetBonusHonorFromKill(2), team);
 
@@ -778,7 +705,6 @@ private:
     uint8 _assaultStackCount;
     std::array<ObjectGuid, PVP_TEAMS_COUNT> _capturePointAreaTriggers;
 
-    uint32 _raidUpdateTimer = 0;
     uint32 _captureCheckTimer = 0;
 
     uint32 _honorWinKills;

@@ -37,6 +37,7 @@ class Player;
 namespace FSBParty
 {
     void PeriodicPartyNeededCheck(Creature* bot);
+    void PeriodicBattlegroundRaidUpdate(Creature* bot);
     std::vector<Creature*> CollectActiveBots(Player* player);
 
     // Sends a fake SMSG_PARTY_UPDATE to the player that includes their bots

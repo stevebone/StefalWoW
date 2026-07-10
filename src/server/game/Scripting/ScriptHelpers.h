@@ -26,6 +26,7 @@
 
 class Creature;
 class Player;
+class BattlegroundMap;
 
 namespace WorldPackets::Battleground
 {
@@ -90,6 +91,30 @@ namespace ScriptHelpers
     TC_GAME_API void AddCreatureToPvPLogData(WorldPackets::Battleground::PVPMatchStatistics& pvpLogData, ObjectGuid guid, uint8 race, uint8 classId, Gender gender, uint32 creatureId, Team team, uint32 killingBlows = 0, uint32 honorableKills = 0, uint32 deaths = 0, uint32 damageDone = 0, uint32 healingDone = 0);
 
     TC_GAME_API Team GetTeamForRace(uint8 race);
+    TC_GAME_API void SetBotRace(ObjectGuid botGuid, uint8 race);
+    TC_GAME_API uint8 GetBotRace(ObjectGuid botGuid);
+    TC_GAME_API void EraseBotRace(ObjectGuid botGuid);
+    TC_GAME_API Team GetBotTeam(Creature* bot);
+
+    struct BotScoreData
+    {
+        uint32 KillingBlows = 0;
+        uint32 HonorableKills = 0;
+        uint32 Deaths = 0;
+        uint32 DamageDone = 0;
+        uint32 HealingDone = 0;
+    };
+
+    TC_GAME_API void RecordBotKillingBlow(ObjectGuid botGuid);
+    TC_GAME_API void RecordBotDeath(ObjectGuid botGuid);
+    TC_GAME_API void RecordBotDamageDone(ObjectGuid botGuid, uint32 damage);
+    TC_GAME_API void RecordBotHealingDone(ObjectGuid botGuid, uint32 heal);
+    TC_GAME_API BotScoreData const* GetBotScore(ObjectGuid botGuid);
+    TC_GAME_API void EraseBotScore(ObjectGuid botGuid);
+
+    TC_GAME_API void AddBotsToPvPLogData(BattlegroundMap* battlegroundMap, WorldPackets::Battleground::PVPMatchStatistics& pvpLogData);
+
+    constexpr uint32 DATA_BOT_CAPTURED_FLAG = 100;
 }
 
 #endif // SC_SCRIPTHELPERS_H

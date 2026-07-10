@@ -17,9 +17,11 @@
 
 #include "ScriptHelpers.h"
 #include "BattlegroundPackets.h"
+#include "Battleground.h"
 #include "Creature.h"
 #include "DB2Stores.h"
 #include "DB2Structure.h"
+#include "Map.h"
 #include "ObjectAccessor.h"
 #include "Player.h"
 #include "PartyPackets.h"
@@ -30,6 +32,8 @@
 #include "GossipDef.h"
 
 #include <algorithm>
+#include <unordered_map>
+#include <unordered_set>
 
 namespace ScriptHelpers
 {
@@ -525,5 +529,137 @@ namespace ScriptHelpers
             case 2: return PANDARIA_NEUTRAL;
             default: return ALLIANCE;
         }
+    }
+
+    std::unordered_map<ObjectGuid, uint8> BotRaces;
+
+    void SetBotRace(ObjectGuid botGuid, uint8 race)
+    {
+        BotRaces[botGuid] = race;
+    }
+
+    uint8 GetBotRace(ObjectGuid botGuid)
+    {
+        auto it = BotRaces.find(botGuid);
+        if (it != BotRaces.end())
+            return it->second;
+
+        return RACE_HUMAN;
+    }
+
+    void EraseBotRace(ObjectGuid botGuid)
+    {
+        BotRaces.erase(botGuid);
+    }
+
+    Team GetBotTeam(Creature* bot)
+    {
+        if (!bot || !bot->IsBot())
+            return TEAM_OTHER;
+
+        FactionTemplateEntry const* ftEntry = bot->GetFactionTemplateEntry();
+        if (!ftEntry)
+            return TEAM_OTHER;
+
+        if (ftEntry->FactionGroup & FACTION_MASK_ALLIANCE)
+            return ALLIANCE;
+        if (ftEntry->FactionGroup & FACTION_MASK_HORDE)
+            return HORDE;
+
+        return TEAM_OTHER;
+    }
+
+    std::unordered_map<ObjectGuid, BotScoreData> BotScores;
+
+    void RecordBotKillingBlow(ObjectGuid botGuid)
+    {
+        BotScoreData& score = BotScores[botGuid];
+        ++score.KillingBlows;
+        ++score.HonorableKills;
+    }
+
+    void RecordBotDeath(ObjectGuid botGuid)
+    {
+        BotScoreData& score = BotScores[botGuid];
+        ++score.Deaths;
+    }
+
+    void RecordBotDamageDone(ObjectGuid botGuid, uint32 damage)
+    {
+        if (!damage)
+            return;
+        BotScoreData& score = BotScores[botGuid];
+        score.DamageDone += damage;
+    }
+
+    void RecordBotHealingDone(ObjectGuid botGuid, uint32 heal)
+    {
+        if (!heal)
+            return;
+        BotScoreData& score = BotScores[botGuid];
+        score.HealingDone += heal;
+    }
+
+    BotScoreData const* GetBotScore(ObjectGuid botGuid)
+    {
+        auto it = BotScores.find(botGuid);
+        return it != BotScores.end() ? &it->second : nullptr;
+    }
+
+    void EraseBotScore(ObjectGuid botGuid)
+    {
+        BotScores.erase(botGuid);
+    }
+
+    void AddBotsToPvPLogData(BattlegroundMap* battlegroundMap, WorldPackets::Battleground::PVPMatchStatistics& pvpLogData)
+    {
+        if (!battlegroundMap)
+            return;
+
+        Battleground* bg = battlegroundMap->GetBG();
+        std::unordered_set<uint32> const* pvpStatIds = bg ? bg->GetPvpStatIds() : nullptr;
+
+        int8 botCountAlliance = 0;
+        int8 botCountHorde = 0;
+
+        for (auto const& [guid, creature] : battlegroundMap->GetObjectsStore().Data.Head)
+        {
+            if (!creature || !creature->IsBot())
+                continue;
+
+            Team team = GetBotTeam(creature);
+            if (team == ALLIANCE)
+                ++botCountAlliance;
+            else if (team == HORDE)
+                ++botCountHorde;
+            else
+                continue;
+
+            uint32 killingBlows = 0;
+            uint32 honorableKills = 0;
+            uint32 deaths = 0;
+            uint32 damageDone = 0;
+            uint32 healingDone = 0;
+            if (BotScoreData const* score = GetBotScore(guid))
+            {
+                killingBlows = score->KillingBlows;
+                honorableKills = score->HonorableKills;
+                deaths = score->Deaths;
+                damageDone = score->DamageDone;
+                healingDone = score->HealingDone;
+            }
+
+            AddCreatureToPvPLogData(pvpLogData, guid, GetBotRace(guid), creature->GetClass(), creature->GetGender(), creature->GetEntry(), team, killingBlows, honorableKills, deaths, damageDone, healingDone);
+
+            if (pvpStatIds && !pvpStatIds->empty())
+            {
+                auto& botEntry = pvpLogData.Statistics.back();
+                for (uint32 statId : *pvpStatIds)
+                    botEntry.Stats.emplace_back(int32(statId), 0);
+            }
+        }
+
+        pvpLogData.PlayerCount[PVP_TEAM_ALLIANCE] += botCountAlliance;
+        pvpLogData.PlayerCount[PVP_TEAM_HORDE] += botCountHorde;
     }
 }

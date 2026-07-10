@@ -1021,14 +1021,9 @@ namespace FSBBattleground::WarsongGulch
             FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_WSG_USE_FLAG, 1s);
             break;
         case FSBMovement::MOVEMENT_POINT_WSG_RETURN_FLAG:
-            // Home with the flag; trigger the capture directly from the bot AI.
+            // Home with the flag; HandleFlagRoomCapturePoint in the WSG script will detect and process the capture.
             bot->GetMotionMaster()->Clear();
             bgData->wsgMovePhase = WSGMovePhase::AtObjective;
-            if (ZoneScript* zoneScript = bot->GetZoneScript())
-            {
-                TC_LOG_DEBUG("scripts.fsb.battleground", "FSB WSG: bot {} reached return point, invoking capture event", bot->GetName());
-                zoneScript->ProcessEvent(bot, FSB_EVENT_WSG_BOT_CAPTURE, bot);
-            }
             break;
         default:
             break;

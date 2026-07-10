@@ -61,11 +61,6 @@ struct FSB_BattlegroundData
     }
 };
 
-namespace WorldPackets::Battleground
-{
-    struct PVPMatchStatistics;
-}
-
 namespace FSBBattleground
 {
     // Data index used with BattlegroundScript::GetData / SetData
@@ -76,15 +71,6 @@ namespace FSBBattleground
     constexpr uint32 DataCurrentBaseDefendersHorde = 4;
     constexpr uint32 DataCurrentMiddleDefendersHorde = 5;
     constexpr uint32 DataCurrentFlagAttackersHorde = 6;
-
-    struct BotScoreData
-    {
-        uint32 KillingBlows = 0;
-        uint32 HonorableKills = 0;
-        uint32 Deaths = 0;
-        uint32 DamageDone = 0;
-        uint32 HealingDone = 0;
-    };
 
     void SpawnBots(Battleground* battleground, BattlegroundMap* battlegroundMap, Player* triggeringPlayer = nullptr);
 
@@ -98,14 +84,6 @@ namespace FSBBattleground
     void HandleBotKilledPlayer(Unit* botKiller, ObjectGuid victimGuid);
     void HandlePlayerDamagedBot(Unit* attacker, Unit* botVictim, uint32 damage);
 
-    void RecordBotKillingBlow(Unit* bot);
-    void RecordBotDeath(Unit* bot);
-    void RecordBotDamageDone(Unit* bot, uint32 damage);
-    void RecordBotHealingDone(Unit* bot, uint32 heal);
-    BotScoreData const* GetBotScore(ObjectGuid botGuid);
-
-    void OnBuildPvPLogDataPacket(BattlegroundMap* battlegroundMap, WorldPackets::Battleground::PVPMatchStatistics& pvpLogData);
-    std::vector<uint32> GetBattlegroundPvpStatIds(BattlegroundMap* battlegroundMap);
     std::vector<ObjectGuid> const& GetSpawnedBotGuids(BattlegroundMap* battlegroundMap);
     void ClearSpawnedBotGuids(BattlegroundMap* battlegroundMap);
 
@@ -114,8 +92,6 @@ namespace FSBBattleground
     std::vector<uint32> SelectRandomEntries(std::vector<uint32>& entries, uint32 count);
 
     std::vector<Creature*> CollectBotsOnTeam(BattlegroundMap* battlegroundMap, Team team);
-    void SendRaidUpdateToPlayer(Player* player);
-    void PeriodicRaidUpdate(BattlegroundMap* battlegroundMap);
 
     Unit* FindHostileTargetInBattleground(Creature* bot);
 

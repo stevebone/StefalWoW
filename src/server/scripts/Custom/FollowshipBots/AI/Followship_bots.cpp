@@ -29,6 +29,7 @@
 #include "ScriptMgr.h"
 #include "ScriptedCreature.h"
 #include "ScriptedGossip.h"
+#include "ScriptHelpers.h"
 #include "SpellInfo.h"
 
 #include "Followship_bots.h"
@@ -95,7 +96,11 @@ public:
         void OnDespawn() override
         {
             if (me && me->GetMap() && me->GetMap()->IsBattleground())
+            {
                 FSBBattleground::WarsongGulch::RespawnBotOnDespawn(me);
+                ScriptHelpers::EraseBotScore(me->GetGUID());
+                ScriptHelpers::EraseBotRace(me->GetGUID());
+            }
         }
 
         void Reset() override // Runs at creature respawn, evade or when triggered
@@ -419,7 +424,7 @@ public:
             FSBPowers::GenerateRageFromDamageDone(me, damage);
 
             if (me->GetMap()->IsBattleground())
-                FSBBattleground::RecordBotDamageDone(me, damage);
+                ScriptHelpers::RecordBotDamageDone(me->GetGUID(), damage);
         }
 
         // Runs every time creature takes damage
@@ -435,7 +440,7 @@ public:
         void HealDone(Unit* /*done_to*/, uint32& addhealth) override
         {
             if (me->GetMap()->IsBattleground())
-                FSBBattleground::RecordBotHealingDone(me, addhealth);
+                ScriptHelpers::RecordBotHealingDone(me->GetGUID(), addhealth);
         }
 
         void EnterEvadeMode(EvadeReason /*why*/) override // Runs every time creature evades
@@ -456,7 +461,7 @@ public:
                 if (victim && victim->GetTypeId() == TYPEID_PLAYER)
                     FSBBattleground::HandleBotKilledPlayer(me, victim->GetGUID());
 
-                FSBBattleground::RecordBotKillingBlow(me);
+                ScriptHelpers::RecordBotKillingBlow(me->GetGUID());
             }
         }
 
@@ -542,7 +547,7 @@ public:
                 if (killer && killer->GetTypeId() == TYPEID_PLAYER)
                     FSBBattleground::HandlePlayerKilledBot(killer->GetGUID(), me);
 
-                FSBBattleground::RecordBotDeath(me);
+                ScriptHelpers::RecordBotDeath(me->GetGUID());
             }
         }
 
@@ -612,6 +617,10 @@ public:
 
                 break;
             }
+
+            case ScriptHelpers::DATA_BOT_CAPTURED_FLAG:
+                FSBBattleground::WarsongGulch::OnBotCapturedFlag(me);
+                break;
 
             }
         }
@@ -689,6 +698,16 @@ public:
                     }
 
                     FSBParty::PeriodicPartyNeededCheck(me);
+
+                    if (me->GetMap()->IsBattleground())
+                    {
+                        uint32 nowMs = getMSTime();
+                        if (nowMs >= _bgRaidUpdateMs)
+                        {
+                            _bgRaidUpdateMs = nowMs + 10000;
+                            FSBParty::PeriodicBattlegroundRaidUpdate(me);
+                        }
+                    }
 
                     FSBChatMgr::Get()->UpdateBotChannels(me);
 
@@ -829,7 +848,8 @@ public:
             ObjectGuid _lastOwnerVictim;
 
             uint32 _5secondsCheckMs = 0;
-            uint32 _1secondsCheckMs = 0;            
+            uint32 _1secondsCheckMs = 0;
+            uint32 _bgRaidUpdateMs = 0;
     };
 
     

@@ -24,6 +24,7 @@
 #include "ScriptHelpers.h"
 
 #include "Log.h"
+#include "Battleground.h"
 #include "Group.h"
 #include "Map.h"
 #include "ObjectAccessor.h"
@@ -35,6 +36,8 @@
 #include "WorldSession.h"
 
 #include "Followship_bots_mgr.h"
+#include "Followship_bots_battleground_handler.h"
+#include "Followship_bots_utils.h"
 
 #include <algorithm>
 
@@ -311,6 +314,44 @@ namespace FSBParty
                 // No active bots: do NOT send member states
                 SendClearFakeParty(owner);
             }
+        }
+    }
+
+    void PeriodicBattlegroundRaidUpdate(Creature* bot)
+    {
+        if (!bot || !bot->IsInWorld())
+            return;
+
+        BattlegroundMap* bgMap = bot->GetMap()->ToBattlegroundMap();
+        if (!bgMap || !bgMap->GetBG())
+            return;
+
+        Battleground* bg = bgMap->GetBG();
+
+        Team botTeam = ScriptHelpers::GetBotTeam(bot);
+        if (botTeam != ALLIANCE && botTeam != HORDE)
+            return;
+
+        for (auto const& [guid, _] : bg->GetPlayers())
+        {
+            Player* player = ObjectAccessor::GetPlayer(bgMap, guid);
+            if (!player || !player->GetSession() || !player->IsInWorld())
+                continue;
+
+            if (player->IsBeingTeleportedNear() || player->IsBeingTeleportedFar() || player->IsBeingTeleported())
+                continue;
+
+            if (player->GetSession()->PlayerLoading())
+                continue;
+
+            if (player->GetTeam() != botTeam)
+                continue;
+
+            std::vector<Creature*> bots = FSBBattleground::CollectBotsOnTeam(bgMap, botTeam);
+            if (!bots.empty())
+                SendBattlegroundRaidUpdate(player, bots);
+
+            SendBotMemberState(player, bot);
         }
     }
 
