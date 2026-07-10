@@ -344,7 +344,7 @@ namespace FSBBattleground::WarsongGulch
                 continue;
 
             auto baseAI = dynamic_cast<FSB_BaseAI*>(creature->AI());
-            if (baseAI && baseAI->botHired)
+            if (!baseAI || baseAI->botHired)
                 continue;
 
             Team creatureTeam = FSBUtils::GetTeamFromFSBRace(baseAI->botRace);
@@ -678,7 +678,7 @@ namespace FSBBattleground::WarsongGulch
             return;
 
         auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
-        if (baseAI && baseAI->botHired)
+        if (!baseAI || baseAI->botHired)
             return;
 
         MovementGeneratorType moveType = FSBMovement::GetMovementType(bot);
@@ -1110,7 +1110,7 @@ namespace FSBBattleground::WarsongGulch
             return;
 
         auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
-        if (baseAI && baseAI->botHired)
+        if (!baseAI || baseAI->botHired)
             return;
 
         // Re-roll the capturing bot after a short delay.
