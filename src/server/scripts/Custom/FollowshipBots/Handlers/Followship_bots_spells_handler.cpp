@@ -24,6 +24,7 @@
 #include "Log.h"
 #include "Map.h"
 #include "SpellAuras.h"
+#include "SpellHistory.h"
 #include "SpellInfo.h"
 
 #include "Followship_bots_mgr.h"
