@@ -76,9 +76,6 @@ namespace ScriptHelpers
         if (player->GetMapId() != bot->GetMapId())
             return;
 
-        if (!player->HaveAtClient(bot))
-            return;
-
         WorldPackets::Party::PartyMemberFullState packet;
         packet.ForEnemy = false;
         packet.MemberGuid = bot->GetGUID();

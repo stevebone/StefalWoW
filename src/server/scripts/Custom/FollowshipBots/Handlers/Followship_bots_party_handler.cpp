@@ -249,9 +249,6 @@ namespace FSBParty
         if (player->GetMapId() != bot->GetMapId())
             return;
 
-        if (!player->HaveAtClient(bot))
-            return;
-
         // Collect bot data
         uint32 level = bot->GetLevel();
         uint32 currentHealth = bot->GetHealth();

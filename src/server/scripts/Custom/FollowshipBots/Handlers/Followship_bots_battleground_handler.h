@@ -47,6 +47,11 @@ struct FSB_BattlegroundData
     uint8 wsgPathStep = 0;
     uint8 wsgCenterIndex = 0;
 
+    // Stale-chase tracking for normal WSG combat
+    ObjectGuid wsgChaseTargetGuid;
+    float wsgChaseLastDistance = 0.0f;
+    uint32 wsgChaseStuckTimer = 0;
+
     void Reset()
     {
         initialized = false;
@@ -58,6 +63,9 @@ struct FSB_BattlegroundData
         wsgCombatMode = FSBBattleground::WarsongGulch::WSGCombatMode::None;
         wsgPathStep = 0;
         wsgCenterIndex = 0;
+        wsgChaseTargetGuid.Clear();
+        wsgChaseLastDistance = 0.0f;
+        wsgChaseStuckTimer = 0;
     }
 };
 

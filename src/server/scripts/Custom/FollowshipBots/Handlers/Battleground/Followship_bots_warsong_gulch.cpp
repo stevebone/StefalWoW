@@ -33,6 +33,7 @@
 #include "ObjectMgr.h"
 #include "Player.h"
 #include "Random.h"
+#include "Timer.h"
 
 #include <algorithm>
 #include <array>
@@ -388,6 +389,9 @@ namespace FSBBattleground::WarsongGulch
                 return;
 
             bgData->wsgCombatMode = WSGCombatMode::None;
+            bgData->wsgChaseTargetGuid.Clear();
+            bgData->wsgChaseLastDistance = 0.0f;
+            bgData->wsgChaseStuckTimer = 0;
 
             if (bot->GetVictim())
                 bot->AttackStop();
@@ -470,16 +474,64 @@ namespace FSBBattleground::WarsongGulch
             if (!bot || !bgData)
                 return;
 
-            // Keep fighting the current victim if it is still valid.
+            // Keep fighting the current victim if it is still valid and within leash.
             if (bgData->wsgCombatMode == WSGCombatMode::Normal)
             {
                 Unit* victim = bot->GetVictim();
                 if (victim && IsValidCombatTarget(bot, victim))
                 {
-                    FSBMovement::EnsureInRange(bot, victim);
-                    return;
+                    float distance = bot->GetDistance(victim);
+                    MovementGeneratorType moveType = FSBMovement::GetMovementType(bot);
+
+                    TC_LOG_DEBUG("scripts.fsb.combat", "FSB WSG: bot {} normal combat victim={} distance={:.1f} moveType={}",
+                        bot->GetName(), victim->GetName(), distance, moveType);
+
+                    if (!bot->IsWithinDistInMap(victim, FSB_WSG_CHASE_LEASH))
+                    {
+                        TC_LOG_DEBUG("scripts.fsb.combat", "FSB WSG: bot {} normal victim {} is beyond leash ({:.1f} yd), dropping",
+                            bot->GetName(), victim->GetName(), distance);
+                        StopAttacking(bot, bgData);
+                    }
+                    else
+                    {
+                        // Detect a stale chase: same target and distance is not closing for several seconds.
+                        if (bgData->wsgChaseTargetGuid == victim->GetGUID())
+                        {
+                            uint32 now = getMSTime();
+                            if (distance >= bgData->wsgChaseLastDistance - 0.5f)
+                            {
+                                if (bgData->wsgChaseStuckTimer == 0)
+                                    bgData->wsgChaseStuckTimer = now;
+                                else if (now - bgData->wsgChaseStuckTimer > 3000)
+                                {
+                                    TC_LOG_DEBUG("scripts.fsb.combat", "FSB WSG: bot {} chase stuck on {} ({:.1f} yd), dropping and re-targeting",
+                                        bot->GetName(), victim->GetName(), distance);
+                                    StopAttacking(bot, bgData);
+                                }
+                            }
+                            else
+                            {
+                                bgData->wsgChaseStuckTimer = 0;
+                            }
+                        }
+                        else
+                        {
+                            bgData->wsgChaseTargetGuid = victim->GetGUID();
+                            bgData->wsgChaseStuckTimer = 0;
+                        }
+
+                        bgData->wsgChaseLastDistance = distance;
+
+                        if (bgData->wsgCombatMode == WSGCombatMode::Normal)
+                            FSBMovement::EnsureInRange(bot, victim);
+
+                        return;
+                    }
                 }
-                StopAttacking(bot, bgData);
+                else
+                {
+                    StopAttacking(bot, bgData);
+                }
             }
 
             // Standard target selection (victim, attacker, owner, group, BG scan).
