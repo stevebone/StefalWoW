@@ -26,6 +26,7 @@
 
 #include "Battleground.h"
 #include "Log.h"
+#include "Map.h"
 #include "ObjectAccessor.h"
 #include "SpellInfo.h"
 
