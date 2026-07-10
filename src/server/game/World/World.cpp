@@ -26,6 +26,7 @@
 #include "ArenaTeamMgr.h"
 #include "AuctionHouseBot.h"
 #include "AuctionHouseMgr.h"
+#include "BattlePayMgr.h"
 #include "AuthenticationPackets.h"
 #include "BattlePetMgr.h"
 #include "BattlefieldMgr.h"
@@ -1616,6 +1617,9 @@ bool World::SetInitialWorldSettings()
 
     TC_LOG_INFO("server.loading", "Loading Game Event Data...");               // must be after loading pools fully
     sGameEventMgr->LoadFromDB();
+
+    TC_LOG_INFO("server.loading", "Loading in-game Shop (BattlePay) catalog...");
+    sBattlePayMgr->Load();
 
     TC_LOG_INFO("server.loading", "Loading creature summoned data...");
     sObjectMgr->LoadCreatureSummonedData();                     // must be after LoadCreatureTemplates() and LoadQuests()

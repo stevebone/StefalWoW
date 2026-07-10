@@ -118,6 +118,12 @@ namespace WorldPackets
         class AdventureMapStartQuest;
     }
 
+    namespace BattlePay
+    {
+        class GetProductList;
+        class GetPurchaseList;
+    }
+
     namespace AreaTrigger
     {
         class AreaTrigger;
@@ -1875,6 +1881,9 @@ class TC_GAME_API WorldSession
         // Battlenet
         void HandleBattlenetChangeRealmTicket(WorldPackets::Battlenet::ChangeRealmTicket& changeRealmTicket);
         void HandleBattlenetRequest(WorldPackets::Battlenet::Request& request);
+
+        // In-game Shop (BattlePay)
+        void HandleBattlePayGetProductList(WorldPackets::BattlePay::GetProductList& getProductList);
 
         void SendBattlenetResponse(uint32 serviceHash, uint32 methodId, uint32 token, pb::Message const* response);
         void SendBattlenetResponse(uint32 serviceHash, uint32 methodId, uint32 token, uint32 status);
