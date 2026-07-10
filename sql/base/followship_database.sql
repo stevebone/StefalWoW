@@ -105,11 +105,11 @@ INSERT INTO `bot_templates` (`entry`, `bot_class`, `bot_race`, `companion_spell`
 -- Druids
 (3597, 5, 3, 15067, 1, 0, 0),
 (5506, 5, 3, 0, 1, 0, 0),
+(5505, 5, 3, 0, 3, 0, 0),
 -- Rogues
 (915, 4, 1, 0, 1, 0, 0),
 (917, 4, 1, 0, 3, 1, 0),
 (918, 4, 1, 0, 1, 0, 0),
-(5505, 4, 3, 0, 3, 0, 0),
 (13283, 4, 1, 0, 1, 0, 0),
 (49745, 4, 1, 0, 2, 0, 0),
 (173819, 4, 1, 0, 3, 1, 0),
@@ -7599,9 +7599,10 @@ VALUES
   (78273,  0, 9,  3, 0, 0,  0, 1, 0, 0, 20, 'Flametongue Weapon [Buff] Class=Shaman Race=Any Role=Melee Damage, Ranged Damage'),
   (433550, 0, 6,  3, 0, 0,  0, 1, 0, 0, 2, 'Rite of Sanctification [Buff] Class=Paladin Race=Any Role=Healer'),
   (187218, 0, 6,  3, 0, 0,  0, 1, 0, 0, 1, 'Fury [Buff] Class=Paladin Race=Any Role=Tank'),
-  (285933, 0, 8,  3, 0, 0,  0, 1, 0, 0, 512, 'Demon Armor [Buff] Class=Warlock Race=Any Role=Ranged Demonology'),
-  (1784,   0, 4,  3, 0, 0,  0, 1, 0, 0, 0, 'Stealth [Buff] Class=Rogue Race=Any'),
-  (315584, 0, 4,  3, 0, 0,  0, 1, 0, 0, 0, 'Instant Poison [Buff] Class=Rogue Race=Any'),
-  (8679,   0, 4,  3, 0, 0,  0, 1, 0, 0, 0, 'Wound Poison [Buff] Class=Rogue Race=Any'),
-  (2823,   0, 4,  3, 0, 0,  0, 1, 0, 0, 0, 'Deadly Poison [Buff] Class=Rogue Race=Any'),
-  (381664, 0, 4,  3, 0, 0,  0, 1, 0, 0, 0, 'Amplifying Poison [Buff] Class=Rogue Race=Any');
+  (285933, 0, 8,  3, 0, 0,  0, 1, 0, 0, 512, 'Demon Armor [Buff] Class=Warlock Race=Any Role=Ranged Demonology');
+
+INSERT INTO `bot_spells`
+  (spell_id, allowed_race, allowed_class, spell_type, power_cost_override, hp_threshold, spell_range, is_self_cast, is_location_target, cooldown_override, role_mask, comment)
+VALUES
+  (53563, 0, 6, 3, 0, 0, 30, 0, 0, 0, 0, 'Beacon of Light [Buff] Class=Paladin Race=Any'),
+  (20707, 0, 8, 3, 0, 0, 30, 0, 0, 0, 0, 'Soulstone [Buff] Class=Warlock Race=Any');
