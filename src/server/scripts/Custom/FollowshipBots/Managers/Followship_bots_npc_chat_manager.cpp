@@ -22,6 +22,9 @@
 
 #include "Followship_bots_npc_chat_manager.h"
 
+#include <mutex>
+#include <thread>
+
 #include "Creature.h"
 #include "Log.h"
 #include "ObjectAccessor.h"
