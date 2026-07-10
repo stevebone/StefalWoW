@@ -160,7 +160,6 @@ foreach(SCRIPT_MODULE ${SCRIPT_MODULE_LIST})
     # Create the script module project
     add_library(${SCRIPT_MODULE_PROJECT_NAME} SHARED)
     CollectAndAddSourceFiles(${SCRIPT_MODULE_PROJECT_NAME} ${SCRIPT_MODULE_PATH} HEADER_VISIBILITY PRIVATE)
-    target_include_directories(${SCRIPT_MODULE_PROJECT_NAME} PRIVATE ${SCRIPTS_INCLUDE_DIRS})
     target_sources(${SCRIPT_MODULE_PROJECT_NAME}
       PUBLIC
         FILE_SET HEADERS FILES ScriptLoader.h
