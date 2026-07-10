@@ -22,6 +22,7 @@
 
 #include "Followship_bots_utils_gossip.h"
 
+#include "Creature.h"
 #include "Player.h"
 #include "GossipDef.h"
 #include "ObjectMgr.h"
