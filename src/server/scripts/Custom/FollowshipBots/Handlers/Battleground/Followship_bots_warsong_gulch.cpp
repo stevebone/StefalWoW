@@ -42,6 +42,7 @@
 #include "Followship_bots_battleground_handler.h"
 #include "Followship_bots_chatter_handler.h"
 #include "Followship_bots_chat_handler.h"
+#include "Followship_bots_combat_handler.h"
 #include "Followship_bots_events_handler.h"
 #include "Followship_bots_recovery_handler.h"
 #include "Followship_bots_movement_handler.h"
@@ -324,6 +325,8 @@ namespace FSBBattleground::WarsongGulch
         if (!bot || !bgData || !bg)
             return;
 
+        bgData->wsgCombatMode = WSGCombatMode::None;
+
         Milliseconds delay = FSBBattleground::IsInProgress(bot) ? 100ms : 2min;
         FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_BATTLEGROUND_START, delay);
     }
@@ -354,6 +357,244 @@ namespace FSBBattleground::WarsongGulch
         return nullptr;
     }
 
+    namespace Impl
+    {
+        bool IsValidCombatTarget(Creature* bot, Unit* target)
+        {
+            if (!bot || !target)
+                return false;
+
+            if (!target->IsInWorld() || target->IsDuringRemoveFromWorld() || !target->IsAlive())
+                return false;
+
+            if (!bot->IsValidAttackTarget(target))
+                return false;
+
+            if (target->HasBreakableByDamageCrowdControlAura())
+                return false;
+
+            if (target->HasUnitFlag(UNIT_FLAG_IMMUNE_TO_NPC) ||
+                target->HasUnitFlag(UNIT_FLAG_UNINTERACTIBLE) ||
+                target->HasUnitFlag(UNIT_FLAG_PACIFIED) ||
+                target->HasUnitFlag(UNIT_FLAG_NON_ATTACKABLE))
+                return false;
+
+            return true;
+        }
+
+        void StopAttacking(Creature* bot, FSB_BattlegroundData* bgData)
+        {
+            if (!bot || !bgData)
+                return;
+
+            bgData->wsgCombatMode = WSGCombatMode::None;
+
+            if (bot->GetVictim())
+                bot->AttackStop();
+
+            // Only clear a chase we started; never wipe an objective point move.
+            MovementGeneratorType moveType = FSBMovement::GetMovementType(bot);
+            if (moveType == CHASE_MOTION_TYPE)
+                bot->GetMotionMaster()->Clear();
+        }
+
+        bool StartAttacking(Creature* bot, Unit* target, FSB_BattlegroundData* bgData, WSGCombatMode mode)
+        {
+            if (!bot || !target || !bgData)
+                return false;
+
+            if (!IsValidCombatTarget(bot, target))
+                return false;
+
+            if (!FSBCombat::BotCanAttack(bot, target))
+                return false;
+
+            bgData->wsgCombatMode = mode;
+            FSBCombat::BotDoAttack(bot, target);
+            return true;
+        }
+
+        void EvaluateReturnFlagCombat(Creature* bot, FSB_BattlegroundData* bgData)
+        {
+            if (!bot || !bgData)
+                return;
+
+            bgData->wsgCombatMode = WSGCombatMode::None;
+
+            if (bot->GetVictim())
+                bot->AttackStop();
+
+            // Make sure a stray chase does not block the run home.
+            MovementGeneratorType moveType = FSBMovement::GetMovementType(bot);
+            if (moveType == CHASE_MOTION_TYPE)
+                bot->GetMotionMaster()->Clear();
+        }
+
+        void EvaluateAttackFlagCombat(Creature* bot, FSB_BattlegroundData* bgData)
+        {
+            if (!bot || !bgData)
+                return;
+
+            // Keep chasing an existing assist target while it stays within the leash.
+            if (bgData->wsgCombatMode == WSGCombatMode::Assisting)
+            {
+                Unit* victim = bot->GetVictim();
+                if (victim && IsValidCombatTarget(bot, victim) && bot->IsWithinDistInMap(victim, FSB_WSG_CHASE_LEASH))
+                {
+                    FSBMovement::EnsureInRange(bot, victim);
+                    return;
+                }
+                StopAttacking(bot, bgData);
+            }
+
+            // Assist a nearby friendly that is already fighting.
+            if (Unit* assistTarget = FindFriendlyAssistTarget(bot, FSB_WSG_ASSIST_RANGE))
+            {
+                if (StartAttacking(bot, assistTarget, bgData, WSGCombatMode::Assisting))
+                    return;
+            }
+
+            // Fall back to self-defense against the bot's own attacker.
+            Unit* attacker = bot->getAttackerForHelper();
+            if (attacker && IsValidCombatTarget(bot, attacker) && bot->IsWithinDistInMap(attacker, FSB_WSG_CHASE_LEASH))
+            {
+                if (StartAttacking(bot, attacker, bgData, WSGCombatMode::Assisting))
+                    return;
+            }
+
+            StopAttacking(bot, bgData);
+        }
+
+        void EvaluateNormalBGCombat(Creature* bot, FSB_BattlegroundData* bgData)
+        {
+            if (!bot || !bgData)
+                return;
+
+            // Keep fighting the current victim if it is still valid.
+            if (bgData->wsgCombatMode == WSGCombatMode::Normal)
+            {
+                Unit* victim = bot->GetVictim();
+                if (victim && IsValidCombatTarget(bot, victim))
+                {
+                    FSBMovement::EnsureInRange(bot, victim);
+                    return;
+                }
+                StopAttacking(bot, bgData);
+            }
+
+            // Standard target selection (victim, attacker, owner, group, BG scan).
+            if (Unit* target = FSBCombat::GetNextAttackTarget(bot))
+            {
+                if (StartAttacking(bot, target, bgData, WSGCombatMode::Normal))
+                    return;
+            }
+
+            // If no standard target, help a nearby friendly.
+            if (Unit* assistTarget = FindFriendlyAssistTarget(bot, FSB_WSG_ASSIST_RANGE))
+            {
+                if (StartAttacking(bot, assistTarget, bgData, WSGCombatMode::Normal))
+                    return;
+            }
+
+            StopAttacking(bot, bgData);
+        }
+    }
+
+    Unit* FindFriendlyAssistTarget(Creature* bot, float range)
+    {
+        if (!bot)
+            return nullptr;
+
+        Team botTeam = GetBotTeam(bot);
+        if (botTeam != ALLIANCE && botTeam != HORDE)
+            return nullptr;
+
+        BattlegroundMap* bgMap = bot->GetMap()->ToBattlegroundMap();
+        if (!bgMap)
+            return nullptr;
+
+        Battleground* bg = bgMap->GetBG();
+        if (!bg)
+            return nullptr;
+
+        Unit* bestVictim = nullptr;
+        float bestDistance = range;
+
+        // Friendly players
+        for (auto const& [guid, bgPlayer] : bg->GetPlayers())
+        {
+            if (bgPlayer.Team != botTeam)
+                continue;
+
+            Player* player = ObjectAccessor::GetPlayer(bgMap, guid);
+            if (!player)
+                continue;
+
+            float distance = bot->GetDistance(player);
+            if (distance >= bestDistance)
+                continue;
+
+            Unit* victim = player->GetVictim();
+            if (!victim || !Impl::IsValidCombatTarget(bot, victim))
+                continue;
+
+            bestVictim = victim;
+            bestDistance = distance;
+        }
+
+        // Friendly bots
+        for (auto const& [guid, creature] : bgMap->GetObjectsStore().Data.Head)
+        {
+            if (!creature || !creature->IsBot() || creature == bot)
+                continue;
+
+            auto baseAI = dynamic_cast<FSB_BaseAI*>(creature->AI());
+            if (!baseAI || baseAI->botHired)
+                continue;
+
+            Team creatureTeam = FSBUtils::GetTeamFromFSBRace(baseAI->botRace);
+            if (creatureTeam != botTeam)
+                continue;
+
+            float distance = bot->GetDistance(creature);
+            if (distance >= bestDistance)
+                continue;
+
+            Unit* victim = creature->GetVictim();
+            if (!victim || !Impl::IsValidCombatTarget(bot, victim))
+                continue;
+
+            bestVictim = victim;
+            bestDistance = distance;
+        }
+
+        return bestVictim;
+    }
+
+    void EvaluateCombat(Creature* bot, FSB_BattlegroundData* bgData)
+    {
+        if (!bot || !bgData || !bot->IsAlive())
+            return;
+
+        switch (bgData->wsgState)
+        {
+        case WSGState::ReturnFlag:
+            Impl::EvaluateReturnFlagCombat(bot, bgData);
+            break;
+        case WSGState::AttackFlag:
+            Impl::EvaluateAttackFlagCombat(bot, bgData);
+            break;
+        case WSGState::DefendBase:
+        case WSGState::HoldCenter:
+        case WSGState::ProtectCarrier:
+            Impl::EvaluateNormalBGCombat(bot, bgData);
+            break;
+        default:
+            Impl::StopAttacking(bot, bgData);
+            break;
+        }
+    }
+
     void UpdateBot(Creature* bot, FSB_BattlegroundData* bgData)
     {
         if (!bot || !bgData)
@@ -362,7 +603,8 @@ namespace FSBBattleground::WarsongGulch
         if (!bot->IsAlive())
             return;
 
-        if (bot->IsInCombat() && bgData->wsgState != WSGState::ReturnFlag && bgData->wsgState != WSGState::AttackFlag)
+        // If the BG combat manager is actively chasing/fighting, let it own movement.
+        if (bgData->wsgCombatMode == WSGCombatMode::Assisting || bgData->wsgCombatMode == WSGCombatMode::Normal)
             return;
 
         if (FSBRecovery::BotHasRecoveryActive(bot))
@@ -529,6 +771,7 @@ namespace FSBBattleground::WarsongGulch
 
         bgData->wsgState = newState;
         bgData->wsgMovePhase = WSGMovePhase::None;
+        bgData->wsgCombatMode = WSGCombatMode::None;
         bgData->wsgPathStep = 0;
         bgData->wsgExitPathChoice = static_cast<WSGExitPathChoice>(urand(1, 2));
         bgData->wsgAttackPathChoice = static_cast<WSGExitPathChoice>(urand(1, 2));

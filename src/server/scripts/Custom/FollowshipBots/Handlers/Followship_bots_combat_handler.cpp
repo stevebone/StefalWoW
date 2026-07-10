@@ -44,6 +44,13 @@ namespace FSBCombat
             if (baseAI->botDungeonData && baseAI->botDungeonData->mechanicFlagA)
                 return;
 
+        // Battleground bots use their own combat manager; do not run generic target selection.
+        if (FSBBattleground::IsInBG(bot) && FSBBattleground::IsInProgress(bot))
+        {
+            FSBBattleground::EvaluateCombat(bot);
+            return;
+        }
+
         Unit* victim = bot->GetVictim();
         // Prevent bot from disengaging from current target
         if (victim)

@@ -22,21 +22,21 @@
 
 #include "Followship_bots_battleground_handler.h"
 #include "Followship_bots_warsong_gulch.h"
-
+#include "Followship_bots_mgr.h"
+#include "Followship_bots_utils.h"
 #include "Followship_bots_party_handler.h"
 
 #include "Battleground.h"
 #include "BattlegroundPackets.h"
 #include "BattlegroundScore.h"
 #include "Creature.h"
-#include "Followship_bots_mgr.h"
-#include "Followship_bots_utils.h"
 #include "Log.h"
 #include "Map.h"
 #include "ObjectAccessor.h"
 #include "Player.h"
 #include "ScriptHelpers.h"
 #include "Unit.h"
+#include "WorldSession.h"
 
 #include <algorithm>
 #include <random>
@@ -623,5 +623,28 @@ namespace FSBBattleground
             bot->GetName(), best->target->GetName(), best->isFlagCarrier, best->healthPct, best->distance);
 
         return best->target;
+    }
+
+    void EvaluateCombat(Creature* bot)
+    {
+        if (!bot)
+            return;
+
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI || baseAI->botHired)
+            return;
+
+        FSB_BattlegroundData* bgData = baseAI->GetBattlegroundData();
+        if (!bgData)
+            return;
+
+        uint32 bgTypeId = bgData->bgTypeId;
+        if (bgTypeId != BATTLEGROUND_WS && bgTypeId != BATTLEGROUND_WG_CTF)
+            return;
+
+        if (!IsInProgress(bot))
+            return;
+
+        WarsongGulch::EvaluateCombat(bot, bgData);
     }
 }

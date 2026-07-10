@@ -29,6 +29,7 @@
 
 class Battleground;
 class Player;
+class Unit;
 
 struct FSB_BattlegroundData;
 
@@ -60,12 +61,21 @@ namespace FSBBattleground::WarsongGulch
         Path2 = 2
     };
 
+    enum class WSGCombatMode : uint8
+    {
+        None,
+        Assisting,
+        Normal
+    };
+
     static constexpr uint32 FSB_WSG_MAX_TEAM_SIZE = 10;
 
     static constexpr float FSB_WSG_JUMP_SPEED = 10.0f;
     static constexpr float FSB_WSG_JUMP_MAX_HEIGHT = 15.0f;
     static constexpr float FSB_WSG_CENTER_OFFSET_RADIUS = 8.0f;
     static constexpr float FSB_WSG_FLAG_SEARCH_RANGE = 10.0f;
+    static constexpr float FSB_WSG_ASSIST_RANGE = 25.0f;
+    static constexpr float FSB_WSG_CHASE_LEASH = 20.0f;
 
     static constexpr uint32 ObjectHordeFlag = 227740;
     static constexpr uint32 ObjectAllianceFlag = 227741;
@@ -226,6 +236,10 @@ namespace FSBBattleground::WarsongGulch
     void SetBotState(Creature* bot, FSB_BattlegroundData* bgData, WSGState newState);
 
     // Called by FSB_EVENT_WSG_USE_FLAG (1s after reaching the enemy flag position).
+    Unit* FindFriendlyAssistTarget(Creature* bot, float range);
+
+    void EvaluateCombat(Creature* bot, FSB_BattlegroundData* bgData);
+
     void TryUseEnemyFlag(Creature* bot, FSB_BattlegroundData* bgData);
 
     // Called after a WSG bot successfully captures the flag.

@@ -43,6 +43,7 @@ struct FSB_BattlegroundData
     FSBBattleground::WarsongGulch::WSGMovePhase wsgMovePhase = FSBBattleground::WarsongGulch::WSGMovePhase::None;
     FSBBattleground::WarsongGulch::WSGExitPathChoice wsgExitPathChoice = FSBBattleground::WarsongGulch::WSGExitPathChoice::Path1;
     FSBBattleground::WarsongGulch::WSGExitPathChoice wsgAttackPathChoice = FSBBattleground::WarsongGulch::WSGExitPathChoice::Path1;
+    FSBBattleground::WarsongGulch::WSGCombatMode wsgCombatMode = FSBBattleground::WarsongGulch::WSGCombatMode::None;
     uint8 wsgPathStep = 0;
     uint8 wsgCenterIndex = 0;
 
@@ -54,6 +55,7 @@ struct FSB_BattlegroundData
         wsgMovePhase = FSBBattleground::WarsongGulch::WSGMovePhase::None;
         wsgExitPathChoice = FSBBattleground::WarsongGulch::WSGExitPathChoice::Path1;
         wsgAttackPathChoice = FSBBattleground::WarsongGulch::WSGExitPathChoice::Path1;
+        wsgCombatMode = FSBBattleground::WarsongGulch::WSGCombatMode::None;
         wsgPathStep = 0;
         wsgCenterIndex = 0;
     }
@@ -116,4 +118,8 @@ namespace FSBBattleground
     void PeriodicRaidUpdate(BattlegroundMap* battlegroundMap);
 
     Unit* FindHostileTargetInBattleground(Creature* bot);
+
+    // Entry point for battleground-specific combat evaluation.
+    // Called from FSBCombat::EvaluateAttackNeeded; it replaces generic combat logic for non-hired BG bots.
+    void EvaluateCombat(Creature* bot);
 }
