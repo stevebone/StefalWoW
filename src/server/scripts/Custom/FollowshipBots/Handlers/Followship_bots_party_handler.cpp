@@ -25,6 +25,7 @@
 
 #include "Log.h"
 #include "Group.h"
+#include "Map.h"
 #include "ObjectAccessor.h"
 #include "Player.h"
 
