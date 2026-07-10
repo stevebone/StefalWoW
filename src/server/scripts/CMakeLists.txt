@@ -90,13 +90,7 @@ endforeach()
 
 GroupSources(${CMAKE_CURRENT_SOURCE_DIR})
 
-CollectIncludeDirectories(
-  ${CMAKE_CURRENT_SOURCE_DIR}
-  SCRIPTS_INCLUDE_DIRS)
-
 add_library(scripts STATIC)
-
-target_include_directories(scripts PUBLIC ${SCRIPTS_INCLUDE_DIRS})
 
 # Configures the scriptloader with the given name and stores the output in the LOADER_OUT variable.
 # It is possible to expose multiple subdirectories from the same scriptloader through passing
