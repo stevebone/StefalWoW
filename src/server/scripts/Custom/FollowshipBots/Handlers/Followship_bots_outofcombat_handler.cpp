@@ -34,6 +34,7 @@
 #include "Followship_bots_mgr.h"
 
 #include "Followship_bots_battleground_handler.h"
+#include "Followship_bots_buffs_handler.h"
 #include "Followship_bots_chatter_handler.h"
 #include "GenAI_chatter_prompts.h"
 #include "GenAI_client.h"
@@ -87,17 +88,12 @@ namespace FSBOOC
         if (player && BotOOCHealOwner(bot, player, globalCooldown))
             return true;
 
-        //2. Buff Group (bots and player)
+        //2. Buffs: self, then group (if hired), then BG allies (if in battleground)
         // If we buff someone this turn return and end tick
-        if (now >= buffTimer && BotOOCBuffGroup(bot, buffTimer, globalCooldown))
+        if (FSBBuffs::HandlePeriodicBuffs(bot, selfBuffTimer, buffTimer))
             return true;
 
-        //3. Buff Self - buffs only for the bot
-        // If we buff something this turn return and end tick
-        if (now >= selfBuffTimer && BotOOCBuffSelf(bot, selfBuffTimer, globalCooldown))
-            return true;
-
-        //4. Recover HP/MP
+        //3. Recover HP/MP
         // One recover action at a time
         if (BotOOCRecovery(bot, globalCooldown))
             return true;
@@ -706,6 +702,7 @@ namespace FSBOOC
         return false;
     }
 
+    /*
     bool BotOOCBuffSelf(Creature* bot, uint32& selfBuffTimer, uint32& globalCooldown)
     {
         if (!bot || !bot->IsAlive())
@@ -768,7 +765,9 @@ namespace FSBOOC
         selfBuffTimer = now + 60000; // 1 minute
         return false;
     }
+    */
 
+    /*
     bool BotOOCBuffGroup(Creature* bot, uint32& buffTimer, uint32& globalCooldown)
     {
         if (!bot)
@@ -890,7 +889,9 @@ namespace FSBOOC
 
         return false;
     }
+    */
 
+    /*
     void GetBotBuffTargets(Creature* bot, uint32 buffSpellId, float maxRange, std::vector<Unit*>& outTargets)
     {
         if (!bot)
@@ -924,6 +925,7 @@ namespace FSBOOC
             outTargets.push_back(member);
         }
     }
+    */
 
     bool ExecuteBotEmote(Creature* bot, FSB_ChatterCategory category, TextEmotes textEmote, Emote visualEmote, Unit* target)
     {

@@ -242,4 +242,42 @@ namespace FSBUtilsDB
         TC_LOG_INFO("scripts.fsb.chatter", "FSB: Loaded {} bot chatter lines into {} category/type entries", count, outMap.size());
         return true;
     }
+
+    bool LoadBotSpellsFromDB(std::vector<FSBSpellDefinition>& outSpells)
+    {
+        outSpells.clear();
+
+        FollowshipDatabasePreparedStatement* stmt = FollowshipDatabase.GetPreparedStatement(FSB_SEL_BOT_SPELLS_ALL);
+        PreparedQueryResult result = FollowshipDatabase.Query(stmt);
+
+        if (!result)
+            return true; // empty table is valid
+
+        uint32 count = 0;
+        do
+        {
+            Field* fields = result->Fetch();
+
+            FSBSpellDefinition def;
+            def.dbId            = fields[0].GetUInt32();
+            def.spellId         = fields[1].GetUInt32();
+            def.allowedRace     = static_cast<FSB_Race>(fields[2].GetUInt8());
+            def.allowedClass    = static_cast<FSB_Class>(fields[3].GetUInt8());
+            def.type            = static_cast<FSBSpellType>(fields[4].GetUInt8());
+            def.manaCostOverride= fields[5].GetFloat();
+            def.hpThreshold     = fields[6].GetFloat();
+            def.dist            = fields[7].GetFloat();
+            def.isSelfCast      = fields[8].GetBool();
+            def.isLocationSpell = fields[9].GetBool();
+            def.cooldownMs      = fields[10].GetUInt32();
+            def.allowedRoles    = fields[11].GetUInt32();
+            // comment is informational only; ignore in runtime
+
+            outSpells.push_back(def);
+            ++count;
+        } while (result->NextRow());
+
+        TC_LOG_INFO("scripts.fsb.spells", "FSB: Loaded {} bot spells from DB", count);
+        return true;
+    }
 }

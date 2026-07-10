@@ -45,9 +45,12 @@ struct FSBSpellDefinition
     float chance = 100.f;       // 0-100%
     float dist = 0.0f;          // desired distance to target
     bool isSelfCast = false;    // cast on self
-    uint32 cooldownMs = 0;      // static cooldown duration
+    uint32 cooldownMs = 0;      // static cooldown duration (legacy) or DB override
     uint32 allowedRoles = FSB_ROLEMASK_ANY;
     bool isLocationSpell = false; // cast at position, not unit target
+    FSB_Race allowedRace = FSB_Race::None;   // 0 = any race
+    FSB_Class allowedClass = FSB_Class::None; // 0 = any class
+    uint32 dbId = 0;            // back-reference to bot_spells.id
 };
 
 using FSBSpellTable = std::vector<FSBSpellDefinition>;
@@ -84,4 +87,27 @@ namespace FSBSpells
 
     Position GetOffensiveAoEPosition(Creature* bot);
     Position GetHealingAoEPosition(Creature* bot);
+}
+
+struct FSBSpellQuery
+{
+    FSBSpellType type = FSBSpellType::Any;
+    FSB_Class allowedClass = FSB_Class::None; // 0 = any
+    FSB_Race allowedRace = FSB_Race::None;    // 0 = any
+    uint32 roleMask = FSB_ROLEMASK_ANY;       // 0 = any
+    bool includeSelfCast = false;
+    bool requireLocationSpell = false;
+    bool respectCooldown = true;              // check SpellHistory + DB override
+    bool excludeAlreadyPresentAura = false;   // target must not have the aura
+    Unit* target = nullptr;                   // required for aura/cooldown checks
+};
+
+namespace FSBSpellsDB
+{
+    bool LoadBotSpellsFromDB();
+    std::vector<FSBSpellDefinition> const& GetBotSpellCache();
+
+    std::vector<FSBSpellDefinition const*> QuerySpells(FSBSpellQuery const& query, Creature* bot);
+    bool IsSpellReady(Creature* bot, FSBSpellDefinition const& def);
+    uint32 GetEffectiveCooldown(Creature* bot, uint32 spellId, uint32 dbCooldownMs);
 }

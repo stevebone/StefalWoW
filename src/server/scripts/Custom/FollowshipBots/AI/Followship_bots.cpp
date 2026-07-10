@@ -848,6 +848,7 @@ void AddSC_followship_bots()
     FSBMgr::Get()->LoadAllPersistentBots();
     FSBUtilsDB::LoadBotChatterLines(FSBChatter::BotChatterLinesMap);
     FSBSpells::InitBotSpellTables();
+    FSBSpellsDB::LoadBotSpellsFromDB();
 
     new npc_followship_bots();
 }

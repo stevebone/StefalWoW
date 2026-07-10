@@ -7558,3 +7558,50 @@ INSERT INTO `bot_chatter_lines` (`zoneId`, `fsbRaceId`, `fsbClassId`, `category`
 (0, 0, 0, 26, 19, 'Someone patch me up. Hypothesis: healing restores health.', 'emote_heal, Autistic'),
 (0, 0, 0, 26, 19, 'I can''t take another hit. Structural integrity: low.', 'emote_heal, Autistic'),
 (0, 0, 0, 26, 19, 'I''m in trouble - heal me. Request acknowledged.', 'emote_heal, Autistic');
+
+-- Followship bots: new bot_spells table (buffs first use case)
+
+CREATE TABLE IF NOT EXISTS `bot_spells` (
+  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `spell_id` INT UNSIGNED NOT NULL,
+  `allowed_race` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '0 = any race, otherwise FSB_Race id',
+  `allowed_class` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '0 = any class, otherwise FSB_Class id',
+  `spell_type` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'FSBSpellType: 0 Any, 1 Emergency, 2 Heal, 3 Buff, 4 Damage',
+  `power_cost_override` FLOAT DEFAULT 0 COMMENT '0 = use DBC',
+  `hp_threshold` FLOAT DEFAULT 0 COMMENT '0 = ignore, used by heals',
+  `spell_range` FLOAT DEFAULT 0 COMMENT '0 = self, otherwise yards',
+  `is_self_cast` TINYINT(1) NOT NULL DEFAULT 0 COMMENT '1 = cast on self only',
+  `is_location_target` TINYINT(1) NOT NULL DEFAULT 0 COMMENT '1 = cast at position',
+  `cooldown_override` INT UNSIGNED DEFAULT 0 COMMENT 'ms, used only if SpellHistory has no core cooldown',
+  `role_mask` INT UNSIGNED DEFAULT 0 COMMENT '0 = any role, otherwise FSB_RoleMask bits',
+  `comment` VARCHAR(255) DEFAULT NULL,
+  UNIQUE KEY `uq_spell_class_race` (`spell_id`, `allowed_class`, `allowed_race`)
+) ENGINE=INNODB DEFAULT CHARSET=utf8mb4 COMMENT='FSBot spells';
+
+INSERT INTO `bot_spells`
+  (spell_id, allowed_race, allowed_class, spell_type, power_cost_override, hp_threshold, spell_range, is_self_cast, is_location_target, cooldown_override, role_mask, COMMENT)
+VALUES
+  -- Group buffs
+  (1459,   0, 3,  3, 0, 0, 30, 0, 0, 0, 0, 'Arcane Intellect [Buff] Class=Mage Race=Any'),
+  (6673,   0, 1,  3, 0, 0, 30, 0, 0, 0, 0, 'Battle Shout [Buff] Class=Warrior Race=Any'),
+  (13864,  0, 2,  3, 0, 0, 30, 0, 0, 0, 0, 'Power Word: Fortitude [Buff] Class=Priest Race=Any'),
+  (1126,   0, 5,  3, 0, 0, 30, 0, 0, 0, 0, 'Mark of the Wild [Buff] Class=Druid Race=Any'),
+  (418805, 0, 5,  3, 0, 0, 30, 0, 0, 0, 0, 'Thorns [Buff] Class=Druid Race=Any'),
+  (58054,  0, 6,  3, 0, 0, 30, 0, 0, 0, 0, 'Blessing of Kings [Buff] Class=Paladin Race=Any'),
+  (5697,   0, 8,  3, 0, 0, 30, 0, 0, 0, 0, 'Unending Breath [Buff] Class=Warlock Race=Any'),
+  (546,    0, 9,  3, 0, 0, 30, 0, 0, 0, 0, 'Water Walking [Buff] Class=Shaman Race=Any'),
+  (974,    0, 9,  3, 0, 0, 40, 0, 0, 0, 0, 'Earth Shield [Buff] Class=Shaman Race=Any'),
+
+  -- Self buffs
+  (462854, 0, 9,  3, 0, 0,  0, 1, 0, 0, 0, 'Skyfury [Buff] Class=Shaman Race=Any Role=Any'),
+  (192106, 0, 9,  3, 0, 0,  0, 1, 0, 0, 21, 'Lightning Shield [Buff] Class=Shaman Race=Any Role=Tank, Melee Damage, Ranged Damage'),
+  (52127,  0, 9,  3, 0, 0,  0, 1, 0, 0, 2, 'Water Shield [Buff] Class=Shaman Race=Any Role=Healer'),
+  (78273,  0, 9,  3, 0, 0,  0, 1, 0, 0, 20, 'Flametongue Weapon [Buff] Class=Shaman Race=Any Role=Melee Damage, Ranged Damage'),
+  (433550, 0, 6,  3, 0, 0,  0, 1, 0, 0, 2, 'Rite of Sanctification [Buff] Class=Paladin Race=Any Role=Healer'),
+  (187218, 0, 6,  3, 0, 0,  0, 1, 0, 0, 1, 'Fury [Buff] Class=Paladin Race=Any Role=Tank'),
+  (285933, 0, 8,  3, 0, 0,  0, 1, 0, 0, 512, 'Demon Armor [Buff] Class=Warlock Race=Any Role=Ranged Demonology'),
+  (1784,   0, 4,  3, 0, 0,  0, 1, 0, 0, 0, 'Stealth [Buff] Class=Rogue Race=Any'),
+  (315584, 0, 4,  3, 0, 0,  0, 1, 0, 0, 0, 'Instant Poison [Buff] Class=Rogue Race=Any'),
+  (8679,   0, 4,  3, 0, 0,  0, 1, 0, 0, 0, 'Wound Poison [Buff] Class=Rogue Race=Any'),
+  (2823,   0, 4,  3, 0, 0,  0, 1, 0, 0, 0, 'Deadly Poison [Buff] Class=Rogue Race=Any'),
+  (381664, 0, 4,  3, 0, 0,  0, 1, 0, 0, 0, 'Amplifying Poison [Buff] Class=Rogue Race=Any');

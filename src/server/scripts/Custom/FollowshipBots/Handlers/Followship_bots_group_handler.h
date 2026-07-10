@@ -20,6 +20,14 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <vector>
+#include "ObjectGuid.h"
+
+class Creature;
+class Unit;
+class WorldObject;
+struct DispelAbility;
+
 namespace FSBGroup
 {
     // Builds a list containing:

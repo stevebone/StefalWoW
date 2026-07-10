@@ -22,24 +22,25 @@
 
 #pragma once
 
-#include <cstdint>
-
-#include "Player.h"
 #include "Creature.h"
-
-#include "Followship_bots_defines.h"
 #include "Followship_bots_spells_handler.h"
 
-namespace FSBUtilsDB
+enum class FSBBuffTargetScope
 {
-    bool LoadAllPersistentBotsFromDB(std::vector<PlayerBotData>& outBots);
+    Self,       // cast on the bot
+    Group,      // cast on owner + other bots owned by the same player (only if hired)
+    BGAllies    // cast on same-faction players/bots within 30 yards in a battleground
+};
 
-    bool LoadBotOwners(std::unordered_map<ObjectGuid::LowType, ObjectGuid::LowType>& botOwners);
-    bool LoadBotsForPlayer(uint64 playerGuidLow, std::vector<PlayerBotData>& outBots);
-    
-    bool SaveBotToDB(Creature* bot, Player* player, uint64 hireExpiry);
-    bool DeleteBotByEntry(uint32 bot_entry, uint32 player_guid);    
+namespace FSBBuffs
+{
+    // Try to cast one missing buff. Returns true if a cast was issued this tick.
+    bool BotCastGenericBuff(Creature* bot, FSBBuffTargetScope scope, uint32& outSpellId);
 
-    bool LoadBotChatterLines(std::unordered_map<uint32, std::vector<FSBChatterDBLine>>& outMap);
-    bool LoadBotSpellsFromDB(std::vector<FSBSpellDefinition>& outSpells);
+    // Druid special path.
+    bool BotCastDruidBuffs(Creature* bot, FSBBuffTargetScope scope, uint32& outSpellId);
+
+    // Run one OOC buff tick: self -> group (if hired) -> BG allies (if in BG).
+    // Returns true if a buff was cast this tick.
+    bool HandlePeriodicBuffs(Creature* bot, uint32& selfBuffTimer, uint32& buffTimer);
 }
