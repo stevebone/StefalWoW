@@ -19,7 +19,23 @@
 #define TRINITYCORE_BATTLE_PAY_MGR_H
 
 #include "Define.h"
+#include <string>
+#include <unordered_map>
 #include <vector>
+
+// A server-defined shop product: how it is paid for and what it grants. Keyed by the productID that the
+// catalog advertises to the client (so a purchase packet's productID maps straight to grant + cost).
+struct BattlePayProduct
+{
+    uint32 ProductID   = 0;
+    uint64 CostMoney   = 0;   // copper; 0 = free
+    uint32 CostItemId  = 0;   // token item id; 0 = none
+    uint32 CostItemCount = 0;
+    uint8  GrantType   = 0;   // 1 = item, 2 = spell (mount/toy/appearance learned as a spell)
+    uint32 GrantId     = 0;
+    uint32 GrantCount  = 1;
+    std::string Name;
+};
 
 // In-game Shop (BattlePay / StoreUI) backend.
 //
@@ -36,8 +52,14 @@ public:
     // Loads the captured catalog blob from <DataDir>/battlepay/product_list_68275.bin (if present).
     void Load();
 
+    // Loads server-defined purchasable products from the world DB (battlepay_product).
+    void LoadProducts();
+
     bool HasCatalog() const { return !_productListBlob.empty(); }
     std::vector<uint8> const& GetProductListBlob() const { return _productListBlob; }
+
+    BattlePayProduct const* GetProduct(uint32 productID) const;
+    uint64 GeneratePurchaseID() { return ++_purchaseCounter; }
 
 private:
     BattlePayMgr() = default;
@@ -46,6 +68,8 @@ private:
     BattlePayMgr& operator=(BattlePayMgr const&) = delete;
 
     std::vector<uint8> _productListBlob;
+    std::unordered_map<uint32, BattlePayProduct> _products;
+    uint64 _purchaseCounter = 0;
 };
 
 #define sBattlePayMgr BattlePayMgr::instance()

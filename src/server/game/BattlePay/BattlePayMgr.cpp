@@ -16,6 +16,7 @@
  */
 
 #include "BattlePayMgr.h"
+#include "DatabaseEnv.h"
 #include "Log.h"
 #include "Timer.h"
 #include "World.h"
@@ -59,4 +60,53 @@ void BattlePayMgr::Load()
 
     TC_LOG_INFO("server.loading", "BattlePay: loaded {}-byte in-game Shop catalog in {} ms.",
         _productListBlob.size(), GetMSTimeDiffToNow(oldMSTime));
+}
+
+void BattlePayMgr::LoadProducts()
+{
+    uint32 const oldMSTime = getMSTime();
+
+    _products.clear();
+
+    //                                             0          1          2           3              4          5        6           7
+    QueryResult result = WorldDatabase.Query("SELECT productId, costMoney, costItemId, costItemCount, grantType, grantId, grantCount, name FROM battlepay_product");
+    if (!result)
+    {
+        TC_LOG_INFO("server.loading", "BattlePay: loaded 0 shop products (table `battlepay_product` empty or missing).");
+        return;
+    }
+
+    do
+    {
+        Field* fields = result->Fetch();
+        BattlePayProduct product;
+        product.ProductID     = fields[0].GetUInt32();
+        product.CostMoney     = fields[1].GetUInt64();
+        product.CostItemId    = fields[2].GetUInt32();
+        product.CostItemCount = fields[3].GetUInt32();
+        product.GrantType     = fields[4].GetUInt8();
+        product.GrantId       = fields[5].GetUInt32();
+        product.GrantCount    = fields[6].GetUInt32();
+        product.Name          = fields[7].GetString();
+
+        if (!product.GrantId || (product.GrantType != 1 && product.GrantType != 2))
+        {
+            TC_LOG_ERROR("sql.sql", "BattlePay: product {} has invalid grantType {} / grantId {} - skipped.",
+                product.ProductID, product.GrantType, product.GrantId);
+            continue;
+        }
+        if (!product.GrantCount)
+            product.GrantCount = 1;
+
+        _products[product.ProductID] = std::move(product);
+    }
+    while (result->NextRow());
+
+    TC_LOG_INFO("server.loading", "BattlePay: loaded {} shop products in {} ms.", _products.size(), GetMSTimeDiffToNow(oldMSTime));
+}
+
+BattlePayProduct const* BattlePayMgr::GetProduct(uint32 productID) const
+{
+    auto itr = _products.find(productID);
+    return itr != _products.end() ? &itr->second : nullptr;
 }

@@ -13,9 +13,24 @@ Deploy the captured catalog blob (message body, opcode dword stripped) to:
 fabricated on the wire). Source blob provenance: extracted from
 `C:\sniff\ingame-shop_ordersCrafting_professions.pkt`, SMSG 0x42021a, 58846 bytes.
 
-## Scope
-- P0 (this commit): catalog DISPLAY. Shop opens and shows real products.
-- NOT yet: purchase/deliver-for-gold. Retail catalog products route their "buy" through the Battle.net
-  RPC web-checkout (confirmed in sniff: CMSG_OPEN_CHECKOUT, 0x the in-game START_PURCHASE opcode), so a
-  gold/token purchase path needs either a custom (in-game-purchasable) catalog — blocked on the reflection
-  writer — or a live sniff of the in-game purchase flow. Tracked separately.
+## Custom catalog + purchase
+The reflection catalog writer was cracked (`c:\dumps\battlepay_wire.py`), so we ship a **custom** catalog:
+`gen_shop_catalog.py` reskins the first N retail entries into our shop items (keeping each entry's productID
+so its ShopEntry keeps it visible) and writes `battlepay_custom_product_list.bin` -> deploy it as
+`<DataDir>/battlepay/product_list_68275.bin`. Regenerate it together with the SQL below if the product set changes.
+
+Apply `sql/custom/battlepay/battlepay_product.sql` to the **world** DB. Each row maps a catalog productId to a
+gold/token cost + a grant (item or spell). `BattlePayMgr::LoadProducts()` loads it.
+
+## Purchase flow (StartPurchase path)
+On CMSG_BATTLE_PAY_START_PURCHASE the handler reads the productID (strong candidate = the u32 scalar; all
+scalars are logged so a live purchase confirms it), validates + charges gold/token, grants the item/spell,
+and replies with SMSG_BATTLE_PAY_START_PURCHASE_RESPONSE + SMSG_BATTLE_PAY_PURCHASE_UPDATE(status=Done). Wire
+layouts were recovered offline (`c:\dumps\battlepay_purchase_wire.py`); the response packets are byte-aligned
+(walletName sent empty) so no bit-packing risk. Delivery-detail packets (opaque blobs) are intentionally NOT
+sent — the item arrives via the normal item/collection packets regardless.
+
+## Runtime-confirmable assumptions (do NOT fabricate — logged for a live test)
+- Which CMSG_START_PURCHASE scalar is the productID (candidate: u32). The handler logs all three.
+- Whether the client uses StartPurchase (handled) vs OpenCheckout (retail web path; logged, not granted) for
+  these reskinned products. A single live purchase (or a purchase sniff) confirms both; adjust if needed.

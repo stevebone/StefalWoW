@@ -122,6 +122,8 @@ namespace WorldPackets
     {
         class GetProductList;
         class GetPurchaseList;
+        class StartPurchase;
+        class OpenCheckout;
     }
 
     namespace AreaTrigger
@@ -1884,6 +1886,9 @@ class TC_GAME_API WorldSession
 
         // In-game Shop (BattlePay)
         void HandleBattlePayGetProductList(WorldPackets::BattlePay::GetProductList& getProductList);
+        void HandleBattlePayStartPurchase(WorldPackets::BattlePay::StartPurchase& startPurchase);
+        void HandleBattlePayOpenCheckout(WorldPackets::BattlePay::OpenCheckout& openCheckout);
+        void BattlePayProcessPurchase(uint32 productID);
 
         void SendBattlenetResponse(uint32 serviceHash, uint32 methodId, uint32 token, pb::Message const* response);
         void SendBattlenetResponse(uint32 serviceHash, uint32 methodId, uint32 token, uint32 status);

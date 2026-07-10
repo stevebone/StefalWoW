@@ -26,4 +26,44 @@ WorldPacket const* ProductListResponse::Write()
 
     return &_worldPacket;
 }
+
+void StartPurchase::Read()
+{
+    _worldPacket >> ProductID;
+    _worldPacket >> ScalarU64;
+    Flag = _worldPacket.ReadBit();
+}
+
+void OpenCheckout::Read()
+{
+    _worldPacket >> DistributionID;
+}
+
+WorldPacket const* StartPurchaseResponse::Write()
+{
+    _worldPacket << ResultA;
+    _worldPacket << ResultB;
+    _worldPacket << PurchaseID;
+
+    return &_worldPacket;
+}
+
+WorldPacket const* PurchaseUpdate::Write()
+{
+    _worldPacket << Result;
+    _worldPacket << uint32(Purchases.size());
+    for (PurchaseRecord const& p : Purchases)
+    {
+        _worldPacket << p.PurchaseID;
+        _worldPacket << p.Status;
+        _worldPacket << p.ResultCode;
+        _worldPacket << p.ProductID;
+        _worldPacket << uint8(0);       // walletName: empty (8-bit length primitive, value 0)
+        _worldPacket << p.BasePrice;
+        _worldPacket << p.UserPrice;
+        _worldPacket << p.TimeCreated;
+    }
+
+    return &_worldPacket;
+}
 }
