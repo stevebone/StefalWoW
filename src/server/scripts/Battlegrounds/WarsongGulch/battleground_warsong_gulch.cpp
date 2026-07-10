@@ -540,39 +540,24 @@ struct battleground_warsong_gulch : BattlegroundScript
         TeamId const otherTeamId = Battleground::GetTeamIndexByTeamId(GetOtherTeam(team));
 
         if (areaTrigger->GetGUID() != _capturePointAreaTriggers[teamId])
-        {
-            TC_LOG_DEBUG("scripts.fsb.battleground", "FSB WSG CanCaptureFlag: unit {} wrong area trigger (team={} teamId={} trigger={} expected={})",
-                unit->GetName(), team, teamId, areaTrigger->GetGUID().ToString(), _capturePointAreaTriggers[teamId].ToString());
             return false;
-        }
 
         // check if enemy flag's carrier is this player
         ObjectGuid carrierGUID = GetFlagCarrierGUID(otherTeamId);
         if (carrierGUID != unit->GetGUID())
-        {
-            TC_LOG_DEBUG("scripts.fsb.battleground", "FSB WSG CanCaptureFlag: unit {} is not enemy flag carrier (otherTeamId={} carrier={} self={})",
-                unit->GetName(), otherTeamId, carrierGUID.ToString(), unit->GetGUID().ToString());
             return false;
-        }
 
         // check that team's flag is in base
         FlagState ownFlagState = GetFlagState(teamId);
         if (ownFlagState != FlagState::InBase)
-        {
-            TC_LOG_DEBUG("scripts.fsb.battleground", "FSB WSG CanCaptureFlag: unit {} own flag not in base (teamId={} state={})",
-                unit->GetName(), teamId, uint32(ownFlagState));
             return false;
-        }
 
-        TC_LOG_DEBUG("scripts.fsb.battleground", "FSB WSG CanCaptureFlag: unit {} can capture (team={} teamId={})", unit->GetName(), team, teamId);
         return true;
     }
 
     void OnCaptureFlag(AreaTrigger* areaTrigger, Unit* unit) override
     {
         BattlegroundScript::OnCaptureFlag(areaTrigger, unit);
-
-        TC_LOG_DEBUG("scripts.fsb.battleground", "FSB WSG OnCaptureFlag: unit {} capturing flag", unit->GetName());
 
         Team winner = TEAM_OTHER;
         Team team = TEAM_OTHER;
