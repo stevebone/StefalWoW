@@ -24,8 +24,9 @@
 
 #include "Position.h"
 #include "SharedDefines.h"
+#include "TemporarySummon.h"
 
-#include "../../AI/Followship_bots_ai_base.h"
+#include "Followship_bots_ai_base.h"
 
 class Battleground;
 class Player;
@@ -250,4 +251,7 @@ namespace FSBBattleground::WarsongGulch
 
     bool IsEnemyFlagTaken(Creature* bot);
     WSGState GetWSGBotState(Creature* bot, WSGState currentState);
+
+    // Re-summons a bot at its team's start position when it despawns during an in-progress WSG match.
+    void RespawnBotOnDespawn(Creature* bot);
 }

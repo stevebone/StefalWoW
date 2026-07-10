@@ -498,6 +498,73 @@ namespace FSBBattleground::WarsongGulch
 
             StopAttacking(bot, bgData);
         }
+
+        // Routes an AttackFlag bot back to the center when it re-rolls to HoldCenter.
+        // Uses the enemy team's exit path (same side as the attack path) and picks the
+        // closest point among center positions and that exit path.
+        void SetupHoldCenterFromAttack(Creature* bot, FSB_BattlegroundData* bgData)
+        {
+            if (!bot || !bgData)
+                return;
+
+            Team botTeam = GetBotTeam(bot);
+            if (botTeam != ALLIANCE && botTeam != HORDE)
+                return;
+
+            // Preserve the same path side the bot was attacking on.
+            bgData->wsgExitPathChoice = bgData->wsgAttackPathChoice;
+
+            // Use the enemy team's exit path to route back toward the center.
+            WSGPath const& enemyExitPath = GetExitPath(GetEnemyTeam(botTeam), bgData->wsgExitPathChoice);
+
+            Position botPos = bot->GetPosition();
+            Position const* bestPos = nullptr;
+            float bestDistSq = -1.0f;
+            bool bestIsCenter = false;
+            uint8 bestIndex = 0;
+
+            for (uint8 i = 0; i < CenterPositions.size(); ++i)
+            {
+                float distSq = botPos.GetExactDistSq(CenterPositions[i]);
+                if (!bestPos || distSq < bestDistSq)
+                {
+                    bestPos = &CenterPositions[i];
+                    bestDistSq = distSq;
+                    bestIsCenter = true;
+                    bestIndex = i;
+                }
+            }
+
+            for (uint8 i = 0; i < enemyExitPath.count; ++i)
+            {
+                float distSq = botPos.GetExactDistSq(enemyExitPath.points[i]);
+                if (!bestPos || distSq < bestDistSq)
+                {
+                    bestPos = &enemyExitPath.points[i];
+                    bestDistSq = distSq;
+                    bestIsCenter = false;
+                    bestIndex = i;
+                }
+            }
+
+            if (!bestPos)
+                return;
+
+            bgData->wsgCombatMode = WSGCombatMode::None;
+
+            if (bestIsCenter)
+            {
+                bgData->wsgCenterIndex = bestIndex;
+                bgData->wsgMovePhase = WSGMovePhase::MovingToCenter;
+                bot->GetMotionMaster()->MovePoint(FSBMovement::MOVEMENT_POINT_WSG_CENTER, *bestPos);
+            }
+            else
+            {
+                bgData->wsgPathStep = bestIndex;
+                bgData->wsgMovePhase = WSGMovePhase::Exiting;
+                MoveToExitStep(bot, bgData);
+            }
+        }
     }
 
     Unit* FindFriendlyAssistTarget(Creature* bot, float range)
@@ -769,12 +836,24 @@ namespace FSBBattleground::WarsongGulch
             }
         }
 
-        bgData->wsgState = newState;
-        bgData->wsgMovePhase = WSGMovePhase::None;
-        bgData->wsgCombatMode = WSGCombatMode::None;
-        bgData->wsgPathStep = 0;
-        bgData->wsgExitPathChoice = static_cast<WSGExitPathChoice>(urand(1, 2));
-        bgData->wsgAttackPathChoice = static_cast<WSGExitPathChoice>(urand(1, 2));
+        WSGState oldState = bgData->wsgState;
+
+        // AttackFlag bots that fall back to HoldCenter should route back from the enemy side,
+        // not walk back to their own base. Use the enemy exit path and the closest center/path point.
+        if (oldState == WSGState::AttackFlag && newState == WSGState::HoldCenter)
+        {
+            bgData->wsgState = newState;
+            Impl::SetupHoldCenterFromAttack(bot, bgData);
+        }
+        else
+        {
+            bgData->wsgState = newState;
+            bgData->wsgMovePhase = WSGMovePhase::None;
+            bgData->wsgCombatMode = WSGCombatMode::None;
+            bgData->wsgPathStep = 0;
+            bgData->wsgExitPathChoice = static_cast<WSGExitPathChoice>(urand(1, 2));
+            bgData->wsgAttackPathChoice = static_cast<WSGExitPathChoice>(urand(1, 2));
+        }
 
         Team botTeam = GetBotTeam(bot);
         if (botTeam != ALLIANCE && botTeam != HORDE)
@@ -1058,5 +1137,57 @@ namespace FSBBattleground::WarsongGulch
             if (otherBgData->wsgState == WSGState::HoldCenter)
                 FSBEvents::ScheduleBotEvent(creature, FSB_EVENT_WSG_REROLL_STATE, 10s);
         }
+    }
+
+    void RespawnBotOnDespawn(Creature* bot)
+    {
+        if (!bot)
+            return;
+
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI || baseAI->botHired)
+            return;
+
+        FSB_BattlegroundData* bgData = baseAI->GetBattlegroundData();
+        if (!bgData)
+            return;
+
+        if (bgData->bgTypeId != BATTLEGROUND_WS && bgData->bgTypeId != BATTLEGROUND_WG_CTF)
+            return;
+
+        if (!FSBBattleground::IsInProgress(bot))
+            return;
+
+        Team botTeam = GetBotTeam(bot);
+        if (botTeam != ALLIANCE && botTeam != HORDE)
+            return;
+
+        uint32 entry = bot->GetEntry();
+
+        BattlegroundMap* bgMap = bot->GetMap()->ToBattlegroundMap();
+        if (!bgMap)
+            return;
+
+        Battleground* bg = bgMap->GetBG();
+        if (!bg)
+            return;
+
+        TeamId teamId = Battleground::GetTeamIndexByTeamId(botTeam);
+        WorldSafeLocsEntry const* startPos = bg->GetTeamStartPosition(teamId);
+        if (!startPos)
+            return;
+
+        Position pos(startPos->Loc);
+        pos.m_positionX += frand(-3.0f, 3.0f);
+        pos.m_positionY += frand(-3.0f, 3.0f);
+
+        Creature* newBot = bgMap->SummonCreature(entry, pos);
+        if (!newBot)
+            return;
+
+        newBot->SetPvP(true);
+        FSBBattleground::AddBotSpawnGuid(bgMap, newBot->GetGUID());
+
+        TC_LOG_INFO("scripts.fsb.battleground", "FSB WSG: Respawned bot {} for team {} after despawn", newBot->GetEntry(), botTeam);
     }
 }

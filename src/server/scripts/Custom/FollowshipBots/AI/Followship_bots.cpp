@@ -92,6 +92,12 @@ public:
             ScriptedAI::InitializeAI(); // always call base first            
         }
 
+        void OnDespawn() override
+        {
+            if (me && me->GetMap() && me->GetMap()->IsBattleground())
+                FSBBattleground::WarsongGulch::RespawnBotOnDespawn(me);
+        }
+
         void Reset() override // Runs at creature respawn, evade or when triggered
         {
             if (FollowshipBotsConfig::configFSBEnabled)
