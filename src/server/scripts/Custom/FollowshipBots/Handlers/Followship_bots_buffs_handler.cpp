@@ -28,6 +28,7 @@
 #include "Log.h"
 #include "Map.h"
 #include "ObjectAccessor.h"
+#include "SpellHistory.h"
 #include "SpellInfo.h"
 
 #include "Followship_bots_ai_base.h"
