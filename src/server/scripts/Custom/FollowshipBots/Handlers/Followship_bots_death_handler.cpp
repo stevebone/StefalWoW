@@ -57,11 +57,13 @@ namespace FSBDeath
         {
             bot->SetUnitFlag(UNIT_FLAG_IMMUNE_TO_PC);
             bot->SetUnitFlag(UNIT_FLAG_IMMUNE_TO_NPC);
+            bot->SetReactState(REACT_PASSIVE);
         }
         else
         {
             bot->RemoveUnitFlag(UNIT_FLAG_IMMUNE_TO_PC);
             bot->RemoveUnitFlag(UNIT_FLAG_IMMUNE_TO_NPC);
+            bot->SetReactState(REACT_AGGRESSIVE);
         }
     }
 
@@ -162,7 +164,6 @@ namespace FSBDeath
         SetBotCorpseImmunity(bot, false);
 
         bot->GetMotionMaster()->Clear();
-        bot->SetReactState(REACT_AGGRESSIVE);
 
         auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
         if (baseAI)

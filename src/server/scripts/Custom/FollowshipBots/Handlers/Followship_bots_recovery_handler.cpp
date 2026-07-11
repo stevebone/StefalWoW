@@ -53,6 +53,12 @@ namespace FSBRecovery
         // Determine if this bot uses mana at all
         bool usesMana = bot->GetMaxPower(POWER_MANA) > 0;
 
+        // Druid shapeshifts (bear/cat) use rage/energy, not mana
+        if (usesMana &&
+            FSBMgr::Get()->GetBotClassForEntry(bot->GetEntry()) == FSB_Class::Druid &&
+            (bot->HasAura(SPELL_DRUID_BEAR) || bot->HasAura(SPELL_DRUID_CAT)))
+            usesMana = false;
+
         bool lowMana = false;
         if (usesMana)
             lowMana = bot->GetPowerPct(POWER_MANA) < manaThreshold;
