@@ -35,9 +35,12 @@
 #include "Followship_bots_druid.h"
 #include "Followship_bots_group_handler.h"
 #include "Followship_bots_mgr.h"
+#include "Followship_bots_paladin.h"
+#include "Followship_bots_rogue.h"
 #include "Followship_bots_shaman.h"
 #include "Followship_bots_utils.h"
 #include "Followship_bots_warrior.h"
+#include "Followship_bots_warlock.h"
 #include "GenAI_chatter_prompts.h"
 
 namespace FSBBuffs
@@ -143,6 +146,258 @@ namespace FSBBuffs
         return targets;
     }
 
+    bool BotCastPaladinBeacon(Creature* bot, FSBBuffTargetScope scope, uint32& outSpellId)
+    {
+        outSpellId = 0;
+        if (!bot || !bot->IsAlive())
+            return false;
+
+        if (scope == FSBBuffTargetScope::BGAllies)
+            return false;
+
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
+            return false;
+
+        FSB_Class botClass = FSBMgr::Get()->GetBotClassForEntry(bot->GetEntry());
+        if (botClass != FSB_Class::Paladin)
+            return false;
+
+        uint32 spellId = SPELL_PALADIN_BEACON_OF_LIGHT;
+        Unit* target = nullptr;
+        ObjectGuid botGuid = bot->GetGUID();
+
+        // Beacon is unique per caster. Track the target explicitly so recasting does not remove
+        // the buff from the current target and put it on a higher priority target in a loop.
+        if (!baseAI->botSpellsData.beaconTargetGuid.IsEmpty())
+        {
+            Unit* existingTarget = ObjectAccessor::GetUnit(*bot, baseAI->botSpellsData.beaconTargetGuid);
+            if (existingTarget && existingTarget->HasAura(spellId, botGuid))
+            {
+                TC_LOG_DEBUG("scripts.fsb.buffs", "FSB: Paladin bot {} Beacon still active on {}, skip",
+                    bot->GetName(), existingTarget->GetName());
+                return false;
+            }
+            baseAI->botSpellsData.beaconTargetGuid.Clear();
+        }
+
+        if (scope == FSBBuffTargetScope::Group)
+        {
+            Unit* tank = FSBGroup::BotGetFirstGroupTank(bot);
+            Player* owner = FSBMgr::Get()->GetBotOwner(bot);
+
+            if (tank && tank->IsAlive() && !tank->HasAura(spellId) &&
+                bot->IsWithinDistInMap(tank, 30.0f) && bot->IsWithinLOSInMap(tank))
+                target = tank;
+            else if (owner && owner->IsAlive() && !owner->HasAura(spellId) &&
+                bot->IsWithinDistInMap(owner, 30.0f) && bot->IsWithinLOSInMap(owner))
+                target = owner;
+            else if (!bot->HasAura(spellId))
+                target = bot;
+        }
+        else if (scope == FSBBuffTargetScope::Self)
+        {
+            if (!bot->HasAura(spellId))
+                target = bot;
+        }
+
+        if (!target)
+            return false;
+
+        SpellCastResult result = bot->CastSpell(target, spellId, false);
+        if (result != SPELL_CAST_OK)
+            return false;
+
+        baseAI->botGlobalCooldown = getMSTime() + 1500;
+        baseAI->botSpellsData.beaconTargetGuid = target->GetGUID();
+        outSpellId = spellId;
+        TC_LOG_DEBUG("scripts.fsb.buffs", "FSB: Paladin bot {} cast Beacon ({}) on {}",
+            bot->GetName(), spellId, target->GetName());
+        return true;
+    }
+
+    bool BotCastWarlockSoulstone(Creature* bot, FSBBuffTargetScope scope, uint32& outSpellId)
+    {
+        outSpellId = 0;
+        if (!bot || !bot->IsAlive())
+            return false;
+
+        if (scope == FSBBuffTargetScope::BGAllies)
+            return false;
+
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
+            return false;
+
+        FSB_Class botClass = FSBMgr::Get()->GetBotClassForEntry(bot->GetEntry());
+        if (botClass != FSB_Class::Warlock)
+            return false;
+
+        uint32 spellId = SPELL_WARLOCK_SOULSTONE;
+        if (bot->GetSpellHistory()->HasCooldown(spellId))
+            return false;
+
+        Unit* target = nullptr;
+        ObjectGuid botGuid = bot->GetGUID();
+
+        // Soulstone is unique per caster. Track the target explicitly so recasting does not remove
+        // the buff from the current target and put it on a higher priority target in a loop.
+        if (!baseAI->botSpellsData.soulstoneTargetGuid.IsEmpty())
+        {
+            Unit* existingTarget = ObjectAccessor::GetUnit(*bot, baseAI->botSpellsData.soulstoneTargetGuid);
+            if (existingTarget && existingTarget->HasAura(spellId, botGuid))
+            {
+                TC_LOG_DEBUG("scripts.fsb.buffs", "FSB: Warlock bot {} Soulstone still active on {}, skip",
+                    bot->GetName(), existingTarget->GetName());
+                return false;
+            }
+            baseAI->botSpellsData.soulstoneTargetGuid.Clear();
+        }
+
+        if (scope == FSBBuffTargetScope::Group)
+        {
+            Unit* healer = FSBGroup::BotGetFirstGroupHealer(bot);
+            Player* owner = FSBMgr::Get()->GetBotOwner(bot);
+
+            if (healer && healer->IsAlive() && !healer->HasAura(spellId) &&
+                bot->IsWithinDistInMap(healer, 30.0f) && bot->IsWithinLOSInMap(healer))
+                target = healer;
+            else if (owner && owner->IsAlive() && !owner->HasAura(spellId) &&
+                bot->IsWithinDistInMap(owner, 30.0f) && bot->IsWithinLOSInMap(owner))
+                target = owner;
+            else if (!bot->HasAura(spellId))
+                target = bot;
+        }
+        else if (scope == FSBBuffTargetScope::Self)
+        {
+            if (!bot->HasAura(spellId))
+                target = bot;
+        }
+
+        if (!target)
+            return false;
+
+        SpellCastResult result = bot->CastSpell(target, spellId, false);
+        if (result != SPELL_CAST_OK)
+            return false;
+
+        baseAI->botGlobalCooldown = getMSTime() + 1500;
+        baseAI->botSpellsData.soulstoneTargetGuid = target->GetGUID();
+        outSpellId = spellId;
+        TC_LOG_DEBUG("scripts.fsb.buffs", "FSB: Warlock bot {} cast Soulstone ({}) on {}",
+            bot->GetName(), spellId, target->GetName());
+        return true;
+    }
+
+    bool BotCastRogueBuffs(Creature* bot, FSBBuffTargetScope scope, uint32& outSpellId)
+    {
+        outSpellId = 0;
+        if (!bot || !bot->IsAlive())
+            return false;
+
+        if (scope != FSBBuffTargetScope::Self)
+            return false;
+
+        FSB_Class botClass = FSBMgr::Get()->GetBotClassForEntry(bot->GetEntry());
+        if (botClass != FSB_Class::Rogue)
+            return false;
+
+        if (bot->IsInCombat())
+            return false;
+
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
+            return false;
+
+        uint32 now = getMSTime();
+
+        auto tryCastSelfBuff = [&](uint32 spellId) -> bool
+        {
+            SpellCastResult result = bot->CastSpell(bot, spellId, false);
+            if (result != SPELL_CAST_OK)
+                return false;
+
+            baseAI->botGlobalCooldown = now + 1500;
+            outSpellId = spellId;
+            return true;
+        };
+
+        auto hasAnyAura = [&](std::vector<uint32> const& spells) -> bool
+        {
+            for (uint32 spellId : spells)
+                if (bot->HasAura(spellId))
+                    return true;
+            return false;
+        };
+
+        std::vector<uint32> lethalPoisons = {
+            SPELL_ROGUE_INSTANT_POISON,
+            SPELL_ROGUE_WOUND_POISON,
+            SPELL_ROGUE_DEADLY_POISON,
+            SPELL_ROGUE_AMPLIFYING_POISON
+        };
+
+        if (!hasAnyAura(lethalPoisons))
+        {
+            uint32 spellId = lethalPoisons[urand(0, uint32(lethalPoisons.size()) - 1)];
+            if (tryCastSelfBuff(spellId))
+            {
+                TC_LOG_DEBUG("scripts.fsb.buffs", "FSB: Rogue bot {} cast lethal poison ({})",
+                    bot->GetName(), spellId);
+                return true;
+            }
+            return false;
+        }
+
+        std::vector<uint32> nonLethalPoisons = {
+            SPELL_ROGUE_CRIPPLING_POISON,
+            SPELL_ROGUE_NUMBING_POISON,
+            SPELL_ROGUE_ATROPHIC_POISON
+        };
+
+        if (!hasAnyAura(nonLethalPoisons))
+        {
+            uint32 spellId = nonLethalPoisons[urand(0, uint32(nonLethalPoisons.size()) - 1)];
+            if (tryCastSelfBuff(spellId))
+            {
+                TC_LOG_DEBUG("scripts.fsb.buffs", "FSB: Rogue bot {} cast non-lethal poison ({})",
+                    bot->GetName(), spellId);
+                return true;
+            }
+            return false;
+        }
+
+        BattlegroundMap* bgMap = bot->GetMap()->ToBattlegroundMap();
+        if (!bgMap)
+        {
+            TC_LOG_DEBUG("scripts.fsb.buffs", "FSB: Rogue bot {} skip Stealth - not in battleground map", bot->GetName());
+            return false;
+        }
+
+        Battleground* bg = bgMap->GetBG();
+        if (!bg || bg->GetStatus() != STATUS_IN_PROGRESS)
+        {
+            TC_LOG_DEBUG("scripts.fsb.buffs", "FSB: Rogue bot {} skip Stealth - BG not in progress", bot->GetName());
+            return false;
+        }
+
+        if (bot->HasAura(SPELL_ROGUE_STEALTH))
+        {
+            TC_LOG_DEBUG("scripts.fsb.buffs", "FSB: Rogue bot {} skip Stealth - already stealthed", bot->GetName());
+            return false;
+        }
+
+        if (tryCastSelfBuff(SPELL_ROGUE_STEALTH))
+        {
+            TC_LOG_DEBUG("scripts.fsb.buffs", "FSB: Rogue bot {} cast Stealth in battleground",
+                bot->GetName());
+            return true;
+        }
+
+        TC_LOG_DEBUG("scripts.fsb.buffs", "FSB: Rogue bot {} skip Stealth - cast failed", bot->GetName());
+        return false;
+    }
+
     bool BotCastGenericBuff(Creature* bot, FSBBuffTargetScope scope, uint32& outSpellId)
     {
         outSpellId = 0;
@@ -158,6 +413,18 @@ namespace FSBBuffs
         // Druid bypasses generic path.
         if (botClass == FSB_Class::Druid)
             return BotCastDruidBuffs(bot, scope, outSpellId);
+
+        if (botClass == FSB_Class::Paladin)
+            if (BotCastPaladinBeacon(bot, scope, outSpellId))
+                return true;
+
+        if (botClass == FSB_Class::Warlock)
+            if (BotCastWarlockSoulstone(bot, scope, outSpellId))
+                return true;
+
+        if (botClass == FSB_Class::Rogue)
+            if (BotCastRogueBuffs(bot, scope, outSpellId))
+                return true;
 
         FSBSpellQuery query;
         query.type = FSBSpellType::Buff;

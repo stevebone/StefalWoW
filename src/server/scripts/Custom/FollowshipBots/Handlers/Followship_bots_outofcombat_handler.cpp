@@ -102,15 +102,7 @@ namespace FSBOOC
         if (BotOOCSummonPetOrDemon(bot))
             return true;
 
-        //6. Warlock SoulStone
-        if (BotOOCBuffSoulstone(bot, globalCooldown))
-            return true;
-
-        //7. Paladin Beacon
-        if (BotOOCBuffBeacon(bot))
-            return true;
-
-        //8. Random event
+        //6. Random event
         if (BotOOCDoRandomEvent(bot))
             return true;       
 
@@ -521,65 +513,6 @@ namespace FSBOOC
         }
 
         
-    }
-
-    bool BotOOCBuffBeacon(Creature* bot)
-    {
-        if (!bot || !bot->IsAlive())
-            return false;
-
-        if (bot->IsInCombat())
-            return false;
-
-        if (bot->GetStandState() == UNIT_STAND_STATE_SIT)
-            return false;
-
-        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
-        auto isDoingRandomEvent = baseAI->botDoingRandomEvent;
-
-        if (isDoingRandomEvent)
-            return false;
-
-        FSB_Class cls = FSBMgr::Get()->GetBotClassForEntry(bot->GetEntry());
-
-        if (cls != FSB_Class::Paladin)
-            return false;
-
-        if (FSBPaladin::BotOOCBuffBeacon(bot))
-            return true;
-
-        return false;
-    }
-
-    bool BotOOCBuffSoulstone(Creature* bot, uint32& globalCooldown)
-    {
-        if (!bot || !bot->IsAlive())
-            return false;
-
-        if (bot->IsInCombat())
-            return false;
-
-        if (bot->GetStandState() == UNIT_STAND_STATE_SIT)
-            return false;
-
-        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
-        if (!baseAI)
-            return false;
-
-        auto isDoingRandomEvent = baseAI->botDoingRandomEvent;
-
-        if (isDoingRandomEvent)
-            return false;
-
-        FSB_Class cls = FSBMgr::Get()->GetBotClassForEntry(bot->GetEntry());
-
-        if (cls != FSB_Class::Warlock)
-            return false;
-
-        if (FSBWarlock::BotOOCBuffSoulstone(bot, globalCooldown))
-            return true;
-
-        return false;
     }
 
     bool BotOOCSummonPetOrDemon(Creature* bot)

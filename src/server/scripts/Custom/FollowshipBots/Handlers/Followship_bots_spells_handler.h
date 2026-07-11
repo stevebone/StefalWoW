@@ -62,6 +62,12 @@ struct FSBSpellRuntime
     uint32 nextReadyMs = 0; // runtime cooldown
 };
 
+struct FSBSpellsData
+{
+    ObjectGuid beaconTargetGuid = ObjectGuid::Empty;
+    ObjectGuid soulstoneTargetGuid = ObjectGuid::Empty;
+};
+
 namespace FSBSpells
 {
     void InitBotSpellTables();
