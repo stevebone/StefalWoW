@@ -62,22 +62,12 @@ namespace FSBBattleground::WarsongGulch
         Path2 = 2
     };
 
-    enum class WSGCombatMode : uint8
-    {
-        None,
-        Assisting,
-        Normal
-    };
-
     static constexpr uint32 FSB_WSG_MAX_TEAM_SIZE = 10;
 
     static constexpr float FSB_WSG_JUMP_SPEED = 10.0f;
     static constexpr float FSB_WSG_JUMP_MAX_HEIGHT = 15.0f;
     static constexpr float FSB_WSG_CENTER_OFFSET_RADIUS = 8.0f;
     static constexpr float FSB_WSG_FLAG_SEARCH_RANGE = 10.0f;
-    static constexpr float FSB_WSG_ASSIST_RANGE = 25.0f;
-    static constexpr float FSB_WSG_CHASE_LEASH = 20.0f;
-
     static constexpr uint8 MaxBaseDefenders = 2;
     static constexpr uint8 MaxMiddleDefenders = 3;
     static constexpr uint8 MaxFlagAttackers = 4;

@@ -624,6 +624,11 @@ struct battleground_warsong_gulch : BattlegroundScript
         if(unit->ToPlayer())
             battleground->UpdatePvpStat(unit->ToPlayer(), PVP_STAT_FLAG_CAPTURES, 1);      // +1 flag captures
 
+        // Bot captures are recorded in the bot score data.
+        if (Creature* creature = unit->ToCreature())
+            if (creature->IsBot())
+                ScriptHelpers::RecordBotFlagCapture(creature->GetGUID());
+
         // 5. Remove all related auras
         RemoveAssaultDebuffFromUnit(unit);
 

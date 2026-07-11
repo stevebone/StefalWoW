@@ -185,6 +185,8 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
         if (FSB_BattlegroundData* bgData = ai->GetBattlegroundData())
             if (bgData->bgTypeId == BATTLEGROUND_WS || bgData->bgTypeId == BATTLEGROUND_WG_CTF)
                 FSBBattleground::WarsongGulch::TryCaptureFlag(bot, bgData);
+
+        ScheduleBotEvent(FSB_EVENT_WSG_REROLL_STATE, 5s, 10s);
         break;
     }
 

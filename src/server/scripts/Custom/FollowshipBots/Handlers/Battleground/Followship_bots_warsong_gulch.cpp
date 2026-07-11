@@ -322,8 +322,6 @@ namespace FSBBattleground::WarsongGulch
         if (!bot || !bgData || !bg)
             return;
 
-        bgData->wsgCombatMode = WSGCombatMode::None;
-
         Milliseconds delay = FSBBattleground::IsInProgress(bot) ? 100ms : 2min;
         FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_BATTLEGROUND_START, delay);
     }
@@ -356,38 +354,10 @@ namespace FSBBattleground::WarsongGulch
 
     namespace Impl
     {
-        bool IsValidCombatTarget(Creature* bot, Unit* target)
+        void StopAttacking(Creature* bot, FSB_BattlegroundData* /*bgData*/)
         {
-            if (!bot || !target)
-                return false;
-
-            if (!target->IsInWorld() || target->IsDuringRemoveFromWorld() || !target->IsAlive())
-                return false;
-
-            if (!bot->IsValidAttackTarget(target))
-                return false;
-
-            if (target->HasBreakableByDamageCrowdControlAura())
-                return false;
-
-            if (target->HasUnitFlag(UNIT_FLAG_IMMUNE_TO_NPC) ||
-                target->HasUnitFlag(UNIT_FLAG_UNINTERACTIBLE) ||
-                target->HasUnitFlag(UNIT_FLAG_PACIFIED) ||
-                target->HasUnitFlag(UNIT_FLAG_NON_ATTACKABLE))
-                return false;
-
-            return true;
-        }
-
-        void StopAttacking(Creature* bot, FSB_BattlegroundData* bgData)
-        {
-            if (!bot || !bgData)
+            if (!bot)
                 return;
-
-            bgData->wsgCombatMode = WSGCombatMode::None;
-            bgData->wsgChaseTargetGuid.Clear();
-            bgData->wsgChaseLastDistance = 0.0f;
-            bgData->wsgChaseStuckTimer = 0;
 
             if (bot->GetVictim())
                 bot->AttackStop();
@@ -400,70 +370,6 @@ namespace FSBBattleground::WarsongGulch
             MovementGeneratorType moveType = FSBMovement::GetMovementType(bot);
             if (moveType == CHASE_MOTION_TYPE)
                 bot->GetMotionMaster()->Clear();
-        }
-
-        bool StartAttacking(Creature* bot, Unit* target, FSB_BattlegroundData* bgData, WSGCombatMode mode)
-        {
-            if (!bot || !target || !bgData)
-                return false;
-
-            if (!IsValidCombatTarget(bot, target))
-                return false;
-
-            if (!FSBCombat::BotCanAttack(bot, target))
-                return false;
-
-            bgData->wsgCombatMode = mode;
-            FSBCombat::BotDoAttack(bot, target);
-            return true;
-        }
-
-        void EvaluateReturnFlagCombat(Creature* bot, FSB_BattlegroundData* bgData)
-        {
-            if (!bot || !bgData)
-                return;
-
-            bgData->wsgCombatMode = WSGCombatMode::None;
-
-            if (bot->GetVictim())
-                bot->AttackStop();
-
-            bot->InterruptNonMeleeSpells(false);
-            bot->CombatStop(true);
-            bot->ClearInCombat();
-
-            // Make sure a stray chase does not block the run home.
-            MovementGeneratorType moveType = FSBMovement::GetMovementType(bot);
-            if (moveType == CHASE_MOTION_TYPE)
-                bot->GetMotionMaster()->Clear();
-        }
-
-        void EvaluateAttackFlagCombat(Creature* bot, FSB_BattlegroundData* bgData)
-        {
-            if (!bot || !bgData)
-                return;
-
-            // Keep chasing an existing assist target while it stays within the leash.
-            if (bgData->wsgCombatMode == WSGCombatMode::Assisting)
-            {
-                Unit* victim = bot->GetVictim();
-                if (victim && IsValidCombatTarget(bot, victim) && bot->IsWithinDistInMap(victim, FSBCombatUtils::GetBotChaseDistance(bot) + 10.0f))
-                {
-                    FSBMovement::EnsureInRange(bot, victim);
-                    return;
-                }
-                StopAttacking(bot, bgData);
-            }
-
-            // Fall back to self-defense against the bot's own attacker.
-            Unit* attacker = bot->getAttackerForHelper();
-            if (attacker && IsValidCombatTarget(bot, attacker) && bot->IsWithinDistInMap(attacker, FSBCombatUtils::GetBotChaseDistance(bot) + 10.0f))
-            {
-                if (StartAttacking(bot, attacker, bgData, WSGCombatMode::Assisting))
-                    return;
-            }
-
-            StopAttacking(bot, bgData);
         }
 
         // Routes an AttackFlag bot back to the center when it re-rolls to HoldCenter.
@@ -517,8 +423,6 @@ namespace FSBBattleground::WarsongGulch
             if (!bestPos)
                 return;
 
-            bgData->wsgCombatMode = WSGCombatMode::None;
-
             if (bestIsCenter)
             {
                 bgData->wsgCenterIndex = bestIndex;
@@ -544,15 +448,6 @@ namespace FSBBattleground::WarsongGulch
 
         // Dropped flags are highest priority - override combat to grab/return them.
         TryUseDroppedFlag(bot, bgData);
-
-        // If the BG combat manager is actively chasing/fighting, let it own movement.
-        if (bgData->wsgCombatMode == WSGCombatMode::Assisting || bgData->wsgCombatMode == WSGCombatMode::Normal)
-        {
-            if (BotHasFlagAura(bot))
-                TC_LOG_DEBUG("scripts.fsb.battleground", "FSB WSG: UpdateBot bot {} has flag but combatMode={} - returning early",
-                    bot->GetName(), static_cast<uint32>(bgData->wsgCombatMode));
-            return;
-        }
 
         if (FSBRecovery::BotHasRecoveryActive(bot))
             return;
@@ -732,11 +627,9 @@ namespace FSBBattleground::WarsongGulch
         {
             bgData->wsgState = newState;
             bgData->wsgMovePhase = WSGMovePhase::None;
-            bgData->wsgCombatMode = WSGCombatMode::None;
             bgData->wsgPathStep = 0;
             bgData->wsgExitPathChoice = static_cast<WSGExitPathChoice>(urand(1, 2));
             bgData->wsgAttackPathChoice = static_cast<WSGExitPathChoice>(urand(1, 2));
-            bgData->wsgGoingForDroppedFlag = false;
         }
 
         Team botTeam = FSBBattleground::GetBotTeam(bot);
@@ -841,10 +734,7 @@ namespace FSBBattleground::WarsongGulch
             droppedFlag = bot->FindNearestGameObjectWithOptions(20.f, { .GameObjectId = Objects::SpawnedHordeFlag, .IgnorePrivateObjects = false });
 
         if (!droppedFlag)
-        {
-            bgData->wsgGoingForDroppedFlag = false;
             return;
-        }
 
         TC_LOG_DEBUG("scripts.fsb.battleground", "FSB WSG: bot {} found dropped flag entry={} dist={:.1f} at ({:.1f}, {:.1f}, {:.1f})",
             bot->GetName(), droppedFlag->GetEntry(), bot->GetDistance(droppedFlag),
@@ -853,9 +743,8 @@ namespace FSBBattleground::WarsongGulch
         float dist = bot->GetDistance(droppedFlag);
         if (dist > 5.0f)
         {
-            // Stop combat and suppress re-engagement while moving to the flag.
+            // Stop combat while moving to the flag.
             Impl::StopAttacking(bot, bgData);
-            bgData->wsgGoingForDroppedFlag = true;
 
             // Move to 3 yards from the flag, toward the bot's current position
             Position const& flagPos = droppedFlag->GetPosition();
@@ -867,7 +756,6 @@ namespace FSBBattleground::WarsongGulch
         }
 
         // Close enough - use it
-        bgData->wsgGoingForDroppedFlag = false;
         droppedFlag->Use(bot);
 
         if (BotHasFlagAura(bot))

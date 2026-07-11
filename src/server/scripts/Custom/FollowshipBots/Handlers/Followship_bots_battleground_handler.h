@@ -43,17 +43,8 @@ struct FSB_BattlegroundData
     FSBBattleground::WarsongGulch::WSGMovePhase wsgMovePhase = FSBBattleground::WarsongGulch::WSGMovePhase::None;
     FSBBattleground::WarsongGulch::WSGExitPathChoice wsgExitPathChoice = FSBBattleground::WarsongGulch::WSGExitPathChoice::Path1;
     FSBBattleground::WarsongGulch::WSGExitPathChoice wsgAttackPathChoice = FSBBattleground::WarsongGulch::WSGExitPathChoice::Path1;
-    FSBBattleground::WarsongGulch::WSGCombatMode wsgCombatMode = FSBBattleground::WarsongGulch::WSGCombatMode::None;
     uint8 wsgPathStep = 0;
     uint8 wsgCenterIndex = 0;
-
-    // Stale-chase tracking for normal WSG combat
-    ObjectGuid wsgChaseTargetGuid;
-    float wsgChaseLastDistance = 0.0f;
-    uint32 wsgChaseStuckTimer = 0;
-
-    // Set while a bot is moving toward a dropped flag to suppress combat re-engagement.
-    bool wsgGoingForDroppedFlag = false;
 
     void Reset()
     {
@@ -63,13 +54,8 @@ struct FSB_BattlegroundData
         wsgMovePhase = FSBBattleground::WarsongGulch::WSGMovePhase::None;
         wsgExitPathChoice = FSBBattleground::WarsongGulch::WSGExitPathChoice::Path1;
         wsgAttackPathChoice = FSBBattleground::WarsongGulch::WSGExitPathChoice::Path1;
-        wsgCombatMode = FSBBattleground::WarsongGulch::WSGCombatMode::None;
         wsgPathStep = 0;
         wsgCenterIndex = 0;
-        wsgChaseTargetGuid.Clear();
-        wsgChaseLastDistance = 0.0f;
-        wsgChaseStuckTimer = 0;
-        wsgGoingForDroppedFlag = false;
     }
 };
 

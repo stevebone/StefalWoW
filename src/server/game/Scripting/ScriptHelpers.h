@@ -104,6 +104,7 @@ namespace ScriptHelpers
         uint32 DamageDone = 0;
         uint32 HealingDone = 0;
         uint32 FlagReturns = 0;
+        uint32 FlagCaptures = 0;
     };
 
     TC_GAME_API void RecordBotKillingBlow(ObjectGuid botGuid);
@@ -111,6 +112,7 @@ namespace ScriptHelpers
     TC_GAME_API void RecordBotDamageDone(ObjectGuid botGuid, uint32 damage);
     TC_GAME_API void RecordBotHealingDone(ObjectGuid botGuid, uint32 heal);
     TC_GAME_API void RecordBotFlagReturn(ObjectGuid botGuid);
+    TC_GAME_API void RecordBotFlagCapture(ObjectGuid botGuid);
     TC_GAME_API BotScoreData const* GetBotScore(ObjectGuid botGuid);
     TC_GAME_API void EraseBotScore(ObjectGuid botGuid);
 

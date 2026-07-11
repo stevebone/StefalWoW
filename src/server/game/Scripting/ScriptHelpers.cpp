@@ -603,6 +603,12 @@ namespace ScriptHelpers
         ++score.FlagReturns;
     }
 
+    void RecordBotFlagCapture(ObjectGuid botGuid)
+    {
+        BotScoreData& score = BotScores[botGuid];
+        ++score.FlagCaptures;
+    }
+
     BotScoreData const* GetBotScore(ObjectGuid botGuid)
     {
         auto it = BotScores.find(botGuid);
@@ -644,6 +650,7 @@ namespace ScriptHelpers
             uint32 damageDone = 0;
             uint32 healingDone = 0;
             uint32 flagReturns = 0;
+            uint32 flagCaptures = 0;
             if (BotScoreData const* score = GetBotScore(guid))
             {
                 killingBlows = score->KillingBlows;
@@ -652,18 +659,22 @@ namespace ScriptHelpers
                 damageDone = score->DamageDone;
                 healingDone = score->HealingDone;
                 flagReturns = score->FlagReturns;
+                flagCaptures = score->FlagCaptures;
             }
 
             AddCreatureToPvPLogData(pvpLogData, guid, GetBotRace(guid), creature->GetClass(), creature->GetGender(), creature->GetEntry(), team, killingBlows, honorableKills, deaths, damageDone, healingDone);
 
             if (pvpStatIds && !pvpStatIds->empty())
             {
+                constexpr uint32 PVP_STAT_FLAG_CAPTURES = 928;
                 constexpr uint32 PVP_STAT_FLAG_RETURNS = 929;
                 auto& botEntry = pvpLogData.Statistics.back();
                 for (uint32 statId : *pvpStatIds)
                 {
                     int32 value = 0;
-                    if (statId == PVP_STAT_FLAG_RETURNS)
+                    if (statId == PVP_STAT_FLAG_CAPTURES)
+                        value = int32(flagCaptures);
+                    else if (statId == PVP_STAT_FLAG_RETURNS)
                         value = int32(flagReturns);
                     botEntry.Stats.emplace_back(int32(statId), value);
                 }
