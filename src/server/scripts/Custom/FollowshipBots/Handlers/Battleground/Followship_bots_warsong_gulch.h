@@ -78,9 +78,6 @@ namespace FSBBattleground::WarsongGulch
     static constexpr float FSB_WSG_ASSIST_RANGE = 25.0f;
     static constexpr float FSB_WSG_CHASE_LEASH = 20.0f;
 
-    static constexpr uint32 ObjectHordeFlag = 227740;
-    static constexpr uint32 ObjectAllianceFlag = 227741;
-
     static constexpr uint8 MaxBaseDefenders = 2;
     static constexpr uint8 MaxMiddleDefenders = 3;
     static constexpr uint8 MaxFlagAttackers = 4;
@@ -104,6 +101,14 @@ namespace FSBBattleground::WarsongGulch
         static constexpr uint32 SilverwingFlag = 23335;
         static constexpr uint32 DroppedHordeFlag = 23334;
         static constexpr uint32 DroppedAllianceFlag = 23336;
+    }
+
+    namespace Objects
+    {
+        static constexpr uint32 BaseHordeFlag = 227740;
+        static constexpr uint32 BaseAllianceFlag = 227741;
+        static constexpr uint32 SpawnedAllianceFlag = 227745;
+        static constexpr uint32 SpawnedHordeFlag = 227744;
     }
 
     struct WSGPath
@@ -242,6 +247,8 @@ namespace FSBBattleground::WarsongGulch
     void EvaluateCombat(Creature* bot, FSB_BattlegroundData* bgData);
 
     void TryUseEnemyFlag(Creature* bot, FSB_BattlegroundData* bgData);
+    void TryUseDroppedFlag(Creature* bot, FSB_BattlegroundData* bgData);
+    void TryCaptureFlag(Creature* bot, FSB_BattlegroundData* bgData);
 
     // Called after a WSG bot successfully captures the flag.
     void OnBotCapturedFlag(Creature* bot);

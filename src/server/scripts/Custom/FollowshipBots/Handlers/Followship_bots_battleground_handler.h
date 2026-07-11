@@ -52,6 +52,9 @@ struct FSB_BattlegroundData
     float wsgChaseLastDistance = 0.0f;
     uint32 wsgChaseStuckTimer = 0;
 
+    // Set while a bot is moving toward a dropped flag to suppress combat re-engagement.
+    bool wsgGoingForDroppedFlag = false;
+
     void Reset()
     {
         initialized = false;
@@ -66,6 +69,7 @@ struct FSB_BattlegroundData
         wsgChaseTargetGuid.Clear();
         wsgChaseLastDistance = 0.0f;
         wsgChaseStuckTimer = 0;
+        wsgGoingForDroppedFlag = false;
     }
 };
 

@@ -695,6 +695,10 @@ namespace FSBBattleground::WarsongGulch
         if (!bot || !bgData || !bot->IsAlive())
             return;
 
+        // Suppress combat while moving to a dropped flag.
+        if (bgData->wsgGoingForDroppedFlag)
+            return;
+
         switch (bgData->wsgState)
         {
         case WSGState::ReturnFlag:
@@ -722,9 +726,17 @@ namespace FSBBattleground::WarsongGulch
         if (!bot->IsAlive())
             return;
 
+        // Dropped flags are highest priority - override combat to grab/return them.
+        TryUseDroppedFlag(bot, bgData);
+
         // If the BG combat manager is actively chasing/fighting, let it own movement.
         if (bgData->wsgCombatMode == WSGCombatMode::Assisting || bgData->wsgCombatMode == WSGCombatMode::Normal)
+        {
+            if (BotHasFlagAura(bot))
+                TC_LOG_DEBUG("scripts.fsb.battleground", "FSB WSG: UpdateBot bot {} has flag but combatMode={} - returning early",
+                    bot->GetName(), static_cast<uint32>(bgData->wsgCombatMode));
             return;
+        }
 
         if (FSBRecovery::BotHasRecoveryActive(bot))
             return;
@@ -807,6 +819,9 @@ namespace FSBBattleground::WarsongGulch
         case WSGState::AttackFlag:
         case WSGState::ReturnFlag:
         {
+            TC_LOG_DEBUG("scripts.fsb.battleground", "FSB WSG: UpdateBot state={} bot {} movePhase={} hasFlag={} pos=({:.1f},{:.1f},{:.1f})",
+                static_cast<uint32>(bgData->wsgState), bot->GetName(), static_cast<uint32>(bgData->wsgMovePhase), BotHasFlagAura(bot),
+                bot->GetPositionX(), bot->GetPositionY(), bot->GetPositionZ());
             switch (bgData->wsgMovePhase)
             {
             case WSGMovePhase::None:
@@ -905,6 +920,7 @@ namespace FSBBattleground::WarsongGulch
             bgData->wsgPathStep = 0;
             bgData->wsgExitPathChoice = static_cast<WSGExitPathChoice>(urand(1, 2));
             bgData->wsgAttackPathChoice = static_cast<WSGExitPathChoice>(urand(1, 2));
+            bgData->wsgGoingForDroppedFlag = false;
         }
 
         Team botTeam = GetBotTeam(bot);
@@ -967,20 +983,98 @@ namespace FSBBattleground::WarsongGulch
         if (botTeam != ALLIANCE && botTeam != HORDE)
             return;
 
-        uint32 flagEntry = botTeam == ALLIANCE ? ObjectHordeFlag : ObjectAllianceFlag;
+        uint32 flagEntry = botTeam == ALLIANCE ? Objects::BaseHordeFlag : Objects::BaseAllianceFlag;
         GameObject* flag = bot->FindNearestGameObject(flagEntry, FSB_WSG_FLAG_SEARCH_RANGE);
         if (!flag)
+        {
+            TC_LOG_DEBUG("scripts.fsb.battleground", "FSB WSG: TryUseEnemyFlag bot {} - no flag entry {} found within {} yd",
+                bot->GetName(), flagEntry, FSB_WSG_FLAG_SEARCH_RANGE);
             return;
+        }
+
+        TC_LOG_DEBUG("scripts.fsb.battleground", "FSB WSG: TryUseEnemyFlag bot {} found flag entry={} dist={:.1f}, using it",
+            bot->GetName(), flag->GetEntry(), bot->GetDistance(flag));
 
         // GameObject::Use is a no-op unless the flag state is InBase, so only the first bot picks it up.
         flag->Use(bot);
 
         if (BotHasFlagAura(bot))
         {
+            TC_LOG_DEBUG("scripts.fsb.battleground", "FSB WSG: bot {} picked up enemy flag! Setting ReturnFlag state.", bot->GetName());
             SetBotState(bot, bgData, WSGState::ReturnFlag);
             UpdateBot(bot, bgData); // start the return journey immediately
         }
         // else: another bot picked it first; the next tick re-issues the objective move and retries.
+    }
+
+    void TryUseDroppedFlag(Creature* bot, FSB_BattlegroundData* bgData)
+    {
+        if (!bot || !bgData || !bot->IsAlive())
+            return;
+
+        if (BotHasFlagAura(bot))
+            return;
+
+        Team botTeam = GetBotTeam(bot);
+        if (botTeam != ALLIANCE && botTeam != HORDE)
+            return;
+
+        // Search for dropped flags
+        GameObject* droppedFlag = bot->FindNearestGameObjectWithOptions(20.f, { .GameObjectId = Objects::SpawnedAllianceFlag, .IgnorePrivateObjects = false });
+        if (!droppedFlag)
+            droppedFlag = bot->FindNearestGameObjectWithOptions(20.f, { .GameObjectId = Objects::SpawnedHordeFlag, .IgnorePrivateObjects = false });
+
+        if (!droppedFlag)
+        {
+            bgData->wsgGoingForDroppedFlag = false;
+            return;
+        }
+
+        TC_LOG_DEBUG("scripts.fsb.battleground", "FSB WSG: bot {} found dropped flag entry={} dist={:.1f} at ({:.1f}, {:.1f}, {:.1f})",
+            bot->GetName(), droppedFlag->GetEntry(), bot->GetDistance(droppedFlag),
+            droppedFlag->GetPositionX(), droppedFlag->GetPositionY(), droppedFlag->GetPositionZ());
+
+        float dist = bot->GetDistance(droppedFlag);
+        if (dist > 5.0f)
+        {
+            // Stop combat and suppress re-engagement while moving to the flag.
+            Impl::StopAttacking(bot, bgData);
+            bgData->wsgGoingForDroppedFlag = true;
+
+            // Move to 3 yards from the flag, toward the bot's current position
+            Position const& flagPos = droppedFlag->GetPosition();
+            float angle = flagPos.GetAbsoluteAngle(bot->GetPosition());
+            Position offset(std::cos(angle) * 3.0f, std::sin(angle) * 3.0f, 0.0f, 0.0f);
+            Position movePos = flagPos.GetPositionWithOffset(offset);
+            bot->GetMotionMaster()->MovePoint(FSBMovement::MOVEMENT_POINT_WSG_DROPPED_FLAG, movePos);
+            return;
+        }
+
+        // Close enough - use it
+        bgData->wsgGoingForDroppedFlag = false;
+        droppedFlag->Use(bot);
+
+        if (BotHasFlagAura(bot))
+        {
+            SetBotState(bot, bgData, WSGState::ReturnFlag);
+            UpdateBot(bot, bgData);
+        }
+    }
+
+    void TryCaptureFlag(Creature* bot, FSB_BattlegroundData* bgData)
+    {
+        if (!bot || !bgData || !bot->IsAlive())
+            return;
+
+        if (!BotHasFlagAura(bot))
+            return;
+
+        ZoneScript* zoneScript = bot->GetZoneScript();
+        if (!zoneScript)
+            return;
+
+        TC_LOG_DEBUG("scripts.fsb.battleground", "FSB WSG: TryCaptureFlag bot {} calling OnCaptureFlag", bot->GetName());
+        zoneScript->OnCaptureFlag(nullptr, bot);
     }
 
     void OnMovementInform(Creature* bot, FSB_BattlegroundData* bgData, uint32 type, uint32 id)
@@ -1073,9 +1167,15 @@ namespace FSBBattleground::WarsongGulch
             FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_WSG_USE_FLAG, 1s);
             break;
         case FSBMovement::MOVEMENT_POINT_WSG_RETURN_FLAG:
-            // Home with the flag; HandleFlagRoomCapturePoint in the WSG script will detect and process the capture.
+            // Arrived at own base with the enemy flag; trigger capture directly via ZoneScript.
             bot->GetMotionMaster()->Clear();
             bgData->wsgMovePhase = WSGMovePhase::AtObjective;
+            FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_WSG_BOT_CAPTURE, 500ms);
+            break;
+        case FSBMovement::MOVEMENT_POINT_WSG_DROPPED_FLAG:
+            // Reached the dropped flag position; use it after a short delay.
+            bot->GetMotionMaster()->Clear();
+            FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_WSG_USE_DROPPED_FLAG, 500ms);
             break;
         default:
             break;
@@ -1093,7 +1193,7 @@ namespace FSBBattleground::WarsongGulch
             return false;
 
         Team botTeam = GetBotTeam(bot);
-        uint32 enemyFlagEntry = botTeam == ALLIANCE ? ObjectHordeFlag : ObjectAllianceFlag;
+        uint32 enemyFlagEntry = botTeam == ALLIANCE ? Objects::BaseHordeFlag : Objects::BaseAllianceFlag;
 
         BattlegroundMap* bgMap = bot->GetMap()->ToBattlegroundMap();
         if (!bgMap)

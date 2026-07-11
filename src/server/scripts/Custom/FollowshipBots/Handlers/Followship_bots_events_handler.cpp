@@ -172,6 +172,22 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
         break;
     }
 
+    case FSB_EVENT_WSG_USE_DROPPED_FLAG:
+    {
+        if (FSB_BattlegroundData* bgData = ai->GetBattlegroundData())
+            if (bgData->bgTypeId == BATTLEGROUND_WS || bgData->bgTypeId == BATTLEGROUND_WG_CTF)
+                FSBBattleground::WarsongGulch::TryUseDroppedFlag(bot, bgData);
+        break;
+    }
+
+    case FSB_EVENT_WSG_BOT_CAPTURE:
+    {
+        if (FSB_BattlegroundData* bgData = ai->GetBattlegroundData())
+            if (bgData->bgTypeId == BATTLEGROUND_WS || bgData->bgTypeId == BATTLEGROUND_WG_CTF)
+                FSBBattleground::WarsongGulch::TryCaptureFlag(bot, bgData);
+        break;
+    }
+
     case FSB_EVENT_WSG_REROLL_STATE:
     {
         if (FSB_BattlegroundData* bgData = ai->GetBattlegroundData())
