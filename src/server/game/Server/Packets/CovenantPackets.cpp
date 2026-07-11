@@ -33,3 +33,11 @@ WorldPacket const* WorldPackets::Covenant::CovenantCallingsAvailabilityResponse:
 
     return &_worldPacket;
 }
+
+WorldPacket const* WorldPackets::Covenant::CovenantRenownSendCatchupState::Write()
+{
+    _worldPacket.WriteBit(IsActive);
+    _worldPacket.FlushBits();
+
+    return &_worldPacket;
+}

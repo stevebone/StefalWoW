@@ -55,6 +55,28 @@ namespace Covenant
         bool CallingsUnlocked = false;
         std::vector<int32> BountyIDs;
     };
+
+    // CMSG_COVENANT_RENOWN_REQUEST_CATCHUP_STATE (0x3B0111). Empty payload; the client asks whether accelerated
+    // renown catch-up is currently active for the player.
+    class CovenantRenownRequestCatchupState final : public ClientPacket
+    {
+    public:
+        explicit CovenantRenownRequestCatchupState(WorldPacket&& packet) : ClientPacket(CMSG_COVENANT_RENOWN_REQUEST_CATCHUP_STATE, std::move(packet)) { }
+
+        void Read() override { }
+    };
+
+    // SMSG_COVENANT_RENOWN_SEND_CATCHUP_STATE (0x42030D). Wire (client reader, all_smsg_layouts): a single Bits<1>.
+    // Core does not implement accelerated renown catch-up, so the answer is false (no catch-up active).
+    class CovenantRenownSendCatchupState final : public ServerPacket
+    {
+    public:
+        CovenantRenownSendCatchupState() : ServerPacket(SMSG_COVENANT_RENOWN_SEND_CATCHUP_STATE, 1) { }
+
+        WorldPacket const* Write() override;
+
+        bool IsActive = false;
+    };
 }
 }
 

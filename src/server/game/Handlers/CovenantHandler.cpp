@@ -92,3 +92,12 @@ void WorldSession::HandleRequestCovenantCallings(WorldPackets::Covenant::Request
 
     SendPacket(response.Write());
 }
+
+void WorldSession::HandleCovenantRenownRequestCatchupState(WorldPackets::Covenant::CovenantRenownRequestCatchupState& /*packet*/)
+{
+    // Core does not implement accelerated renown catch-up, so report it as inactive. Answers the client's query so
+    // its renown UI stops waiting (mirrors the default-response pattern of the other covenant info handlers).
+    WorldPackets::Covenant::CovenantRenownSendCatchupState response;
+    response.IsActive = false;
+    SendPacket(response.Write());
+}
