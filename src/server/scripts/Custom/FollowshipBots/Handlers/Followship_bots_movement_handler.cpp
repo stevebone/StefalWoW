@@ -186,8 +186,6 @@ namespace FSBMovement
                         //bot->SetDisplayId(65133, false);
                     }
                 }
-
-                
             }
             else
             {

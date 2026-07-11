@@ -220,29 +220,35 @@ namespace FSBCombat
         }
 
         // 3. Check owner victim & attacker
-        Player* player = FSBMgr::Get()->GetBotOwner(bot);
-        if (player)
+        if (auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI()))
         {
-            Unit* ownerVictim = player->GetVictim();
-            if (ownerVictim && ownerVictim->IsAlive())
+            if (baseAI->botHired)
             {
-                if (!ownerVictim || !ownerVictim->IsInWorld() || ownerVictim->IsDuringRemoveFromWorld() || !ownerVictim->IsAlive())
-                    return nullptr;
+                Player* player = FSBMgr::Get()->GetBotOwner(bot);
+                if (player)
+                {
+                    Unit* ownerVictim = player->GetVictim();
+                    if (ownerVictim && ownerVictim->IsAlive())
+                    {
+                        if (!ownerVictim || !ownerVictim->IsInWorld() || ownerVictim->IsDuringRemoveFromWorld() || !ownerVictim->IsAlive())
+                            return nullptr;
 
-                TC_LOG_DEBUG("scripts.fsb.combat", "FSB: GetNextAttackTarget Bot {} next target is their owner victim {}", bot->GetName(), ownerVictim->GetName());
-                return ownerVictim;
-            }
-            
-            Unit* ownerAttacker = player->getAttackerForHelper();
-            if (ownerAttacker && ownerAttacker->IsAlive())
-            {
-                if (!ownerAttacker || !ownerAttacker->IsInWorld() || ownerAttacker->IsDuringRemoveFromWorld() || !ownerAttacker->IsAlive())
-                    return nullptr;
+                        TC_LOG_DEBUG("scripts.fsb.combat", "FSB: GetNextAttackTarget Bot {} next target is their owner victim {}", bot->GetName(), ownerVictim->GetName());
+                        return ownerVictim;
+                    }
 
-                TC_LOG_DEBUG("scripts.fsb.combat", "FSB: GetNextAttackTarget Bot {} next target is their owner attacker {}", bot->GetName(), ownerAttacker->GetName());
-                return ownerAttacker;
+                    Unit* ownerAttacker = player->getAttackerForHelper();
+                    if (ownerAttacker && ownerAttacker->IsAlive())
+                    {
+                        if (!ownerAttacker || !ownerAttacker->IsInWorld() || ownerAttacker->IsDuringRemoveFromWorld() || !ownerAttacker->IsAlive())
+                            return nullptr;
+
+                        TC_LOG_DEBUG("scripts.fsb.combat", "FSB: GetNextAttackTarget Bot {} next target is their owner attacker {}", bot->GetName(), ownerAttacker->GetName());
+                        return ownerAttacker;
+                    }
+
+                }
             }
-            
         }
 
         // 4. Group assist logic
