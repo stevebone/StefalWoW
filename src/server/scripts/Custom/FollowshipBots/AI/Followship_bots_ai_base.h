@@ -159,6 +159,7 @@ public:
 
     std::vector<ObjectGuid> botLogicalGroup;
     std::vector<FSBSpellRuntime> botRuntimeSpells; // runtime for spells cooldowns
+    FSBSpellsData botSpellsData;
     std::vector<Creature*> partyBots;
 
     struct FSBEventPayload

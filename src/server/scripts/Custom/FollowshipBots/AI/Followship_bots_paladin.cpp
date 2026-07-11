@@ -25,8 +25,6 @@
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_utils.h"
 
-#include "Followship_bots_group_handler.h"
-
 std::vector<FSBSpellDefinition> PaladinSpellsTable =
 {
     // Spell ID                             Spell Type              ManaCost %  HP % for heal   Chance           Dist/Range     SelfCast    Cooldown Ms     RoleMask
@@ -230,73 +228,6 @@ namespace FSBPaladin
         return false;
     }
 
-    bool BotOOCBuffBeacon(Creature* bot)
-    {
-        if (!bot || !bot->IsAlive())
-            return false;
-
-        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
-        auto& globalCooldown = baseAI->botGlobalCooldown;
-        uint32 spellId = SPELL_PALADIN_BEACON_OF_LIGHT;
-
-        Unit* target = FSBGroup::BotGetFirstGroupTank(bot);
-        bool recastNeeded = false;
-
-        if (target && target->HasAura(spellId))
-            return false;
-        else recastNeeded = true;
-
-        Player* player = FSBMgr::Get()->GetBotOwner(bot);
-        if (!recastNeeded && player && player->HasAura(spellId))
-            return false;
-        else recastNeeded = true;
-
-        if (!recastNeeded && bot->HasAura(spellId))
-            return false;
-
-        bool check = false;
-
-        if (target && target->IsAlive())
-        {
-            if (!target->HasAura(spellId))
-            {
-                bot->CastSpell(target, spellId, false);
-                check = true;
-            }
-        }
-
-        else if (player && player->IsAlive())
-        {
-            if (!player->HasAura(spellId))
-            {
-                bot->CastSpell(player, spellId, false);
-                check = true;
-            }
-        }
-
-        else
-        {
-            if (!bot->HasAura(spellId))
-            {
-                SpellCastResult result = bot->CastSpell(bot, spellId, false);
-                if (result == SPELL_CAST_OK)
-                {
-                    check = true;
-                    TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Paladin self beacon buff pass");
-                }
-                else TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Paladin self Beacon buff failed for bot: {} with result: {}", bot->GetName(), result);
-            }
-        }
-
-        if (check)
-        {
-            uint32 now = getMSTime();
-            globalCooldown = now + 1500;
-            return true;
-        }
-        else
-            return false;
-    }
 
     void BotSetRoleAuras(Creature* bot, FSB_Roles role)
     {

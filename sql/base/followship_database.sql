@@ -7600,9 +7600,3 @@ VALUES
   (433550, 0, 6,  3, 0, 0,  0, 1, 0, 0, 2, 'Rite of Sanctification [Buff] Class=Paladin Race=Any Role=Healer'),
   (187218, 0, 6,  3, 0, 0,  0, 1, 0, 0, 1, 'Fury [Buff] Class=Paladin Race=Any Role=Tank'),
   (285933, 0, 8,  3, 0, 0,  0, 1, 0, 0, 512, 'Demon Armor [Buff] Class=Warlock Race=Any Role=Ranged Demonology');
-
-INSERT INTO `bot_spells`
-  (spell_id, allowed_race, allowed_class, spell_type, power_cost_override, hp_threshold, spell_range, is_self_cast, is_location_target, cooldown_override, role_mask, comment)
-VALUES
-  (53563, 0, 6, 3, 0, 0, 30, 0, 0, 0, 0, 'Beacon of Light [Buff] Class=Paladin Race=Any'),
-  (20707, 0, 8, 3, 0, 0, 30, 0, 0, 0, 0, 'Soulstone [Buff] Class=Warlock Race=Any');
