@@ -103,12 +103,14 @@ namespace ScriptHelpers
         uint32 Deaths = 0;
         uint32 DamageDone = 0;
         uint32 HealingDone = 0;
+        uint32 FlagReturns = 0;
     };
 
     TC_GAME_API void RecordBotKillingBlow(ObjectGuid botGuid);
     TC_GAME_API void RecordBotDeath(ObjectGuid botGuid);
     TC_GAME_API void RecordBotDamageDone(ObjectGuid botGuid, uint32 damage);
     TC_GAME_API void RecordBotHealingDone(ObjectGuid botGuid, uint32 heal);
+    TC_GAME_API void RecordBotFlagReturn(ObjectGuid botGuid);
     TC_GAME_API BotScoreData const* GetBotScore(ObjectGuid botGuid);
     TC_GAME_API void EraseBotScore(ObjectGuid botGuid);
 

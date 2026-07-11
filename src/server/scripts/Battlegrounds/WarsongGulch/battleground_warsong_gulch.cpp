@@ -436,19 +436,25 @@ struct battleground_warsong_gulch : BattlegroundScript
                 if (battleground->GetStatus() == STATUS_IN_PROGRESS)
                 {
                     ResetAssaultDebuff();
-                    if (player)
+                    if (unit)
                     {
-                        // flag got returned to base by player interaction
-                        battleground->UpdatePvpStat(player, PVP_STAT_FLAG_RETURNS, 1);      // +1 flag returns
+                        // Player returns get normal PvP stat credit.
+                        if (player)
+                            battleground->UpdatePvpStat(player, PVP_STAT_FLAG_RETURNS, 1);      // +1 flag returns
+
+                        // Bot returns are recorded in the bot score data.
+                        if (Creature* creature = unit->ToCreature())
+                            if (creature->IsBot())
+                                ScriptHelpers::RecordBotFlagReturn(creature->GetGUID());
 
                         if (team == ALLIANCE)
                         {
-                            battleground->SendBroadcastText(TEXT_ALLIANCE_FLAG_RETURNED, CHAT_MSG_BG_SYSTEM_ALLIANCE, player);
+                            battleground->SendBroadcastText(TEXT_ALLIANCE_FLAG_RETURNED, CHAT_MSG_BG_SYSTEM_ALLIANCE, unit);
                             battleground->PlaySoundToAll(SOUND_FLAG_RETURNED);
                         }
                         else
                         {
-                            battleground->SendBroadcastText(TEXT_HORDE_FLAG_RETURNED, CHAT_MSG_BG_SYSTEM_HORDE, player);
+                            battleground->SendBroadcastText(TEXT_HORDE_FLAG_RETURNED, CHAT_MSG_BG_SYSTEM_HORDE, unit);
                             battleground->PlaySoundToAll(SOUND_FLAG_RETURNED);
                         }
                     }
@@ -601,16 +607,14 @@ struct battleground_warsong_gulch : BattlegroundScript
         // 3. chat message & sound
         if (team == ALLIANCE)
         {
-            if(unit->ToPlayer())
-                battleground->SendBroadcastText(TEXT_CAPTURED_HORDE_FLAG, CHAT_MSG_BG_SYSTEM_HORDE, unit);
+            battleground->SendBroadcastText(TEXT_CAPTURED_HORDE_FLAG, CHAT_MSG_BG_SYSTEM_HORDE, unit);
             battleground->PlaySoundToAll(SOUND_FLAG_CAPTURED_ALLIANCE);
             battleground->RewardReputationToTeam(890, _reputationCapture, ALLIANCE);
             unit->CastSpell(unit, SPELL_CAPTURED_ALLIANCE_COSMETIC_FX);
         }
         else
         {
-            if (unit->ToPlayer())
-                battleground->SendBroadcastText(TEXT_CAPTURED_ALLIANCE_FLAG, CHAT_MSG_BG_SYSTEM_ALLIANCE, unit);
+            battleground->SendBroadcastText(TEXT_CAPTURED_ALLIANCE_FLAG, CHAT_MSG_BG_SYSTEM_ALLIANCE, unit);
             battleground->PlaySoundToAll(SOUND_FLAG_CAPTURED_HORDE);
             battleground->RewardReputationToTeam(889, _reputationCapture, HORDE);
             unit->CastSpell(unit, SPELL_CAPTURED_HORDE_COSMETIC_FX);
