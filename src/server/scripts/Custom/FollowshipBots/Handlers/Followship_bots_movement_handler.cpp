@@ -230,7 +230,6 @@ namespace FSBMovement
         {
             bot->GetMotionMaster()->Clear();
             bot->ClearUnitState(UNIT_STATE_FOLLOW | UNIT_STATE_CHASE | UNIT_STATE_ROAMING);
-            bot->GetMotionMaster()->MoveIdle();
 
             TC_LOG_DEBUG("scripts.fsb.movement", "FSB: BotHandleReturnMovement bot {} does not have owner so it is set to Idle", bot->GetName());
             return;
@@ -254,7 +253,7 @@ namespace FSBMovement
         if (!bot || !target || !target->IsAlive())
             return false;
 
-        // STAY mode bots should only attack if already in range — do not chase
+        // STAY mode bots should only attack if already in range - do not chase
         if (auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI()))
             if (baseAI->botMoveState == FSB_MOVE_STATE_STAY)
                 return false;
@@ -287,7 +286,7 @@ namespace FSBMovement
         if (!bot || !target || !target->IsAlive())
             return false;
 
-        // STAY mode bots should only attack if already in range — do not chase
+        // STAY mode bots should only attack if already in range - do not chase
         if (auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI()))
             if (baseAI->botMoveState == FSB_MOVE_STATE_STAY)
                 return false;

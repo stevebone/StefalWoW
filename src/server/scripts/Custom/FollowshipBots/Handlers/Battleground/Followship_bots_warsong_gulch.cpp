@@ -51,11 +51,7 @@
 
 namespace FSBBattleground::WarsongGulch
 {
-    Team GetBotTeam(Creature* bot)
-    {
-        FSB_BaseAI* botAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
-        return FSBUtils::GetTeamFromFSBRace(botAI->botRace);
-    }
+    
 
     std::array<std::string, 20> const SpawnChatLines = {{
         "Hello everyone!",
@@ -118,13 +114,13 @@ namespace FSBBattleground::WarsongGulch
 
     Team GetExitTeam(Creature* bot, FSB_BattlegroundData* bgData)
     {
-        Team botTeam = GetBotTeam(bot);
+        Team botTeam = FSBBattleground::GetBotTeam(bot);
         return bgData->wsgState == WSGState::ReturnFlag ? GetEnemyTeam(botTeam) : botTeam;
     }
 
     Team GetAttackTargetTeam(Creature* bot, FSB_BattlegroundData* bgData)
     {
-        Team botTeam = GetBotTeam(bot);
+        Team botTeam = FSBBattleground::GetBotTeam(bot);
         if (bgData->wsgState == WSGState::AttackFlag)
             return GetEnemyTeam(botTeam);
         return botTeam; // ReturnFlag, DefendBase, ProtectCarrier
@@ -185,7 +181,7 @@ namespace FSBBattleground::WarsongGulch
 
     void MoveToFlagPoint(Creature* bot, FSB_BattlegroundData* bgData)
     {
-        Team botTeam = GetBotTeam(bot);
+        Team botTeam = FSBBattleground::GetBotTeam(bot);
         if (bgData->wsgState == WSGState::AttackFlag)
         {
             Position const& enemyFlag = botTeam == ALLIANCE ? FSB_WSG_FLAG_HORDE : FSB_WSG_FLAG_ALLIANCE;
@@ -334,7 +330,7 @@ namespace FSBBattleground::WarsongGulch
 
     Creature* FindFriendlyCarrier(Creature* bot)
     {
-        Team botTeam = GetBotTeam(bot);
+        Team botTeam = FSBBattleground::GetBotTeam(bot);
         BattlegroundMap* bgMap = bot->GetMap()->ToBattlegroundMap();
         if (!bgMap)
             return nullptr;
@@ -396,6 +392,10 @@ namespace FSBBattleground::WarsongGulch
             if (bot->GetVictim())
                 bot->AttackStop();
 
+            bot->InterruptNonMeleeSpells(false);
+            bot->CombatStop(true);
+            bot->ClearInCombat();
+
             // Only clear a chase we started; never wipe an objective point move.
             MovementGeneratorType moveType = FSBMovement::GetMovementType(bot);
             if (moveType == CHASE_MOTION_TYPE)
@@ -428,6 +428,10 @@ namespace FSBBattleground::WarsongGulch
             if (bot->GetVictim())
                 bot->AttackStop();
 
+            bot->InterruptNonMeleeSpells(false);
+            bot->CombatStop(true);
+            bot->ClearInCombat();
+
             // Make sure a stray chase does not block the run home.
             MovementGeneratorType moveType = FSBMovement::GetMovementType(bot);
             if (moveType == CHASE_MOTION_TYPE)
@@ -443,7 +447,7 @@ namespace FSBBattleground::WarsongGulch
             if (bgData->wsgCombatMode == WSGCombatMode::Assisting)
             {
                 Unit* victim = bot->GetVictim();
-                if (victim && IsValidCombatTarget(bot, victim) && bot->IsWithinDistInMap(victim, FSB_WSG_CHASE_LEASH))
+                if (victim && IsValidCombatTarget(bot, victim) && bot->IsWithinDistInMap(victim, FSBCombatUtils::GetBotChaseDistance(bot) + 10.0f))
                 {
                     FSBMovement::EnsureInRange(bot, victim);
                     return;
@@ -451,100 +455,11 @@ namespace FSBBattleground::WarsongGulch
                 StopAttacking(bot, bgData);
             }
 
-            // Assist a nearby friendly that is already fighting.
-            if (Unit* assistTarget = FindFriendlyAssistTarget(bot, FSB_WSG_ASSIST_RANGE))
-            {
-                if (StartAttacking(bot, assistTarget, bgData, WSGCombatMode::Assisting))
-                    return;
-            }
-
             // Fall back to self-defense against the bot's own attacker.
             Unit* attacker = bot->getAttackerForHelper();
-            if (attacker && IsValidCombatTarget(bot, attacker) && bot->IsWithinDistInMap(attacker, FSB_WSG_CHASE_LEASH))
+            if (attacker && IsValidCombatTarget(bot, attacker) && bot->IsWithinDistInMap(attacker, FSBCombatUtils::GetBotChaseDistance(bot) + 10.0f))
             {
                 if (StartAttacking(bot, attacker, bgData, WSGCombatMode::Assisting))
-                    return;
-            }
-
-            StopAttacking(bot, bgData);
-        }
-
-        void EvaluateNormalBGCombat(Creature* bot, FSB_BattlegroundData* bgData)
-        {
-            if (!bot || !bgData)
-                return;
-
-            // Keep fighting the current victim if it is still valid and within leash.
-            if (bgData->wsgCombatMode == WSGCombatMode::Normal)
-            {
-                Unit* victim = bot->GetVictim();
-                if (victim && IsValidCombatTarget(bot, victim))
-                {
-                    float distance = bot->GetDistance(victim);
-                    MovementGeneratorType moveType = FSBMovement::GetMovementType(bot);
-
-                    TC_LOG_DEBUG("scripts.fsb.combat", "FSB WSG: bot {} normal combat victim={} distance={:.1f} moveType={}",
-                        bot->GetName(), victim->GetName(), distance, moveType);
-
-                    if (!bot->IsWithinDistInMap(victim, FSB_WSG_CHASE_LEASH))
-                    {
-                        TC_LOG_DEBUG("scripts.fsb.combat", "FSB WSG: bot {} normal victim {} is beyond leash ({:.1f} yd), dropping",
-                            bot->GetName(), victim->GetName(), distance);
-                        StopAttacking(bot, bgData);
-                    }
-                    else
-                    {
-                        // Detect a stale chase: same target and distance is not closing for several seconds.
-                        if (bgData->wsgChaseTargetGuid == victim->GetGUID())
-                        {
-                            uint32 now = getMSTime();
-                            if (distance >= bgData->wsgChaseLastDistance - 0.5f)
-                            {
-                                if (bgData->wsgChaseStuckTimer == 0)
-                                    bgData->wsgChaseStuckTimer = now;
-                                else if (now - bgData->wsgChaseStuckTimer > 3000)
-                                {
-                                    TC_LOG_DEBUG("scripts.fsb.combat", "FSB WSG: bot {} chase stuck on {} ({:.1f} yd), dropping and re-targeting",
-                                        bot->GetName(), victim->GetName(), distance);
-                                    StopAttacking(bot, bgData);
-                                }
-                            }
-                            else
-                            {
-                                bgData->wsgChaseStuckTimer = 0;
-                            }
-                        }
-                        else
-                        {
-                            bgData->wsgChaseTargetGuid = victim->GetGUID();
-                            bgData->wsgChaseStuckTimer = 0;
-                        }
-
-                        bgData->wsgChaseLastDistance = distance;
-
-                        if (bgData->wsgCombatMode == WSGCombatMode::Normal)
-                            FSBMovement::EnsureInRange(bot, victim);
-
-                        return;
-                    }
-                }
-                else
-                {
-                    StopAttacking(bot, bgData);
-                }
-            }
-
-            // Standard target selection (victim, attacker, owner, group, BG scan).
-            if (Unit* target = FSBCombat::GetNextAttackTarget(bot))
-            {
-                if (StartAttacking(bot, target, bgData, WSGCombatMode::Normal))
-                    return;
-            }
-
-            // If no standard target, help a nearby friendly.
-            if (Unit* assistTarget = FindFriendlyAssistTarget(bot, FSB_WSG_ASSIST_RANGE))
-            {
-                if (StartAttacking(bot, assistTarget, bgData, WSGCombatMode::Normal))
                     return;
             }
 
@@ -559,7 +474,7 @@ namespace FSBBattleground::WarsongGulch
             if (!bot || !bgData)
                 return;
 
-            Team botTeam = GetBotTeam(bot);
+            Team botTeam = FSBBattleground::GetBotTeam(bot);
             if (botTeam != ALLIANCE && botTeam != HORDE)
                 return;
 
@@ -619,105 +534,6 @@ namespace FSBBattleground::WarsongGulch
         }
     }
 
-    Unit* FindFriendlyAssistTarget(Creature* bot, float range)
-    {
-        if (!bot)
-            return nullptr;
-
-        Team botTeam = GetBotTeam(bot);
-        if (botTeam != ALLIANCE && botTeam != HORDE)
-            return nullptr;
-
-        BattlegroundMap* bgMap = bot->GetMap()->ToBattlegroundMap();
-        if (!bgMap)
-            return nullptr;
-
-        Battleground* bg = bgMap->GetBG();
-        if (!bg)
-            return nullptr;
-
-        Unit* bestVictim = nullptr;
-        float bestDistance = range;
-
-        // Friendly players
-        for (auto const& [guid, bgPlayer] : bg->GetPlayers())
-        {
-            if (bgPlayer.Team != botTeam)
-                continue;
-
-            Player* player = ObjectAccessor::GetPlayer(bgMap, guid);
-            if (!player)
-                continue;
-
-            float distance = bot->GetDistance(player);
-            if (distance >= bestDistance)
-                continue;
-
-            Unit* victim = player->GetVictim();
-            if (!victim || !Impl::IsValidCombatTarget(bot, victim))
-                continue;
-
-            bestVictim = victim;
-            bestDistance = distance;
-        }
-
-        // Friendly bots
-        for (auto const& [guid, creature] : bgMap->GetObjectsStore().Data.Head)
-        {
-            if (!creature || !creature->IsBot() || creature == bot)
-                continue;
-
-            auto baseAI = dynamic_cast<FSB_BaseAI*>(creature->AI());
-            if (!baseAI || baseAI->botHired)
-                continue;
-
-            Team creatureTeam = FSBUtils::GetTeamFromFSBRace(baseAI->botRace);
-            if (creatureTeam != botTeam)
-                continue;
-
-            float distance = bot->GetDistance(creature);
-            if (distance >= bestDistance)
-                continue;
-
-            Unit* victim = creature->GetVictim();
-            if (!victim || !Impl::IsValidCombatTarget(bot, victim))
-                continue;
-
-            bestVictim = victim;
-            bestDistance = distance;
-        }
-
-        return bestVictim;
-    }
-
-    void EvaluateCombat(Creature* bot, FSB_BattlegroundData* bgData)
-    {
-        if (!bot || !bgData || !bot->IsAlive())
-            return;
-
-        // Suppress combat while moving to a dropped flag.
-        if (bgData->wsgGoingForDroppedFlag)
-            return;
-
-        switch (bgData->wsgState)
-        {
-        case WSGState::ReturnFlag:
-            Impl::EvaluateReturnFlagCombat(bot, bgData);
-            break;
-        case WSGState::AttackFlag:
-            Impl::EvaluateAttackFlagCombat(bot, bgData);
-            break;
-        case WSGState::DefendBase:
-        case WSGState::HoldCenter:
-        case WSGState::ProtectCarrier:
-            Impl::EvaluateNormalBGCombat(bot, bgData);
-            break;
-        default:
-            Impl::StopAttacking(bot, bgData);
-            break;
-        }
-    }
-
     void UpdateBot(Creature* bot, FSB_BattlegroundData* bgData)
     {
         if (!bot || !bgData)
@@ -746,7 +562,7 @@ namespace FSBBattleground::WarsongGulch
             return;
 
         MovementGeneratorType moveType = FSBMovement::GetMovementType(bot);
-        if (moveType == POINT_MOTION_TYPE || moveType == EFFECT_MOTION_TYPE)
+        if (moveType == POINT_MOTION_TYPE || moveType == EFFECT_MOTION_TYPE || moveType == CHASE_MOTION_TYPE)
             return;
 
         BattlegroundMap* bgMap = bot->GetMap()->ToBattlegroundMap();
@@ -760,7 +576,7 @@ namespace FSBBattleground::WarsongGulch
         if (bg->GetStatus() != STATUS_IN_PROGRESS)
             return;
 
-        Team botTeam = GetBotTeam(bot);
+        Team botTeam = FSBBattleground::GetBotTeam(bot);
         if (botTeam != ALLIANCE && botTeam != HORDE)
             return;
 
@@ -865,7 +681,7 @@ namespace FSBBattleground::WarsongGulch
         // Update tracked state counts via ZoneScript GetData/SetData (per team)
         if (ZoneScript* zoneScript = bot->GetZoneScript())
         {
-            bool isAlliance = GetBotTeam(bot) == ALLIANCE;
+            bool isAlliance = FSBBattleground::GetBotTeam(bot) == ALLIANCE;
             uint32 baseDefendersId = isAlliance ? FSBBattleground::DataCurrentBaseDefendersAlliance : FSBBattleground::DataCurrentBaseDefendersHorde;
             uint32 middleDefendersId = isAlliance ? FSBBattleground::DataCurrentMiddleDefendersAlliance : FSBBattleground::DataCurrentMiddleDefendersHorde;
             uint32 flagAttackersId = isAlliance ? FSBBattleground::DataCurrentFlagAttackersAlliance : FSBBattleground::DataCurrentFlagAttackersHorde;
@@ -923,7 +739,7 @@ namespace FSBBattleground::WarsongGulch
             bgData->wsgGoingForDroppedFlag = false;
         }
 
-        Team botTeam = GetBotTeam(bot);
+        Team botTeam = FSBBattleground::GetBotTeam(bot);
         if (botTeam != ALLIANCE && botTeam != HORDE)
             return;
 
@@ -979,7 +795,7 @@ namespace FSBBattleground::WarsongGulch
         if (bgData->wsgState != WSGState::AttackFlag)
             return;
 
-        Team botTeam = GetBotTeam(bot);
+        Team botTeam = FSBBattleground::GetBotTeam(bot);
         if (botTeam != ALLIANCE && botTeam != HORDE)
             return;
 
@@ -1015,7 +831,7 @@ namespace FSBBattleground::WarsongGulch
         if (BotHasFlagAura(bot))
             return;
 
-        Team botTeam = GetBotTeam(bot);
+        Team botTeam = FSBBattleground::GetBotTeam(bot);
         if (botTeam != ALLIANCE && botTeam != HORDE)
             return;
 
@@ -1150,7 +966,7 @@ namespace FSBBattleground::WarsongGulch
                 {
                     // Returning home to defend: move to the base position so the tick can shuffle.
                     bgData->wsgMovePhase = WSGMovePhase::None;
-                    Position const& basePos = GetBotTeam(bot) == ALLIANCE ? FSB_WSG_BASE_ALLIANCE : FSB_WSG_BASE_HORDE;
+                    Position const& basePos = FSBBattleground::GetBotTeam(bot) == ALLIANCE ? FSB_WSG_BASE_ALLIANCE : FSB_WSG_BASE_HORDE;
                     bot->GetMotionMaster()->MovePoint(FSBMovement::MOVEMENT_POINT_WSG_DEFEND, basePos);
                 }
                 else
@@ -1192,7 +1008,7 @@ namespace FSBBattleground::WarsongGulch
         if (!bot)
             return false;
 
-        Team botTeam = GetBotTeam(bot);
+        Team botTeam = FSBBattleground::GetBotTeam(bot);
         uint32 enemyFlagEntry = botTeam == ALLIANCE ? Objects::BaseHordeFlag : Objects::BaseAllianceFlag;
 
         BattlegroundMap* bgMap = bot->GetMap()->ToBattlegroundMap();
@@ -1225,7 +1041,7 @@ namespace FSBBattleground::WarsongGulch
         std::vector<WSGState> available;
         if (zoneScript)
         {
-            bool isAlliance = GetBotTeam(bot) == ALLIANCE;
+            bool isAlliance = FSBBattleground::GetBotTeam(bot) == ALLIANCE;
             uint32 baseDefendersId = isAlliance ? FSBBattleground::DataCurrentBaseDefendersAlliance : FSBBattleground::DataCurrentBaseDefendersHorde;
             uint32 middleDefendersId = isAlliance ? FSBBattleground::DataCurrentMiddleDefendersAlliance : FSBBattleground::DataCurrentMiddleDefendersHorde;
             uint32 flagAttackersId = isAlliance ? FSBBattleground::DataCurrentFlagAttackersAlliance : FSBBattleground::DataCurrentFlagAttackersHorde;
@@ -1305,7 +1121,7 @@ namespace FSBBattleground::WarsongGulch
         if (!FSBBattleground::IsInProgress(bot))
             return;
 
-        Team botTeam = GetBotTeam(bot);
+        Team botTeam = FSBBattleground::GetBotTeam(bot);
         if (botTeam != ALLIANCE && botTeam != HORDE)
             return;
 

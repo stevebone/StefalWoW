@@ -84,6 +84,8 @@ namespace FSBBattleground
     constexpr uint32 DataCurrentMiddleDefendersHorde = 5;
     constexpr uint32 DataCurrentFlagAttackersHorde = 6;
 
+    Team GetBotTeam(Creature* bot);
+
     void SpawnBots(Battleground* battleground, BattlegroundMap* battlegroundMap, Player* triggeringPlayer = nullptr);
 
     bool IsInBG(Creature const* bot);
@@ -106,8 +108,5 @@ namespace FSBBattleground
     std::vector<Creature*> CollectBotsOnTeam(BattlegroundMap* battlegroundMap, Team team);
 
     Unit* FindHostileTargetInBattleground(Creature* bot);
-
-    // Entry point for battleground-specific combat evaluation.
-    // Called from FSBCombat::EvaluateAttackNeeded; it replaces generic combat logic for non-hired BG bots.
-    void EvaluateCombat(Creature* bot);
+    Unit* FindFriendlyAssistTarget(Creature* bot, float range);
 }

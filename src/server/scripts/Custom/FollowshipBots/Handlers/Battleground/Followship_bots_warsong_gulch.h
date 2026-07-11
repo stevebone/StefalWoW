@@ -182,8 +182,6 @@ namespace FSBBattleground::WarsongGulch
         Position(1240.8289f, 1339.2724f, 312.3503f, 2.32f)
     };
 
-    Team GetBotTeam(Creature* bot);
-
     inline Team GetEnemyTeam(Team team)
     {
         return team == ALLIANCE ? HORDE : ALLIANCE;
@@ -240,11 +238,6 @@ namespace FSBBattleground::WarsongGulch
     void InitializeBot(Creature* bot, FSB_BattlegroundData* bgData, Battleground* bg);
     void UpdateBot(Creature* bot, FSB_BattlegroundData* bgData);
     void SetBotState(Creature* bot, FSB_BattlegroundData* bgData, WSGState newState);
-
-    // Called by FSB_EVENT_WSG_USE_FLAG (1s after reaching the enemy flag position).
-    Unit* FindFriendlyAssistTarget(Creature* bot, float range);
-
-    void EvaluateCombat(Creature* bot, FSB_BattlegroundData* bgData);
 
     void TryUseEnemyFlag(Creature* bot, FSB_BattlegroundData* bgData);
     void TryUseDroppedFlag(Creature* bot, FSB_BattlegroundData* bgData);

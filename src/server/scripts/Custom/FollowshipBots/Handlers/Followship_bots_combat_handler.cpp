@@ -44,13 +44,6 @@ namespace FSBCombat
             if (baseAI->botDungeonData && baseAI->botDungeonData->mechanicFlagA)
                 return;
 
-        // Battleground bots use their own combat manager; do not run generic target selection.
-        if (FSBBattleground::IsInBG(bot) && FSBBattleground::IsInProgress(bot))
-        {
-            FSBBattleground::EvaluateCombat(bot);
-            return;
-        }
-
         Unit* victim = bot->GetVictim();
         // Prevent bot from disengaging from current target
         if (victim)
@@ -172,6 +165,9 @@ namespace FSBCombat
         if (bot->HasReactState(REACT_PASSIVE))
             return false;
 
+        if (target->HasAura(SPELL_SPECIAL_GHOST))
+            return false;
+
         if (target->HasBreakableByDamageCrowdControlAura())
             return false;
 
@@ -260,7 +256,14 @@ namespace FSBCombat
             return assistTarget;
         }
 
-        // 5. Battleground hostile target scan
+        // 5. Battleground friendly assist
+        if (Unit* bgFriendlyAssistTarget = FSBBattleground::FindFriendlyAssistTarget(bot, 30.f))
+        {
+            TC_LOG_DEBUG("scripts.fsb.combat", "FSB: GetNextAttackTarget Bot {} next target is battleground friendly assist target {}", bot->GetName(), bgFriendlyAssistTarget->GetName());
+            return bgFriendlyAssistTarget;
+        }
+
+        // 6. Battleground hostile target scan
         if (Unit* bgTarget = FSBBattleground::FindHostileTargetInBattleground(bot))
         {
             TC_LOG_DEBUG("scripts.fsb.combat", "FSB: GetNextAttackTarget Bot {} next target is battleground hostile {}", bot->GetName(), bgTarget->GetName());

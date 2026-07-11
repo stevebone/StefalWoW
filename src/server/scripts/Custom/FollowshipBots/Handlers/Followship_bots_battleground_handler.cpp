@@ -25,6 +25,7 @@
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_utils.h"
 #include "Followship_bots_party_handler.h"
+#include "Followship_bots_combat_handler.h"
 
 #include "Battleground.h"
 #include "BattlegroundScore.h"
@@ -42,6 +43,12 @@
 
 namespace FSBBattleground
 {
+    Team GetBotTeam(Creature* bot)
+    {
+        FSB_BaseAI* botAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        return FSBUtils::GetTeamFromFSBRace(botAI->botRace);
+    }
+
     void SpawnBots(Battleground* battleground, BattlegroundMap* /*battlegroundMap*/, Player* triggeringPlayer)
     {
         if (!battleground)
@@ -210,19 +217,16 @@ namespace FSBBattleground
         bg->UpdatePlayerScore(player, SCORE_DAMAGE_DONE, damage);
     }
 
-    namespace Impl
-    {
-        std::unordered_map<BattlegroundMap*, std::vector<ObjectGuid>> SpawnedBotGuids;
-    }
+    std::unordered_map<BattlegroundMap*, std::vector<ObjectGuid>> SpawnedBotGuids;
 
     void AddBotSpawnGuid(BattlegroundMap* battlegroundMap, ObjectGuid guid)
     {
-        Impl::SpawnedBotGuids[battlegroundMap].push_back(guid);
+        SpawnedBotGuids[battlegroundMap].push_back(guid);
     }
 
     void ClearSpawnedBotGuids(BattlegroundMap* battlegroundMap)
     {
-        Impl::SpawnedBotGuids.erase(battlegroundMap);
+        SpawnedBotGuids.erase(battlegroundMap);
     }
 
     uint32 CountExistingBots(Battleground* battleground, Team team)
@@ -296,8 +300,79 @@ namespace FSBBattleground
     std::vector<ObjectGuid> const& GetSpawnedBotGuids(BattlegroundMap* battlegroundMap)
     {
         static std::vector<ObjectGuid> const empty;
-        auto it = Impl::SpawnedBotGuids.find(battlegroundMap);
-        return it != Impl::SpawnedBotGuids.end() ? it->second : empty;
+        auto it = SpawnedBotGuids.find(battlegroundMap);
+        return it != SpawnedBotGuids.end() ? it->second : empty;
+    }
+
+    Unit* FindFriendlyAssistTarget(Creature* bot, float range)
+    {
+        if (!bot)
+            return nullptr;
+
+        Team botTeam = FSBBattleground::GetBotTeam(bot);
+        if (botTeam != ALLIANCE && botTeam != HORDE)
+            return nullptr;
+
+        BattlegroundMap* bgMap = bot->GetMap()->ToBattlegroundMap();
+        if (!bgMap)
+            return nullptr;
+
+        Battleground* bg = bgMap->GetBG();
+        if (!bg)
+            return nullptr;
+
+        Unit* bestVictim = nullptr;
+        float bestDistance = range;
+
+        // Friendly players
+        for (auto const& [guid, bgPlayer] : bg->GetPlayers())
+        {
+            if (bgPlayer.Team != botTeam)
+                continue;
+
+            Player* player = ObjectAccessor::GetPlayer(bgMap, guid);
+            if (!player)
+                continue;
+
+            float distance = bot->GetDistance(player);
+            if (distance >= bestDistance)
+                continue;
+
+            Unit* victim = player->GetVictim();
+            if (!victim || !FSBCombat::BotCanAttack(bot, victim))
+                continue;
+
+            bestVictim = victim;
+            bestDistance = distance;
+        }
+
+        // Friendly bots
+        for (auto const& [guid, creature] : bgMap->GetObjectsStore().Data.Head)
+        {
+            if (!creature || !creature->IsBot() || creature == bot)
+                continue;
+
+            auto baseAI = dynamic_cast<FSB_BaseAI*>(creature->AI());
+            if (!baseAI || baseAI->botHired)
+                continue;
+
+            Team creatureTeam = FSBUtils::GetTeamFromFSBRace(baseAI->botRace);
+            if (creatureTeam != botTeam)
+                continue;
+
+            float distance = bot->GetDistance(creature);
+            if (distance >= bestDistance)
+                continue;
+
+            Unit* victim = creature->GetVictim();
+            if (!victim || !FSBCombat::BotCanAttack(bot, victim))
+                continue;
+
+            bestVictim = victim;
+            bestDistance = distance;
+        }
+
+        return bestVictim;
     }
 
     Unit* FindHostileTargetInBattleground(Creature* bot)
@@ -437,28 +512,5 @@ namespace FSBBattleground
             bot->GetName(), best->target->GetName(), best->isFlagCarrier, best->healthPct, best->distance);
 
         return best->target;
-    }
-
-    void EvaluateCombat(Creature* bot)
-    {
-        if (!bot)
-            return;
-
-        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
-        if (!baseAI || baseAI->botHired)
-            return;
-
-        FSB_BattlegroundData* bgData = baseAI->GetBattlegroundData();
-        if (!bgData)
-            return;
-
-        uint32 bgTypeId = bgData->bgTypeId;
-        if (bgTypeId != BATTLEGROUND_WS && bgTypeId != BATTLEGROUND_WG_CTF)
-            return;
-
-        if (!IsInProgress(bot))
-            return;
-
-        WarsongGulch::EvaluateCombat(bot, bgData);
     }
 }

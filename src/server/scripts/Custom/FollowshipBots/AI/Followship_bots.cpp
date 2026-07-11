@@ -650,6 +650,7 @@ public:
         {
             if (!botDungeonData || !botDungeonData->mechanicFlagC)
                 FSBCombat::EvaluateAttackNeeded(me);
+
             FSBCombat::SetOwnerTapToVictim(me);
 
             events.Update(diff);
@@ -792,11 +793,8 @@ public:
                 case FSB_EVENT_COMBAT_MAINTENANCE:
                 {
                     if (me->IsAlive() && me->IsInCombat())
-                    {
-                        // Vehicle combat is handled by the self-scheduling EVENT_DM_VEHICLE_COMBAT_CHECK loop
                         if (!botDungeonData || !botDungeonData->mechanicFlagD)
                             FSBIC::BotICActions(me, botManaPotionUsed, botHealthPotionUsed, botGlobalCooldown, botCastedCombatBuffs);
-                    }
 
                     if (botClass == FSB_Class::Hunter && FSBPet::BotHasPet(me))
                         FSBPet::DoAttackSpell(me);
