@@ -188,7 +188,8 @@ public:
         handler->PSendSysMessage("Class: %s", FSBUtils::BotClassToString(botClass));
         handler->PSendSysMessage("Race: %s", FSBUtils::BotRaceToString(botRace));
 
-        
+        if (auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI()))
+            handler->PSendSysMessage("Role: %s", FSBUtils::BotRoleToString(baseAI->botRole));
 
         handler->PSendSysMessage("Attack Power: %.1f and Ranged Attack Power: %.1f ", bot->GetTotalAttackPowerValue(BASE_ATTACK), bot->GetTotalAttackPowerValue(RANGED_ATTACK));
 
