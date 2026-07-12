@@ -42,7 +42,7 @@ namespace FSBGroup
     Unit* BotGetFirstGroupTank(Creature* bot);
     Unit* BotGetFirstDeadMember(Creature* bot);
     Unit* BotGetDispelMember(Creature* bot, const DispelAbility& ability);
-    std::vector<ObjectGuid> BotGetMembersToHeal(Creature* bot, float lowHpThreshold);
+    std::vector<Unit*> BotGetMembersToHeal(Creature* bot, float lowHpThreshold);
     float CalculateEmergencyPriority(Unit* unit);
     void SortEmergencyTargets(std::vector<Unit*>& targets);
 

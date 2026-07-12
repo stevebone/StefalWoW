@@ -300,11 +300,7 @@ namespace FSBIC
         if (healTargets.empty())
             return false;
 
-        auto resolvedTargets = FSBGroup::ResolveGroup(bot, healTargets);
-        if (resolvedTargets.empty())
-            return false;
-
-        auto sortedHealTargets = resolvedTargets;
+        auto sortedHealTargets = healTargets;
         if (botRole == FSB_ROLE_HEALER)
             FSBGroup::SortEmergencyTargets(sortedHealTargets);
 
