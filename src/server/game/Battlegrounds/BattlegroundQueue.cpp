@@ -277,6 +277,15 @@ uint32 BattlegroundQueue::GetAverageQueueWaitTime(GroupQueueInfo* ginfo, Battleg
         return 0;
 }
 
+uint8 BattlegroundQueue::GetPlayerRoles(ObjectGuid guid) const
+{
+    auto itr = m_QueuedPlayers.find(guid);
+    if (itr != m_QueuedPlayers.end())
+        return itr->second.Roles;
+
+    return 0;
+}
+
 //remove player from queue and from group info, if group info is empty then remove it too
 void BattlegroundQueue::RemovePlayer(ObjectGuid guid, bool decreaseInvitedCount)
 {

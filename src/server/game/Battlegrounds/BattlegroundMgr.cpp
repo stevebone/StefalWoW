@@ -25,6 +25,7 @@
 #include "GameEventMgr.h"
 #include "GossipDef.h"
 #include "Language.h"
+#include "LFG.h"
 #include "Log.h"
 #include "MapManager.h"
 #include "MapUtils.h"
@@ -186,7 +187,16 @@ void BattlegroundMgr::BuildBattlegroundStatusNeedConfirmation(WorldPackets::Batt
     BuildBattlegroundStatusHeader(&battlefieldStatus->Hdr, player, ticketId, joinTime, queueId);
     battlefieldStatus->Mapid = bg->GetMapId();
     battlefieldStatus->Timeout = timeout;
-    battlefieldStatus->Role = 0;
+    BattlegroundQueue const& bgQueue = sBattlegroundMgr->GetBattlegroundQueue(queueId);
+    uint8 roles = bgQueue.GetPlayerRoles(player->GetGUID());
+    if (roles & lfg::PLAYER_ROLE_TANK)
+        battlefieldStatus->Role = 0;
+    else if (roles & lfg::PLAYER_ROLE_HEALER)
+        battlefieldStatus->Role = 1;
+    else if (roles & lfg::PLAYER_ROLE_DAMAGE)
+        battlefieldStatus->Role = 2;
+    else
+        battlefieldStatus->Role = 0;
 }
 
 void BattlegroundMgr::BuildBattlegroundStatusActive(WorldPackets::Battleground::BattlefieldStatusActive* battlefieldStatus, Battleground const* bg, Player const* player, uint32 ticketId, uint32 joinTime, BattlegroundQueueTypeId queueId)

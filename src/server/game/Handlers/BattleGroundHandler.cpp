@@ -193,6 +193,12 @@ void WorldSession::HandleBattlemasterJoinOpcode(WorldPackets::Battleground::Batt
 
         BattlegroundQueue& bgQueue = sBattlegroundMgr->GetBattlegroundQueue(bgQueueTypeId);
         GroupQueueInfo* ginfo = bgQueue.AddGroup(_player, nullptr, getQueueTeam(), bracketEntry, false, isPremade, 0);
+        if (ginfo)
+        {
+            auto itr = bgQueue.m_QueuedPlayers.find(_player->GetGUID());
+            if (itr != bgQueue.m_QueuedPlayers.end())
+                itr->second.Roles = battlemasterJoin.Roles;
+        }
         uint32 avgTime = bgQueue.GetAverageQueueWaitTime(ginfo, bracketEntry->GetBracketId());
         uint32 queueSlot = _player->AddBattlegroundQueueId(bgQueueTypeId);
 
@@ -221,6 +227,12 @@ void WorldSession::HandleBattlemasterJoinOpcode(WorldPackets::Battleground::Batt
         {
             TC_LOG_DEBUG("bg.battleground", "Battleground: the following players are joining as group:");
             ginfo = bgQueue.AddGroup(_player, grp, getQueueTeam(), bracketEntry, false, isPremade, 0);
+            if (ginfo)
+            {
+                auto itr = bgQueue.m_QueuedPlayers.find(_player->GetGUID());
+                if (itr != bgQueue.m_QueuedPlayers.end())
+                    itr->second.Roles = battlemasterJoin.Roles;
+            }
             avgTime = bgQueue.GetAverageQueueWaitTime(ginfo, bracketEntry->GetBracketId());
         }
 
@@ -575,6 +587,12 @@ void WorldSession::HandleBattlemasterJoinArena(WorldPackets::Battleground::Battl
         TC_LOG_DEBUG("bg.battleground", "Battleground: arena team id {}, leader {} queued with matchmaker rating {} for type {}", _player->GetArenaTeamId(packet.TeamSizeIndex), _player->GetName(), matchmakerRating, arenatype);
 
         ginfo = bgQueue.AddGroup(_player, grp, Team(_player->GetTeam()), bracketEntry, false, arenaRating, matchmakerRating);
+        if (ginfo)
+        {
+            auto itr = bgQueue.m_QueuedPlayers.find(_player->GetGUID());
+            if (itr != bgQueue.m_QueuedPlayers.end())
+                itr->second.Roles = packet.Roles;
+        }
         avgTime = bgQueue.GetAverageQueueWaitTime(ginfo, bracketEntry->GetBracketId());
     }
 
