@@ -53,7 +53,9 @@ namespace FSBBattleground::WarsongGulch
         MovingToCenter,
         Attacking,
         MovingToFlag,
-        AtObjective
+        AtObjective,
+        ReviveMove,
+        ReviveJump
     };
 
     enum class WSGPathChoice : uint8

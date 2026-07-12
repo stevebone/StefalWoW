@@ -26,6 +26,7 @@
 #include "Followship_bots_utils.h"
 #include "Followship_bots_party_handler.h"
 #include "Followship_bots_combat_handler.h"
+#include "Followship_bots_group_handler.h"
 
 #include "Battleground.h"
 #include "BattlegroundScore.h"
@@ -373,6 +374,95 @@ namespace FSBBattleground
         }
 
         return bestVictim;
+    }
+
+    Unit* FindBattlegroundAllyToHeal(Creature* bot, float range, float lowHpPct)
+    {
+        if (!bot || !bot->IsAlive() || !bot->IsInWorld() || bot->IsDuringRemoveFromWorld())
+            return nullptr;
+
+        if (!IsInBG(bot) || !IsInProgress(bot))
+            return nullptr;
+
+        Team botTeam = GetBotTeam(bot);
+        if (botTeam != ALLIANCE && botTeam != HORDE)
+            return nullptr;
+
+        BattlegroundMap* bgMap = bot->GetMap()->ToBattlegroundMap();
+        if (!bgMap)
+            return nullptr;
+
+        Battleground* bg = bgMap->GetBG();
+        if (!bg)
+            return nullptr;
+
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
+            return nullptr;
+
+        auto const& groupGuids = baseAI->botLogicalGroup;
+        auto isInGroup = [&](ObjectGuid const& guid) -> bool
+        {
+            return std::find(groupGuids.begin(), groupGuids.end(), guid) != groupGuids.end();
+        };
+
+        std::vector<Unit*> candidates;
+
+        // Friendly players
+        for (auto const& [guid, bgPlayer] : bg->GetPlayers())
+        {
+            if (bgPlayer.Team != botTeam)
+                continue;
+
+            if (isInGroup(guid))
+                continue;
+
+            Player* player = ObjectAccessor::GetPlayer(bgMap, guid);
+            if (!player || !player->IsAlive() || !player->IsInWorld() || player->IsDuringRemoveFromWorld())
+                continue;
+
+            if (bot->GetDistance(player) > range)
+                continue;
+
+            if (player->GetHealthPct() > lowHpPct)
+                continue;
+
+            candidates.push_back(player);
+        }
+
+        // Friendly bots
+        for (auto const& [guid, creature] : bgMap->GetObjectsStore().Data.Head)
+        {
+            if (!creature || !creature->IsBot() || creature == bot)
+                continue;
+
+            if (creature->GetGUID().IsEmpty() || creature->GetName().empty())
+                continue;
+
+            Team creatureTeam = FSBUtils::GetTeamFromFSBRace(FSBMgr::Get()->GetBotRaceForEntry(creature->GetEntry()));
+            if (creatureTeam != botTeam)
+                continue;
+
+            if (isInGroup(creature->GetGUID()))
+                continue;
+
+            if (!creature->IsAlive() || !creature->IsInWorld() || creature->IsDuringRemoveFromWorld())
+                continue;
+
+            if (bot->GetDistance(creature) > range)
+                continue;
+
+            if (creature->GetHealthPct() > lowHpPct)
+                continue;
+
+            candidates.push_back(creature);
+        }
+
+        if (candidates.empty())
+            return nullptr;
+
+        FSBGroup::SortEmergencyTargets(candidates);
+        return candidates.front();
     }
 
     Unit* FindHostileTargetInBattleground(Creature* bot)

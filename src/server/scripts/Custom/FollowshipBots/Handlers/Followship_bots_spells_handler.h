@@ -76,6 +76,7 @@ namespace FSBSpells
 
     std::vector<FSBSpellRuntime*> BotGetAvailableSpells(Creature* bot, std::vector<FSBSpellRuntime>& runtimeSpells, FSBSpellType desiredType, bool requireSelfCast);
     FSBSpellRuntime* SelectBestHealSpell(Creature* bot, const std::vector<FSBSpellRuntime*>& heals, Unit* target);
+    FSBSpellRuntime* SelectRandomHealSpell(Creature* bot, const std::vector<FSBSpellRuntime*>& heals, Unit* target);
     FSBSpellRuntime* SelectBestDamageSpell(Creature* bot, const std::vector<FSBSpellRuntime*>& damageSpells, Unit* target);
 
     void HandleOnSpellCast(Creature* bot, FSB_Class botClass, uint32 spellId);

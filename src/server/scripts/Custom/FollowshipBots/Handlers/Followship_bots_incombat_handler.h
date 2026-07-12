@@ -38,6 +38,7 @@ namespace FSBIC
     bool BotICTryOffensiveDispel(Creature* bot);
     bool BotICHealSelf(Creature* bot);
     bool BotICHealGroup(Creature* bot);
+    bool BotICHealBattlegroundAllies(Creature* bot);
     bool BotICTryOffensiveSpell(Creature* bot);
 
     bool BotICRandomActions(Creature* bot);

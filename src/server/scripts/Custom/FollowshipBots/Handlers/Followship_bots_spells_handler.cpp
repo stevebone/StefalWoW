@@ -240,6 +240,53 @@ namespace FSBSpells
         return best;
     }
 
+    FSBSpellRuntime* SelectRandomHealSpell(Creature* bot, const std::vector<FSBSpellRuntime*>& heals, Unit* target)
+    {
+        if (!target || !target->IsInWorld() || target->IsDuringRemoveFromWorld() || !target->IsAlive())
+            return nullptr;
+
+        float hpPct = target->GetHealthPct();
+
+        std::vector<FSBSpellRuntime*> validHeals;
+
+        for (auto* runtime : heals)
+        {
+            if (!runtime)
+                continue;
+
+            auto* def = runtime->def;
+            if (!def)
+                continue;
+
+            if (def->isSelfCast && target != bot)
+                continue;
+
+            if (!FSBSpellsUtils::CheckSpellContextRequirements(bot, def->spellId, target))
+                continue;
+
+            if (target->HasAura(def->spellId))
+                continue;
+
+            if (hpPct > def->hpThreshold)
+                continue;
+
+            validHeals.push_back(runtime);
+        }
+
+        if (validHeals.empty())
+            return nullptr;
+
+        Trinity::Containers::RandomShuffle(validHeals);
+
+        for (auto* runtime : validHeals)
+        {
+            if (urand(0, 99) <= runtime->def->chance)
+                return runtime;
+        }
+
+        return nullptr;
+    }
+
     FSBSpellRuntime* SelectBestDamageSpell(Creature* bot, const std::vector<FSBSpellRuntime*>& damageSpells, Unit* target)
     {
         if (!bot || !bot->IsAlive())

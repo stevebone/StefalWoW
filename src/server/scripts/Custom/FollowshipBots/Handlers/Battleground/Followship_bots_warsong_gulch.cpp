@@ -162,6 +162,20 @@ namespace FSBBattleground::WarsongGulch
         bot->GetMotionMaster()->MovePoint(FSBMovement::MOVEMENT_POINT_WSG_ATTACK, path.points[step]);
     }
 
+    void MoveToGraveyardMove(Creature* bot)
+    {
+        Team botTeam = FSBBattleground::GetBotTeam(bot);
+        Position const& movePos = botTeam == ALLIANCE ? FSB_WSG_GRAVEYARD_ALLIANCE_MOVE : FSB_WSG_GRAVEYARD_HORDE_MOVE;
+        bot->GetMotionMaster()->MovePoint(FSBMovement::MOVEMENT_POINT_WSG_GRAVEYARD_MOVE, movePos);
+    }
+
+    void MoveToGraveyardJump(Creature* bot)
+    {
+        Team botTeam = FSBBattleground::GetBotTeam(bot);
+        Position const& jumpPos = botTeam == ALLIANCE ? FSB_WSG_GRAVEYARD_ALLIANCE_JUMP : FSB_WSG_GRAVEYARD_HORDE_JUMP;
+        bot->GetMotionMaster()->MoveJump(FSBMovement::MOVEMENT_POINT_WSG_GRAVEYARD_JUMP, jumpPos, FSB_WSG_JUMP_SPEED, {}, FSB_WSG_JUMP_MAX_HEIGHT);
+    }
+
     void MoveToCenter(Creature* bot, FSB_BattlegroundData* bgData, bool withOffset, bool pickNew)
     {
         if (pickNew)
@@ -385,7 +399,6 @@ namespace FSBBattleground::WarsongGulch
             }
 
             Team botTeam = FSBBattleground::GetBotTeam(bot);
-            Team enemyTeam = GetEnemyTeam(botTeam);
             Position const& ownBase = botTeam == ALLIANCE ? FSB_WSG_BASE_ALLIANCE : FSB_WSG_BASE_HORDE;
             Position const& enemyBase = botTeam == ALLIANCE ? FSB_WSG_BASE_HORDE : FSB_WSG_BASE_ALLIANCE;
 
@@ -566,6 +579,18 @@ namespace FSBBattleground::WarsongGulch
         if (botTeam != ALLIANCE && botTeam != HORDE)
             return;
 
+        // Graveyard revival: always move to the ledge and jump first, regardless of state.
+        if (bgData->wsgMovePhase == WSGMovePhase::ReviveMove)
+        {
+            MoveToGraveyardMove(bot);
+            return;
+        }
+        if (bgData->wsgMovePhase == WSGMovePhase::ReviveJump)
+        {
+            MoveToGraveyardJump(bot);
+            return;
+        }
+
         // If a friendly bot is carrying the flag, AttackFlag bots either protect it
         // or fall back to the center depending on distance.
         if (bgData->wsgState == WSGState::AttackFlag)
@@ -718,6 +743,14 @@ namespace FSBBattleground::WarsongGulch
 
         WSGState oldState = bgData->wsgState;
 
+        // Do not interrupt the graveyard exit sequence. State/counts are already updated above;
+        // just record the new state and let the revive move/jump finish.
+        if (bgData->wsgMovePhase == WSGMovePhase::ReviveMove || bgData->wsgMovePhase == WSGMovePhase::ReviveJump)
+        {
+            bgData->wsgState = newState;
+            return;
+        }
+
         // AttackFlag bots that fall back to HoldCenter should route back from the enemy side,
         // not walk back to their own base. Use the enemy exit path and the closest center/path point.
         if (oldState == WSGState::AttackFlag && newState == WSGState::HoldCenter)
@@ -823,6 +856,9 @@ namespace FSBBattleground::WarsongGulch
         if (!bot || !bgData || !bot->IsAlive())
             return;
 
+        if (bgData->wsgMovePhase == WSGMovePhase::ReviveMove || bgData->wsgMovePhase == WSGMovePhase::ReviveJump)
+            return;
+
         if (BotHasFlagAura(bot))
             return;
 
@@ -901,6 +937,15 @@ namespace FSBBattleground::WarsongGulch
                 // Attack path jump landed; head to the flag position.
                 bgData->wsgMovePhase = WSGMovePhase::MovingToFlag;
                 MoveToFlagPoint(bot, bgData);
+            }
+            else if (id == FSBMovement::MOVEMENT_POINT_WSG_GRAVEYARD_JUMP)
+            {
+                // Landed after the graveyard jump; resume the re-evaluated state.
+                if (bgData->wsgState == WSGState::HoldCenter || bgData->wsgState == WSGState::AttackFlag)
+                    bgData->wsgMovePhase = WSGMovePhase::MovingToCenter;
+                else
+                    bgData->wsgMovePhase = WSGMovePhase::None;
+                UpdateBot(bot, bgData);
             }
             return;
         }
@@ -983,6 +1028,11 @@ namespace FSBBattleground::WarsongGulch
             // Reached the dropped flag position; use it after a short delay.
             bot->GetMotionMaster()->Clear();
             FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_WSG_USE_DROPPED_FLAG, 500ms);
+            break;
+        case FSBMovement::MOVEMENT_POINT_WSG_GRAVEYARD_MOVE:
+            // Reached the graveyard ledge; jump down into the battleground.
+            bgData->wsgMovePhase = WSGMovePhase::ReviveJump;
+            MoveToGraveyardJump(bot);
             break;
         default:
             break;

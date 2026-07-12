@@ -37,6 +37,7 @@
 #include "Followship_bots_movement_handler.h"
 #include "Followship_bots_powers_handler.h"
 #include "Followship_bots_spells_handler.h"
+#include "Followship_bots_battleground_handler.h"
 
 namespace FSBIC
 {
@@ -76,6 +77,9 @@ namespace FSBIC
             return true;
 
         if (BotICHealGroup(bot))
+            return true;
+
+        if (BotICHealBattlegroundAllies(bot))
             return true;
 
         if (BotICTryDispel(bot))
@@ -340,6 +344,77 @@ namespace FSBIC
                     else
                         FSBGenAIPrompts::DispatchBotHeal(bot, target->GetGUID(), healSpell->def->spellId);
                 }
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    bool BotICHealBattlegroundAllies(Creature* bot)
+    {
+        if (!bot || !bot->IsAlive())
+            return false;
+
+        if (!FSBBattleground::IsInBG(bot))
+            return false;
+
+        if (!FSBBattleground::IsInProgress(bot))
+            return false;
+
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
+            return false;
+
+        if (baseAI->botRole != FSB_ROLE_HEALER)
+            return false;
+
+        if (!FSBSpellsUtils::BotHasHealSpells(bot))
+            return false;
+
+        if (FSBDungeon::ShouldDPSInExecutePhase(bot, bot->GetVictim()))
+            return false;
+
+        auto& globalCooldown = baseAI->botGlobalCooldown;
+        uint32 now = getMSTime();
+
+        if (!FSBSpellsUtils::CanCastNow(bot, now, globalCooldown))
+            return false;
+
+        auto& runtimeSpells = baseAI->botRuntimeSpells;
+
+        float hpPct = 50.0f;
+
+        Unit* target = FSBBattleground::FindBattlegroundAllyToHeal(bot, 40.0f, hpPct);
+        if (!target || !target->IsInWorld() || target->IsDuringRemoveFromWorld() || !target->IsAlive())
+            return false;
+
+        auto heals = FSBSpells::BotGetAvailableSpells(bot, runtimeSpells, FSBSpellType::Heal, false);
+        FSBSpellRuntime* healSpell = FSBSpells::SelectRandomHealSpell(bot, heals, target);
+
+        if (healSpell && target)
+        {
+            if (healSpell->def->isSelfCast && target != bot)
+                return false;
+
+            bool castSuccess = false;
+
+            if (healSpell->def->isLocationSpell)
+            {
+                Position pos = FSBSpells::GetHealingAoEPosition(bot);
+                castSuccess = FSBSpells::BotCastSpellatLocation(bot, healSpell->def->spellId, pos);
+            }
+            else
+            {
+                castSuccess = FSBSpells::BotCastSpell(bot, healSpell->def->spellId, target);
+            }
+
+            if (castSuccess)
+            {
+                healSpell->nextReadyMs = now + healSpell->def->cooldownMs;
+                baseAI->botGlobalCooldown = now + 1500;
+                if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
+                    FSBGenAIPrompts::DispatchBotHeal(bot, target->GetGUID(), healSpell->def->spellId);
                 return true;
             }
         }

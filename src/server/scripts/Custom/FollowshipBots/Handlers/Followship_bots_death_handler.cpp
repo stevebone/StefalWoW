@@ -181,6 +181,8 @@ namespace FSBDeath
                 {
                     FSBBattleground::WarsongGulch::SetBotState(bot, bgData,
                         FSBBattleground::WarsongGulch::GetWSGBotState(bot, bgData->wsgState));
+                    bot->GetMotionMaster()->Clear();
+                    bgData->wsgMovePhase = FSBBattleground::WarsongGulch::WSGMovePhase::ReviveMove;
                     FSBBattleground::WarsongGulch::UpdateBot(bot, bgData);
                 }
             }

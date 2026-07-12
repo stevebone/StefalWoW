@@ -95,4 +95,5 @@ namespace FSBBattleground
 
     Unit* FindHostileTargetInBattleground(Creature* bot);
     Unit* FindFriendlyAssistTarget(Creature* bot, float range);
+    Unit* FindBattlegroundAllyToHeal(Creature* bot, float range, float lowHpPct);
 }
