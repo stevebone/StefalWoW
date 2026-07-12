@@ -85,8 +85,8 @@ namespace FSBBattleground::WarsongGulch
     static constexpr Position FSB_WSG_BASE_ALLIANCE = { 1516.0f, 1481.0f, 352.0f, 0.0f };
     static constexpr Position FSB_WSG_BASE_HORDE = { 930.0f, 1437.567f, 345.536f, 0.0f };
 
-    static constexpr Position FSB_WSG_FLAG_ALLIANCE = { 1540.4499f, 1481.2199f, 345.536f, 0.0f };
-    static constexpr Position FSB_WSG_FLAG_HORDE{ 917.0f, 1434.0f, 346.1829f, 0.0f };
+    static constexpr Position FSB_WSG_FLAG_ALLIANCE = { 1535.4586f, 1480.9598f, 352.6968f, 0.0f };
+    static constexpr Position FSB_WSG_FLAG_HORDE = { 920.8129f, 1434.5511f, 345.8729f, 0.0f };
 
     static constexpr Position FSB_WSG_CENTER = { 1212.0f, 1469.0f, 345.536f, 0.0f };
 

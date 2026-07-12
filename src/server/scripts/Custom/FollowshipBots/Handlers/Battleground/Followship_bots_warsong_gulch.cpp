@@ -31,6 +31,7 @@
 #include "MotionMaster.h"
 #include "ObjectAccessor.h"
 #include "ObjectMgr.h"
+#include "PetDefines.h"
 #include "Player.h"
 #include "Random.h"
 #include "Timer.h"
@@ -591,15 +592,15 @@ namespace FSBBattleground::WarsongGulch
             return;
         }
 
-        // If a friendly bot is carrying the flag, AttackFlag bots either protect it
-        // or fall back to the center depending on distance.
-        if (bgData->wsgState == WSGState::AttackFlag)
+        // If a friendly bot is carrying the flag, AttackFlag or HoldCenter bots
+        // either protect it or fall back to the center depending on distance.
+        if (bgData->wsgState == WSGState::AttackFlag || bgData->wsgState == WSGState::HoldCenter)
         {
             if (Creature* carrier = FindFriendlyCarrier(bot))
             {
                 if (bot->GetDistance(carrier) < 50.0f)
                     SetBotState(bot, bgData, WSGState::ProtectCarrier);
-                else
+                else if (bgData->wsgState == WSGState::AttackFlag)
                     SetBotState(bot, bgData, WSGState::HoldCenter);
                 return;
             }
@@ -634,12 +635,13 @@ namespace FSBBattleground::WarsongGulch
             Creature* carrier = FindFriendlyCarrier(bot);
             if (!carrier || bot->GetDistance(carrier) > 50.0f)
             {
+                bot->GetMotionMaster()->Clear();
                 SetBotState(bot, bgData, WSGState::HoldCenter);
                 break;
             }
 
-            Position target = GetRandomOffsetPosition(carrier->GetPosition(), 5.0f, 12.0f);
-            bot->GetMotionMaster()->MovePoint(FSBMovement::MOVEMENT_POINT_WSG_DEFEND, target);
+            if (FSBMovement::GetMovementType(bot) != FOLLOW_MOTION_TYPE)
+                bot->GetMotionMaster()->MoveFollow(carrier, PET_FOLLOW_DIST, PET_FOLLOW_ANGLE);
             break;
         }
         case WSGState::HoldCenter:
