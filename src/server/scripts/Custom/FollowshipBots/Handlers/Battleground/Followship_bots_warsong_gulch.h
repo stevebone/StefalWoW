@@ -27,6 +27,7 @@
 #include "TemporarySummon.h"
 
 #include "Followship_bots_ai_base.h"
+#include <string>
 
 class Battleground;
 class Player;
@@ -337,6 +338,8 @@ namespace FSBBattleground::WarsongGulch
     void UpdateBot(Creature* bot, FSB_BattlegroundData* bgData);
     void SetBotState(Creature* bot, FSB_BattlegroundData* bgData, WSGState newState);
 
+    std::string GetStateChatMessage(Creature* bot, WSGState state);
+
     void TryUseEnemyFlag(Creature* bot, FSB_BattlegroundData* bgData);
     void TryUseDroppedFlag(Creature* bot, FSB_BattlegroundData* bgData);
     void TryCaptureFlag(Creature* bot, FSB_BattlegroundData* bgData);
@@ -348,6 +351,7 @@ namespace FSBBattleground::WarsongGulch
     std::vector<uint32> GetPvpStatIds();
 
     bool IsEnemyFlagTaken(Creature* bot);
+    bool IsOwnFlagInBase(Creature* bot);
     WSGState GetWSGBotState(Creature* bot, WSGState currentState);
 
     // Re-summons a bot at its team's start position when it despawns during an in-progress WSG match.

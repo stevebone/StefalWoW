@@ -27,6 +27,8 @@ namespace FSBCombat
     bool BotCanAttack(Creature* bot, Unit* target);
     void BotDoAttack(Creature* bot, Unit* target);
 
+    void BotTerminateCombat(Creature* bot);
+
     bool ShouldSwitchToMelee(Creature* bot);
     void EnterMeleeMode(Creature* bot);
 

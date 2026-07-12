@@ -87,6 +87,58 @@ namespace FSBBattleground::WarsongGulch
         return result;
     }
 
+    std::string GetStateChatMessage(Creature* bot, WSGState state)
+    {
+        if (!bot)
+            return "";
+
+        Team botTeam = FSBBattleground::GetBotTeam(bot);
+        if (botTeam != ALLIANCE && botTeam != HORDE)
+            return "";
+
+        char const* msg = nullptr;
+        switch (state)
+        {
+        case WSGState::DefendBase:
+        {
+            static char const* const messages[] = { "I'll stay back and defend the flag room.", "Guarding our base.", "I'm on defense." };
+            msg = messages[urand(0, 2)];
+            break;
+        }
+        case WSGState::HoldCenter:
+        {
+            static char const* const messages[] = { "I'll hold mid.", "Controlling the center.", "Taking mid, watch the roads." };
+            msg = messages[urand(0, 2)];
+            break;
+        }
+        case WSGState::AttackFlag:
+        {
+            static char const* const messages[] = { "Going for their flag!", "I'll run the flag, cover me.", "Heading into their base!" };
+            msg = messages[urand(0, 2)];
+            break;
+        }
+        case WSGState::ReturnFlag:
+        {
+            static char const* const messages[] = { "Got the flag! Heading home!", "Flag secured - clear a path!", "I have their flag, cover my run!" };
+            msg = messages[urand(0, 2)];
+            break;
+        }
+        case WSGState::ProtectCarrier:
+        {
+            static char const* const messages[] = { "I'll protect the flag carrier!", "Covering the runner!", "Stay close to the carrier!" };
+            msg = messages[urand(0, 2)];
+            break;
+        }
+        default:
+            break;
+        }
+
+        if (!msg)
+            return "";
+
+        return FormatChatLine(msg, botTeam);
+    }
+
     Position GetPositionWithOffsetForState(WSGState state, Position const& basePos)
     {
         float minRadius = 0.0f;
@@ -622,6 +674,16 @@ namespace FSBBattleground::WarsongGulch
             {
                 MoveToAttackStep(bot, bgData);
             }
+            else if (bgData->wsgCapturePending)
+            {
+                // Waiting to capture: stay within 2 yards of the home flag so the capture trigger is always reached.
+                Position const& flagPos = botTeam == ALLIANCE ? FSB_WSG_FLAG_ALLIANCE : FSB_WSG_FLAG_HORDE;
+                float angle = frand(0.0f, 6.283185307f);
+                float distance = frand(0.0f, 2.0f);
+                Position offset(std::cos(angle) * distance, std::sin(angle) * distance, 0.0f, 0.0f);
+                Position movePos = flagPos.GetPositionWithOffset(offset);
+                bot->GetMotionMaster()->MovePoint(FSBMovement::MOVEMENT_POINT_WSG_DEFEND, movePos);
+            }
             else
             {
                 // Near the base: shuffle around the flag room.
@@ -769,52 +831,8 @@ namespace FSBBattleground::WarsongGulch
             bgData->wsgExitPathChoice = WSGPathChoice::BaseExit;
         }
 
-        Team botTeam = FSBBattleground::GetBotTeam(bot);
-        if (botTeam != ALLIANCE && botTeam != HORDE)
-            return;
-
-        char const* msg = nullptr;
-        switch (newState)
-        {
-        case WSGState::DefendBase:
-        {
-            static char const* const messages[] = { "I'll stay back and defend the flag room.", "Guarding our base.", "I'm on defense." };
-            msg = messages[urand(0, 2)];
-            break;
-        }
-        case WSGState::HoldCenter:
-        {
-            static char const* const messages[] = { "I'll hold mid.", "Controlling the center.", "Taking mid, watch the roads." };
-            msg = messages[urand(0, 2)];
-            break;
-        }
-        case WSGState::AttackFlag:
-        {
-            static char const* const messages[] = { "Going for their flag!", "I'll run the flag, cover me.", "Heading into their base!" };
-            msg = messages[urand(0, 2)];
-            break;
-        }
-        case WSGState::ReturnFlag:
-        {
-            static char const* const messages[] = { "Got the flag! Heading home!", "Flag secured - clear a path!", "I have their flag, cover my run!" };
-            msg = messages[urand(0, 2)];
-            break;
-        }
-        case WSGState::ProtectCarrier:
-        {
-            static char const* const messages[] = { "I'll protect the flag carrier!", "Covering the runner!", "Stay close to the carrier!" };
-            msg = messages[urand(0, 2)];
-            break;
-        }
-        default:
-            break;
-        }
-
-        if (msg)
-        {
-            std::string formatted = FormatChatLine(msg, botTeam);
-            FSBEvents::ScheduleBotEventWithChatter(bot, FSB_EVENT_WSG_STATE_CHAT, 2s, 10s, FSB_ReplyType::Raid, formatted, nullptr);
-        }
+        if (newState != WSGState::None)
+            FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_WSG_STATE_CHAT, 2s, 10s);
     }
 
     void TryUseEnemyFlag(Creature* bot, FSB_BattlegroundData* bgData)
@@ -911,13 +929,28 @@ namespace FSBBattleground::WarsongGulch
             return;
 
         if (!BotHasFlagAura(bot))
+        {
+            bgData->wsgCapturePending = false;
             return;
+        }
+
+        if (!IsOwnFlagInBase(bot))
+        {
+            TC_LOG_DEBUG("scripts.fsb.battleground", "FSB WSG: TryCaptureFlag bot {} own flag not in base, switching to defend and rescheduling capture", bot->GetName());
+            bgData->wsgCapturePending = true;
+            if (bgData->wsgState != WSGState::DefendBase)
+                SetBotState(bot, bgData, WSGState::DefendBase);
+            FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_WSG_BOT_CAPTURE, 3s);
+            return;
+        }
+
+        bgData->wsgCapturePending = false;
 
         ZoneScript* zoneScript = bot->GetZoneScript();
         if (!zoneScript)
             return;
 
-        TC_LOG_DEBUG("scripts.fsb.battleground", "FSB WSG: TryCaptureFlag bot {} calling OnCaptureFlag", bot->GetName());
+        TC_LOG_DEBUG("scripts.fsb.battleground", "FSB WSG: TryCaptureFlag bot {} own flag in base, calling OnCaptureFlag", bot->GetName());
         zoneScript->OnCaptureFlag(nullptr, bot);
     }
 
@@ -1075,8 +1108,39 @@ namespace FSBBattleground::WarsongGulch
         return false;
     }
 
+    bool IsOwnFlagInBase(Creature* bot)
+    {
+        if (!bot)
+            return false;
+
+        Team botTeam = FSBBattleground::GetBotTeam(bot);
+        uint32 ownFlagEntry = botTeam == ALLIANCE ? Objects::BaseAllianceFlag : Objects::BaseHordeFlag;
+
+        BattlegroundMap* bgMap = bot->GetMap()->ToBattlegroundMap();
+        if (!bgMap)
+            return false;
+
+        for (auto const& [guid, go] : bgMap->GetObjectsStore().Data.FindContainer<GameObject>())
+        {
+            if (!go || go->GetEntry() != ownFlagEntry)
+                continue;
+
+            TC_LOG_DEBUG("scripts.fsb.battleground", "FSB WSG: IsOwnFlagInBase bot {} found own flag {} state={}", bot->GetName(), ownFlagEntry, static_cast<uint8>(go->GetFlagState()));
+            return go->GetFlagState() == FlagState::InBase;
+        }
+
+        TC_LOG_DEBUG("scripts.fsb.battleground", "FSB WSG: IsOwnFlagInBase bot {} found no gameobject with entry {}", bot->GetName(), ownFlagEntry);
+        return false;
+    }
+
     WSGState GetWSGBotState(Creature* bot, WSGState /*currentState*/)
     {
+        if (bot)
+            if (auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI()))
+                if (FSB_BattlegroundData* bgData = baseAI->GetBattlegroundData())
+                    if (bgData->wsgCapturePending)
+                        return WSGState::DefendBase;
+
         bool enemyFlagTaken = IsEnemyFlagTaken(bot);
 
         ZoneScript* zoneScript = bot ? bot->GetZoneScript() : nullptr;
@@ -1118,6 +1182,9 @@ namespace FSBBattleground::WarsongGulch
         auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
         if (!baseAI || baseAI->botHired)
             return;
+
+        if (FSB_BattlegroundData* bgData = baseAI->GetBattlegroundData())
+            bgData->wsgCapturePending = false;
 
         // Re-roll the capturing bot after a short delay.
         FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_WSG_REROLL_STATE, 10s);

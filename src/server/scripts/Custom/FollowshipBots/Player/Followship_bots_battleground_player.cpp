@@ -26,7 +26,9 @@
 #include "BattlegroundMgr.h"
 #include "BattlegroundScript.h"
 #include "Map.h"
+#include "ObjectAccessor.h"
 #include "Player.h"
+#include "ScriptHelpers.h"
 #include "ScriptMgr.h"
 
 class followship_bots_battleground_player : public PlayerScript
@@ -74,6 +76,66 @@ public:
         TC_LOG_INFO("scripts.fsb.battleground", "FSB BG Player: Spawning bots for BG type {}", battleground->GetTypeID());
         script->SetData(FSBBattleground::BotsSpawnedDataId, 1);
         FSBBattleground::SpawnBots(battleground, battlegroundMap, player);
+    }
+
+    void OnPlayerKilledByCreature(Creature* killer, Player* killed) override
+    {
+        if (!killer || !killed)
+            return;
+
+        BattlegroundMap* bgMap = killed->GetMap()->ToBattlegroundMap();
+        if (!bgMap)
+            return;
+
+        ObjectGuid killingBotGuid = FSBBattleground::ResolveAttackerGuid(killer);
+
+        if (!killer->IsBot() && !killingBotGuid.IsEmpty())
+        {
+            if (Creature* killingBot = ObjectAccessor::GetCreature(*killed, killingBotGuid))
+            {
+                if (killingBot->IsBot())
+                {
+                    FSBBattleground::HandleBotKilledPlayer(killingBot, killed->GetGUID());
+                    ScriptHelpers::RecordBotKillingBlow(killingBot->GetGUID());
+                }
+            }
+        }
+
+        for (auto const& [guid, creature] : bgMap->GetObjectsStore().Data.Head)
+        {
+            if (!creature || !creature->IsBot() || creature->GetGUID() == killingBotGuid)
+                continue;
+
+            FSB_BaseAI* baseAI = dynamic_cast<FSB_BaseAI*>(creature->AI());
+            if (!baseAI)
+                continue;
+
+            FSB_BattlegroundData* bgData = baseAI->GetBattlegroundData();
+            if (!bgData)
+                continue;
+
+            if (bgData->recentPlayerTargets.find(killed->GetGUID()) == bgData->recentPlayerTargets.end())
+                continue;
+
+            if (!creature->IsInCombat())
+                continue;
+
+            if (creature->GetDistance(killed) > 50.0f)
+                continue;
+
+            ScriptHelpers::RecordBotHonorableKill(creature->GetGUID());
+        }
+
+        // Remove the killed player from all bots' recent targets so the same death isn't credited again
+        for (auto const& [guid, creature] : bgMap->GetObjectsStore().Data.Head)
+        {
+            if (!creature || !creature->IsBot())
+                continue;
+
+            if (FSB_BaseAI* baseAI = dynamic_cast<FSB_BaseAI*>(creature->AI()))
+                if (FSB_BattlegroundData* bgData = baseAI->GetBattlegroundData())
+                    bgData->recentPlayerTargets.erase(killed->GetGUID());
+        }
     }
 };
 

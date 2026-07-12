@@ -207,6 +207,20 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
         break;
     }
 
+    case FSB_EVENT_WSG_STATE_CHAT:
+    {
+        if (FSB_BattlegroundData* bgData = ai->GetBattlegroundData())
+        {
+            if (bgData->bgTypeId == BATTLEGROUND_WS || bgData->bgTypeId == BATTLEGROUND_WG_CTF)
+            {
+                std::string msg = FSBBattleground::WarsongGulch::GetStateChatMessage(bot, bgData->wsgState);
+                if (!msg.empty())
+                    FSBChat::BotSendRaidChat(bot, msg);
+            }
+        }
+        break;
+    }
+
     case FSB_EVENT_BATTLEGROUND_TICK:
     {
         if (!ai->botHired)
@@ -597,7 +611,6 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId, FSB_ReplyType re
         break;
     }
 
-    case FSB_EVENT_WSG_STATE_CHAT:
     case FSB_EVENT_WSG_SPAWN_CHAT:
     {
         FSBChat::BotSendRaidChat(bot, chatterReply);

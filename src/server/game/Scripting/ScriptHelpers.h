@@ -108,6 +108,7 @@ namespace ScriptHelpers
     };
 
     TC_GAME_API void RecordBotKillingBlow(ObjectGuid botGuid);
+    TC_GAME_API void RecordBotHonorableKill(ObjectGuid botGuid);
     TC_GAME_API void RecordBotDeath(ObjectGuid botGuid);
     TC_GAME_API void RecordBotDamageDone(ObjectGuid botGuid, uint32 damage);
     TC_GAME_API void RecordBotHealingDone(ObjectGuid botGuid, uint32 heal);

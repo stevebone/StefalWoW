@@ -575,6 +575,12 @@ namespace ScriptHelpers
         ++score.HonorableKills;
     }
 
+    void RecordBotHonorableKill(ObjectGuid botGuid)
+    {
+        BotScoreData& score = BotScores[botGuid];
+        ++score.HonorableKills;
+    }
+
     void RecordBotDeath(ObjectGuid botGuid)
     {
         BotScoreData& score = BotScores[botGuid];

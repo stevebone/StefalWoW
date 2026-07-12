@@ -45,6 +45,9 @@ struct FSB_BattlegroundData
     uint8 wsgPathStep = 0;
     FSBBattleground::WarsongGulch::WSGPathChoice wsgExitPathChoice = FSBBattleground::WarsongGulch::WSGPathChoice::BaseExit;
     uint8 wsgCenterIndex = 0;
+    bool wsgCapturePending = false;
+    GuidUnorderedSet damageTappers;
+    GuidUnorderedSet recentPlayerTargets;
 
     void Reset()
     {
@@ -56,6 +59,9 @@ struct FSB_BattlegroundData
         wsgPathStep = 0;
         wsgExitPathChoice = FSBBattleground::WarsongGulch::WSGPathChoice::BaseExit;
         wsgCenterIndex = 0;
+        wsgCapturePending = false;
+        damageTappers.clear();
+        recentPlayerTargets.clear();
     }
 };
 
@@ -71,6 +77,7 @@ namespace FSBBattleground
     constexpr uint32 DataCurrentFlagAttackersHorde = 6;
 
     Team GetBotTeam(Creature* bot);
+    ObjectGuid ResolveAttackerGuid(Unit* attacker);
 
     void SpawnBots(Battleground* battleground, BattlegroundMap* battlegroundMap, Player* triggeringPlayer = nullptr);
 

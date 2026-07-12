@@ -50,6 +50,26 @@ namespace FSBBattleground
         return FSBUtils::GetTeamFromFSBRace(botAI->botRace);
     }
 
+    ObjectGuid ResolveAttackerGuid(Unit* attacker)
+    {
+        if (!attacker)
+            return ObjectGuid::Empty;
+
+        if (Player* player = attacker->GetCharmerOrOwnerPlayerOrPlayerItself())
+            return player->GetGUID();
+
+        if (Unit* owner = attacker->GetCharmerOrOwner())
+            if (Creature* creature = owner->ToCreature())
+                if (creature->IsBot())
+                    return creature->GetGUID();
+
+        if (Creature* creature = attacker->ToCreature())
+            if (creature->IsBot())
+                return creature->GetGUID();
+
+        return ObjectGuid::Empty;
+    }
+
     void SpawnBots(Battleground* battleground, BattlegroundMap* /*battlegroundMap*/, Player* triggeringPlayer)
     {
         if (!battleground)
