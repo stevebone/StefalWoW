@@ -395,6 +395,8 @@ public:
 
         void JustEnteredCombat(Unit* who) override
         {
+            FSBCombat::BotSyncShapeshift(me);
+
             for (ObjectGuid const& guid : _summons)
                 if (Creature* summon = ObjectAccessor::GetCreature(*me, guid))
                     if (summon->IsAlive())
@@ -404,6 +406,12 @@ public:
         void JustExitedCombat() override
         {
             botOutOfCombatTimer = getMSTime();
+
+            if (botHired)
+                return;
+
+            if (me->GetMap()->IsBattleground() && me->HasUnitState(UNIT_STATE_CHASE))
+                me->GetMotionMaster()->Clear();
         }        
 
         void HealReceived(Unit* /*done_by*/, uint32& /*addhealth*/) override
@@ -619,7 +627,8 @@ public:
             }
 
             case ScriptHelpers::DATA_BOT_CAPTURED_FLAG:
-                FSBBattleground::WarsongGulch::OnBotCapturedFlag(me);
+                if(!botHired)
+                    FSBBattleground::WarsongGulch::OnBotCapturedFlag(me);
                 break;
 
             }

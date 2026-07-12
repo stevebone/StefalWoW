@@ -31,4 +31,8 @@ namespace FSBCombat
     void EnterMeleeMode(Creature* bot);
 
     void SetOwnerTapToVictim(Creature* bot);
+
+    // Add or Remove class related shapeshift
+    // Example on combat start
+    void BotSyncShapeshift(Creature* bot);
 }

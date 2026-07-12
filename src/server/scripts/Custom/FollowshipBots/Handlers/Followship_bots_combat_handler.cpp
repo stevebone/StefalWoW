@@ -354,4 +354,20 @@ namespace FSBCombat
         // Otherwise, give owner tap
         mob->SetTappedBy(owner);
     }
+
+    void BotSyncShapeshift(Creature* bot)
+    {
+        if (!bot)
+            return;
+
+        if (!bot->IsInCombat())
+            return;
+
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
+            return;
+
+        if (bot->HasAura(SPELL_SHAMAN_GHOST_WOLF))
+            bot->RemoveAurasDueToSpell(SPELL_SHAMAN_GHOST_WOLF);
+    }
 }

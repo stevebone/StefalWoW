@@ -1138,7 +1138,7 @@ namespace FSBBattleground::WarsongGulch
             if (!otherBgData || (otherBgData->bgTypeId != BATTLEGROUND_WS && otherBgData->bgTypeId != BATTLEGROUND_WG_CTF))
                 continue;
 
-            if (otherBgData->wsgState == WSGState::HoldCenter)
+            if (otherBgData->wsgState == WSGState::HoldCenter || otherBgData->wsgState == WSGState::DefendBase)
                 FSBEvents::ScheduleBotEvent(creature, FSB_EVENT_WSG_REROLL_STATE, 10s);
         }
     }
