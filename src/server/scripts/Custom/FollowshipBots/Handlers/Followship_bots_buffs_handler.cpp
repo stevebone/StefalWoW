@@ -500,21 +500,14 @@ namespace FSBBuffs
             return false;
 
         FSB_Roles role = FSBMgr::Get()->GetRole(bot);
-        uint32 desiredForm = 0;
-        switch (role)
-        {
-        case FSB_ROLE_TANK:        desiredForm = SPELL_DRUID_BEAR; break;
-        case FSB_ROLE_MELEE_DAMAGE: desiredForm = SPELL_DRUID_CAT; break;
-        case FSB_ROLE_HEALER:      desiredForm = SPELL_DRUID_TREE_OF_LIFE; break;
-        case FSB_ROLE_RANGED_DAMAGE: desiredForm = SPELL_DRUID_MOONKIN; break;
-        default: break;
-        }
 
-        // Remove shapeshift forms before casting buffs.
+        // Shapeshift forms that must be removed before casting Druid buffs.
         uint32 formsToRemove[] = {
             SPELL_DRUID_BEAR, SPELL_DRUID_CAT, SPELL_DRUID_TRAVEL,
             SPELL_DRUID_MOONKIN, SPELL_DRUID_TREE_OF_LIFE
         };
+
+        // Strip forms once so buffs can be cast.
         for (uint32 form : formsToRemove)
         {
             if (bot->HasAura(form))
@@ -529,6 +522,9 @@ namespace FSBBuffs
         query.includeSelfCast = (scope == FSBBuffTargetScope::Self);
         query.respectCooldown = true;
         query.excludeAlreadyPresentAura = true;
+
+        bool anyCast = false;
+        uint32 now = getMSTime();
 
         std::vector<Unit*> targets = ResolveBuffTargets(bot, scope);
         for (Unit* target : targets)
@@ -546,22 +542,20 @@ namespace FSBBuffs
                 SpellCastResult result = bot->CastSpell(target, def->spellId, false);
                 if (result == SPELL_CAST_OK)
                 {
-                    uint32 now = getMSTime();
+                    anyCast = true;
                     baseAI->botGlobalCooldown = now + 1500;
                     outSpellId = def->spellId;
 
                     TC_LOG_DEBUG("scripts.fsb.buffs", "FSB: Druid bot {} cast buff {} on {}",
                         bot->GetName(), def->spellId, target->GetName());
-
-                    if (desiredForm && !bot->HasAura(desiredForm))
-                        bot->CastSpell(bot, desiredForm, false);
-
-                    return true;
                 }
             }
         }
 
-        return false;
+        // Re-apply the role form once all buff casts are done.
+        FSBDruid::BotSetRoleAuras(bot, role, false);
+
+        return anyCast;
     }
 
     bool HandlePeriodicBuffs(Creature* bot, uint32& selfBuffTimer, uint32& buffTimer)

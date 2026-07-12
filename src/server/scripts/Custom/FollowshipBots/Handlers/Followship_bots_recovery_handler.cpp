@@ -54,9 +54,7 @@ namespace FSBRecovery
         bool usesMana = bot->GetMaxPower(POWER_MANA) > 0;
 
         // Druid shapeshifts (bear/cat) use rage/energy, not mana
-        if (usesMana &&
-            FSBMgr::Get()->GetBotClassForEntry(bot->GetEntry()) == FSB_Class::Druid &&
-            (bot->HasAura(SPELL_DRUID_BEAR) || bot->HasAura(SPELL_DRUID_CAT)))
+        if (bot->HasAura(SPELL_DRUID_BEAR) || bot->HasAura(SPELL_DRUID_CAT))
             usesMana = false;
 
         bool lowMana = false;
@@ -85,34 +83,48 @@ namespace FSBRecovery
 
         std::vector<BotRecoverAction> recoveryActions;
 
+        bool isBearOrCat = bot->HasAura(SPELL_DRUID_BEAR) || bot->HasAura(SPELL_DRUID_CAT);
+
         switch (intent)
         {
         case BotRecoveryIntent::RecoverHealth:
             recoveryActions.emplace_back(BotRecoverAction::Eat);
-            recoveryActions.emplace_back(BotRecoverAction::Recuperate);
 
-            if (FSBUtils::BotIsHealerClass(bot))
-                recoveryActions.emplace_back(BotRecoverAction::ClassHeal);
-            if (botClass == FSB_Class::Mage)
-                recoveryActions.emplace_back(BotRecoverAction::ClassDrinkEat);
-                
-            if (botRace == FSB_Race::Draenei)
-                recoveryActions.emplace_back(BotRecoverAction::RaceHeal);
+            if (!isBearOrCat)
+            {
+                recoveryActions.emplace_back(BotRecoverAction::Recuperate);
 
+                if (FSBUtils::BotIsHealerClass(bot))
+                    recoveryActions.emplace_back(BotRecoverAction::ClassHeal);
+                if (botClass == FSB_Class::Mage)
+                    recoveryActions.emplace_back(BotRecoverAction::ClassDrinkEat);
+
+                if (botRace == FSB_Race::Draenei)
+                    recoveryActions.emplace_back(BotRecoverAction::RaceHeal);
+            }
             break;
         case BotRecoveryIntent::RecoverMana:
-            recoveryActions.emplace_back(BotRecoverAction::Drink);
-            if (botClass == FSB_Class::Mage)
-                recoveryActions.emplace_back(BotRecoverAction::ClassDrinkEat);
+            if (!isBearOrCat)
+            {
+                recoveryActions.emplace_back(BotRecoverAction::Drink);
+                if (botClass == FSB_Class::Mage)
+                    recoveryActions.emplace_back(BotRecoverAction::ClassDrinkEat);
+            }
             break;
         case BotRecoveryIntent::RecoverHealthAndMana:
-            recoveryActions.emplace_back(BotRecoverAction::DrinkEat);
-            if (botClass == FSB_Class::Mage)
-                recoveryActions.emplace_back(BotRecoverAction::ClassDrinkEat);
+            if (!isBearOrCat)
+            {
+                recoveryActions.emplace_back(BotRecoverAction::DrinkEat);
+                if (botClass == FSB_Class::Mage)
+                    recoveryActions.emplace_back(BotRecoverAction::ClassDrinkEat);
+            }
             break;
         default:
             recoveryActions.emplace_back(BotRecoverAction::None);
         }
+
+        if (recoveryActions.empty())
+            return BotRecoverAction::None;
 
         return Trinity::Containers::SelectRandomContainerElement(recoveryActions);
     }
@@ -298,6 +310,10 @@ namespace FSBRecovery
             return false;
 
         if (bot->HasAura(SPELL_DRUID_TRAVEL) || bot->HasAuraType(SPELL_AURA_MOUNTED))
+            return false;
+
+        // Bears and Cats can only eat to recover health; drinking/ClassHeal/Recuperate breaks the shapeshift.
+        if ((bot->HasAura(SPELL_DRUID_BEAR) || bot->HasAura(SPELL_DRUID_CAT)) && action != BotRecoverAction::Eat)
             return false;
 
         bool check = false;

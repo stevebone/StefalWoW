@@ -276,7 +276,7 @@ namespace FSBDruid
         }
     }
 
-    void BotSetRoleAuras(Creature* bot, FSB_Roles role)
+    void BotSetRoleAuras(Creature* bot, FSB_Roles role, bool recalculateStats)
     {
         if (!bot)
             return;
@@ -347,7 +347,8 @@ namespace FSBDruid
             break;
         }
 
-        FSBStats::RecalculateStats(bot, false, true);
+        if (recalculateStats)
+            FSBStats::RecalculateStats(bot, false, true);
     }
 
     bool BotHasMarkWild(Creature* bot)
