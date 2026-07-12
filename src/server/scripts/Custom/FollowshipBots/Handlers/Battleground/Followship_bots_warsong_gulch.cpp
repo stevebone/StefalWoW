@@ -112,12 +112,6 @@ namespace FSBBattleground::WarsongGulch
         return basePos.GetPositionWithOffset(offset);
     }
 
-    Team GetExitTeam(Creature* bot, FSB_BattlegroundData* bgData)
-    {
-        Team botTeam = FSBBattleground::GetBotTeam(bot);
-        return bgData->wsgState == WSGState::ReturnFlag ? GetEnemyTeam(botTeam) : botTeam;
-    }
-
     Team GetAttackTargetTeam(Creature* bot, FSB_BattlegroundData* bgData)
     {
         Team botTeam = FSBBattleground::GetBotTeam(bot);
@@ -153,7 +147,8 @@ namespace FSBBattleground::WarsongGulch
 
     void MoveToExitStep(Creature* bot, FSB_BattlegroundData* bgData)
     {
-        WSGPath const& path = GetExitPath(GetExitTeam(bot, bgData), bgData->wsgExitPathChoice);
+        Team botTeam = FSBBattleground::GetBotTeam(bot);
+        WSGPath const& path = GetPath(botTeam, bgData->wsgExitPathChoice, bgData->wsgPathIndex, botTeam);
         bgData->wsgPathStep = GetClosestPathStep(bot, path, bgData->wsgPathStep);
         uint8 step = std::min<uint8>(bgData->wsgPathStep, path.count - 1);
         bot->GetMotionMaster()->MovePoint(FSBMovement::MOVEMENT_POINT_WSG_EXIT, path.points[step]);
@@ -161,7 +156,7 @@ namespace FSBBattleground::WarsongGulch
 
     void MoveToAttackStep(Creature* bot, FSB_BattlegroundData* bgData)
     {
-        WSGPath const& path = GetAttackPathTowards(GetAttackTargetTeam(bot, bgData), bgData->wsgAttackPathChoice);
+        WSGPath const& path = GetPath(GetAttackTargetTeam(bot, bgData), WSGPathChoice::BaseAttack, bgData->wsgPathIndex);
         bgData->wsgPathStep = GetClosestPathStep(bot, path, bgData->wsgPathStep);
         uint8 step = std::min<uint8>(bgData->wsgPathStep, path.count - 1);
         bot->GetMotionMaster()->MovePoint(FSBMovement::MOVEMENT_POINT_WSG_ATTACK, path.points[step]);
@@ -372,6 +367,104 @@ namespace FSBBattleground::WarsongGulch
                 bot->GetMotionMaster()->Clear();
         }
 
+        enum class WSGReturnRegion
+        {
+            EnemyBase,
+            Center,
+            OwnBase
+        };
+
+        // Picks the most direct route home for a bot that just picked up the enemy flag,
+        // based on whether the bot is in the enemy base, the center, or its own base.
+        void SetupReturnFlagPath(Creature* bot, FSB_BattlegroundData* bgData)
+        {
+            if (!bot || !bgData)
+            {
+                TC_LOG_INFO("scripts.fsb.battleground", "FSB WSG: SetupReturnFlagPath called with null bot/bgData");
+                return;
+            }
+
+            Team botTeam = FSBBattleground::GetBotTeam(bot);
+            Team enemyTeam = GetEnemyTeam(botTeam);
+            Position const& ownBase = botTeam == ALLIANCE ? FSB_WSG_BASE_ALLIANCE : FSB_WSG_BASE_HORDE;
+            Position const& enemyBase = botTeam == ALLIANCE ? FSB_WSG_BASE_HORDE : FSB_WSG_BASE_ALLIANCE;
+
+            Position botPos = bot->GetPosition();
+            float distToOwnBase = botPos.GetExactDist(ownBase);
+            float distToEnemyBase = botPos.GetExactDist(enemyBase);
+
+            float distToCenter = botPos.GetExactDist2d(CenterPositions[1]);
+            for (Position const& centerPos : CenterPositions)
+            {
+                float dist = botPos.GetExactDist(centerPos);
+                if (dist < distToCenter)
+                    distToCenter = dist;
+            }
+
+            TC_LOG_INFO("scripts.fsb.battleground", "FSB WSG: SetupReturnFlagPath entry bot={} team={} pos=({:.1f},{:.1f},{:.1f}) distOwnBase={:.1f} distEnemyBase={:.1f} distCenter={:.1f}",
+                bot->GetName(), botTeam, botPos.GetPositionX(), botPos.GetPositionY(), botPos.GetPositionZ(),
+                distToOwnBase, distToEnemyBase, distToCenter);
+
+            WSGReturnRegion region;
+            char const* regionName = "Unknown";
+            if (distToEnemyBase <= distToCenter && distToEnemyBase <= distToOwnBase)
+            {
+                region = WSGReturnRegion::EnemyBase;
+                regionName = "EnemyBase";
+            }
+            else if (distToCenter <= distToOwnBase)
+            {
+                region = WSGReturnRegion::Center;
+                regionName = "Center";
+            }
+            else
+            {
+                region = WSGReturnRegion::OwnBase;
+                regionName = "OwnBase";
+            }
+
+            switch (region)
+            {
+            case WSGReturnRegion::EnemyBase:
+            {
+                TC_LOG_DEBUG("scripts.fsb.battleground", "FSB WSG: SetupReturnFlagPath bot {} in enemy base, using enemy-base exit path.", bot->GetName());
+                bgData->wsgMovePhase = WSGMovePhase::Exiting;
+                bgData->wsgExitPathChoice = WSGPathChoice::EnemyBaseExit;
+                WSGPath const& path = GetPath(botTeam, WSGPathChoice::EnemyBaseExit, bgData->wsgPathIndex, botTeam);
+                bgData->wsgPathStep = GetClosestPathStep(bot, path, 0);
+                MoveToExitStep(bot, bgData);
+                TC_LOG_INFO("scripts.fsb.battleground", "FSB WSG: SetupReturnFlagPath result bot={} region={} phase=Exiting path=EnemyBaseExit{} step={} hasFlag={} target=({:.1f},{:.1f},{:.1f})",
+                    bot->GetName(), regionName, static_cast<uint32>(bgData->wsgPathIndex), bgData->wsgPathStep,
+                    BotHasFlagAura(bot), path.points[bgData->wsgPathStep].GetPositionX(),
+                    path.points[bgData->wsgPathStep].GetPositionY(), path.points[bgData->wsgPathStep].GetPositionZ());
+                break;
+            }
+            case WSGReturnRegion::Center:
+            {
+                TC_LOG_DEBUG("scripts.fsb.battleground", "FSB WSG: SetupReturnFlagPath bot {} in center, using own attack path from step 0.", bot->GetName());
+                bgData->wsgMovePhase = WSGMovePhase::Attacking;
+                bgData->wsgPathStep = 0;
+                WSGPath const& path = GetPath(botTeam, WSGPathChoice::BaseAttack, bgData->wsgPathIndex);
+                bot->GetMotionMaster()->MovePoint(FSBMovement::MOVEMENT_POINT_WSG_ATTACK, path.points[0]);
+                TC_LOG_INFO("scripts.fsb.battleground", "FSB WSG: SetupReturnFlagPath result bot={} region={} phase=Attacking path=OwnAttack{} step=0 hasFlag={} target=({:.1f},{:.1f},{:.1f})",
+                    bot->GetName(), regionName, static_cast<uint32>(bgData->wsgPathIndex),
+                    BotHasFlagAura(bot), path.points[0].GetPositionX(),
+                    path.points[0].GetPositionY(), path.points[0].GetPositionZ());
+                break;
+            }
+            case WSGReturnRegion::OwnBase:
+            {
+                TC_LOG_DEBUG("scripts.fsb.battleground", "FSB WSG: SetupReturnFlagPath bot {} in own base, moving directly to flag capture.", bot->GetName());
+                bgData->wsgMovePhase = WSGMovePhase::MovingToFlag;
+                MoveToFlagPoint(bot, bgData);
+                Position const& flagPos = botTeam == ALLIANCE ? FSB_WSG_FLAG_ALLIANCE : FSB_WSG_FLAG_HORDE;
+                TC_LOG_INFO("scripts.fsb.battleground", "FSB WSG: SetupReturnFlagPath result bot={} region={} phase=MovingToFlag path=DirectToFlag hasFlag={} target=({:.1f},{:.1f},{:.1f})",
+                    bot->GetName(), regionName, BotHasFlagAura(bot), flagPos.GetPositionX(), flagPos.GetPositionY(), flagPos.GetPositionZ());
+                break;
+            }
+            }
+        }
+
         // Routes an AttackFlag bot back to the center when it re-rolls to HoldCenter.
         // Uses the enemy team's exit path (same side as the attack path) and picks the
         // closest point among center positions and that exit path.
@@ -384,11 +477,9 @@ namespace FSBBattleground::WarsongGulch
             if (botTeam != ALLIANCE && botTeam != HORDE)
                 return;
 
-            // Preserve the same path side the bot was attacking on.
-            bgData->wsgExitPathChoice = bgData->wsgAttackPathChoice;
-
-            // Use the enemy team's exit path to route back toward the center.
-            WSGPath const& enemyExitPath = GetExitPath(GetEnemyTeam(botTeam), bgData->wsgExitPathChoice);
+            // Use the dedicated enemy-base exit path to route back toward the center.
+            bgData->wsgExitPathChoice = WSGPathChoice::EnemyBaseExit;
+            WSGPath const& enemyExitPath = GetPath(botTeam, WSGPathChoice::EnemyBaseExit, bgData->wsgPathIndex, botTeam);
 
             Position botPos = bot->GetPosition();
             Position const* bestPos = nullptr;
@@ -536,9 +627,20 @@ namespace FSBBattleground::WarsongGulch
             switch (bgData->wsgMovePhase)
             {
             case WSGMovePhase::None:
-                bgData->wsgMovePhase = WSGMovePhase::Exiting;
-                bgData->wsgPathStep = 0;
-                MoveToExitStep(bot, bgData);
+                if (bgData->wsgState == WSGState::ReturnFlag)
+                {
+                    TC_LOG_INFO("scripts.fsb.battleground", "FSB WSG: UpdateBot ReturnFlag/None bot={} phase={} pos=({:.1f},{:.1f},{:.1f})",
+                        bot->GetName(), static_cast<uint32>(bgData->wsgMovePhase),
+                        bot->GetPositionX(), bot->GetPositionY(), bot->GetPositionZ());
+                    Impl::SetupReturnFlagPath(bot, bgData);
+                }
+                else
+                {
+                    bgData->wsgMovePhase = WSGMovePhase::Exiting;
+                    bgData->wsgPathStep = 0;
+                    bgData->wsgExitPathChoice = WSGPathChoice::BaseExit;
+                    MoveToExitStep(bot, bgData);
+                }
                 break;
             case WSGMovePhase::Exiting:
                 // Combat or death interrupted the chain; resume the current exit step.
@@ -628,8 +730,8 @@ namespace FSBBattleground::WarsongGulch
             bgData->wsgState = newState;
             bgData->wsgMovePhase = WSGMovePhase::None;
             bgData->wsgPathStep = 0;
-            bgData->wsgExitPathChoice = static_cast<WSGExitPathChoice>(urand(1, 2));
-            bgData->wsgAttackPathChoice = static_cast<WSGExitPathChoice>(urand(1, 2));
+            bgData->wsgPathIndex = urand(0, 1);
+            bgData->wsgExitPathChoice = WSGPathChoice::BaseExit;
         }
 
         Team botTeam = FSBBattleground::GetBotTeam(bot);
@@ -813,7 +915,8 @@ namespace FSBBattleground::WarsongGulch
             break;
         case FSBMovement::MOVEMENT_POINT_WSG_EXIT:
         {
-            WSGPath const& path = GetExitPath(GetExitTeam(bot, bgData), bgData->wsgExitPathChoice);
+            Team botTeam = FSBBattleground::GetBotTeam(bot);
+            WSGPath const& path = GetPath(botTeam, bgData->wsgExitPathChoice, bgData->wsgPathIndex, botTeam);
             ++bgData->wsgPathStep;
             if (bgData->wsgPathStep < path.count)
                 MoveToExitStep(bot, bgData);
@@ -842,7 +945,7 @@ namespace FSBBattleground::WarsongGulch
         }
         case FSBMovement::MOVEMENT_POINT_WSG_ATTACK:
         {
-            WSGPath const& path = GetAttackPathTowards(GetAttackTargetTeam(bot, bgData), bgData->wsgAttackPathChoice);
+            WSGPath const& path = GetPath(GetAttackTargetTeam(bot, bgData), WSGPathChoice::BaseAttack, bgData->wsgPathIndex);
             ++bgData->wsgPathStep;
             if (bgData->wsgPathStep < path.count)
                 MoveToAttackStep(bot, bgData);

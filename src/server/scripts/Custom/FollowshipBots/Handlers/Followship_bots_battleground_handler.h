@@ -41,9 +41,9 @@ struct FSB_BattlegroundData
     uint32 bgTypeId = 0;
     FSBBattleground::WarsongGulch::WSGState wsgState = FSBBattleground::WarsongGulch::WSGState::None;
     FSBBattleground::WarsongGulch::WSGMovePhase wsgMovePhase = FSBBattleground::WarsongGulch::WSGMovePhase::None;
-    FSBBattleground::WarsongGulch::WSGExitPathChoice wsgExitPathChoice = FSBBattleground::WarsongGulch::WSGExitPathChoice::Path1;
-    FSBBattleground::WarsongGulch::WSGExitPathChoice wsgAttackPathChoice = FSBBattleground::WarsongGulch::WSGExitPathChoice::Path1;
+    uint8 wsgPathIndex = 0;
     uint8 wsgPathStep = 0;
+    FSBBattleground::WarsongGulch::WSGPathChoice wsgExitPathChoice = FSBBattleground::WarsongGulch::WSGPathChoice::BaseExit;
     uint8 wsgCenterIndex = 0;
 
     void Reset()
@@ -52,9 +52,9 @@ struct FSB_BattlegroundData
         bgTypeId = 0;
         wsgState = FSBBattleground::WarsongGulch::WSGState::None;
         wsgMovePhase = FSBBattleground::WarsongGulch::WSGMovePhase::None;
-        wsgExitPathChoice = FSBBattleground::WarsongGulch::WSGExitPathChoice::Path1;
-        wsgAttackPathChoice = FSBBattleground::WarsongGulch::WSGExitPathChoice::Path1;
+        wsgPathIndex = 0;
         wsgPathStep = 0;
+        wsgExitPathChoice = FSBBattleground::WarsongGulch::WSGPathChoice::BaseExit;
         wsgCenterIndex = 0;
     }
 };
