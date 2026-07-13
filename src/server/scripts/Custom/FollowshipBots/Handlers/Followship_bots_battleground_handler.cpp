@@ -37,6 +37,7 @@
 #include "Player.h"
 #include "Unit.h"
 #include "WorldSession.h"
+#include "ScriptHelpers.h"
 
 #include <algorithm>
 #include <random>
@@ -236,6 +237,86 @@ namespace FSBBattleground
             return;
 
         bg->UpdatePlayerScore(player, SCORE_DAMAGE_DONE, damage);
+    }
+
+    void HandleBotDeathScores(Creature* bot, Unit* killer)
+    {
+        if (!bot || !bot->GetMap()->IsBattleground())
+            return;
+
+        FSB_BaseAI* baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
+            return;
+
+        if (FSB_BattlegroundData* bgData = baseAI->GetBattlegroundData())
+        {
+            BattlegroundMap* bgMap = bot->GetMap()->ToBattlegroundMap();
+            Battleground* bg = bgMap ? bgMap->GetBG() : nullptr;
+
+            ObjectGuid killerGuid = ResolveAttackerGuid(killer);
+
+            for (ObjectGuid const& tapperGuid : bgData->damageTappers)
+            {
+                if (tapperGuid == killerGuid)
+                {
+                    if (Player* player = ObjectAccessor::GetPlayer(*bot, killerGuid))
+                    {
+                        if (bg)
+                        {
+                            bg->UpdatePlayerScore(player, SCORE_KILLING_BLOWS, 1);
+                            bg->UpdatePlayerScore(player, SCORE_HONORABLE_KILLS, 1);
+                        }
+                    }
+                    else if (Creature* botKiller = ObjectAccessor::GetCreature(*bot, killerGuid))
+                    {
+                        if (botKiller->IsBot())
+                        {
+                            bool alreadyAwarded = (killer && killer->ToCreature() && killer->ToCreature()->IsBot() && killer->GetGUID() == killerGuid);
+                            if (!alreadyAwarded)
+                                ScriptHelpers::RecordBotKillingBlow(botKiller->GetGUID());
+                        }
+                    }
+                }
+                else
+                {
+                    if (Player* player = ObjectAccessor::GetPlayer(*bot, tapperGuid))
+                    {
+                        if (bg)
+                            bg->UpdatePlayerScore(player, SCORE_HONORABLE_KILLS, 1);
+                    }
+                    else if (Creature* botAlly = ObjectAccessor::GetCreature(*bot, tapperGuid))
+                    {
+                        if (botAlly->IsBot())
+                            ScriptHelpers::RecordBotHonorableKill(botAlly->GetGUID());
+                    }
+                }
+            }
+
+            bgData->damageTappers.clear();
+            bgData->recentPlayerTargets.clear();
+        }
+
+        ScriptHelpers::RecordBotDeath(bot->GetGUID());
+    }
+
+    void HandleBotDamageTaken(Creature* bot, Unit* attacker, uint32 damage)
+    {
+        if (!bot || !bot->GetMap()->IsBattleground() || !attacker)
+            return;
+
+        if (attacker->GetTypeId() == TYPEID_PLAYER)
+            HandlePlayerDamagedBot(attacker, bot, damage);
+
+        FSB_BaseAI* baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
+            return;
+
+        if (FSB_BattlegroundData* bgData = baseAI->GetBattlegroundData())
+        {
+            ObjectGuid attackerGuid = ResolveAttackerGuid(attacker);
+            if (!attackerGuid.IsEmpty())
+                bgData->damageTappers.insert(attackerGuid);
+        }
     }
 
     std::unordered_map<BattlegroundMap*, std::vector<ObjectGuid>> SpawnedBotGuids;

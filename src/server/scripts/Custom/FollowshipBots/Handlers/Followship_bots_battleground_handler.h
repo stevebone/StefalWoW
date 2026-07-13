@@ -90,6 +90,8 @@ namespace FSBBattleground
     void HandlePlayerKilledBot(ObjectGuid killerGuid, Unit* botVictim);
     void HandleBotKilledPlayer(Unit* botKiller, ObjectGuid victimGuid);
     void HandlePlayerDamagedBot(Unit* attacker, Unit* botVictim, uint32 damage);
+    void HandleBotDeathScores(Creature* bot, Unit* killer);
+    void HandleBotDamageTaken(Creature* bot, Unit* attacker, uint32 damage);
 
     std::vector<ObjectGuid> const& GetSpawnedBotGuids(BattlegroundMap* battlegroundMap);
     void ClearSpawnedBotGuids(BattlegroundMap* battlegroundMap);

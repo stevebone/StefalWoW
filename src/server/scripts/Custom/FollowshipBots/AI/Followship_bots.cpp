@@ -460,18 +460,7 @@ public:
             damage = uint32(damage * FSBStats::ApplyBotDamageTakenReduction(me));
             FSBPowers::GenerateRageFromDamageTaken(me, damage);
 
-            if (me->GetMap()->IsBattleground() && attacker)
-            {
-                if (attacker->GetTypeId() == TYPEID_PLAYER)
-                    FSBBattleground::HandlePlayerDamagedBot(attacker, me, damage);
-
-                if (FSB_BattlegroundData* bgData = GetBattlegroundData())
-                {
-                    ObjectGuid attackerGuid = FSBBattleground::ResolveAttackerGuid(attacker);
-                    if (!attackerGuid.IsEmpty())
-                        bgData->damageTappers.insert(attackerGuid);
-                }
-            }
+            FSBBattleground::HandleBotDamageTaken(me, attacker, damage);
         }
 
         void HealDone(Unit* /*done_to*/, uint32& addhealth) override
@@ -579,58 +568,7 @@ public:
             FSBChatMgr::Get()->LeaveBotChannels(me);
             FSBDeath::HandlerJustDied(me, killer);
 
-            if (me->GetMap()->IsBattleground())
-            {
-                if (FSB_BattlegroundData* bgData = GetBattlegroundData())
-                {
-                    BattlegroundMap* bgMap = me->GetMap()->ToBattlegroundMap();
-                    Battleground* bg = bgMap ? bgMap->GetBG() : nullptr;
-
-                    ObjectGuid killerGuid = FSBBattleground::ResolveAttackerGuid(killer);
-
-                    for (ObjectGuid const& tapperGuid : bgData->damageTappers)
-                    {
-                        if (tapperGuid == killerGuid)
-                        {
-                            if (Player* player = ObjectAccessor::GetPlayer(*me, killerGuid))
-                            {
-                                if (bg)
-                                {
-                                    bg->UpdatePlayerScore(player, SCORE_KILLING_BLOWS, 1);
-                                    bg->UpdatePlayerScore(player, SCORE_HONORABLE_KILLS, 1);
-                                }
-                            }
-                            else if (Creature* bot = ObjectAccessor::GetCreature(*me, killerGuid))
-                            {
-                                if (bot->IsBot())
-                                {
-                                    bool alreadyAwarded = (killer && killer->ToCreature() && killer->ToCreature()->IsBot() && killer->GetGUID() == killerGuid);
-                                    if (!alreadyAwarded)
-                                        ScriptHelpers::RecordBotKillingBlow(bot->GetGUID());
-                                }
-                            }
-                        }
-                        else
-                        {
-                            if (Player* player = ObjectAccessor::GetPlayer(*me, tapperGuid))
-                            {
-                                if (bg)
-                                    bg->UpdatePlayerScore(player, SCORE_HONORABLE_KILLS, 1);
-                            }
-                            else if (Creature* bot = ObjectAccessor::GetCreature(*me, tapperGuid))
-                            {
-                                if (bot->IsBot())
-                                    ScriptHelpers::RecordBotHonorableKill(bot->GetGUID());
-                            }
-                        }
-                    }
-
-                    bgData->damageTappers.clear();
-                    bgData->recentPlayerTargets.clear();
-                }
-
-                ScriptHelpers::RecordBotDeath(me->GetGUID());
-            }
+            FSBBattleground::HandleBotDeathScores(me, killer);
         }
 
         void MovementInform(uint32 type, uint32 id) override
