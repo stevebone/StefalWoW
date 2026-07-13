@@ -59,22 +59,15 @@ namespace FSBCombat
             if (!ensured || ensured != victim || !ensured->IsAlive() || !ensured->IsInWorld() || ensured->IsDuringRemoveFromWorld())
                 return;
 
-            // Owner may be null OR on another map
-            Player* owner = FSBMgr::Get()->GetBotOwner(bot);
-            if (!owner || !owner->IsInWorld() || owner->IsDuringRemoveFromWorld())
-                return;
-
-            // Owner must be on same map for combat checks
-            if (owner->GetMapId() != victim->GetMapId())
-                return;
-
             if (bot->GetDistance(victim) > 100.f)
             {
                 BotTerminateCombat(bot);
                 return;
             }
 
-            if (owner)
+            // Owner may be null (non-hired bots) OR on another map; owner-specific logic only applies when valid
+            Player* owner = FSBMgr::Get()->GetBotOwner(bot);
+            if (owner && owner->IsInWorld() && !owner->IsDuringRemoveFromWorld() && owner->GetMapId() == victim->GetMapId())
             {
                 // Now safe to check combat state
                 if ((!bot->IsValidAttackTarget(victim) && owner->IsInCombatWith(victim)) ||
@@ -105,10 +98,7 @@ namespace FSBCombat
         Unit* target = GetNextAttackTarget(bot);
 
         if (!target || !target->IsInWorld() || target->IsDuringRemoveFromWorld() || !BotCanAttack(bot, target))
-        {
-            BotTerminateCombat(bot);
             return;
-        }
 
         BotDoAttack(bot, target);
     }
@@ -123,7 +113,6 @@ namespace FSBCombat
         bot->InterruptNonMeleeSpells(false);
         bot->CombatStop(true);
         bot->ClearInCombat();
-        bot->GetMotionMaster()->Clear();
         FSBMovement::BotHandleReturnMovement(bot);
     }
 

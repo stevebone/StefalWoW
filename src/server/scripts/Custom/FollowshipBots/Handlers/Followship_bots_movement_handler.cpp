@@ -233,7 +233,7 @@ namespace FSBMovement
             return;
         }
 
-        if (owner && baseAI->botMoveState == FSB_MOVE_STATE_FOLLOWING)
+        if (baseAI->botMoveState != FSB_MOVE_STATE_STAY)
         {
             if (bot->HasUnitState(UNIT_STATE_CHASE))
                 bot->GetMotionMaster()->Remove(CHASE_MOTION_TYPE);
