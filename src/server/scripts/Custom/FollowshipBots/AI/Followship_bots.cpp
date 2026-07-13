@@ -830,7 +830,7 @@ public:
                         }
                     }
 
-                    events.ScheduleEvent(FSB_EVENT_HIRED_MAINTENANCE, 1ms);
+                    events.ScheduleEvent(FSB_EVENT_HIRED_MAINTENANCE, 1s);
                     break;
                 }
 

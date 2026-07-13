@@ -204,7 +204,7 @@ namespace FSBBattleground::WarsongGulch
         WSGPath const& path = GetPath(botTeam, bgData->wsgExitPathChoice, bgData->wsgPathIndex, botTeam);
         bgData->wsgPathStep = GetClosestPathStep(bot, path, bgData->wsgPathStep);
         uint8 step = std::min<uint8>(bgData->wsgPathStep, path.count - 1);
-        bot->GetMotionMaster()->MovePoint(FSBMovement::MOVEMENT_POINT_WSG_EXIT, path.points[step]);
+        bot->GetMotionMaster()->MovePoint(FSBMovement::MOVEMENT_POINT_WSG_EXIT, path.points[step], true);
     }
 
     void MoveToAttackStep(Creature* bot, FSB_BattlegroundData* bgData)
@@ -212,14 +212,14 @@ namespace FSBBattleground::WarsongGulch
         WSGPath const& path = GetPath(GetAttackTargetTeam(bot, bgData), WSGPathChoice::BaseAttack, bgData->wsgPathIndex);
         bgData->wsgPathStep = GetClosestPathStep(bot, path, bgData->wsgPathStep);
         uint8 step = std::min<uint8>(bgData->wsgPathStep, path.count - 1);
-        bot->GetMotionMaster()->MovePoint(FSBMovement::MOVEMENT_POINT_WSG_ATTACK, path.points[step]);
+        bot->GetMotionMaster()->MovePoint(FSBMovement::MOVEMENT_POINT_WSG_ATTACK, path.points[step], true);
     }
 
     void MoveToGraveyardMove(Creature* bot)
     {
         Team botTeam = FSBBattleground::GetBotTeam(bot);
         Position const& movePos = botTeam == ALLIANCE ? FSB_WSG_GRAVEYARD_ALLIANCE_MOVE : FSB_WSG_GRAVEYARD_HORDE_MOVE;
-        bot->GetMotionMaster()->MovePoint(FSBMovement::MOVEMENT_POINT_WSG_GRAVEYARD_MOVE, movePos);
+        bot->GetMotionMaster()->MovePoint(FSBMovement::MOVEMENT_POINT_WSG_GRAVEYARD_MOVE, movePos, true);
     }
 
     void MoveToGraveyardJump(Creature* bot)
@@ -238,7 +238,7 @@ namespace FSBBattleground::WarsongGulch
         if (withOffset)
             target = GetRandomOffsetPosition(target, 0.0f, FSB_WSG_CENTER_OFFSET_RADIUS);
 
-        bot->GetMotionMaster()->MovePoint(FSBMovement::MOVEMENT_POINT_WSG_CENTER, target);
+        bot->GetMotionMaster()->MovePoint(FSBMovement::MOVEMENT_POINT_WSG_CENTER, target, true);
     }
 
     void MoveToFlagPoint(Creature* bot, FSB_BattlegroundData* bgData)
@@ -247,12 +247,12 @@ namespace FSBBattleground::WarsongGulch
         if (bgData->wsgState == WSGState::AttackFlag)
         {
             Position const& enemyFlag = botTeam == ALLIANCE ? FSB_WSG_FLAG_HORDE : FSB_WSG_FLAG_ALLIANCE;
-            bot->GetMotionMaster()->MovePoint(FSBMovement::MOVEMENT_POINT_WSG_OBJECTIVE, enemyFlag);
+            bot->GetMotionMaster()->MovePoint(FSBMovement::MOVEMENT_POINT_WSG_OBJECTIVE, enemyFlag, true);
         }
         else // ReturnFlag
         {
             Position const& ownFlag = botTeam == ALLIANCE ? FSB_WSG_FLAG_ALLIANCE : FSB_WSG_FLAG_HORDE;
-            bot->GetMotionMaster()->MovePoint(FSBMovement::MOVEMENT_POINT_WSG_RETURN_FLAG, ownFlag);
+            bot->GetMotionMaster()->MovePoint(FSBMovement::MOVEMENT_POINT_WSG_RETURN_FLAG, ownFlag, true);
         }
     }
 

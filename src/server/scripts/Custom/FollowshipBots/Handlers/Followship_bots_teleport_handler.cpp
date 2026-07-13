@@ -199,20 +199,21 @@ namespace FSBTeleport
         if (FSBPet::BotHasPet(bot))
             pet = FSBPet::GetBotPet(bot);
 
-        if (pet && pet->IsAlive())
+        if (!pet)
+            return;
+
+        if (pet->IsInCombat() || !pet->IsAlive())
+            return;
+
+        if (bot->GetMapId() == pet->GetMapId() && bot->GetDistance(pet) > 100.0f)
         {
-            if (bot->GetMapId() == pet->GetMapId() && bot->GetDistance(pet) > 100.0f)
-            {
-                pet->NearTeleportTo(
-                    bot->GetPositionX() + frand(3.f, 10.f),
-                    bot->GetPositionY(),
-                    bot->GetPositionZ(),
-                    bot->GetOrientation());
+            pet->NearTeleportTo(
+                bot->GetPositionX() + frand(3.f, 10.f),
+                bot->GetPositionY(),
+                bot->GetPositionZ(),
+                bot->GetOrientation());
 
-                TC_LOG_DEBUG("scripts.fsb.movement", "FSB: BotPetTeleport Teleported bot pet {} to bot {} due to distance > 100.", pet->GetName(), bot->GetName());
-            }
+            TC_LOG_DEBUG("scripts.fsb.movement", "FSB: BotPetTeleport Teleported bot pet {} to bot {} due to distance > 100.", pet->GetName(), bot->GetName());
         }
-
-
     }
 }
