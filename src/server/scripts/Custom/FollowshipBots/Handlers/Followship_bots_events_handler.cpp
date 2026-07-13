@@ -40,6 +40,7 @@
 #include "Followship_bots_events_handler.h"
 #include "Followship_bots_movement_handler.h"
 #include "Followship_bots_outofcombat_handler.h"
+#include "Followship_bots_pet_handler.h"
 #include "Followship_bots_recovery_handler.h"
 #include "Followship_bots_stats_handler.h"
 #include "Followship_bots_teleport_handler.h"
@@ -104,7 +105,20 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
     {
         FSBOOC::BotActionsNotHired(bot);
 
+        if (!ai->botHired)
+            ScheduleBotEvent(FSB_EVENT_GENERIC_PET_TELEPORT, 1s);
+
         ScheduleBotEvent(FSB_EVENT_GENERIC_MAINTENANCE, 1s);
+        break;
+    }
+
+    case FSB_EVENT_GENERIC_PET_TELEPORT:
+    {
+        if (!bot || !bot->IsAlive())
+            break;
+
+        if (FSBPet::BotHasPet(bot))
+            FSBTeleport::BotPetTeleport(bot, 50.0f);
         break;
     }
 

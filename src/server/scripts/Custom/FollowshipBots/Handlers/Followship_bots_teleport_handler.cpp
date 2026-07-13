@@ -186,7 +186,7 @@ namespace FSBTeleport
         return true;
     }
 
-    void BotPetTeleport(Creature* bot)
+    void BotPetTeleport(Creature* bot, float distance)
     {
         if (!bot || !bot->IsAlive())
             return;
@@ -205,7 +205,7 @@ namespace FSBTeleport
         if (pet->IsInCombat() || !pet->IsAlive())
             return;
 
-        if (bot->GetMapId() == pet->GetMapId() && bot->GetDistance(pet) > 100.0f)
+        if (bot->GetMapId() == pet->GetMapId() && bot->GetDistance(pet) > distance)
         {
             pet->NearTeleportTo(
                 bot->GetPositionX() + frand(3.f, 10.f),
@@ -213,7 +213,7 @@ namespace FSBTeleport
                 bot->GetPositionZ(),
                 bot->GetOrientation());
 
-            TC_LOG_DEBUG("scripts.fsb.movement", "FSB: BotPetTeleport Teleported bot pet {} to bot {} due to distance > 100.", pet->GetName(), bot->GetName());
+            TC_LOG_DEBUG("scripts.fsb.movement", "FSB: BotPetTeleport Teleported bot pet {} to bot {} due to distance > {}.", pet->GetName(), bot->GetName(), distance);
         }
     }
 }

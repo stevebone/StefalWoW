@@ -34,5 +34,5 @@ namespace FSBTeleport
     bool BotTeleportToBattlegroundGraveyard(Creature* bot);
 
     bool BotTeleport(Creature* bot, FSB_TeleportReasons reason);
-    void BotPetTeleport(Creature* bot);
+    void BotPetTeleport(Creature* bot, float distance = 100.0f);
 }
