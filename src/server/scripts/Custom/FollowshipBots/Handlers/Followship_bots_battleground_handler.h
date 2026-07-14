@@ -49,6 +49,7 @@ struct FSB_BattlegroundData
     FSBBattleground::WarsongGulch::WSGPathChoice wsgExitPathChoice = FSBBattleground::WarsongGulch::WSGPathChoice::BaseExit;
     uint8 wsgCenterIndex = 0;
     bool wsgCapturePending = false;
+    FSBBattleground::ArathiBasin::ABState abState = FSBBattleground::ArathiBasin::ABState::None;
     GuidUnorderedSet damageTappers;
     GuidUnorderedSet recentPlayerTargets;
 
@@ -63,6 +64,7 @@ struct FSB_BattlegroundData
         wsgExitPathChoice = FSBBattleground::WarsongGulch::WSGPathChoice::BaseExit;
         wsgCenterIndex = 0;
         wsgCapturePending = false;
+        abState = FSBBattleground::ArathiBasin::ABState::None;
         damageTappers.clear();
         recentPlayerTargets.clear();
     }

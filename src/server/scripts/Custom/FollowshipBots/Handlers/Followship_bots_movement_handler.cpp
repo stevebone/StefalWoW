@@ -33,6 +33,7 @@
 #include "Followship_bots_movement_handler.h"
 #include "Followship_bots_spells_handler.h"
 #include "Followship_bots_warsong_gulch.h"
+#include "Followship_bots_arathi_basin.h"
 
 namespace FSBMovement
 {
@@ -113,10 +114,14 @@ namespace FSBMovement
         if (!bgData)
             return;
 
-        if (bgData->bgTypeId != BATTLEGROUND_WS && bgData->bgTypeId != BATTLEGROUND_WG_CTF)
-            return;
-
-        FSBBattleground::WarsongGulch::OnMovementInform(bot, bgData, type, id);
+        if (bgData->bgTypeId == BATTLEGROUND_WS || bgData->bgTypeId == BATTLEGROUND_WG_CTF)
+        {
+            FSBBattleground::WarsongGulch::OnMovementInform(bot, bgData, type, id);
+        }
+        else if (bgData->bgTypeId == BATTLEGROUND_AB || bgData->bgTypeId == BATTLEGROUND_DOM_AB || bgData->bgTypeId == BATTLEGROUND_AB_CS || bgData->bgTypeId == BATTLEGROUND_BRAWL_AB2)
+        {
+            FSBBattleground::ArathiBasin::OnMovementInform(bot, bgData, type, id);
+        }
     }
 
     void BotSetMountedState(Creature* bot, bool& botMounted)

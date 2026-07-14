@@ -44,6 +44,9 @@ namespace FSBMovement
     static constexpr uint32 MOVEMENT_POINT_WSG_GRAVEYARD_MOVE = 18;
     static constexpr uint32 MOVEMENT_POINT_WSG_GRAVEYARD_JUMP = 19;
 
+    static constexpr uint32 MOVEMENT_POINT_AB_ATTACK_NODE = 30;
+    static constexpr uint32 MOVEMENT_POINT_AB_DEFEND_NODE = 31;
+
     static constexpr int8 MOVEMENT_POINT_CORPSE = 20;
     static constexpr int8 MOVEMENT_POINT_NEAR_FIRE = 21;
 
@@ -62,6 +65,8 @@ namespace FSBMovement
         case MOVEMENT_POINT_WSG_DROPPED_FLAG:
         case MOVEMENT_POINT_WSG_GRAVEYARD_MOVE:
         case MOVEMENT_POINT_WSG_GRAVEYARD_JUMP:
+        case MOVEMENT_POINT_AB_ATTACK_NODE:
+        case MOVEMENT_POINT_AB_DEFEND_NODE:
             return true;
         default:
             return false;

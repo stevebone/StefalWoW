@@ -22,15 +22,124 @@
 
 #include "Followship_bots_arathi_basin.h"
 
+#include "Battleground.h"
+#include "Creature.h"
+#include "GameObject.h"
+#include "Log.h"
+#include "Map.h"
+#include "MotionMaster.h"
+#include "Random.h"
+
+#include <vector>
+
+#include "Followship_bots_ai_base.h"
+#include "Followship_bots_battleground_handler.h"
+#include "Followship_bots_events_handler.h"
+#include "Followship_bots_movement_handler.h"
+
 namespace FSBBattleground::ArathiBasin
 {
-    void UpdateBot(Creature* /*bot*/, FSB_BattlegroundData* /*bgData*/)
+    void SetBotState(Creature* bot, FSB_BattlegroundData* bgData, ABState newState)
     {
-        // Phase 1: spawning only. Objective/movement logic will be added in a later phase.
+        if (!bot || !bgData)
+            return;
+
+        bgData->abState = newState;
+
+        if (newState != ABState::None)
+            FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_BATTLEGROUND_STATE_CHAT, 2s, 10s);
     }
 
-    void OnMovementInform(Creature* /*bot*/, FSB_BattlegroundData* /*bgData*/, uint32 /*type*/, uint32 /*id*/)
+    ABState GetABBotState(Creature* /*bot*/)
     {
-        // Phase 1: spawning only. Movement handling will be added in a later phase.
+        std::vector<ABState> available = {
+            ABState::AttackStables,
+            ABState::AttackMine,
+            ABState::AttackMill,
+            ABState::AttackBlacksmith,
+            ABState::AttackFarm,
+            ABState::DefendStables,
+            ABState::DefendMine,
+            ABState::DefendMill,
+            ABState::DefendBlacksmith,
+            ABState::DefendFarm
+        };
+
+        return available[urand(0, available.size() - 1)];
+    }
+
+    void UpdateBot(Creature* bot, FSB_BattlegroundData* bgData)
+    {
+        if (!bot || !bgData || !bot->IsAlive())
+            return;
+
+        if (bgData->abState == ABState::None)
+            return;
+
+        BattlegroundMap* bgMap = bot->GetMap()->ToBattlegroundMap();
+        if (!bgMap)
+            return;
+
+        Battleground* bg = bgMap->GetBG();
+        if (!bg)
+            return;
+
+        if (bg->GetStatus() != STATUS_IN_PROGRESS)
+            return;
+
+        uint32 entry = GetCapturePointEntryForState(bgData->abState);
+        if (!entry)
+            return;
+
+        GameObject* capturePoint = nullptr;
+        for (auto const& [guid, go] : bgMap->GetObjectsStore().Data.FindContainer<GameObject>())
+        {
+            if (go && go->GetEntry() == entry)
+            {
+                capturePoint = go;
+                break;
+            }
+        }
+
+        if (!capturePoint)
+        {
+            TC_LOG_DEBUG("scripts.fsb.battleground", "FSB AB: UpdateBot bot {} state {} could not find capture point object {}",
+                bot->GetName(), static_cast<uint32>(bgData->abState), entry);
+            return;
+        }
+
+        Position const& goPos = capturePoint->GetPosition();
+
+        auto isAttackState = [](ABState s)
+        {
+            return s == ABState::AttackStables || s == ABState::AttackMine || s == ABState::AttackMill
+                || s == ABState::AttackBlacksmith || s == ABState::AttackFarm;
+        };
+
+        float angle = frand(0.0f, 6.283185307f);
+        float offsetRadius = isAttackState(bgData->abState) ? 3.0f : 10.0f;
+        Position offset(std::cos(angle) * offsetRadius, std::sin(angle) * offsetRadius, 0.0f, 0.0f);
+        Position targetPos = goPos.GetPositionWithOffset(offset);
+
+        uint32 movementPoint = isAttackState(bgData->abState)
+            ? FSBMovement::MOVEMENT_POINT_AB_ATTACK_NODE
+            : FSBMovement::MOVEMENT_POINT_AB_DEFEND_NODE;
+
+        bot->GetMotionMaster()->MovePoint(movementPoint, targetPos, true);
+    }
+
+    void OnMovementInform(Creature* bot, FSB_BattlegroundData* bgData, uint32 /*type*/, uint32 id)
+    {
+        if (!bot || !bgData || !bot->IsAlive())
+            return;
+
+        if (id == FSBMovement::MOVEMENT_POINT_AB_ATTACK_NODE)
+            return;
+
+        if (id == FSBMovement::MOVEMENT_POINT_AB_DEFEND_NODE)
+        {
+            UpdateBot(bot, bgData);
+            return;
+        }
     }
 }

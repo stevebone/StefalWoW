@@ -172,6 +172,12 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
                         FSBBattleground::WarsongGulch::GetWSGBotState(bot, bgData->wsgState));
                 }
             }
+            else if (bgData->bgTypeId == BATTLEGROUND_AB || bgData->bgTypeId == BATTLEGROUND_DOM_AB || bgData->bgTypeId == BATTLEGROUND_AB_CS || bgData->bgTypeId == BATTLEGROUND_BRAWL_AB2)
+            {
+                if (bgData->abState == FSBBattleground::ArathiBasin::ABState::None)
+                    FSBBattleground::ArathiBasin::SetBotState(bot, bgData,
+                        FSBBattleground::ArathiBasin::GetABBotState(bot));
+            }
         }
 
         ScheduleBotEvent(FSB_EVENT_BATTLEGROUND_TICK, 2s);
@@ -253,6 +259,28 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
                     break;
                 }
             }
+            else if (bgData->bgTypeId == BATTLEGROUND_AB || bgData->bgTypeId == BATTLEGROUND_DOM_AB || bgData->bgTypeId == BATTLEGROUND_AB_CS || bgData->bgTypeId == BATTLEGROUND_BRAWL_AB2)
+            {
+                switch (bgData->abState)
+                {
+                case FSBBattleground::ArathiBasin::ABState::AttackStables:
+                case FSBBattleground::ArathiBasin::ABState::AttackMine:
+                case FSBBattleground::ArathiBasin::ABState::AttackMill:
+                case FSBBattleground::ArathiBasin::ABState::AttackBlacksmith:
+                case FSBBattleground::ArathiBasin::ABState::AttackFarm:
+                    chatState = FSBBattlegroundChat::BGChatState::Attack;
+                    break;
+                case FSBBattleground::ArathiBasin::ABState::DefendStables:
+                case FSBBattleground::ArathiBasin::ABState::DefendMine:
+                case FSBBattleground::ArathiBasin::ABState::DefendMill:
+                case FSBBattleground::ArathiBasin::ABState::DefendBlacksmith:
+                case FSBBattleground::ArathiBasin::ABState::DefendFarm:
+                    chatState = FSBBattlegroundChat::BGChatState::Defend;
+                    break;
+                default:
+                    break;
+                }
+            }
 
             std::string msg = FSBBattlegroundChat::GetStateChatMessage(bgData->bgTypeId, botTeam, chatState);
             if (!msg.empty())
@@ -266,8 +294,12 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
         if (!ai->botHired)
         {
             if (FSB_BattlegroundData* bgData = ai->GetBattlegroundData())
+            {
                 if (bgData->bgTypeId == BATTLEGROUND_WS || bgData->bgTypeId == BATTLEGROUND_WG_CTF)
                     FSBBattleground::WarsongGulch::UpdateBot(bot, bgData);
+                else if (bgData->bgTypeId == BATTLEGROUND_AB || bgData->bgTypeId == BATTLEGROUND_DOM_AB || bgData->bgTypeId == BATTLEGROUND_AB_CS || bgData->bgTypeId == BATTLEGROUND_BRAWL_AB2)
+                    FSBBattleground::ArathiBasin::UpdateBot(bot, bgData);
+            }
 
             ScheduleBotEvent(FSB_EVENT_BATTLEGROUND_TICK, 2s, 3s);
         }
