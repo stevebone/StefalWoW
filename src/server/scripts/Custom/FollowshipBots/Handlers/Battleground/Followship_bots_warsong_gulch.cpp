@@ -49,58 +49,6 @@
 
 namespace FSBBattleground::WarsongGulch
 {
-    std::string GetStateChatMessage(Creature* bot, WSGState state)
-    {
-        if (!bot)
-            return "";
-
-        Team botTeam = FSBBattleground::GetBotTeam(bot);
-        if (botTeam != ALLIANCE && botTeam != HORDE)
-            return "";
-
-        char const* msg = nullptr;
-        switch (state)
-        {
-        case WSGState::DefendBase:
-        {
-            static char const* const messages[] = { "I'll stay back and defend the flag room.", "Guarding our base.", "I'm on defense." };
-            msg = messages[urand(0, 2)];
-            break;
-        }
-        case WSGState::HoldCenter:
-        {
-            static char const* const messages[] = { "I'll hold mid.", "Controlling the center.", "Taking mid, watch the roads." };
-            msg = messages[urand(0, 2)];
-            break;
-        }
-        case WSGState::AttackFlag:
-        {
-            static char const* const messages[] = { "Going for their flag!", "I'll run the flag, cover me.", "Heading into their base!" };
-            msg = messages[urand(0, 2)];
-            break;
-        }
-        case WSGState::ReturnFlag:
-        {
-            static char const* const messages[] = { "Got the flag! Heading home!", "Flag secured - clear a path!", "I have their flag, cover my run!" };
-            msg = messages[urand(0, 2)];
-            break;
-        }
-        case WSGState::ProtectCarrier:
-        {
-            static char const* const messages[] = { "I'll protect the flag carrier!", "Covering the runner!", "Stay close to the carrier!" };
-            msg = messages[urand(0, 2)];
-            break;
-        }
-        default:
-            break;
-        }
-
-        if (!msg)
-            return "";
-
-        return FSBBattlegroundChat::FormatChatLine(msg, botTeam);
-    }
-
     Position GetPositionWithOffsetForState(WSGState state, Position const& basePos)
     {
         float minRadius = 0.0f;
@@ -662,7 +610,7 @@ namespace FSBBattleground::WarsongGulch
         }
 
         if (newState != WSGState::None)
-            FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_WSG_STATE_CHAT, 2s, 10s);
+            FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_BATTLEGROUND_STATE_CHAT, 2s, 10s);
     }
 
     void TryUseEnemyFlag(Creature* bot, FSB_BattlegroundData* bgData)

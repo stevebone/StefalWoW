@@ -335,8 +335,6 @@ namespace FSBBattleground::WarsongGulch
     void UpdateBot(Creature* bot, FSB_BattlegroundData* bgData);
     void SetBotState(Creature* bot, FSB_BattlegroundData* bgData, WSGState newState);
 
-    std::string GetStateChatMessage(Creature* bot, WSGState state);
-
     void TryUseEnemyFlag(Creature* bot, FSB_BattlegroundData* bgData);
     void TryUseDroppedFlag(Creature* bot, FSB_BattlegroundData* bgData);
     void TryCaptureFlag(Creature* bot, FSB_BattlegroundData* bgData);

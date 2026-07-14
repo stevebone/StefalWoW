@@ -27,11 +27,24 @@
 
 #include "Followship_bots_chatter_handler.h"
 
+#include "Random.h"
+
 #include <array>
 #include <string>
+#include <string_view>
 
 namespace FSBBattlegroundChat
 {
+    enum class BGChatState : uint8
+    {
+        None,
+        Defend,
+        HoldMid,
+        Attack,
+        Return,
+        Protect
+    };
+
     inline std::array<std::string, 20> const SpawnChatLines = {{
         "Hello everyone!",
         "How is everyone today?",
@@ -63,5 +76,109 @@ namespace FSBBattlegroundChat
         FSBChatter::ReplaceAll(result, "[ownTeam]", own);
         FSBChatter::ReplaceAll(result, "[enemyTeam]", enemy);
         return result;
+    }
+
+    // WSG state chat messages (10+ per category)
+
+    static constexpr inline std::array<std::string_view, 10> WSGDefendMessages = {{
+        "I'll stay back and defend the flag room.",
+        "Guarding our base, nothing gets past me.",
+        "I'm on defense, keep the [enemyTeam] out.",
+        "Defending the flag, don't worry about our base.",
+        "Standing guard at the flag room.",
+        "No one touches our flag while I'm here.",
+        "Defense duty, I've got our back.",
+        "I'll hold down the fort, you go on offense.",
+        "Our flag is safe with me guarding it.",
+        "Staying back to protect our base."
+    }};
+
+    static constexpr inline std::array<std::string_view, 10> WSGHoldMidMessages = {{
+        "I'll hold mid, control the battlefield.",
+        "Controlling the center, watch the roads.",
+        "Taking mid, keep the [enemyTeam] pinned.",
+        "Holding the midfield, no one slips past.",
+        "Mid is ours, I'm keeping it that way.",
+        "I'll secure the center for the [ownTeam].",
+        "Patrolling mid, stay alert.",
+        "Midfield control is key, I've got this.",
+        "Keeping the center locked down.",
+        "I'm on mid duty, covering the crossings."
+    }};
+
+    static constexpr inline std::array<std::string_view, 10> WSGAttackMessages = {{
+        "Going for their flag, cover me!",
+        "I'll run the flag, need backup!",
+        "Heading into their base, watch my six.",
+        "Time to grab their flag, let's go!",
+        "Pushing for the [enemyTeam] flag room.",
+        "I'm making a run for the flag, support me.",
+        "Attacking their base, don't let them stop me.",
+        "Flag run incoming, clear the path!",
+        "Going offensive, I'll get that flag.",
+        "Rushing their flag, keep them busy!"
+    }};
+
+    static constexpr inline std::array<std::string_view, 10> WSGReturnMessages = {{
+        "Got the flag! Heading home!",
+        "Flag secured, clear a path back!",
+        "I have their flag, cover my run!",
+        "Bringing the flag home, don't let them catch me!",
+        "Flag in hand, running for our base!",
+        "I've got the flag, someone clear the route!",
+        "Heading back with the flag, protect me!",
+        "Flag captured, sprinting home now!",
+        "On my way back with their flag, escort me!",
+        "Got it! Making a break for our base!"
+    }};
+
+    static constexpr inline std::array<std::string_view, 10> WSGProtectMessages = {{
+        "I'll protect the flag carrier!",
+        "Covering the runner, stay close!",
+        "Escorting the carrier, don't let them through!",
+        "Keeping the flag carrier safe, watch for attackers!",
+        "I'm on escort duty, nobody touches our runner!",
+        "Protecting our flag carrier at all costs!",
+        "Stay near the carrier, we can't lose this!",
+        "Forming up around the flag runner, let's move!",
+        "I've got the carrier's back, push forward!",
+        "Shielding our runner, keep the [enemyTeam] away!"
+    }};
+
+    inline std::string GetStateChatMessage(uint32 bgTypeId, Team botTeam, BGChatState state)
+    {
+        if (state == BGChatState::None)
+            return "";
+
+        std::string_view msg;
+
+        if (bgTypeId == BATTLEGROUND_WS || bgTypeId == BATTLEGROUND_WG_CTF)
+        {
+            switch (state)
+            {
+            case BGChatState::Defend:
+                msg = WSGDefendMessages[urand(0, WSGDefendMessages.size() - 1)];
+                break;
+            case BGChatState::HoldMid:
+                msg = WSGHoldMidMessages[urand(0, WSGHoldMidMessages.size() - 1)];
+                break;
+            case BGChatState::Attack:
+                msg = WSGAttackMessages[urand(0, WSGAttackMessages.size() - 1)];
+                break;
+            case BGChatState::Return:
+                msg = WSGReturnMessages[urand(0, WSGReturnMessages.size() - 1)];
+                break;
+            case BGChatState::Protect:
+                msg = WSGProtectMessages[urand(0, WSGProtectMessages.size() - 1)];
+                break;
+            default:
+                break;
+            }
+        }
+
+        if (msg.empty())
+            return "";
+
+        return FormatChatLine(std::string(msg), botTeam);
     }
 }

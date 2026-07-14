@@ -221,16 +221,42 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
         break;
     }
 
-    case FSB_EVENT_WSG_STATE_CHAT:
+    case FSB_EVENT_BATTLEGROUND_STATE_CHAT:
     {
         if (FSB_BattlegroundData* bgData = ai->GetBattlegroundData())
         {
+            Team botTeam = FSBBattleground::GetBotTeam(bot);
+            if (botTeam != ALLIANCE && botTeam != HORDE)
+                break;
+
+            FSBBattlegroundChat::BGChatState chatState = FSBBattlegroundChat::BGChatState::None;
             if (bgData->bgTypeId == BATTLEGROUND_WS || bgData->bgTypeId == BATTLEGROUND_WG_CTF)
             {
-                std::string msg = FSBBattleground::WarsongGulch::GetStateChatMessage(bot, bgData->wsgState);
-                if (!msg.empty())
-                    FSBChat::BotSendRaidChat(bot, msg);
+                switch (bgData->wsgState)
+                {
+                case FSBBattleground::WarsongGulch::WSGState::DefendBase:
+                    chatState = FSBBattlegroundChat::BGChatState::Defend;
+                    break;
+                case FSBBattleground::WarsongGulch::WSGState::HoldCenter:
+                    chatState = FSBBattlegroundChat::BGChatState::HoldMid;
+                    break;
+                case FSBBattleground::WarsongGulch::WSGState::AttackFlag:
+                    chatState = FSBBattlegroundChat::BGChatState::Attack;
+                    break;
+                case FSBBattleground::WarsongGulch::WSGState::ReturnFlag:
+                    chatState = FSBBattlegroundChat::BGChatState::Return;
+                    break;
+                case FSBBattleground::WarsongGulch::WSGState::ProtectCarrier:
+                    chatState = FSBBattlegroundChat::BGChatState::Protect;
+                    break;
+                default:
+                    break;
+                }
             }
+
+            std::string msg = FSBBattlegroundChat::GetStateChatMessage(bgData->bgTypeId, botTeam, chatState);
+            if (!msg.empty())
+                FSBChat::BotSendRaidChat(bot, msg);
         }
         break;
     }
