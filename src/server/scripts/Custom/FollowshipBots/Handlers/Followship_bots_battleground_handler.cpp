@@ -28,7 +28,6 @@
 #include "Followship_bots_party_handler.h"
 #include "Followship_bots_combat_handler.h"
 #include "Followship_bots_group_handler.h"
-#include "Followship_bots_chatter_handler.h"
 #include "Followship_bots_events_handler.h"
 
 #include "Battleground.h"
@@ -46,46 +45,12 @@
 #include "ScriptHelpers.h"
 
 #include <algorithm>
-#include <array>
 #include <random>
 #include <string>
 #include <unordered_map>
 
 namespace FSBBattleground
 {
-    std::array<std::string, 20> const SpawnChatLines = {{
-        "Hello everyone!",
-        "How is everyone today?",
-        "Ready to kick some [enemyTeam] ass?",
-        "I am gonna rest for a bit while you lot take care of the [enemyTeam].",
-        "For the [ownTeam]!!!!",
-        "Let's get this win for the [ownTeam]!",
-        "Time to show the [enemyTeam] what we're made of.",
-        "Good luck everyone, let's make the [ownTeam] proud.",
-        "I'll do my part, you do yours.",
-        "Another day, another battlefield.",
-        "Let's crush the [enemyTeam] and go home.",
-        "The [enemyTeam] won't know what hit them.",
-        "Stay focused, fight for the [ownTeam].",
-        "I'm here to help secure the victory.",
-        "No mercy for the [enemyTeam] today.",
-        "Let's work together and win this.",
-        "The [ownTeam] will prevail!",
-        "I'm ready when you are.",
-        "Don't let the [enemyTeam] get comfortable.",
-        "Victory belongs to the [ownTeam]!"
-    }};
-
-    std::string FormatChatLine(std::string const& line, Team botTeam)
-    {
-        std::string result = line;
-        std::string own = botTeam == ALLIANCE ? "Alliance" : "Horde";
-        std::string enemy = botTeam == ALLIANCE ? "Horde" : "Alliance";
-        FSBChatter::ReplaceAll(result, "[ownTeam]", own);
-        FSBChatter::ReplaceAll(result, "[enemyTeam]", enemy);
-        return result;
-    }
-
     Team GetBotTeam(Creature* bot)
     {
         FSB_BaseAI* botAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
@@ -248,7 +213,7 @@ namespace FSBBattleground
                 bot->SetPvP(true);
                 FSBBattleground::AddBotSpawnGuid(battleground->GetBgMap(), bot->GetGUID());
 
-                std::string spawnMsg = FormatChatLine(SpawnChatLines[urand(0, SpawnChatLines.size() - 1)], team);
+                std::string spawnMsg = FSBBattlegroundChat::FormatChatLine(FSBBattlegroundChat::SpawnChatLines[urand(0, FSBBattlegroundChat::SpawnChatLines.size() - 1)], team);
                 FSBEvents::ScheduleBotEventWithChatter(bot, FSB_EVENT_BATTLEGROUND_SPAWN_CHAT, 3s, 15s, FSB_ReplyType::Raid, spawnMsg, nullptr);
 
                 TC_LOG_INFO("scripts.fsb.battleground", "FSB BG Handler: Spawned bot {} for team {}", bot->GetEntry(), team);

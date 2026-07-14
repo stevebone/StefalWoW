@@ -30,6 +30,7 @@
 
 #include "Followship_bots_arathi_basin.h"
 #include "Followship_bots_warsong_gulch.h"
+#include "Chat/Followship_bots_chat_battleground.h"
 
 class Battleground;
 class BattlegroundMap;
@@ -83,8 +84,6 @@ namespace FSBBattleground
 
     void SpawnBots(Battleground* battleground, BattlegroundMap* battlegroundMap, Player* triggeringPlayer = nullptr);
     void SpawnBotsForTeams(Battleground* battleground, uint32 maxTeamSize, Player* triggeringPlayer = nullptr);
-
-    std::string FormatChatLine(std::string const& line, Team botTeam);
 
     bool IsInBG(Creature const* bot);
     bool IsInProgress(Creature const* bot);

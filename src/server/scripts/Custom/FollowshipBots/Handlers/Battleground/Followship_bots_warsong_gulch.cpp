@@ -98,7 +98,7 @@ namespace FSBBattleground::WarsongGulch
         if (!msg)
             return "";
 
-        return FSBBattleground::FormatChatLine(msg, botTeam);
+        return FSBBattlegroundChat::FormatChatLine(msg, botTeam);
     }
 
     Position GetPositionWithOffsetForState(WSGState state, Position const& basePos)
