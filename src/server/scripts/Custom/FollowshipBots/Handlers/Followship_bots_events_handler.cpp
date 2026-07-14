@@ -625,7 +625,7 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId, FSB_ReplyType re
         break;
     }
 
-    case FSB_EVENT_WSG_SPAWN_CHAT:
+    case FSB_EVENT_BATTLEGROUND_SPAWN_CHAT:
     {
         FSBChat::BotSendRaidChat(bot, chatterReply);
         break;

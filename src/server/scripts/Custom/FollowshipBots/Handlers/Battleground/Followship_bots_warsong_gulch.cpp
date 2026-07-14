@@ -37,13 +37,10 @@
 #include "Timer.h"
 
 #include <algorithm>
-#include <array>
 #include <string>
 #include <vector>
 
 #include "Followship_bots_battleground_handler.h"
-#include "Followship_bots_chatter_handler.h"
-#include "Followship_bots_chat_handler.h"
 #include "Followship_bots_combat_handler.h"
 #include "Followship_bots_events_handler.h"
 #include "Followship_bots_recovery_handler.h"
@@ -52,41 +49,6 @@
 
 namespace FSBBattleground::WarsongGulch
 {
-    
-
-    std::array<std::string, 20> const SpawnChatLines = {{
-        "Hello everyone!",
-        "How is everyone today?",
-        "Ready to kick some [enemyTeam] ass?",
-        "I am gonna rest for a bit while you lot take care of the [enemyTeam].",
-        "For the [ownTeam]!!!!",
-        "Let's get this win for the [ownTeam]!",
-        "Time to show the [enemyTeam] what we're made of.",
-        "Good luck everyone, let's make the [ownTeam] proud.",
-        "I'll do my part, you do yours.",
-        "Another day, another battlefield.",
-        "Let's crush the [enemyTeam] and go home.",
-        "The [enemyTeam] won't know what hit them.",
-        "Stay focused, fight for the [ownTeam].",
-        "I'm here to help secure the victory.",
-        "No mercy for the [enemyTeam] today.",
-        "Let's work together and win this.",
-        "The [ownTeam] will prevail!",
-        "I'm ready when you are.",
-        "Don't let the [enemyTeam] get comfortable.",
-        "Victory belongs to the [ownTeam]!"
-    }};
-
-    std::string FormatChatLine(std::string const& line, Team botTeam)
-    {
-        std::string result = line;
-        std::string own = botTeam == ALLIANCE ? "Alliance" : "Horde";
-        std::string enemy = botTeam == ALLIANCE ? "Horde" : "Alliance";
-        FSBChatter::ReplaceAll(result, "[ownTeam]", own);
-        FSBChatter::ReplaceAll(result, "[enemyTeam]", enemy);
-        return result;
-    }
-
     std::string GetStateChatMessage(Creature* bot, WSGState state)
     {
         if (!bot)
@@ -136,7 +98,7 @@ namespace FSBBattleground::WarsongGulch
         if (!msg)
             return "";
 
-        return FormatChatLine(msg, botTeam);
+        return FSBBattleground::FormatChatLine(msg, botTeam);
     }
 
     Position GetPositionWithOffsetForState(WSGState state, Position const& basePos)
@@ -254,138 +216,6 @@ namespace FSBBattleground::WarsongGulch
             Position const& ownFlag = botTeam == ALLIANCE ? FSB_WSG_FLAG_ALLIANCE : FSB_WSG_FLAG_HORDE;
             bot->GetMotionMaster()->MovePoint(FSBMovement::MOVEMENT_POINT_WSG_RETURN_FLAG, ownFlag, true);
         }
-    }
-
-    void SpawnBots(Battleground* battleground, Player* triggeringPlayer)
-    {
-        TC_LOG_INFO("scripts.fsb.battleground", "FSB WSG Handler: SpawnBots entered");
-
-        FSBBattleground::ClearSpawnedBotGuids(battleground->GetBgMap());
-
-        // Count real players from GetPlayers() instead of GetPlayersCountByTeam(),
-        // because the triggering player may not yet be registered in the BG's team count.
-        uint32 alliancePlayers = 0;
-        uint32 hordePlayers = 0;
-        bool triggeringInRoster = false;
-        for (auto const& [guid, bgPlayer] : battleground->GetPlayers())
-        {
-            if (triggeringPlayer && guid == triggeringPlayer->GetGUID())
-                triggeringInRoster = true;
-
-            if (bgPlayer.Team == ALLIANCE)
-                ++alliancePlayers;
-            else if (bgPlayer.Team == HORDE)
-                ++hordePlayers;
-        }
-
-        // If the triggering player is not yet in the BG roster, account for them.
-        if (triggeringPlayer && !triggeringInRoster)
-        {
-            if (triggeringPlayer->GetTeam() == ALLIANCE)
-                ++alliancePlayers;
-            else if (triggeringPlayer->GetTeam() == HORDE)
-                ++hordePlayers;
-        }
-
-        uint32 const allianceExistingBots = FSBBattleground::CountExistingBots(battleground, ALLIANCE);
-        uint32 const hordeExistingBots = FSBBattleground::CountExistingBots(battleground, HORDE);
-
-        int32 const allianceNeeded = std::max(0, int32(FSB_WSG_MAX_TEAM_SIZE) - int32(alliancePlayers) - int32(allianceExistingBots));
-        int32 const hordeNeeded = std::max(0, int32(FSB_WSG_MAX_TEAM_SIZE) - int32(hordePlayers) - int32(hordeExistingBots));
-
-        TC_LOG_INFO("scripts.fsb.battleground", "FSB WSG Handler: players A={} H={}; existing bots A={} H={}; needed A={} H={}",
-            alliancePlayers, hordePlayers, allianceExistingBots, hordeExistingBots, allianceNeeded, hordeNeeded);
-
-        if (allianceNeeded <= 0 && hordeNeeded <= 0)
-        {
-            TC_LOG_INFO("scripts.fsb.battleground", "FSB WSG Handler: No bots needed, aborting");
-            return;
-        }
-
-        std::vector<uint32> allianceEntries;
-        std::vector<uint32> hordeEntries;
-
-        uint32 totalTemplates = 0;
-        uint32 hiredTemplates = 0;
-        for (auto const& [entry, templateData] : FSBMgr::Get()->GetBotTemplates())
-        {
-            ++totalTemplates;
-            if (FSBMgr::Get()->IsBotTemplateHired(entry))
-            {
-                ++hiredTemplates;
-                continue;
-            }
-
-            Team team = FSBUtils::GetTeamFromFSBRace(templateData.botRace);
-            if (team == ALLIANCE)
-                allianceEntries.push_back(entry);
-            else if (team == HORDE)
-                hordeEntries.push_back(entry);
-        }
-
-        TC_LOG_INFO("scripts.fsb.battleground", "FSB WSG Handler: bot templates total={} hired={} available A={} H={}",
-            totalTemplates, hiredTemplates, allianceEntries.size(), hordeEntries.size());
-
-        auto const spawnTeam = [&](Team team, int32 needed, std::vector<uint32>& availableEntries)
-        {
-            if (needed <= 0)
-                return;
-
-            std::vector<uint32> selected = FSBBattleground::SelectRandomEntries(availableEntries, static_cast<uint32>(needed));
-            if (selected.empty())
-            {
-                TC_LOG_WARN("scripts.fsb.battleground", "FSB WSG Handler: No available bot templates for team {}", team);
-                return;
-            }
-
-            TC_LOG_INFO("scripts.fsb.battleground", "FSB WSG Handler: selected {} bot entries for team {}", selected.size(), team);
-
-            TeamId teamId = Battleground::GetTeamIndexByTeamId(team);
-            WorldSafeLocsEntry const* startPos = battleground->GetTeamStartPosition(teamId);
-            if (!startPos)
-            {
-                TC_LOG_ERROR("scripts.fsb.battleground", "FSB WSG Handler: No start position for team {}", team);
-                return;
-            }
-
-            TC_LOG_INFO("scripts.fsb.battleground", "FSB WSG Handler: start position for team {} found", team);
-
-            for (uint32 entry : selected)
-            {
-                Position pos(startPos->Loc);
-                pos.m_positionX += frand(-3.0f, 3.0f);
-                pos.m_positionY += frand(-3.0f, 3.0f);
-
-                Creature* bot = battleground->GetBgMap()->SummonCreature(entry, pos);
-                if (!bot)
-                {
-                    TC_LOG_ERROR("scripts.fsb.battleground", "FSB WSG Handler: Failed to summon bot entry {}", entry);
-                    continue;
-                }
-
-                bot->SetPvP(true);
-                FSBBattleground::AddBotSpawnGuid(battleground->GetBgMap(), bot->GetGUID());
-
-                std::string spawnMsg = FormatChatLine(SpawnChatLines[urand(0, SpawnChatLines.size() - 1)], team);
-                FSBEvents::ScheduleBotEventWithChatter(bot, FSB_EVENT_WSG_SPAWN_CHAT, 3s, 15s, FSB_ReplyType::Raid, spawnMsg, nullptr);
-
-                TC_LOG_INFO("scripts.fsb.battleground", "FSB WSG Handler: Spawned bot {} for team {}", bot->GetEntry(), team);
-            }
-
-            TC_LOG_INFO("scripts.fsb.battleground", "FSB WSG Handler: Spawned bots for team {}", team);
-        };
-
-        spawnTeam(ALLIANCE, allianceNeeded, allianceEntries);
-        spawnTeam(HORDE, hordeNeeded, hordeEntries);
-    }
-
-    void InitializeBot(Creature* bot, FSB_BattlegroundData* bgData, Battleground* bg)
-    {
-        if (!bot || !bgData || !bg)
-            return;
-
-        Milliseconds delay = FSBBattleground::IsInProgress(bot) ? 100ms : 2min;
-        FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_BATTLEGROUND_START, delay);
     }
 
     Creature* FindFriendlyCarrier(Creature* bot)
@@ -1243,6 +1073,9 @@ namespace FSBBattleground::WarsongGulch
 
         Battleground* bg = bgMap->GetBG();
         if (!bg)
+            return;
+
+        if (bg->GetPlayers().empty())
             return;
 
         TeamId teamId = Battleground::GetTeamIndexByTeamId(botTeam);

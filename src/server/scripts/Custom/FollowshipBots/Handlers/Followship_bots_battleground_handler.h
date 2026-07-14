@@ -25,8 +25,10 @@
 #include "Define.h"
 #include "ObjectGuid.h"
 #include "SharedDefines.h"
+#include <string>
 #include <vector>
 
+#include "Followship_bots_arathi_basin.h"
 #include "Followship_bots_warsong_gulch.h"
 
 class Battleground;
@@ -80,12 +82,16 @@ namespace FSBBattleground
     ObjectGuid ResolveAttackerGuid(Unit* attacker);
 
     void SpawnBots(Battleground* battleground, BattlegroundMap* battlegroundMap, Player* triggeringPlayer = nullptr);
+    void SpawnBotsForTeams(Battleground* battleground, uint32 maxTeamSize, Player* triggeringPlayer = nullptr);
+
+    std::string FormatChatLine(std::string const& line, Team botTeam);
 
     bool IsInBG(Creature const* bot);
     bool IsInProgress(Creature const* bot);
     bool IsFinished(Creature const* bot);
 
     void InitializeBot(Creature* bot);
+    void InitializeBotGeneric(Creature* bot, FSB_BattlegroundData* bgData, Battleground* bg);
 
     void HandlePlayerKilledBot(ObjectGuid killerGuid, Unit* botVictim);
     void HandleBotKilledPlayer(Unit* botKiller, ObjectGuid victimGuid);

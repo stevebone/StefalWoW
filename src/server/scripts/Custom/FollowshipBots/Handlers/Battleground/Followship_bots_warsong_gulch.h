@@ -330,11 +330,8 @@ namespace FSBBattleground::WarsongGulch
             || bot->HasAura(Spells::AllianceFlag) || bot->HasAura(Spells::HordeFlag);
     }
 
-    void SpawnBots(Battleground* battleground, Player* triggeringPlayer = nullptr);
-
     void OnMovementInform(Creature* bot, FSB_BattlegroundData* bgData, uint32 type, uint32 id);
 
-    void InitializeBot(Creature* bot, FSB_BattlegroundData* bgData, Battleground* bg);
     void UpdateBot(Creature* bot, FSB_BattlegroundData* bgData);
     void SetBotState(Creature* bot, FSB_BattlegroundData* bgData, WSGState newState);
 
