@@ -526,8 +526,9 @@ void FSBMgr::SetInitialBotState(Creature* bot)
     bot->SetBot(true);
     bot->setActive(true);
 
-    if (bot->HasUnitState(UNIT_STAND_STATE_SIT))
-        bot->SetStandState(UNIT_STAND_STATE_STAND);
+    bot->SetStandState(UNIT_STAND_STATE_STAND);
+    bot->SetEmoteState(EMOTE_STATE_NONE);
+    bot->RemoveAllAuras();
 
     auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
     if (!baseAI)
