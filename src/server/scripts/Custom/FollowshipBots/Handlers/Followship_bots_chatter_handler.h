@@ -26,6 +26,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include "Creature.h"
+
 #include "Followship_bots_defines.h"
 
 enum FSB_ChatterCategory
