@@ -78,8 +78,23 @@ namespace FSBBattleground::ArathiBasin
         }
     }
 
+    inline ABState GetDefendStateForAttack(ABState attackState)
+    {
+        switch (attackState)
+        {
+        case ABState::AttackStables:     return ABState::DefendStables;
+        case ABState::AttackMine:        return ABState::DefendMine;
+        case ABState::AttackMill:        return ABState::DefendMill;
+        case ABState::AttackBlacksmith:  return ABState::DefendBlacksmith;
+        case ABState::AttackFarm:        return ABState::DefendFarm;
+        default:                         return ABState::None;
+        }
+    }
+
     void UpdateBot(Creature* bot, FSB_BattlegroundData* bgData);
     void OnMovementInform(Creature* bot, FSB_BattlegroundData* bgData, uint32 type, uint32 id);
     void SetBotState(Creature* bot, FSB_BattlegroundData* bgData, ABState newState);
     ABState GetABBotState(Creature* bot);
+    void TryAssaultCapturePoint(Creature* bot, FSB_BattlegroundData* bgData);
+    void CheckCapturePointState(Creature* bot, FSB_BattlegroundData* bgData);
 }

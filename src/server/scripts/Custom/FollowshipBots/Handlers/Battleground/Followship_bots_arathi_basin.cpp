@@ -23,6 +23,7 @@
 #include "Followship_bots_arathi_basin.h"
 
 #include "Battleground.h"
+#include "BattlegroundPackets.h"
 #include "Creature.h"
 #include "GameObject.h"
 #include "Log.h"
@@ -57,15 +58,88 @@ namespace FSBBattleground::ArathiBasin
             ABState::AttackMine,
             ABState::AttackMill,
             ABState::AttackBlacksmith,
-            ABState::AttackFarm,
-            ABState::DefendStables,
-            ABState::DefendMine,
-            ABState::DefendMill,
-            ABState::DefendBlacksmith,
-            ABState::DefendFarm
+            ABState::AttackFarm
         };
 
         return available[urand(0, available.size() - 1)];
+    }
+
+    GameObject* FindCapturePoint(Creature* bot, FSB_BattlegroundData* bgData)
+    {
+        BattlegroundMap* bgMap = bot->GetMap()->ToBattlegroundMap();
+        if (!bgMap)
+            return nullptr;
+
+        uint32 entry = GetCapturePointEntryForState(bgData->abState);
+        if (!entry)
+            return nullptr;
+
+        for (auto const& [guid, go] : bgMap->GetObjectsStore().Data.FindContainer<GameObject>())
+        {
+            if (go && go->GetEntry() == entry)
+                return go;
+        }
+
+        return nullptr;
+    }
+
+    void TryAssaultCapturePoint(Creature* bot, FSB_BattlegroundData* bgData)
+    {
+        if (!bot || !bgData || !bot->IsAlive())
+            return;
+
+        GameObject* capturePoint = FindCapturePoint(bot, bgData);
+        if (!capturePoint)
+            return;
+
+        if (!capturePoint->CanInteractWithCapturePoint(bot))
+            return;
+
+        TC_LOG_DEBUG("scripts.fsb.battleground", "FSB AB: Bot {} assaulting capture point {} state {}",
+            bot->GetName(), capturePoint->GetEntry(), static_cast<uint32>(bgData->abState));
+
+        capturePoint->AssaultCapturePoint(bot);
+    }
+
+    void CheckCapturePointState(Creature* bot, FSB_BattlegroundData* bgData)
+    {
+        if (!bot || !bgData || !bot->IsAlive())
+            return;
+
+        if (bgData->abState == ABState::None)
+            return;
+
+        auto isAttackState = [](ABState s)
+        {
+            return s == ABState::AttackStables || s == ABState::AttackMine || s == ABState::AttackMill
+                || s == ABState::AttackBlacksmith || s == ABState::AttackFarm;
+        };
+
+        if (!isAttackState(bgData->abState))
+            return;
+
+        GameObject* capturePoint = FindCapturePoint(bot, bgData);
+        if (!capturePoint)
+            return;
+
+        Team botTeam = FSBBattleground::GetBotTeam(bot);
+        if (botTeam != ALLIANCE && botTeam != HORDE)
+            return;
+
+        auto const& state = capturePoint->GetGOValue()->CapturePoint.State;
+        bool ownedByBotTeam = (botTeam == ALLIANCE && state == WorldPackets::Battleground::BattlegroundCapturePointState::AllianceCaptured)
+            || (botTeam == HORDE && state == WorldPackets::Battleground::BattlegroundCapturePointState::HordeCaptured);
+
+        if (ownedByBotTeam)
+        {
+            ABState defendState = GetDefendStateForAttack(bgData->abState);
+            if (defendState != ABState::None)
+            {
+                TC_LOG_DEBUG("scripts.fsb.battleground", "FSB AB: Bot {} node captured, switching {} -> {}",
+                    bot->GetName(), static_cast<uint32>(bgData->abState), static_cast<uint32>(defendState));
+                SetBotState(bot, bgData, defendState);
+            }
+        }
     }
 
     void UpdateBot(Creature* bot, FSB_BattlegroundData* bgData)
@@ -87,34 +161,28 @@ namespace FSBBattleground::ArathiBasin
         if (bg->GetStatus() != STATUS_IN_PROGRESS)
             return;
 
-        uint32 entry = GetCapturePointEntryForState(bgData->abState);
-        if (!entry)
-            return;
-
-        GameObject* capturePoint = nullptr;
-        for (auto const& [guid, go] : bgMap->GetObjectsStore().Data.FindContainer<GameObject>())
-        {
-            if (go && go->GetEntry() == entry)
-            {
-                capturePoint = go;
-                break;
-            }
-        }
-
+        GameObject* capturePoint = FindCapturePoint(bot, bgData);
         if (!capturePoint)
         {
-            TC_LOG_DEBUG("scripts.fsb.battleground", "FSB AB: UpdateBot bot {} state {} could not find capture point object {}",
-                bot->GetName(), static_cast<uint32>(bgData->abState), entry);
+            TC_LOG_DEBUG("scripts.fsb.battleground", "FSB AB: UpdateBot bot {} state {} could not find capture point object",
+                bot->GetName(), static_cast<uint32>(bgData->abState));
             return;
         }
-
-        Position const& goPos = capturePoint->GetPosition();
 
         auto isAttackState = [](ABState s)
         {
             return s == ABState::AttackStables || s == ABState::AttackMine || s == ABState::AttackMill
                 || s == ABState::AttackBlacksmith || s == ABState::AttackFarm;
         };
+
+        // If in attack state and close enough to the capture point, assault it
+        if (isAttackState(bgData->abState) && bot->GetDistance(capturePoint) < 10.0f)
+        {
+            TryAssaultCapturePoint(bot, bgData);
+            return;
+        }
+
+        Position const& goPos = capturePoint->GetPosition();
 
         float angle = frand(0.0f, 6.283185307f);
         float offsetRadius = isAttackState(bgData->abState) ? 3.0f : 10.0f;

@@ -179,6 +179,8 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
                 if (bgData->abState == FSBBattleground::ArathiBasin::ABState::None)
                     FSBBattleground::ArathiBasin::SetBotState(bot, bgData,
                         FSBBattleground::ArathiBasin::GetABBotState(bot));
+
+                ScheduleBotEvent(FSB_EVENT_AB_CHECK_CAPTURE, 5s);
             }
         }
 
@@ -224,6 +226,19 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
                 FSBBattleground::WarsongGulch::SetBotState(bot, bgData,
                     FSBBattleground::WarsongGulch::GetWSGBotState(bot, bgData->wsgState));
                 FSBBattleground::WarsongGulch::UpdateBot(bot, bgData);
+            }
+        }
+        break;
+    }
+
+    case FSB_EVENT_AB_CHECK_CAPTURE:
+    {
+        if (FSB_BattlegroundData* bgData = ai->GetBattlegroundData())
+        {
+            if (bgData->bgTypeId == BATTLEGROUND_AB || bgData->bgTypeId == BATTLEGROUND_DOM_AB || bgData->bgTypeId == BATTLEGROUND_AB_CS || bgData->bgTypeId == BATTLEGROUND_BRAWL_AB2)
+            {
+                FSBBattleground::ArathiBasin::CheckCapturePointState(bot, bgData);
+                ScheduleBotEvent(FSB_EVENT_AB_CHECK_CAPTURE, 3s, 5s);
             }
         }
         break;
