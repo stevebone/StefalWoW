@@ -147,7 +147,7 @@ namespace FSBGenAIPrompts
         }).detach();
     }
 
-    static std::string BuildStandardSystemPrompt(Creature* bot)
+    std::string BuildStandardSystemPrompt(Creature* bot)
     {
         uint32 entry = bot->GetEntry();
         std::string const& botName = bot->GetName();
@@ -155,6 +155,7 @@ namespace FSBGenAIPrompts
         FSB_Race botRace = FSBMgr::Get()->GetBotRaceForEntry(entry);
         FSB_ChatterType chatterType = FSBMgr::Get()->GetBotChatterTypeForEntry(entry);
         Gender botGender = FSBMgr::Get()->GetBotGenderForEntry(entry);
+        FSB_Roles botRole = FSBMgr::Get()->GetRole(bot);
 
         uint32 zoneId = bot->GetZoneId();
         AreaTableEntry const* areaEntry = sAreaTableStore.LookupEntry(zoneId);
@@ -163,6 +164,7 @@ namespace FSBGenAIPrompts
         return Trinity::StringFormat(
             "You are a character in World of Warcraft named {}.\n"
             "You are a {} {} {} currently in {}.\n"
+            "Your role is {}.\n"
             "Your personality is {}.\n\n"
             "Rules:\n"
             "- Reply in first person, staying fully in the game world.\n"
@@ -175,6 +177,7 @@ namespace FSBGenAIPrompts
             FSBUtils::BotRaceToString(botRace),
             FSBUtils::BotClassToString(botClass),
             zoneName,
+            FSBUtils::BotRoleToString(botRole),
             FSBUtils::ChatterTypeToString(chatterType),
             zoneName);
     }

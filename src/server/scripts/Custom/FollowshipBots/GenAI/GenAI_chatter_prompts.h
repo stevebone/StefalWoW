@@ -73,4 +73,6 @@ namespace FSBGenAIPrompts
     void DispatchBotMemberDied(Creature* bot, ObjectGuid deadUnitGuid);
     void DispatchBotCooking(Creature* bot);
     void DispatchBotSocialReply(Creature* targetBot, ObjectGuid initiatorGuid, FSB_ChatterCategory category);
+
+    std::string BuildStandardSystemPrompt(Creature* bot);
 }

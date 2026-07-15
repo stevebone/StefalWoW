@@ -49,6 +49,8 @@
 #include "Followship_bots_paladin.h"
 #include "Followship_bots_rogue.h"
 
+#include "GenAI_battleground_prompts.h"
+
 void FSB_BaseAI::ScheduleBotEvent(uint32 eventId, Milliseconds time)
 {
     botEvents.ScheduleEvent(eventId, time);
@@ -284,7 +286,7 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
 
             std::string msg = FSBBattlegroundChat::GetStateChatMessage(bgData->bgTypeId, botTeam, chatState);
             if (!msg.empty())
-                FSBChat::BotSendRaidChat(bot, msg);
+                FSBGenAIPrompts::DispatchBotBattlegroundStateChat(bot, bgData->bgTypeId, botTeam, chatState, msg);
         }
         break;
     }
@@ -685,7 +687,7 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId, FSB_ReplyType re
 
     case FSB_EVENT_BATTLEGROUND_SPAWN_CHAT:
     {
-        FSBChat::BotSendRaidChat(bot, chatterReply);
+        FSBGenAIPrompts::DispatchBotBattlegroundSpawnChat(bot, chatterReply);
         break;
     }
 
