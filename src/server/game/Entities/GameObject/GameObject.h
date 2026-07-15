@@ -440,9 +440,9 @@ class TC_GAME_API GameObject : public WorldObject, public GridObject<GameObject>
         void SetVignette(uint32 vignetteId);
 
         void SetSpellVisualId(int32 spellVisualId, ObjectGuid activatorGuid = ObjectGuid::Empty);
-        void AssaultCapturePoint(Player* player);
+        void AssaultCapturePoint(Unit* user);
         void UpdateCapturePoint();
-        bool CanInteractWithCapturePoint(Player const* target) const;
+        bool CanInteractWithCapturePoint(Unit const* target) const;
         FlagState GetFlagState() const;
         ObjectGuid const& GetFlagCarrierGUID() const;
         time_t GetFlagTakenFromBaseTime() const;
