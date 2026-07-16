@@ -6943,7 +6943,7 @@ enum BattlegroundTypeId : uint32
     BATTLEGROUND_SS_VS_TM       = 789,      // Southshore vs. Tarren Mill
     BATTLEGROUND_SMALL_D        = 803,      // Small Battleground D
     BATTLEGROUND_BRH            = 808,      // Black Rook Hold Arena
-    // 809 = "New Nagrand Arena (Legion)"
+    BATTLEGROUND_NNA            = 809,      // 809 = "New Nagrand Arena (Legion)"
     BATTLEGROUND_AF             = 816,      // Ashamane's Fall
     // 844 = "New Blade's Edge Arena (Legion)"
     BATTLEGROUND_BRAWL_TBG      = 846,      // Brawl - The Battle for Gilneas (Old City Map)
@@ -7010,6 +7010,8 @@ enum BattlegroundTypeId : uint32
     BATTLEGROUND_DOM_DG         = 1037,     // Domination - Deepwind Gorge
     BATTLEGROUND_DOM_DG2        = 1039,     // Domination - Deepwind Gorge
     BATTLEGROUND_ED             = 1041,     // Empyrean Domain
+    BATTLEGROUND_MC3            = 1066,     // Maldraxxus Coliseum
+    BATTLEGROUND_CC3            = 1117,     // Cage of Carnage
 };
 
 #define MAX_BATTLEGROUND_TYPE_ID 845
