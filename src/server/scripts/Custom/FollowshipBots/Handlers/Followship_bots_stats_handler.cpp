@@ -73,10 +73,6 @@ namespace FSBStats
 
         // Armor
         ApplyBotArmor(bot, botClass);
-
-
-
-        //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Base Stats set for bot: {}, Level= {}, TC Class= {}, FSB Class= {}", bot->GetName(), bot->GetLevel(), bot->GetClass(), botClass);
     }
 
     void ApplyBotBasePower(Creature* bot, FSB_Class botClass)
@@ -123,10 +119,6 @@ namespace FSBStats
         if (FSBPowers::IsRageUser(bot))
             bot->SetPower(basePowerType, 0, true);
         else bot->SetPower(basePowerType, totalPower, true);
-
-        //creature->SetOverrideDisplayPowerId(466);
-
-        //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Bot {} statsHandler BASE powerType: {}, base: {}, total: {}", bot->GetName(), basePowerType, basePower, totalPower);
     }
 
     void ApplyBotHealth(Creature* bot, FSB_Class botClass, bool updateHealth)
@@ -233,11 +225,6 @@ namespace FSBStats
                 bot->SetPower(basePowerType, totalPower, true);
         }
         else bot->SetPower(basePowerType, bot->GetPower(basePowerType), true);
-        
-
-        //creature->SetOverrideDisplayPowerId(466);
-
-        //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Bot {} statsHandler powerType: {}, base: {}, total: {}", bot->GetName(), basePowerType, basePower, totalPower);
     }
 
     void ApplyBotAttackPower(Creature* bot, FSB_Class botClass)

@@ -133,13 +133,13 @@ namespace FSBPet
 
         pet->ApplyLevelScaling(1);
 
-        pet->SetSpeedRate(MOVE_WALK, owner->GetSpeed(MOVE_WALK));
-        pet->SetSpeedRate(MOVE_RUN, owner->GetSpeed(MOVE_RUN));
+        pet->SetSpeedRate(MOVE_WALK, 1.0f);
+        pet->SetSpeedRate(MOVE_RUN, 1.0f);
         pet->SetSpeedRate(MOVE_SWIM, 1.0f); // using 1.0 rate
         pet->SetSpeedRate(MOVE_FLIGHT, 1.0f); // using 1.0 rate
 
         // Will set UNIT_FIELD_BOUNDINGRADIUS, UNIT_FIELD_COMBATREACH and UNIT_FIELD_DISPLAYSCALE
-        pet->SetObjectScale(pet->GetNativeObjectScale());
+        pet->SetObjectScale(pet->GetNativeObjectScale() / 2);
         
         pet->SetSheath(SHEATH_STATE_MELEE);
         pet->ReplaceAllNpcFlags(UNIT_NPC_FLAG_NONE);
@@ -160,7 +160,7 @@ namespace FSBPet
         pet->SetGender(GENDER_NONE);
         pet->SetPowerType(POWER_FOCUS);
         pet->SetMaxPower(POWER_FOCUS, 100);
-        pet->SetMaxHealth(owner->GetMaxHealth() * 0.75);
+        pet->SetMaxHealth(owner->GetMaxHealth() * 0.15);
         pet->SetFullHealth();
         pet->AIM_Initialize();
 
