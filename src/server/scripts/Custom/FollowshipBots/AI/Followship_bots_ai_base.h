@@ -62,6 +62,7 @@ public:
         botRegenMods(),
         botClassStats(),
         botStats(),
+        botGenericData(),
 
         botFollowDistance(0.f),
         botFollowAngle(0.f),
@@ -115,6 +116,7 @@ public:
     FSB_DungeonData* botDungeonData = nullptr;
     FSB_BattlegroundData* botBattlegroundData = nullptr;
     FSBBotStats botStats;
+    FSB_GenericData botGenericData;
 
     float botFollowDistance;
     float botFollowAngle;

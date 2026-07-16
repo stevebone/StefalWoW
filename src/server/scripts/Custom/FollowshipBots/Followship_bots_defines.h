@@ -191,6 +191,12 @@ struct PlayerBotData
     PlayerBotData() = default;
 };
 
+struct FSB_GenericData
+{
+    bool isRecovering = false;
+    bool isBuffing = false;
+};
+
 struct FSBChatterDBLine
 {
     uint32 id = 0;
