@@ -72,9 +72,6 @@ namespace FSBDeath
         if (!bot || bot->IsAlive())
             return;
 
-        if (!killer)
-            return;
-
         auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
         if (!baseAI)
             return;
@@ -85,13 +82,16 @@ namespace FSBDeath
         // Ensure group is built before checking for healer
         FSBGroup::BuildLogicalBotGroup(bot, botGroup);
 
-        TC_LOG_DEBUG("scripts.fsb.death", "FSB: Death Bot {} JustDied from attacker {}.", bot->GetName(), killer->GetName());
+        if (killer)
+            TC_LOG_DEBUG("scripts.fsb.death", "FSB: Death Bot {} JustDied from attacker {}.", bot->GetName(), killer->GetName());
+        else
+            TC_LOG_DEBUG("scripts.fsb.death", "FSB: Death Bot {} JustDied with no attacker.", bot->GetName());
 
         // Make the corpse immune to attacks while awaiting resurrection.
         SetBotCorpseImmunity(bot, true);
 
         // handle chatter after death
-        if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
+        if (killer && urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
             FSBGenAIPrompts::DispatchBotDeath(bot, killer->GetGUID());
 
         // handle death with soulstone or Self Resurrect (Shaman)
@@ -200,6 +200,13 @@ namespace FSBDeath
         bot->setDeathState(ALIVE);
         bot->SetNpcFlag(UNIT_NPC_FLAG_GOSSIP);
         bot->RemoveAllAuras();
+
+        // Restore health and mana after revival, but before removing corpse immunity
+        uint64 maxHealth = bot->GetMaxHealth();
+        uint64 maxMana = bot->GetMaxPower(POWER_MANA);
+        bot->SetHealth(maxHealth * 0.60f);
+        if (maxMana > 1)
+            bot->SetPower(POWER_MANA, maxMana * 0.20f);
 
         // Remove corpse immunity now that the bot is alive.
         SetBotCorpseImmunity(bot, false);
