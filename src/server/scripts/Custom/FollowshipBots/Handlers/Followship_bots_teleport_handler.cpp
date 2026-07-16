@@ -162,6 +162,22 @@ namespace FSBTeleport
             case BATTLEGROUND_WS:
             case BATTLEGROUND_WG_CTF:
                 return team == Team::ALLIANCE ? FSBBattleground::WarsongGulch::FSB_WSG_GRAVEYARD_ALLIANCE : FSBBattleground::WarsongGulch::FSB_WSG_GRAVEYARD_HORDE;
+            case BATTLEGROUND_AB:
+            case BATTLEGROUND_DOM_AB:
+            case BATTLEGROUND_AB_CS:
+            case BATTLEGROUND_BRAWL_AB2:
+            {
+                uint32 healerEntry = (team == Team::ALLIANCE)
+                    ? FSBBattleground::ArathiBasin::Creatures::BG_AB_SPIRIT_HEALER_ALLIANCE
+                    : FSBBattleground::ArathiBasin::Creatures::BG_AB_SPIRIT_HEALER_HORDE;
+
+                if (Creature* healer = bot->FindNearestCreature(healerEntry, 500.0f))
+                    return healer->GetPosition();
+
+                return (team == Team::ALLIANCE)
+                    ? FSBBattleground::ArathiBasin::Positions::BG_AB_GRAVEYARD_ALLIANCE
+                    : FSBBattleground::ArathiBasin::Positions::BG_AB_GRAVEYARD_HORDE;
+            }
             default:
                 break;
         }
