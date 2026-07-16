@@ -966,6 +966,28 @@ void BattlegroundQueue::BattlegroundQueueUpdate(uint32 /*diff*/, BattlegroundBra
             }
         }
 
+        // FSB override: start arena with just 1 team (opposing team filled with bots)
+        if (found == 1 && sBattlegroundMgr->IsFSBOverrideEnabled())
+        {
+            GroupQueueInfo* soloTeam = *itr_teams[0];
+            Team soloSide = soloTeam->Team;
+            Team oppSide = (soloSide == ALLIANCE) ? HORDE : ALLIANCE;
+
+            Battleground* arena = sBattlegroundMgr->CreateNewBattleground(m_queueId, bracket_id);
+            if (!arena)
+            {
+                TC_LOG_ERROR("bg.battleground", "BattlegroundQueue::Update couldn't create arena instance for FSB solo arena match!");
+                return;
+            }
+
+            arena->SetArenaMatchmakerRating(soloSide, soloTeam->ArenaMatchmakerRating);
+            arena->SetArenaMatchmakerRating(oppSide, 0);
+            InviteGroupToBG(soloTeam, arena, soloSide);
+
+            TC_LOG_DEBUG("bg.battleground", "Starting FSB solo arena match with 1 team!");
+            arena->StartBattleground();
+        }
+
         //if we have 2 teams, then start new arena and invite players!
         if (found == 2)
         {

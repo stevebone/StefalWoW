@@ -17,6 +17,7 @@
 
 #include "Arena.h"
 #include "ArenaTeamMgr.h"
+#include "BattlegroundMgr.h"
 #include "BattlegroundPackets.h"
 #include "BattlegroundScore.h"
 #include "GuildMgr.h"
@@ -25,6 +26,7 @@
 #include "Map.h"
 #include "ObjectAccessor.h"
 #include "Player.h"
+#include "ScriptHelpers.h"
 #include "World.h"
 #include "WorldSession.h"
 
@@ -74,8 +76,28 @@ void Arena::RemovePlayer(Player* /*player*/, ObjectGuid /*guid*/, uint32 /*team*
 
 void Arena::UpdateArenaWorldState()
 {
-    UpdateWorldState(ARENA_WORLD_STATE_ALIVE_PLAYERS_GREEN, GetAlivePlayersCountByTeam(HORDE));
-    UpdateWorldState(ARENA_WORLD_STATE_ALIVE_PLAYERS_GOLD, GetAlivePlayersCountByTeam(ALLIANCE));
+    uint32 aliveHorde = GetAlivePlayersCountByTeam(HORDE);
+    uint32 aliveAlliance = GetAlivePlayersCountByTeam(ALLIANCE);
+
+    if (sBattlegroundMgr->IsFSBOverrideEnabled())
+    {
+        aliveHorde += ScriptHelpers::GetAliveBotCountByTeam(GetBgMap(), HORDE);
+        aliveAlliance += ScriptHelpers::GetAliveBotCountByTeam(GetBgMap(), ALLIANCE);
+    }
+
+    UpdateWorldState(ARENA_WORLD_STATE_ALIVE_PLAYERS_GREEN, aliveHorde);
+    UpdateWorldState(ARENA_WORLD_STATE_ALIVE_PLAYERS_GOLD, aliveAlliance);
+}
+
+void Arena::HandleKillUnit(Creature* victim, Unit* killer)
+{
+    Battleground::HandleKillUnit(victim, killer);
+
+    if (sBattlegroundMgr->IsFSBOverrideEnabled() && victim && victim->IsBot())
+    {
+        UpdateArenaWorldState();
+        CheckWinConditions();
+    }
 }
 
 void Arena::HandleKillPlayer(Player* player, Player* killer)
@@ -92,6 +114,9 @@ void Arena::HandleKillPlayer(Player* player, Player* killer)
 void Arena::BuildPvPLogDataPacket(WorldPackets::Battleground::PVPMatchStatistics& pvpLogData) const
 {
     Battleground::BuildPvPLogDataPacket(pvpLogData);
+
+    if (sBattlegroundMgr->IsFSBOverrideEnabled())
+        ScriptHelpers::AddBotsToPvPLogData(GetBgMap(), pvpLogData);
 
     if (isRated())
     {
@@ -136,9 +161,24 @@ void Arena::RemovePlayerAtLeave(ObjectGuid guid, bool transport, bool sendPacket
 
 void Arena::CheckWinConditions()
 {
-    if (!GetAlivePlayersCountByTeam(ALLIANCE) && GetPlayersCountByTeam(HORDE))
+    uint32 aliveAlliance = GetAlivePlayersCountByTeam(ALLIANCE);
+    uint32 aliveHorde = GetAlivePlayersCountByTeam(HORDE);
+    uint32 totalAlliance = GetPlayersCountByTeam(ALLIANCE);
+    uint32 totalHorde = GetPlayersCountByTeam(HORDE);
+
+    if (sBattlegroundMgr->IsFSBOverrideEnabled())
+    {
+        uint32 aliveBotsA = ScriptHelpers::GetAliveBotCountByTeam(GetBgMap(), ALLIANCE);
+        uint32 aliveBotsH = ScriptHelpers::GetAliveBotCountByTeam(GetBgMap(), HORDE);
+        aliveAlliance += aliveBotsA;
+        aliveHorde += aliveBotsH;
+        totalAlliance += aliveBotsA;
+        totalHorde += aliveBotsH;
+    }
+
+    if (!aliveAlliance && totalHorde)
         EndBattleground(HORDE);
-    else if (GetPlayersCountByTeam(ALLIANCE) && !GetAlivePlayersCountByTeam(HORDE))
+    else if (totalAlliance && !aliveHorde)
         EndBattleground(ALLIANCE);
 }
 

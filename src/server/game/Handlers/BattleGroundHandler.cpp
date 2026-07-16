@@ -40,6 +40,7 @@
 #include "SpellMgr.h"
 #include "SpellInfo.h"
 #include "World.h"
+#include "ScriptHelpers.h"
 
 void WorldSession::HandleBattlemasterHelloOpcode(WorldPackets::NPC::Hello& hello)
 {
@@ -551,9 +552,28 @@ void WorldSession::HandleBattlemasterJoinArena(WorldPackets::Battleground::Battl
     if (!bracketEntry)
         return;
 
+    bool isSoloWithBots = false;
+
     Group* grp = _player->GetGroup();
     if (!grp)
     {
+        // Solo player - check if FSB override allows queuing with hired bots
+        if (sBattlegroundMgr->IsFSBOverrideEnabled())
+        {
+            uint8 hiredBotCount = ScriptHelpers::GetHiredBotCount(_player->GetGUID().GetCounter());
+            if (hiredBotCount >= 1)
+            {
+                isSoloWithBots = true;
+                if (hiredBotCount == 1)
+                    packet.TeamSizeIndex = 0; // 2v2
+                else
+                    packet.TeamSizeIndex = 1; // 3v3
+
+                arenatype = ArenaTeam::GetTypeBySlot(packet.TeamSizeIndex);
+                bgQueueTypeId = BattlegroundMgr::BGQueueTypeId(bgTypeId, BattlegroundQueueIdType::Arena, true, arenatype);
+            }
+        }
+
         grp = new Group();
         grp->Create(_player);
     }
@@ -579,7 +599,7 @@ void WorldSession::HandleBattlemasterJoinArena(WorldPackets::Battleground::Battl
 
     ObjectGuid errorGuid;
     GroupJoinBattlegroundResult err = ERR_BATTLEGROUND_NONE;
-    if (!sBattlegroundMgr->isArenaTesting())
+    if (!sBattlegroundMgr->isArenaTesting() && !isSoloWithBots)
         err = grp->CanJoinBattlegroundQueue(bgTemplate, bgQueueTypeId, arenatype, arenatype, true, packet.TeamSizeIndex, errorGuid);
 
     if (!err)

@@ -51,6 +51,8 @@ public:
     void RemovePersistentExpiredPlayerBots(Player* player);
     bool RemovePersistentBot(uint64 playerGuid, uint32 botEntry);
 
+    void UpdateHiredBotCount(Player* player);
+
     void SpawnPlayerBots(Player* player);
 
     // Getters

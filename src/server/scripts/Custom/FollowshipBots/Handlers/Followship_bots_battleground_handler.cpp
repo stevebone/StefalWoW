@@ -97,6 +97,22 @@ namespace FSBBattleground
             case BATTLEGROUND_DOM_AB:
                 SpawnBotsForTeams(battleground, ArathiBasin::FSB_AB_MAX_TEAM_SIZE, triggeringPlayer);
                 break;
+            case BATTLEGROUND_DS:
+            case BATTLEGROUND_AF:
+            case BATTLEGROUND_TVA:
+            case BATTLEGROUND_RL:
+            case BATTLEGROUND_BRH:
+            case BATTLEGROUND_CC3:
+            case BATTLEGROUND_RL3:
+            case BATTLEGROUND_BRHA3:
+            case BATTLEGROUND_MC3:
+            case BATTLEGROUND_HP:
+            case BATTLEGROUND_NNA:
+            case BATTLEGROUND_MB:
+            case BATTLEGROUND_TR:
+            case BATTLEGROUND_AA:
+                SpawnBotsForTeams(battleground, battleground->GetArenaType(), triggeringPlayer);
+                break;
             default:
                 TC_LOG_DEBUG("scripts.fsb.battleground", "FSBBattleground::SpawnBots not implemented for bg type {}", battleground->GetTypeID());
                 break;

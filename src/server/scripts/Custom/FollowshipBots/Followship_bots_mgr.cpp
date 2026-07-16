@@ -177,6 +177,31 @@ void FSBMgr::RemovePersistentExpiredPlayerBots(Player* player)
     // If the player now has zero bots, you may optionally erase the key entirely:
     if (bots.empty())
         _playerBotsPersistent.erase(guid);
+
+    UpdateHiredBotCount(player);
+}
+
+void FSBMgr::UpdateHiredBotCount(Player* player)
+{
+    if (!player)
+        return;
+
+    auto* bots = GetPersistentBotsForPlayer(player);
+    if (!bots || bots->empty())
+    {
+        ScriptHelpers::EraseHiredBotCount(player->GetGUID().GetCounter());
+        return;
+    }
+
+    uint8 count = 0;
+    for (auto const& botData : *bots)
+        if (!IsBotExpired(botData))
+            ++count;
+
+    if (count > 0)
+        ScriptHelpers::SetHiredBotCount(player->GetGUID().GetCounter(), count);
+    else
+        ScriptHelpers::EraseHiredBotCount(player->GetGUID().GetCounter());
 }
 
 bool FSBMgr::RemovePersistentBot(uint64 playerGuid, uint32 botEntry)
@@ -491,7 +516,7 @@ void FSBMgr::HirePersistentBot(Player* player, Creature* bot, uint32 hireDuratio
     TC_LOG_DEBUG("scripts.fsb.manager", "FSB: HirePersistentBot Player {} hired bot {} (entry {}) until {}",
         player->GetName(), bot->GetName(), bot->GetEntry(), hireExpiry);
 
-
+    UpdateHiredBotCount(player);
 }
 
 void FSBMgr::DismissPersistentBot(Creature* bot)
@@ -516,6 +541,8 @@ void FSBMgr::DismissPersistentBot(Creature* bot)
     RemovePersistentBot(playerGuidLow, botEntry);
 
     TC_LOG_DEBUG("scripts.fsb.manager", "FSB: DismissPersistentBot Dismissed bot {} for player {}", bot->GetName(), player->GetName());
+
+    UpdateHiredBotCount(player);
 }
 
 void FSBMgr::SetInitialBotState(Creature* bot)
