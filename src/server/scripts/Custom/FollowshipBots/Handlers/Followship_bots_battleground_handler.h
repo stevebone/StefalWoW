@@ -50,6 +50,7 @@ struct FSB_BattlegroundData
     uint8 wsgCenterIndex = 0;
     bool wsgCapturePending = false;
     FSBBattleground::ArathiBasin::ABState abState = FSBBattleground::ArathiBasin::ABState::None;
+    uint32 abCaptureTimer = 0;
     GuidUnorderedSet damageTappers;
     GuidUnorderedSet recentPlayerTargets;
 
@@ -65,6 +66,7 @@ struct FSB_BattlegroundData
         wsgCenterIndex = 0;
         wsgCapturePending = false;
         abState = FSBBattleground::ArathiBasin::ABState::None;
+        abCaptureTimer = 0;
         damageTappers.clear();
         recentPlayerTargets.clear();
     }
@@ -86,6 +88,8 @@ namespace FSBBattleground
 
     void SpawnBots(Battleground* battleground, BattlegroundMap* battlegroundMap, Player* triggeringPlayer = nullptr);
     void SpawnBotsForTeams(Battleground* battleground, uint32 maxTeamSize, Player* triggeringPlayer = nullptr);
+    // Re-summons a bot at its team's start position when it despawns during an in-progress BG match.
+    void RespawnBotOnDespawn(Creature* bot);
 
     bool IsInBG(Creature const* bot);
     bool IsInProgress(Creature const* bot);

@@ -226,6 +226,58 @@ namespace FSBBattleground
         spawnTeam(HORDE, hordeNeeded, hordeEntries);
     }
 
+    void RespawnBotOnDespawn(Creature* bot)
+    {
+        if (!bot)
+            return;
+
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI || baseAI->botHired)
+            return;
+
+        FSB_BattlegroundData* bgData = baseAI->GetBattlegroundData();
+        if (!bgData)
+            return;
+
+        if (!FSBBattleground::IsInProgress(bot))
+            return;
+
+        Team botTeam = FSBBattleground::GetBotTeam(bot);
+        if (botTeam != ALLIANCE && botTeam != HORDE)
+            return;
+
+        uint32 entry = bot->GetEntry();
+
+        BattlegroundMap* bgMap = bot->GetMap()->ToBattlegroundMap();
+        if (!bgMap)
+            return;
+
+        Battleground* bg = bgMap->GetBG();
+        if (!bg)
+            return;
+
+        if (bg->GetPlayers().empty())
+            return;
+
+        TeamId teamId = Battleground::GetTeamIndexByTeamId(botTeam);
+        WorldSafeLocsEntry const* startPos = bg->GetTeamStartPosition(teamId);
+        if (!startPos)
+            return;
+
+        Position pos(startPos->Loc);
+        pos.m_positionX += frand(-3.0f, 3.0f);
+        pos.m_positionY += frand(-3.0f, 3.0f);
+
+        Creature* newBot = bgMap->SummonCreature(entry, pos);
+        if (!newBot)
+            return;
+
+        newBot->SetPvP(true);
+        FSBBattleground::AddBotSpawnGuid(bgMap, newBot->GetGUID());
+
+        TC_LOG_INFO("scripts.fsb.battleground", "FSB WSG: Respawned bot {} for team {} after despawn", newBot->GetEntry(), botTeam);
+    }
+
     bool IsInBG(Creature const* bot)
     {
         if (!bot)
