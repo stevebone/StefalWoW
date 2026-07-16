@@ -23,6 +23,7 @@
 #pragma once
 
 #include "Define.h"
+#include "GameObject.h"
 #include "Position.h"
 
 class Creature;
