@@ -105,6 +105,8 @@ namespace ScriptHelpers
         uint32 HealingDone = 0;
         uint32 FlagReturns = 0;
         uint32 FlagCaptures = 0;
+        uint32 BasesAssaulted = 0;
+        uint32 BasesDefended = 0;
     };
 
     TC_GAME_API void RecordBotKillingBlow(ObjectGuid botGuid);
@@ -114,10 +116,17 @@ namespace ScriptHelpers
     TC_GAME_API void RecordBotHealingDone(ObjectGuid botGuid, uint32 heal);
     TC_GAME_API void RecordBotFlagReturn(ObjectGuid botGuid);
     TC_GAME_API void RecordBotFlagCapture(ObjectGuid botGuid);
+    TC_GAME_API void RecordBotBaseAssaulted(ObjectGuid botGuid);
+    TC_GAME_API void RecordBotBaseDefended(ObjectGuid botGuid);
     TC_GAME_API BotScoreData const* GetBotScore(ObjectGuid botGuid);
     TC_GAME_API void EraseBotScore(ObjectGuid botGuid);
 
     TC_GAME_API void AddBotsToPvPLogData(BattlegroundMap* battlegroundMap, WorldPackets::Battleground::PVPMatchStatistics& pvpLogData);
+    TC_GAME_API uint32 GetAliveBotCountByTeam(BattlegroundMap* battlegroundMap, Team team);
+
+    TC_GAME_API void SetHiredBotCount(uint64 playerGuid, uint8 count);
+    TC_GAME_API uint8 GetHiredBotCount(uint64 playerGuid);
+    TC_GAME_API void EraseHiredBotCount(uint64 playerGuid);
 
     constexpr uint32 DATA_BOT_CAPTURED_FLAG = 100;
 }

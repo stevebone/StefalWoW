@@ -615,6 +615,18 @@ namespace ScriptHelpers
         ++score.FlagCaptures;
     }
 
+    void RecordBotBaseAssaulted(ObjectGuid botGuid)
+    {
+        BotScoreData& score = BotScores[botGuid];
+        ++score.BasesAssaulted;
+    }
+
+    void RecordBotBaseDefended(ObjectGuid botGuid)
+    {
+        BotScoreData& score = BotScores[botGuid];
+        ++score.BasesDefended;
+    }
+
     BotScoreData const* GetBotScore(ObjectGuid botGuid)
     {
         auto it = BotScores.find(botGuid);
@@ -657,6 +669,8 @@ namespace ScriptHelpers
             uint32 healingDone = 0;
             uint32 flagReturns = 0;
             uint32 flagCaptures = 0;
+            uint32 basesAssaulted = 0;
+            uint32 basesDefended = 0;
             if (BotScoreData const* score = GetBotScore(guid))
             {
                 killingBlows = score->KillingBlows;
@@ -666,6 +680,8 @@ namespace ScriptHelpers
                 healingDone = score->HealingDone;
                 flagReturns = score->FlagReturns;
                 flagCaptures = score->FlagCaptures;
+                basesAssaulted = score->BasesAssaulted;
+                basesDefended = score->BasesDefended;
             }
 
             AddCreatureToPvPLogData(pvpLogData, guid, GetBotRace(guid), creature->GetClass(), creature->GetGender(), creature->GetEntry(), team, killingBlows, honorableKills, deaths, damageDone, healingDone);
@@ -674,6 +690,8 @@ namespace ScriptHelpers
             {
                 constexpr uint32 PVP_STAT_FLAG_CAPTURES = 928;
                 constexpr uint32 PVP_STAT_FLAG_RETURNS = 929;
+                constexpr uint32 PVP_STAT_BASES_ASSAULTED = 926;
+                constexpr uint32 PVP_STAT_BASES_DEFENDED = 927;
                 auto& botEntry = pvpLogData.Statistics.back();
                 for (uint32 statId : *pvpStatIds)
                 {
@@ -682,6 +700,10 @@ namespace ScriptHelpers
                         value = int32(flagCaptures);
                     else if (statId == PVP_STAT_FLAG_RETURNS)
                         value = int32(flagReturns);
+                    else if (statId == PVP_STAT_BASES_ASSAULTED)
+                        value = int32(basesAssaulted);
+                    else if (statId == PVP_STAT_BASES_DEFENDED)
+                        value = int32(basesDefended);
                     botEntry.Stats.emplace_back(int32(statId), value);
                 }
             }
@@ -689,5 +711,44 @@ namespace ScriptHelpers
 
         pvpLogData.PlayerCount[PVP_TEAM_ALLIANCE] += botCountAlliance;
         pvpLogData.PlayerCount[PVP_TEAM_HORDE] += botCountHorde;
+    }
+
+    uint32 GetAliveBotCountByTeam(BattlegroundMap* battlegroundMap, Team team)
+    {
+        if (!battlegroundMap)
+            return 0;
+
+        uint32 count = 0;
+        for (auto const& [guid, creature] : battlegroundMap->GetObjectsStore().Data.Head)
+        {
+            if (!creature || !creature->IsBot() || !creature->IsAlive())
+                continue;
+
+            if (GetBotTeam(creature) == team)
+                ++count;
+        }
+
+        return count;
+    }
+
+    std::unordered_map<uint64, uint8> HiredBotCounts;
+
+    void SetHiredBotCount(uint64 playerGuid, uint8 count)
+    {
+        HiredBotCounts[playerGuid] = count;
+    }
+
+    uint8 GetHiredBotCount(uint64 playerGuid)
+    {
+        auto it = HiredBotCounts.find(playerGuid);
+        if (it != HiredBotCounts.end())
+            return it->second;
+
+        return 0;
+    }
+
+    void EraseHiredBotCount(uint64 playerGuid)
+    {
+        HiredBotCounts.erase(playerGuid);
     }
 }

@@ -38,6 +38,8 @@
 #include "Followship_bots_events_handler.h"
 #include "Followship_bots_movement_handler.h"
 
+#include "ScriptHelpers.h"
+
 namespace FSBBattleground::ArathiBasin
 {
     void SetBotState(Creature* bot, FSB_BattlegroundData* bgData, ABState newState)
@@ -215,6 +217,14 @@ namespace FSBBattleground::ArathiBasin
 
         TC_LOG_DEBUG("scripts.fsb.battleground", "FSB AB: Bot {} assaulting capture point {} state {}",
             bot->GetName(), capturePoint->GetEntry(), static_cast<uint32>(bgData->abState));
+
+        Team botTeam = FSBBattleground::GetBotTeam(bot);
+        TeamId botTeamId = (botTeam == HORDE) ? TEAM_HORDE : TEAM_ALLIANCE;
+
+        if (capturePoint->GetGOValue()->CapturePoint.LastTeamCapture == botTeamId)
+            ScriptHelpers::RecordBotBaseDefended(bot->GetGUID());
+        else
+            ScriptHelpers::RecordBotBaseAssaulted(bot->GetGUID());
 
         capturePoint->AssaultCapturePoint(bot);
     }
