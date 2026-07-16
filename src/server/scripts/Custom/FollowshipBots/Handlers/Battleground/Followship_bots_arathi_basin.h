@@ -23,6 +23,7 @@
 #pragma once
 
 #include "Define.h"
+#include "Position.h"
 
 class Creature;
 class BattlegroundMap;
