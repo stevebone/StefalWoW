@@ -110,4 +110,6 @@ namespace FSBGossip
     void HandleGossipItemRole(Creature* bot, FSB_Class botClass, uint8 roleOption, bool& botHasDemon);
     bool HandleGossipItemHirePermanent(Creature* bot, Player* player);
     bool HandleGossipItemHire(Creature* bot, Player* player, uint32 durationHours);
+
+    bool HandleGossipSelect(Creature* bot, ObjectGuid playerGuid, uint32 menuId, uint32 gossipListId);
 }
