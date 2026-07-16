@@ -148,6 +148,12 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
     {
         FSBDeath::HandleBattlegroundGraveyardResurrect(bot);
         ScheduleBotEvent(FSB_EVENT_HIRED_RESUME_FOLLOW, 1s);
+
+        if (FSB_BattlegroundData* bgData = ai->GetBattlegroundData())
+        {
+            if (bgData->bgTypeId == BATTLEGROUND_AB || bgData->bgTypeId == BATTLEGROUND_DOM_AB || bgData->bgTypeId == BATTLEGROUND_AB_CS || bgData->bgTypeId == BATTLEGROUND_BRAWL_AB2)
+                ScheduleBotEvent(FSB_EVENT_AB_REROLL_STATE, 2s);
+        }
         break;
     }
 
@@ -178,7 +184,7 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
             {
                 if (bgData->abState == FSBBattleground::ArathiBasin::ABState::None)
                     FSBBattleground::ArathiBasin::SetBotState(bot, bgData,
-                        FSBBattleground::ArathiBasin::GetABBotState(bot));
+                        FSBBattleground::ArathiBasin::RollNewABState(bot, bot->GetMap()->ToBattlegroundMap()));
 
                 ScheduleBotEvent(FSB_EVENT_AB_CHECK_CAPTURE, 5s);
             }
@@ -239,6 +245,27 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
             {
                 FSBBattleground::ArathiBasin::CheckCapturePointState(bot, bgData);
                 ScheduleBotEvent(FSB_EVENT_AB_CHECK_CAPTURE, 3s, 5s);
+            }
+        }
+        break;
+    }
+
+    case FSB_EVENT_AB_REROLL_STATE:
+    {
+        if (FSB_BattlegroundData* bgData = ai->GetBattlegroundData())
+        {
+            if (bgData->bgTypeId == BATTLEGROUND_AB || bgData->bgTypeId == BATTLEGROUND_DOM_AB || bgData->bgTypeId == BATTLEGROUND_AB_CS || bgData->bgTypeId == BATTLEGROUND_BRAWL_AB2)
+            {
+                if (!bot->IsAlive())
+                    break;
+
+                BattlegroundMap* bgMap = bot->GetMap()->ToBattlegroundMap();
+                if (!bgMap)
+                    break;
+
+                FSBBattleground::ArathiBasin::SetBotState(bot, bgData,
+                    FSBBattleground::ArathiBasin::RollNewABState(bot, bgMap));
+                FSBBattleground::ArathiBasin::UpdateBot(bot, bgData);
             }
         }
         break;
@@ -619,6 +646,10 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
         FSBDeadmines::Encounters::HandleCaptainCookieFoodCycle(bot);
         break;
     }
+
+    case FSB_EVENT_RECOVERY_END:
+        ai->botGenericData.isRecovering = false;
+        break;
 
     default:
         break;

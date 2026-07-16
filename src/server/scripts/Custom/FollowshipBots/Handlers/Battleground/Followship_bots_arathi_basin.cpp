@@ -46,14 +46,70 @@ namespace FSBBattleground::ArathiBasin
             return;
 
         bgData->abState = newState;
+        bgData->abCaptureTimer = 0;
 
         if (newState != ABState::None)
             FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_BATTLEGROUND_STATE_CHAT, 2s, 10s);
     }
 
-    ABState GetABBotState(Creature* /*bot*/)
+    GameObject* FindCapturePointByEntry(BattlegroundMap* bgMap, uint32 entry)
     {
-        std::vector<ABState> available = {
+        if (!bgMap || !entry)
+            return nullptr;
+
+        for (auto const& [guid, go] : bgMap->GetObjectsStore().Data.FindContainer<GameObject>())
+        {
+            if (go && go->GetEntry() == entry)
+                return go;
+        }
+
+        return nullptr;
+    }
+
+    bool IsNodeOwnedByTeam(GameObject* capturePoint, Team team)
+    {
+        if (!capturePoint)
+            return false;
+
+        auto const& state = capturePoint->GetGOValue()->CapturePoint.State;
+        if (team == ALLIANCE)
+            return state == WorldPackets::Battleground::BattlegroundCapturePointState::AllianceCaptured;
+        if (team == HORDE)
+            return state == WorldPackets::Battleground::BattlegroundCapturePointState::HordeCaptured;
+        return false;
+    }
+
+    uint32 CountBotsOnState(Creature* bot, BattlegroundMap* bgMap, ABState state)
+    {
+        if (!bot || !bgMap)
+            return 0;
+
+        std::vector<Creature*> teamBots = FSBBattleground::CollectBotsOnTeam(bgMap, FSBBattleground::GetBotTeam(bot));
+
+        uint32 count = 0;
+        for (Creature* otherBot : teamBots)
+        {
+            if (!otherBot || otherBot == bot)
+                continue;
+
+            FSB_BaseAI* otherAI = dynamic_cast<FSB_BaseAI*>(otherBot->AI());
+            if (!otherAI)
+                continue;
+
+            FSB_BattlegroundData* otherData = otherAI->GetBattlegroundData();
+            if (!otherData)
+                continue;
+
+            if (otherData->abState == state)
+                ++count;
+        }
+
+        return count;
+    }
+
+    ABState RollNewABState(Creature* bot, BattlegroundMap* bgMap)
+    {
+        std::vector<ABState> allAttackStates = {
             ABState::AttackStables,
             ABState::AttackMine,
             ABState::AttackMill,
@@ -61,7 +117,69 @@ namespace FSBBattleground::ArathiBasin
             ABState::AttackFarm
         };
 
-        return available[urand(0, available.size() - 1)];
+        std::vector<ABState> allDefendStates = {
+            ABState::DefendStables,
+            ABState::DefendMine,
+            ABState::DefendMill,
+            ABState::DefendBlacksmith,
+            ABState::DefendFarm
+        };
+
+        if (!bot || !bgMap)
+            return allAttackStates[urand(0, allAttackStates.size() - 1)];
+
+        Team team = FSBBattleground::GetBotTeam(bot);
+        if (team != ALLIANCE && team != HORDE)
+            return allAttackStates[urand(0, allAttackStates.size() - 1)];
+
+        struct NodeEntry { uint32 entry; ABState attack; ABState defend; };
+        static const NodeEntry nodes[] = {
+            { BG_AB_OBJECTID_CAPTURE_POINT_STABLES,     ABState::AttackStables,    ABState::DefendStables },
+            { BG_AB_OBJECTID_CAPTURE_POINT_GOLD_MINE,   ABState::AttackMine,       ABState::DefendMine },
+            { BG_AB_OBJECTID_CAPTURE_POINT_LUMBER_MILL, ABState::AttackMill,       ABState::DefendMill },
+            { BG_AB_OBJECTID_CAPTURE_POINT_BLACKSMITH,  ABState::AttackBlacksmith, ABState::DefendBlacksmith },
+            { BG_AB_OBJECTID_CAPTURE_POINT_FARM,        ABState::AttackFarm,       ABState::DefendFarm }
+        };
+
+        // Tier 1: Attack nodes not owned by bot team, respecting MAX_ATTACKERS_PER_POINT
+        std::vector<ABState> attackCandidates;
+        for (auto const& node : nodes)
+        {
+            GameObject* cp = FindCapturePointByEntry(bgMap, node.entry);
+            if (!cp)
+                continue;
+
+            if (!IsNodeOwnedByTeam(cp, team))
+            {
+                if (CountBotsOnState(bot, bgMap, node.attack) < MAX_ATTACKERS_PER_POINT)
+                    attackCandidates.push_back(node.attack);
+            }
+        }
+
+        if (!attackCandidates.empty())
+            return attackCandidates[urand(0, attackCandidates.size() - 1)];
+
+        // Tier 2: Defend nodes owned by bot team, respecting MAX_DEFENDERS_PER_POINT
+        std::vector<ABState> defendCandidates;
+        for (auto const& node : nodes)
+        {
+            GameObject* cp = FindCapturePointByEntry(bgMap, node.entry);
+            if (!cp)
+                continue;
+
+            if (IsNodeOwnedByTeam(cp, team))
+            {
+                if (CountBotsOnState(bot, bgMap, node.defend) < MAX_DEFENDERS_PER_POINT)
+                    defendCandidates.push_back(node.defend);
+            }
+        }
+
+        if (!defendCandidates.empty())
+            return defendCandidates[urand(0, defendCandidates.size() - 1)];
+
+        // Tier 3: Fallback - pick a random defend state (override cap)
+        TC_LOG_DEBUG("scripts.fsb.battleground", "FSB AB: Bot {} re-roll fallback to random defend (all caps full)", bot->GetName());
+        return allDefendStates[urand(0, allDefendStates.size() - 1)];
     }
 
     GameObject* FindCapturePoint(Creature* bot, FSB_BattlegroundData* bgData)
@@ -115,6 +233,47 @@ namespace FSBBattleground::ArathiBasin
                 || s == ABState::AttackBlacksmith || s == ABState::AttackFarm;
         };
 
+        auto isDefendState = [](ABState s)
+        {
+            return s == ABState::DefendStables || s == ABState::DefendMine || s == ABState::DefendMill
+                || s == ABState::DefendBlacksmith || s == ABState::DefendFarm;
+        };
+
+        Team botTeam = FSBBattleground::GetBotTeam(bot);
+        if (botTeam != ALLIANCE && botTeam != HORDE)
+            return;
+
+        // Handle defend states: check if node is still owned by bot team
+        if (isDefendState(bgData->abState))
+        {
+            GameObject* capturePoint = FindCapturePoint(bot, bgData);
+            if (!capturePoint)
+                return;
+
+            if (!IsNodeOwnedByTeam(capturePoint, botTeam))
+            {
+                ABState attackState = GetAttackStateForDefend(bgData->abState);
+                if (attackState == ABState::None)
+                    return;
+
+                BattlegroundMap* bgMap = bot->GetMap()->ToBattlegroundMap();
+                if (bgMap && CountBotsOnState(bot, bgMap, attackState) < MAX_ATTACKERS_PER_POINT)
+                {
+                    TC_LOG_DEBUG("scripts.fsb.battleground", "FSB AB: Bot {} lost node, switching {} -> {}",
+                        bot->GetName(), static_cast<uint32>(bgData->abState), static_cast<uint32>(attackState));
+                    SetBotState(bot, bgData, attackState);
+                }
+                else
+                {
+                    TC_LOG_DEBUG("scripts.fsb.battleground", "FSB AB: Bot {} lost node but attack cap full, re-rolling",
+                        bot->GetName());
+                    SetBotState(bot, bgData, ABState::None);
+                    FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_AB_REROLL_STATE, 2s);
+                }
+            }
+            return;
+        }
+
         if (!isAttackState(bgData->abState))
             return;
 
@@ -122,24 +281,50 @@ namespace FSBBattleground::ArathiBasin
         if (!capturePoint)
             return;
 
-        Team botTeam = FSBBattleground::GetBotTeam(bot);
-        if (botTeam != ALLIANCE && botTeam != HORDE)
-            return;
-
-        auto const& state = capturePoint->GetGOValue()->CapturePoint.State;
-        bool ownedByBotTeam = (botTeam == ALLIANCE && state == WorldPackets::Battleground::BattlegroundCapturePointState::AllianceCaptured)
-            || (botTeam == HORDE && state == WorldPackets::Battleground::BattlegroundCapturePointState::HordeCaptured);
-
-        if (ownedByBotTeam)
+        // Check if node is already captured by bot's team -> switch to defend
+        if (IsNodeOwnedByTeam(capturePoint, botTeam))
         {
             ABState defendState = GetDefendStateForAttack(bgData->abState);
-            if (defendState != ABState::None)
+            if (defendState == ABState::None)
+                return;
+
+            BattlegroundMap* bgMap = bot->GetMap()->ToBattlegroundMap();
+            if (bgMap && CountBotsOnState(bot, bgMap, defendState) < MAX_DEFENDERS_PER_POINT)
             {
                 TC_LOG_DEBUG("scripts.fsb.battleground", "FSB AB: Bot {} node captured, switching {} -> {}",
                     bot->GetName(), static_cast<uint32>(bgData->abState), static_cast<uint32>(defendState));
                 SetBotState(bot, bgData, defendState);
             }
+            else
+            {
+                TC_LOG_DEBUG("scripts.fsb.battleground", "FSB AB: Bot {} node captured but defender cap full, re-rolling",
+                    bot->GetName());
+                SetBotState(bot, bgData, ABState::None);
+                FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_AB_REROLL_STATE, 2s);
+            }
+            return;
         }
+
+        // Timer countdown - wait before assaulting
+        if (bgData->abCaptureTimer > 0)
+        {
+            if (bgData->abCaptureTimer >= 3000)
+                bgData->abCaptureTimer -= 3000;
+            else
+                bgData->abCaptureTimer = 0;
+
+            if (bgData->abCaptureTimer > 0)
+                return;
+        }
+
+        // Timer is 0 - only assault if close enough and not in combat
+        if (bot->GetDistance(capturePoint) > 5.0f)
+            return;
+
+        if (bot->IsInCombat())
+            return;
+
+        TryAssaultCapturePoint(bot, bgData);
     }
 
     void UpdateBot(Creature* bot, FSB_BattlegroundData* bgData)
@@ -161,6 +346,23 @@ namespace FSBBattleground::ArathiBasin
         if (bg->GetStatus() != STATUS_IN_PROGRESS)
             return;
 
+        MovementGeneratorType moveType = FSBMovement::GetMovementType(bot);
+        if (moveType == POINT_MOTION_TYPE || moveType == EFFECT_MOTION_TYPE || moveType == CHASE_MOTION_TYPE)
+            return;
+
+        auto isDefendState = [](ABState s)
+            {
+                return s == ABState::DefendStables || s == ABState::DefendMine || s == ABState::DefendMill
+                    || s == ABState::DefendBlacksmith || s == ABState::DefendFarm;
+            };
+
+        FSB_BaseAI* baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
+            return;
+
+        if (isDefendState(bgData->abState) && (bot->IsInCombat() || baseAI->botGenericData.isRecovering))
+            return;
+
         GameObject* capturePoint = FindCapturePoint(bot, bgData);
         if (!capturePoint)
         {
@@ -174,13 +376,6 @@ namespace FSBBattleground::ArathiBasin
             return s == ABState::AttackStables || s == ABState::AttackMine || s == ABState::AttackMill
                 || s == ABState::AttackBlacksmith || s == ABState::AttackFarm;
         };
-
-        // If in attack state and close enough to the capture point, assault it
-        if (isAttackState(bgData->abState) && bot->GetDistance(capturePoint) < 10.0f)
-        {
-            TryAssaultCapturePoint(bot, bgData);
-            return;
-        }
 
         Position const& goPos = capturePoint->GetPosition();
 
@@ -202,11 +397,15 @@ namespace FSBBattleground::ArathiBasin
             return;
 
         if (id == FSBMovement::MOVEMENT_POINT_AB_ATTACK_NODE)
+        {
+            bgData->abCaptureTimer = 10000;
+            FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_AB_CHECK_CAPTURE, 1s);
             return;
+        }
 
         if (id == FSBMovement::MOVEMENT_POINT_AB_DEFEND_NODE)
         {
-            UpdateBot(bot, bgData);
+            // No-op; the tick handles the re-shuffle.
             return;
         }
     }
