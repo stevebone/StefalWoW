@@ -145,7 +145,54 @@ namespace FSBBattlegroundChat
         "Shielding our runner, keep the [enemyTeam] away!"
     }};
 
-    inline std::string GetStateChatMessage(uint32 bgTypeId, Team botTeam, BGChatState state)
+    // AB state chat messages (10 per category, with [node] placeholder)
+
+    static constexpr inline std::array<std::string_view, 10> ABAttackMessages = {{
+        "Heading to the [node], need backup!",
+        "Rushing the [node], cover me!",
+        "Going for the [node], let's take it!",
+        "Assaulting the [node], don't let them stop us!",
+        "Pushing the [node], send help if you can!",
+        "I'm on my way to the [node], watch my flank!",
+        "Time to cap the [node], let's move!",
+        "Attacking the [node], keep the [enemyTeam] busy!",
+        "Making a play for the [node], support me!",
+        "The [node] is ours for the taking, charging in!"
+    }};
+
+    static constexpr inline std::array<std::string_view, 10> ABDefendMessages = {{
+        "Holding the [node], don't let them through!",
+        "Defending the [node], I've got this!",
+        "Staying at the [node], nothing gets past me.",
+        "Guarding the [node], we can't lose it!",
+        "I'm on defense at the [node], hold the line!",
+        "The [node] is safe with me, focus elsewhere.",
+        "Locking down the [node], no [enemyTeam] getting in!",
+        "Standing guard at the [node], stay sharp!",
+        "Keeping the [node] secure, don't worry about this one.",
+        "Defense duty at the [node], I'll hold it down."
+    }};
+
+    inline std::string GetABNodeName(uint8 abState)
+    {
+        switch (abState)
+        {
+        case 1:  return "Stables";
+        case 2:  return "Gold Mine";
+        case 3:  return "Lumber Mill";
+        case 4:  return "Blacksmith";
+        case 5:  return "Farm";
+        case 6:  return "Stables";
+        case 7:  return "Gold Mine";
+        case 8:  return "Lumber Mill";
+        case 9:  return "Blacksmith";
+        case 10: return "Farm";
+        default: return "a node";
+        }
+    }
+
+    inline std::string GetStateChatMessage(uint32 bgTypeId, Team botTeam, BGChatState state,
+        std::string const& nodeName = "")
     {
         if (state == BGChatState::None)
             return "";
@@ -175,10 +222,28 @@ namespace FSBBattlegroundChat
                 break;
             }
         }
+        else if (bgTypeId == BATTLEGROUND_AB || bgTypeId == BATTLEGROUND_DOM_AB ||
+                 bgTypeId == BATTLEGROUND_AB_CS || bgTypeId == BATTLEGROUND_BRAWL_AB2)
+        {
+            switch (state)
+            {
+            case BGChatState::Attack:
+                msg = ABAttackMessages[urand(0, ABAttackMessages.size() - 1)];
+                break;
+            case BGChatState::Defend:
+                msg = ABDefendMessages[urand(0, ABDefendMessages.size() - 1)];
+                break;
+            default:
+                break;
+            }
+        }
 
         if (msg.empty())
             return "";
 
-        return FormatChatLine(std::string(msg), botTeam);
+        std::string result = FormatChatLine(std::string(msg), botTeam);
+        if (!nodeName.empty())
+            FSBChatter::ReplaceAll(result, "[node]", nodeName);
+        return result;
     }
 }

@@ -302,9 +302,15 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
                 default:
                     break;
                 }
+
+                std::string msg = FSBBattlegroundChat::GetStateChatMessage(bgData->bgTypeId, botTeam, chatState);
+                if (!msg.empty())
+                    FSBGenAIPrompts::DispatchBotBattlegroundStateChat(bot, bgData->bgTypeId, botTeam, chatState, msg);
             }
             else if (bgData->bgTypeId == BATTLEGROUND_AB || bgData->bgTypeId == BATTLEGROUND_DOM_AB || bgData->bgTypeId == BATTLEGROUND_AB_CS || bgData->bgTypeId == BATTLEGROUND_BRAWL_AB2)
             {
+                std::string nodeName = FSBBattlegroundChat::GetABNodeName(static_cast<uint8>(bgData->abState));
+
                 switch (bgData->abState)
                 {
                 case FSBBattleground::ArathiBasin::ABState::AttackStables:
@@ -324,14 +330,14 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
                 default:
                     break;
                 }
+
+                std::string msg = FSBBattlegroundChat::GetStateChatMessage(bgData->bgTypeId, botTeam, chatState, nodeName);
+                if (!msg.empty())
+                    FSBGenAIPrompts::DispatchBotBattlegroundStateChat(bot, bgData->bgTypeId, botTeam, chatState, msg, nodeName);
             }
 
-            std::string msg = FSBBattlegroundChat::GetStateChatMessage(bgData->bgTypeId, botTeam, chatState);
-            if (!msg.empty())
-                FSBGenAIPrompts::DispatchBotBattlegroundStateChat(bot, bgData->bgTypeId, botTeam, chatState, msg);
+            break;
         }
-        break;
-    }
 
     case FSB_EVENT_BATTLEGROUND_TICK:
     {

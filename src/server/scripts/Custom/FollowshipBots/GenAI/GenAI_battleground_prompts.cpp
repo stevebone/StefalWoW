@@ -144,7 +144,8 @@ namespace FSBGenAIPrompts
     }
 
     void DispatchBotBattlegroundStateChat(Creature* bot, uint32 bgTypeId, Team botTeam,
-        FSBBattlegroundChat::BGChatState state, std::string const& fallbackMsg)
+        FSBBattlegroundChat::BGChatState state, std::string const& fallbackMsg,
+        std::string const& nodeName)
     {
         (void)bgTypeId;
 
@@ -171,13 +172,18 @@ namespace FSBGenAIPrompts
         std::string enemyTeam = GetEnemyTeamName(botTeam);
         std::string stateText = GetStateText(state);
 
+        std::string nodeContext;
+        if (!nodeName.empty())
+            nodeContext = Trinity::StringFormat(" You are focusing on the {}.", nodeName);
+
         std::string userMessage = Trinity::StringFormat(
-            "The current battleground objective is: {}.\n"
+            "The current battleground objective is: {}.{}\n"
             "You are in battleground {}.\n"
             "Your team is {}; the enemy team is {}.\n"
             "Say a short, natural line to your team in raid chat that reflects this objective.\n\n"
             "Example style (do not copy): \"{}\"",
             stateText,
+            nodeContext,
             bgName,
             ownTeam,
             enemyTeam,

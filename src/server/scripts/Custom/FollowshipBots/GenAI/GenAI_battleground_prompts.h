@@ -32,5 +32,6 @@ namespace FSBGenAIPrompts
 {
     void DispatchBotBattlegroundSpawnChat(Creature* bot, std::string const& seedMsg);
     void DispatchBotBattlegroundStateChat(Creature* bot, uint32 bgTypeId, Team botTeam,
-        FSBBattlegroundChat::BGChatState state, std::string const& fallbackMsg);
+        FSBBattlegroundChat::BGChatState state, std::string const& fallbackMsg,
+        std::string const& nodeName = "");
 }
