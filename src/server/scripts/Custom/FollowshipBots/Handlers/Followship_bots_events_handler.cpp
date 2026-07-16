@@ -336,8 +336,9 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
                     FSBGenAIPrompts::DispatchBotBattlegroundStateChat(bot, bgData->bgTypeId, botTeam, chatState, msg, nodeName);
             }
 
-            break;
         }
+        break;
+    }
 
     case FSB_EVENT_BATTLEGROUND_TICK:
     {
