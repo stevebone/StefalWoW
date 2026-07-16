@@ -259,6 +259,9 @@ INSERT INTO `bot_templates` (`entry`, `bot_class`, `bot_race`, `companion_spell`
 (63332,10,15,0,13,1,0),
 (164952,6,5,0,5,0,0);
 
+INSERT INTO `bot_templates` (`entry`, `bot_class`, `bot_race`, `companion_spell`, `chatter_type`, `gender`, `pet_source`) VALUES
+(62913,6,1,0,2,0,0);
+
 
 -- Bot chatter lines: emote_kiss (category = 30)
 INSERT INTO `bot_chatter_lines` (`zoneId`, `fsbRaceId`, `fsbClassId`, `category`, `chatter_type`, `line_text`, `comment`) VALUES
