@@ -34,6 +34,9 @@ enum class FSBBuffTargetScope
 
 namespace FSBBuffs
 {
+    // Predict whether any buff targets exist for the given scope without casting.
+    bool BotHasAnyBuffTargets(Creature* bot, FSBBuffTargetScope scope);
+
     // Try to cast one missing buff. Returns true if a cast was issued this tick.
     bool BotCastGenericBuff(Creature* bot, FSBBuffTargetScope scope, uint32& outSpellId);
 
