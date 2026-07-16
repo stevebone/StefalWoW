@@ -348,7 +348,4 @@ namespace FSBBattleground::WarsongGulch
     bool IsEnemyFlagTaken(Creature* bot);
     bool IsOwnFlagInBase(Creature* bot);
     WSGState GetWSGBotState(Creature* bot, WSGState currentState);
-
-    // Re-summons a bot at its team's start position when it despawns during an in-progress WSG match.
-    void RespawnBotOnDespawn(Creature* bot);
 }

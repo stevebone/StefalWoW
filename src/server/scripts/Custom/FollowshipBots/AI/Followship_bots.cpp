@@ -99,7 +99,7 @@ public:
         {
             if (me && me->GetMap() && me->GetMap()->IsBattleground())
             {
-                FSBBattleground::WarsongGulch::RespawnBotOnDespawn(me);
+                FSBBattleground::RespawnBotOnDespawn(me);
                 ScriptHelpers::EraseBotScore(me->GetGUID());
                 ScriptHelpers::EraseBotRace(me->GetGUID());
             }
