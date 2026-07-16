@@ -129,6 +129,19 @@ namespace FSBRecovery
         return Trinity::Containers::SelectRandomContainerElement(recoveryActions);
     }
 
+    void MarkRecoveryStarted(Creature* bot, uint32 duration)
+    {
+        if (!bot)
+            return;
+
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
+            return;
+
+        baseAI->botGenericData.isRecovering = true;
+        FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_RECOVERY_END, std::chrono::milliseconds(duration));
+    }
+
     bool BotActionDrinkEat(Creature* bot, uint32& globalCooldown, uint32& outSpell, uint8 drinkOrEat)
     {
         if (!bot)
@@ -161,6 +174,7 @@ namespace FSBRecovery
             {
                 globalCooldown = now + 30000; // set cooldown to 30s to not interrup the drink spell which lasts 30 seconds max
                 outSpell = RAND(SPELL_DRINK_CONJURED_CRYSTAL_WATER, SPELL_FOOD_SCALED_WITH_LVL);
+                MarkRecoveryStarted(bot, globalCooldown - now);
                 return true;
             }
         }
@@ -180,6 +194,7 @@ namespace FSBRecovery
             {
                 globalCooldown = now + 30000; // set cooldown to 30s to not interrup the drink spell which lasts 30 seconds max
                 outSpell = spellId;
+                MarkRecoveryStarted(bot, globalCooldown - now);
                 return true;
             }
         }
@@ -199,6 +214,7 @@ namespace FSBRecovery
             {
                 globalCooldown = now + 30000; // set cooldown to 30s to not interrup the drink spell which lasts 30 seconds max
                 outSpell = spellId;
+                MarkRecoveryStarted(bot, globalCooldown - now);
                 return true;
             }
         }
@@ -220,6 +236,7 @@ namespace FSBRecovery
             {
                 globalCooldown = now + 30000; // set cooldown to 30s to not interrup the drink spell which lasts 30 seconds max
                 outSpell = spellId;
+                MarkRecoveryStarted(bot, globalCooldown - now);
                 return true;
             }
         }
@@ -239,6 +256,7 @@ namespace FSBRecovery
             {
                 globalCooldown = now + 10000; // set cooldown to 30s to not interrup the drink spell which lasts 30 seconds max
                 outSpell = spellId;
+                MarkRecoveryStarted(bot, globalCooldown - now);
                 return true;
             }
         }
@@ -268,6 +286,7 @@ namespace FSBRecovery
             {
                 globalCooldown = now + 1500; // set cooldown to 30s to not interrup the drink spell which lasts 30 seconds max
                 outSpell = spellId;
+                MarkRecoveryStarted(bot, globalCooldown - now);
                 return true;
             }
         }
@@ -290,6 +309,7 @@ namespace FSBRecovery
                 TC_LOG_DEBUG("scripts.fsb.ooc", "FSB: RecoveryAction Race Heal cast result: {}", result);
                 globalCooldown = now + 1500; // set cooldown to 30s to not interrup the drink spell which lasts 30 seconds max
                 outSpell = spellId;
+                MarkRecoveryStarted(bot, globalCooldown - now);
                 return true;
             }
             else TC_LOG_DEBUG("scripts.fsb.ooc", "FSB: RecoveryAction Race Heal cast result not ok: {}", result);
@@ -427,6 +447,10 @@ namespace FSBRecovery
         if (!bot || !bot->IsAlive())
             return false;
 
+        if (auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI()))
+            if (baseAI->botGenericData.isRecovering)
+                return true;
+
         return bot->HasAura(SPELL_FOOD_SCALED_WITH_LVL)
             || bot->HasAura(SPELL_MAGE_CONJURED_MANA_PUDDING)
             || bot->HasAura(SPELL_DRINK_CONJURED_CRYSTAL_WATER)
@@ -459,6 +483,9 @@ namespace FSBRecovery
             bot->RemoveAurasDueToSpell(SPELL_MAGE_CONJURED_MANA_PUDDING);
 
         if (!BotHasRecoveryActive(bot))
+        {
+            baseAI->botGenericData.isRecovering = false;
             FSBMovement::ResumeFollow(bot, baseAI->botFollowDistance, baseAI->botFollowAngle);
+        }
     }
 }
