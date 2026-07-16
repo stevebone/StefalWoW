@@ -1281,7 +1281,8 @@ namespace FSBGenAIPrompts
             return;
         }
 
-        std::string seedLine = FSBChatter::GetRandomReply(bot, nullptr, FSB_ChatterCategory::emote_talk, FSB_ChatterType::None, 0, 0);
+        FSB_ChatterType personalityType = FSBMgr::Get()->GetBotChatterTypeForEntry(bot->GetEntry());
+        std::string seedLine = FSBChatter::GetRandomReply(bot, nullptr, FSB_ChatterCategory::emote_talk, personalityType, 0, 0);
 
         std::string systemPrompt = BuildStandardSystemPrompt(bot);
 
