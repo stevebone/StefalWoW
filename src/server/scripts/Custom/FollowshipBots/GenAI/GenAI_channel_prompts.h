@@ -522,9 +522,41 @@ namespace FSBChannelPrompts
         uint32      level = 0;
     };
 
-    std::string GenerateTradeMessage(Creature* bot);
-    std::string GenerateLFGMessage(Creature* bot);
-    std::string GenerateGeneralMessage(BotChatContext const& ctx);
+    // --- Async-ready context structs (by-value, safe to pass to threads) ---
+    struct TradeChatContext
+    {
+        std::string systemPrompt;
+        std::string userPrompt;
+        std::string itemLink;
+        std::string itemName;
+        std::string areaName;
+    };
+
+    struct LFGChatContext
+    {
+        std::string systemPrompt;
+        std::string userPrompt;
+        std::string dungeonName;
+    };
+
+    struct GeneralChatContext
+    {
+        std::string systemPrompt;
+        std::string userPrompt;
+        std::string placeholder;
+        std::string replacement;
+    };
+
+    // Prepare (main thread): gather data from Creature*, build prompts, use urand
+    TradeChatContext PrepareTradeMessage(Creature* bot);
+    LFGChatContext PrepareLFGMessage(Creature* bot);
+    GeneralChatContext PrepareGeneralMessage(BotChatContext const& ctx);
+
+    // Generate (worker thread): call LLM API, do post-processing — no TC object access
+    std::string GenerateTradeMessage(TradeChatContext const& ctx);
+    std::string GenerateLFGMessage(LFGChatContext const& ctx);
+    std::string GenerateGeneralMessage(GeneralChatContext const& ctx);
+
     BotChatResponse GenerateReplyToPlayer(BotChatContext const& ctx, PlayerSnapshot const& player, std::string const& playerMsg,
         std::deque<BotChatMemoryEntry> const& memory);
 }

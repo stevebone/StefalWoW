@@ -509,6 +509,133 @@ void FSBChatMgr::HandleBotWhisper(Player* player, Creature* bot, std::string con
     }
 }
 
+void FSBChatMgr::DispatchAsyncRandomChat(Creature* bot, FSBChat::ChatChannelType channel, Unit* attacker)
+{
+    if (!bot)
+        return;
+
+    auto state = std::make_shared<PendingRandomChat>();
+    state->botGuid = bot->GetGUID();
+    state->channelType = channel;
+
+    if (attacker)
+    {
+        state->attackerGuid = attacker->GetGUID();
+        state->hasAttacker = true;
+    }
+
+    if (channel == FSBChat::ChatChannelType::Trade)
+    {
+        FSBChannelPrompts::TradeChatContext ctx = FSBChannelPrompts::PrepareTradeMessage(bot);
+        std::thread([state, ctx]() {
+            try
+            {
+                std::string result = FSBChannelPrompts::GenerateTradeMessage(ctx);
+                {
+                    std::lock_guard<std::mutex> lock(state->mutex);
+                    state->result = std::move(result);
+                }
+            }
+            catch (...) {}
+            state->ready.store(true, std::memory_order_release);
+        }).detach();
+    }
+    else if (channel == FSBChat::ChatChannelType::LFG)
+    {
+        FSBChannelPrompts::LFGChatContext ctx = FSBChannelPrompts::PrepareLFGMessage(bot);
+        std::thread([state, ctx]() {
+            try
+            {
+                std::string result = FSBChannelPrompts::GenerateLFGMessage(ctx);
+                {
+                    std::lock_guard<std::mutex> lock(state->mutex);
+                    state->result = std::move(result);
+                }
+            }
+            catch (...) {}
+            state->ready.store(true, std::memory_order_release);
+        }).detach();
+    }
+    else if (channel == FSBChat::ChatChannelType::General)
+    {
+        FSBChannelPrompts::BotChatContext ctx;
+        ctx.entry = bot->GetEntry();
+        ctx.areaId = bot->GetAreaId();
+        ctx.zoneId = bot->GetZoneId();
+
+        if (WowTime const* wowTime = GameTime::GetWowTime())
+        {
+            int8 hour = wowTime->GetHour();
+            int8 minute = wowTime->GetMinute();
+            if (hour >= 0 && minute >= 0)
+            {
+                char buf[16];
+                snprintf(buf, sizeof(buf), "%02d:%02d", hour, minute);
+                ctx.inGameTime = buf;
+                ctx.inGameHour = hour;
+            }
+        }
+
+        if (Map* map = bot->GetMap())
+        {
+            WeatherState ws = map->GetZoneWeather(bot->GetZoneId());
+            ctx.weather = FSBUtils::WeatherStateToText(ws);
+            ctx.weatherStateRaw = static_cast<uint32>(ws);
+        }
+
+        FSBChannelPrompts::GeneralChatContext genCtx = FSBChannelPrompts::PrepareGeneralMessage(ctx);
+        std::thread([state, genCtx]() {
+            try
+            {
+                std::string result = FSBChannelPrompts::GenerateGeneralMessage(genCtx);
+                {
+                    std::lock_guard<std::mutex> lock(state->mutex);
+                    state->result = std::move(result);
+                }
+            }
+            catch (...) {}
+            state->ready.store(true, std::memory_order_release);
+        }).detach();
+    }
+    else
+        return;
+
+    std::lock_guard<std::mutex> lock(_pendingRandomChatsMutex);
+    _pendingRandomChats.push_back(std::move(state));
+}
+
+void FSBChatMgr::DispatchAsyncMailContent(Creature* bot, Player* player, uint32 amount,
+    std::string const& playerRequest, std::string const& botReply)
+{
+    if (!bot || !player)
+        return;
+
+    FSBMailPrompts::MailGenContext mailCtx = FSBMailPrompts::PrepareMailContext(bot, player, amount, playerRequest, botReply);
+
+    auto state = std::make_shared<PendingMailContent>();
+    state->botGuid = bot->GetGUID();
+    state->playerGuid = player->GetGUID();
+    state->amount = amount;
+    state->botReply = botReply;
+    state->creatureEntry = bot->GetEntry();
+
+    std::thread([state, mailCtx]() {
+        try
+        {
+            FSBMailPrompts::MailContent mail = FSBMailPrompts::GenerateGoldMailContent(mailCtx);
+            {
+                std::lock_guard<std::mutex> lock(state->mutex);
+                state->mailContent = std::move(mail);
+            }
+        }
+        catch (...) {}
+        state->ready.store(true, std::memory_order_release);
+    }).detach();
+
+    std::lock_guard<std::mutex> lock(_pendingMailContentMutex);
+    _pendingMailContent.push_back(std::move(state));
+}
+
 void FSBChatMgr::Update(uint32 /*diff*/)
 {
     uint32 now = getMSTime();
@@ -583,10 +710,8 @@ void FSBChatMgr::Update(uint32 /*diff*/)
             if (resp.action == "give_gold" && resp.amount > 0)
             {
                 uint32 amount = std::min(resp.amount, FollowshipBotsConfig::configFSBMaxGoldAmount);
-                FSBMailPrompts::MailContent mail = FSBMailPrompts::GenerateGoldMailContent(
-                    bot, player, amount, state->playerRequest, resp.reply);
-                FSBMail::SendMail(bot->GetEntry(), player, mail.subject, mail.body, {}, amount, FollowshipBotsConfig::configFSBGoldMailDelay);
-                TC_LOG_INFO("scripts.fsb.chat", "FSB ChatMgr: bot {} sent {} copper to {} via mail",
+                DispatchAsyncMailContent(bot, player, amount, state->playerRequest, resp.reply);
+                TC_LOG_INFO("scripts.fsb.chat", "FSB ChatMgr: bot {} sending {} copper to {} via mail (async)",
                     bot->GetName(), amount, state->playerName);
                 ai->botChatData.goldGivenCount++;
                 ai->botChatData.lastGoldGiveTime = getMSTime();
@@ -622,10 +747,8 @@ void FSBChatMgr::Update(uint32 /*diff*/)
                 if (player)
                 {
                     uint32 amount = std::min(resp.amount, FollowshipBotsConfig::configFSBMaxGoldAmount);
-                    FSBMailPrompts::MailContent mail = FSBMailPrompts::GenerateGoldMailContent(
-                        bot, player, amount, state->playerRequest, resp.reply);
-                    FSBMail::SendMail(bot->GetEntry(), player, mail.subject, mail.body, {}, amount, FollowshipBotsConfig::configFSBGoldMailDelay);
-                    TC_LOG_INFO("scripts.fsb.chat", "FSB ChatMgr: bot {} sent {} copper to {} via mail",
+                    DispatchAsyncMailContent(bot, player, amount, state->playerRequest, resp.reply);
+                    TC_LOG_INFO("scripts.fsb.chat", "FSB ChatMgr: bot {} sending {} copper to {} via mail (async)",
                         bot->GetName(), amount, state->playerName);
                     ai->botChatData.goldGivenCount++;
                     ai->botChatData.lastGoldGiveTime = getMSTime();
@@ -633,6 +756,92 @@ void FSBChatMgr::Update(uint32 /*diff*/)
                 }
             }
         }
+    }
+
+    // --- Process pending random chat ---
+    std::vector<std::shared_ptr<PendingRandomChat>> readyChats;
+    {
+        std::lock_guard<std::mutex> lock(_pendingRandomChatsMutex);
+        for (auto it = _pendingRandomChats.begin(); it != _pendingRandomChats.end(); )
+        {
+            if ((*it)->ready.load(std::memory_order_acquire))
+            {
+                readyChats.push_back(std::move(*it));
+                it = _pendingRandomChats.erase(it);
+            }
+            else
+                ++it;
+        }
+    }
+
+    for (auto& state : readyChats)
+    {
+        std::string msg;
+        {
+            std::lock_guard<std::mutex> lock(state->mutex);
+            msg = std::move(state->result);
+        }
+
+        Creature* bot = FindActiveBotByGuid(state->botGuid);
+        if (!bot || !bot->IsInWorld() || !bot->IsAlive())
+            continue;
+
+        if (msg.empty())
+        {
+            Unit* attacker = state->hasAttacker ? ObjectAccessor::GetUnit(*bot, state->attackerGuid) : nullptr;
+            FSBChat::SendStaticRandomChat(bot, state->channelType, attacker);
+            continue;
+        }
+
+        switch (state->channelType)
+        {
+        case FSBChat::ChatChannelType::Trade:         FSBChat::BotSendTradeChat(bot, msg); break;
+        case FSBChat::ChatChannelType::LFG:           FSBChat::BotSendLFGChat(bot, msg); break;
+        case FSBChat::ChatChannelType::General:       FSBChat::BotSendGeneralChat(bot, msg); break;
+        case FSBChat::ChatChannelType::LocalDefense:
+        case FSBChat::ChatChannelType::CombatDefense: FSBChat::BotSendLocalDefenseChat(bot, msg); break;
+        default:                                      FSBChat::BotSendGeneralChat(bot, msg); break;
+        }
+    }
+
+    // --- Process pending mail content ---
+    std::vector<std::shared_ptr<PendingMailContent>> readyMails;
+    {
+        std::lock_guard<std::mutex> lock(_pendingMailContentMutex);
+        for (auto it = _pendingMailContent.begin(); it != _pendingMailContent.end(); )
+        {
+            if ((*it)->ready.load(std::memory_order_acquire))
+            {
+                readyMails.push_back(std::move(*it));
+                it = _pendingMailContent.erase(it);
+            }
+            else
+                ++it;
+        }
+    }
+
+    for (auto& state : readyMails)
+    {
+        FSBMailPrompts::MailContent mail;
+        {
+            std::lock_guard<std::mutex> lock(state->mutex);
+            mail = std::move(state->mailContent);
+        }
+
+        Player* player = ObjectAccessor::FindPlayer(state->playerGuid);
+        if (!player)
+            continue;
+
+        if (mail.subject.empty())
+            mail.subject = "Some spare coin";
+        if (mail.body.empty())
+            mail.body = state->botReply;
+
+        FSBMail::SendMail(state->creatureEntry, player, mail.subject, mail.body, {}, state->amount,
+            FollowshipBotsConfig::configFSBGoldMailDelay);
+
+        TC_LOG_INFO("scripts.fsb.chat", "FSB ChatMgr: bot sent {} copper to {} via mail (async)",
+            state->amount, player->GetName());
     }
 }
 
@@ -1138,77 +1347,16 @@ namespace FSBChat
         return matches[urand(0, matches.size() - 1)];
     }
 
-    void StartBotRandomChat(Creature* bot, ChatChannelType channel)
+    void SendStaticRandomChat(Creature* bot, ChatChannelType channel, Unit* attacker)
     {
         if (!bot)
             return;
-
-        std::string msg;
-
-        // Trade channel: try dynamic AI-generated message first
-        if (channel == ChatChannelType::Trade)
-        {
-            msg = FSBChannelPrompts::GenerateTradeMessage(bot);
-            if (!msg.empty())
-            {
-                BotSendTradeChat(bot, msg);
-                return;
-            }
-        }
-
-        // LFG channel: try dynamic AI-generated message first
-        if (channel == ChatChannelType::LFG)
-        {
-            msg = FSBChannelPrompts::GenerateLFGMessage(bot);
-            if (!msg.empty())
-            {
-                BotSendLFGChat(bot, msg);
-                return;
-            }
-        }
-
-        // General channel: try dynamic AI-generated message first
-        if (channel == ChatChannelType::General)
-        {
-            FSBChannelPrompts::BotChatContext ctx;
-            ctx.entry = bot->GetEntry();
-            ctx.areaId = bot->GetAreaId();
-            ctx.zoneId = bot->GetZoneId();
-
-            if (WowTime const* wowTime = GameTime::GetWowTime())
-            {
-                int8 hour = wowTime->GetHour();
-                int8 minute = wowTime->GetMinute();
-                if (hour >= 0 && minute >= 0)
-                {
-                    char buf[16];
-                    snprintf(buf, sizeof(buf), "%02d:%02d", hour, minute);
-                    ctx.inGameTime = buf;
-                    ctx.inGameHour = hour;
-                }
-            }
-
-            if (Map* map = bot->GetMap())
-            {
-                WeatherState ws = map->GetZoneWeather(bot->GetZoneId());
-                ctx.weather = FSBUtils::WeatherStateToText(ws);
-                ctx.weatherStateRaw = static_cast<uint32>(ws);
-            }
-
-            msg = FSBChannelPrompts::GenerateGeneralMessage(ctx);
-            if (!msg.empty())
-            {
-                BotSendGeneralChat(bot, msg);
-                return;
-            }
-        }
 
         RandomChatTemplate* line = GetRandomMatchingLine(bot, channel);
         if (!line)
             return;
 
-        // Replace tags before sending
-        msg = line->text;
+        std::string msg = line->text;
 
         if (line->spellId)
             ReplaceAll(msg, "{spell}", BuildSpellLink(line->spellId));
@@ -1219,11 +1367,13 @@ namespace FSBChat
         ReplaceAll(msg, "{area}", GetAreaName(bot->GetAreaId()));
         ReplaceAll(msg, "{item}", BuildItemLink(GetRandomItemId(tradeItems), bot->GetLevel()));
 
-        Unit* target = bot->GetVictim();
-        if (target && target->IsAlive())
-            ReplaceAll(msg, "{target}", target->GetName());
+        if (attacker && attacker->IsAlive())
+            ReplaceAll(msg, "{target}", attacker->GetName());
+        else if (Unit* v = bot->GetVictim())
+            ReplaceAll(msg, "{target}", v->GetName());
+        else
+            ReplaceAll(msg, "{target}", "");
 
-        // Send to correct channel
         switch (channel)
         {
         case ChatChannelType::General:        BotSendGeneralChat(bot, msg); break;
@@ -1235,104 +1385,34 @@ namespace FSBChat
         }
     }
 
+    void StartBotRandomChat(Creature* bot, ChatChannelType channel)
+    {
+        if (!bot)
+            return;
+
+        if (FSBGenAI::IsEnabled() &&
+            (channel == ChatChannelType::Trade || channel == ChatChannelType::LFG || channel == ChatChannelType::General))
+        {
+            FSBChatMgr::Get()->DispatchAsyncRandomChat(bot, channel);
+            return;
+        }
+
+        SendStaticRandomChat(bot, channel);
+    }
+
     void StartBotRandomChat(Creature* bot, ChatChannelType channel, Unit* attacker)
     {
         if (!bot)
             return;
 
-        std::string msg;
-
-        // Trade channel: try dynamic AI-generated message first
-        if (channel == ChatChannelType::Trade)
+        if (FSBGenAI::IsEnabled() &&
+            (channel == ChatChannelType::Trade || channel == ChatChannelType::LFG || channel == ChatChannelType::General))
         {
-            msg = FSBChannelPrompts::GenerateTradeMessage(bot);
-            if (!msg.empty())
-            {
-                BotSendTradeChat(bot, msg);
-                return;
-            }
-        }
-
-        // LFG channel: try dynamic AI-generated message first
-        if (channel == ChatChannelType::LFG)
-        {
-            msg = FSBChannelPrompts::GenerateLFGMessage(bot);
-            if (!msg.empty())
-            {
-                BotSendLFGChat(bot, msg);
-                return;
-            }
-        }
-
-        // General channel: try dynamic AI-generated message first
-        if (channel == ChatChannelType::General)
-        {
-            FSBChannelPrompts::BotChatContext ctx;
-            ctx.entry = bot->GetEntry();
-            ctx.areaId = bot->GetAreaId();
-            ctx.zoneId = bot->GetZoneId();
-
-            if (WowTime const* wowTime = GameTime::GetWowTime())
-            {
-                int8 hour = wowTime->GetHour();
-                int8 minute = wowTime->GetMinute();
-                if (hour >= 0 && minute >= 0)
-                {
-                    char buf[16];
-                    snprintf(buf, sizeof(buf), "%02d:%02d", hour, minute);
-                    ctx.inGameTime = buf;
-                    ctx.inGameHour = hour;
-                }
-            }
-
-            if (Map* map = bot->GetMap())
-            {
-                WeatherState ws = map->GetZoneWeather(bot->GetZoneId());
-                ctx.weather = FSBUtils::WeatherStateToText(ws);
-                ctx.weatherStateRaw = static_cast<uint32>(ws);
-            }
-
-            msg = FSBChannelPrompts::GenerateGeneralMessage(ctx);
-            if (!msg.empty())
-            {
-                BotSendGeneralChat(bot, msg);
-                return;
-            }
-        }
-
-        RandomChatTemplate* line = GetRandomMatchingLine(bot, channel);
-        if (!line)
+            FSBChatMgr::Get()->DispatchAsyncRandomChat(bot, channel, attacker);
             return;
-
-        msg = line->text;
-
-        if (line->spellId)
-            ReplaceAll(msg, "{spell}", BuildSpellLink(line->spellId));
-
-        if (line->itemId)
-            ReplaceAll(msg, "{item}", BuildItemLink(line->itemId, bot->GetLevel()));
-
-        ReplaceAll(msg, "{area}", GetAreaName(bot->GetAreaId()));
-        ReplaceAll(msg, "{item}", BuildItemLink(GetRandomItemId(tradeItems), bot->GetLevel()));
-
-        // Prefer attacker if provided
-        if (attacker && attacker->IsAlive())
-            ReplaceAll(msg, "{target}", attacker->GetName());
-        else if (Unit* v = bot->GetVictim())
-            ReplaceAll(msg, "{target}", v->GetName());
-        else
-            ReplaceAll(msg, "{target}", ""); // remove leftover tag
-
-        // Send to correct channel
-        switch (channel)
-        {
-        case ChatChannelType::General:        BotSendGeneralChat(bot, msg); break;
-        case ChatChannelType::Trade:          BotSendTradeChat(bot, msg); break;
-        case ChatChannelType::LocalDefense:   BotSendLocalDefenseChat(bot, msg); break;
-        case ChatChannelType::LFG:            BotSendLFGChat(bot, msg); break;
-        case ChatChannelType::CombatDefense:  BotSendLocalDefenseChat(bot, msg); break;
-        default:                              BotSendGeneralChat(bot, msg); break;
         }
+
+        SendStaticRandomChat(bot, channel, attacker);
     }
 
     std::vector<RandomChatTemplate> RandomChatTables =
