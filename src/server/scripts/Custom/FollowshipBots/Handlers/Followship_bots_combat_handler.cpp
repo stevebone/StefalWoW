@@ -350,7 +350,7 @@ namespace FSBCombat
         mob->SetTappedBy(owner);
     }
 
-    void BotSyncShapeshift(Creature* bot)
+    void BotSyncShapeshift(Creature* bot, bool inCombat)
     {
         if (!bot)
             return;
@@ -362,7 +362,38 @@ namespace FSBCombat
         if (!baseAI)
             return;
 
-        if (bot->HasAura(SPELL_SHAMAN_GHOST_WOLF))
-            bot->RemoveAurasDueToSpell(SPELL_SHAMAN_GHOST_WOLF);
+        if (!inCombat)
+        {
+            if (baseAI->botRace == FSB_Race::Worgen)
+            {
+                bot->RemoveAurasDueToSpell(49561);
+                bot->DeMorph();
+            }
+        }
+
+        if (inCombat)
+        {
+            if (bot->HasAura(SPELL_SHAMAN_GHOST_WOLF))
+                bot->RemoveAurasDueToSpell(SPELL_SHAMAN_GHOST_WOLF);
+
+            if (baseAI->botRace == FSB_Race::Worgen)
+            {
+                bot->CastSpell(bot, 49561); // Worgen Transform
+                switch (baseAI->botGender)
+                {
+                    case GENDER_MALE:
+                        bot->SetDisplayId(RAND(26787, 37696, 36777, 36778, 36779, 33672, 36770, 36771,
+                            36772, 63721, 63722, 63726, 63727, 63730, 63731));
+                        break;
+                    case GENDER_FEMALE:
+                        bot->SetDisplayId(RAND(37441, 37442, 37443, 37444, 37445, 37446, 37447, 37448,
+                            37449, 33954, 33955, 33956, 33957, 63723, 63724, 63728, 63729, 63732, 63733));
+                        break;
+
+                default:
+                    break;
+                }
+            }
+        }
     }
 }

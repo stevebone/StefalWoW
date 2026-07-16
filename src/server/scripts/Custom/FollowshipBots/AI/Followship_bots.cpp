@@ -397,7 +397,7 @@ public:
 
         void JustEnteredCombat(Unit* who) override
         {
-            FSBCombat::BotSyncShapeshift(me);
+            FSBCombat::BotSyncShapeshift(me, true);
 
             for (ObjectGuid const& guid : _summons)
                 if (Creature* summon = ObjectAccessor::GetCreature(*me, guid))
@@ -409,20 +409,22 @@ public:
         {
             botOutOfCombatTimer = getMSTime();
 
-            if (botHired)
-                return;
+            FSBCombat::BotSyncShapeshift(me, false);
 
-            if (me->GetMap()->IsBattleground())
+            if (!botHired)
             {
-                if (me->HasUnitState(UNIT_STATE_CHASE))
-                    me->GetMotionMaster()->Clear();
-
-                if (FSB_BattlegroundData* bgData = GetBattlegroundData())
+                if (me->GetMap()->IsBattleground())
                 {
-                    // setDeathState calls CombatStop before JustDied, so we must not clear the tap list when the bot is dying.
-                    if (me->IsAlive())
-                        bgData->damageTappers.clear();
-                    // recentPlayerTargets is also needed by OnPlayerKilledByCreature, which runs after death triggers CombatStop.
+                    if (me->HasUnitState(UNIT_STATE_CHASE))
+                        me->GetMotionMaster()->Clear();
+
+                    if (FSB_BattlegroundData* bgData = GetBattlegroundData())
+                    {
+                        // setDeathState calls CombatStop before JustDied, so we must not clear the tap list when the bot is dying.
+                        if (me->IsAlive())
+                            bgData->damageTappers.clear();
+                        // recentPlayerTargets is also needed by OnPlayerKilledByCreature, which runs after death triggers CombatStop.
+                    }
                 }
             }
         }        

@@ -36,5 +36,5 @@ namespace FSBCombat
 
     // Add or Remove class related shapeshift
     // Example on combat start
-    void BotSyncShapeshift(Creature* bot);
+    void BotSyncShapeshift(Creature* bot, bool inCombat);
 }
