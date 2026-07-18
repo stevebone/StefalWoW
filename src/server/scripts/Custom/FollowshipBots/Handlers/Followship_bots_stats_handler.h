@@ -28,25 +28,15 @@ struct FSB_ClassStats
 
     Powers powerType;
 
-    // Base stats at level 1 (important)
+    // Base stats at level 1
     uint32 baseHealth;
-    uint32 basePower;
-
-    // Per-level scaling (pre-mods)
-    uint32 healthPerLevel;
-    uint32 powerPerLevel;
 
     // Regen (flat, before auras/mods)
     int32 baseHpRegenOOC;
     int32 basePowerRegenOOC;
 
-    // Regen (flat, before auras/mods)
     int32 baseHpRegenIC;
     int32 basePowerRegenIC;
-
-    int32 baseAttackPower;
-    int32 baseRangedAttackPower;
-    int32 attackPowerPerLevel;
 
     float baseClassDamageVariance;
 
@@ -66,16 +56,10 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .classId = FSB_Class::Paladin,
         .powerType = POWER_MANA,
         .baseHealth = 60,    // base HP
-        .basePower = 600,      // base power
-        .healthPerLevel = 12,     // HP per level
-        .powerPerLevel = 35,      // Power per level
         .baseHpRegenOOC = 3,      // HP regen %
         .basePowerRegenOOC = 2,       // Power regen %
         .baseHpRegenIC = 0,
         .basePowerRegenIC = 1,
-        .baseAttackPower = 1,
-        .baseRangedAttackPower = 0,
-        .attackPowerPerLevel = 4,
         .baseClassDamageVariance = 0.9f,
         .baseAttackTime = 2000,
         .baseRangedAttackTime = 2000,
@@ -89,16 +73,10 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .classId = FSB_Class::Warrior,
         .powerType = POWER_RAGE,
         .baseHealth = 90,    // base HP
-        .basePower = 0,      // base power
-        .healthPerLevel = 12,     // HP per level
-        .powerPerLevel = 0,      // Power per level
         .baseHpRegenOOC = 5,      // HP regen %
         .basePowerRegenOOC = -2,       // Power regen %
         .baseHpRegenIC = 0,
         .basePowerRegenIC = 0,
-        .baseAttackPower = 1,
-        .baseRangedAttackPower = 0,
-        .attackPowerPerLevel = 4,
         .baseClassDamageVariance = 0.9f,
         .baseAttackTime = 2000,
         .baseRangedAttackTime = 2000,
@@ -112,16 +90,10 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .classId = FSB_Class::Priest,
         .powerType = POWER_MANA,
         .baseHealth = 50,             // base HP
-        .basePower = 600,      // base power
-        .healthPerLevel = 9,             // HP per level
-        .powerPerLevel = 35,             // Power per level
         .baseHpRegenOOC = 3,              // HP regen %
         .basePowerRegenOOC = 4,              // Power regen %
         .baseHpRegenIC = 0,
         .basePowerRegenIC = 2,
-        .baseAttackPower = 1,
-        .baseRangedAttackPower = 0,
-        .attackPowerPerLevel = 1,
         .baseClassDamageVariance = 0.2f,
         .baseAttackTime = 3500,
         .baseRangedAttackTime = 2500,
@@ -135,16 +107,10 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .classId = FSB_Class::Warlock,
         .powerType = POWER_MANA,
         .baseHealth = 50,             // base HP
-        .basePower = 600,      // base power
-        .healthPerLevel = 9,             // HP per level
-        .powerPerLevel = 35,             // Power per level
         .baseHpRegenOOC = 3,              // HP regen %
         .basePowerRegenOOC = 4,              // Power regen %
         .baseHpRegenIC = 0,
         .basePowerRegenIC = 2,
-        .baseAttackPower = 1,
-        .baseRangedAttackPower = 0,
-        .attackPowerPerLevel = 1,
         .baseClassDamageVariance = 0.2f,
         .baseAttackTime = 3500,
         .baseRangedAttackTime = 2500,
@@ -158,15 +124,10 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .classId = FSB_Class::Mage,
         .powerType = POWER_MANA,
         .baseHealth = 50,
-        .basePower = 600,      // base power
-        .healthPerLevel = 9,
-        .powerPerLevel = 40,
         .baseHpRegenOOC = 2,
         .basePowerRegenOOC = 6,
         .baseHpRegenIC = 0,
         .basePowerRegenIC = 2,
-        .baseAttackPower = 1,
-        .attackPowerPerLevel = 1,
         .baseClassDamageVariance = 0.2f,
         .baseAttackTime = 3500,
         .baseRangedAttackTime = 2500,
@@ -180,16 +141,10 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .classId = FSB_Class::Monk,
         .powerType = POWER_MANA,
         .baseHealth = 60,
-        .basePower = 600,      // base power
-        .healthPerLevel = 10,
-        .powerPerLevel = 32,
         .baseHpRegenOOC = 3,
         .basePowerRegenOOC = 5,
         .baseHpRegenIC = 0,
         .basePowerRegenIC = 2,
-        .baseAttackPower = 1,
-        .baseRangedAttackPower = 0,
-        .attackPowerPerLevel = 3,
         .baseClassDamageVariance = 1.f,
         .baseAttackTime = 2000,
         .baseRangedAttackTime = 2500,
@@ -203,16 +158,10 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .classId = FSB_Class::Druid,
         .powerType = POWER_MANA,
         .baseHealth = 60,
-        .basePower = 600,      // base power
-        .healthPerLevel = 10,
-        .powerPerLevel = 32,
         .baseHpRegenOOC = 3,
         .basePowerRegenOOC = 5,
         .baseHpRegenIC = 0,
         .basePowerRegenIC = 2,
-        .baseAttackPower = 1,
-        .baseRangedAttackPower = 0,
-        .attackPowerPerLevel = 3,
         .baseClassDamageVariance = 0.7f,
         .baseAttackTime = 2000,
         .baseRangedAttackTime = 2500,
@@ -226,16 +175,10 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .classId = FSB_Class::Rogue,
         .powerType = POWER_ENERGY,
         .baseHealth = 60,
-        .basePower = 100,
-        .healthPerLevel = 10,
-        .powerPerLevel = 0,
         .baseHpRegenOOC = 3,
         .basePowerRegenOOC = 10,
         .baseHpRegenIC = 0,
         .basePowerRegenIC = 10,
-        .baseAttackPower = 1, //10,
-        .baseRangedAttackPower = 0,
-        .attackPowerPerLevel = 5,
         .baseClassDamageVariance = 1.2f,
         .baseAttackTime = 1500,
         .baseRangedAttackTime = 2500,
@@ -249,16 +192,10 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .classId = FSB_Class::Hunter,
         .powerType = POWER_FOCUS,
         .baseHealth = 80,
-        .basePower = 100,
-        .healthPerLevel = 10,
-        .powerPerLevel = 0,
         .baseHpRegenOOC = 3,
         .basePowerRegenOOC = 5,
         .baseHpRegenIC = 0,
         .basePowerRegenIC = 5,
-        .baseAttackPower = 1,
-        .baseRangedAttackPower = 10,
-        .attackPowerPerLevel = 4,
         .baseClassDamageVariance = 1.f,
         .baseAttackTime = 2500,
         .baseRangedAttackTime = 2000,
@@ -272,16 +209,10 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .classId = FSB_Class::Shaman,
         .powerType = POWER_MANA,
         .baseHealth = 50,    // base HP
-        .basePower = 600,      // base power
-        .healthPerLevel = 10,     // HP per level
-        .powerPerLevel = 30,      // Power per level
         .baseHpRegenOOC = 3,      // HP regen %
         .basePowerRegenOOC = 2,       // Power regen %
         .baseHpRegenIC = 0,
         .basePowerRegenIC = 1,
-        .baseAttackPower = 1, //5,
-        .baseRangedAttackPower = 0,
-        .attackPowerPerLevel = 3, //6,
         .baseClassDamageVariance = 0.9f,
         .baseAttackTime = 2000,
         .baseRangedAttackTime = 2000,
@@ -295,15 +226,12 @@ namespace FSBStats
 {
     FSB_ClassStats const* GetBotClassStats(FSB_Class botClass);
     void ApplyBotBaseClassStats(Creature* creature, FSB_Class botClass);
-    void ApplyBotBasePower(Creature* bot, FSB_Class botClass);
 
     void ApplyBotHealth(Creature* bot, FSB_Class botClass, bool updateHealth);
     void ApplyBotPower(Creature* bot, FSB_Class botClass, bool updatePower);
     void ApplyBotAttackPower(Creature* bot, FSB_Class botClass);
     void ApplyBotDamage(Creature* bot, FSB_Class botClass);
     void ApplyBotArmor(Creature* bot, FSB_Class botClass);
-
-    void ApplyDynamicDamageDealt(Creature* bot, Unit* victim, uint32& damage);
 
     float ApplyBotDamageTakenReduction(Creature* bot);
     float ApplyBotDamageDoneReduction(Creature* bot);

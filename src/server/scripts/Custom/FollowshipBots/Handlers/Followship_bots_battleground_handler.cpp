@@ -29,6 +29,7 @@
 #include "Followship_bots_combat_handler.h"
 #include "Followship_bots_group_handler.h"
 #include "Followship_bots_events_handler.h"
+#include "Followship_bots_stats_handler.h"
 
 #include "Battleground.h"
 #include "BattlegroundScore.h"
@@ -97,6 +98,7 @@ namespace FSBBattleground
             case BATTLEGROUND_DOM_AB:
                 SpawnBotsForTeams(battleground, ArathiBasin::FSB_AB_MAX_TEAM_SIZE, triggeringPlayer);
                 break;
+            case BATTLEGROUND_TTP:
             case BATTLEGROUND_DS:
             case BATTLEGROUND_AF:
             case BATTLEGROUND_TVA:
@@ -227,6 +229,8 @@ namespace FSBBattleground
                 }
 
                 bot->SetPvP(true);
+                bot->SetLevel(triggeringPlayer->GetLevel());
+                FSBStats::RecalculateStats(bot, true, true);
                 FSBBattleground::AddBotSpawnGuid(battleground->GetBgMap(), bot->GetGUID());
 
                 std::string spawnMsg = FSBBattlegroundChat::FormatChatLine(FSBBattlegroundChat::SpawnChatLines[urand(0, FSBBattlegroundChat::SpawnChatLines.size() - 1)], team);

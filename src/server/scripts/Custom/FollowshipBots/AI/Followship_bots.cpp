@@ -325,7 +325,8 @@ public:
         {
             if (summon)
             {
-                summon->ApplyLevelScaling(1);
+                summon->ApplyLevelScaling(3325);
+                summon->SetLevel(me->GetLevel());
 
                 if (botClass == FSB_Class::Warlock)
                 {

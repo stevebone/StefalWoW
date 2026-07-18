@@ -556,6 +556,9 @@ void FSBMgr::SetInitialBotState(Creature* bot)
     bot->SetStandState(UNIT_STAND_STATE_STAND);
     bot->SetEmoteState(EMOTE_STATE_NONE);
     bot->RemoveAllAuras();
+    bot->SetDisableGravity(false);
+
+    bot->SetLevel(90, true);
 
     auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
     if (!baseAI)
@@ -615,8 +618,8 @@ void FSBMgr::SetInitialBotState(Creature* bot)
     }
 
     bot->SetReactState(REACT_DEFENSIVE);
-
-    bot->ApplyLevelScaling(1); // Sets Content Tuning override
+    
+    bot->ApplyLevelScaling(3325); // Sets Content Tuning override
     bot->RemoveCivilianFlag();
     bot->SetFaction(FSBUtils::GetFactionForFSBRace(botRace));
     baseAI->botLanguage = FSBUtils::GetLanguageForFSBRace(botRace);
@@ -638,6 +641,8 @@ void FSBMgr::SetInitialBotState(Creature* bot)
         if (botRole == FSB_Roles::FSB_ROLE_MELEE_DAMAGE)
             FSBPowers::SetBotToChi(bot);
     }
+
+    FSBStats::RecalculateStats(bot, true, true);
 }
 
 void FSBMgr::SetBotClassAndRace(Creature* creature, FSB_Class& outClass, FSB_Race& outRace)

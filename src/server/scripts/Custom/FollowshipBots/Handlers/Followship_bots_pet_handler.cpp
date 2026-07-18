@@ -122,7 +122,7 @@ namespace FSBPet
         //entry needs to belong to the creature we want the model
         CreatureModel model = *ObjectMgr::ChooseDisplayId(creatureInfo);
         pet->SetDisplayId(model.CreatureDisplayID, true);
-
+        pet->ApplyLevelScaling(3325);
         pet->SetModCastingSpeed(1.0f);
         pet->SetModSpellHaste(1.0f);
         pet->SetModHaste(1.0f);
@@ -130,16 +130,13 @@ namespace FSBPet
         pet->SetModHasteRegen(1.0f);
         pet->SetModTimeRate(1.0f);
         pet->SetSpellEmpowerStage(-1);
-
-        pet->ApplyLevelScaling(1);
-
         pet->SetSpeedRate(MOVE_WALK, 1.0f);
         pet->SetSpeedRate(MOVE_RUN, 1.0f);
         pet->SetSpeedRate(MOVE_SWIM, 1.0f); // using 1.0 rate
         pet->SetSpeedRate(MOVE_FLIGHT, 1.0f); // using 1.0 rate
 
         // Will set UNIT_FIELD_BOUNDINGRADIUS, UNIT_FIELD_COMBATREACH and UNIT_FIELD_DISPLAYSCALE
-        pet->SetObjectScale(pet->GetNativeObjectScale() / 2);
+        pet->SetObjectScale(pet->GetNativeObjectScale() * 0.8);
         
         pet->SetSheath(SHEATH_STATE_MELEE);
         pet->ReplaceAllNpcFlags(UNIT_NPC_FLAG_NONE);
@@ -149,6 +146,8 @@ namespace FSBPet
 
         // Force regen flag for player pets, just like we do for players themselves
         pet->SetUnitFlag2(UNIT_FLAG2_REGENERATE_POWER);
+
+        pet->AddUnitTypeMask(UNIT_MASK_GUARDIAN);
 
         // calculate proper level
         uint8 level = owner->GetLevel();
