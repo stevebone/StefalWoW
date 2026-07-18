@@ -18763,6 +18763,7 @@ bool Player::LoadFromDB(ObjectGuid guid, CharacterDatabaseQueryHolder const& hol
     SetUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::YesterdayHonorableKills), fields.yesterdayKills);
 
     _LoadBGData(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_BG_DATA));
+    _LoadArenaStats(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_ARENA_STATS));
 
     GetSession()->SetPlayer(this);
     MapEntry const* mapEntry = sMapStore.LookupEntry(mapId);
@@ -21424,6 +21425,16 @@ void Player::SaveToDB(LoginDatabaseTransaction loginTransaction, CharacterDataba
     _SaveAccountBankCoinage(trans);
     _SaveAccountTaxiMask(trans);
 
+    for (uint32 i = 0; i < m_activePlayerData->PvpInfo.size(); ++i)
+    {
+        stmt = CharacterDatabase.GetPreparedStatement(CHAR_REP_CHARACTER_ARENA_STATS);
+        stmt->setUInt64(0, GetGUID().GetCounter());
+        stmt->setUInt8(1, *m_activePlayerData->PvpInfo[i].Bracket);
+        stmt->setUInt16(2, 0);
+        stmt->setUInt16(3, *m_activePlayerData->PvpInfo[i].Rating);
+        trans->Append(stmt);
+    }
+
     if (_garrison)
         _garrison->SaveToDB(trans);
 
@@ -23896,6 +23907,79 @@ UF::PVPInfo const* Player::GetPvpInfoForBracket(int8 bracket) const
         return &m_activePlayerData->PvpInfo[index];
 
     return nullptr;
+}
+
+void Player::ModifyArenaRating(int32 mod, uint8 slot, bool won)
+{
+    int32 index = m_activePlayerData->PvpInfo.FindIndexIf([slot](UF::PVPInfo const& pvpInfo)
+    {
+        return pvpInfo.Bracket == int8(slot) && !*pvpInfo.Disqualified;
+    });
+
+    if (index < 0)
+    {
+        AddDynamicUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::PvpInfo));
+        index = m_activePlayerData->PvpInfo.size() - 1;
+        SetUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::PvpInfo, index).ModifyValue(&UF::PVPInfo::Bracket), int8(slot));
+        SetUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::PvpInfo, index).ModifyValue(&UF::PVPInfo::Rating), 1500u);
+    }
+
+    uint32 currentRating = m_activePlayerData->PvpInfo[index].Rating;
+    if (currentRating == 0)
+        currentRating = 1500;
+    int32 newRating = int32(currentRating) + mod;
+    if (newRating < 0)
+        newRating = 0;
+
+    SetUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::PvpInfo, index).ModifyValue(&UF::PVPInfo::Rating), uint32(newRating));
+    SetUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::PvpInfo, index).ModifyValue(&UF::PVPInfo::WeeklyPlayed), uint32(*m_activePlayerData->PvpInfo[index].WeeklyPlayed) + 1);
+    SetUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::PvpInfo, index).ModifyValue(&UF::PVPInfo::SeasonPlayed), uint32(*m_activePlayerData->PvpInfo[index].SeasonPlayed) + 1);
+    if (won)
+    {
+        SetUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::PvpInfo, index).ModifyValue(&UF::PVPInfo::WeeklyWon), uint32(*m_activePlayerData->PvpInfo[index].WeeklyWon) + 1);
+        SetUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::PvpInfo, index).ModifyValue(&UF::PVPInfo::SeasonWon), uint32(*m_activePlayerData->PvpInfo[index].SeasonWon) + 1);
+    }
+}
+
+void Player::_LoadArenaStats(PreparedQueryResult result)
+{
+    // Default ratings for all 3 arena slots (2v2=0, 3v3=1, 5v5=2)
+    uint32 defaultRating[MAX_ARENA_SLOT] = { 1500, 1500, 1500 };
+
+    if (result)
+    {
+        do
+        {
+            Field* fields = result->Fetch();
+            uint8 slot = fields[0].GetUInt8();
+            uint16 rating = fields[2].GetUInt16();
+
+            if (slot < MAX_ARENA_SLOT)
+                defaultRating[slot] = rating;
+
+            AddDynamicUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::PvpInfo));
+            int32 idx = m_activePlayerData->PvpInfo.size() - 1;
+            SetUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::PvpInfo, idx).ModifyValue(&UF::PVPInfo::Bracket), int8(slot));
+            SetUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::PvpInfo, idx).ModifyValue(&UF::PVPInfo::Rating), uint32(rating));
+        } while (result->NextRow());
+    }
+
+    // Create default PVPInfo entries for slots that have no saved data
+    for (uint8 slot = 0; slot < MAX_ARENA_SLOT; ++slot)
+    {
+        int32 index = m_activePlayerData->PvpInfo.FindIndexIf([slot](UF::PVPInfo const& pvpInfo)
+        {
+            return pvpInfo.Bracket == int8(slot) && !*pvpInfo.Disqualified;
+        });
+
+        if (index < 0)
+        {
+            AddDynamicUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::PvpInfo));
+            index = m_activePlayerData->PvpInfo.size() - 1;
+            SetUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::PvpInfo, index).ModifyValue(&UF::PVPInfo::Bracket), int8(slot));
+            SetUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::PvpInfo, index).ModifyValue(&UF::PVPInfo::Rating), defaultRating[slot]);
+        }
+    }
 }
 
 bool Player::ActivateTaxiPathTo(std::vector<uint32> const& nodes, Creature* npc /*= nullptr*/, uint32 spellid /*= 0*/, uint32 preferredMountDisplay /*= 0*/,

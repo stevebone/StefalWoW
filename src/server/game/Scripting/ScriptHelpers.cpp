@@ -731,6 +731,28 @@ namespace ScriptHelpers
         return count;
     }
 
+    uint32 GetBotTeamRating(BattlegroundMap* battlegroundMap, Team team)
+    {
+        if (!battlegroundMap)
+            return 0;
+
+        uint32 totalHealth = 0;
+        for (auto const& [guid, creature] : battlegroundMap->GetObjectsStore().Data.Head)
+        {
+            if (!creature || !creature->IsBot())
+                continue;
+
+            if (GetBotTeam(creature) == team)
+                totalHealth += creature->GetMaxHealth();
+        }
+
+        uint32 rating = totalHealth / 100;
+        if (rating > 2000)
+            rating = 2000;
+
+        return rating;
+    }
+
     std::unordered_map<uint64, uint8> HiredBotCounts;
 
     void SetHiredBotCount(uint64 playerGuid, uint8 count)

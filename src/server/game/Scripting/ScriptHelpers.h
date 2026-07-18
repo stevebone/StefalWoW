@@ -123,6 +123,7 @@ namespace ScriptHelpers
 
     TC_GAME_API void AddBotsToPvPLogData(BattlegroundMap* battlegroundMap, WorldPackets::Battleground::PVPMatchStatistics& pvpLogData);
     TC_GAME_API uint32 GetAliveBotCountByTeam(BattlegroundMap* battlegroundMap, Team team);
+    TC_GAME_API uint32 GetBotTeamRating(BattlegroundMap* battlegroundMap, Team team);
 
     TC_GAME_API void SetHiredBotCount(uint64 playerGuid, uint8 count);
     TC_GAME_API uint8 GetHiredBotCount(uint64 playerGuid);
