@@ -21,6 +21,7 @@
 #include "BattlegroundMgr.h"
 #include "BattlegroundPackets.h"
 #include "BattlegroundScore.h"
+#include "Creature.h"
 #include "GuildMgr.h"
 #include "Guild.h"
 #include "Log.h"
