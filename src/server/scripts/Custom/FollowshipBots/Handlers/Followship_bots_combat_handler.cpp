@@ -131,6 +131,10 @@ namespace FSBCombat
         {
             bot->SetUnitFlag(UNIT_FLAG_IN_COMBAT); // on player bots, this flag indicates we're actively going after a target - that's what we're doing, so set it
 
+            if (auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI()))
+                if (baseAI->botGenericData.pauseCombatChase)
+                    return;
+
             bot->GetMotionMaster()->Clear();
 
             if (bot->HasUnitState(UNIT_STATE_FOLLOW))
@@ -307,6 +311,10 @@ namespace FSBCombat
     {
         if (!bot)
             return;
+
+        if (auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI()))
+            if (baseAI->botGenericData.pauseCombatChase)
+                return;
 
         Unit* target = bot->GetVictim();
         if (!target)

@@ -30,6 +30,7 @@
 
 #include "Followship_bots_arathi_basin.h"
 #include "Followship_bots_warsong_gulch.h"
+#include "Followship_bots_arena.h"
 #include "Chat/Followship_bots_chat_battleground.h"
 
 class Battleground;

@@ -46,6 +46,7 @@
 #include "Followship_bots_teleport_handler.h"
 
 #include "Followship_bots_battleground_handler.h"
+#include "Followship_bots_arena.h"
 #include "Followship_bots_paladin.h"
 #include "Followship_bots_rogue.h"
 
@@ -268,6 +269,27 @@ void FSB_BaseAI::HandleBotEvent(FSB_BaseAI* ai, uint32 eventId)
                 FSBBattleground::ArathiBasin::UpdateBot(bot, bgData);
             }
         }
+        break;
+    }
+
+    case FSB_EVENT_ARENA_START:
+    {
+        bot->SetReactState(REACT_AGGRESSIVE);
+
+        if (ai->botHired)
+            break;
+
+        FSBBattleground::Arena::HandleArenaStart(bot);
+        ScheduleBotEvent(FSB_EVENT_ARENA_TICK, 30s);
+        break;
+    }
+
+    case FSB_EVENT_ARENA_TICK:
+    {
+        if (!ai->botHired && bot->IsAlive())
+            FSBBattleground::Arena::HandleArenaTick(bot);
+
+        ScheduleBotEvent(FSB_EVENT_ARENA_TICK, 30s);
         break;
     }
 

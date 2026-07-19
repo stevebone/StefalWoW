@@ -23,6 +23,7 @@
 #include "Followship_bots_battleground_handler.h"
 #include "Followship_bots_arathi_basin.h"
 #include "Followship_bots_warsong_gulch.h"
+#include "Followship_bots_arena.h"
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_utils.h"
 #include "Followship_bots_party_handler.h"
@@ -370,6 +371,12 @@ namespace FSBBattleground
         {
             bgData->bgTypeId = bg->GetTypeID();
             bgData->initialized = true;
+        }
+
+        if (bg->isArena())
+        {
+            FSBBattleground::Arena::InitializeArenaBot(bot, bgData, bg);
+            return;
         }
 
         switch (bg->GetTypeID())

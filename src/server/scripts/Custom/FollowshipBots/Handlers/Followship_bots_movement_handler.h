@@ -47,6 +47,8 @@ namespace FSBMovement
     static constexpr uint32 MOVEMENT_POINT_AB_ATTACK_NODE = 30;
     static constexpr uint32 MOVEMENT_POINT_AB_DEFEND_NODE = 31;
 
+    static constexpr uint32 MOVEMENT_POINT_ARENA_ROAM = 40;
+
     static constexpr int8 MOVEMENT_POINT_CORPSE = 20;
     static constexpr int8 MOVEMENT_POINT_NEAR_FIRE = 21;
 

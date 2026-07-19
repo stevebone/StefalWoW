@@ -258,8 +258,13 @@ namespace FSBMovement
 
         // STAY mode bots should only attack if already in range - do not chase
         if (auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI()))
+        {
             if (baseAI->botMoveState == FSB_MOVE_STATE_STAY)
                 return false;
+
+            if (baseAI->botGenericData.pauseCombatChase)
+                return false;
+        }
 
         MotionMaster* mm = bot->GetMotionMaster();
         if (!mm)
@@ -291,8 +296,13 @@ namespace FSBMovement
 
         // STAY mode bots should only attack if already in range - do not chase
         if (auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI()))
+        {
             if (baseAI->botMoveState == FSB_MOVE_STATE_STAY)
                 return false;
+
+            if (baseAI->botGenericData.pauseCombatChase)
+                return false;
+        }
 
         MotionMaster* mm = bot->GetMotionMaster();
         if (!mm)
