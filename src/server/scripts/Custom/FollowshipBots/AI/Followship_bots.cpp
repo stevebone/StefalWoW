@@ -199,6 +199,9 @@ public:
 
             FSBCombat::BotSyncShapeshift(me, false);
 
+            botGenericData.manaPotionUsed = false;
+            botGenericData.healthPotionUsed = false;
+
             if (!botHired)
             {
                 if (me->GetMap()->IsBattleground())
@@ -606,7 +609,7 @@ public:
                 {
                     if (me->IsAlive() && me->IsInCombat())
                         if (!botDungeonData || !botDungeonData->mechanicFlagD)
-                            FSBIC::BotICActions(me, botManaPotionUsed, botHealthPotionUsed, botGlobalCooldown, botCastedCombatBuffs);
+                            FSBIC::BotICActions(me, botGlobalCooldown, botCastedCombatBuffs);
 
                     if (botClass == FSB_Class::Hunter && FSBPet::BotHasPet(me))
                         FSBPet::DoAttackSpell(me);

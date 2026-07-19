@@ -34,8 +34,8 @@ static constexpr uint32 BOT_IC_SELFHEAL_MAX_CONSECUTIVE = 3;
 
 namespace FSBIC
 {
-    bool BotICActions(Creature* bot, bool& botManaPotionUsed, bool& botHealthPotionUsed, uint32& globalCooldown, bool& botCastedCombatBuffs);
-    bool BotICPotions(Creature* bot, bool& botManaPotionUsed, bool& botHealthPotionUsed);
+    bool BotICActions(Creature* bot, uint32& globalCooldown, bool& botCastedCombatBuffs);
+    bool BotICPotions(Creature* bot);
     bool BotICInitialBuffs(Creature* bot, uint32 globalCooldown, bool& botCastedCombatBuffs);
     bool BotICMeleeMode(Creature* bot);
     bool BotICTryDispel(Creature* bot);

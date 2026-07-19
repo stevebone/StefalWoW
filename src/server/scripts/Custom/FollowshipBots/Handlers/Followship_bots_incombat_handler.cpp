@@ -41,7 +41,7 @@
 
 namespace FSBIC
 {
-    bool BotICActions(Creature* bot, bool& botManaPotionUsed, bool& botHealthPotionUsed, uint32& globalCooldown, bool& botCastedCombatBuffs)
+    bool BotICActions(Creature* bot, uint32& globalCooldown, bool& botCastedCombatBuffs)
     {
         if (!bot || !bot->IsAlive())
             return false;
@@ -61,7 +61,7 @@ namespace FSBIC
 
         //1. IC Potions
         // These can be cast instant with no GCD
-        if (BotICPotions(bot, botManaPotionUsed, botHealthPotionUsed))
+        if (BotICPotions(bot))
             return true;
 
         //2. IC (initial)Buffs
@@ -597,7 +597,7 @@ namespace FSBIC
         return false;
     }
 
-    bool BotICPotions(Creature* bot, bool& botManaPotionUsed, bool& botHealthPotionUsed)
+    bool BotICPotions(Creature* bot)
     {
         if (!FollowshipBotsConfig::configFSBUseICPotions)
             return false;
@@ -611,10 +611,14 @@ namespace FSBIC
         if (bot->HasUnitState(UNIT_STATE_CASTING))
             return false;
 
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
+            return false;
+
         // 1. Generic mana potions for bots with mana
         if (bot->GetPowerType() == POWER_MANA && bot->GetPowerPct(POWER_MANA) < BOT_IC_THRESHOLD_POTION_MP)
         {
-            if (!botManaPotionUsed)
+            if (!baseAI->botGenericData.manaPotionUsed)
             {
                 uint32 ManaPotionSpellId = FSBSpellsUtils::GetManaPotionSpellForLevel(bot->GetLevel());
 
@@ -623,7 +627,7 @@ namespace FSBIC
                     // Global Cooldown does NOT apply for potions
                     // Limit of 1 potion per type (MP or HP) per combat 
                     bot->CastSpell(bot, ManaPotionSpellId, false);
-                    botManaPotionUsed = true;
+                    baseAI->botGenericData.manaPotionUsed = true;
 
                     std::string spellName = FSBSpellsUtils::GetSpellName(ManaPotionSpellId);
 
@@ -640,7 +644,7 @@ namespace FSBIC
         // 2. Generic health potions for non healer bots 
         if (bot->GetHealthPct() < BOT_IC_THRESHOLD_POTION_HP)
         {
-            if (FSBUtils::BotIsHealerClass(bot) || botHealthPotionUsed)
+            if (FSBUtils::BotIsHealerClass(bot) || baseAI->botGenericData.healthPotionUsed)
                 return false;
 
             uint32 HealthPotionSpellId = 0;
@@ -653,7 +657,7 @@ namespace FSBIC
             else HealthPotionSpellId = FSBSpellsUtils::GetHealthPotionSpellForLevel(bot->GetLevel());
 
             bot->CastSpell(bot, HealthPotionSpellId, false);
-            botHealthPotionUsed = true;
+            baseAI->botGenericData.healthPotionUsed = true;
 
             std::string spellName = FSBSpellsUtils::GetSpellName(HealthPotionSpellId);
 

@@ -70,8 +70,6 @@ public:
         botHired(false),
         botMounted(false),
         botHasSoulstone(false),
-        botManaPotionUsed(false),
-        botHealthPotionUsed(false),
         botHasDemon(false),
         botCastedCombatBuffs(false),
         botSayMemberDead(false),
@@ -124,8 +122,6 @@ public:
     bool botHired;
     bool botMounted;
     bool botHasSoulstone;
-    bool botManaPotionUsed;
-    bool botHealthPotionUsed;
     bool botHasDemon;
     bool botCastedCombatBuffs;
     bool botSayMemberDead;

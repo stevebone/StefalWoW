@@ -443,8 +443,6 @@ namespace FSBOOC
         if (baseAI->botDungeonData && baseAI->botDungeonData->mechanicFlagD && !bot->GetVehicle())
             baseAI->botDungeonData->mechanicFlagD = false;
 
-        baseAI->botManaPotionUsed = false;
-        baseAI->botHealthPotionUsed = false;
         baseAI->botCastedCombatBuffs = false;
         baseAI->botGenericData.consecutiveSelfHeals = 0;
 

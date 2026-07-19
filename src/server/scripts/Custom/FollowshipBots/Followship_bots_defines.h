@@ -197,6 +197,8 @@ struct FSB_GenericData
     bool isBuffing = false;
     uint8 consecutiveSelfHeals = 0;
     bool pauseCombatChase = false;
+    bool manaPotionUsed = false;
+    bool healthPotionUsed = false;
 };
 
 struct FSBChatterDBLine
