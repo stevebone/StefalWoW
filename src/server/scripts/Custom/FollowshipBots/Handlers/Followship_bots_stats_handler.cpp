@@ -275,7 +275,7 @@ namespace FSBStats
         float modifier = FollowshipBotsConfig::configFSBArmorRate;
 
         // 1. Base armor: agility * 2 (player model) + armorPerLevel (compensates for no items)
-        float baseArmor = (agility * 2.0f + (float)(stats->armorPerLevel * level)) * modifier;
+        float baseArmor = (agility * 2.0f + (float)(stats->armorPerLevel * level)) * modifier * stats->baseArmorVariance;
         bot->SetStatFlatModifier(UNIT_MOD_ARMOR, BASE_VALUE, baseArmor);
 
         // 2. Apply BASE_PCT
