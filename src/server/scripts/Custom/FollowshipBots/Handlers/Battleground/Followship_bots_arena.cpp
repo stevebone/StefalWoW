@@ -59,7 +59,7 @@ namespace FSBBattleground::Arena
 
         if (Unit* target = FindArenaTarget(bot, ARENA_TARGET_SCAN_RADIUS))
         {
-            bot->EngageWithTarget(target);
+            FSBCombat::BotDoAttack(bot, target);
             TC_LOG_DEBUG("scripts.fsb.arena", "FSB Arena: Bot {} acquired target {} at start", bot->GetName(), target->GetName());
         }
         else
@@ -173,9 +173,6 @@ namespace FSBBattleground::Arena
         if (!baseAI)
             return;
 
-        baseAI->botGenericData.pauseCombatChase = true;
-        bot->GetMotionMaster()->Clear();
-
         float angle = frand(0.0f, 2.0f * float(M_PI));
         float dist = frand(ARENA_RANDOM_MOVE_MIN, ARENA_RANDOM_MOVE_MAX);
         Position dest = bot->GetFirstCollisionPosition(dist, angle);
@@ -192,10 +189,10 @@ namespace FSBBattleground::Arena
         }
 
         if (actualDist < ARENA_MOVE_MIN_VALID_DIST)
-        {
-            baseAI->botGenericData.pauseCombatChase = false;
             return;
-        }
+
+        baseAI->botGenericData.pauseCombatChase = true;
+        bot->GetMotionMaster()->Clear();
 
         bot->GetMotionMaster()->MovePoint(FSBMovement::MOVEMENT_POINT_ARENA_ROAM, dest, true);
         TC_LOG_DEBUG("scripts.fsb.arena", "FSB Arena: Bot {} issued random movement to ({}, {}, {}), dist={}",
@@ -205,6 +202,6 @@ namespace FSBBattleground::Arena
         {
             if (bot && bot->IsInWorld() && bot->IsAlive())
                 baseAI->botGenericData.pauseCombatChase = false;
-        }, 10s);
+        }, 5s);
     }
 }

@@ -82,12 +82,7 @@ namespace FSBBattleground
     void SpawnBots(Battleground* battleground, BattlegroundMap* /*battlegroundMap*/, Player* triggeringPlayer)
     {
         if (!battleground)
-        {
-            TC_LOG_INFO("scripts.fsb.battleground", "FSBBattleground::SpawnBots: null battleground");
             return;
-        }
-
-        TC_LOG_INFO("scripts.fsb.battleground", "FSBBattleground::SpawnBots: BG type {}", battleground->GetTypeID());
 
         switch (battleground->GetTypeID())
         {
@@ -124,8 +119,6 @@ namespace FSBBattleground
 
     void SpawnBotsForTeams(Battleground* battleground, uint32 maxTeamSize, Player* triggeringPlayer)
     {
-        TC_LOG_INFO("scripts.fsb.battleground", "FSB BG Handler: SpawnBotsForTeams entered");
-
         FSBBattleground::ClearSpawnedBotGuids(battleground->GetBgMap());
 
         // Count real players from GetPlayers() instead of GetPlayersCountByTeam(),
