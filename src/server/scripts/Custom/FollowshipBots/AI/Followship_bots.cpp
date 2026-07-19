@@ -97,9 +97,10 @@ public:
 
         void OnDespawn() override
         {
-            if (me && me->GetMap() && me->GetMap()->IsBattleground())
+            if (me && me->GetMap() && me->GetMap()->IsBattlegroundOrArena())
             {
-                FSBBattleground::RespawnBotOnDespawn(me);
+                if (me->GetMap()->IsBattleground())
+                    FSBBattleground::RespawnBotOnDespawn(me);
                 ScriptHelpers::EraseBotScore(me->GetGUID());
                 ScriptHelpers::EraseBotRace(me->GetGUID());
             }
@@ -233,7 +234,7 @@ public:
             damage = uint32(damage * FSBStats::ApplyBotDamageDoneReduction(me));
             FSBPowers::GenerateRageFromDamageDone(me, damage);
 
-            if (me->GetMap()->IsBattleground())
+            if (me->GetMap()->IsBattlegroundOrArena())
             {
                 ScriptHelpers::RecordBotDamageDone(me->GetGUID(), damage);
 
@@ -254,7 +255,7 @@ public:
 
         void HealDone(Unit* /*done_to*/, uint32& addhealth) override
         {
-            if (me->GetMap()->IsBattleground())
+            if (me->GetMap()->IsBattlegroundOrArena())
                 ScriptHelpers::RecordBotHealingDone(me->GetGUID(), addhealth);
         }
 
@@ -271,7 +272,7 @@ public:
             if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
                 FSBGenAIPrompts::DispatchBotTargetKilled(me, victim->GetGUID());
 
-            if (me->GetMap()->IsBattleground())
+            if (me->GetMap()->IsBattlegroundOrArena())
             {
                 if (victim && victim->GetTypeId() == TYPEID_PLAYER)
                     FSBBattleground::HandleBotKilledPlayer(me, victim->GetGUID());

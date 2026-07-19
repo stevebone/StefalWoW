@@ -457,7 +457,7 @@ namespace FSBBattleground
 
     void HandleBotDeathScores(Creature* bot, Unit* killer)
     {
-        if (!bot || !bot->GetMap()->IsBattleground())
+        if (!bot || !bot->GetMap()->IsBattlegroundOrArena())
             return;
 
         FSB_BaseAI* baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
@@ -517,7 +517,7 @@ namespace FSBBattleground
 
     void HandleBotDamageTaken(Creature* bot, Unit* attacker, uint32 damage)
     {
-        if (!bot || !bot->GetMap()->IsBattleground() || !attacker)
+        if (!bot || !bot->GetMap()->IsBattlegroundOrArena() || !attacker)
             return;
 
         if (attacker->GetTypeId() == TYPEID_PLAYER)

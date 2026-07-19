@@ -861,7 +861,7 @@ namespace FSBBuffs
             }
         }
 
-        if (bot->GetMap()->IsBattleground() && socialBuffDue)
+        if (bot->GetMap()->IsBattlegroundOrArena() && socialBuffDue)
         {
             if (BotHasAnyBuffTargets(bot, FSBBuffTargetScope::BGAllies))
             {
@@ -880,7 +880,7 @@ namespace FSBBuffs
             }
         }
 
-        bool socialScopeActive = (baseAI->botHired || bot->GetMap()->IsBattleground()) && socialBuffDue;
+        bool socialScopeActive = (baseAI->botHired || bot->GetMap()->IsBattlegroundOrArena()) && socialBuffDue;
         if (socialScopeActive)
             buffTimer = now + 60000;
 
