@@ -102,6 +102,10 @@ namespace FSBDeath
             return;
         }
 
+        // For arena we do not allow bots to revive
+        if (bot->GetMap()->IsBattleArena())
+            return;
+
         // handle death in battleground
         if (bot->GetMap()->IsBattleground())
         {
