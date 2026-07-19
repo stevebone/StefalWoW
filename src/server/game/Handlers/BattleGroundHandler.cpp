@@ -650,6 +650,105 @@ void WorldSession::HandleBattlemasterJoinArena(WorldPackets::Battleground::Battl
     sBattlegroundMgr->ScheduleQueueUpdate(matchmakerRating, bgQueueTypeId, bracketEntry->GetBracketId());
 }
 
+void WorldSession::HandleBattlemasterJoinSkirmish(WorldPackets::Battleground::BattlemasterJoinSkirmish& packet)
+{
+    if (_player->InBattleground())
+        return;
+
+    uint8 arenatype = ArenaTeam::GetTypeBySlot(packet.TeamSizeIndex);
+
+    BattlegroundTemplate const* bgTemplate = sBattlegroundMgr->GetBattlegroundTemplateByTypeId(BATTLEGROUND_AA);
+    if (!bgTemplate)
+    {
+        TC_LOG_ERROR("network", "Battleground: template bg (all arenas) not found");
+        return;
+    }
+
+    if (DisableMgr::IsDisabledFor(DISABLE_TYPE_BATTLEGROUND, BATTLEGROUND_AA, nullptr))
+    {
+        ChatHandler(this).PSendSysMessage(LANG_ARENA_DISABLED);
+        return;
+    }
+
+    BattlegroundTypeId bgTypeId = bgTemplate->Id;
+    BattlegroundQueueTypeId bgQueueTypeId = BattlegroundMgr::BGQueueTypeId(bgTypeId, BattlegroundQueueIdType::Arena, false, arenatype);
+    PVPDifficultyEntry const* bracketEntry = DB2Manager::GetBattlegroundBracketByLevel(bgTemplate->MapIDs.front(), _player->GetLevel());
+    if (!bracketEntry)
+        return;
+
+    bool isSoloWithBots = false;
+
+    Group* grp = _player->GetGroup();
+    if (!grp)
+    {
+        if (sBattlegroundMgr->IsFSBOverrideEnabled())
+        {
+            uint8 hiredBotCount = ScriptHelpers::GetHiredBotCount(_player->GetGUID().GetCounter());
+            if (hiredBotCount >= 1)
+            {
+                isSoloWithBots = true;
+                if (hiredBotCount == 1)
+                    packet.TeamSizeIndex = 0; // 2v2
+                else
+                    packet.TeamSizeIndex = 1; // 3v3
+
+                arenatype = ArenaTeam::GetTypeBySlot(packet.TeamSizeIndex);
+                bgQueueTypeId = BattlegroundMgr::BGQueueTypeId(bgTypeId, BattlegroundQueueIdType::Arena, false, arenatype);
+            }
+        }
+
+        grp = new Group();
+        grp->Create(_player);
+    }
+
+    if (!grp || grp->GetLeaderGUID() != _player->GetGUID())
+        return;
+
+    BattlegroundQueue& bgQueue = sBattlegroundMgr->GetBattlegroundQueue(bgQueueTypeId);
+
+    ObjectGuid errorGuid;
+    GroupJoinBattlegroundResult err = ERR_BATTLEGROUND_NONE;
+    if (!sBattlegroundMgr->isArenaTesting() && !isSoloWithBots)
+        err = grp->CanJoinBattlegroundQueue(bgTemplate, bgQueueTypeId, arenatype, arenatype, false, packet.TeamSizeIndex, errorGuid);
+
+    TC_LOG_DEBUG("bg.battleground", "Battleground: arena skirmish, leader {} (Roles: {}, TeamSize: {}, AsGroup: {})", _player->GetName(), packet.Roles, arenatype, packet.AsGroup);
+
+    if (!err)
+    {
+        GroupQueueInfo* ginfo = bgQueue.AddGroup(_player, grp, Team(_player->GetTeam()), bracketEntry, false, 0, 0);
+        if (ginfo)
+        {
+            auto itr = bgQueue.m_QueuedPlayers.find(_player->GetGUID());
+            if (itr != bgQueue.m_QueuedPlayers.end())
+                itr->second.Roles = packet.Roles;
+        }
+
+        uint32 avgTime = bgQueue.GetAverageQueueWaitTime(ginfo, bracketEntry->GetBracketId());
+
+        for (GroupReference const& itr : grp->GetMembers())
+        {
+            Player* member = itr.GetSource();
+            if (!member)
+                continue;
+
+            uint32 queueSlot = member->AddBattlegroundQueueId(bgQueueTypeId);
+
+            WorldPackets::Battleground::BattlefieldStatusQueued battlefieldStatus;
+            BattlegroundMgr::BuildBattlegroundStatusQueued(&battlefieldStatus, member, queueSlot, ginfo->JoinTime, bgQueueTypeId, avgTime, false);
+            member->SendDirectMessage(battlefieldStatus.Write());
+        }
+    }
+    else
+    {
+        WorldPackets::Battleground::BattlefieldStatusFailed battlefieldStatus;
+        BattlegroundMgr::BuildBattlegroundStatusFailed(&battlefieldStatus, bgQueueTypeId, _player, 0, err, &errorGuid);
+        SendPacket(battlefieldStatus.Write());
+        return;
+    }
+
+    sBattlegroundMgr->ScheduleQueueUpdate(0, bgQueueTypeId, bracketEntry->GetBracketId());
+}
+
 void WorldSession::HandleReportPvPAFK(WorldPackets::Battleground::ReportPvPPlayerAFK& reportPvPPlayerAFK)
 {
     Player* reportedPlayer = ObjectAccessor::FindPlayer(reportPvPPlayerAFK.Offender);
@@ -678,7 +777,7 @@ void WorldSession::HandleGetPVPOptionsEnabled(WorldPackets::Battleground::GetPVP
     pvpOptionsEnabled.WargameBattlegrounds = false;
     pvpOptionsEnabled.WargameArenas = false;
     pvpOptionsEnabled.RatedArenas = true;
-    pvpOptionsEnabled.ArenaSkirmish = false;
+    pvpOptionsEnabled.ArenaSkirmish = true;
     pvpOptionsEnabled.SoloShuffle = false;
     pvpOptionsEnabled.RatedSoloShuffle = false;
     pvpOptionsEnabled.BattlegroundBlitz = false;

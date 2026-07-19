@@ -746,7 +746,7 @@ namespace ScriptHelpers
                 totalHealth += creature->GetMaxHealth();
         }
 
-        uint32 rating = totalHealth / 100;
+        uint32 rating = totalHealth / 10;
         if (rating > 2000)
             rating = 2000;
 
