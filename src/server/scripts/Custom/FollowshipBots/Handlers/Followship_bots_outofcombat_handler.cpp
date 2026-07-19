@@ -446,6 +446,7 @@ namespace FSBOOC
         baseAI->botManaPotionUsed = false;
         baseAI->botHealthPotionUsed = false;
         baseAI->botCastedCombatBuffs = false;
+        baseAI->botGenericData.consecutiveSelfHeals = 0;
 
         // Set bot to follow if move state is follow but we are idle
         if (baseAI->botMoveState == FSB_MOVE_STATE_FOLLOWING && FSBMovement::GetMovementType(bot) != FOLLOW_MOTION_TYPE)

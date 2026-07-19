@@ -448,10 +448,26 @@ namespace FSBIC
 
         if (healSpell)
         {
-            // check other requirements here
+            // Interleave attacks between self-heals unless health is critical
+            if (bot->GetHealthPct() > BOT_IC_SELFHEAL_EMERGENCY_HP)
+            {
+                bool forceAttack = baseAI->botGenericData.consecutiveSelfHeals >= BOT_IC_SELFHEAL_MAX_CONSECUTIVE;
+                bool rollAttack = urand(0, 99) < BOT_IC_SELFHEAL_ATTACK_CHANCE;
+
+                if (forceAttack || rollAttack)
+                {
+                    if (BotICTryOffensiveSpell(bot))
+                    {
+                        baseAI->botGenericData.consecutiveSelfHeals = 0;
+                        return true;
+                    }
+                    // no attack possible -> fall through and heal
+                }
+            }
 
             if (FSBSpells::BotCastSpell(bot, healSpell->def->spellId, bot))
             {
+                ++baseAI->botGenericData.consecutiveSelfHeals;
                 healSpell->nextReadyMs = now + healSpell->def->cooldownMs;
                 baseAI->botGlobalCooldown = now + 1500;
                 if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
@@ -459,6 +475,8 @@ namespace FSBIC
                 return true;
             }
         }
+        else
+            baseAI->botGenericData.consecutiveSelfHeals = 0;
 
 
         return false;

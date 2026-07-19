@@ -28,6 +28,10 @@ static constexpr float DefaultHealPCTHealer = 70.f;
 static constexpr float DungeonHealPCT = 70.f;
 static constexpr float DungeonHealPCTHealer = 90.f;
 
+static constexpr float  BOT_IC_SELFHEAL_EMERGENCY_HP = 25.0f;
+static constexpr uint32 BOT_IC_SELFHEAL_ATTACK_CHANCE = 30;
+static constexpr uint32 BOT_IC_SELFHEAL_MAX_CONSECUTIVE = 3;
+
 namespace FSBIC
 {
     bool BotICActions(Creature* bot, bool& botManaPotionUsed, bool& botHealthPotionUsed, uint32& globalCooldown, bool& botCastedCombatBuffs);

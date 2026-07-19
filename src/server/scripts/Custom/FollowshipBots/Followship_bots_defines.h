@@ -195,6 +195,8 @@ struct FSB_GenericData
 {
     bool isRecovering = false;
     bool isBuffing = false;
+    uint8 consecutiveSelfHeals = 0;
+    bool pauseCombatChase = false;
 };
 
 struct FSBChatterDBLine
