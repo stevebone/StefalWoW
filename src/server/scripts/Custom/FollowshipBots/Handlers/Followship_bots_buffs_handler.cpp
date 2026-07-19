@@ -189,34 +189,39 @@ namespace FSBBuffs
             uint32 spellId = SPELL_PALADIN_BEACON_OF_LIGHT;
             ObjectGuid botGuid = bot->GetGUID();
 
+            bool beaconActive = false;
             if (!baseAI->botSpellsData.beaconTargetGuid.IsEmpty())
             {
                 Unit* existingTarget = ObjectAccessor::GetUnit(*bot, baseAI->botSpellsData.beaconTargetGuid);
                 if (existingTarget && existingTarget->HasAura(spellId, botGuid))
-                    return false;
+                    beaconActive = true;
             }
 
-            if (scope == FSBBuffTargetScope::Self)
-                return !bot->HasAura(spellId);
-
-            if (scope == FSBBuffTargetScope::Group)
+            if (!beaconActive)
             {
-                Unit* tank = FSBGroup::BotGetFirstGroupTank(bot);
-                Player* owner = FSBMgr::Get()->GetBotOwner(bot);
+                if (scope == FSBBuffTargetScope::Self)
+                {
+                    if (!bot->HasAura(spellId))
+                        return true;
+                }
+                else if (scope == FSBBuffTargetScope::Group)
+                {
+                    Unit* tank = FSBGroup::BotGetFirstGroupTank(bot);
+                    Player* owner = FSBMgr::Get()->GetBotOwner(bot);
 
-                if (tank && tank->IsAlive() && !tank->HasAura(spellId) &&
-                    bot->IsWithinDistInMap(tank, 30.0f) && bot->IsWithinLOSInMap(tank))
-                    return true;
+                    if (tank && tank->IsAlive() && !tank->HasAura(spellId) &&
+                        bot->IsWithinDistInMap(tank, 30.0f) && bot->IsWithinLOSInMap(tank))
+                        return true;
 
-                if (owner && owner->IsAlive() && !owner->HasAura(spellId) &&
-                    bot->IsWithinDistInMap(owner, 30.0f) && bot->IsWithinLOSInMap(owner))
-                    return true;
+                    if (owner && owner->IsAlive() && !owner->HasAura(spellId) &&
+                        bot->IsWithinDistInMap(owner, 30.0f) && bot->IsWithinLOSInMap(owner))
+                        return true;
 
-                if (!bot->HasAura(spellId))
-                    return true;
+                    if (!bot->HasAura(spellId))
+                        return true;
+                }
             }
-
-            return false;
+            // Fall through to generic spell query path for remaining Paladin buffs
         }
 
         // Warlock Soulstone (unique per caster).
@@ -224,39 +229,43 @@ namespace FSBBuffs
         {
             uint32 spellId = SPELL_WARLOCK_SOULSTONE;
 
-            if (bot->GetSpellHistory()->HasCooldown(spellId))
-                return false;
-
-            ObjectGuid botGuid = bot->GetGUID();
-
-            if (!baseAI->botSpellsData.soulstoneTargetGuid.IsEmpty())
+            bool soulstoneActive = false;
+            if (!bot->GetSpellHistory()->HasCooldown(spellId))
             {
-                Unit* existingTarget = ObjectAccessor::GetUnit(*bot, baseAI->botSpellsData.soulstoneTargetGuid);
-                if (existingTarget && existingTarget->HasAura(spellId, botGuid))
-                    return false;
+                ObjectGuid botGuid = bot->GetGUID();
+                if (!baseAI->botSpellsData.soulstoneTargetGuid.IsEmpty())
+                {
+                    Unit* existingTarget = ObjectAccessor::GetUnit(*bot, baseAI->botSpellsData.soulstoneTargetGuid);
+                    if (existingTarget && existingTarget->HasAura(spellId, botGuid))
+                        soulstoneActive = true;
+                }
             }
 
-            if (scope == FSBBuffTargetScope::Self)
-                return !bot->HasAura(spellId);
-
-            if (scope == FSBBuffTargetScope::Group)
+            if (!soulstoneActive && !bot->GetSpellHistory()->HasCooldown(spellId))
             {
-                Unit* healer = FSBGroup::BotGetFirstGroupHealer(bot);
-                Player* owner = FSBMgr::Get()->GetBotOwner(bot);
+                if (scope == FSBBuffTargetScope::Self)
+                {
+                    if (!bot->HasAura(spellId))
+                        return true;
+                }
+                else if (scope == FSBBuffTargetScope::Group)
+                {
+                    Unit* healer = FSBGroup::BotGetFirstGroupHealer(bot);
+                    Player* owner = FSBMgr::Get()->GetBotOwner(bot);
 
-                if (healer && healer->IsAlive() && !healer->HasAura(spellId) &&
-                    bot->IsWithinDistInMap(healer, 30.0f) && bot->IsWithinLOSInMap(healer))
-                    return true;
+                    if (healer && healer->IsAlive() && !healer->HasAura(spellId) &&
+                        bot->IsWithinDistInMap(healer, 30.0f) && bot->IsWithinLOSInMap(healer))
+                        return true;
 
-                if (owner && owner->IsAlive() && !owner->HasAura(spellId) &&
-                    bot->IsWithinDistInMap(owner, 30.0f) && bot->IsWithinLOSInMap(owner))
-                    return true;
+                    if (owner && owner->IsAlive() && !owner->HasAura(spellId) &&
+                        bot->IsWithinDistInMap(owner, 30.0f) && bot->IsWithinLOSInMap(owner))
+                        return true;
 
-                if (!bot->HasAura(spellId))
-                    return true;
+                    if (!bot->HasAura(spellId))
+                        return true;
+                }
             }
-
-            return false;
+            // Fall through to generic spell query path for remaining Warlock buffs
         }
 
         // Rogue self buffs: poisons and battleground Stealth.
