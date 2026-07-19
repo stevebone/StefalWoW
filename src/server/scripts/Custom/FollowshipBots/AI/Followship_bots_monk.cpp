@@ -76,6 +76,7 @@ std::vector<FSBSpellDefinition> MonkSpellsTable =
 
 
     //HEAL
+    { SPELL_MONK_SOOTHING_MIST,             FSBSpellType::Heal,     0.f,        75.f,           100.f,           40.f,          false,      8000,           FSB_RoleMask::FSB_ROLEMASK_HEALER },
     { SPELL_MONK_EXPEL_HARM,                FSBSpellType::Heal,     0.15f,      40.f,           100.f,           0.f,           true,       15000,          FSB_RoleMask::FSB_ROLEMASK_HEALER },
     { SPELL_MONK_RENEWING_MIST,             FSBSpellType::Heal,     0.02f,      75.f,           100.f,           40.f,          false,      5000,           FSB_RoleMask::FSB_ROLEMASK_HEALER },
     { SPELL_MONK_VIVIFY,                    FSBSpellType::Heal,     0.03f,      50.f,           100.f,           40.f,          false,      2000,           FSB_RoleMask::FSB_ROLEMASK_HEALER },
@@ -234,5 +235,14 @@ namespace FSBMonk
         }
 
         return false;
+    }
+
+    void SetSerpentStatueTarget(Creature* bot, ObjectGuid targetGuid)
+    {
+        if (!bot || targetGuid.IsEmpty())
+            return;
+
+        if (Creature* statue = bot->FindNearestCreature(Creatures::NPC_JADE_SERPENT_STATUE, 40.f))
+            statue->AI()->SetGUID(targetGuid, 0);
     }
 }

@@ -483,6 +483,10 @@ namespace FSBSpells
         if (result == SPELL_CAST_OK)
         {
             TC_LOG_DEBUG("scripts.ai.fsb", "FSB Bot {} casted spell {} on target {}", bot->GetName(), FSBSpellsUtils::GetSpellName(spellId), target->GetName());
+
+            if (spellId == SPELL_MONK_SOOTHING_MIST || spellId == SPELL_MONK_SOOTHING_MIST_CHI)
+                FSBMonk::SetSerpentStatueTarget(bot, target->GetGUID());
+
             return true;
         }
         else TC_LOG_DEBUG("scripts.ai.fsb", "FSB Bot {} Unable to cast spell {} on target {} with result {}", bot->GetName(), FSBSpellsUtils::GetSpellName(spellId), target->GetName(), result);
