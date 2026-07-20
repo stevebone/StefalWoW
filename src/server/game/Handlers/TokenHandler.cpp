@@ -35,9 +35,21 @@ void WorldSession::HandleCommerceTokenGetMarketPrice(WorldPackets::Token::Commer
 {
     WorldPackets::Token::CommerceTokenGetMarketPriceResponse response;
 
-    response.Price = 0;
     response.ClientToken = commerceTokenGetMarketPrice.ClientToken;
-    response.Result = TOKEN_RESULT_ERROR_DISABLED;
+
+    // The market price is the cheapest listing actually on the market, not a configured constant. With
+    // nothing listed there is no price to quote, which is exactly ERROR_NONE_FOR_SALE.
+    if (uint64 lowestPrice = sWowTokenMgr->GetLowestListingPrice())
+    {
+        response.Result = TOKEN_RESULT_SUCCESS;
+        response.Price = lowestPrice;
+
+        // Left at 0: how long a token takes to sell is a statistic retail derives from its own sales
+        // history, and we have none to derive it from. 0 is honest here rather than an invented estimate.
+        response.ExpectedSecondsUntilSold = 0;
+    }
+    else
+        response.Result = TOKEN_RESULT_ERROR_NONE_FOR_SALE;
 
     SendPacket(response.Write());
 }
