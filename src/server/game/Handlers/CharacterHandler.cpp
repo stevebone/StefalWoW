@@ -1212,6 +1212,10 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder const& holder)
 
     SendSetTimeZoneInformation();
 
+    // Retail pushes the single sign-on token once, unprompted, in this post-login burst - there is no
+    // client request opcode for it in 12.0.7. See WOW_TOKEN_RE_68275.md.
+    SendGenerateSsoToken();
+
     // Send PVPSeason
     {
         WorldPackets::Battleground::SeasonInfo seasonInfo;

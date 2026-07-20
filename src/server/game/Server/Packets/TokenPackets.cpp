@@ -42,6 +42,71 @@ WorldPacket const* CommerceTokenGetLogResponse::Write()
     return &_worldPacket;
 }
 
+void CommerceTokenGetCount::Read()
+{
+    _worldPacket >> ClientToken;
+}
+
+WorldPacket const* CommerceTokenGetCountResponse::Write()
+{
+    _worldPacket << ClientToken;
+    _worldPacket << Result;
+    _worldPacket << Size<uint32>(AuctionableTokenIDs);
+    _worldPacket << Size<uint32>(ConsumableTokenIDs);
+    for (uint64 tokenId : AuctionableTokenIDs)
+        _worldPacket << tokenId;
+
+    for (uint64 tokenId : ConsumableTokenIDs)
+        _worldPacket << tokenId;
+
+    return &_worldPacket;
+}
+
+WorldPacket const* CommerceTokenUpdate::Write()
+{
+    _worldPacket << Size<uint32>(AuctionableTokenIDs);
+    _worldPacket << Size<uint32>(ConsumableTokenIDs);
+    for (uint64 tokenId : AuctionableTokenIDs)
+        _worldPacket << tokenId;
+
+    for (uint64 tokenId : ConsumableTokenIDs)
+        _worldPacket << tokenId;
+
+    return &_worldPacket;
+}
+
+void ConsumableTokenCanVeteranBuy::Read()
+{
+    _worldPacket >> ClientToken;
+}
+
+WorldPacket const* ConsumableTokenCanVeteranBuyResponse::Write()
+{
+    _worldPacket << ClientToken;
+    _worldPacket << Result;
+    _worldPacket << RemainingGoldAmount;
+
+    return &_worldPacket;
+}
+
+void CanRedeemTokenForBalance::Read()
+{
+    _worldPacket >> Bits<1>(Refresh);
+}
+
+WorldPacket const* GenerateSsoTokenResponse::Write()
+{
+    _worldPacket << Success;
+    _worldPacket << Result;
+    _worldPacket << Issued;
+    _worldPacket << Expires;
+    _worldPacket << SizedString::BitsSize<7>(Token);
+    _worldPacket.FlushBits();
+    _worldPacket << SizedString::Data(Token);
+
+    return &_worldPacket;
+}
+
 void CommerceTokenGetMarketPrice::Read()
 {
     _worldPacket >> ClientToken;

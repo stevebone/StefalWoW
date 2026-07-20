@@ -386,6 +386,34 @@ LOCK TABLES `battlenet_account_player_data_element` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `account_wow_token`
+--
+
+DROP TABLE IF EXISTS `account_wow_token`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `account_wow_token` (
+  `id` bigint unsigned NOT NULL COMMENT 'Token id sent to the client',
+  `account` int unsigned NOT NULL DEFAULT '0' COMMENT 'Owning account, 0 while listed on the market',
+  `state` tinyint unsigned NOT NULL DEFAULT '0' COMMENT '0 Auctionable, 1 Consumable, 2 Listed on the market',
+  `price` bigint unsigned NOT NULL DEFAULT '0' COMMENT 'Copper, only meaningful while state = 2',
+  `createTime` bigint NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `idx_account` (`account`),
+  KEY `idx_state` (`state`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='WoW Token holdings and market listings';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `account_wow_token`
+--
+
+LOCK TABLES `account_wow_token` WRITE;
+/*!40000 ALTER TABLE `account_wow_token` DISABLE KEYS */;
+/*!40000 ALTER TABLE `account_wow_token` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `battlenet_account_player_data_flag`
 --
 

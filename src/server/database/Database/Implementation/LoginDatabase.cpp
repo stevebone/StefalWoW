@@ -205,6 +205,9 @@ void LoginDatabaseConnection::DoPrepareStatements()
     PrepareStatement(LOGIN_SEL_BNET_PLAYER_DATA_FLAGS_ACCOUNT, "SELECT storageIndex, mask FROM battlenet_account_player_data_flag WHERE battlenetAccountId = ?", CONNECTION_ASYNC);
     PrepareStatement(LOGIN_DEL_BNET_PLAYER_DATA_FLAGS_ACCOUNT, "DELETE FROM battlenet_account_player_data_flag WHERE battlenetAccountId = ? AND storageIndex = ?", CONNECTION_ASYNC);
     PrepareStatement(LOGIN_INS_BNET_PLAYER_DATA_FLAGS_ACCOUNT, "INSERT INTO battlenet_account_player_data_flag (battlenetAccountId, storageIndex, mask) VALUES (?, ?, ?)", CONNECTION_ASYNC);
+
+    PrepareStatement(LOGIN_INS_ACCOUNT_WOW_TOKEN, "INSERT INTO account_wow_token (id, account, state, price, createTime) VALUES (?, ?, ?, ?, ?)", CONNECTION_ASYNC);
+    PrepareStatement(LOGIN_UPD_ACCOUNT_WOW_TOKEN, "UPDATE account_wow_token SET account = ?, state = ?, price = ? WHERE id = ?", CONNECTION_ASYNC);
 }
 
 LoginDatabaseConnection::LoginDatabaseConnection(MySQLConnectionInfo& connInfo, ConnectionFlags connectionFlags) : MySQLConnection(connInfo, connectionFlags)

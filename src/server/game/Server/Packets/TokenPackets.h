@@ -56,6 +56,93 @@ namespace WorldPackets
             std::vector<AuctionableTokenInfo> AuctionableTokens;
         };
 
+        class CommerceTokenGetCount final : public ClientPacket
+        {
+        public:
+            explicit CommerceTokenGetCount(WorldPacket&& packet) : ClientPacket(CMSG_COMMERCE_TOKEN_GET_COUNT, std::move(packet)) { }
+
+            void Read() override;
+
+            uint32 ClientToken = 0;
+        };
+
+        // The client reader (12.0.7 68275, sub_7FF7290AC730) takes two parallel uint64 id lists,
+        // both counts first and then both payloads. An all-zero 16 byte body - both lists empty -
+        // is what retail sends to an account holding no tokens.
+        class CommerceTokenGetCountResponse final : public ServerPacket
+        {
+        public:
+            explicit CommerceTokenGetCountResponse() : ServerPacket(SMSG_COMMERCE_TOKEN_GET_COUNT_RESPONSE, 16) { }
+
+            WorldPacket const* Write() override;
+
+            uint32 ClientToken = 0;
+            uint32 Result      = 0;
+            std::vector<uint64> AuctionableTokenIDs;
+            std::vector<uint64> ConsumableTokenIDs;
+        };
+
+        // Unsolicited push carrying the same two lists, sent when the account's holdings change.
+        class CommerceTokenUpdate final : public ServerPacket
+        {
+        public:
+            explicit CommerceTokenUpdate() : ServerPacket(SMSG_COMMERCE_TOKEN_UPDATE, 8) { }
+
+            WorldPacket const* Write() override;
+
+            std::vector<uint64> AuctionableTokenIDs;
+            std::vector<uint64> ConsumableTokenIDs;
+        };
+
+        class ConsumableTokenCanVeteranBuy final : public ClientPacket
+        {
+        public:
+            explicit ConsumableTokenCanVeteranBuy(WorldPacket&& packet) : ClientPacket(CMSG_CONSUMABLE_TOKEN_CAN_VETERAN_BUY, std::move(packet)) { }
+
+            void Read() override;
+
+            uint32 ClientToken = 0;
+        };
+
+        class ConsumableTokenCanVeteranBuyResponse final : public ServerPacket
+        {
+        public:
+            explicit ConsumableTokenCanVeteranBuyResponse() : ServerPacket(SMSG_CONSUMABLE_TOKEN_CAN_VETERAN_BUY_RESPONSE, 16) { }
+
+            WorldPacket const* Write() override;
+
+            uint32 ClientToken = 0;
+            uint32 Result      = 0;
+            uint64 RemainingGoldAmount = 0;
+        };
+
+        // Body is a single bit. Retail answers this request in none of the nine 12.0.7 captures, so
+        // no response is fabricated here - see WOW_TOKEN_RE_68275.md.
+        class CanRedeemTokenForBalance final : public ClientPacket
+        {
+        public:
+            explicit CanRedeemTokenForBalance(WorldPacket&& packet) : ClientPacket(CMSG_CAN_REDEEM_TOKEN_FOR_BALANCE, std::move(packet)) { }
+
+            void Read() override;
+
+            bool Refresh = false;
+        };
+
+        // Server push at session setup; this build has no matching client request opcode.
+        class GenerateSsoTokenResponse final : public ServerPacket
+        {
+        public:
+            explicit GenerateSsoTokenResponse() : ServerPacket(SMSG_GENERATE_SSO_TOKEN_RESPONSE, 26) { }
+
+            WorldPacket const* Write() override;
+
+            uint32 Success = 0;
+            uint32 Result  = 0;
+            Timestamp<> Issued;
+            Timestamp<> Expires;
+            std::string Token;
+        };
+
         class CommerceTokenGetMarketPrice final : public ClientPacket
         {
         public:

@@ -108,6 +108,7 @@
 #include "WhoListStorage.h"
 #include "WorldSession.h"
 #include "WorldStateMgr.h"
+#include "WowTokenMgr.h"
 #include <zlib.h>
 
 TC_GAME_API std::atomic<bool> World::m_stopEvent(false);
@@ -1623,6 +1624,9 @@ bool World::SetInitialWorldSettings()
     TC_LOG_INFO("server.loading", "Loading in-game Shop (BattlePay) catalog...");
     sBattlePayMgr->Load();
     sBattlePayMgr->LoadCatalog();
+
+    TC_LOG_INFO("server.loading", "Loading WoW Token holdings...");
+    sWowTokenMgr->Load();
 
     TC_LOG_INFO("server.loading", "Loading creature summoned data...");
     sObjectMgr->LoadCreatureSummonedData();                     // must be after LoadCreatureTemplates() and LoadQuests()

@@ -792,6 +792,9 @@ namespace WorldPackets
     {
         class CommerceTokenGetLog;
         class CommerceTokenGetMarketPrice;
+        class CommerceTokenGetCount;
+        class ConsumableTokenCanVeteranBuy;
+        class CanRedeemTokenForBalance;
     }
 
     namespace Totem
@@ -1856,6 +1859,11 @@ class TC_GAME_API WorldSession
         // Token
         void HandleCommerceTokenGetLog(WorldPackets::Token::CommerceTokenGetLog& updateListedAuctionableTokens);
         void HandleCommerceTokenGetMarketPrice(WorldPackets::Token::CommerceTokenGetMarketPrice& requestWowTokenMarketPrice);
+        void HandleCommerceTokenGetCount(WorldPackets::Token::CommerceTokenGetCount& commerceTokenGetCount);
+        void HandleConsumableTokenCanVeteranBuy(WorldPackets::Token::ConsumableTokenCanVeteranBuy& consumableTokenCanVeteranBuy);
+        void HandleCanRedeemTokenForBalance(WorldPackets::Token::CanRedeemTokenForBalance& canRedeemTokenForBalance);
+        void SendCommerceTokenUpdate();
+        void SendGenerateSsoToken();
 
         // Compact Unit Frames (4.x)
         void HandleSaveCUFProfiles(WorldPackets::Misc::SaveCUFProfiles& packet);
