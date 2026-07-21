@@ -28,6 +28,9 @@
 #include "EventMap.h"
 #include "MotionMaster.h"
 #include "PassiveAI.h"
+#include "SpellInfo.h"
+#include "GridNotifiersImpl.h"
+#include "Cell.h"
 
 #include "Custom_Monk_Defines.h"
 
@@ -151,6 +154,31 @@ namespace Custom::Monk
         ObjectGuid _currentTargetGuid;
         ObjectGuid _pendingTargetGuid;
     };
+
+    // Black Ox Statue - 61146
+    struct npc_monk_black_ox_statue : public PassiveAI
+    {
+        npc_monk_black_ox_statue(Creature* creature) : PassiveAI(creature) { }
+
+        void Reset() override
+        {
+            me->CastSpell(me, Spells::BLACK_OX_STATUE_AURA, true);
+
+            if (Unit* owner = me->GetOwner())
+            {
+                uint64 maxHealth = owner->GetMaxHealth() * 0.5f;
+                me->SetMaxHealth(maxHealth);
+                me->SetHealth(maxHealth);
+
+                std::list<Unit*> targets;
+                Trinity::AnyUnfriendlyUnitInObjectRangeCheck check(owner, owner, 10.0f);
+                Trinity::UnitListSearcher searcher(owner, targets, check);
+                Cell::VisitAllObjects(owner, searcher, 10.0f);
+                for (Unit* target : targets)
+                    me->CastSpell(target, Spells::PROVOKE, true);
+            }
+        }
+    };
 }
 
 void AddSC_custom_monk_spell_npcs()
@@ -158,4 +186,5 @@ void AddSC_custom_monk_spell_npcs()
     using namespace Custom::Monk;
 
     RegisterCreatureAI(npc_monk_jade_serpent_statue);
+    RegisterCreatureAI(npc_monk_black_ox_statue);
 }

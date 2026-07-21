@@ -28,13 +28,16 @@ namespace Custom::Monk
     namespace Creatures
     {
         static constexpr uint32 NPC_JADE_SERPENT_STATUE = 60849;
+        static constexpr uint32 NPC_BLACK_OX_STATUE    = 61146;
     }
 
     namespace Spells
     {
-        static constexpr uint32 SUMMON_SERPENT_STATUE = 115313;
-        static constexpr uint32 SOOTHING_MIST_OWNER = 115175;
-        static constexpr uint32 SOOTHING_MIST_STATUE = 198533;
+        static constexpr uint32 SUMMON_SERPENT_STATUE  = 115313;
+        static constexpr uint32 SOOTHING_MIST_OWNER   = 115175;
+        static constexpr uint32 SOOTHING_MIST_STATUE  = 198533;
+        static constexpr uint32 BLACK_OX_STATUE_AURA  = 163177;
+        static constexpr uint32 PROVOKE               = 115546;
     }
 
     namespace Events
