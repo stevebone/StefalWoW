@@ -1139,7 +1139,7 @@ void Creature::CalculateMinMaxDamage(WeaponAttackType attType, bool normalized, 
     float basePct          = GetPctModifierValue(unitMod, BASE_PCT) * attackSpeedMulti;
     float totalValue       = GetFlatModifierValue(unitMod, TOTAL_VALUE);
     float totalPct         = addTotalPct ? GetPctModifierValue(unitMod, TOTAL_PCT) : 1.0f;
-    float dmgMultiplier    = GetCreatureDifficulty()->DamageModifier; // = DamageModifier * GetDamageMod(rank);
+    float dmgMultiplier    = m_overrideDamageModifier >= 0.0f ? m_overrideDamageModifier : GetCreatureDifficulty()->DamageModifier;
 
     minDamage = ((weaponMinDamage + baseValue) * dmgMultiplier * basePct + totalValue) * totalPct;
     maxDamage = ((weaponMaxDamage + baseValue) * dmgMultiplier * basePct + totalValue) * totalPct;

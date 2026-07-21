@@ -233,7 +233,6 @@ public:
 
         void DamageDealt(Unit* victim, uint32& damage, DamageEffectType /*damageType*/) override
         {
-            damage = FSBStats::CalculateScaledBotDamage(me, victim, damage);
             damage = uint32(damage * FSBStats::ApplyBotDamageDoneReduction(me));
             FSBPowers::GenerateRageFromDamageDone(me, damage);
 

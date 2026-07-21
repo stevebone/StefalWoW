@@ -253,6 +253,7 @@ class TC_GAME_API Creature : public Unit, public GridObject<Creature>, public Ma
         void UpdateAttackPowerAndDamage(bool ranged = false) override;
         void SetBaseAttackPower(uint32 attackPower) { m_baseAttackPower = attackPower; }
         void SetBaseRangedAttackPower(uint32 attackPower) { m_baseRangedAttackPower = attackPower; }
+        void SetDamageModifier(float mod) { m_overrideDamageModifier = mod; }
         void CalculateMinMaxDamage(WeaponAttackType attType, bool normalized, bool addTotalPct, float& minDamage, float& maxDamage) const override;
 
         void SetCanDualWield(bool value) override;
@@ -559,6 +560,7 @@ class TC_GAME_API Creature : public Unit, public GridObject<Creature>, public Ma
         SpellSchoolMask m_meleeDamageSchoolMask;
         uint32 m_baseAttackPower;
         uint32 m_baseRangedAttackPower;
+        float m_overrideDamageModifier = -1.0f;
         uint32 m_originalEntry;
 
         Position m_homePosition;

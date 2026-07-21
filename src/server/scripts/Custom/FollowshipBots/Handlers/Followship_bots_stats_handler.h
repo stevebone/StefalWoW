@@ -39,6 +39,7 @@ struct FSB_ClassStats
     int32 basePowerRegenIC;
 
     float baseClassDamageVariance;
+    float baseDamagePerLevel;
 
     int32 baseAttackTime;
     int32 baseRangedAttackTime;
@@ -62,6 +63,7 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .baseHpRegenIC = 0,
         .basePowerRegenIC = 1,
         .baseClassDamageVariance = 0.9f,
+        .baseDamagePerLevel = 1.7f,
         .baseAttackTime = 2000,
         .baseRangedAttackTime = 2000,
         .baseSpellPower = 8,
@@ -80,6 +82,7 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .baseHpRegenIC = 0,
         .basePowerRegenIC = 0,
         .baseClassDamageVariance = 0.9f,
+        .baseDamagePerLevel = 2.2f,
         .baseAttackTime = 2000,
         .baseRangedAttackTime = 2000,
         .baseSpellPower = 2,
@@ -98,6 +101,7 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .baseHpRegenIC = 0,
         .basePowerRegenIC = 2,
         .baseClassDamageVariance = 0.2f,
+        .baseDamagePerLevel = 0.7f,
         .baseAttackTime = 3500,
         .baseRangedAttackTime = 2500,
         .baseSpellPower = 8,
@@ -116,6 +120,7 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .baseHpRegenIC = 0,
         .basePowerRegenIC = 2,
         .baseClassDamageVariance = 0.2f,
+        .baseDamagePerLevel = 0.7f,
         .baseAttackTime = 3500,
         .baseRangedAttackTime = 2500,
         .baseSpellPower = 9,
@@ -134,6 +139,7 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .baseHpRegenIC = 0,
         .basePowerRegenIC = 2,
         .baseClassDamageVariance = 0.2f,
+        .baseDamagePerLevel = 0.7f,
         .baseAttackTime = 3500,
         .baseRangedAttackTime = 2500,
         .baseSpellPower = 10,
@@ -152,6 +158,7 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .baseHpRegenIC = 0,
         .basePowerRegenIC = 2,
         .baseClassDamageVariance = 1.f,
+        .baseDamagePerLevel = 2.0f,
         .baseAttackTime = 2000,
         .baseRangedAttackTime = 2500,
         .baseSpellPower = 8,
@@ -170,6 +177,7 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .baseHpRegenIC = 0,
         .basePowerRegenIC = 2,
         .baseClassDamageVariance = 0.7f,
+        .baseDamagePerLevel = 1.5f,
         .baseAttackTime = 2000,
         .baseRangedAttackTime = 2500,
         .baseSpellPower = 8,
@@ -188,6 +196,7 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .baseHpRegenIC = 0,
         .basePowerRegenIC = 10,
         .baseClassDamageVariance = 1.2f,
+        .baseDamagePerLevel = 1.8f,
         .baseAttackTime = 1500,
         .baseRangedAttackTime = 2500,
         .baseSpellPower = 1,
@@ -206,6 +215,7 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .baseHpRegenIC = 0,
         .basePowerRegenIC = 5,
         .baseClassDamageVariance = 1.f,
+        .baseDamagePerLevel = 1.4f,
         .baseAttackTime = 2500,
         .baseRangedAttackTime = 2000,
         .baseSpellPower = 1,
@@ -224,6 +234,7 @@ static constexpr FSB_ClassStats BotClassStatsTable[] =
         .baseHpRegenIC = 0,
         .basePowerRegenIC = 1,
         .baseClassDamageVariance = 0.9f,
+        .baseDamagePerLevel = 1.5f,
         .baseAttackTime = 2000,
         .baseRangedAttackTime = 2000,
         .baseSpellPower = 2,
@@ -252,6 +263,4 @@ namespace FSBStats
 
     int32 BotGetSpellPower(const Creature* bot);
 
-    float GetBotDamageMultiplier(uint8 level);
-    int32 CalculateScaledBotDamage(Creature* bot, Unit* victim, int32 rawDamage);
 }

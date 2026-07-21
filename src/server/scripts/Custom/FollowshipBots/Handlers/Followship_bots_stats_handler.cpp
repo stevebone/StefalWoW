@@ -233,8 +233,10 @@ namespace FSBStats
 
         float modifier = FollowshipBotsConfig::configFSBDamageRate;
 
-        float ap = bot->GetTotalAttackPowerValue(BASE_ATTACK, false);
-        float basedamage = ap * stats->baseClassDamageVariance * modifier;
+        bot->SetDamageModifier(1.0f);
+
+        int32 level = bot->GetLevel();
+        float basedamage = stats->baseDamagePerLevel * float(level) * stats->baseClassDamageVariance * modifier;
 
         float weaponBaseMinDamage = basedamage;
         float weaponBaseMaxDamage = weaponBaseMinDamage * 1.5f;
@@ -450,48 +452,5 @@ namespace FSBStats
             multiplier *= 1.03f;
 
         return multiplier;
-    }
-
-    float GetBotDamageMultiplier(uint8 level)
-    {
-        // Level 1-10: 0.5% ? 5%
-        if (level <= 10)
-        {
-            return 0.1f; // 0.005f + (level - 1) * 0.005f;
-        }
-
-        // Level 10-20: 30% ? 80%
-        if (level <= 20)
-        {
-            return 0.2f; // 0.30f + (level - 10) * 0.05f;
-        }
-
-        // Level 20-80: 80% ? 140%
-        if (level <= 80)
-        {
-            return 0.8f; // 0.80f + (level - 20) * 0.01f;
-        }
-
-        // Above 80: clamp or extend
-        return 0.2f; // or extend formula if needed
-    }
-
-    int32 CalculateScaledBotDamage(Creature* bot, Unit* victim, int32 rawDamage)
-    {
-        if (!bot || !victim || rawDamage <= 0)
-            return rawDamage;
-
-        uint8 level = bot->GetLevel();
-
-        // Apply level-based multiplier
-        float mult = FSBStats::GetBotDamageMultiplier(level);
-        int32 scaledDamage = int32(rawDamage * mult);
-
-        TC_LOG_DEBUG("scripts.fsb.combat",
-            "FSB: CalculateScaledBotDamage bot={} lvl={} mult={} raw={} scaled={}",
-            bot->GetName(), level, mult, rawDamage, scaledDamage
-        );
-
-        return scaledDamage;
     }
 }
