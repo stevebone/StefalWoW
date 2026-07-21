@@ -251,6 +251,8 @@ class TC_GAME_API Creature : public Unit, public GridObject<Creature>, public Ma
         uint32 GetPowerIndex(Powers power) const override;
         ClassPowerTypes GetPowerTypes() const override;
         void UpdateAttackPowerAndDamage(bool ranged = false) override;
+        void SetBaseAttackPower(uint32 attackPower) { m_baseAttackPower = attackPower; }
+        void SetBaseRangedAttackPower(uint32 attackPower) { m_baseRangedAttackPower = attackPower; }
         void CalculateMinMaxDamage(WeaponAttackType attType, bool normalized, bool addTotalPct, float& minDamage, float& maxDamage) const override;
 
         void SetCanDualWield(bool value) override;

@@ -213,8 +213,10 @@ namespace FSBStats
         uint32 finalAP = uint32(strengthValue + agilityValue);
         uint32 finalRAP = uint32(agilityValue * classEntry->RangedAttackPowerPerAgility);
 
-        bot->SetStatFlatModifier(UNIT_MOD_ATTACK_POWER, BASE_VALUE, finalAP);
-        bot->SetStatFlatModifier(UNIT_MOD_ATTACK_POWER_RANGED, BASE_VALUE, finalRAP);
+        bot->SetBaseAttackPower(finalAP);
+        bot->SetBaseRangedAttackPower(finalRAP);
+        bot->UpdateAttackPowerAndDamage();
+        bot->UpdateAttackPowerAndDamage(true);
 
         //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Stats AttackPower Bot: {} Has STR: {}, AGI: {}, AP: {}, RAP: {}",
         //    bot->GetName(), strength, agility, finalAP, finalRAP);

@@ -125,13 +125,13 @@ public:
         handler->PSendSysMessage("=== Followship Bot Damage Stats ===");
         handler->PSendSysMessage("Bot %s with level: %u and effective level: %u", bot->GetName(), level, eLevel);
 
-        float totalAttackPower = bot->GetTotalAuraModValue(UNIT_MOD_ATTACK_POWER);
-        float base_attPower = bot->GetFlatModifierValue(UNIT_MOD_ATTACK_POWER, BASE_VALUE) * bot->GetPctModifierValue(UNIT_MOD_ATTACK_POWER, BASE_PCT);
+        float totalAttackPower = bot->GetTotalAttackPowerValue(BASE_ATTACK);
+        float base_attPower = float(bot->GetTotalAttackPowerValue(BASE_ATTACK, false));
 
         handler->PSendSysMessage("Attack Power: Base %.1f / Total %.1f", base_attPower, totalAttackPower);
 
-        float totalRAttackPower = bot->GetTotalAuraModValue(UNIT_MOD_ATTACK_POWER_RANGED);
-        float base_RattPower = bot->GetFlatModifierValue(UNIT_MOD_ATTACK_POWER_RANGED, BASE_VALUE) * bot->GetPctModifierValue(UNIT_MOD_ATTACK_POWER_RANGED, BASE_PCT);
+        float totalRAttackPower = bot->GetTotalAttackPowerValue(RANGED_ATTACK);
+        float base_RattPower = float(bot->GetTotalAttackPowerValue(RANGED_ATTACK, false));
 
         handler->PSendSysMessage("Ranged Attack Power: Base %.1f / Total %.1f", base_RattPower, totalRAttackPower);
 
