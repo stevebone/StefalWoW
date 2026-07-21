@@ -245,7 +245,7 @@ namespace FSBUtils
         case FSB_Race::Gnome:               return LANG_GNOMISH;
         case FSB_Race::Draenei:             return LANG_DRAENEI;
         case FSB_Race::Worgen:              return LANG_COMMON;
-        case FSB_Race::Pandaren:            return LANG_PANDAREN_ALLIANCE;
+        case FSB_Race::Pandaren:            return LANG_COMMON;
         case FSB_Race::VoidElf:             return LANG_THALASSIAN;
         case FSB_Race::Orc:                 return LANG_ORCISH;
         case FSB_Race::Undead:              return LANG_GUTTERSPEAK;
@@ -253,7 +253,7 @@ namespace FSBUtils
         case FSB_Race::Troll:               return LANG_TROLL;
         case FSB_Race::BloodElf:            return LANG_THALASSIAN;
         case FSB_Race::Goblin:              return LANG_GOBLIN;
-        case FSB_Race::PandarenHorde:       return LANG_PANDAREN_HORDE;
+        case FSB_Race::PandarenHorde:       return LANG_ORCISH;
         case FSB_Race::HighmountainTauren:  return LANG_TAURAHE;
         case FSB_Race::Nightborne:          return LANG_SHALASSIAN;
         case FSB_Race::LightforgedDraenei:  return LANG_DRAENEI;
