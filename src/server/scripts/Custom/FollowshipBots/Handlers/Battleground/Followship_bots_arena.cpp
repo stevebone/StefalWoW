@@ -27,11 +27,7 @@
 #include "Log.h"
 #include "Map.h"
 #include "MotionMaster.h"
-#include "ObjectAccessor.h"
-#include "Player.h"
 #include "Random.h"
-
-#include <vector>
 
 #include "Followship_bots_ai_base.h"
 #include "Followship_bots_battleground_handler.h"
@@ -71,6 +67,9 @@ namespace FSBBattleground::Arena
         if (!bot || !bot->IsAlive())
             return;
 
+        if (!bot->IsInCombat())
+            return;
+
         IssueRandomMovement(bot);
     }
 
@@ -79,89 +78,7 @@ namespace FSBBattleground::Arena
         if (!bot || !bot->IsAlive())
             return nullptr;
 
-        BattlegroundMap* bgMap = bot->GetMap()->ToBattlegroundMap();
-        if (!bgMap)
-            return nullptr;
-
-        Battleground* bg = bgMap->GetBG();
-        if (!bg || bg->GetStatus() != STATUS_IN_PROGRESS)
-            return nullptr;
-
-        FSB_Race botRace = FSBMgr::Get()->GetBotRaceForEntry(bot->GetEntry());
-        Team botTeam = FSBUtils::GetTeamFromFSBRace(botRace);
-        if (botTeam != ALLIANCE && botTeam != HORDE)
-            return nullptr;
-
-        struct Candidate
-        {
-            Unit* target;
-            float healthPct;
-            float distance;
-        };
-
-        std::vector<Candidate> candidates;
-
-        auto isValidTarget = [&](Unit* target) -> bool
-        {
-            if (!target || !target->IsInWorld() || target->IsDuringRemoveFromWorld())
-                return false;
-
-            if (!bot->IsWithinDistInMap(target, range))
-                return false;
-
-            if (!bot->IsValidAttackTarget(target))
-                return false;
-
-            return FSBCombat::BotCanAttack(bot, target);
-        };
-
-        // Hostile players
-        for (auto const& [guid, bgPlayer] : bg->GetPlayers())
-        {
-            if (bgPlayer.Team == botTeam)
-                continue;
-
-            Player* player = ObjectAccessor::GetPlayer(bgMap, guid);
-            if (!player)
-                continue;
-
-            if (!isValidTarget(player))
-                continue;
-
-            candidates.push_back({ player, player->GetHealthPct(), bot->GetDistance(player) });
-        }
-
-        // Hostile bots
-        for (auto const& [guid, creature] : bgMap->GetObjectsStore().Data.Head)
-        {
-            if (!creature || !creature->IsBot())
-                continue;
-
-            Team creatureTeam = FSBUtils::GetTeamFromFSBRace(FSBMgr::Get()->GetBotRaceForEntry(creature->GetEntry()));
-            if (creatureTeam == botTeam)
-                continue;
-
-            if (!isValidTarget(creature))
-                continue;
-
-            candidates.push_back({ creature, creature->GetHealthPct(), bot->GetDistance(creature) });
-        }
-
-        if (candidates.empty())
-            return nullptr;
-
-        auto best = std::min_element(candidates.begin(), candidates.end(),
-            [](Candidate const& a, Candidate const& b)
-        {
-            if (a.healthPct != b.healthPct)
-                return a.healthPct < b.healthPct;
-            return a.distance < b.distance;
-        });
-
-        TC_LOG_DEBUG("scripts.fsb.arena", "FSB Arena: Bot {} selected target {} (healthPct={}, distance={})",
-            bot->GetName(), best->target->GetName(), best->healthPct, best->distance);
-
-        return best->target;
+        return bot->SelectNearestTarget(range);
     }
 
     void IssueRandomMovement(Creature* bot)
