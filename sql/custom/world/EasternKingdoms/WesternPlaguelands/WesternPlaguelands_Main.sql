@@ -7,11 +7,11 @@
 -- NPC: 50345 Alit
 
 -- Difficulty Fixes
-DELETE FROM `creature_template_difficulty` WHERE Entry IN (1847,51058,50345) AND `DifficultyID` = 0;
-UPDATE `creature_template_difficulty` SET `DifficultyID` = 0 WHERE Entry IN (1847,51058,50345) AND `DifficultyID` = 1;
+DELETE FROM `creature_template_difficulty` WHERE Entry IN (1847,51058,50345,45129) AND `DifficultyID` = 0;
+UPDATE `creature_template_difficulty` SET `DifficultyID` = 0 WHERE Entry IN (1847,51058,50345,45129) AND `DifficultyID` = 1;
 
 UPDATE creature_template_difficulty SET ContentTuningID = 25 WHERE Entry IN (50937);
-UPDATE creature_template_difficulty SET StaticFlags1 = StaticFlags1 | 0x20000000 WHERE Entry = 44483;
+UPDATE creature_template_difficulty SET StaticFlags1 = StaticFlags1 | 0x20000000 WHERE Entry IN (44483,50345);
 
 -- Template Fixes
 UPDATE `creature_template` SET `unit_flags3` = 8193 WHERE `entry` = 1835;
@@ -19,6 +19,52 @@ UPDATE `creature_template` SET `unit_flags3` = 8193 WHERE `entry` = 1835;
 -- Template Addon Fixes
 UPDATE creature_template_addon SET StandState = 7 WHERE Entry = 1835;
 UPDATE creature_template_addon SET emote = 1008 WHERE Entry = 44435;
+
+-- Creature Text
+DELETE FROM `creature_text` WHERE `CreatureID` = 1841;
+INSERT INTO `creature_text` VALUES
+(1841, 0, 0, '%s becomes enraged!', 16, 0, 100, 0, 0, 0, 0, 10677, 0, 'Scarlet Executioner'),
+(1841, 1, 0, 'Finally out from under the boot of that she-witch Abbendis, and free to pursue my own interests: BLOOD, BLOOD, AND MORE BLOOD!', 14, 0, 100, 0, 0, 0, 0, 50917, 0, 'Scarlet Executioner');
+
+-- SAI
+UPDATE creature_template SET AIName = 'SmartAI' WHERE `Entry` IN (1841);
+DELETE FROM smart_scripts WHERE entryorguid = 1841 AND source_type = 0;
+INSERT INTO smart_scripts VALUES
+(1841, 0, 0, 0, '', 2, 0, 100, 1, 0, 30, 0, 0, 0, '', 11, 8599, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Scarlet Executioner - Between 0-30% Health - Cast Enrage'),
+(1841, 0, 1, 0, '', 9, 0, 100, 0, 0, 5, 9000, 14000, 0, '', 11, 16856, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Scarlet Executioner - Within 0-5 Range - Cast Mortal Strike'),
+(1841, 0, 2, 0, '', 9, 0, 100, 0, 0, 5, 5000, 9000, 0, '', 11, 15284, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Scarlet Executioner - Within 0-5 Range - Cast Cleave'),
+(1841, 0, 3, 0, '', 2, 0, 100, 1, 0, 15, 0, 0, 0, '', 25, 1, 0, 0, 0, 0, 0, 0, '', 0, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Scarlet Executioner - Between 0-15% Health - Flee For Assist (No Repeat)'),
+(1841, 0, 4, 0, '', 2, 0, 100, 1, 0, 30, 0, 0, 0, '', 1, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Scarlet Executioner - Between 0-30% Health - Say Line 0 (No Repeat)'),
+(1841, 0, 5, 0, '', 4, 0, 100, 1, 0, 0, 0, 0, 0, '', 1, 1, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Scarlet Executioner - On Aggro - Say Line 1 (No Repeat)');
+
+-- Creature Spawns
+SET @CGUID := 900000;
+DELETE FROM `creature` WHERE `guid` IN (@CGUID+1225,@CGUID+1226);
+INSERT INTO `creature` (`guid`, `id`, `map`, `zoneId`, `areaId`, `spawnDifficulties`, `phaseUseFlags`, `phaseId`, `phaseGroup`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`) VALUES
+-- Scarlet Executioner
+(@CGUID+1225, '1841', '0', '28', '190', '0', '0', '0', '0', '1', '2839.28', '-1395', '147.547', '3.998', '180'),
+(@CGUID+1226, '1841', '0', '28', '5421', '0', '0', '0', '0', '1', '2205.82', '-1777.8', '62.1064', '1.63258', '180');
+
+SET @POOLID := 900000;
+DELETE FROM `pool_template` WHERE `entry` = @POOLID+7;
+INSERT INTO `pool_template` (`entry`, `max_limit`, `description`) VALUES
+(@POOLID+7, 1, 'Western Plaguelands - Scarlet Executioner');
+
+DELETE FROM `pool_members` WHERE `poolSpawnId` = @POOLID+7;
+INSERT INTO `pool_members` (`type`, `spawnId`, `poolSpawnId`, `chance`, `description`) VALUES
+(0, @CGUID+1225, @POOLID+7, 0, 'Western Plaguelands - Scarlet Executioner'),
+(0, @CGUID+1226, @POOLID+7, 0, 'Western Plaguelands - Scarlet Executioner');
+
+-- Creature Addons
+DELETE FROM creature_addon WHERE guid IN (328667,328668,328608,328609,328610,328531);
+INSERT INTO creature_addon (guid, StandState) VALUES (328667, 7);
+INSERT INTO creature_addon (guid, StandState) VALUES (328668, 7);
+INSERT INTO creature_addon (guid, StandState) VALUES (328608, 7);
+INSERT INTO creature_addon (guid, StandState) VALUES (328609, 7);
+INSERT INTO creature_addon (guid, StandState) VALUES (328610, 7);
+INSERT INTO creature_addon (guid, StandState) VALUES (328531, 7);
+
+UPDATE creature SET `unit_flags` = 537133824, `unit_flags3` = 8192 WHERE guid IN (328667,328668,328608,328609,328610,328531);
 
 -- Remove Duplicate/Wrong spawns
 DELETE FROM creature WHERE id = 44836 AND guid = 328618;
@@ -55,7 +101,8 @@ WHERE id IN (
 	45166,
 	4472,
 	44483,
-	45212
+	45212,
+    50345
 );
 
 UPDATE creature
@@ -106,3 +153,6 @@ WHERE guid IN (
     328254,
     328258
 );
+
+-- Remove movement for dead creatures
+UPDATE `creature` SET MovementType = 0 AND wander_distance = 0 WHERE guid IN (328608,328609,328610,328531);
