@@ -10,5 +10,3 @@ DELETE FROM creature WHERE id = 51983 AND guid = 293088;
 -- Difficulty fixes
 -- Missing Content Tuning
 UPDATE creature_template_difficulty SET ContentTuningID = 31 WHERE Entry = 986 AND DifficultyID = 0;
-
-
