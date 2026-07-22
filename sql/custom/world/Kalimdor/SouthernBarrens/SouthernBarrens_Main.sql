@@ -8,8 +8,10 @@
 -- NPC: 37167 Stonetalon Prisoner
 
 -- Template fixes
-UPDATE creature_template SET unit_flags3 = 8193, npcflag = 0 WHERE entry IN (10378,5944,3703,6387);
-UPDATE creature_template SET unit_flags3 = 8193 WHERE entry = 8016;
+UPDATE `creature_template` SET `unit_flags3` = 8193, `npcflag` = 0 WHERE `entry` IN (10378,5944,3703,6387);
+UPDATE `creature_template` SET `unit_flags3` = 8193 WHERE `entry` = 8016;
+UPDATE `creature_template_addon` SET `StandState` = 7 WHERE `Entry` IN (10378,5944,3703,6387, 8016);
 
 -- Template Addons
-INSERT INTO creature_template_addon (Entry, StandState) VALUES (37167, 1);
+DELETE FROM `creature_template_addon` WHERE `Entry` IN (37167);
+INSERT INTO `creature_template_addon` (`Entry`, `StandState`) VALUES (37167, 1);

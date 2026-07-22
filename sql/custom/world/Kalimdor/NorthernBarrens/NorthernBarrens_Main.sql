@@ -18,6 +18,9 @@ UPDATE `creature_template_difficulty` SET `DifficultyID` = 0 WHERE Entry IN (583
 
 UPDATE creature_template_difficulty SET ContentTuningID = 3 WHERE Entry = 3652;
 
+-- Template Fixes
+UPDATE `creature_template` SET `unit_flags3` = 8193 WHERE `Entry` = 38554;
+
 -- Template Addons
 DELETE FROM `creature_template_addon` WHERE `Entry` = 38554;
 INSERT INTO `creature_template_addon` (`Entry`, `StandState`) VALUES
