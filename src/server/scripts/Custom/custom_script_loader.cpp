@@ -104,6 +104,9 @@ void AddSC_npc_perks_program_vendor();
 // ==================== Spells Scripts ======================= //
 void AddSC_advanced_flying_spell_scripts();
 
+// ==================== Misc Scripts ========================= //
+void AddSC_gm_fixer();
+
 // The name of this function should match:
 // void Add${NameOfDirectory}Scripts()
 void AddCustomScripts()
@@ -187,5 +190,9 @@ void AddCustomScripts()
     AddSC_instance_shadow_enclave_delve();
     AddSC_delve_commands();
 
+    // Spells
     AddSC_advanced_flying_spell_scripts();
+
+    // Misc
+    AddSC_gm_fixer();
 }
