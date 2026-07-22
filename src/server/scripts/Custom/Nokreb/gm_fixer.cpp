@@ -2108,7 +2108,7 @@ private:
         // Apply auras at runtime
         for (uint32 sid : spellIds)
         {
-            if (SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(sid, DIFFICULTY_NONE))
+            if (sSpellMgr->GetSpellInfo(sid, DIFFICULTY_NONE))
                 c->AddAura(sid, c);
         }
 
