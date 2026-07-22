@@ -2242,22 +2242,24 @@ void Garrison::GenerateAvailableMissions()
         if (mission->GarrFollowerTypeID != sGarrisonMgr.GetPrimaryFollowerType(garrTypeID))
             continue;
 
-        // Filter by target level (within +-5 levels of average follower level)
-        int32 levelDiff = std::abs(avgFollowerLevel - static_cast<int32>(mission->TargetLevel));
-        if (levelDiff > 5)
-            continue;
-
-        // Skip missions requiring more followers than available
-        uint32 availableFollowers = 0;
-        for (auto const& p : _followers)
+        // Filter by target level, but ONLY when we actually have active followers to
+        // scale against. Retail offers the standard mission pool to a garrison with no
+        // active followers (sniff "garrison and hall of class table quest.pkt": 42 missions
+        // offered), so the default-90 clamp must not starve a follower-less/all-inactive
+        // garrison down to zero.
+        if (followerCount > 0)
         {
-            if (p.second.PacketInfo.CurrentMissionID == 0
-                && !(p.second.PacketInfo.FollowerStatus & FOLLOWER_STATUS_INACTIVE))
-                ++availableFollowers;
+            int32 levelDiff = std::abs(avgFollowerLevel - static_cast<int32>(mission->TargetLevel));
+            if (levelDiff > 5)
+                continue;
         }
 
-        if (mission->MaxFollowers > availableFollowers)
-            continue;
+        // NOTE: intentionally NOT gating the OFFER on current idle-follower count.
+        // Retail offers missions the player cannot yet staff (the above sniff offers all 42
+        // regardless of roster); the follower requirement is enforced at mission START
+        // (StartMission validates MaxFollowers), not at offer time. A previous
+        // "MaxFollowers > availableFollowers" gate here zeroed the command table whenever the
+        // player's followers were all busy or inactive.
 
         // Skip missions with 0 duration (usually internal/debug)
         if (mission->MissionDuration == 0)
