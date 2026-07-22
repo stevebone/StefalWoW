@@ -335,20 +335,6 @@ namespace
         outEntry = c->GetEntry();
         return true;
     }
-
-    /*
-     * Safely parse a uint32 from the beginning of args.
-     * If args is empty or not a number — returns false.
-     */
-    static bool ParseUInt32(char const* args, uint32& out)
-    {
-        if (!args || !*args) return false;
-        char* end = nullptr;
-        unsigned long v = std::strtoul(args, &end, 10);
-        if (end == args) return false; // nothing was parsed
-        out = static_cast<uint32>(v);
-        return true;
-    }
 }
 
 /*
@@ -422,14 +408,8 @@ public:
 
 private:
     // ----- .fix faction <factionId> -----
-    static bool HandleFixFaction(ChatHandler* h, char const* args)
+    static bool HandleFixFaction(ChatHandler* h, uint32 factionId)
     {
-        uint32 factionId = 0;
-        if (!ParseUInt32(args, factionId))
-        {
-            h->SendSysMessage("Usage: .fix faction <factionId>");
-            return true;
-        }
         Creature* c = nullptr; uint32 entry = 0;
         if (!GetSelectedCreature(h, c, entry)) return true;
 
@@ -444,7 +424,7 @@ private:
     }
 
     // ----- .fix friendly -----
-    static bool HandleFixFriendly(ChatHandler* h, char const*)
+    static bool HandleFixFriendly(ChatHandler* h)
     {
         Creature* c = nullptr; uint32 entry = 0;
         if (!GetSelectedCreature(h, c, entry)) return true;
@@ -460,7 +440,7 @@ private:
     }
 
     // ----- .fix hostile -----
-    static bool HandleFixHostile(ChatHandler* h, char const*)
+    static bool HandleFixHostile(ChatHandler* h)
     {
         Creature* c = nullptr; uint32 entry = 0;
         if (!GetSelectedCreature(h, c, entry)) return true;
@@ -476,7 +456,7 @@ private:
     }
 
     // ----- .fix walk -----
-    static bool HandleFixWalk(ChatHandler* h, char const*)
+    static bool HandleFixWalk(ChatHandler* h)
     {
         Creature* c = nullptr; uint32 entry = 0;
         if (!GetSelectedCreature(h, c, entry)) return true;
@@ -489,7 +469,7 @@ private:
     }
 
     // ----- .fix fly -----
-    static bool HandleFixFly(ChatHandler* h, char const*)
+    static bool HandleFixFly(ChatHandler* h)
     {
         Creature* c = nullptr; uint32 entry = 0;
         if (!GetSelectedCreature(h, c, entry)) return true;
@@ -504,7 +484,7 @@ private:
     // ----- .fix delete -----
     // Deletes the specific spawn of the selected NPC (entry + spawnId).
     // Despawn first, then SQL — otherwise GetSpawnId() may become invalid.
-    static bool HandleFixDelete(ChatHandler* h, char const*)
+    static bool HandleFixDelete(ChatHandler* h)
     {
         Creature* c = nullptr; uint32 entry = 0;
         if (!GetSelectedCreature(h, c, entry)) return true;
@@ -525,14 +505,8 @@ private:
     }
 
     // ----- .fix queststart <questId> -----
-    static bool HandleFixQuestStart(ChatHandler* h, char const* args)
+    static bool HandleFixQuestStart(ChatHandler* h, uint32 questId)
     {
-        uint32 questId = 0;
-        if (!ParseUInt32(args, questId))
-        {
-            h->SendSysMessage("Usage: .fix queststart <questId>");
-            return true;
-        }
         Creature* c = nullptr; uint32 entry = 0;
         if (!GetSelectedCreature(h, c, entry)) return true;
 
@@ -561,18 +535,8 @@ private:
     //                        If the Nth row doesn't exist — INSERT with that DifficultyID.
     //
     // If no rows exist at all — INSERT with standard StefalWoW defaults.
-    static bool HandleFixContentTuning(ChatHandler* h, char const* args)
+    static bool HandleFixContentTuning(ChatHandler* h, uint32 ctId, Optional<uint32> rowIndexOpt)
     {
-        if (!args || !*args)
-        {
-            h->SendSysMessage("Usage: .fix ct <ContentTuningId> [rowIndex]");
-            return true;
-        }
-
-        // Parse: first argument = ContentTuningID, optional second = rowIndex.
-        std::istringstream iss(args);
-        uint32 ctId = 0;
-        iss >> ctId;
         if (ctId == 0)
         {
             h->SendSysMessage("Usage: .fix ct <ContentTuningId> [rowIndex]");
@@ -580,15 +544,14 @@ private:
         }
 
         uint32 rowIndex = 0;  // 0 = first row (default)
-        uint32 tmpRow;
-        if (iss >> tmpRow)
+        if (rowIndexOpt)
         {
-            if (tmpRow == 0)
+            if (*rowIndexOpt == 0)
             {
                 h->SendSysMessage("[gm_fixer] rowIndex must be >= 1");
                 return true;
             }
-            rowIndex = tmpRow - 1;  // convert to 0-indexed
+            rowIndex = *rowIndexOpt - 1;  // convert to 0-indexed
         }
 
         Creature* c = nullptr; uint32 entry = 0;
@@ -674,21 +637,8 @@ private:
     // Changes the creature's HealthModifier (hit point multiplier).
     // Not all entries have a row in creature_template_difficulty — if missing,
     // create one using the same template as in .fix ct.
-    static bool HandleFixHealth(ChatHandler* h, char const* args)
+    static bool HandleFixHealth(ChatHandler* h, double hpMod)
     {
-        // HealthModifier is a float, parse as double.
-        if (!args || !*args)
-        {
-            h->SendSysMessage("Usage: .fix hp <HealthModifier>");
-            return true;
-        }
-        char* end = nullptr;
-        double hpMod = std::strtod(args, &end);
-        if (end == args)
-        {
-            h->SendSysMessage("Usage: .fix hp <HealthModifier>");
-            return true;
-        }
         if (hpMod <= 0.0)
         {
             h->SendSysMessage("[gm_fixer] HealthModifier must be > 0.");
@@ -734,14 +684,8 @@ private:
     // ----- .fix eflag <flags_extra> -----
     // Changes the creature's flags_extra in creature_template.
     // This is a bitmask of extra flags (corpse despawning, ignore aggro, etc.).
-    static bool HandleFixFlagsExtra(ChatHandler* h, char const* args)
+    static bool HandleFixFlagsExtra(ChatHandler* h, uint32 flags)
     {
-        uint32 flags = 0;
-        if (!ParseUInt32(args, flags))
-        {
-            h->SendSysMessage("Usage: .fix eflag <flags_extra>");
-            return true;
-        }
         Creature* c = nullptr; uint32 entry = 0;
         if (!GetSelectedCreature(h, c, entry)) return true;
 
@@ -774,17 +718,8 @@ private:
     // If the number of arguments > number of rows — error.
     // If the number of arguments < number of rows — remaining rows
     // keep their current DifficultyID (they are rewritten as-is).
-    static bool HandleFixDifficulty(ChatHandler* h, char const* args)
+    static bool HandleFixDifficulty(ChatHandler* h, std::vector<uint32> newIds)
     {
-        // Parse the argument list — all uint32.
-        std::vector<uint32> newIds;
-        if (args && *args)
-        {
-            std::istringstream iss(args);
-            uint32 v;
-            while (iss >> v)
-                newIds.push_back(v);
-        }
         if (newIds.empty())
         {
             h->SendSysMessage("Usage: .fix diff <DifficultyID> [<DifficultyID>...]");
@@ -963,16 +898,8 @@ private:
     // Implementation: a common ApplyFixDifficultyAt function + 5 thin wrappers,
     // because the old ChatCommand API requires separate functions for different
     // command names (can't pass a parameter).
-    static bool ApplyFixDifficultyAt(ChatHandler* h, char const* args, uint32 rowIndex)
+    static bool ApplyFixDifficultyAt(ChatHandler* h, uint32 newDiffId, uint32 rowIndex)
     {
-        uint32 newDiffId = 0;
-        if (!ParseUInt32(args, newDiffId))
-        {
-            h->SendSysMessage(Trinity::StringFormat(
-                "Usage: .fix diff{} <DifficultyID>", rowIndex + 1));
-            return true;
-        }
-
         Creature* c = nullptr; uint32 entry = 0;
         if (!GetSelectedCreature(h, c, entry)) return true;
 
@@ -1027,11 +954,11 @@ private:
         return ApplyFix(h, sql, "diff", what.c_str());
     }
 
-    static bool HandleFixDifficulty1(ChatHandler* h, char const* args) { return ApplyFixDifficultyAt(h, args, 0); }
-    static bool HandleFixDifficulty2(ChatHandler* h, char const* args) { return ApplyFixDifficultyAt(h, args, 1); }
-    static bool HandleFixDifficulty3(ChatHandler* h, char const* args) { return ApplyFixDifficultyAt(h, args, 2); }
-    static bool HandleFixDifficulty4(ChatHandler* h, char const* args) { return ApplyFixDifficultyAt(h, args, 3); }
-    static bool HandleFixDifficulty5(ChatHandler* h, char const* args) { return ApplyFixDifficultyAt(h, args, 4); }
+    static bool HandleFixDifficulty1(ChatHandler* h, uint32 newDiffId) { return ApplyFixDifficultyAt(h, newDiffId, 0); }
+    static bool HandleFixDifficulty2(ChatHandler* h, uint32 newDiffId) { return ApplyFixDifficultyAt(h, newDiffId, 1); }
+    static bool HandleFixDifficulty3(ChatHandler* h, uint32 newDiffId) { return ApplyFixDifficultyAt(h, newDiffId, 2); }
+    static bool HandleFixDifficulty4(ChatHandler* h, uint32 newDiffId) { return ApplyFixDifficultyAt(h, newDiffId, 3); }
+    static bool HandleFixDifficulty5(ChatHandler* h, uint32 newDiffId) { return ApplyFixDifficultyAt(h, newDiffId, 4); }
 
     // ----- .fix gstate <StandState> -----
     // Changes StandState in creature_addon for a specific spawn (by SpawnId).
@@ -1053,14 +980,8 @@ private:
     //   5 = DEAD (dead)
     //   6 = KNEEL (kneeling)
     //   7 = SUBMERGED (underwater)
-    static bool HandleFixGState(ChatHandler* h, char const* args)
+    static bool HandleFixGState(ChatHandler* h, uint32 state)
     {
-        uint32 state = 0;
-        if (!ParseUInt32(args, state))
-        {
-            h->SendSysMessage("Usage: .fix gstate <StandState>");
-            return true;
-        }
         Creature* c = nullptr; uint32 entry = 0;
         if (!GetSelectedCreature(h, c, entry)) return true;
 
@@ -1113,14 +1034,8 @@ private:
     //   INSERT: INSERT INTO creature_template_addon (Entry, StandState) VALUES (<entry>, X);
     //
     // Affects ALL spawns of this entry (not just one specific spawn).
-    static bool HandleFixCState(ChatHandler* h, char const* args)
+    static bool HandleFixCState(ChatHandler* h, uint32 state)
     {
-        uint32 state = 0;
-        if (!ParseUInt32(args, state))
-        {
-            h->SendSysMessage("Usage: .fix cstate <StandState>");
-            return true;
-        }
         Creature* c = nullptr; uint32 entry = 0;
         if (!GetSelectedCreature(h, c, entry)) return true;
 
@@ -1159,7 +1074,7 @@ private:
     //
     // SQL (per-spawn, via creature):
     //   UPDATE creature SET unit_flags3 = 8193 WHERE guid = <spawnId>;
-    static bool HandleFixGDead(ChatHandler* h, char const*)
+    static bool HandleFixGDead(ChatHandler* h)
     {
         Creature* c = nullptr; uint32 entry = 0;
         if (!GetSelectedCreature(h, c, entry)) return true;
@@ -1191,7 +1106,7 @@ private:
     //
     // SQL (per-template):
     //   UPDATE creature_template SET unit_flags3 = 8193 WHERE entry = <entry>;
-    static bool HandleFixCDead(ChatHandler* h, char const*)
+    static bool HandleFixCDead(ChatHandler* h)
     {
         Creature* c = nullptr; uint32 entry = 0;
         if (!GetSelectedCreature(h, c, entry)) return true;
@@ -1229,24 +1144,8 @@ private:
     //   0x1000000 = SPIRITHEALER (spirit healer)
     //   0x2000000 = SPIRITGUIDE (spirit guide)
     // Can be combined by addition.
-    static bool HandleFixGNpcFlag(ChatHandler* h, char const* args)
+    static bool HandleFixGNpcFlag(ChatHandler* h, uint64 flags)
     {
-        uint64 flags = 0;
-        if (!args || !*args)
-        {
-            h->SendSysMessage("Usage: .fix gnpcflag <npcflag>");
-            return true;
-        }
-        // Parse as unsigned long long, since npcflag is uint64 in modern TC.
-        char* end = nullptr;
-        unsigned long long v = std::strtoull(args, &end, 10);
-        if (end == args)
-        {
-            h->SendSysMessage("Usage: .fix gnpcflag <npcflag>");
-            return true;
-        }
-        flags = static_cast<uint64>(v);
-
         Creature* c = nullptr; uint32 entry = 0;
         if (!GetSelectedCreature(h, c, entry)) return true;
 
@@ -1274,23 +1173,8 @@ private:
     // Affects ALL spawns of this entry.
     //
     // SQL: UPDATE creature_template SET npcflag = X WHERE entry = <entry>;
-    static bool HandleFixCNpcFlag(ChatHandler* h, char const* args)
+    static bool HandleFixCNpcFlag(ChatHandler* h, uint64 flags)
     {
-        uint64 flags = 0;
-        if (!args || !*args)
-        {
-            h->SendSysMessage("Usage: .fix cnpcflag <npcflag>");
-            return true;
-        }
-        char* end = nullptr;
-        unsigned long long v = std::strtoull(args, &end, 10);
-        if (end == args)
-        {
-            h->SendSysMessage("Usage: .fix cnpcflag <npcflag>");
-            return true;
-        }
-        flags = static_cast<uint64>(v);
-
         Creature* c = nullptr; uint32 entry = 0;
         if (!GetSelectedCreature(h, c, entry)) return true;
 
@@ -1321,14 +1205,8 @@ private:
     //   33554432    = UNIT_FLAG_NOT_SELECTABLE (cannot be selected)
     //   67108864    = UNIT_FLAG_SKINNABLE (can be skinned)
     // Can be combined by addition.
-    static bool HandleFixGUnitFlags(ChatHandler* h, char const* args)
+    static bool HandleFixGUnitFlags(ChatHandler* h, uint32 flags)
     {
-        uint32 flags = 0;
-        if (!ParseUInt32(args, flags))
-        {
-            h->SendSysMessage("Usage: .fix guflags <unit_flags>");
-            return true;
-        }
         Creature* c = nullptr; uint32 entry = 0;
         if (!GetSelectedCreature(h, c, entry)) return true;
 
@@ -1356,14 +1234,8 @@ private:
     // Affects ALL spawns of this entry.
     //
     // SQL: UPDATE creature_template SET unit_flags = X WHERE entry = <entry>;
-    static bool HandleFixCUnitFlags(ChatHandler* h, char const* args)
+    static bool HandleFixCUnitFlags(ChatHandler* h, uint32 flags)
     {
-        uint32 flags = 0;
-        if (!ParseUInt32(args, flags))
-        {
-            h->SendSysMessage("Usage: .fix cuflags <unit_flags>");
-            return true;
-        }
         Creature* c = nullptr; uint32 entry = 0;
         if (!GetSelectedCreature(h, c, entry)) return true;
 
@@ -1380,14 +1252,8 @@ private:
     }
 
     // ----- .fix guflags2 <unit_flags2> -----
-    static bool HandleFixGUnitFlags2(ChatHandler* h, char const* args)
+    static bool HandleFixGUnitFlags2(ChatHandler* h, uint32 flags)
     {
-        uint32 flags = 0;
-        if (!ParseUInt32(args, flags))
-        {
-            h->SendSysMessage("Usage: .fix guflags2 <unit_flags2>");
-            return true;
-        }
         Creature* c = nullptr; uint32 entry = 0;
         if (!GetSelectedCreature(h, c, entry)) return true;
 
@@ -1410,14 +1276,8 @@ private:
     }
 
     // ----- .fix cuflags2 <unit_flags2> -----
-    static bool HandleFixCUnitFlags2(ChatHandler* h, char const* args)
+    static bool HandleFixCUnitFlags2(ChatHandler* h, uint32 flags)
     {
-        uint32 flags = 0;
-        if (!ParseUInt32(args, flags))
-        {
-            h->SendSysMessage("Usage: .fix cuflags2 <unit_flags2>");
-            return true;
-        }
         Creature* c = nullptr; uint32 entry = 0;
         if (!GetSelectedCreature(h, c, entry)) return true;
 
@@ -1433,14 +1293,8 @@ private:
     }
 
     // ----- .fix guflags3 <unit_flags3> -----
-    static bool HandleFixGUnitFlags3(ChatHandler* h, char const* args)
+    static bool HandleFixGUnitFlags3(ChatHandler* h, uint32 flags)
     {
-        uint32 flags = 0;
-        if (!ParseUInt32(args, flags))
-        {
-            h->SendSysMessage("Usage: .fix guflags3 <unit_flags3>");
-            return true;
-        }
         Creature* c = nullptr; uint32 entry = 0;
         if (!GetSelectedCreature(h, c, entry)) return true;
 
@@ -1463,14 +1317,8 @@ private:
     }
 
     // ----- .fix cuflags3 <unit_flags3> -----
-    static bool HandleFixCUnitFlags3(ChatHandler* h, char const* args)
+    static bool HandleFixCUnitFlags3(ChatHandler* h, uint32 flags)
     {
-        uint32 flags = 0;
-        if (!ParseUInt32(args, flags))
-        {
-            h->SendSysMessage("Usage: .fix cuflags3 <unit_flags3>");
-            return true;
-        }
         Creature* c = nullptr; uint32 entry = 0;
         if (!GetSelectedCreature(h, c, entry)) return true;
 
@@ -1512,7 +1360,7 @@ private:
     //   action_type  = 49  (SMART_ACTION_ATTACK — attack)
     //   target_type  = 25  (SMART_TARGET_CREATURE_RANGE — creatures in range)
     //   target_param1= 10  (radius 10 yards)
-    static bool HandleFixCombat(ChatHandler* h, char const*)
+    static bool HandleFixCombat(ChatHandler* h)
     {
         Creature* c = nullptr; uint32 entry = 0;
         if (!GetSelectedCreature(h, c, entry)) return true;
@@ -1628,47 +1476,8 @@ private:
     // Notes:
     //   - If prevQuestId > 0 — the quest must be completed (normal prerequisite)
     //   - If prevQuestId < 0 — the quest must NOT be completed (exclusive)
-    static bool HandleFixQuestPrev(ChatHandler* h, char const* args)
+    static bool HandleFixQuestPrev(ChatHandler* h, uint32 questId, int32 prevQuestId)
     {
-        if (!args || !*args)
-        {
-            h->SendSysMessage("Usage: .fix questprev <questId> <prevQuestId>");
-            return true;
-        }
-
-        std::istringstream iss(args);
-        uint32 questId = 0;
-        iss >> questId;
-        if (questId == 0)
-        {
-            h->SendSysMessage("Usage: .fix questprev <questId> <prevQuestId>");
-            return true;
-        }
-
-        int32 prevQuestId = 0;
-        // Read prevQuestId as int32 — can be negative (exclusive)
-        // or 0 (clear requirement).
-        std::string rest;
-        std::getline(iss, rest);
-        if (rest.empty() || rest.find_first_not_of(" \t") == std::string::npos)
-        {
-            h->SendSysMessage("Usage: .fix questprev <questId> <prevQuestId>");
-            h->SendSysMessage("  prevQuestId can be 0 (clear), negative (exclusive) or positive (required)");
-            return true;
-        }
-        // trim
-        size_t start = rest.find_first_not_of(" \t");
-        rest = rest.substr(start);
-        char* end = nullptr;
-        long v = std::strtol(rest.c_str(), &end, 10);
-        if (end == rest.c_str())
-        {
-            h->SendSysMessage("Usage: .fix questprev <questId> <prevQuestId>");
-            h->SendSysMessage("  prevQuestId can be 0 (clear), negative (exclusive) or positive (required)");
-            return true;
-        }
-        prevQuestId = static_cast<int32>(v);
-
         // Check that the quest exists.
         if (!sObjectMgr->GetQuestTemplate(questId))
         {
@@ -1722,35 +1531,23 @@ private:
     //   0 = IDLE (stays in place)
     //   1 = RANDOM (wanders randomly within wander_distance radius)
     //   2 = WAYPOINT (follows a waypoint route)
-    static bool HandleFixGMove(ChatHandler* h, char const* args)
+    static bool HandleFixGMove(ChatHandler* h, uint32 moveType, Optional<double> wanderDistOpt)
     {
-        if (!args || !*args)
-        {
-            h->SendSysMessage("Usage: .fix gmove <MovementType> [wander_distance]");
-            h->SendSysMessage("  0=IDLE, 1=RANDOM, 2=WAYPOINT. wander_distance defaults to 8.");
-            return true;
-        }
-
-        std::istringstream iss(args);
-        uint32 moveType = 0;
-        iss >> moveType;
         if (moveType > 2)
         {
             h->SendSysMessage("[gm_fixer] MovementType must be 0 (IDLE), 1 (RANDOM) or 2 (WAYPOINT).");
             return true;
         }
 
-        // Parse optional wander_distance (default 8.0)
         double wanderDist = 8.0;
-        double wd = 0.0;
-        if (iss >> wd)
+        if (wanderDistOpt)
         {
-            if (wd < 0.0)
+            if (*wanderDistOpt < 0.0)
             {
                 h->SendSysMessage("[gm_fixer] wander_distance must be >= 0.");
                 return true;
             }
-            wanderDist = wd;
+            wanderDist = *wanderDistOpt;
         }
 
         Creature* c = nullptr; uint32 entry = 0;
@@ -1811,15 +1608,8 @@ private:
     // Affects ALL spawns of this entry.
     //
     // SQL: UPDATE creature_template SET MovementType = X WHERE entry = <entry>;
-    static bool HandleFixCMove(ChatHandler* h, char const* args)
+    static bool HandleFixCMove(ChatHandler* h, uint32 moveType)
     {
-        uint32 moveType = 0;
-        if (!ParseUInt32(args, moveType))
-        {
-            h->SendSysMessage("Usage: .fix cmove <MovementType>");
-            h->SendSysMessage("  0=IDLE, 1=RANDOM, 2=WAYPOINT");
-            return true;
-        }
         if (moveType > 2)
         {
             h->SendSysMessage("[gm_fixer] MovementType must be 0 (IDLE), 1 (RANDOM) or 2 (WAYPOINT).");
@@ -1846,19 +1636,11 @@ private:
     // Only meaningful with MovementType = 1 (RANDOM).
     //
     // SQL: UPDATE creature SET wander_distance = X WHERE guid = <spawnId>;
-    static bool HandleFixGMoveRange(ChatHandler* h, char const* args)
+    static bool HandleFixGMoveRange(ChatHandler* h, double dist)
     {
-        if (!args || !*args)
+        if (dist < 0.0)
         {
-            h->SendSysMessage("Usage: .fix gmoverange <wander_distance>");
-            return true;
-        }
-        char* end = nullptr;
-        double dist = std::strtod(args, &end);
-        if (end == args || dist < 0.0)
-        {
-            h->SendSysMessage("Usage: .fix gmoverange <wander_distance>");
-            h->SendSysMessage("  distance in yards (e.g. 5, 10.5, 0)");
+            h->SendSysMessage("[gm_fixer] wander_distance must be >= 0.");
             return true;
         }
         Creature* c = nullptr; uint32 entry = 0;
@@ -1888,7 +1670,7 @@ private:
     // If already set — does nothing.
     //
     // SQL: UPDATE creature_template SET AIName = 'SmartAI' WHERE entry = <entry>;
-    static bool HandleFixSmart(ChatHandler* h, char const*)
+    static bool HandleFixSmart(ChatHandler* h)
     {
         Creature* c = nullptr; uint32 entry = 0;
         if (!GetSelectedCreature(h, c, entry)) return true;
@@ -1917,7 +1699,7 @@ private:
     // ----- .fix unsmart -----
     // Removes AIName (sets empty string) in creature_template.
     // If AIName is already empty — does nothing.
-    static bool HandleFixUnsmart(ChatHandler* h, char const*)
+    static bool HandleFixUnsmart(ChatHandler* h)
     {
         Creature* c = nullptr; uint32 entry = 0;
         if (!GetSelectedCreature(h, c, entry)) return true;
@@ -1947,7 +1729,7 @@ private:
 
     // ----- .fix wayinfo -----
     // Finds waypoint path IDs for all waypoint nodes within 30 yards of the player.
-    static bool HandleFixWayInfo(ChatHandler* h, char const*)
+    static bool HandleFixWayInfo(ChatHandler* h)
     {
         Player* p = h->GetSession()->GetPlayer();
         if (!p) return true;
@@ -2021,7 +1803,7 @@ private:
     // PathId = MAX(PathId)+1.
     // Sets MovementType=2 (WAYPOINT) and movementId=PathId in creature.
     // Also checks AIName — if empty, sets it to SmartAI.
-    static bool HandleFixWayAdd(ChatHandler* h, char const*)
+    static bool HandleFixWayAdd(ChatHandler* h)
     {
         Creature* c = nullptr; uint32 entry = 0;
         if (!GetSelectedCreature(h, c, entry)) return true;
@@ -2124,7 +1906,7 @@ private:
     // No arguments: adds a new node (NodeId = MAX+1) at the player's current position.
     // .fix waynode <nodeId>        — update coordinates of an existing node (player position)
     // .fix waynode <nodeId> <delay>— update coordinates + delay of an existing node
-    static bool HandleFixWayNode(ChatHandler* h, char const* args)
+    static bool HandleFixWayNode(ChatHandler* h, Optional<uint32> nodeIdOpt, Optional<uint32> delayOpt)
     {
         Creature* c = nullptr; uint32 entry = 0;
         if (!GetSelectedCreature(h, c, entry)) return true;
@@ -2154,19 +1936,13 @@ private:
         uint32 delay = 0;
         bool updateMode = false;
 
-        if (args && *args)
+        if (nodeIdOpt)
         {
-            std::istringstream iss(args);
-            uint32 tmpId = 0;
-            if (iss >> tmpId)
-            {
-                nodeId = tmpId;
-                updateMode = true;
-            }
-            uint32 tmpDelay = 0;
-            if (iss >> tmpDelay)
-                delay = tmpDelay;
+            nodeId = *nodeIdOpt;
+            updateMode = true;
         }
+        if (delayOpt)
+            delay = *delayOpt;
 
         // Player position
         Player* p = h->GetSession()->GetPlayer();
@@ -2238,21 +2014,8 @@ private:
     // Also checks AIName and applies auras at runtime.
     //
     // SQL: UPDATE creature_addon SET auras = 'ID1 ID2 ID3' WHERE guid = <spawnId>;
-    static bool HandleFixGAuras(ChatHandler* h, char const* args)
+    static bool HandleFixGAuras(ChatHandler* h, std::vector<uint32> spellIds)
     {
-        if (!args || !*args)
-        {
-            h->SendSysMessage("Usage: .fix gauras <spellId> [<spellId>...]");
-            return true;
-        }
-
-        // Parse all spellIds from args
-        std::istringstream iss(args);
-        std::vector<uint32> spellIds;
-        uint32 spellId = 0;
-        while (iss >> spellId)
-            spellIds.push_back(spellId);
-
         if (spellIds.empty())
         {
             h->SendSysMessage("Usage: .fix gauras <spellId> [<spellId>...]");
@@ -2358,14 +2121,8 @@ private:
     // ----- .fix emote <emoteId> -----
     // Applies emoteState to the selected NPC at runtime (without DB changes).
     // Equivalent to .npc playemote, but within gm_fixer.
-    static bool HandleFixEmote(ChatHandler* h, char const* args)
+    static bool HandleFixEmote(ChatHandler* h, uint32 emote)
     {
-        uint32 emote = 0;
-        if (!ParseUInt32(args, emote))
-        {
-            h->SendSysMessage("Usage: .fix emote <emoteId>");
-            return true;
-        }
         Creature* c = nullptr; uint32 entry = 0;
         if (!GetSelectedCreature(h, c, entry)) return true;
 
@@ -2392,14 +2149,8 @@ private:
     //   26 = STATE_SLEEP
     //   27 = STATE_SIT
     //   43 = STATE_SLEEP
-    static bool HandleFixGEmote(ChatHandler* h, char const* args)
+    static bool HandleFixGEmote(ChatHandler* h, uint32 emote)
     {
-        uint32 emote = 0;
-        if (!ParseUInt32(args, emote))
-        {
-            h->SendSysMessage("Usage: .fix gemote <emoteId>");
-            return true;
-        }
         Creature* c = nullptr; uint32 entry = 0;
         if (!GetSelectedCreature(h, c, entry)) return true;
 
@@ -2481,7 +2232,7 @@ private:
     //
     // Useful when the GM has moved the NPC to a new location via .npc move or
     // manually, and wants to save the new coordinates to the DB.
-    static bool HandleFixGPos(ChatHandler* h, char const*)
+    static bool HandleFixGPos(ChatHandler* h)
     {
         Creature* c = nullptr; uint32 entry = 0;
         if (!GetSelectedCreature(h, c, entry)) return true;
@@ -2522,37 +2273,30 @@ private:
     // With arguments: .fix gmoveall <movementType> <wander_distance>
     //
     // SQL: UPDATE creature SET MovementType = X, wander_distance = Y WHERE id = <entry>;
-    static bool HandleFixGMoveAll(ChatHandler* h, char const* args)
+    static bool HandleFixGMoveAll(ChatHandler* h, Optional<uint32> moveTypeOpt, Optional<double> wanderDistOpt)
     {
         // Defaults: RANDOM movement, 8 yards wander
         uint32 moveType = 1;
         double wanderDist = 8.0;
 
-        // Parse optional arguments
-        if (args && *args)
+        if (moveTypeOpt)
         {
-            std::istringstream iss(args);
-            uint32 mt = 0;
-            if (iss >> mt)
+            if (*moveTypeOpt > 2)
             {
-                if (mt > 2)
-                {
-                    h->SendSysMessage("[gm_fixer] MovementType must be 0 (IDLE), 1 (RANDOM) or 2 (WAYPOINT).");
-                    return true;
-                }
-                moveType = mt;
+                h->SendSysMessage("[gm_fixer] MovementType must be 0 (IDLE), 1 (RANDOM) or 2 (WAYPOINT).");
+                return true;
             }
+            moveType = *moveTypeOpt;
+        }
 
-            double wd = 0.0;
-            if (iss >> wd)
+        if (wanderDistOpt)
+        {
+            if (*wanderDistOpt < 0.0)
             {
-                if (wd < 0.0)
-                {
-                    h->SendSysMessage("[gm_fixer] wander_distance must be >= 0.");
-                    return true;
-                }
-                wanderDist = wd;
+                h->SendSysMessage("[gm_fixer] wander_distance must be >= 0.");
+                return true;
             }
+            wanderDist = *wanderDistOpt;
         }
 
         Creature* c = nullptr; uint32 entry = 0;
@@ -2581,20 +2325,11 @@ private:
     // SQL: UPDATE creature_template SET scale = X WHERE entry = <entry>;
     //
     // Saved to a separate file creature_sizes.sql next to the worldserver.
-    static bool HandleFixScaleSize(ChatHandler* h, char const* args)
+    static bool HandleFixScaleSize(ChatHandler* h, double scale)
     {
-        if (!args || !*args)
+        if (scale <= 0.0 || scale > 100.0)
         {
-            h->SendSysMessage("Usage: .fix scalesize <scale>");
-            h->SendSysMessage("  e.g. 0.85, 1.0, 1.5, 2.0");
-            return true;
-        }
-        char* end = nullptr;
-        double scale = std::strtod(args, &end);
-        if (end == args || scale <= 0.0 || scale > 100.0)
-        {
-            h->SendSysMessage("Usage: .fix scalesize <scale>");
-            h->SendSysMessage("  scale must be between 0.01 and 100.0");
+            h->SendSysMessage("[gm_fixer] scale must be between 0.01 and 100.0");
             return true;
         }
         Creature* c = nullptr; uint32 entry = 0;
@@ -2632,7 +2367,7 @@ private:
     //
     // Example output in the file:
     //   INSERT INTO `creature` (`guid`, `id`, `map`, `zoneId`, ...) VALUES (12346, 1976, 0, 12, ...);
-    static bool HandleFixAddNpc(ChatHandler* h, char const*)
+    static bool HandleFixAddNpc(ChatHandler* h)
     {
         Creature* c = nullptr; uint32 entry = 0;
         if (!GetSelectedCreature(h, c, entry)) return true;
@@ -2739,7 +2474,7 @@ private:
     //   whether a row exists in creature_template_difficulty
     //   current ContentTuningID, StaticFlags1, HealthModifier
     // Does not write anything to the DB or daily file — read and display only.
-    static bool HandleFixNpcInfo(ChatHandler* h, char const*)
+    static bool HandleFixNpcInfo(ChatHandler* h)
     {
         Creature* c = nullptr; uint32 entry = 0;
         if (!GetSelectedCreature(h, c, entry)) return true;
@@ -2801,14 +2536,8 @@ private:
     // Shows PrevQuestID from quest_template_addon — this is the quest that
     // must be completed before this quest becomes available.
     // Does not write to the DB — read only.
-    static bool HandleFixQuestInfo(ChatHandler* h, char const* args)
+    static bool HandleFixQuestInfo(ChatHandler* h, uint32 questId)
     {
-        uint32 questId = 0;
-        if (!ParseUInt32(args, questId))
-        {
-            h->SendSysMessage("Usage: .fix questinfo <questId>");
-            return true;
-        }
 
         // First check that the quest exists at all.
         Quest const* q = sObjectMgr->GetQuestTemplate(questId);
@@ -2884,33 +2613,13 @@ private:
     // SQL: INSERT INTO hotfixes.spell_cooldowns
     //        (StartRecoveryTime, SpellID, VerifiedBuild)
     //      VALUES (<ms>, <spellId>, 67186);
-    static bool HandleFixSpellGCD(ChatHandler* h, char const* args)
+    static bool HandleFixSpellGCD(ChatHandler* h, uint32 spellId, Optional<std::string_view> secondsOpt)
     {
-        // Parse SpellID (first argument) and seconds (optional second).
-        if (!args || !*args)
-        {
-            h->SendSysMessage("Usage: .fix spellgcd <SpellID> [seconds]");
-            return true;
-        }
-
-        // Copy args to a string and split into tokens.
-        std::string s(args);
-        std::istringstream iss(s);
-        uint32 spellId = 0;
-        iss >> spellId;
-        if (spellId == 0)
-        {
-            h->SendSysMessage("Usage: .fix spellgcd <SpellID> [seconds]");
-            return true;
-        }
-
-        // The rest of the string is seconds (can be "1.5", "1,5" or empty).
-        std::string rest;
-        std::getline(iss, rest);
+        std::string secondsStr = secondsOpt ? std::string(*secondsOpt) : "";
 
         uint32 ms = 0;
         // Default GCD = 1500 ms (1.5 seconds).
-        if (!ParseSecondsToMs(rest.c_str(), 1500, ms))
+        if (!ParseSecondsToMs(secondsStr.c_str(), 1500, ms))
         {
             h->SendSysMessage("Usage: .fix spellgcd <SpellID> [seconds]");
             h->SendSysMessage("  seconds can be '1.5', '1,5', '0.5', etc.");
@@ -2983,30 +2692,12 @@ private:
     // SQL: INSERT INTO hotfixes.spell_cooldowns
     //        (RecoveryTime, SpellID, VerifiedBuild)
     //      VALUES (<ms>, <spellId>, 67186);
-    static bool HandleFixSpellCD(ChatHandler* h, char const* args)
+    static bool HandleFixSpellCD(ChatHandler* h, uint32 spellId, std::string_view secondsStr)
     {
-        if (!args || !*args)
-        {
-            h->SendSysMessage("Usage: .fix spellcd <SpellID> <seconds>");
-            return true;
-        }
-
-        std::string s(args);
-        std::istringstream iss(s);
-        uint32 spellId = 0;
-        iss >> spellId;
-        if (spellId == 0)
-        {
-            h->SendSysMessage("Usage: .fix spellcd <SpellID> <seconds>");
-            return true;
-        }
-
-        std::string rest;
-        std::getline(iss, rest);
-
+        std::string seconds(secondsStr);
         uint32 ms = 0;
         // For spellcd there is no default — if not specified, error.
-        if (!ParseSecondsToMs(rest.c_str(), 0, ms) || ms == 0)
+        if (!ParseSecondsToMs(seconds.c_str(), 0, ms) || ms == 0)
         {
             h->SendSysMessage("Usage: .fix spellcd <SpellID> <seconds>");
             h->SendSysMessage("  seconds can be '1.5', '1,5', '10', etc. (must be > 0)");
