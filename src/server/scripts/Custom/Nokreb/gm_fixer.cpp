@@ -174,21 +174,6 @@ namespace
     }
 
     /*
-     * Applies SQL to the hotfix database (synchronously) and appends it to spell_CD.sql.
-     * Used only for .fix spellgcd and .fix spellcd.
-     */
-    static bool ApplyHotfixFix(ChatHandler* h, std::string const& sql,
-                               std::string const& fixType, char const* what)
-    {
-        HotfixDatabase.DirectExecute(sql.c_str());
-        AppendToSpellCdFile(sql, fixType);
-        h->SendSysMessage(Trinity::StringFormat("[gm_fixer] {} -> OK", what));
-        h->SendSysMessage(Trinity::StringFormat("  SQL: {}", sql));
-        TC_LOG_INFO(LOG_CHAN, "[gm_fixer] {} | SQL: {}", what, sql);
-        return true;
-    }
-
-    /*
      * Parses seconds (with support for fractional part and comma instead of dot).
      * Accepts: "1.5", "1,5", "0.5", "10".
      * Returns milliseconds: 1500, 1500, 500, 10000.
