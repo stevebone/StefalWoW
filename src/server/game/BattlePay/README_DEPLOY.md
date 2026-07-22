@@ -4,14 +4,38 @@ P0 replays a byte-exact, client-validated `GET_PRODUCT_LIST_RESPONSE` catalog ca
 12.0.7.68275 session, because the 12.0.7 catalog wire is a nested reflection bitstream that cannot be
 re-serialized field-by-field offline (per RE notes). This is real wire, not fabricated data.
 
-## Required data file
-Deploy the captured catalog blob (message body, opcode dword stripped) to:
+## ⚠ TESTER SETUP — REQUIRED, or the Shop opens EMPTY
 
-    <DataDir>/battlepay/product_list_68275.bin
+The catalog is a data file that the core loads at startup; it is **not** compiled into worldserver.
+Every tester/operator MUST place it where the server looks, once per deployment:
 
-`BattlePayMgr::Load()` reads it at world startup. If absent, the Shop simply opens empty (nothing is
-fabricated on the wire). Source blob provenance: extracted from
-`C:\sniff\ingame-shop_ordersCrafting_professions.pkt`, SMSG 0x42021a, 58846 bytes.
+1. The catalog blob now **ships in the repo** at:
+
+       data/battlepay/product_list_68275.bin
+
+2. **Copy it into your server's DataDir**, preserving the `battlepay/` subfolder:
+
+       <DataDir>/battlepay/product_list_68275.bin
+
+   `<DataDir>` is the `DataDir` value in `worldserver.conf` (same folder as your maps/dbc; it defaults
+   to `.`, i.e. the worldserver working directory). So the file must end up at, e.g.,
+   `<DataDir>/battlepay/product_list_68275.bin`.
+
+3. The purchase rows apply automatically — `sql/updates/world/master/2026_07_22_00_world.sql` populates
+   `battlepay_product` on the next world DB update. No manual SQL import needed.
+
+**How to confirm it worked:** at startup the worldserver log prints
+`BattlePay: loaded 58746-byte in-game Shop catalog ...`. If instead you see
+`BattlePay: no catalog blob at '<path>' - the in-game Shop will open empty`, the file is not at the
+path above — fix the copy / the DataDir value. An empty Shop is always this missing file, never a
+code bug.
+
+## Data file details
+`BattlePayMgr::Load()` reads `<DataDir>/battlepay/product_list_68275.bin` at world startup. If absent,
+the Shop simply opens empty (nothing is fabricated on the wire). The shipped blob is the **custom**
+catalog (58746 bytes) whose productIDs match the `battlepay_product` rows; a raw retail capture would
+advertise products with no purchase backing. Original capture provenance:
+`C:\sniff\ingame-shop_ordersCrafting_professions.pkt`, SMSG 0x42021a (58846-byte body before reskin).
 
 ## Custom catalog + purchase
 The reflection catalog writer was cracked (`c:\dumps\battlepay_wire.py`), so we ship a **custom** catalog:
