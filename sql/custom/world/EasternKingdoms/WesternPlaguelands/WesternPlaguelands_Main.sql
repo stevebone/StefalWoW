@@ -39,30 +39,45 @@ INSERT INTO smart_scripts VALUES
 
 -- Creature Spawns
 SET @CGUID := 900000;
-DELETE FROM `creature` WHERE `guid` IN (@CGUID+1225,@CGUID+1226);
+DELETE FROM `creature` WHERE `guid` BETWEEN @CGUID+1225 AND @CGUID+1229;
 INSERT INTO `creature` (`guid`, `id`, `map`, `zoneId`, `areaId`, `spawnDifficulties`, `phaseUseFlags`, `phaseId`, `phaseGroup`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`) VALUES
 -- Scarlet Executioner
-(@CGUID+1225, '1841', '0', '28', '190', '0', '0', '0', '0', '1', '2839.28', '-1395', '147.547', '3.998', '180'),
-(@CGUID+1226, '1841', '0', '28', '5421', '0', '0', '0', '0', '1', '2205.82', '-1777.8', '62.1064', '1.63258', '180');
+(@CGUID+1225, 1841, 0, 28, 190, 0, 0, 0, 0, 1, 2839.28, -1395, 147.547, 3.998, 180),
+(@CGUID+1226, 1841, 0, 28, 5421, 0, 0, 0, 0, 1, 2205.82, -1777.8, 62.1064, 1.63258, 180),
+-- The Husk
+(@CGUID+1227, 1851, 0, 28, 28, 0, 0, 0, 0, 0, 2358.1, -2244, 56.844, 2.703, 180),
+(@CGUID+1228, 1851, 0, 28, 2297, 0, 0, 0, 0, 0, 988.134, -2304.67, 58.0165, 2.66703, 180),
+-- Parasitus
+(@CGUID+1229, 51029, 0, 28, 2297, 0, 0, 0, 0, 0, 1290.95, -2214.66, 12.7403, 4.16055, 180);
+
 
 SET @POOLID := 900000;
-DELETE FROM `pool_template` WHERE `entry` = @POOLID+7;
+DELETE FROM `pool_template` WHERE `entry` BETWEEN @POOLID+7 AND @POOLID+8;
 INSERT INTO `pool_template` (`entry`, `max_limit`, `description`) VALUES
-(@POOLID+7, 1, 'Western Plaguelands - Scarlet Executioner');
+(@POOLID+7, 1, 'Western Plaguelands - Scarlet Executioner'),
+(@POOLID+8, 1, 'Western Plaguelands - The Husk');
 
-DELETE FROM `pool_members` WHERE `poolSpawnId` = @POOLID+7;
+DELETE FROM `pool_members` WHERE `poolSpawnId` BETWEEN @POOLID+7 AND @POOLID+8;
 INSERT INTO `pool_members` (`type`, `spawnId`, `poolSpawnId`, `chance`, `description`) VALUES
 (0, @CGUID+1225, @POOLID+7, 0, 'Western Plaguelands - Scarlet Executioner'),
-(0, @CGUID+1226, @POOLID+7, 0, 'Western Plaguelands - Scarlet Executioner');
+(0, @CGUID+1226, @POOLID+7, 0, 'Western Plaguelands - Scarlet Executioner'),
+(0, @CGUID+1227, @POOLID+8, 0, 'Western Plaguelands - The Husk'),
+(0, @CGUID+1228, @POOLID+8, 0, 'Western Plaguelands - The Husk');
 
 -- Creature Addons
-DELETE FROM creature_addon WHERE guid IN (328667,328668,328608,328609,328610,328531);
+DELETE FROM creature_addon WHERE guid IN (328667,328668,328608,328609,328610,328531,328279,328281,328280,328278,328285);
 INSERT INTO creature_addon (guid, StandState) VALUES (328667, 7);
 INSERT INTO creature_addon (guid, StandState) VALUES (328668, 7);
 INSERT INTO creature_addon (guid, StandState) VALUES (328608, 7);
 INSERT INTO creature_addon (guid, StandState) VALUES (328609, 7);
 INSERT INTO creature_addon (guid, StandState) VALUES (328610, 7);
 INSERT INTO creature_addon (guid, StandState) VALUES (328531, 7);
+INSERT INTO creature_addon (guid, emote) VALUES
+    (328279, 233),
+    (328281, 233),
+    (328280, 233),
+    (328278, 233),
+    (328285, 233);
 
 UPDATE creature SET `unit_flags` = 537133824, `unit_flags3` = 8192 WHERE guid IN (328667,328668,328608,328609,328610,328531);
 
@@ -102,7 +117,10 @@ WHERE id IN (
 	4472,
 	44483,
 	45212,
-    50345
+    50345,
+	51029,
+    44444,
+    44443
 );
 
 UPDATE creature
@@ -110,7 +128,8 @@ SET MovementType = 1,
     wander_distance = 4
 WHERE guid IN (
     328297,
-    328244
+    328244,
+	1851
 );
 
 
