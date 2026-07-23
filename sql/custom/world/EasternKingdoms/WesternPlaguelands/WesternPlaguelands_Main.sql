@@ -90,6 +90,8 @@ DELETE FROM creature WHERE id = 44323 AND guid = 328331;
 UPDATE creature SET position_x = 2438.8713, position_y = -1617.9844, position_z = 106.45748, orientation = 4.693958 WHERE guid = 328371;
 UPDATE creature SET position_x = 2393.5945, position_y = -1534.2042, position_z = 103.336426, orientation = 2.7489376 WHERE guid = 328179;
 UPDATE creature SET position_x = 2396.4932, position_y = -1530.8401, position_z = 102.477905, orientation = 2.3471854 WHERE guid = 328178;
+-- 45162/hearthglen-trainee
+UPDATE creature SET position_x = 2897.3613, position_y = -1521.0454, position_z = 146.31668, orientation = 2.0242624 WHERE guid = 328231;
 
 -- Creature Random Movement
 UPDATE creature
