@@ -1541,6 +1541,14 @@ void WorldSession::SendFeatureSystemStatus()
 
     features.SpeakForMeAllowed = false;
 
+    // In-game Shop (BattlePay) availability. The client's C_StoreSecure.IsAvailable() gate reads
+    // BpayStoreAvailable; with it false the Shop shows "Store not available" and never sends
+    // CMSG_BATTLE_PAY_GET_PRODUCT_LIST, so our product blob is never requested. Retail sends both
+    // of these true (verified against the 12.0.7 in-game-shop sniff). We answer GetProductList with
+    // the captured catalog and drive purchases server-side, so advertise the store as available.
+    features.BpayStoreAvailable = true;
+    features.CommerceServerEnabled = true;
+
     for (World::GameRule const& gameRule : sWorld->GetGameRules())
     {
         WorldPackets::System::GameRuleValuePair& rule = features.GameRules.emplace_back();
