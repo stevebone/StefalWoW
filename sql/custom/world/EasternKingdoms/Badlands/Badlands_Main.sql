@@ -1,5 +1,15 @@
 -- Badlands Fixes
 
+-- Difficulty fixes
+-- Missing Content Tuning
+DELETE FROM `creature_template_difficulty` WHERE Entry IN (50728) AND `DifficultyID` = 0;
+UPDATE `creature_template_difficulty` SET `DifficultyID` = 0 WHERE Entry IN (50728) AND `DifficultyID` = 1;
+
+UPDATE creature_template_difficulty SET ContentTuningID = 27 WHERE Entry = 7057 AND DifficultyID = 0;
+
+-- Template Addons
+UPDATE creature_template_addon SET emote = 233 WHERE Entry IN (2739,46773,4846,46772);
+
 -- Creature Spawns
 SET @CGUID := 900000;
 DELETE FROM `creature` WHERE `guid` BETWEEN @CGUID+1230 AND @CGUID+1245;
@@ -51,3 +61,11 @@ INSERT INTO `pool_members` (`type`, `spawnId`, `poolSpawnId`, `chance`, `descrip
 (0, @CGUID+1242, @POOLID+12, 0, 'Badlands - War Golem'),
 (0, @CGUID+1243, @POOLID+12, 0, 'Badlands - War Golem'),
 (0, @CGUID+1244, @POOLID+12, 0, 'Badlands - War Golem');
+
+-- Creature Spawn fixes
+UPDATE creature SET MovementType = 1, wander_distance = 8
+WHERE id IN (
+    2729,2732,46693,46695,2740,2743,2742,2830,4844,46694,
+    2725,2726,92,46915,46914,2717,2718,2831,2734,2730,
+    46917,46918
+);

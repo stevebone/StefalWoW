@@ -2,7 +2,7 @@
 
 -- Creature Spawns
 SET @CGUID := 900000;
-DELETE FROM `creature` WHERE `guid` BETWEEN @CGUID+1246 AND @CGUID+1246;
+DELETE FROM `creature` WHERE `guid` = @CGUID+1246;
 INSERT INTO `creature` (`guid`, `id`, `map`, `zoneId`, `areaId`, `spawnDifficulties`, `phaseUseFlags`, `phaseId`, `phaseGroup`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`) VALUES
 -- Marus <The Pack Leader>
 (@CGUID+1246, 45771, 0, 10, 241, 0, 0, 0, 0, 1, -11065.4, -778.968, 63.8591, 5.47845, 3600);
