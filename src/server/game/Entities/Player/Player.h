@@ -2328,6 +2328,7 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         void UpdateSpellHitChances();
 
         void UpdateSpellCritChance();
+        void UpdateLeechPercentage();
         void UpdateCorruption();
         void UpdateArmorPenetration(int32 amount);
         void UpdateExpertise(WeaponAttackType attType);

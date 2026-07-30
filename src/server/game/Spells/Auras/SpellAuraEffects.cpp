@@ -512,7 +512,7 @@ NonDefaultConstructible<pAuraEffectHandler> AuraEffectHandler[TOTAL_AURAS]=
     &AuraEffect::HandleNULL,                                      //440 SPELL_AURA_MOD_MULTISTRIKE_DAMAGE
     &AuraEffect::HandleNULL,                                      //441 SPELL_AURA_MOD_MULTISTRIKE_CHANCE
     &AuraEffect::HandleNULL,                                      //442 SPELL_AURA_MOD_READINESS
-    &AuraEffect::HandleNULL,                                      //443 SPELL_AURA_MOD_LEECH
+    &AuraEffect::HandleAuraLeech,                                 //443 SPELL_AURA_MOD_LEECH
     &AuraEffect::HandleNULL,                                      //444
     &AuraEffect::HandleNULL,                                      //445
     &AuraEffect::HandleModAdvFlying,                              //446 SPELL_AURA_ADV_FLYING
@@ -6784,6 +6784,15 @@ void AuraEffect::HandleAdvFlyModSpeed(AuraApplication const* aurApp, uint8 mode,
     auto [opcode, speedType, speedTypeMax] = advFlyMap[GetSpellEffectInfo().ApplyAuraName];
 
     player->SendAdvFlyingSpeed(opcode, speedType, speedTypeMax);
+}
+
+void AuraEffect::HandleAuraLeech(AuraApplication const* auraApp, uint8 mode, bool /*apply*/) const
+{
+    if (!(mode & AURA_EFFECT_HANDLE_REAL))
+        return;
+
+    if (Player* player = auraApp->GetTarget()->ToPlayer())
+        player->UpdateLeechPercentage();
 }
 
 template TC_GAME_API void AuraEffect::GetTargetList(std::list<Unit*>&) const;

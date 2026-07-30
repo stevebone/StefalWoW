@@ -62,6 +62,13 @@ void Unit::UpdateAllResistances()
         UpdateResistances(i);
 }
 
+void Player::UpdateLeechPercentage()
+{
+    float value = GetTotalAuraModifier(SPELL_AURA_MOD_LEECH);
+    value += GetRatingBonusValue(CR_LIFESTEAL);
+    SetUpdateFieldValue(m_values.ModifyValue(&Player::m_unitData).ModifyValue(&UF::UnitData::Lifesteal), value);
+}
+
 void Unit::UpdateDamagePhysical(WeaponAttackType attType)
 {
     float minDamage = 0.0f;
@@ -226,6 +233,7 @@ bool Player::UpdateAllStats()
     UpdateExpertise(OFF_ATTACK);
     RecalculateRating(CR_ARMOR_PENETRATION);
     UpdateAllResistances();
+    UpdateLeechPercentage();
 
     return true;
 }
