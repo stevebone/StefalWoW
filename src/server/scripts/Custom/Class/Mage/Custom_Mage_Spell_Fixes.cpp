@@ -21,6 +21,7 @@
  */
 
 #include "AreaTriggerAI.h"
+#include "AreaTriggerTemplate.h"
 #include "CreatureAI.h"
 #include "ScriptMgr.h"
 #include "SpellScript.h"
