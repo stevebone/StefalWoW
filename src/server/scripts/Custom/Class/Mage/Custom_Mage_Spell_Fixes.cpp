@@ -33,6 +33,7 @@
 #include "Pet.h"
 #include "ObjectAccessor.h"
 #include "TaskScheduler.h"
+#include "PathGenerator.h"
 
 #include "Custom_Mage_Defines.h"
 
