@@ -32,6 +32,7 @@
 #include "Player.h"
 #include "Pet.h"
 #include "ObjectAccessor.h"
+#include "TaskScheduler.h"
 
 #include "Custom_Mage_Defines.h"
 
