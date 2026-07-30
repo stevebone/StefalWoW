@@ -37,8 +37,6 @@
 #include "Player.h"
 #include "ObjectAccessor.h"
 #include "TaskScheduler.h"
-#include "PathGenerator.h"
-#include "SpellHistory.h"
 
 #include "Custom_Mage_Defines.h"
 
@@ -160,7 +158,7 @@ namespace Scripts::Custom::Mage
             // Capture BEFORE the engine rotates caster toward the target
             Unit* caster = GetCaster();
             if (caster)
-                _spawnPos = caster->GetPosition(); // full Position including orientation
+                _spawnPos = caster->GetPosition();
         }
 
         void HandleCast()
