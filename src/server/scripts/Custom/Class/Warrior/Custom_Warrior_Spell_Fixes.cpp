@@ -668,6 +668,34 @@ namespace Scripts::Custom::Warrior
         int32 _rageAccumulator = 0;
     };
 
+    // 440277 - Powerful Enrage (attached to 184362 - Enrage)
+    class spell_warr_powerful_enrage_custom : public SpellScript
+    {
+        bool Validate(SpellInfo const* spellInfo) override
+        {
+            return ValidateSpellInfo({ Spells::PowerfulEnrage })
+                && ValidateSpellEffect({ { spellInfo->Id, EFFECT_4 }, { spellInfo->Id, EFFECT_5 } })
+                && spellInfo->GetEffect(EFFECT_4).IsAura(SPELL_AURA_MASTERY)
+                && spellInfo->GetEffect(EFFECT_5).IsAura(SPELL_AURA_MOD_LEECH);
+        }
+
+        bool Load() override
+        {
+            return !GetCaster()->HasAura(Spells::PowerfulEnrage);
+        }
+
+        static void HandlePowerfulEnrage(SpellScript const&, WorldObject*& target)
+        {
+            target = nullptr;
+        }
+
+        void Register() override
+        {
+            OnObjectTargetSelect += SpellObjectTargetSelectFn(spell_warr_powerful_enrage_custom::HandlePowerfulEnrage, EFFECT_4, TARGET_UNIT_CASTER);
+            OnObjectTargetSelect += SpellObjectTargetSelectFn(spell_warr_powerful_enrage_custom::HandlePowerfulEnrage, EFFECT_5, TARGET_UNIT_CASTER);
+        }
+    };
+
     // 391271 - Honed Reflexes
     class spell_warr_honed_reflexes : public AuraScript
     {
@@ -918,4 +946,5 @@ void AddSC_custom_warrior_spell_fixes()
     RegisterSpellScript(spell_warr_ravager_damage_rage_gain);
     RegisterSpellScript(spell_warr_shattering_throw_damage);
     RegisterSpellScript(spell_warr_honed_reflexes);
+    RegisterSpellScript(spell_warr_powerful_enrage_custom);
 }

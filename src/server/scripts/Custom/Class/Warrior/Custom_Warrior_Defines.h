@@ -100,6 +100,9 @@ namespace Scripts::Custom::Warrior
         // Fearless (Berserker Rage talent)
         static constexpr uint32 Fearless = 1271925;
 
+        // Powerful Enrage
+        static constexpr uint32 PowerfulEnrage = 440277;
+
         // Wrecking Throw
         static constexpr uint32 WreckingThrowDamage = 394354;
 

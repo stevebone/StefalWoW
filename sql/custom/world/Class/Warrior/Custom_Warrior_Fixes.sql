@@ -19,7 +19,8 @@ DELETE FROM `spell_script_names` WHERE `ScriptName` IN (
     'spell_warr_ravager',
     'spell_warr_ravager_damage_rage_gain',
     'spell_warr_shattering_throw_damage',
-    'spell_warr_honed_reflexes'
+    'spell_warr_honed_reflexes',
+    'spell_warr_powerful_enrage_custom'
 );
 
 INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
@@ -39,6 +40,7 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 (262150, 'spell_warr_dreadnaught'),
 (386208, 'spell_warr_defensive_stance'),
 (394352, 'spell_warr_shattering_throw_damage'),
+(184362, 'spell_warr_powerful_enrage_custom'),
 (391271, 'spell_warr_honed_reflexes'),
 (394354, 'spell_warr_wrecking_throw_damage');
 
@@ -53,5 +55,6 @@ INSERT INTO `areatrigger_create_properties` (`Id`, `IsCustom`, `AreaTriggerId`, 
 -- Intimidating shout 
 -- Sweeping Strikes 12328 no longer exists and core handles the effect
 -- Avatar has been changed and is now fully supported by the core
+-- Powerful Enrage has been updated and has new spell effects. The new custom script will now work correctly.
 DELETE FROM `spell_script_names` WHERE `spell_id` IN (394062,394063);
-DELETE FROM `spell_script_names` WHERE `ScriptName` IN ('spell_warr_intimidating_shout', 'spell_warr_sweeping_strikes', 'spell_warr_avatar');
+DELETE FROM `spell_script_names` WHERE `ScriptName` IN ('spell_warr_intimidating_shout', 'spell_warr_sweeping_strikes', 'spell_warr_avatar', 'spell_warr_powerful_enrage');
