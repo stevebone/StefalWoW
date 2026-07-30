@@ -6,7 +6,7 @@ Last GUID: @CGUID+1246
 
 -- Gameobjects
 SET @OGUID := 900000;
-Last GUID: @OGUID+106
+Last GUID: @OGUID+107
 
 -- Spawn Pools
 SET @POOLID := 900000;
