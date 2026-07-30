@@ -504,6 +504,24 @@ void Unit::Update(uint32 p_time)
     if (HasScheduledAIChange() && (GetTypeId() != TYPEID_PLAYER || (IsCharmed() && GetCharmerGUID().IsCreature())))
         UpdateCharmAI();
     RefreshAI();
+
+    // Lifesteal/Leech - dispatch accumulated heal every 1500ms
+    if (m_leechAccumulator > 0 && IsAlive())
+    {
+        m_leechTimer += p_time;
+        if (m_leechTimer >= 1500)
+        {
+            if (SpellInfo const* leechSpell = sSpellMgr->GetSpellInfo(LEECH_SPELL_ID, DIFFICULTY_NONE))
+            {
+                HealInfo leechHealInfo(this, this, m_leechAccumulator, leechSpell, leechSpell->GetSchoolMask());
+                HealBySpell(leechHealInfo);
+            }
+            m_leechAccumulator = 0;
+            m_leechTimer = 0;
+        }
+    }
+    else
+        m_leechTimer = 0;
 }
 
 void Unit::Heartbeat()
@@ -1186,6 +1204,17 @@ bool Unit::HasBreakableByDamageCrowdControlAura(Unit const* excludeCasterChannel
     // make player victims stand up automatically
     if (victim->GetStandState() && victim->IsPlayer() && damagetype != NODAMAGE && damagetype != DOT)
         victim->SetStandState(UNIT_STAND_STATE_STAND);
+
+    // Lifesteal/Leech - accumulate heal from damage dealt
+    if (attacker && attacker != victim && damageTaken > 0 && damagetype != NODAMAGE && damagetype != SELF_DAMAGE)
+    {
+        if (!spellProto || !spellProto->HasAttribute(SPELL_ATTR13_CANNOT_LIFESTEAL_LEECH))
+        {
+            float lifestealPct = attacker->m_unitData->Lifesteal;
+            if (lifestealPct > 0.0f)
+                attacker->m_leechAccumulator += CalculatePct(damageTaken, lifestealPct);
+        }
+    }
 
     return damageTaken;
 }
@@ -6573,6 +6602,18 @@ void Unit::SetCharm(Unit* charm, bool apply)
 
     if (gain)
         healInfo.SetEffectiveHeal(gain > 0 ? static_cast<uint32>(gain) : 0UL);
+
+    // Lifesteal/Leech - accumulate heal from effective healing done
+    if (healer && healer != victim && healInfo.GetEffectiveHeal() > 0)
+    {
+        SpellInfo const* spellInfo = healInfo.GetSpellInfo();
+        if (!spellInfo || !spellInfo->HasAttribute(SPELL_ATTR13_CANNOT_LIFESTEAL_LEECH))
+        {
+            float lifestealPct = healer->m_unitData->Lifesteal;
+            if (lifestealPct > 0.0f)
+                healer->m_leechAccumulator += CalculatePct(healInfo.GetEffectiveHeal(), lifestealPct);
+        }
+    }
 }
 
 bool Unit::IsMagnet() const

@@ -2081,6 +2081,10 @@ class TC_GAME_API Unit : public WorldObject
         PositionUpdateInfo _positionUpdateInfo;
 
         bool _isCombatDisallowed;
+
+        static constexpr uint32 LEECH_SPELL_ID = 143924;
+        uint32 m_leechAccumulator = 0;
+        uint32 m_leechTimer = 0;
 };
 
 #endif
