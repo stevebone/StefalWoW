@@ -52,5 +52,6 @@ INSERT INTO `areatrigger_create_properties` (`Id`, `IsCustom`, `AreaTriggerId`, 
 -- Rend/Improved whirlwind cleave (394062,394063)
 -- Intimidating shout 
 -- Sweeping Strikes 12328 no longer exists and core handles the effect
+-- Avatar has been changed and is now fully supported by the core
 DELETE FROM `spell_script_names` WHERE `spell_id` IN (394062,394063);
-DELETE FROM `spell_script_names` WHERE `ScriptName` IN ('spell_warr_intimidating_shout', 'spell_warr_sweeping_strikes');
+DELETE FROM `spell_script_names` WHERE `ScriptName` IN ('spell_warr_intimidating_shout', 'spell_warr_sweeping_strikes', 'spell_warr_avatar');

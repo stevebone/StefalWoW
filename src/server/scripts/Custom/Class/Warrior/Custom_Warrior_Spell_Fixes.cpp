@@ -126,7 +126,7 @@ namespace Scripts::Custom::Warrior
 
         bool Validate(SpellInfo const* /*spellInfo*/) override
         {
-            return ValidateSpellInfo({ Spells::FEARLESS });
+            return ValidateSpellInfo({ Spells::Fearless });
         }
 
         void HandleOnHit()
@@ -135,7 +135,7 @@ namespace Scripts::Custom::Warrior
             if (!caster)
                 return;
 
-            if (caster->HasAura(Spells::FEARLESS))
+            if (caster->HasAura(Spells::Fearless))
                 caster->RemoveMovementImpairingAuras(true);
         }
 
@@ -150,12 +150,12 @@ namespace Scripts::Custom::Warrior
     {
         bool Validate(SpellInfo const* /*spellInfo*/) override
         {
-            return ValidateSpellEffect({ { Spells::DREADNAUGHT_DAMAGE, EFFECT_0 }, { Spells::DREADNAUGHT_DAMAGE, EFFECT_1 } });
+            return ValidateSpellEffect({ { Spells::DreadnaughtDamage, EFFECT_0 }, { Spells::DreadnaughtDamage, EFFECT_1 } });
         }
 
         bool Load() override
         {
-            return GetCaster()->HasAura(Spells::DREADNAUGHT);
+            return GetCaster()->HasAura(Spells::Dreadnaught);
         }
 
         void HandleOnHit()
@@ -165,7 +165,7 @@ namespace Scripts::Custom::Warrior
                 return;
 
             Difficulty difficulty = caster->GetMap()->GetDifficultyID();
-            SpellInfo const* damageInfo = sSpellMgr->GetSpellInfo(Spells::DREADNAUGHT_DAMAGE, difficulty);
+            SpellInfo const* damageInfo = sSpellMgr->GetSpellInfo(Spells::DreadnaughtDamage, difficulty);
             if (!damageInfo)
                 return;
 
@@ -191,7 +191,7 @@ namespace Scripts::Custom::Warrior
             targets.sort(Trinity::ObjectDistanceOrderPred(caster, true));
             for (Unit* unit : targets)
             {
-                caster->CastSpell(unit, Spells::DREADNAUGHT_DAMAGE, CastSpellExtraArgsInit{
+                caster->CastSpell(unit, Spells::DreadnaughtDamage, CastSpellExtraArgsInit{
                     .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR,
                     .TriggeringSpell = GetSpell()
                 });
@@ -209,16 +209,16 @@ namespace Scripts::Custom::Warrior
     {
         bool Validate(SpellInfo const* /*spellInfo*/) override
         {
-            return ValidateSpellInfo({ Spells::CRUSHING_COMBO_BUFF });
+            return ValidateSpellInfo({ Spells::CrushingComboBuff });
         }
 
         void HandleOnHitTarget(SpellEffIndex /*effIndex*/)
         {
             if (Player* caster = GetCaster()->ToPlayer())
-                if (caster->HasAura(Spells::FERVOR_OF_BATTLE))
+                if (caster->HasAura(Spells::FervorOfBattle))
                     if (Unit* target = caster->GetSelectedUnit())
                         if (caster->IsValidAttackTarget(target))
-                            caster->CastSpell(target, Spells::SLAM_ARMS, true);
+                            caster->CastSpell(target, Spells::SlamArms, true);
         }
 
         void HandleAfterCast()
@@ -227,10 +227,10 @@ namespace Scripts::Custom::Warrior
             if (!caster)
                 return;
 
-            if (caster->HasAura(Spells::CRUSHING_COMBO_BUFF))
+            if (caster->HasAura(Spells::CrushingComboBuff))
             {
-                caster->RemoveAuraFromStack(Spells::CRUSHING_COMBO_BUFF);
-                caster->GetSpellHistory()->ResetCooldown(Spells::CLEAVE, true);
+                caster->RemoveAuraFromStack(Spells::CrushingComboBuff);
+                caster->GetSpellHistory()->ResetCooldown(Spells::Cleave, true);
             }
         }
 
@@ -251,23 +251,23 @@ namespace Scripts::Custom::Warrior
             if (!caster)
                 return;
 
-            if (caster->HasAura(Spells::WRECKING_BALL_EFFECT))
-                caster->RemoveAura(Spells::WRECKING_BALL_EFFECT);
+            if (caster->HasAura(Spells::WreckingBallEffect))
+                caster->RemoveAura(Spells::WreckingBallEffect);
 
-            if (caster->HasAura(Spells::MEAT_CLEAVER_TALENT))
+            if (caster->HasAura(Spells::MeatCleaverTalent))
                 if (roll_chance(10))
-                    caster->CastSpell(nullptr, Spells::ENRAGE, true);
+                    caster->CastSpell(nullptr, Spells::Enrage, true);
 
-            if (caster->HasAura(Spells::THIRST_FOR_BATTLE))
+            if (caster->HasAura(Spells::ThirstForBattle))
             {
-                caster->AddAura(Spells::THIRST_FOR_BATTLE_BUFF, caster);
-                if (AuraEffect* thirst = caster->GetAura(Spells::THIRST_FOR_BATTLE_BUFF)->GetEffect(0))
+                caster->AddAura(Spells::ThirstForBattleBuff, caster);
+                if (AuraEffect* thirst = caster->GetAura(Spells::ThirstForBattleBuff)->GetEffect(0))
                     thirst->GetAmount();
             }
 
-            caster->AddAura(Spells::WHIRLWIND_CLEAVE_AURA, caster);
+            caster->AddAura(Spells::WhirlwindCleaveAura, caster);
 
-            if (caster->HasAura(Spells::IMPROVED_WHIRLWIND))
+            if (caster->HasAura(Spells::ImprovedWhirlwind))
             {
                 if (_targetCount == 0)
                 {
@@ -294,12 +294,12 @@ namespace Scripts::Custom::Warrior
             if (!caster)
                 return;
 
-            bool improvedWhirlwind = caster->HasAura(Spells::IMPROVED_WHIRLWIND);
-            bool hasRend = GetCaster()->HasSpell(Spells::REND);
+            bool improvedWhirlwind = caster->HasAura(Spells::ImprovedWhirlwind);
+            bool hasRend = GetCaster()->HasSpell(Spells::Rend);
 
             if (hasRend && improvedWhirlwind)
             {
-                GetCaster()->CastSpell(GetHitUnit(), Spells::REND_AURA, CastSpellExtraArgsInit{
+                GetCaster()->CastSpell(GetHitUnit(), Spells::RendAura, CastSpellExtraArgsInit{
                 .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR,
                 .TriggeringSpell = GetSpell()
                     });
@@ -322,10 +322,10 @@ namespace Scripts::Custom::Warrior
         void HandleOnHitTarget(SpellEffIndex /*effIndex*/)
         {
             if (Player* caster = GetCaster()->ToPlayer())
-                if (caster->HasAura(Spells::FERVOR_OF_BATTLE))
+                if (caster->HasAura(Spells::FervorOfBattle))
                     if (Unit* target = caster->GetSelectedUnit())
                         if (caster->IsValidAttackTarget(target))
-                            caster->CastSpell(target, Spells::SLAM_ARMS, true);
+                            caster->CastSpell(target, Spells::SlamArms, true);
         }
 
         void Register() override
@@ -371,8 +371,8 @@ namespace Scripts::Custom::Warrior
             if (!caster)
                 return;
 
-            if (caster->HasAura(Spells::UNBREAKABLE_WILL))
-                caster->CastSpell(caster, Spells::UNBREAKABLE_WILL_PROC, true);
+            if (caster->HasAura(Spells::UnbreakableWill))
+                caster->CastSpell(caster, Spells::UnbreakableWillProc, true);
         }
 
         void Register() override
@@ -386,12 +386,12 @@ namespace Scripts::Custom::Warrior
     {
         bool Validate(SpellInfo const* /*spellInfo*/) override
         {
-            return ValidateSpellInfo({ Spells::REND_AURA });
+            return ValidateSpellInfo({ Spells::RendAura });
         }
 
         void HandleRend(SpellEffIndex /*effIndex*/) const
         {
-            GetCaster()->CastSpell(GetHitUnit(), Spells::REND_AURA, CastSpellExtraArgsInit{
+            GetCaster()->CastSpell(GetHitUnit(), Spells::RendAura, CastSpellExtraArgsInit{
                 .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR,
                 .TriggeringSpell = GetSpell()
                 });
@@ -408,7 +408,7 @@ namespace Scripts::Custom::Warrior
     {
         bool Validate(SpellInfo const* /*spellInfo*/) override
         {
-            return ValidateSpellInfo({ Spells::DEFENSIVE_STANCE, Spells::DEFENSIVE_STANCE_SPIKE_TALENT });
+            return ValidateSpellInfo({ Spells::DefensiveStance, Spells::DefensiveStanceSpikeTalent });
         }
 
         void OnApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
@@ -445,7 +445,7 @@ namespace Scripts::Custom::Warrior
             DamageInfo* damageInfo = eventInfo.GetDamageInfo();
             uint32 damageTaken = damageInfo->GetDamage();
 
-            if (caster->HasAura(Spells::DEFENSIVE_STANCE_SPIKE_TALENT))
+            if (caster->HasAura(Spells::DefensiveStanceSpikeTalent))
             {
                 AuraEffect const* thresholdEff = GetEffect(EFFECT_4);
                 AuraEffect const* reductionEff = GetEffect(EFFECT_5);
@@ -487,7 +487,7 @@ namespace Scripts::Custom::Warrior
     {
         bool Validate(SpellInfo const* /*spellInfo*/) override
         {
-            return ValidateSpellInfo({ Spells::SECOND_WIND_2PC, Spells::SECOND_WIND_6PC });
+            return ValidateSpellInfo({ Spells::SecondWind2pc, Spells::SecondWind6pc });
         }
 
         void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
@@ -496,7 +496,7 @@ namespace Scripts::Custom::Warrior
             if (!target)
                 return;
 
-            target->CastSpell(target, Spells::SECOND_WIND_6PC, true);
+            target->CastSpell(target, Spells::SecondWind6pc, true);
         }
 
         void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& eventInfo)
@@ -510,10 +510,10 @@ namespace Scripts::Custom::Warrior
                 if (dmgInfo->GetDamage() <= 0)
                     return;
 
-                target->RemoveAura(Spells::SECOND_WIND_6PC);
+                target->RemoveAura(Spells::SecondWind6pc);
 
-                if (target->HealthBelowPct(35) && !target->HasAura(Spells::SECOND_WIND_2PC))
-                    target->CastSpell(target, Spells::SECOND_WIND_2PC, true);
+                if (target->HealthBelowPct(35) && !target->HasAura(Spells::SecondWind2pc))
+                    target->CastSpell(target, Spells::SecondWind2pc, true);
 
                 _lastDamageTime = getMSTime();
             }
@@ -528,8 +528,8 @@ namespace Scripts::Custom::Warrior
             if (GetMSTimeDiffToNow(_lastDamageTime) < 5000)
                 return;
 
-            if (!target->HasAura(Spells::SECOND_WIND_6PC))
-                target->CastSpell(target, Spells::SECOND_WIND_6PC, true);
+            if (!target->HasAura(Spells::SecondWind6pc))
+                target->CastSpell(target, Spells::SecondWind6pc, true);
         }
 
         void Register() override
@@ -547,7 +547,7 @@ namespace Scripts::Custom::Warrior
     {
         bool Validate(SpellInfo const* /*spellInfo*/) override
         {
-            return ValidateSpellInfo({ Spells::SECOND_WIND_2PC });
+            return ValidateSpellInfo({ Spells::SecondWind2pc });
         }
 
         void OnPeriodic(AuraEffect const* /*aurEff*/)
@@ -556,8 +556,8 @@ namespace Scripts::Custom::Warrior
             if (!target)
                 return;
 
-            if (target->HealthBelowPct(35) && !target->HasAura(Spells::SECOND_WIND_2PC))
-                target->CastSpell(target, Spells::SECOND_WIND_2PC, true);
+            if (target->HealthBelowPct(35) && !target->HasAura(Spells::SecondWind2pc))
+                target->CastSpell(target, Spells::SecondWind2pc, true);
         }
 
         void Register() override
@@ -619,7 +619,7 @@ namespace Scripts::Custom::Warrior
     {
         bool Validate(SpellInfo const* spellInfo) override
         {
-            return ValidateSpellInfo({ Spells::INDOMITABLE_HEAL })
+            return ValidateSpellInfo({ Spells::IndomitableHeal })
                 && ValidateSpellEffect({ { spellInfo->Id, EFFECT_0 }, { spellInfo->Id, EFFECT_1 } })
                 && spellInfo->GetEffect(EFFECT_0).IsAura()
                 && spellInfo->GetEffect(EFFECT_1).IsAura();
@@ -650,7 +650,7 @@ namespace Scripts::Custom::Warrior
             {
                 _rageAccumulator -= threshold;
 
-                target->CastSpell(target, Spells::INDOMITABLE_HEAL,
+                target->CastSpell(target, Spells::IndomitableHeal,
                     CastSpellExtraArgs()
                         .SetTriggerFlags(TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR)
                         .SetTriggeringAura(aurEff)
@@ -706,15 +706,15 @@ namespace Scripts::Custom::Warrior
                     if (!unit)
                         continue;
 
-                    if (!unit->HasAura(Spells::CHAMPIONS_SPEAR_AURA, caster->GetGUID()))
+                    if (!unit->HasAura(Spells::ChampionsSpearAura, caster->GetGUID()))
                         continue;
 
-                    unit->CastSpell(center, Spells::CHAMPIONS_SPEAR_PULL,
+                    unit->CastSpell(center, Spells::ChampionsSpearPull,
                         CastSpellExtraArgsInit{
                             .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR
                         });
 
-                    unit->CastSpell(center, Spells::CHAMPIONS_SPEAR_CHAIN_VISUAL,
+                    unit->CastSpell(center, Spells::ChampionsSpearChainVisual,
                         CastSpellExtraArgsInit{
                             .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR
                         });
@@ -738,16 +738,16 @@ namespace Scripts::Custom::Warrior
     {
         bool Validate(SpellInfo const* /*spellInfo*/) override
         {
-            return ValidateSpellInfo({ Spells::SLAM_ARMS, Spells::FERVOR_OF_BATTLE });
+            return ValidateSpellInfo({ Spells::SlamArms, Spells::FervorOfBattle });
         }
 
         void HandleSlam(SpellEffIndex /*effIndex*/)
         {
             Unit* caster = GetCaster();
-            if (!caster || !caster->HasAura(Spells::FERVOR_OF_BATTLE))
+            if (!caster || !caster->HasAura(Spells::FervorOfBattle))
                 return;
 
-            SpellInfo const* fervorInfo = sSpellMgr->GetSpellInfo(Spells::FERVOR_OF_BATTLE, GetCastDifficulty());
+            SpellInfo const* fervorInfo = sSpellMgr->GetSpellInfo(Spells::FervorOfBattle, GetCastDifficulty());
             int32 fervorBP0 = fervorInfo->GetEffect(EFFECT_0).CalcValue(caster);
 
             int64 const targetsHit = GetUnitTargetCountForEffect(EFFECT_0);
@@ -755,7 +755,7 @@ namespace Scripts::Custom::Warrior
                 return;
 
             Unit* target = GetExplTargetUnit();
-            caster->CastSpell(target, Spells::SLAM_ARMS, CastSpellExtraArgsInit{
+            caster->CastSpell(target, Spells::SlamArms, CastSpellExtraArgsInit{
                 .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS
                               | TRIGGERED_DONT_REPORT_CAST_ERROR
                               | TRIGGERED_IGNORE_POWER_COST
@@ -775,12 +775,12 @@ namespace Scripts::Custom::Warrior
     {
         bool Validate(SpellInfo const* /*spellInfo*/) override
         {
-            return ValidateSpellInfo({ Spells::RAVAGER_SUMMON });
+            return ValidateSpellInfo({ Spells::RavagerSummon });
         }
 
         void SummonRavager(SpellEffIndex /*effIndex*/) const
         {
-            GetCaster()->CastSpell(*GetHitDest(), Spells::RAVAGER_SUMMON, CastSpellExtraArgsInit{
+            GetCaster()->CastSpell(*GetHitDest(), Spells::RavagerSummon, CastSpellExtraArgsInit{
                 .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR,
                 .TriggeringSpell = GetSpell()
             });
@@ -797,14 +797,14 @@ namespace Scripts::Custom::Warrior
     {
         bool Validate(SpellInfo const* /*spellInfo*/) override
         {
-            return ValidateSpellInfo({ Spells::RAVAGER_PERIODIC_DAMAGE })
-                && ValidateSpellEffect({ { Spells::RAVAGER_SUMMON, EFFECT_0 } });
+            return ValidateSpellInfo({ Spells::RavagerPeriodicDamage })
+                && ValidateSpellEffect({ { Spells::RavagerSummon, EFFECT_0 } });
         }
 
         std::vector<Unit*> FindRavagerSummons(Unit const* owner) const
         {
             std::vector<Unit*> summons;
-            int32 const summonedCreatureEntry = sSpellMgr->GetSpellInfo(Spells::RAVAGER_SUMMON, GetCastDifficulty())->GetEffect(EFFECT_0).MiscValue;
+            int32 const summonedCreatureEntry = sSpellMgr->GetSpellInfo(Spells::RavagerSummon, GetCastDifficulty())->GetEffect(EFFECT_0).MiscValue;
             for (Unit* summon : owner->m_Controlled)
                 if (summon->GetEntry() == static_cast<uint32>(summonedCreatureEntry))
                     summons.push_back(summon);
@@ -817,11 +817,11 @@ namespace Scripts::Custom::Warrior
             std::vector<Unit*> const ravagers = FindRavagerSummons(GetTarget());
             for (Unit* ravager : ravagers)
             {
-                GetTarget()->CastSpell(ravager->GetWorldLocation(), Spells::RAVAGER_PERIODIC_DAMAGE, CastSpellExtraArgsInit{
+                GetTarget()->CastSpell(ravager->GetWorldLocation(), Spells::RavagerPeriodicDamage, CastSpellExtraArgsInit{
                     .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR
                 });
 
-                ravager->SendPlaySpellVisual(ravager->GetPosition(), Spells::SPELL_VISUAL_RAVAGER, 0, 0, 0, true, 0);
+                ravager->SendPlaySpellVisual(ravager->GetPosition(), Spells::SpellVisualRavager, 0, 0, 0, true, 0);
             }
         }
 
@@ -836,12 +836,12 @@ namespace Scripts::Custom::Warrior
     {
         bool Validate(SpellInfo const* /*spellInfo*/) override
         {
-            return ValidateSpellInfo({ Spells::RAVAGER_RAGE_GAIN });
+            return ValidateSpellInfo({ Spells::RavagerRageGain });
         }
 
         void HandleRavagerDamage() const
         {
-            GetCaster()->CastSpell(nullptr, Spells::RAVAGER_RAGE_GAIN, CastSpellExtraArgsInit{
+            GetCaster()->CastSpell(nullptr, Spells::RavagerRageGain, CastSpellExtraArgsInit{
                 .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR,
                 .TriggeringSpell = GetSpell()
             });
