@@ -668,6 +668,20 @@ namespace Scripts::Custom::Warrior
         int32 _rageAccumulator = 0;
     };
 
+    // 391271 - Honed Reflexes
+    class spell_warr_honed_reflexes : public AuraScript
+    {
+        bool CheckProc(ProcEventInfo& eventInfo)
+        {
+            return eventInfo.GetHitMask() & PROC_HIT_INTERRUPT;
+        }
+
+        void Register() override
+        {
+            DoCheckProc += AuraCheckProcFn(spell_warr_honed_reflexes::CheckProc);
+        }
+    };
+
     // 376079 - Champion's Spear
     struct at_warr_champions_spear : AreaTriggerAI
     {
@@ -903,4 +917,5 @@ void AddSC_custom_warrior_spell_fixes()
     RegisterSpellAndAuraScriptPair(spell_warr_ravager, spell_warr_ravager_aurascript);
     RegisterSpellScript(spell_warr_ravager_damage_rage_gain);
     RegisterSpellScript(spell_warr_shattering_throw_damage);
+    RegisterSpellScript(spell_warr_honed_reflexes);
 }

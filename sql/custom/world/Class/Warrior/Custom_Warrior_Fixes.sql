@@ -18,7 +18,8 @@ DELETE FROM `spell_script_names` WHERE `ScriptName` IN (
     'spell_warr_fervor_of_battle',
     'spell_warr_ravager',
     'spell_warr_ravager_damage_rage_gain',
-    'spell_warr_shattering_throw_damage'
+    'spell_warr_shattering_throw_damage',
+    'spell_warr_honed_reflexes'
 );
 
 INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
@@ -38,6 +39,7 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 (262150, 'spell_warr_dreadnaught'),
 (386208, 'spell_warr_defensive_stance'),
 (394352, 'spell_warr_shattering_throw_damage'),
+(391271, 'spell_warr_honed_reflexes'),
 (394354, 'spell_warr_wrecking_throw_damage');
 
 -- Champion's Spear AreaTrigger

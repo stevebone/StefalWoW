@@ -78,6 +78,10 @@ namespace Scripts::Custom::Warrior
         static constexpr uint32 RAVAGER_PERIODIC_DAMAGE           = 156287;
         static constexpr uint32 RAVAGER_SUMMON                    = 227876;
 
+        // Honed Reflexes
+        static constexpr uint32 HONED_REFLEXES                    = 391271;
+        static constexpr uint32 HONED_REFLEXES_DEBUFF             = 1271964;
+
         // Honed Reflexes affected spells
         static constexpr uint32 DIE_BY_THE_SWORD                  = 118038;
         static constexpr uint32 ENRAGED_REGENERATION              = 184364;
