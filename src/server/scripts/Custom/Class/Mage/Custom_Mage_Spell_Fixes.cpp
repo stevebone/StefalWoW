@@ -164,7 +164,7 @@ namespace Scripts::Custom::Mage
             // that applies Chilled to nearby enemies as the player moves. Our custom AT handles this.
             caster->RemoveAurasDueToSpell(Spells::FrozenOrb);
 
-            AreaTriggerCreatePropertiesId createPropertiesId(70001, true);
+            AreaTriggerCreatePropertiesId createPropertiesId{ 70001, true };
             AreaTrigger::CreateAreaTrigger(createPropertiesId, _spawnPos, 15000, caster, nullptr, { 0, 0 }, nullptr, GetSpell());
 
             // 385167 - Everlasting Frost: casting Frozen Orb grants EFFECT_0 stacks of Fingers of Frost
