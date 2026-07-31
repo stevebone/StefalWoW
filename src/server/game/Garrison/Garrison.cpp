@@ -1757,6 +1757,40 @@ void Garrison::AddMission(uint32 garrMissionId)
     _owner->SendDirectMessage(addMissionResult.Write());
 }
 
+// Re-send every currently-offered mission to the owner. The client's command-table UI populates
+// from the mission results it receives when it opens the table (CMSG_OPEN_MISSION_NPC), not from
+// the login/GetGarrisonInfo snapshot - so when the offer pool is already full (GenerateAvailableMissions
+// generates and sends nothing new), the table would otherwise open empty. Retail re-pushes the list
+// on every open (sniff: GET_GARRISON_INFO_RESULT + per-mission ADD_MISSION_RESULT).
+void Garrison::SendOfferedMissions() const
+{
+    for (auto const& [dbId, mission] : _missions)
+    {
+        if (mission.PacketInfo.MissionState != 0) // 0 = offered; skip in-progress/completed
+            continue;
+
+        GarrMissionEntry const* missionEntry = sGarrMissionStore.LookupEntry(mission.PacketInfo.MissionRecID);
+
+        WorldPackets::Garrison::GarrisonAddMissionResult addMissionResult;
+        addMissionResult.GarrTypeID = missionEntry ? missionEntry->GarrTypeID : static_cast<int8>(GetType());
+        addMissionResult.Result = GARRISON_SUCCESS;
+        addMissionResult.State = 0;
+        addMissionResult.Mission = mission.PacketInfo;
+        addMissionResult.CanStartMission = true;
+        _owner->SendDirectMessage(addMissionResult.Write());
+    }
+}
+
+bool Garrison::IsOfferPoolFull() const
+{
+    uint32 offered = 0;
+    for (auto const& [dbId, mission] : _missions)
+        if (mission.PacketInfo.MissionState == 0) // 0 = offered
+            ++offered;
+
+    return offered >= MAX_AVAILABLE_MISSIONS;
+}
+
 Garrison::Mission const* Garrison::GetMission(uint64 dbId) const
 {
     auto itr = _missions.find(dbId);
@@ -2411,8 +2445,7 @@ void Garrison::GenerateAvailableMissions()
         if (p.second.PacketInfo.MissionState == 0)
             ++currentOffered;
 
-    // Target: up to 15 available missions at a time
-    static constexpr uint32 MAX_AVAILABLE_MISSIONS = 15;
+    // Target: up to MAX_AVAILABLE_MISSIONS available missions at a time (class constant)
     if (currentOffered >= MAX_AVAILABLE_MISSIONS)
     {
         _lastMissionGenerationTime = GameTime::GetGameTime();

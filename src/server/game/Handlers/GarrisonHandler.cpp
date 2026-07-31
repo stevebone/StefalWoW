@@ -228,14 +228,21 @@ void WorldSession::HandleOpenMissionNpc(WorldPackets::Garrison::OpenMissionNpc& 
     // garrison packet retail sends in response to CMSG_OPEN_MISSION_NPC is
     // SMSG_DELETE_EXPIRED_MISSIONS_RESULT, immediately followed by SMSG_GOSSIP_COMPLETE.
     //
-    // We must NOT re-send the offered-mission list here (GenerateAvailableMissions + SendOfferedMissions
-    // + SendMissionStartConditionUpdate). Retail delivers the mission board once at login via
-    // GET_GARRISON_INFO and the frame reads it from cache; the extra ADD_MISSION_RESULT x15 +
-    // MISSION_START_CONDITION_UPDATE burst is a non-retail deviation (it produced the observed
-    // GARRISON_MISSION_LIST_UPDATE flood) and is the prime suspect for the client not firing its
-    // legacy open-event. Keep this handler byte-identical to retail's wire.
+    // Retail delivers the mission board once at login via GET_GARRISON_INFO and the frame reads it from
+    // cache; re-sending the whole board on every open (GenerateAvailableMissions + SendOfferedMissions +
+    // SendMissionStartConditionUpdate) is a non-retail ADD_MISSION_RESULT burst that floods
+    // GARRISON_MISSION_LIST_UPDATE and is the suspected cause of the client not firing its legacy
+    // open-event. So the default open sends only SMSG_DELETE_EXPIRED_MISSIONS_RESULT then GOSSIP_COMPLETE.
     for (auto const& [type, garr] : _player->GetGarrisons())
         garr->SendDeleteExpiredMissionsResult();
+
+    // Exception: when the board is already at its cap, the periodic GenerateAvailableMissions has nothing
+    // to add, so no ADD_MISSION_RESULT reaches the client on open and the table can appear empty for a
+    // garrison sitting at 15 offered missions. Re-send the existing offers ONLY in that full-pool case.
+    // While the board is still filling, GenerateAvailableMissions trickles new missions (each with its own
+    // ADD_MISSION_RESULT), so an extra full re-send here would be redundant and reintroduce the burst.
+    if (garrison->IsOfferPoolFull())
+        garrison->SendOfferedMissions();
 
     _player->PlayerTalkClass->SendCloseGossip();
 }

@@ -344,7 +344,16 @@ public:
     }
 
     // Missions
+    // Target size of the offered-mission board. The board is topped up toward this cap over several
+    // periodic ticks (see GenerateAvailableMissions); the command-table open handler uses it to detect a
+    // full pool (nothing new to generate) and re-send the existing offers so the table is not empty.
+    static constexpr uint32 MAX_AVAILABLE_MISSIONS = 15;
+
     void AddMission(uint32 garrMissionId);
+    void SendOfferedMissions() const;
+    // Whether the offered-mission board is already at MAX_AVAILABLE_MISSIONS (GenerateAvailableMissions
+    // would add nothing, so no ADD_MISSION packets would otherwise reach the client on open).
+    bool IsOfferPoolFull() const;
     Mission const* GetMission(uint64 dbId) const;
     Mission* GetMission(uint64 dbId);
     Mission const* GetMissionByRecID(uint32 missionRecID) const;
