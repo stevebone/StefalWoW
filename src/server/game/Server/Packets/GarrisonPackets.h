@@ -274,6 +274,22 @@ namespace WorldPackets
             std::vector<GarrisonRemoteSiteInfo> Sites;
         };
 
+        // CMSG_GARRISON_SOCKET_TALENT (client serializer sub_7FF72914B630): { u32 GarrTalentID, u32 count,
+        // count x { int32 SoulbindConduitID, int32 SoulbindConduitRank } }. The leading id and the pair fields are
+        // read from the wire as-is; the pair layout mirrors GarrisonTalentSocketData (this protocol's socket record).
+        // NEEDS-CONFIRM (sniff): whether the leading id is the node or the tree, and pair order. Handler fails closed
+        // (unowned/invalid conduit ids no-op), so a misread cannot corrupt server state.
+        class GarrisonSocketTalent final : public ClientPacket
+        {
+        public:
+            explicit GarrisonSocketTalent(WorldPacket&& packet) : ClientPacket(CMSG_GARRISON_SOCKET_TALENT, std::move(packet)) { }
+
+            void Read() override;
+
+            int32 GarrTalentID = 0;
+            std::vector<GarrisonTalentSocketData> Sockets;
+        };
+
         class GarrisonPurchaseBuilding final : public ClientPacket
         {
         public:
@@ -578,6 +594,11 @@ namespace WorldPackets
             void Read() override;
 
             ObjectGuid NpcGUID;
+            // NOTE: the 68275 client appends a trailing uint8 (GarrFollowerTypeID) after the PackedGuid,
+            // producing a harmless "read stop at 14 from 15" tail warning. We intentionally do NOT read it:
+            // the handler ignores the packet entirely, and adding a field here changed the packet object's
+            // size, which — against a stale opcode-table wrapper — placed the field write on the stack GS
+            // cookie and hard-crashed (FAST_FAIL_STACK_COOKIE_CHECK). Leave the field out.
         };
 
         // ============================================================
@@ -1422,18 +1443,6 @@ namespace WorldPackets
             int32 GarrTalentID = 0;
         };
 
-        class GarrisonSocketTalent final : public ClientPacket
-        {
-        public:
-            explicit GarrisonSocketTalent(WorldPacket&& packet) : ClientPacket(CMSG_GARRISON_SOCKET_TALENT, std::move(packet)) { }
-
-            void Read() override;
-
-            int32 GarrTalentID = 0;
-            int32 SoulbindConduitID = 0;
-            int32 SoulbindConduitRank = 0;
-        };
-
         // IDA case 4980750: u32 Result, u8 GarrTypeID, Bits<1> (purpose unknown — observed
         // value 0 in the static analysis), GarrisonTalent. See SNIFF_AUDIT §8.11.
         class GarrisonResearchTalentResult final : public ServerPacket
@@ -1580,6 +1589,7 @@ namespace WorldPackets
             int32 ShipmentRecID = 0;
             uint64 ShipmentID = 0;
             uint64 AssignedFollowerDBID = 0;
+            uint32 ContainerID = 0;   // sniff-decoded: sits between AssignedFollowerDBID and CreationTime
             Timestamp<> CreationTime;
             int32 ShipmentDuration = 0;
             int32 BuildingTypeID = 0;
@@ -1624,10 +1634,11 @@ namespace WorldPackets
         class OpenShipmentNpcResult final : public ServerPacket
         {
         public:
-            explicit OpenShipmentNpcResult() : ServerPacket(SMSG_OPEN_SHIPMENT_NPC_RESULT, 16 + 4) { }
+            explicit OpenShipmentNpcResult() : ServerPacket(SMSG_OPEN_SHIPMENT_NPC_RESULT, 1 + 16 + 4) { }
 
             WorldPacket const* Write() override;
 
+            bool Success = true;   // leading bit — sniff-verified (0x80): without it the client misaligns the guid read and crashes
             ObjectGuid NpcGUID;
             uint32 CharShipmentContainerID = 0;
         };

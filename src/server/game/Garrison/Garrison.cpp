@@ -34,11 +34,16 @@
 #include "PhasingHandler.h"
 #include "Player.h"
 #include "Random.h"
+#include "SpellInfo.h"
+#include "SpellMgr.h"
 #include "VehicleDefines.h"
 #include "advstd.h"
 
 Garrison::Garrison(Player* owner) : _owner(owner), _garrType(GARRISON_TYPE_GARRISON), _siteLevel(nullptr), _followerActivationsRemainingToday(1)
 {
+    // Fire the first periodic pass on the very next tick after login (instead of waiting a full interval),
+    // so finished-order crates activate, completed constructions/research resolve, etc. right away.
+    _updateTimer = GARRISON_UPDATE_INTERVAL;
 }
 
 bool Garrison::LoadFromDB(PreparedQueryResult garrison, PreparedQueryResult blueprints, PreparedQueryResult buildings,
@@ -55,6 +60,13 @@ bool Garrison::LoadFromDB(PreparedQueryResult garrison, PreparedQueryResult blue
     _garrType = static_cast<GarrisonType>(fields[2].GetUInt32());
     _missionsStartedToday = fields[3].GetUInt32();
     _lastMissionStartDay = fields[4].GetUInt32();
+    _cacheLastUsed = fields[5].GetInt64();
+    // Legacy rows (created before the cache was persisted) have 0 here; start their timer now so the
+    // resource cache begins accruing from this login rather than paying out for all of history at once.
+    if (!_cacheLastUsed)
+        _cacheLastUsed = GameTime::GetGameTime();
+    // WoD Shipyard tier (GarrBuilding 205/206/207); 0 = not built. Not a plot building, so tracked directly.
+    _shipyardBuilding = fields[6].GetUInt32();
     if (!_siteLevel)
         return false;
 
@@ -267,9 +279,36 @@ bool Garrison::LoadFromDB(PreparedQueryResult garrison, PreparedQueryResult blue
 
             GarrMissionEntry const* missionEntry = sGarrMissionStore.LookupEntry(missionRecID);
             if (missionEntry)
+            {
                 mission.PacketInfo.MissionScalar = missionEntry->AutoMissionScalar;
+                mission.PacketInfo.Flags = missionEntry->Flags;
+
+                // Encounters, Rewards and OvermaxRewards are runtime-only (not stored in
+                // character_garrison_missions), so regenerate them from DB2 on load — otherwise a mission
+                // that was in progress across a restart reloads with an empty Rewards vector and
+                // ClaimMissionReward grants the player nothing. Same source used when the mission is first
+                // offered (AddMission -> PopulateMissionData), so the data is identical.
+                PopulateMissionData(mission, missionEntry);
+            }
 
         } while (missions->NextRow());
+    }
+
+    // Rebuild the mission -> assigned-followers link. CurrentFollowerDBIDs is runtime-only and not
+    // persisted; the authoritative record is each follower's persisted CurrentMissionID (== missionRecID,
+    // set in StartMission). Without this rebuild, a mission that was in progress across a restart reloads
+    // with an empty follower list, so ClaimMissionReward awards no follower XP and never clears
+    // CurrentMissionID — leaving the follower permanently stuck "on a mission". Followers whose mission is
+    // no longer present (already claimed/removed) are orphans and get freed here.
+    for (auto& [followerDbId, follower] : _followers)
+    {
+        if (follower.PacketInfo.CurrentMissionID == 0)
+            continue;
+
+        if (Mission* mission = GetMissionByRecID(follower.PacketInfo.CurrentMissionID))
+            mission->CurrentFollowerDBIDs.push_back(follower.PacketInfo.DbID);
+        else
+            follower.PacketInfo.CurrentMissionID = 0; // orphaned link — the mission is gone, free the follower
     }
 
     // Complete any talent research that finished while offline
@@ -289,6 +328,8 @@ void Garrison::SaveToDB(CharacterDatabaseTransaction trans)
     stmt->setUInt32(3, static_cast<uint32>(_garrType));
     stmt->setUInt32(4, _missionsStartedToday);
     stmt->setUInt32(5, _lastMissionStartDay);
+    stmt->setInt64(6, _cacheLastUsed);
+    stmt->setUInt32(7, _shipyardBuilding);
     trans->Append(stmt);
 
     for (uint32 building : _knownBuildings)
@@ -495,6 +536,7 @@ bool Garrison::Create(uint32 garrSiteId)
 
     _siteLevel = siteLevel;
     _garrType = GetGarrisonTypeFromSiteId(garrSiteId);
+    _cacheLastUsed = GameTime::GetGameTime(); // start the resource cache accruing from creation
 
     InitializePlots();
 
@@ -570,6 +612,11 @@ void Garrison::Upgrade()
     // Advance to next site level
     _siteLevel = nextLevel;
 
+    // Credit the "reach garrison level N" criteria so the level-upgrade quests complete (e.g. quest 36615
+    // "My Very Own Castle" has a CRITERIA_TREE objective "Upgrade your garrison to Tier 3"). Without this the
+    // quest never registers the upgrade. miscValue1 = the new GarrLevel the criteria tree checks against.
+    _owner->UpdateCriteria(CriteriaType::UpgradeGarrison, _siteLevel->GarrLevel);
+
     // Re-initialize plots for the new level (this adds new plot slots)
     _plots.clear();
     InitializePlots();
@@ -595,6 +642,69 @@ void Garrison::Upgrade()
     // Update phasing for the new garrison level
     PhasingHandler::OnConditionChange(_owner);
     SendRemoteInfo();
+
+    // WoD garrison levels are distinct child maps (GarrSiteLevel.MapID), not just phases. The world only
+    // re-renders at the new level once the player is moved onto that level's map instance - its GarrisonMap
+    // grid-loader then spawns the level-appropriate buildings (mirrors what happens when the player re-enters
+    // the garrison via the entrance AreaTrigger -> Garrison::Enter). Retail performs this teleport under the
+    // upgrade cinematic; without it the Architect UI advances but the player stays on the old level's map.
+    if (_owner->IsInWorld() && int32(_owner->GetMapId()) != int32(_siteLevel->MapID))
+        _owner->TeleportTo(WorldLocation(_siteLevel->MapID, *_owner), TELE_TO_SEAMLESS);
+
+    // Push fresh full garrison info so the world map (M) and Architect reflect the new site level + plot layout
+    // immediately, rather than showing the previous level until the client next re-requests (relog / re-enter).
+    SendInfo();
+}
+
+// Build the WoD Shipyard. It is a garrison sub-feature (GarrBuilding 205/206/207 = Shipyard L1/L2/L3, BuildingType
+// 9) that, unlike normal buildings, has NO architect plot (no GarrBuildingPlotInst entry) and physically lives on
+// the naval map (1473 Alliance / 1474 Horde). We therefore track only its tier (_shipyardBuilding) rather than a
+// plot. Gated on a full garrison (type 2) at site level 3 - the same prerequisite retail uses (the naval command
+// table becomes available once the garrison reaches Tier 3). Persisted immediately so it survives a crash.
+//
+// NOTE (Phase 1): this establishes the server-side shipyard state + persistence. The client-facing pieces - showing
+// the shipyard building in GarrisonInfo (needs the exact naval-map plot-instance id the 12.0.7 client expects) and
+// the walk-in naval map + terrain swaps - are deliberately NOT wired here: pushing a guessed plot-instance id into
+// the info packet risks a client-side placement error (same failure class as the earlier crate/gossip issues), so
+// that value must be sniff-verified before it goes on the wire. See [[shipyard_foundation_68275]].
+void Garrison::CreateShipyard()
+{
+    // Only a real garrison has a shipyard, and only from Tier 3 onward.
+    if (GetType() != GARRISON_TYPE_GARRISON || !_siteLevel || _siteLevel->GarrLevel < 3)
+        return;
+
+    if (HasShipyard())
+        return;
+
+    GarrBuildingEntry const* shipyard = sGarrBuildingStore.LookupEntry(GARRISON_SHIPYARD_BUILDING_L1);
+    if (!shipyard)
+        return;
+
+    _shipyardBuilding = GARRISON_SHIPYARD_BUILDING_L1;
+
+    // Crash-safe immediate persistence (mirrors the work-order INSERT-on-place pattern) rather than waiting for the
+    // next full garrison save.
+    CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_UPD_CHARACTER_GARRISON_SHIPYARD);
+    stmt->setUInt32(0, _shipyardBuilding);
+    stmt->setUInt64(1, _owner->GetGUID().GetCounter());
+    stmt->setUInt32(2, static_cast<uint32>(_garrType));
+    CharacterDatabase.Execute(stmt);
+
+    // Refresh garrison info so the client picks up the new state on its next read.
+    SendInfo();
+}
+
+bool Garrison::IsMissionFollowerTypeAvailable(int8 followerTypeId) const
+{
+    // The garrison's own primary follower type is always available.
+    if (followerTypeId == static_cast<int8>(sGarrisonMgr.GetPrimaryFollowerType(static_cast<int8>(GetType()))))
+        return true;
+    // Naval (shipyard) missions/ships only become available once the shipyard has been built. Both share
+    // GarrTypeID 2 with the garrison, so without this gate the naval mission pool (GarrFollowerTypeID 2) would
+    // either never appear or leak in before the shipyard exists.
+    if (followerTypeId == static_cast<int8>(FOLLOWER_TYPE_SHIPYARD))
+        return HasShipyard();
+    return false;
 }
 
 void Garrison::Update(uint32 diff)
@@ -605,24 +715,57 @@ void Garrison::Update(uint32 diff)
 
     _updateTimer -= GARRISON_UPDATE_INTERVAL;
 
-    // Complete building constructions that have finished
-    for (auto& [plotInstanceId, plot] : _plots)
-    {
-        if (plot.BuildingInfo.PacketInfo && !plot.BuildingInfo.PacketInfo->Active)
-        {
-            if (plot.BuildingInfo.CanActivate())
-                ActivateBuilding(plotInstanceId);
-        }
-    }
+    // Finished work orders stay "ready" and are collected by clicking the building's work-order crate
+    // (GameObject::Use -> CollectReadyShipments). The crate is made interactable purely by its base
+    // gameobject_template_addon.flags (GO_FLAG_IGNORE_CURRENT_STATE_FOR_USE_SPELL_EXCEPT_UNLOCKED,
+    // 0x40000) - matching retail's on-wire crate - so no per-tick flag maintenance is needed here.
 
-    // Complete shipments that have finished their timers
-    CompleteReadyShipments();
+    // Keep each work-order crate's "filled with goods" display in sync with the orders on its plot.
+    UpdateWorkOrderCrates();
+
+    // Buildings are NOT auto-completed when their construction timer finishes. Retail leaves the finished
+    // building as "ready to complete": the player walks to the plot and clicks it (construction sign), the
+    // client then sends CMSG_GARRISON_SET_BUILDING_ACTIVE -> HandleGarrisonSetBuildingActive -> ActivateBuilding.
+    // The client already knows a building is ready from its TimeBuilt + BuildSeconds, so no server push is
+    // needed here. (Buildings that finished while offline get their finalizer/complete state on the next
+    // garrison map entry via Plot::CreateGameObject's CanActivate branch.)
 
     // Complete talent research that has finished
     CompleteAllTalentResearch();
 
     // Remove expired unclaimed missions
     RemoveExpiredMissions();
+
+    // Refill the mission board over time - retail continuously offers new follower missions up to the
+    // cap. Throttled so it tops up a few at a time rather than on every 60s tick. (This is what was
+    // missing: GenerateAvailableMissions existed but nothing ever called it, so the board never refilled.)
+    static constexpr time_t MISSION_GENERATION_INTERVAL = 10 * MINUTE;
+    if (GameTime::GetGameTime() - _lastMissionGenerationTime >= MISSION_GENERATION_INTERVAL)
+        GenerateAvailableMissions();
+
+    // #17: the client's garrison report only re-evaluates mission completion when it receives garrison
+    // info (which fires GARRISON_MISSION_LIST_UPDATE) - a follower mission finishing is a purely time-based
+    // client computation with no server event, so an open report goes stale until the next interaction.
+    // Count in-progress missions whose timer has elapsed; when that grows, re-send the garrison info so the
+    // report refreshes and shows them as ready to complete.
+    time_t const now = GameTime::GetGameTime();
+    uint32 finishedMissions = 0;
+    for (auto const& [dbId, mission] : _missions)
+    {
+        if (mission.PacketInfo.MissionState != 1) // 1 = In Progress
+            continue;
+        int64 const finishAt = int64(mission.PacketInfo.StartTime)
+            + Seconds(mission.PacketInfo.TravelDuration).count()
+            + Seconds(mission.PacketInfo.MissionDuration).count();
+        if (finishAt <= int64(now))
+            ++finishedMissions;
+    }
+
+    if (finishedMissions != _lastFinishedMissionCount)
+    {
+        _lastFinishedMissionCount = finishedMissions;
+        SendRemoteInfo();
+    }
 }
 
 void Garrison::Enter() const
@@ -747,8 +890,10 @@ void Garrison::PlaceBuilding(uint32 garrPlotInstanceId, uint32 garrBuildingId)
             if (GameObject* go = plot->CreateGameObject(map, GetFaction()))
                 map->AddToMap(go);
 
-        _owner->RemoveCurrency(building->CurrencyTypeID, building->CurrencyQty, CurrencyDestroyReason::Garrison);
-        _owner->ModifyMoney(-building->GoldCost * GOLD, false);
+        if (building->CurrencyTypeID && building->CurrencyQty)
+            _owner->RemoveCurrency(building->CurrencyTypeID, building->CurrencyQty, CurrencyDestroyReason::Garrison);
+        if (building->GoldCost)
+            _owner->ModifyMoney(-building->GoldCost * GOLD, false);
 
         if (oldBuildingId)
         {
@@ -791,9 +936,11 @@ void Garrison::CancelBuildingConstruction(uint32 garrPlotInstanceId)
         _owner->SendDirectMessage(buildingRemoved.Write());
 
         GarrBuildingEntry const* constructing = sGarrBuildingStore.AssertEntry(buildingRemoved.GarrBuildingID);
-        // Refund construction/upgrade cost
-        _owner->AddCurrency(constructing->CurrencyTypeID, constructing->CurrencyQty, CurrencyGainSource::GarrisonBuildingRefund);
-        _owner->ModifyMoney(constructing->GoldCost * GOLD, false);
+        // Refund construction/upgrade cost (only what was actually charged)
+        if (constructing->CurrencyTypeID && constructing->CurrencyQty)
+            _owner->AddCurrency(constructing->CurrencyTypeID, constructing->CurrencyQty, CurrencyGainSource::GarrisonBuildingRefund);
+        if (constructing->GoldCost)
+            _owner->ModifyMoney(constructing->GoldCost * GOLD, false);
 
         if (constructing->UpgradeLevel > 1)
         {
@@ -1154,6 +1301,30 @@ void Garrison::SendRemoteInfo() const
     _owner->SendDirectMessage(remoteInfo.Write());
 }
 
+// Resend the full garrison info unsolicited (same payload as HandleGetGarrisonInfo). The client normally
+// requests this on login / on entering the garrison; after an in-session change that alters the site level or
+// building layout (e.g. an upgrade), the world map keeps showing the stale layout until the client re-requests.
+// Pushing it explicitly refreshes the site level + per-plot buildings so the world map (M) reflects the new level.
+void Garrison::SendInfo() const
+{
+    SendTroopQualityRefresh();
+
+    WorldPackets::Garrison::GetGarrisonInfoResult garrisonInfo;
+    garrisonInfo.FactionIndex = GetFaction();
+    BuildInfoPacket(garrisonInfo.Garrisons.emplace_back());
+    garrisonInfo.FollowerSoftCaps = {
+        { FOLLOWER_TYPE_GARRISON,     20 },
+        { FOLLOWER_TYPE_SHIPYARD,      6 },
+        { FOLLOWER_TYPE_CLASS_ORDER,   6 },
+        { FOLLOWER_TYPE_WAR_CAMPAIGN, 30 },
+        { FOLLOWER_TYPE_COVENANT,    100 }
+    };
+    _owner->SendDirectMessage(garrisonInfo.Write());
+
+    SendDeleteExpiredMissionsResult();
+    SendMissionStartConditionUpdate();
+}
+
 void Garrison::SendBlueprintAndSpecializationData()
 {
     WorldPackets::Garrison::GarrisonRequestBlueprintAndSpecializationDataResult data;
@@ -1198,10 +1369,15 @@ void Garrison::SendDeleteExpiredMissionsResult() const
 {
     WorldPackets::Garrison::DeleteExpiredMissionsResult result;
     result.GarrTypeID = static_cast<uint8>(_garrType);
-    result.Result = GARRISON_SUCCESS;
+    result.Result = GARRISON_SUCCESS; // must be 0 (client gates the mission-open fire on it) — GARRISON_SUCCESS == 0
     result.Succeeded = true;
-    result.LegionUnkBit = true;
-    // RemovedMissions is empty — expired missions are already cleaned up by RemoveExpiredMissions()
+    // CRITICAL: this bit (wire bit6, the second packed bit) MUST be 0. The 68275 client fires the
+    // legacy GARRISON_MISSION_NPC_OPENED event from the SMSG_DELETE_EXPIRED_MISSIONS_RESULT (0x4C0022)
+    // handler *while PlayerInteractionType == GarrMission(32)* — but ONLY if the second u32 (Result) is 0
+    // AND this trailing bit is 0. Sending it as 1 makes the client silently skip the fire, which is why
+    // the WoD command table never opened. (Binary-traced: fire fn sub_7FF72AD3DAD0, gate cmp [mgr+0x30],0x20.)
+    result.LegionUnkBit = false;
+    // RemovedMissions empty (count=0) is sufficient; expired missions already cleaned by RemoveExpiredMissions()
     _owner->SendDirectMessage(result.Write());
 }
 
@@ -1734,6 +1910,13 @@ GarrisonError Garrison::StartMission(uint32 missionRecID, std::vector<uint64> co
 
         if (follower->PacketInfo.FollowerStatus & FOLLOWER_STATUS_INACTIVE)
             return GARRISON_ERROR_FOLLOWER_INACTIVE;
+
+        // The follower must match the mission's follower type: garrison followers crew garrison missions,
+        // ships (GarrFollowerType 2) crew naval missions. Without this a ship could be slotted on a land
+        // mission (or vice versa) - the client filters by type, but validate server-side too.
+        if (GarrFollowerEntry const* followerEntry = sGarrFollowerStore.LookupEntry(follower->PacketInfo.GarrFollowerID))
+            if (followerEntry->GarrFollowerTypeID != missionEntry->GarrFollowerTypeID)
+                return GARRISON_ERROR_INVALID_FOLLOWER;
     }
 
     // Check required followers (GarrMissionXFollower.db2)
@@ -1820,29 +2003,25 @@ GarrisonError Garrison::CompleteMission(uint32 missionRecID)
     if (now < missionEnd)
         return GARRISON_ERROR_MISSION_NOT_COMPLETE;
 
+    // Determine the outcome exactly once, here, and remember it. Both the result shown to the player
+    // (SMSG_GARRISON_COMPLETE_MISSION_RESULT) and the later reward grant (FinalizeMission) read this
+    // stored value, so a "success" banner can never diverge from a "no loot" grant.
+    if (!mission->ResultDetermined)
+    {
+        mission->Succeeded = RollMissionOutcome(*mission, missionRecID);
+        mission->ResultDetermined = true;
+    }
+
     mission->PacketInfo.MissionState = 2; // Completed
     return GARRISON_SUCCESS;
 }
 
-GarrisonError Garrison::ClaimMissionReward(uint32 missionRecID)
+// Rolls a mission's success outcome: auto-combat simulation for adventure missions, otherwise a
+// straight roll against the pre-computed SuccessChance. Pure computation — no state change, no grants.
+bool Garrison::RollMissionOutcome(Mission const& mission, uint32 missionRecID) const
 {
-    Mission* mission = GetMissionByRecID(missionRecID);
-    if (!mission)
-        return GARRISON_ERROR_INVALID_MISSION;
-
-    if (mission->PacketInfo.MissionState != 2 && mission->PacketInfo.MissionState != 3)
-        return GARRISON_ERROR_MISSION_NOT_COMPLETE;
-
-    GarrMissionEntry const* missionEntry = sGarrMissionStore.LookupEntry(missionRecID);
-    if (!missionEntry)
-        return GARRISON_ERROR_INVALID_MISSION;
-
-    // Determine success: use auto-combat simulation for adventure missions,
-    // otherwise roll against calculated success chance
-    bool succeeded = false;
     bool isAutoCombatMission = false;
-
-    for (auto const& encounter : mission->PacketInfo.Encounters)
+    for (auto const& encounter : mission.PacketInfo.Encounters)
     {
         if (encounter.GarrAutoCombatantID != 0)
         {
@@ -1853,10 +2032,9 @@ GarrisonError Garrison::ClaimMissionReward(uint32 missionRecID)
 
     if (isAutoCombatMission)
     {
-        // Build player units from assigned followers
         std::vector<AutoCombatCombatant> playerUnits;
         int8 boardIdx = 0;
-        for (uint64 followerDbId : mission->CurrentFollowerDBIDs)
+        for (uint64 followerDbId : mission.CurrentFollowerDBIDs)
         {
             if (Follower const* follower = GetFollower(followerDbId))
             {
@@ -1870,40 +2048,51 @@ GarrisonError Garrison::ClaimMissionReward(uint32 missionRecID)
             }
         }
 
-        // Build enemy units from mission encounters
         std::vector<AutoCombatCombatant> enemyUnits;
-        for (auto const& encounter : mission->PacketInfo.Encounters)
+        for (auto const& encounter : mission.PacketInfo.Encounters)
         {
             if (encounter.GarrAutoCombatantID == 0)
                 continue;
 
-            GarrAutoCombatantEntry const* combatant =
-                sGarrisonMgr.GetAutoCombatant(encounter.GarrAutoCombatantID);
+            GarrAutoCombatantEntry const* combatant = sGarrisonMgr.GetAutoCombatant(encounter.GarrAutoCombatantID);
             if (!combatant)
                 continue;
 
             enemyUnits.push_back(GarrisonAutoCombat::BuildEnemyCombatant(combatant));
         }
 
-        AutoCombatResult combatResult =
-            GarrisonAutoCombat::SimulateCombat(playerUnits, enemyUnits);
-        succeeded = combatResult.PlayerWon;
-
-        // combatResult.CombatLog is fully populated (rounds + per-target events) but
-        // not serialized into SMSG_GARRISON_COMPLETE_MISSION_RESULT here. The wire
-        // format for the auto-combat transcript (JamGarrisonAutoMissionRoundInfo /
-        // EventInfo / CombatantInfo) is brief Open Q #2 and not yet decoded — the
-        // client likely expects a nested rounds[].events[].combatants[].spell[] tree.
-        // SL Adventures replay UI will not show round-by-round detail until this is
-        // wired; mission outcome (succeeded/failed) is still reported correctly.
-
-        TC_LOG_DEBUG("garrison", "Auto-combat for mission %u: %s in %d rounds",
-            missionRecID, succeeded ? "WON" : "LOST", combatResult.TotalRounds);
+        AutoCombatResult combatResult = GarrisonAutoCombat::SimulateCombat(playerUnits, enemyUnits);
+        TC_LOG_DEBUG("garrison", "Auto-combat for mission {}: {} in {} rounds",
+            missionRecID, combatResult.PlayerWon ? "WON" : "LOST", combatResult.TotalRounds);
+        return combatResult.PlayerWon;
     }
-    else
+
+    return static_cast<int32>(urand(0, 99)) < mission.PacketInfo.SuccessChance;
+}
+
+// Grants rewards + follower XP, frees the followers and removes the mission. Called from the opcodes the
+// WoD client actually sends (BONUS_ROLL on success, COMPLETE on failure) — NOT from the never-sent
+// GET_MISSION_REWARD. Uses the outcome stored at CompleteMission; re-rolls once only if the mission was
+// caught mid-completion by a restart (ResultDetermined lost with the runtime state).
+GarrisonError Garrison::FinalizeMission(uint32 missionRecID, bool grantOvermax)
+{
+    Mission* mission = GetMissionByRecID(missionRecID);
+    if (!mission)
+        return GARRISON_ERROR_INVALID_MISSION;
+
+    if (mission->PacketInfo.MissionState != 2 && mission->PacketInfo.MissionState != 3)
+        return GARRISON_ERROR_MISSION_NOT_COMPLETE;
+
+    GarrMissionEntry const* missionEntry = sGarrMissionStore.LookupEntry(missionRecID);
+    if (!missionEntry)
+        return GARRISON_ERROR_INVALID_MISSION;
+
+    if (!mission->ResultDetermined)
     {
-        succeeded = static_cast<int32>(urand(0, 99)) < mission->PacketInfo.SuccessChance;
+        mission->Succeeded = RollMissionOutcome(*mission, missionRecID);
+        mission->ResultDetermined = true;
     }
+    bool succeeded = mission->Succeeded;
 
     // Award follower XP (awarded regardless of success) and handle troop durability
     std::vector<uint64> troopsToRemove;
@@ -1932,7 +2121,7 @@ GarrisonError Garrison::ClaimMissionReward(uint32 missionRecID)
                 WorldPackets::Garrison::GarrisonFollower oldFollowerState = follower->PacketInfo;
 
                 GarrFollowerEntry const* followerEntry = sGarrFollowerStore.LookupEntry(follower->PacketInfo.GarrFollowerID);
-                uint8 followerTypeID = followerEntry ? followerEntry->GarrFollowerTypeID : FOLLOWER_TYPE_GARRISON;
+                uint8 followerTypeID = followerEntry ? followerEntry->GarrFollowerTypeID : uint8(FOLLOWER_TYPE_GARRISON);
 
                 follower->PacketInfo.Xp += followerXP;
 
@@ -1945,8 +2134,12 @@ GarrisonError Garrison::ClaimMissionReward(uint32 missionRecID)
                     levelXP = sGarrisonMgr.GetFollowerLevelXP(followerTypeID, follower->PacketInfo.FollowerLevel);
                 }
 
-                // At max level, excess XP converts to quality (iLvl) progression
-                if (!levelXP || levelXP->XpToNextLevel == 0)
+                // Only a follower at its TRUE terminal level rolls excess XP into quality (iLvl). The DB2
+                // marks that level with XpToNextLevel == 0. A NULL levelXP means we simply have no row for
+                // this (type, level) — treat that as "can't level right now" and KEEP the accumulated XP;
+                // it must never be silently deleted (that zeroed every mission's follower XP when the
+                // GarrFollowerLevelXP row for the follower's level was absent).
+                if (levelXP && levelXP->XpToNextLevel == 0)
                 {
                     GarrFollowerQualityEntry const* qualityEntry = sGarrisonMgr.GetFollowerQuality(followerTypeID, follower->PacketInfo.Quality);
                     while (qualityEntry && qualityEntry->XpThreshold > 0 && follower->PacketInfo.Xp >= static_cast<uint32>(qualityEntry->XpThreshold))
@@ -1965,9 +2158,14 @@ GarrisonError Garrison::ClaimMissionReward(uint32 missionRecID)
                         qualityEntry = sGarrisonMgr.GetFollowerQuality(followerTypeID, follower->PacketInfo.Quality);
                     }
 
-                    // Cap XP at 0 if no further progression is possible
+                    // Fully maxed (top level AND top quality): no bar left to fill.
                     if (!qualityEntry || qualityEntry->XpThreshold == 0)
                         follower->PacketInfo.Xp = 0;
+                }
+                else if (!levelXP)
+                {
+                    TC_LOG_DEBUG("garrison", "No GarrFollowerLevelXP row for type={} level={}; follower {} keeps Xp={} without levelling (DB2 data gap)",
+                        followerTypeID, int32(follower->PacketInfo.FollowerLevel), follower->PacketInfo.DbID, follower->PacketInfo.Xp);
                 }
 
                 // Send follower XP update with old and new state
@@ -2001,22 +2199,24 @@ GarrisonError Garrison::ClaimMissionReward(uint32 missionRecID)
                 }
                 else
                 {
-                    // Mail overflow items
+                    // Mail overflow items (SendMailTo needs a real transaction - a null one crashes)
+                    CharacterDatabaseTransaction trans = CharacterDatabase.BeginTransaction();
                     MailDraft draft("Garrison Mission Reward", "A reward from a completed garrison mission.");
                     if (Item* item = Item::CreateItem(reward.ItemID, reward.ItemQuantity, ItemContext::NONE, _owner))
                     {
-                        item->SaveToDB(CharacterDatabaseTransaction(nullptr));
+                        item->SaveToDB(trans);
                         draft.AddItem(item);
-                        draft.SendMailTo(CharacterDatabaseTransaction(nullptr), MailReceiver(_owner), MailSender(MAIL_CREATURE, 0));
                     }
+                    draft.SendMailTo(trans, MailReceiver(_owner), MailSender(MAIL_CREATURE, 0));
+                    CharacterDatabase.CommitTransaction(trans);
                 }
             }
             if (reward.CurrencyID > 0 && reward.CurrencyQuantity > 0)
                 _owner->AddCurrency(reward.CurrencyID, reward.CurrencyQuantity, CurrencyGainSource::GarrisonMissionReward);
         }
 
-        // Check if bonus roll was done (state 3) and award overmax rewards
-        if (mission->PacketInfo.MissionState == 3)
+        // Award overmax (bonus-roll chest) rewards only when finalizing via BONUS_ROLL.
+        if (grantOvermax)
         {
             for (auto const& reward : mission->PacketInfo.OvermaxRewards)
             {
@@ -2030,13 +2230,15 @@ GarrisonError Garrison::ClaimMissionReward(uint32 missionRecID)
                     }
                     else
                     {
+                        CharacterDatabaseTransaction trans = CharacterDatabase.BeginTransaction();
                         MailDraft draft("Garrison Mission Bonus", "A bonus reward from a garrison mission.");
                         if (Item* item = Item::CreateItem(reward.ItemID, reward.ItemQuantity, ItemContext::NONE, _owner))
                         {
-                            item->SaveToDB(CharacterDatabaseTransaction(nullptr));
+                            item->SaveToDB(trans);
                             draft.AddItem(item);
-                            draft.SendMailTo(CharacterDatabaseTransaction(nullptr), MailReceiver(_owner), MailSender(MAIL_CREATURE, 0));
                         }
+                        draft.SendMailTo(trans, MailReceiver(_owner), MailSender(MAIL_CREATURE, 0));
+                        CharacterDatabase.CommitTransaction(trans);
                     }
                 }
                 if (reward.CurrencyID > 0 && reward.CurrencyQuantity > 0)
@@ -2076,13 +2278,15 @@ GarrisonError Garrison::ClaimMissionReward(uint32 missionRecID)
                 }
                 else
                 {
+                    CharacterDatabaseTransaction trans = CharacterDatabase.BeginTransaction();
                     MailDraft draft("Salvage", "Salvage from a garrison mission.");
                     if (Item* item = Item::CreateItem(salvageItemId, 1, ItemContext::NONE, _owner))
                     {
-                        item->SaveToDB(CharacterDatabaseTransaction(nullptr));
+                        item->SaveToDB(trans);
                         draft.AddItem(item);
-                        draft.SendMailTo(CharacterDatabaseTransaction(nullptr), MailReceiver(_owner), MailSender(MAIL_CREATURE, 0));
                     }
+                    draft.SendMailTo(trans, MailReceiver(_owner), MailSender(MAIL_CREATURE, 0));
+                    CharacterDatabase.CommitTransaction(trans);
                 }
             }
         }
@@ -2107,22 +2311,26 @@ GarrisonError Garrison::ClaimMissionReward(uint32 missionRecID)
 
 GarrisonError Garrison::MissionBonusRoll(uint32 missionRecID)
 {
+    // The WoD client sends CMSG_GARRISON_MISSION_BONUS_ROLL when the player opens the reward chest on a
+    // successful mission — the client itself comments this call "-- complete mission". It is the finalize
+    // step: grant base + overmax (chest) rewards + follower XP, free the followers and remove the mission.
+    // (The reward code used to live only in ClaimMissionReward / GET_MISSION_REWARD, an opcode the WoD
+    // client never sends, so completed missions granted nothing and lingered forever.)
     Mission* mission = GetMissionByRecID(missionRecID);
     if (!mission)
         return GARRISON_ERROR_INVALID_MISSION;
 
-    if (mission->PacketInfo.MissionState != 2)
+    if (mission->PacketInfo.MissionState != 2 && mission->PacketInfo.MissionState != 3)
         return GARRISON_ERROR_MISSION_NOT_COMPLETE;
 
-    // The bonus roll uses the same success chance as the mission
-    // If the roll succeeds, the overmax rewards will be given when claiming
-    bool bonusSucceeded = static_cast<int32>(urand(0, 99)) < mission->PacketInfo.SuccessChance;
+    return FinalizeMission(missionRecID, true); // include overmax (chest) rewards
+}
 
-    mission->PacketInfo.MissionState = bonusSucceeded ? 3 : 2;
-    // State 3 = bonus rolled successfully (overmax rewards will be awarded)
-    // Keep state 2 if bonus failed (only base rewards will be awarded on claim)
-
-    return GARRISON_SUCCESS;
+// Legacy CMSG_GARRISON_GET_MISSION_REWARD path. The WoD command table never sends this opcode (it uses
+// COMPLETE + BONUS_ROLL), but keep it wired as a direct finalize for any Legion+/order-hall flow that does.
+GarrisonError Garrison::ClaimMissionReward(uint32 missionRecID)
+{
+    return FinalizeMission(missionRecID, true);
 }
 
 void Garrison::RemoveMission(uint32 missionRecID)
@@ -2213,22 +2421,38 @@ void Garrison::GenerateAvailableMissions()
 
     uint32 missionsToGenerate = MAX_AVAILABLE_MISSIONS - currentOffered;
 
-    // Get average follower level for filtering
-    int32 avgFollowerLevel = 0;
-    uint32 followerCount = 0;
+    // Trickle new missions a few per pass rather than dumping the whole board at once: a large
+    // ADD_MISSION_RESULT burst floods GARRISON_MISSION_LIST_UPDATE (and previously broke the command
+    // table's open-event). The periodic caller tops the board back up to the cap over several ticks.
+    static constexpr uint32 MAX_MISSIONS_PER_GENERATION = 4;
+    missionsToGenerate = std::min(missionsToGenerate, MAX_MISSIONS_PER_GENERATION);
+
+    // Average follower level, tracked PER follower type. A garrison offers land missions scaled to its
+    // garrison followers and naval missions scaled to its ships independently - using one combined average
+    // (e.g. level-~100 garrison followers) would filter naval missions against the wrong roster and could
+    // empty the naval board once the player has land followers. Keyed by GarrFollowerTypeID.
+    std::unordered_map<int8, std::pair<int64 /*sumLevel*/, uint32 /*count*/>> levelByType;
     for (auto const& p : _followers)
     {
-        if (!(p.second.PacketInfo.FollowerStatus & FOLLOWER_STATUS_INACTIVE))
-        {
-            avgFollowerLevel += p.second.PacketInfo.FollowerLevel;
-            ++followerCount;
-        }
+        if (p.second.PacketInfo.FollowerStatus & FOLLOWER_STATUS_INACTIVE)
+            continue;
+        int8 type = static_cast<int8>(FOLLOWER_TYPE_GARRISON);
+        if (GarrFollowerEntry const* fe = sGarrFollowerStore.LookupEntry(p.second.PacketInfo.GarrFollowerID))
+            type = fe->GarrFollowerTypeID;
+        auto& acc = levelByType[type];
+        acc.first += p.second.PacketInfo.FollowerLevel;
+        ++acc.second;
     }
 
-    if (followerCount > 0)
-        avgFollowerLevel /= static_cast<int32>(followerCount);
-    else
-        avgFollowerLevel = 90; // Default for no followers
+    // Average level of the followers that can actually crew a mission of the given type, or -1 if the player
+    // has none of that type yet (in which case the level filter is skipped and the whole pool is offered).
+    auto avgLevelForType = [&levelByType](int8 followerTypeId) -> int32
+    {
+        auto it = levelByType.find(followerTypeId);
+        if (it == levelByType.end() || it->second.second == 0)
+            return -1;
+        return static_cast<int32>(it->second.first / it->second.second);
+    };
 
     // Build eligible mission pool
     std::vector<GarrMissionEntry const*> eligibleMissions;
@@ -2238,19 +2462,19 @@ void Garrison::GenerateAvailableMissions()
         if (_activeMissionRecIDs.count(mission->ID))
             continue;
 
-        // Filter by follower type matching this garrison's primary follower type
-        if (mission->GarrFollowerTypeID != sGarrisonMgr.GetPrimaryFollowerType(garrTypeID))
+        // Filter by follower type: the garrison's primary type, plus naval (shipyard) missions once the
+        // shipyard is built. Both share GarrTypeID 2, so the shipyard gate is what keeps naval missions off
+        // the board until the player has a shipyard.
+        if (!IsMissionFollowerTypeAvailable(mission->GarrFollowerTypeID))
             continue;
 
-        // Filter by target level, but ONLY when we actually have active followers to
-        // scale against. Retail offers the standard mission pool to a garrison with no
-        // active followers (sniff "garrison and hall of class table quest.pkt": 42 missions
-        // offered), so the default-90 clamp must not starve a follower-less/all-inactive
-        // garrison down to zero.
-        if (followerCount > 0)
+        // Filter by target level, but ONLY when we actually have active followers OF THIS MISSION'S TYPE to
+        // scale against. Retail offers the standard mission pool to a garrison with no active followers (sniff
+        // "garrison and hall of class table quest.pkt": 42 missions offered), so a type with no roster yet must
+        // not be starved to zero - a just-built shipyard with no ships still offers the full naval pool.
+        if (int32 avgLevel = avgLevelForType(mission->GarrFollowerTypeID); avgLevel >= 0)
         {
-            int32 levelDiff = std::abs(avgFollowerLevel - static_cast<int32>(mission->TargetLevel));
-            if (levelDiff > 5)
+            if (std::abs(avgLevel - static_cast<int32>(mission->TargetLevel)) > 5)
                 continue;
         }
 
@@ -2525,6 +2749,40 @@ GarrisonError Garrison::RecruitFollower(uint32 garrFollowerID)
     return GARRISON_SUCCESS;
 }
 
+uint32 Garrison::GetShipCount() const
+{
+    uint32 count = 0;
+    for (auto const& p : _followers)
+        if (GarrFollowerEntry const* entry = sGarrFollowerStore.LookupEntry(p.second.PacketInfo.GarrFollowerID))
+            if (entry->GarrFollowerTypeID == static_cast<int8>(FOLLOWER_TYPE_SHIPYARD))
+                ++count;
+    return count;
+}
+
+// Build a ship at the shipyard. A "ship" is a GarrFollowerType-2 GarrFollower (102 exist in 12.0.7, ids 469+);
+// building one adds it as a follower via the normal AddFollower path. Retail builds ships over time from the naval
+// command table; the client-facing build request (CMSG) + build timer are sniff-gated (see [[shipyard_foundation_68275]]),
+// so this method is the validated server entry point that flow will call once its wire is known.
+GarrisonError Garrison::BuildShip(uint32 garrFollowerId)
+{
+    if (!HasShipyard())
+        return GARRISON_ERROR_NO_BUILDING;
+
+    GarrFollowerEntry const* shipEntry = sGarrFollowerStore.LookupEntry(garrFollowerId);
+    if (!shipEntry || shipEntry->GarrFollowerTypeID != static_cast<int8>(FOLLOWER_TYPE_SHIPYARD)
+        || shipEntry->GarrTypeID != static_cast<int8>(GetType()))
+        return GARRISON_ERROR_INVALID_FOLLOWER;
+
+    if (_followerIds.count(garrFollowerId))
+        return GARRISON_ERROR_FOLLOWER_EXISTS;
+
+    if (GetShipCount() >= SHIPYARD_FOLLOWER_SOFT_CAP)
+        return GARRISON_ERROR_INVALID_FOLLOWER;
+
+    AddFollower(garrFollowerId);
+    return GARRISON_SUCCESS;
+}
+
 void Garrison::HealAllFollowers()
 {
     for (auto& p : _followers)
@@ -2633,7 +2891,7 @@ void Garrison::AddFollowerXP(uint64 dbId, uint32 xp)
     WorldPackets::Garrison::GarrisonFollower oldFollowerState = follower->PacketInfo;
 
     GarrFollowerEntry const* followerEntry = sGarrFollowerStore.LookupEntry(follower->PacketInfo.GarrFollowerID);
-    uint8 followerTypeID = followerEntry ? followerEntry->GarrFollowerTypeID : FOLLOWER_TYPE_GARRISON;
+    uint8 followerTypeID = followerEntry ? followerEntry->GarrFollowerTypeID : uint8(FOLLOWER_TYPE_GARRISON);
 
     follower->PacketInfo.Xp += xp;
 
@@ -2646,8 +2904,10 @@ void Garrison::AddFollowerXP(uint64 dbId, uint32 xp)
         levelXP = sGarrisonMgr.GetFollowerLevelXP(followerTypeID, follower->PacketInfo.FollowerLevel);
     }
 
-    // At max level, excess XP converts to quality progression
-    if (!levelXP || levelXP->XpToNextLevel == 0)
+    // Only a follower at its TRUE terminal level (DB2 row present with XpToNextLevel == 0) rolls excess XP
+    // into quality. A NULL levelXP just means we have no row for this (type, level) — keep the accumulated
+    // XP rather than deleting it. (Mirrors the mission-reward path; see FinalizeMission.)
+    if (levelXP && levelXP->XpToNextLevel == 0)
     {
         GarrFollowerQualityEntry const* qualityEntry = sGarrisonMgr.GetFollowerQuality(followerTypeID, follower->PacketInfo.Quality);
         while (qualityEntry && qualityEntry->XpThreshold > 0 && follower->PacketInfo.Xp >= static_cast<uint32>(qualityEntry->XpThreshold))
@@ -2736,6 +2996,33 @@ void Garrison::EndBuildingConstruction(uint32 garrPlotInstanceId)
 void Garrison::SetGarrisonCacheSize(uint32 size)
 {
     _garrisonCacheSize = size;
+}
+
+uint32 Garrison::GetPendingCacheResources() const
+{
+    if (!_cacheLastUsed)
+        return 0;
+
+    time_t now = GameTime::GetGameTime();
+    if (now <= _cacheLastUsed)
+        return 0;
+
+    uint32 accrued = static_cast<uint32>((now - _cacheLastUsed) / CACHE_RESOURCE_INTERVAL);
+    return std::min(accrued, _garrisonCacheSize);
+}
+
+uint32 Garrison::CollectGarrisonCache()
+{
+    uint32 amount = GetPendingCacheResources();
+    if (!amount)
+        return 0;
+
+    // Advance the timer by the whole intervals we are paying out, so the sub-interval remainder keeps
+    // accruing toward the next resource instead of being discarded.
+    _cacheLastUsed += time_t(amount) * CACHE_RESOURCE_INTERVAL;
+
+    _owner->AddCurrency(CURRENCY_GARRISON_RESOURCES, amount, CurrencyGainSource::GarrisonResourceOverTime);
+    return amount;
 }
 
 Garrison::Follower* Garrison::GetFollowerByGarrFollowerID(uint32 garrFollowerID)
@@ -2851,7 +3138,11 @@ GarrisonError Garrison::CheckBuildingPlacement(uint32 garrPlotInstanceId, uint32
         }
     }
 
-    if (!_owner->HasCurrency(building->CurrencyTypeID, building->CurrencyQty))
+    // Some buildings (e.g. the Lumber Mill and Trading Post) carry no resource cost (CurrencyTypeID/Qty = 0).
+    // HasCurrency(0, 0) fails on the invalid currency type 0, which wrongly reported "insufficient resources"
+    // and blocked construction. Only enforce the cost when the building actually has one (mirrors the garrison
+    // upgrade handler's `Cost > 0 &&` guard).
+    if (building->CurrencyTypeID && building->CurrencyQty && !_owner->HasCurrency(building->CurrencyTypeID, building->CurrencyQty))
         return GARRISON_ERROR_NOT_ENOUGH_CURRENCY;
 
     if (!_owner->HasEnoughMoney(uint64(building->GoldCost) * GOLD))
@@ -3076,7 +3367,7 @@ GarrisonError Garrison::CreateShipment(ObjectGuid npcGUID, uint32 count)
     if (!building)
         return GARRISON_ERROR_NO_BUILDING;
 
-    CharShipmentContainerEntry const* container = sGarrisonMgr.GetShipmentContainerForBuilding(building->BuildingType);
+    CharShipmentContainerEntry const* container = sGarrisonMgr.GetShipmentContainerForBuilding(building->BuildingType, uint8(GetFaction()));
     if (!container)
         return GARRISON_ERROR_INTERNAL_ERROR;
 
@@ -3084,8 +3375,58 @@ GarrisonError Garrison::CreateShipment(ObjectGuid npcGUID, uint32 count)
     if (!shipmentEntries || shipmentEntries->empty())
         return GARRISON_ERROR_INTERNAL_ERROR;
 
-    // Use first shipment for the container
-    CharShipmentEntry const* shipmentEntry = shipmentEntries->front();
+    // Pick the shipment for this container. Retail pairs each building with a fast "quest/tutorial" shipment
+    // (CharShipment.Flags & 0x1, Duration 0, outputs the intro quest's item) and a regular shipment (longer
+    // duration). Use the tutorial shipment only while the player still needs its reward for an active quest
+    // and hasn't already queued one; otherwise the regular shipment. Fully data-driven for every profession -
+    // the quest shipment's own output item completing the "Collected" objective needs no hardcoded ids.
+    constexpr int32 CHAR_SHIPMENT_FLAG_QUEST = 0x1;
+    CharShipmentEntry const* regularEntry = nullptr;
+    CharShipmentEntry const* questEntry = nullptr;
+    for (CharShipmentEntry const* s : *shipmentEntries)
+    {
+        if (s->Flags & CHAR_SHIPMENT_FLAG_QUEST)
+        {
+            if (!questEntry)
+                questEntry = s;
+        }
+        else if (!regularEntry)
+            regularEntry = s;
+    }
+
+    // Is an intro "Your First X Work Order" quest active whose ITEM objective is this container's quest
+    // shipment output? (Player::HasQuestForItem only matches legacy Quest::RequiredItemId, NOT modern
+    // quest_objectives - the tutorial quests use an ITEM objective - so scan the quest log directly.)
+    bool tutorialActive = false;
+    if (questEntry && questEntry->DummyItemID)
+    {
+        for (uint16 questSlot = 0; questSlot < MAX_QUEST_LOG_SIZE && !tutorialActive; ++questSlot)
+        {
+            uint32 questId = _owner->GetQuestSlotQuestId(questSlot);
+            if (!questId || _owner->GetQuestStatus(questId) != QUEST_STATUS_INCOMPLETE)
+                continue;
+
+            Quest const* quest = sObjectMgr->GetQuestTemplate(questId);
+            if (!quest)
+                continue;
+
+            for (QuestObjective const& obj : quest->GetObjectives())
+                if (obj.Type == QUEST_OBJECTIVE_ITEM && uint32(obj.ObjectID) == questEntry->DummyItemID)
+                {
+                    tutorialActive = true;
+                    break;
+                }
+        }
+    }
+
+    bool questOrderQueued = false;
+    if (questEntry)
+        for (auto const& p : _shipments)
+            if (p.second.PlotInstanceID == plotInstanceId && p.second.ShipmentRecID == questEntry->ID)
+            {
+                questOrderQueued = true;
+                break;
+            }
 
     // Count existing shipments for this plot
     uint32 existingCount = 0;
@@ -3093,21 +3434,75 @@ GarrisonError Garrison::CreateShipment(ObjectGuid npcGUID, uint32 count)
         if (p.second.PlotInstanceID == plotInstanceId)
             ++existingCount;
 
-    uint32 maxShipments = container->BaseCapacity;
-    if (shipmentEntry->MaxShipments > 0)
-        maxShipments = std::min(maxShipments, static_cast<uint32>(shipmentEntry->MaxShipments));
+    // Queue capacity is the BUILDING's ShipmentCapacity (scales with level, e.g. 7/14/21) - NOT the container
+    // BaseCapacity (which is 1). Using BaseCapacity wrongly limited the player to a single work order at a time
+    // even though the client showed more free slots.
+    uint32 const maxShipments = building->ShipmentCapacity ? building->ShipmentCapacity : container->BaseCapacity;
 
     for (uint32 i = 0; i < count; ++i)
     {
         if (existingCount >= maxShipments)
             break;
 
+        // Select PER ORDER: the tutorial (quest) shipment only for the FIRST order while the intro quest is
+        // active and no quest order is queued; the regular shipment otherwise. Selecting once for the whole
+        // batch made "start all work orders" place N instant tutorial orders instead of one instant + the rest
+        // regular (each showing tutorial time / instantly finished).
+        CharShipmentEntry const* shipmentEntry = regularEntry ? regularEntry : shipmentEntries->front();
+        if (questEntry && tutorialActive && !questOrderQueued)
+            shipmentEntry = questEntry;
+
+        // A work order's cost is the reagents/currencies of its spell (CharShipment.SpellID) - exactly what
+        // the client shows. TC's db2 loader decodes the SpellReagents pallet-array into SpellInfo.
+        SpellInfo const* costSpell = shipmentEntry->SpellID > 0 ? sSpellMgr->GetSpellInfo(uint32(shipmentEntry->SpellID), DIFFICULTY_NONE) : nullptr;
+        bool affordable = true;
+        if (costSpell)
+        {
+            for (std::size_t r = 0; r < costSpell->Reagent.size() && affordable; ++r)
+                if (costSpell->Reagent[r] > 0 && costSpell->ReagentCount[r] > 0
+                    && !_owner->HasItemCount(uint32(costSpell->Reagent[r]), uint32(costSpell->ReagentCount[r])))
+                    affordable = false;
+            for (SpellReagentsCurrencyEntry const* rc : costSpell->ReagentsCurrency)
+                if (affordable && rc->CurrencyCount > 0 && !_owner->HasCurrency(uint32(rc->CurrencyTypesID), uint32(rc->CurrencyCount)))
+                    affordable = false;
+        }
+
+        // Stop the batch cleanly once the player can no longer pay.
+        if (!affordable)
+        {
+            WorldPackets::Garrison::CreateShipmentResponse fail;
+            fail.ShipmentID = 0;
+            fail.ShipmentRecID = shipmentEntry->ID;
+            fail.Result = GARRISON_ERROR_NOT_ENOUGH_CURRENCY;
+            _owner->SendDirectMessage(fail.Write());
+            break;
+        }
+
+        // Consume the cost (items + currencies) for this order.
+        if (costSpell)
+        {
+            for (std::size_t r = 0; r < costSpell->Reagent.size(); ++r)
+                if (costSpell->Reagent[r] > 0 && costSpell->ReagentCount[r] > 0)
+                    _owner->DestroyItemCount(uint32(costSpell->Reagent[r]), uint32(costSpell->ReagentCount[r]), true);
+            for (SpellReagentsCurrencyEntry const* rc : costSpell->ReagentsCurrency)
+                if (rc->CurrencyCount > 0)
+                    _owner->RemoveCurrency(uint32(rc->CurrencyTypesID), rc->CurrencyCount, CurrencyDestroyReason::Garrison);
+        }
+
         uint64 dbId = sGarrisonMgr.GenerateShipmentDbId();
+
+        // Work orders queue: a new order begins working when the latest in-progress order on this plot
+        // finishes (retail behaviour, matches FirestormWoD). CreationTime = start-of-work, not request time.
+        time_t startTime = GameTime::GetGameTime();
+        for (auto const& p : _shipments)
+            if (p.second.PlotInstanceID == plotInstanceId)
+                startTime = std::max<time_t>(startTime, p.second.CreationTime + p.second.Duration);
+
         Shipment& shipment = _shipments[dbId];
         shipment.DbID = dbId;
         shipment.ShipmentRecID = shipmentEntry->ID;
         shipment.PlotInstanceID = plotInstanceId;
-        shipment.CreationTime = GameTime::GetGameTime();
+        shipment.CreationTime = startTime;
         shipment.Duration = shipmentEntry->Duration;
         shipment.AssignedFollowerDBID = 0;
 
@@ -3121,7 +3516,58 @@ GarrisonError Garrison::CreateShipment(ObjectGuid npcGUID, uint32 count)
             }
         }
 
+        // Persist immediately - a placed work order is a committed player action (materials were just
+        // consumed) and must survive a crash, not wait for the periodic character save.
+        CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_CHARACTER_GARRISON_SHIPMENTS);
+        uint8 index = 0;
+        stmt->setUInt64(index++, shipment.DbID);
+        stmt->setUInt64(index++, _owner->GetGUID().GetCounter());
+        stmt->setUInt32(index++, shipment.ShipmentRecID);
+        stmt->setUInt32(index++, shipment.PlotInstanceID);
+        stmt->setInt64(index++, shipment.CreationTime);
+        stmt->setInt32(index++, shipment.Duration);
+        stmt->setUInt64(index++, shipment.AssignedFollowerDBID);
+        CharacterDatabase.Execute(stmt);
+
         ++existingCount;
+        if (shipmentEntry == questEntry)
+            questOrderQueued = true; // the tutorial's single instant order is placed; the rest of the batch is regular
+
+        // Advance the tutorial quest on placement by crediting its "Work Order Started" objective.
+        // NOTE: do NOT cast the shipment spell here - that spell CREATES the output item (it is the
+        // craft), so casting it on placement instantly completed the order. The order must instead
+        // mature over its timer and yield the good on collection.
+        //
+        // Data-driven for every profession: the "Your First X Work Order" quests pair a monster objective
+        // ("X Work Order Started", e.g. Alchemy 86114 / Leatherworking 86112 / Tailoring 86113) with an item
+        // objective whose item == the quest shipment's DummyItemID. So when this (quest) shipment is placed,
+        // find the player's active quest that needs this shipment's item and credit its monster objective.
+        if (shipmentEntry->DummyItemID)
+        {
+            for (uint16 questSlot = 0; questSlot < MAX_QUEST_LOG_SIZE; ++questSlot)
+            {
+                uint32 questId = _owner->GetQuestSlotQuestId(questSlot);
+                if (!questId)
+                    continue;
+
+                Quest const* quest = sObjectMgr->GetQuestTemplate(questId);
+                if (!quest || _owner->GetQuestStatus(questId) != QUEST_STATUS_INCOMPLETE)
+                    continue;
+
+                bool wantsShipmentItem = false;
+                uint32 startedCreatureId = 0;
+                for (QuestObjective const& obj : quest->GetObjectives())
+                {
+                    if (obj.Type == QUEST_OBJECTIVE_ITEM && uint32(obj.ObjectID) == shipmentEntry->DummyItemID)
+                        wantsShipmentItem = true;
+                    else if (obj.Type == QUEST_OBJECTIVE_MONSTER && obj.ObjectID > 0)
+                        startedCreatureId = uint32(obj.ObjectID);
+                }
+
+                if (wantsShipmentItem && startedCreatureId)
+                    _owner->KilledMonsterCredit(startedCreatureId);
+            }
+        }
 
         WorldPackets::Garrison::CreateShipmentResponse response;
         response.ShipmentID = shipment.DbID;
@@ -3141,10 +3587,42 @@ void Garrison::CompleteShipment(uint64 dbId)
 
     Shipment& shipment = itr->second;
 
-    // Cast completion spell if defined
     CharShipmentEntry const* shipmentEntry = sCharShipmentStore.LookupEntry(shipment.ShipmentRecID);
-    if (shipmentEntry && shipmentEntry->OnCompleteSpellID)
-        _owner->CastSpell(_owner, shipmentEntry->OnCompleteSpellID, true);
+    if (shipmentEntry)
+    {
+        // Follower/buff shipments deliver their reward via a completion spell.
+        if (shipmentEntry->OnCompleteSpellID)
+            _owner->CastSpell(_owner, shipmentEntry->OnCompleteSpellID, true);
+
+        // Profession buildings yield a produced good: DummyItemID is the output item the work order
+        // creates (e.g. the Tannery yields Burnished Leather). Deliver to bags, mailing any overflow.
+        if (shipmentEntry->DummyItemID)
+        {
+            uint32 const itemId = shipmentEntry->DummyItemID;
+            uint32 const quantity = 1;
+            ItemPosCountVec dest;
+            if (_owner->CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, itemId, quantity) == EQUIP_ERR_OK)
+            {
+                if (Item* item = _owner->StoreNewItem(dest, itemId, true))
+                    _owner->SendNewItem(item, quantity, true, false);
+            }
+            else
+            {
+                // Bags full - mail the goods. MailDraft::SendMailTo appends its INSERTs to the passed
+                // transaction and dereferences it, so it MUST be a real transaction; a null
+                // CharacterDatabaseTransaction(nullptr) crashes here (access violation on collect).
+                CharacterDatabaseTransaction trans = CharacterDatabase.BeginTransaction();
+                MailDraft draft("Garrison Work Order", "The goods produced by your completed work order.");
+                if (Item* item = Item::CreateItem(itemId, quantity, ItemContext::NONE, _owner))
+                {
+                    item->SaveToDB(trans);
+                    draft.AddItem(item);
+                }
+                draft.SendMailTo(trans, MailReceiver(_owner), MailSender(MAIL_CREATURE, 0));
+                CharacterDatabase.CommitTransaction(trans);
+            }
+        }
+    }
 
     WorldPackets::Garrison::CompleteShipmentResponse response;
     response.ShipmentID = dbId;
@@ -3152,17 +3630,121 @@ void Garrison::CompleteShipment(uint64 dbId)
     _owner->SendDirectMessage(response.Write());
 
     _shipments.erase(itr);
+
+    // Remove the persisted row immediately so a crash can't resurrect an already-collected order.
+    CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CHARACTER_GARRISON_SHIPMENT);
+    stmt->setUInt64(0, dbId);
+    CharacterDatabase.Execute(stmt);
 }
 
-void Garrison::CompleteReadyShipments()
+void Garrison::CollectReadyShipments(uint32 plotInstanceId)
 {
+    // Collect (complete) every finished work order on this plot - triggered when the player interacts
+    // with the building's work-order crate. Each completed order yields its produced good.
     std::vector<uint64> readyShipments;
     for (auto const& p : _shipments)
-        if (p.second.IsReady())
+        if (p.second.PlotInstanceID == plotInstanceId && p.second.IsReady())
             readyShipments.push_back(p.first);
 
     for (uint64 dbId : readyShipments)
         CompleteShipment(dbId);
+}
+
+void Garrison::SendOpenShipmentUI(ObjectGuid npcGuid)
+{
+    // Shared by the work-order NPC (CMSG_GARRISON_OPEN_SHIPMENT_NPC) and the crate GO's OnGossipHello.
+    // npcGuid is the interacted creature/gameobject; it belongs to a building plot via BuildingInfo.Spawns.
+    uint32 plotInstanceId = FindPlotInstanceForNpc(npcGuid);
+    if (!plotInstanceId)
+        return;
+
+    Plot const* plot = GetPlot(plotInstanceId);
+    if (!plot || !plot->BuildingInfo.PacketInfo || !plot->BuildingInfo.PacketInfo->Active)
+        return;
+
+    GarrBuildingEntry const* building = sGarrBuildingStore.LookupEntry(plot->BuildingInfo.PacketInfo->GarrBuildingID);
+    if (!building)
+        return;
+
+    CharShipmentContainerEntry const* container = sGarrisonMgr.GetShipmentContainerForBuilding(building->BuildingType, uint8(GetFaction()));
+    if (!container)
+        return;
+
+    // Opening the crafter UI is placement only - it must NOT collect finished orders, otherwise opening
+    // the UI to queue a new order would instantly hand over the previous order's goods. Collection is a
+    // separate action at the crate (GameObject::Use -> CollectReadyShipments).
+    WorldPackets::Garrison::OpenShipmentNpcResult result;
+    result.NpcGUID = npcGuid;
+    result.CharShipmentContainerID = container->ID;
+    _owner->SendDirectMessage(result.Write());
+}
+
+void Garrison::UpdateWorkOrderCrates()
+{
+    // Fill each building's work-order crate GO with goods while it holds work orders. The crate's DisplayID
+    // is swapped to the CharShipmentContainer's Small/Medium/Large model (by order count vs the Medium/Large
+    // thresholds), and back to the GO's base (empty) model when no orders remain. DisplayID is a plain object
+    // field (not recomputed by ViewerDependentValue like dynamicFlags), so the swap reaches the client as-is.
+    if (!_owner->IsInWorld())
+        return;
+
+    Map* map = _owner->GetMap();
+    if (!map)
+        return;
+
+    for (auto const& [plotInstanceId, plot] : _plots)
+    {
+        if (!plot.BuildingInfo.PacketInfo || !plot.BuildingInfo.PacketInfo->Active)
+            continue;
+
+        GameObject* crate = nullptr;
+        for (ObjectGuid const& guid : plot.BuildingInfo.Spawns)
+            if (GameObject* go = map->GetGameObject(guid))
+                if (go->GetGoType() == GAMEOBJECT_TYPE_GARRISON_SHIPMENT)
+                {
+                    crate = go;
+                    break;
+                }
+
+        if (!crate)
+            continue;
+
+        // Only READY orders show as goods to collect; in-progress orders show the "working" model (or
+        // stay on the base/empty model if the container has none). Counting all orders made the crate look
+        // full/ready while an order was still cooking, so clicking it collected nothing.
+        uint32 readyCount = 0;
+        uint32 inProgressCount = 0;
+        for (auto const& p : _shipments)
+            if (p.second.PlotInstanceID == plotInstanceId)
+            {
+                if (p.second.IsReady())
+                    ++readyCount;
+                else
+                    ++inProgressCount;
+            }
+
+        uint32 displayId = crate->GetGOInfo()->displayId; // base / empty
+        GarrBuildingEntry const* building = sGarrBuildingStore.LookupEntry(plot.BuildingInfo.PacketInfo->GarrBuildingID);
+        CharShipmentContainerEntry const* container = building
+            ? sGarrisonMgr.GetShipmentContainerForBuilding(building->BuildingType, uint8(GetFaction())) : nullptr;
+        if (container)
+        {
+            if (readyCount > 0)
+            {
+                if (container->LargeThreshold && readyCount >= container->LargeThreshold && container->LargeDisplayInfoID)
+                    displayId = container->LargeDisplayInfoID;
+                else if (container->MediumThreshold && readyCount >= container->MediumThreshold && container->MediumDisplayInfoID)
+                    displayId = container->MediumDisplayInfoID;
+                else if (container->SmallDisplayInfoID)
+                    displayId = container->SmallDisplayInfoID;
+            }
+            else if (inProgressCount > 0 && container->WorkingDisplayInfoID)
+                displayId = container->WorkingDisplayInfoID;
+        }
+
+        if (displayId && crate->GetDisplayId() != displayId)
+            crate->SetDisplayId(displayId);
+    }
 }
 
 std::vector<Garrison::Shipment const*> Garrison::GetShipmentsForPlot(uint32 plotInstanceId) const
@@ -3236,7 +3818,7 @@ void Garrison::SendShipmentInfo(ObjectGuid npcGUID)
         return;
     }
 
-    CharShipmentContainerEntry const* container = sGarrisonMgr.GetShipmentContainerForBuilding(building->BuildingType);
+    CharShipmentContainerEntry const* container = sGarrisonMgr.GetShipmentContainerForBuilding(building->BuildingType, uint8(GetFaction()));
     if (!container)
     {
         _owner->SendDirectMessage(response.Write());
@@ -3250,9 +3832,13 @@ void Garrison::SendShipmentInfo(ObjectGuid npcGUID)
         return;
     }
 
+    // ShipmentID is a CharShipment.db2 id (the work-order recipe), NOT the container id — the client looks
+    // it up to load reagents/output, so an invalid value (the container id) null-derefs and crashes it
+    // (sniff-verified: retail sends the CharShipment whose ContainerID == this container).
+    CharShipmentEntry const* recipe = shipmentEntries->front();
     response.Success = true;
-    response.ShipmentID = container->ID;
-    response.MaxShipments = container->BaseCapacity;
+    response.ShipmentID = recipe->ID;
+    response.MaxShipments = building->ShipmentCapacity ? building->ShipmentCapacity : container->BaseCapacity; // per-level queue capacity, not container BaseCapacity(=1)
     response.PlotInstanceID = plotInstanceId;
 
     std::vector<Shipment const*> plotShipments = GetShipmentsForPlot(plotInstanceId);
@@ -3286,7 +3872,10 @@ void Garrison::SendLandingPageShipments()
         packetShipment.AssignedFollowerDBID = shipment.AssignedFollowerDBID;
         packetShipment.CreationTime = shipment.CreationTime;
         packetShipment.ShipmentDuration = shipment.Duration;
-        packetShipment.BuildingTypeID = GetBuildingTypeForPlot(shipment.PlotInstanceID);
+        uint8 buildingType = GetBuildingTypeForPlot(shipment.PlotInstanceID);
+        packetShipment.BuildingTypeID = buildingType;
+        if (CharShipmentContainerEntry const* container = sGarrisonMgr.GetShipmentContainerForBuilding(buildingType, uint8(GetFaction())))
+            packetShipment.ContainerID = container->ID;
         packetShipment.GarrTypeID = static_cast<uint8>(GetType());
     }
 

@@ -22,8 +22,10 @@
 #include "GameTime.h"
 #include "Garrison.h"
 #include "GarrisonMgr.h"
+#include "GossipDef.h"
 #include "GarrisonPackets.h"
 #include "Group.h"
+#include "NPCPackets.h"
 #include "Log.h"
 #include "ObjectAccessor.h"
 #include "Player.h"
@@ -153,11 +155,14 @@ void WorldSession::HandleGarrisonCompleteMission(WorldPackets::Garrison::Garriso
 
     // Re-fetch mission after completion (state may have changed)
     mission = garrison->GetMissionByRecID(garrisonCompleteMission.MissionRecID);
+    bool succeeded = false;
     if (mission)
     {
         completeResult.Mission = mission->PacketInfo;
-        // Determine success based on the success chance roll
-        completeResult.Succeeded = static_cast<int32>(urand(0, 99)) < mission->PacketInfo.SuccessChance;
+        // Report the outcome CompleteMission already rolled and stored — do NOT roll again here, or the
+        // banner the player sees could disagree with the rewards granted at finalize.
+        completeResult.Succeeded = mission->Succeeded;
+        succeeded = mission->Succeeded;
     }
 
     // FollowerInfos / Rounds left empty: no auto-combat replay generated for non-auto
@@ -166,6 +171,12 @@ void WorldSession::HandleGarrisonCompleteMission(WorldPackets::Garrison::Garriso
     // missions don't drive the replay UI so they ship empty arrays here.
 
     SendPacket(completeResult.Write());
+
+    // On FAILURE the WoD client sends no bonus roll (there is no chest to open), so finalize the mission
+    // now: follower XP is still awarded, followers are freed and the mission is removed. On SUCCESS we
+    // wait for CMSG_GARRISON_MISSION_BONUS_ROLL (the chest open) to grant rewards and remove the mission.
+    if (result == GARRISON_SUCCESS && !succeeded)
+        garrison->FinalizeMission(garrisonCompleteMission.MissionRecID, false);
 }
 
 void WorldSession::HandleGarrisonMissionBonusRoll(WorldPackets::Garrison::GarrisonMissionBonusRoll& garrisonMissionBonusRoll)
@@ -174,14 +185,15 @@ void WorldSession::HandleGarrisonMissionBonusRoll(WorldPackets::Garrison::Garris
     if (!garrison)
         return;
 
-    GarrisonError result = garrison->MissionBonusRoll(garrisonMissionBonusRoll.MissionRecID);
-
     WorldPackets::Garrison::GarrisonMissionBonusRollResult bonusResult;
     bonusResult.MissionRecID = garrisonMissionBonusRoll.MissionRecID;
-    bonusResult.Result = result;
 
+    // Snapshot the mission (including its overmax/chest rewards) BEFORE finalizing — MissionBonusRoll grants
+    // the rewards and removes the mission, so the record is gone afterwards and the chest reveal needs it.
     if (Garrison::Mission const* mission = garrison->GetMissionByRecID(garrisonMissionBonusRoll.MissionRecID))
         bonusResult.Mission = mission->PacketInfo;
+
+    bonusResult.Result = garrison->MissionBonusRoll(garrisonMissionBonusRoll.MissionRecID);
 
     SendPacket(bonusResult.Write());
 }
@@ -210,18 +222,22 @@ void WorldSession::HandleOpenMissionNpc(WorldPackets::Garrison::OpenMissionNpc& 
     if (!garrison)
         return;
 
-    // Send expired mission cleanup results for all garrison types
+    // Match the retail WoD open sequence EXACTLY (sniff 66102 + 68275 garrisonlevel2upgrade):
+    // the client already entered the GarrMission interaction from the gossip select
+    // (SMSG_GOSSIP_OPTION_NPC_INTERACTION / GossipNpcOptionID 30323). The ONLY server->client
+    // garrison packet retail sends in response to CMSG_OPEN_MISSION_NPC is
+    // SMSG_DELETE_EXPIRED_MISSIONS_RESULT, immediately followed by SMSG_GOSSIP_COMPLETE.
+    //
+    // We must NOT re-send the offered-mission list here (GenerateAvailableMissions + SendOfferedMissions
+    // + SendMissionStartConditionUpdate). Retail delivers the mission board once at login via
+    // GET_GARRISON_INFO and the frame reads it from cache; the extra ADD_MISSION_RESULT x15 +
+    // MISSION_START_CONDITION_UPDATE burst is a non-retail deviation (it produced the observed
+    // GARRISON_MISSION_LIST_UPDATE flood) and is the prime suspect for the client not firing its
+    // legacy open-event. Keep this handler byte-identical to retail's wire.
     for (auto const& [type, garr] : _player->GetGarrisons())
         garr->SendDeleteExpiredMissionsResult();
 
-    // Remove expired offers (sends GarrisonDeleteMissionResult per expired mission)
-    // and generate new missions (sends GarrisonAddMissionResult per new mission).
-    // Individual targeted packets are sent instead of a full GetGarrisonInfoResult.
-    garrison->RemoveExpiredMissions();
-    garrison->GenerateAvailableMissions();
-
-    // Send mission start condition update
-    garrison->SendMissionStartConditionUpdate();
+    _player->PlayerTalkClass->SendCloseGossip();
 }
 
 // ============================================================
@@ -475,19 +491,14 @@ void WorldSession::HandleGarrisonCheckUpgradeable(WorldPackets::Garrison::Garris
         if (currentLevel)
         {
             GarrSiteLevelEntry const* nextLevel = sGarrisonMgr.GetGarrSiteLevelEntry(currentLevel->GarrSiteID, currentLevel->GarrLevel + 1);
+            // The client's upgrade button (C_Garrison.CanUpgradeGarrison) reflects whether an upgrade is
+            // AVAILABLE, not whether it is currently affordable. Retail enables the button whenever a next
+            // site level exists and shows the cost; affordability is enforced only at purchase time
+            // (HandleUpgradeGarrison already checks gold + Garrison Resources). Gating this response on
+            // affordability left the Architect's upgrade button greyed/"locked" whenever the player was
+            // short on Garrison Resources - even after finishing the prerequisite quests.
             if (nextLevel)
-            {
-                bool canAfford = true;
-                if (nextLevel->UpgradeGoldCost > 0 && !_player->HasEnoughMoney(uint64(nextLevel->UpgradeGoldCost)))
-                    canAfford = false;
-                if (nextLevel->UpgradeCost > 0 && !_player->HasCurrency(824 /*Garrison Resources*/, nextLevel->UpgradeCost))
-                    canAfford = false;
-
-                if (canAfford)
-                    upgradeResult = GARRISON_SUCCESS;
-                else
-                    upgradeResult = GARRISON_ERROR_NOT_ENOUGH_CURRENCY;
-            }
+                upgradeResult = GARRISON_SUCCESS;
             else
                 upgradeResult = GARRISON_ERROR_UPGRADE_LEVEL_EXCEEDS_GARRISON_LEVEL;
         }
@@ -586,39 +597,6 @@ void WorldSession::HandleGarrisonResearchTalent(WorldPackets::Garrison::Garrison
     garrison->ResearchTalent(garrisonResearchTalent.GarrTalentID);
 }
 
-void WorldSession::HandleGarrisonSocketTalent(WorldPackets::Garrison::GarrisonSocketTalent& garrisonSocketTalent)
-{
-    GarrTalentEntry const* talentEntry = sGarrTalentStore.LookupEntry(garrisonSocketTalent.GarrTalentID);
-    if (!talentEntry)
-    {
-        WorldPackets::Garrison::GarrisonResearchTalentResult result;
-        result.Result = GARRISON_ERROR_INVALID_TALENT;
-        SendPacket(result.Write());
-        return;
-    }
-
-    GarrTalentTreeEntry const* treeEntry = sGarrTalentTreeStore.LookupEntry(talentEntry->GarrTalentTreeID);
-    if (!treeEntry)
-    {
-        WorldPackets::Garrison::GarrisonResearchTalentResult result;
-        result.Result = GARRISON_ERROR_INVALID_TALENT;
-        SendPacket(result.Write());
-        return;
-    }
-
-    Garrison* garrison = _player->GetGarrison(static_cast<GarrisonType>(treeEntry->GarrTypeID));
-    if (!garrison)
-    {
-        WorldPackets::Garrison::GarrisonResearchTalentResult result;
-        result.Result = GARRISON_ERROR_NO_GARRISON;
-        result.GarrTypeID = treeEntry->GarrTypeID;
-        SendPacket(result.Write());
-        return;
-    }
-
-    garrison->SocketTalent(garrisonSocketTalent.GarrTalentID, garrisonSocketTalent.SoulbindConduitID, garrisonSocketTalent.SoulbindConduitRank);
-}
-
 // ============================================================
 // Other utility handlers
 // ============================================================
@@ -642,26 +620,8 @@ void WorldSession::HandleOpenShipmentNpc(WorldPackets::Garrison::OpenShipmentNpc
     if (!garrison)
         return;
 
-    uint32 plotInstanceId = garrison->FindPlotInstanceForNpc(openShipmentNpc.NpcGUID);
-    if (!plotInstanceId)
-        return;
-
-    Garrison::Plot const* plot = garrison->GetPlot(plotInstanceId);
-    if (!plot || !plot->BuildingInfo.PacketInfo || !plot->BuildingInfo.PacketInfo->Active)
-        return;
-
-    GarrBuildingEntry const* building = sGarrBuildingStore.LookupEntry(plot->BuildingInfo.PacketInfo->GarrBuildingID);
-    if (!building)
-        return;
-
-    CharShipmentContainerEntry const* container = sGarrisonMgr.GetShipmentContainerForBuilding(building->BuildingType);
-    if (!container)
-        return;
-
-    WorldPackets::Garrison::OpenShipmentNpcResult result;
-    result.NpcGUID = openShipmentNpc.NpcGUID;
-    result.CharShipmentContainerID = container->ID;
-    SendPacket(result.Write());
+    // Collects finished orders + opens the crafter UI (shared with the crate GO's OnGossipHello).
+    garrison->SendOpenShipmentUI(openShipmentNpc.NpcGUID);
 }
 
 void WorldSession::HandleCreateShipment(WorldPackets::Garrison::CreateShipment& createShipment)
@@ -832,4 +792,42 @@ void WorldSession::HandleRevertMonumentAppearance(WorldPackets::Garrison::Revert
     // Send updated (empty) monument selections to the client
     WorldPackets::Garrison::GarrisonUpdateGarrisonMonumentSelections selections;
     SendPacket(selections.Write());
+}
+
+void WorldSession::HandleGarrisonSocketTalent(WorldPackets::Garrison::GarrisonSocketTalent& packet)
+{
+    // Socket a conduit into a garrison/soulbind talent node. Validated against the talent's tree + the player's
+    // garrison of that type, then persisted through the garrison (character_garrison_talents SoulbindConduitID/Rank).
+    // NOTE: the integration branch routed this through the Covenant/Soulbind feature (Player::SocketConduit); that
+    // feature is not part of this garrison branch, so socketing goes straight through Garrison::SocketTalent here.
+    GarrTalentEntry const* talentEntry = sGarrTalentStore.LookupEntry(packet.GarrTalentID);
+    if (!talentEntry)
+    {
+        WorldPackets::Garrison::GarrisonResearchTalentResult result;
+        result.Result = GARRISON_ERROR_INVALID_TALENT;
+        SendPacket(result.Write());
+        return;
+    }
+
+    GarrTalentTreeEntry const* treeEntry = sGarrTalentTreeStore.LookupEntry(talentEntry->GarrTalentTreeID);
+    if (!treeEntry)
+    {
+        WorldPackets::Garrison::GarrisonResearchTalentResult result;
+        result.Result = GARRISON_ERROR_INVALID_TALENT;
+        SendPacket(result.Write());
+        return;
+    }
+
+    Garrison* garrison = _player->GetGarrison(static_cast<GarrisonType>(treeEntry->GarrTypeID));
+    if (!garrison)
+    {
+        WorldPackets::Garrison::GarrisonResearchTalentResult result;
+        result.Result = GARRISON_ERROR_NO_GARRISON;
+        result.GarrTypeID = treeEntry->GarrTypeID;
+        SendPacket(result.Write());
+        return;
+    }
+
+    for (WorldPackets::Garrison::GarrisonTalentSocketData const& socket : packet.Sockets)
+        garrison->SocketTalent(packet.GarrTalentID, socket.SoulbindConduitID, socket.SoulbindConduitRank);
 }

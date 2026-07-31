@@ -146,7 +146,7 @@ struct npc_garrison_invasion_enemy : public ScriptedAI
         _ownerGuid = ownerGuid;
     }
 
-    void JustDied(Unit* killer) override
+    void JustDied(Unit* /*killer*/) override
     {
         auto itr = s_activeInvasions.find(_ownerGuid);
         if (itr == s_activeInvasions.end())
@@ -173,7 +173,7 @@ struct npc_garrison_invasion_enemy : public ScriptedAI
         }
     }
 
-    void UpdateAI(uint32 diff) override
+    void UpdateAI(uint32 /*diff*/) override
     {
         if (!UpdateVictim())
         {

@@ -106,7 +106,7 @@ public:
     uint32 GetFollowerZoneSupportSpell(uint32 garrFollowerID, uint32 factionIndex) const;
 
     // Shipment system accessors
-    CharShipmentContainerEntry const* GetShipmentContainerForBuilding(uint8 garrBuildingType) const;
+    CharShipmentContainerEntry const* GetShipmentContainerForBuilding(uint8 garrBuildingType, uint8 factionIndex) const;
     std::vector<CharShipmentEntry const*> const* GetShipmentsForContainer(uint32 containerID) const;
     uint64 GenerateShipmentDbId();
 

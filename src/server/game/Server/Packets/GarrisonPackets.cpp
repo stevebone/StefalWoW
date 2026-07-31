@@ -387,6 +387,23 @@ WorldPacket const* GarrisonRemoteInfo::Write()
     return &_worldPacket;
 }
 
+void GarrisonSocketTalent::Read()
+{
+    _worldPacket >> GarrTalentID;
+    uint32 count = _worldPacket.read<uint32>();
+    // Sanity cap the client-supplied socket count before resize(): a soulbind/conduit tree has at most a few dozen
+    // sockets, so this is well above any legitimate value while stopping a crafted count (e.g. 0xFFFFFFFF) from
+    // requesting a multi-gigabyte allocation. resize() throws std::bad_alloc, which the opcode dispatcher does not
+    // catch (only ByteBufferException), so an unbounded count would crash the world thread instead of disconnecting.
+    count = std::min<uint32>(count, 64);
+    Sockets.resize(count);
+    for (GarrisonTalentSocketData& socket : Sockets)
+    {
+        _worldPacket >> socket.SoulbindConduitID;
+        _worldPacket >> socket.SoulbindConduitRank;
+    }
+}
+
 void GarrisonPurchaseBuilding::Read()
 {
     _worldPacket >> NpcGUID;
@@ -585,6 +602,10 @@ void GarrisonStartMission::Read()
     _worldPacket >> followerCount;
     _worldPacket >> MissionRecID;
 
+    // Cap before resize(): a client-controlled count can't legitimately exceed the packet's own byte size (each
+    // element is >= 1 byte), so this bounds the allocation to a few KB. resize() throws std::bad_alloc, which the
+    // opcode dispatcher does NOT catch (only ByteBufferException) -> an uncapped count crashes the world thread.
+    followerCount = std::min<uint32>(followerCount, _worldPacket.size());
     FollowerDBIDs.resize(followerCount);
     for (uint32 i = 0; i < followerCount; ++i)
     {
@@ -610,6 +631,7 @@ void GarrisonMissionBonusRoll::Read()
 void OpenMissionNpc::Read()
 {
     _worldPacket >> NpcGUID;
+    // Trailing uint8 (GarrFollowerTypeID) is intentionally left unread — see GarrisonPackets.h.
 }
 
 void GarrisonGetMissionReward::Read()
@@ -1222,13 +1244,6 @@ void GarrisonResearchTalent::Read()
     _worldPacket >> GarrTalentID;
 }
 
-void GarrisonSocketTalent::Read()
-{
-    _worldPacket >> GarrTalentID;
-    _worldPacket >> SoulbindConduitID;
-    _worldPacket >> SoulbindConduitRank;
-}
-
 // IDA case 4980750: u32 Result, u8 GarrTypeID, Bits<1>+Flush, GarrisonTalent.
 // See SNIFF_AUDIT §8.11.
 WorldPacket const* GarrisonResearchTalentResult::Write()
@@ -1379,6 +1394,8 @@ void OpenShipmentNpc::Read()
 
 WorldPacket const* OpenShipmentNpcResult::Write()
 {
+    _worldPacket.WriteBit(Success);
+    _worldPacket.FlushBits();
     _worldPacket << NpcGUID;
     _worldPacket << uint32(CharShipmentContainerID);
 
@@ -1406,13 +1423,18 @@ WorldPacket const* GetLandingPageShipmentsResponse::Write()
     _worldPacket << uint32(Shipments.size());
     for (CharacterShipment const& shipment : Shipments)
     {
-        _worldPacket << int32(shipment.ShipmentRecID);
+        // Wire layout decoded from the 12.0.7 client binary (per-shipment reader RVA 0x6BCE20 reads
+        // exactly u32, u64, u64, u64, u64, u8 = 37 bytes). The client's C_Garrison.GetLandingPageShipmentInfo
+        // builds creationTime from field D's low dword ORed with field E's HIGH dword, so ANY non-zero value
+        // in field E's high 32 bits corrupts the cooldown (SetCooldownUNIX out of range). There is NO
+        // separate duration on the wire - the landing page reads duration from the client's CharShipment.db2.
+        // Field E is therefore BuildingType as a full u64 (high dword must be zero):
+        //   RecID(u32) ShipmentID(u64) AssignedFollowerDBID(u64) CreationTime(i64) BuildingType(u64) GarrType(u8)
+        _worldPacket << uint32(shipment.ShipmentRecID);
         _worldPacket << uint64(shipment.ShipmentID);
         _worldPacket << uint64(shipment.AssignedFollowerDBID);
         _worldPacket << shipment.CreationTime;
-        _worldPacket << int32(shipment.ShipmentDuration);
-        _worldPacket << int32(shipment.BuildingTypeID);
-        _worldPacket << int32(shipment.UnkInt32);
+        _worldPacket << uint64(uint32(shipment.BuildingTypeID));
         _worldPacket << uint8(shipment.GarrTypeID);
     }
 

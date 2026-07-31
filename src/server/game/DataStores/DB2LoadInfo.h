@@ -954,14 +954,14 @@ struct CharShipmentLoadInfo
     {
         { .IsSigned = false, .Type = FT_INT, .Name = "ID" },
         { .IsSigned = false, .Type = FT_SHORT, .Name = "ContainerID" },
-        { .IsSigned = true, .Type = FT_INT, .Name = "TreasureID" },
-        { .IsSigned = false, .Type = FT_INT, .Name = "DummyItemID" },
-        { .IsSigned = true, .Type = FT_INT, .Name = "Duration" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "DummyItemID" },
+        { .IsSigned = false, .Type = FT_INT, .Name = "TreasureID" },
         { .IsSigned = true, .Type = FT_INT, .Name = "SpellID" },
-        { .IsSigned = false, .Type = FT_INT, .Name = "OnCompleteSpellID" },
-        { .IsSigned = false, .Type = FT_BYTE, .Name = "MaxShipments" },
-        { .IsSigned = false, .Type = FT_SHORT, .Name = "GarrFollowerID" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "OnCompleteSpellID" },
+        { .IsSigned = false, .Type = FT_INT, .Name = "Duration" },
         { .IsSigned = true, .Type = FT_INT, .Name = "Flags" },
+        { .IsSigned = false, .Type = FT_SHORT, .Name = "GarrFollowerID" },
+        { .IsSigned = false, .Type = FT_BYTE, .Name = "MaxShipments" },
     };
 
     static constexpr DB2LoadInfo Instance{ Fields, 10, &CharShipmentMeta::Instance, HOTFIX_SEL_CHAR_SHIPMENT };
@@ -2541,8 +2541,8 @@ struct GarrFollowerLevelXPLoadInfo
     static constexpr DB2FieldMeta Fields[5] =
     {
         { .IsSigned = false, .Type = FT_INT, .Name = "ID" },
-        { .IsSigned = true, .Type = FT_BYTE, .Name = "FollowerLevel" },
-        { .IsSigned = false, .Type = FT_BYTE, .Name = "GarrFollowerTypeID" },
+        { .IsSigned = true, .Type = FT_BYTE, .Name = "GarrFollowerTypeID" },
+        { .IsSigned = false, .Type = FT_BYTE, .Name = "FollowerLevel" },
         { .IsSigned = false, .Type = FT_SHORT, .Name = "XpToNextLevel" },
         { .IsSigned = false, .Type = FT_SHORT, .Name = "ShipmentXP" },
     };

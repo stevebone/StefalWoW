@@ -464,7 +464,7 @@ void GarrisonAutoCombat::ResolveEffect(
         }
 
         default:
-            TC_LOG_DEBUG("garrison", "GarrisonAutoCombat: Unknown effect type %u for spell %u",
+            TC_LOG_DEBUG("garrison", "GarrisonAutoCombat: Unknown effect type {} for spell {}",
                 effect->EffectType, spellID);
             break;
     }

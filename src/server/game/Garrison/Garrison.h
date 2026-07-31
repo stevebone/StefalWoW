@@ -222,6 +222,12 @@ public:
     {
         WorldPackets::Garrison::GarrisonMission PacketInfo;
         std::vector<uint64> CurrentFollowerDBIDs;
+        // Outcome is rolled once at CMSG_GARRISON_COMPLETE_MISSION and reused when the mission is
+        // finalized (CMSG_GARRISON_MISSION_BONUS_ROLL on success / at complete-time on failure), so the
+        // result shown to the player matches the result used to grant rewards. Runtime-only: a mission
+        // caught mid-completion by a restart is re-rolled once at finalize (see FinalizeMission).
+        bool ResultDetermined = false;
+        bool Succeeded = false;
     };
 
     struct Shipment
@@ -291,6 +297,20 @@ public:
     bool HasBlueprint(uint32 garrBuildingId) const { return _knownBuildings.find(garrBuildingId) != _knownBuildings.end(); }
     void PlaceBuilding(uint32 garrPlotInstanceId, uint32 garrBuildingId);
     void CancelBuildingConstruction(uint32 garrPlotInstanceId);
+
+    // WoD Shipyard. Unlike normal buildings it has no architect plot (no GarrBuildingPlotInst entry) and lives
+    // on the naval map; we track only its tier. CreateShipyard builds/upgrades it (gated on garrison level 3).
+    void CreateShipyard();
+    bool HasShipyard() const { return _shipyardBuilding != 0; }
+    uint32 GetShipyardBuildingId() const { return _shipyardBuilding; }
+    // Whether missions/followers of the given GarrFollowerType are available to this garrison: the garrison's own
+    // primary type always is; the shipyard (naval) type only once the shipyard is built. Gates naval mission offers.
+    bool IsMissionFollowerTypeAvailable(int8 followerTypeId) const;
+    // Build a ship (a GarrFollowerType-2 GarrFollower) at the shipyard. Validates the shipyard exists, the id is a
+    // real ship, it is not already owned, and the ship soft-cap is not exceeded, then adds it as a follower.
+    GarrisonError BuildShip(uint32 garrFollowerId);
+    uint32 GetShipCount() const;
+    static constexpr uint32 SHIPYARD_FOLLOWER_SOFT_CAP = 6;
     void ActivateBuilding(uint32 garrPlotInstanceId);
     void SwapBuildings(uint32 plotId1, uint32 plotId2);
 
@@ -333,6 +353,11 @@ public:
     GarrisonError CompleteMission(uint32 missionRecID);
     GarrisonError ClaimMissionReward(uint32 missionRecID);
     GarrisonError MissionBonusRoll(uint32 missionRecID);
+    // Grants rewards (if the stored outcome succeeded) + follower XP (always) + frees followers + removes
+    // the mission. Called from the opcodes the WoD client actually sends: BONUS_ROLL on success, and
+    // COMPLETE on failure (the client sends no bonus roll for a failed mission).
+    GarrisonError FinalizeMission(uint32 missionRecID, bool grantOvermax);
+    bool RollMissionOutcome(Mission const& mission, uint32 missionRecID) const;
     void RemoveMission(uint32 missionRecID);
     void GenerateAvailableMissions();
     uint64 GenerateMissionDbId();
@@ -363,6 +388,13 @@ public:
     void RandomizeFollowerAbilities(uint64 dbId);
     void EndBuildingConstruction(uint32 garrPlotInstanceId);
     void SetGarrisonCacheSize(uint32 size);
+
+    // Garrison resource cache: the WoD cache GameObject accrues Garrison Resources (currency 824) over
+    // time (1 per CACHE_RESOURCE_INTERVAL, up to _garrisonCacheSize) and is collected when the player
+    // clicks it. GetPendingCacheResources reports what is currently banked; CollectGarrisonCache grants
+    // it, advancing the timer by the whole intervals consumed so sub-interval progress is not lost.
+    uint32 GetPendingCacheResources() const;
+    uint32 CollectGarrisonCache();
     Follower* GetFollowerByGarrFollowerID(uint32 garrFollowerID);
     GarrisonError UpgradeFollowerItemLevel(uint64 dbId, int32 amount, int32 slot, GarrItemLevelUpgradeDataEntry const* upgradeData = nullptr);
 
@@ -373,7 +405,11 @@ public:
     // Shipments (work orders)
     GarrisonError CreateShipment(ObjectGuid npcGUID, uint32 count);
     void CompleteShipment(uint64 dbId);
-    void CompleteReadyShipments();
+    void CollectReadyShipments(uint32 plotInstanceId);
+    void SendOpenShipmentUI(ObjectGuid npcGuid);
+    // Swap each building's work-order crate GO display to the "filled" model (CharShipmentContainer
+    // Small/Medium/Large DisplayInfoID by order count) while it holds orders, base model when empty.
+    void UpdateWorkOrderCrates();
     std::vector<Shipment const*> GetShipmentsForPlot(uint32 plotInstanceId) const;
     std::vector<Shipment const*> GetAllShipments() const;
     void SendShipmentInfo(ObjectGuid npcGUID);
@@ -397,6 +433,7 @@ public:
 
     void BuildInfoPacket(WorldPackets::Garrison::GarrisonInfo& garrison) const;
     void SendRemoteInfo() const;
+    void SendInfo() const;
     void SendBlueprintAndSpecializationData();
     void SendMapData(Player* receiver) const;
     void SendMissionStartConditionUpdate() const;
@@ -415,7 +452,15 @@ private:
     uint32 _followerActivationsRemainingToday;
     uint32 _updateTimer = 0;
     uint32 _garrisonCacheSize = 500;
+    time_t _cacheLastUsed = 0; // last time the resource cache was collected (advances by whole intervals)
+    uint32 _shipyardBuilding = 0; // WoD Shipyard tier: GarrBuilding 205/206/207 (L1/L2/L3), 0 = not built
     static constexpr uint32 GARRISON_UPDATE_INTERVAL = 60000; // 60 seconds
+    static constexpr uint32 CACHE_RESOURCE_INTERVAL = 600;    // WoD rate: 1 Garrison Resource per 10 minutes
+    static constexpr uint32 CURRENCY_GARRISON_RESOURCES = 824;
+    // WoD Shipyard building tiers (GarrBuilding "Lunarfall/Frostwall Shipyard", BuildingType 9), verified in 12.0.7
+    static constexpr uint32 GARRISON_SHIPYARD_BUILDING_L1 = 205;
+    static constexpr uint32 GARRISON_SHIPYARD_BUILDING_L2 = 206;
+    static constexpr uint32 GARRISON_SHIPYARD_BUILDING_L3 = 207;
 
     std::unordered_map<uint32 /*garrPlotInstanceId*/, Plot> _plots;
     std::unordered_set<uint32 /*garrBuildingId*/> _knownBuildings;
@@ -425,6 +470,7 @@ private:
     std::unordered_map<uint64 /*dbId*/, Mission> _missions;
     uint64 _missionDbIdGenerator = 1;
     time_t _lastMissionGenerationTime = 0;
+    uint32 _lastFinishedMissionCount = 0; // #17: re-sends garrison info when a mission's timer completes so the report refreshes
     std::unordered_set<uint32 /*missionRecID*/> _activeMissionRecIDs;
     uint32 _sessionMissionCount = 0;
     uint32 _missionsStartedToday = 0;

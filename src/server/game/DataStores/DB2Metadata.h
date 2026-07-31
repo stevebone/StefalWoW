@@ -3072,9 +3072,9 @@ struct CharShipmentMeta
         { .Type = FT_INT,                  .ArraySize =  1, .IsSigned =  true },
         { .Type = FT_INT,                  .ArraySize =  1, .IsSigned =  true },
         { .Type = FT_INT,                  .ArraySize =  1, .IsSigned = false },
-        { .Type = FT_BYTE,                 .ArraySize =  1, .IsSigned = false },
-        { .Type = FT_SHORT,                .ArraySize =  1, .IsSigned = false },
         { .Type = FT_INT,                  .ArraySize =  1, .IsSigned =  true },
+        { .Type = FT_SHORT,                .ArraySize =  1, .IsSigned = false },
+        { .Type = FT_BYTE,                 .ArraySize =  1, .IsSigned = false },
     };
 
     static constexpr DB2Meta Instance =

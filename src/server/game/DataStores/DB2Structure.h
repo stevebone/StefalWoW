@@ -673,16 +673,21 @@ struct CharacterLoadoutItemEntry
 
 struct CharShipmentEntry
 {
+    // Field order matches the 12.0.7 client db2 layout 0x91BEA68A (byte-decoded from the client
+    // CharShipment.db2). The tail is physically Flags, GarrFollowerID, MaxShipments - NOT
+    // MaxShipments/.../Flags. The previous order read the Flags bitmask (512/513) into MaxShipments and
+    // MaxShipments (0) into Flags, so the server saw Flags=0 for every shipment and could not tell the
+    // quest/tutorial row (Flags 0x1 set, Duration 0) from the regular row (Duration 14400).
     uint32 ID;
     uint16 ContainerID;
-    int32 TreasureID;
     uint32 DummyItemID;
-    int32 Duration;
+    uint32 TreasureID;
     int32 SpellID;
     uint32 OnCompleteSpellID;
-    uint8 MaxShipments;
-    uint16 GarrFollowerID;
+    int32 Duration;
     int32 Flags;
+    uint16 GarrFollowerID;
+    uint8 MaxShipments;
 };
 
 struct CharShipmentContainerEntry
@@ -2128,8 +2133,12 @@ struct GarrFollSupportSpellEntry
 struct GarrFollowerLevelXPEntry
 {
     uint32 ID;
-    int8 FollowerLevel;
-    uint8 GarrFollowerTypeID;
+    // 68275 db2 layout (WoWDBDefs LAYOUT 83953EF8): GarrFollowerTypeID comes BEFORE FollowerLevel.
+    // These were previously declared in the reverse order, so every row loaded with the two bytes
+    // swapped (FollowerLevel held the type value, GarrFollowerTypeID held the level) — GetFollowerLevelXP
+    // then missed for every real (type, level) pair and follower mission XP was silently discarded.
+    int8 GarrFollowerTypeID;
+    uint8 FollowerLevel;
     uint16 XpToNextLevel;
     uint16 ShipmentXP;
 };
