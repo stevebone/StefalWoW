@@ -518,10 +518,13 @@ void Garrison::DeleteFromDB(ObjectGuid::LowType ownerGuid, CharacterDatabaseTran
 
 static GarrisonType GetGarrisonTypeFromSiteId(uint32 garrSiteId)
 {
+    // Maps a GarrSite id to its GarrType. The authoritative source is GarrSite.db2 (GarrSiteID -> GarrTypeID),
+    // which TC does not load, so the known sites are enumerated here.
     switch (garrSiteId)
     {
-        case 2:   return GARRISON_TYPE_GARRISON;      // WoD
-        case 71:  return GARRISON_TYPE_CLASS_ORDER;    // Legion
+        case 2:   return GARRISON_TYPE_GARRISON;      // WoD garrison - Alliance (Lunarfall, maps 1158/1331/1159)
+        case 71:  return GARRISON_TYPE_GARRISON;      // WoD garrison - Horde    (Frostwall, maps 1152/1330/1153)
+        case 161: return GARRISON_TYPE_CLASS_ORDER;   // Legion class/order hall - Hunter (Trueshot Lodge, map 1220)
         case 173: return GARRISON_TYPE_WAR_CAMPAIGN;   // BfA
         case 500: return GARRISON_TYPE_COVENANT;       // Shadowlands
         default:  return GARRISON_TYPE_GARRISON;
