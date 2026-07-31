@@ -18,18 +18,25 @@
 #include "AreaTrigger.h"
 #include "AreaTriggerAI.h"
 #include "Chat.h"
+#include "Creature.h"
 #include "GameObject.h"
 #include "GameObjectAI.h"
 #include "Garrison.h"
 #include "GarrisonMap.h"
 #include "Map.h"
+#include "MotionMaster.h"
+#include "ObjectAccessor.h"
+#include "ObjectMgr.h"
 #include "Player.h"
 #include "QuestDef.h"
 #include "ScriptMgr.h"
+#include "TemporarySummon.h"
 #include "Unit.h"
 
+#include <cmath>
 #include <iterator>
 #include <algorithm>
+#include <mutex>
 #include <vector>
 #include <unordered_map>
 
@@ -253,6 +260,126 @@ struct quest_class_order_hall : QuestScript
     }
 };
 
+// ---------------------------------------------------------------------------------------------------------------------
+// Class order hall on-ramp - the "class messenger".
+//
+// In retail, once a character arrives in Legion Dalaran the class-hall intro chain's first quest is offered by a
+// class-specific NPC who seeks the player out. In our world DB that NPC's static spawn sits in a scenario/staging area
+// the arriving player never walks through (e.g. Hunter: Vereesa Windrunner 100190 is spawned far below floating
+// Dalaran, in zone 7543 at z~26), so the otherwise-intact chain is effectively unreachable. We reproduce the retail
+// behaviour by summoning a personal copy of the messenger next to an eligible player in Dalaran; the messenger walks
+// up to the player and follows until the root quest is engaged, from which the class-hall chain (culminating in the
+// hall-unlock quest handled by quest_class_order_hall above) plays out normally.
+//
+// Data-driven per class. Only classes whose intro chain is verified walkable through to the unlock quest are listed;
+// add a class here as its chain links are repaired. (Hunter's chain 40400 -> 40419 -> 40952 -> 40953 -> 40954 -> 40955
+// is intact today; the other classes' Prev/Next links dead-end mid-campaign and need repair before they belong here.)
+enum { DALARAN_LEGION_ZONE = 7502 };
+
+struct ClassHallMessengerInfo
+{
+    uint32 MessengerEntry;   // the class's intro quest giver (creature_template entry, kept as a personal summon)
+    uint32 RootQuest;        // the first quest of that class's order-hall chain
+};
+
+static std::unordered_map<uint8 /*Classes*/, ClassHallMessengerInfo> const ClassHallMessengers =
+{
+    { CLASS_HUNTER, { 100190 /*Vereesa Windrunner*/, 40400 /*Clandestine Operation*/ } },
+};
+
+class class_hall_messenger : public PlayerScript
+{
+public:
+    class_hall_messenger() : PlayerScript("class_hall_messenger") { }
+
+    void OnUpdateZone(Player* player, uint32 newZone, uint32 /*newArea*/) override
+    {
+        if (newZone != DALARAN_LEGION_ZONE)
+        {
+            Dismiss(player);            // left Dalaran - remove any pending messenger
+            return;
+        }
+
+        TrySummonMessenger(player);
+    }
+
+    void OnQuestStatusChange(Player* player, uint32 questId) override
+    {
+        // Once the player engages (accepts) the root quest, the messenger has done its job.
+        auto itr = ClassHallMessengers.find(player->GetClass());
+        if (itr != ClassHallMessengers.end() && itr->second.RootQuest == questId)
+            Dismiss(player);
+    }
+
+    void OnLogout(Player* player) override
+    {
+        _messengers.erase(player->GetGUID());   // the personal summon despawns with the player / on its own timer
+    }
+
+private:
+    // player GUID -> currently-summoned messenger GUID; prevents duplicates and allows an early despawn. A given
+    // player is only ever touched from its own map-update thread, but different players run on different map threads,
+    // so the shared container is guarded against concurrent structural modification.
+    std::unordered_map<ObjectGuid, ObjectGuid> _messengers;
+    std::mutex _messengersLock;
+
+    void TrySummonMessenger(Player* player)
+    {
+        auto itr = ClassHallMessengers.find(player->GetClass());
+        if (itr == ClassHallMessengers.end())
+            return;
+
+        ClassHallMessengerInfo const& info = itr->second;
+
+        // Already handled: player has the class hall, or is already on/past the intro chain.
+        if (player->GetGarrison(GARRISON_TYPE_CLASS_ORDER))
+            return;
+        if (player->GetQuestStatus(info.RootQuest) != QUEST_STATUS_NONE)
+            return;
+
+        // Only seek the player out if they can actually accept the quest (level/prerequisites/faction).
+        Quest const* root = sObjectMgr->GetQuestTemplate(info.RootQuest);
+        if (!root || !player->CanTakeQuest(root, false))
+            return;
+
+        // One messenger at a time.
+        {
+            std::lock_guard<std::mutex> guard(_messengersLock);
+            if (_messengers.count(player->GetGUID()))
+                return;
+        }
+
+        // Summon a personal copy a few yards behind the player and have it walk up and follow until spoken to. The
+        // summon keeps the template's quest-giver flag + creature_queststarter, so the player can accept the root quest
+        // from it directly. Private to the summoner so other players don't see a stray Vereesa in Dalaran.
+        Position pos = player->GetFirstCollisionPosition(10.0f, float(M_PI));
+        TempSummon* messenger = player->SummonCreature(info.MessengerEntry, pos, TEMPSUMMON_TIMED_DESPAWN, Minutes(5), 0, 0, player->GetGUID());
+        if (!messenger)
+            return;
+
+        messenger->GetMotionMaster()->MoveFollow(player, 2.0f);
+
+        std::lock_guard<std::mutex> guard(_messengersLock);
+        _messengers[player->GetGUID()] = messenger->GetGUID();
+    }
+
+    void Dismiss(Player* player)
+    {
+        ObjectGuid summonGuid;
+        {
+            std::lock_guard<std::mutex> guard(_messengersLock);
+            auto itr = _messengers.find(player->GetGUID());
+            if (itr == _messengers.end())
+                return;
+            summonGuid = itr->second;
+            _messengers.erase(itr);
+        }
+
+        if (Creature* messenger = ObjectAccessor::GetCreature(*player, summonGuid))
+            messenger->DespawnOrUnsummon();
+    }
+};
+
 void AddSC_garrison_generic()
 {
     // AreaTrigger
@@ -265,4 +392,7 @@ void AddSC_garrison_generic()
     // Quest
     new quest_garrison_shipyard_intro();
     new quest_class_order_hall();
+
+    // Player
+    new class_hall_messenger();
 }
