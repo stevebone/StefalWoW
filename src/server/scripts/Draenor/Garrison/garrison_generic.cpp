@@ -29,6 +29,7 @@
 #include "Unit.h"
 
 #include <iterator>
+#include <algorithm>
 #include <vector>
 #include <unordered_map>
 
@@ -193,19 +194,32 @@ enum ClassOrderHallSites
 // 'quest_class_order_hall' in quest_template_addon.
 struct ClassOrderHallInfo
 {
-    uint32 EstablishQuest;
-    uint32 ChampionQuest;
+    // The "Rise, Champions"-style unlock quest(s). Completing one creates the hall (if needed) and recruits the full
+    // champion roster. Demon Hunter has two loyalty variants (Illidari vs Altruis).
+    std::vector<uint32> Quests;
+    // Champion GarrFollower ids (GarrType 3, this class per GarrFollower.ChrClassID), leader first.
     std::vector<uint32> Champions;
 };
 
+// Keyed by class id (Classes enum). Verified vs GarrFollower.db2 (ChrClassID = column 28) + the class order-hall
+// questlines.
 static std::unordered_map<uint8 /*Classes*/, ClassOrderHallInfo> const ClassOrderHalls =
 {
-    // Hunter - "Unseen Path" (Trueshot Lodge). Leader: Emmarel Shadewarden (593).
-    { CLASS_HUNTER, { 40954 /*The Unseen Path*/, 40955 /*Oath of Service*/, { 593, 642, 742, 743, 744, 745, 746, 747, 748 } } },
-    // TODO remaining 11 classes: each class's QuestInfoID-107 establish + champion quests + its champion GarrFollower ids.
+    { CLASS_WARRIOR,      { { 42598 },        { 708, 709, 710, 711, 712, 713, 714, 715, 989 } } },  // Skyhold (Valarjar)
+    { CLASS_PALADIN,      { { 39696 },        { 478, 479, 480, 755, 756, 757, 758, 759, 1000 } } },  // Sanctum of Light
+    { CLASS_HUNTER,       { { 40954, 40955 }, { 593, 742, 743, 744, 745, 746, 747, 748, 996 } } },  // Trueshot Lodge (Unseen Path)
+    { CLASS_ROGUE,        { { 42139 },        { 591, 778, 779, 780, 890, 891, 892, 893, 988 } } },  // Hall of Shadows (Uncrowned)
+    { CLASS_PRIEST,       { { 43270 },        { 856, 857, 870, 871, 872, 873, 874, 875, 1002 } } },  // Netherlight Temple
+    { CLASS_MONK,         { { 42187 },        { 596, 588, 602, 603, 604, 605, 606, 607, 998 } } },  // Temple of Five Dawns
+    { CLASS_DRUID,        { { 42583 },        { 639, 640, 641, 642, 643, 644, 645, 646, 999 } } },  // The Dreamgrove
+    { CLASS_DEMON_HUNTER, { { 42671, 42670 }, { 595, 498, 722, 721, 499, 594, 807, 718, 719, 720 } } },  // The Fel Hammer (loyalty)
+    { CLASS_DEATH_KNIGHT, { { 43264 },        { 855, 584, 586, 838, 839, 599, 853, 854, 1003 } } },  // Acherus (Ebon Blade)
+    { CLASS_SHAMAN,       { { 42383 },        { 611, 608, 609, 610, 612, 614, 613, 615, 992 } } },  // The Maelstrom (Earthen Ring)
+    { CLASS_MAGE,         { { 42663 },        { 761, 716, 717, 725, 723, 726, 762, 724, 597, 994 } } },  // Hall of the Guardian (Tirisgarde)
+    { CLASS_WARLOCK,      { { 40823, 42608 }, { 589, 619, 617, 618, 620, 621, 616, 590, 997 } } },  // Dreadscar Rift (Black Harvest)
 };
 
-// Bound to every class order hall's establish + champion quests via quest_template_addon.ScriptName.
+// Bound to every class order hall's unlock quest(s) via quest_template_addon.ScriptName = 'quest_class_order_hall'.
 struct quest_class_order_hall : QuestScript
 {
     quest_class_order_hall() : QuestScript("quest_class_order_hall") { }
@@ -220,27 +234,22 @@ struct quest_class_order_hall : QuestScript
             return;
 
         ClassOrderHallInfo const& info = itr->second;
-        uint32 const questId = quest->GetQuestId();
+        if (std::find(info.Quests.begin(), info.Quests.end(), quest->GetQuestId()) == info.Quests.end())
+            return;
 
-        if (questId == info.EstablishQuest)
-        {
-            // Establish the faction's class hall if the player has none, then recruit its leader.
-            if (!player->GetGarrison(GARRISON_TYPE_CLASS_ORDER))
-                player->CreateGarrison(player->GetTeamId() == TEAM_ALLIANCE ? GARR_SITE_CLASS_HALL_ALLIANCE : GARR_SITE_CLASS_HALL_HORDE);
-            if (Garrison* hall = player->GetGarrison(GARRISON_TYPE_CLASS_ORDER))
-                if (!info.Champions.empty())
-                    hall->AddFollower(info.Champions.front());
-        }
-        else if (questId == info.ChampionQuest)
-        {
-            // The remaining champions swear service; seed the initial mission board.
-            if (Garrison* hall = player->GetGarrison(GARRISON_TYPE_CLASS_ORDER))
-            {
-                for (std::size_t i = 1; i < info.Champions.size(); ++i)
-                    hall->AddFollower(info.Champions[i]);
-                hall->GenerateAvailableMissions();
-            }
-        }
+        // Establish the faction's class hall if the player has none, then recruit the class's champions. AddFollower
+        // is idempotent (a duplicate is a no-op), so completing another of the class's unlock quests is harmless.
+        if (!player->GetGarrison(GARRISON_TYPE_CLASS_ORDER))
+            player->CreateGarrison(player->GetTeamId() == TEAM_ALLIANCE ? GARR_SITE_CLASS_HALL_ALLIANCE : GARR_SITE_CLASS_HALL_HORDE);
+
+        Garrison* hall = player->GetGarrison(GARRISON_TYPE_CLASS_ORDER);
+        if (!hall)
+            return;
+
+        for (uint32 champion : info.Champions)
+            hall->AddFollower(champion);
+
+        hall->GenerateAvailableMissions();
     }
 };
 
