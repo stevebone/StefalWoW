@@ -19,6 +19,8 @@
 #include "AreaTriggerAI.h"
 #include "Chat.h"
 #include "Creature.h"
+#include "DB2Structure.h"
+#include "EventProcessor.h"
 #include "GameObject.h"
 #include "GameObjectAI.h"
 #include "Garrison.h"
@@ -380,6 +382,60 @@ private:
     }
 };
 
+// ---------------------------------------------------------------------------------------------------------------------
+// Garrison render-on-entry fix.
+//
+// The WoD garrison lives on its own instanced map, entered via a seamless (no-loading-screen) transfer. On a normal
+// login the client runs the garrison handshake (CMSG_GET_GARRISON_INFO + CMSG_GARRISON_GET_MAP_DATA) and renders the
+// plot buildings; on a seamless map transfer it does NOT, so although the building GameObjects are spawned the client
+// never receives the garrison state that drives the plot-building WMOs - the plots render empty while only each
+// building's interior/work-order spawns show. Relogging fixes it (full handshake); ".reload" cannot (it is server-side
+// only). We push the same responses the client would have requested. The push is deferred a moment because the map
+// change fires OnMapChanged from within Map::AddPlayerToMap, before the client has finished loading the new map -
+// sending immediately would arrive too early to stick (matching the observed "buildings flash then vanish" on
+// re-entry).
+class GarrisonRenderEvent : public BasicEvent
+{
+public:
+    explicit GarrisonRenderEvent(Player* player) : _player(player) { }
+
+    bool Execute(uint64 /*time*/, uint32 /*diff*/) override
+    {
+        if (_player->IsInWorld() && _player->GetMap()->IsGarrison())
+        {
+            for (auto const& [type, garrison] : _player->GetGarrisons())
+            {
+                GarrSiteLevelEntry const* site = garrison->GetSiteLevel();
+                if (site && site->MapID == _player->GetMapId())
+                {
+                    garrison->SendInfo();           // GetGarrisonInfoResult (+ mission/troop refresh) - the login snapshot
+                    garrison->SendMapData(_player);  // GarrisonMapDataResponse - drives the plot-building WMO rendering
+                    break;
+                }
+            }
+        }
+        return true;
+    }
+
+private:
+    Player* _player;
+};
+
+class garrison_render_on_enter : public PlayerScript
+{
+public:
+    garrison_render_on_enter() : PlayerScript("garrison_render_on_enter") { }
+
+    void OnMapChanged(Player* player) override
+    {
+        if (!player->GetMap()->IsGarrison())
+            return;
+
+        // Defer ~1.5s so the client has finished loading the garrison map before we push its render state.
+        player->m_Events.AddEventAtOffset(new GarrisonRenderEvent(player), 1500ms);
+    }
+};
+
 void AddSC_garrison_generic()
 {
     // AreaTrigger
@@ -395,4 +451,5 @@ void AddSC_garrison_generic()
 
     // Player
     new class_hall_messenger();
+    new garrison_render_on_enter();
 }
