@@ -2890,6 +2890,10 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         void DeleteGarrison(GarrisonType type = GarrisonType(2) /*GARRISON_TYPE_GARRISON*/);
         Garrison* GetGarrison() const { return GetGarrison(GarrisonType(2) /*GARRISON_TYPE_GARRISON*/); }
         Garrison* GetGarrison(GarrisonType type) const;
+        // The player's garrison (of ANY type) currently holding the mission with this recID, or nullptr. Lets the
+        // mission opcode handlers act on the right garrison (WoD / class order hall / covenant) instead of always
+        // defaulting to the WoD garrison.
+        Garrison* GetGarrisonWithMission(uint32 missionRecID) const;
         std::unordered_map<int32, std::unique_ptr<Garrison>> const& GetGarrisons() const { return _garrisons; }
 
         bool IsAdvancedCombatLoggingEnabled() const { return _advancedCombatLoggingEnabled; }

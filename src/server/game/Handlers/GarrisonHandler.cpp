@@ -110,7 +110,7 @@ void WorldSession::HandleGarrisonGetMapData(WorldPackets::Garrison::GarrisonGetM
 
 void WorldSession::HandleGarrisonStartMission(WorldPackets::Garrison::GarrisonStartMission& garrisonStartMission)
 {
-    Garrison* garrison = _player->GetGarrison();
+    Garrison* garrison = _player->GetGarrisonWithMission(garrisonStartMission.MissionRecID);
     if (!garrison)
         return;
 
@@ -138,7 +138,7 @@ void WorldSession::HandleGarrisonStartMission(WorldPackets::Garrison::GarrisonSt
 
 void WorldSession::HandleGarrisonCompleteMission(WorldPackets::Garrison::GarrisonCompleteMission& garrisonCompleteMission)
 {
-    Garrison* garrison = _player->GetGarrison();
+    Garrison* garrison = _player->GetGarrisonWithMission(garrisonCompleteMission.MissionRecID);
     if (!garrison)
         return;
 
@@ -181,7 +181,7 @@ void WorldSession::HandleGarrisonCompleteMission(WorldPackets::Garrison::Garriso
 
 void WorldSession::HandleGarrisonMissionBonusRoll(WorldPackets::Garrison::GarrisonMissionBonusRoll& garrisonMissionBonusRoll)
 {
-    Garrison* garrison = _player->GetGarrison();
+    Garrison* garrison = _player->GetGarrisonWithMission(garrisonMissionBonusRoll.MissionRecID);
     if (!garrison)
         return;
 
@@ -200,7 +200,7 @@ void WorldSession::HandleGarrisonMissionBonusRoll(WorldPackets::Garrison::Garris
 
 void WorldSession::HandleGarrisonGetMissionReward(WorldPackets::Garrison::GarrisonGetMissionReward& garrisonGetMissionReward)
 {
-    Garrison* garrison = _player->GetGarrison();
+    Garrison* garrison = _player->GetGarrisonWithMission(garrisonGetMissionReward.MissionRecID);
     if (!garrison)
         return;
 
@@ -218,8 +218,7 @@ void WorldSession::HandleGarrisonGetMissionReward(WorldPackets::Garrison::Garris
 
 void WorldSession::HandleOpenMissionNpc(WorldPackets::Garrison::OpenMissionNpc& /*openMissionNpc*/)
 {
-    Garrison* garrison = _player->GetGarrison();
-    if (!garrison)
+    if (_player->GetGarrisons().empty())
         return;
 
     // Match the retail WoD open sequence EXACTLY (sniff 66102 + 68275 garrisonlevel2upgrade):
@@ -241,8 +240,9 @@ void WorldSession::HandleOpenMissionNpc(WorldPackets::Garrison::OpenMissionNpc& 
     // garrison sitting at 15 offered missions. Re-send the existing offers ONLY in that full-pool case.
     // While the board is still filling, GenerateAvailableMissions trickles new missions (each with its own
     // ADD_MISSION_RESULT), so an extra full re-send here would be redundant and reintroduce the burst.
-    if (garrison->IsOfferPoolFull())
-        garrison->SendOfferedMissions();
+    for (auto const& [type, garr] : _player->GetGarrisons())
+        if (garr->IsOfferPoolFull())
+            garr->SendOfferedMissions();
 
     _player->PlayerTalkClass->SendCloseGossip();
 }
