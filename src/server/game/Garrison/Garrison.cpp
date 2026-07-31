@@ -524,7 +524,8 @@ static GarrisonType GetGarrisonTypeFromSiteId(uint32 garrSiteId)
     {
         case 2:   return GARRISON_TYPE_GARRISON;      // WoD garrison - Alliance (Lunarfall, maps 1158/1331/1159)
         case 71:  return GARRISON_TYPE_GARRISON;      // WoD garrison - Horde    (Frostwall, maps 1152/1330/1153)
-        case 161: return GARRISON_TYPE_CLASS_ORDER;   // Legion class/order hall - Hunter (Trueshot Lodge, map 1220)
+        case 161: return GARRISON_TYPE_CLASS_ORDER;   // Legion class/order hall - Alliance (shared faction site, all classes)
+        case 163: return GARRISON_TYPE_CLASS_ORDER;   // Legion class/order hall - Horde    (shared faction site, all classes)
         case 173: return GARRISON_TYPE_WAR_CAMPAIGN;   // BfA
         case 500: return GARRISON_TYPE_COVENANT;       // Shadowlands
         default:  return GARRISON_TYPE_GARRISON;
