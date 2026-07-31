@@ -32,8 +32,29 @@ EndScriptData */
 #include "WorldSession.h"
 
 #include <iterator>
+#include <unordered_map>
 
 using namespace Trinity::ChatCommands;
+
+// Per-class order-hall entry location for the .garrison enter dev command. Map + a teleport point near each hall's
+// mission table. Coordinates verified from game_tele / hall-leader creature spawns; classes not yet filled decline
+// gracefully. (Legion class halls are a mix of phased continent locations and separate instance maps.)
+struct ClassHallLocation { uint32 Map; float X; float Y; float Z; char const* Name; };
+static std::unordered_map<uint8 /*Classes*/, ClassHallLocation> const ClassHallLocations =
+{
+    { CLASS_WARRIOR,      { 1479,  1028.47f,  7225.17f,  100.18f, "Skyhold" } },
+    { CLASS_PALADIN,      { 1220,  -817.16f,  4391.80f,  739.24f, "Sanctum of Light" } },
+    { CLASS_HUNTER,       { 1220,  4632.03f,  5320.96f,  852.01f, "Trueshot Lodge" } },
+    { CLASS_ROGUE,        { 1220,  -927.24f,  4501.06f,  700.75f, "Hall of Shadows" } },
+    { CLASS_PRIEST,       { 1512,  1333.91f,  1335.63f,  177.22f, "Netherlight Temple" } },
+    { CLASS_DEATH_KNIGHT, { 1220, -1502.45f,  1060.68f,  260.42f, "Acherus" } },
+    { CLASS_SHAMAN,       {  730,   851.31f,  1067.76f,  -10.02f, "The Maelstrom" } },
+    { CLASS_MAGE,         { 1513,  -844.00f,  4759.00f,  918.00f, "Hall of the Guardian" } },
+    { CLASS_WARLOCK,      { 1107,  3094.91f,  1062.63f,  242.58f, "Dreadscar Rift" } },
+    { CLASS_MONK,         { 1514,   885.31f,  3605.37f,  192.23f, "Temple of Five Dawns" } },
+    { CLASS_DRUID,        { 1220,  4411.15f,  7164.21f,  350.00f, "The Dreamgrove" } },
+    { CLASS_DEMON_HUNTER, { 1519,  1561.02f,  1399.94f,  237.11f, "The Fel Hammer" } },
+};
 
 // Dev commands for the WoD garrison. The retail upgrade path (Garrison Architect table) only unlocks the
 // upgrade button once the client knows the "Garrison Blueprint: Level N" and the prerequisite quests are
@@ -174,9 +195,8 @@ public:
         return true;
     }
 
-    // .garrison enter   - teleport to the Hunter Order Hall (Trueshot Lodge). The order hall is a phased location on
-    // the Broken Isles continent (map 1220), not a separate instance - retail reaches it via the Dalaran Order Hall
-    // portal; this teleports straight there.
+    // .garrison enter   - teleport the selected player to THEIR class's order hall (data-driven per class). Retail
+    // reaches the hall via the Dalaran Order Hall portal; this teleports straight there.
     static bool HandleGarrisonEnterCommand(ChatHandler* handler)
     {
         Player* target = handler->getSelectedPlayerOrSelf();
@@ -187,8 +207,17 @@ public:
             return false;
         }
 
-        target->TeleportTo(1220, 4529.88f, 5246.98f, 862.193f, 0.0f);
-        handler->PSendSysMessage("Teleported {} to Trueshot Lodge (Hunter Order Hall).", target->GetName());
+        auto itr = ClassHallLocations.find(target->GetClass());
+        if (itr == ClassHallLocations.end())
+        {
+            handler->PSendSysMessage("No order-hall entry location is configured for {}'s class yet.", target->GetName());
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        ClassHallLocation const& loc = itr->second;
+        target->TeleportTo(loc.Map, loc.X, loc.Y, loc.Z, 0.0f);
+        handler->PSendSysMessage("Teleported {} to {} (order hall).", target->GetName(), loc.Name);
         return true;
     }
 
