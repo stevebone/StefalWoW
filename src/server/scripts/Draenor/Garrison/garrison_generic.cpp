@@ -28,6 +28,8 @@
 #include "ScriptMgr.h"
 #include "Unit.h"
 
+#include <iterator>
+
 // XX - Garrison enter AreaTrigger
 struct at_garrison_enter : AreaTriggerAI
 {
@@ -169,6 +171,59 @@ struct quest_garrison_shipyard_intro : QuestScript
     }
 };
 
+// ============================================================
+// Legion Hunter Order Hall (Trueshot Lodge, GarrType 3)
+// ============================================================
+// The Hunter class-hall intro chain (all QuestInfoID 107, given by Emmarel Shadewarden at Trueshot Lodge):
+//   40952 Hunter to Hunter -> 40953 On Eagle's Wings -> 40954 The Unseen Path -> 40955 Oath of Service
+//   -> 40958 Tactical Matters -> 40959 The Campaign Begins.
+// Retail establishes the order hall (a GarrType-3 garrison on the Broken Isles, GarrSite 161) and recruits the
+// starting champions across this chain via SPELL_EFFECT_CREATE_GARRISON / follower-grant spells. We hook the two
+// key quests' REWARDED status so the trigger is independent of that (offline-unavailable) spell-effect layout.
+enum HunterOrderHall
+{
+    QUEST_THE_UNSEEN_PATH    = 40954,   // establish the hall + recruit its leader
+    QUEST_OATH_OF_SERVICE    = 40955,   // the champions swear service
+    GARR_SITE_TRUESHOT_LODGE = 161      // GarrSite id -> GARRISON_TYPE_CLASS_ORDER
+};
+
+// Hunter "Unseen Path" champions (GarrFollower ids). Emmarel Shadewarden (593) leads the hall.
+static constexpr uint32 HunterOrderHallChampions[] = { 593, 642, 742, 743, 744, 745, 746, 747, 748 };
+
+// Bound to quests 40954 + 40955 via quest_template_addon.ScriptName = 'quest_hunter_order_hall'.
+struct quest_hunter_order_hall : QuestScript
+{
+    quest_hunter_order_hall() : QuestScript("quest_hunter_order_hall") { }
+
+    void OnQuestStatusChange(Player* player, Quest const* quest, QuestStatus /*oldStatus*/, QuestStatus newStatus) override
+    {
+        if (newStatus != QUEST_STATUS_REWARDED)
+            return;
+
+        switch (quest->GetQuestId())
+        {
+            case QUEST_THE_UNSEEN_PATH:
+                // Establish the order hall if the player has none yet, then recruit its leader (Emmarel).
+                if (!player->GetGarrison(GARRISON_TYPE_CLASS_ORDER))
+                    player->CreateGarrison(GARR_SITE_TRUESHOT_LODGE);
+                if (Garrison* hall = player->GetGarrison(GARRISON_TYPE_CLASS_ORDER))
+                    hall->AddFollower(HunterOrderHallChampions[0]);
+                break;
+            case QUEST_OATH_OF_SERVICE:
+                // The remaining champions swear the oath; seed the initial mission board.
+                if (Garrison* hall = player->GetGarrison(GARRISON_TYPE_CLASS_ORDER))
+                {
+                    for (std::size_t i = 1; i < std::size(HunterOrderHallChampions); ++i)
+                        hall->AddFollower(HunterOrderHallChampions[i]);
+                    hall->GenerateAvailableMissions();
+                }
+                break;
+            default:
+                break;
+        }
+    }
+};
+
 void AddSC_garrison_generic()
 {
     // AreaTrigger
@@ -180,4 +235,5 @@ void AddSC_garrison_generic()
 
     // Quest
     new quest_garrison_shipyard_intro();
+    new quest_hunter_order_hall();
 }
