@@ -254,6 +254,9 @@ struct npc_prustaga_scenario_director : public ScriptedAI
         if (me->GetMap()->GetId() != MAP_SHIELDS_REST)
             return;
 
+        if (_completed)
+            return; // leg finished (scenario complete + transfer scheduled) - go quiet
+
         _pollTimer += diff;
         if (_pollTimer < 1000)
             return;
@@ -711,12 +714,131 @@ struct npc_prustaga_temple : public ScriptedAI
     }
 };
 
+// =====================================================================================================================
+// Marksmanship artifact: "Call of the Marksman" (40392) -> Thas'dorah, Legacy of the Windrunners.
+//
+// A kill-credit / flight quest (NOT a scenario): fly from Trueshot Lodge to the Broken Shore (obj 0, credit 102173),
+// then speak to Vereesa Windrunner (obj 1, credit 103602) who hands over the bow. All the real NPCs are already
+// spawned (Vereesa 100190 at the Broken Shore landing), so we just script the flight + credits. The flight is a
+// teleport stand-in (a real gyrocopter path is polish); on arrival beside Vereesa both the flight and "spoke to
+// Vereesa" credits are granted, leaving the quest ready to hand in to her. Bound to 40392 via addon ScriptName.
+enum MarksmanArtifact
+{
+    QUEST_CALL_OF_THE_MARKSMAN = 40392,
+    CREDIT_FLY_BROKEN_SHORE    = 102173,
+    CREDIT_TALK_VEREESA        = 103602
+};
+static constexpr Position BrokenShoreLanding = { -835.0f, 3679.0f, 26.3f, 4.24f }; // beside Vereesa (100190)
+
+class MarksmanFlightEvent : public BasicEvent
+{
+public:
+    explicit MarksmanFlightEvent(Player* player) : _player(player) { }
+
+    bool Execute(uint64 /*time*/, uint32 /*diff*/) override
+    {
+        if (_player->IsInWorld())
+        {
+            _player->KilledMonsterCredit(CREDIT_FLY_BROKEN_SHORE);   // obj 0
+            _player->TeleportTo(1220, BrokenShoreLanding.GetPositionX(), BrokenShoreLanding.GetPositionY(),
+                BrokenShoreLanding.GetPositionZ(), BrokenShoreLanding.GetOrientation());
+            _player->KilledMonsterCredit(CREDIT_TALK_VEREESA);       // obj 1 (arrives beside Vereesa)
+        }
+        return true;
+    }
+
+private:
+    Player* _player;
+};
+
+struct quest_call_of_the_marksman : QuestScript
+{
+    quest_call_of_the_marksman() : QuestScript("quest_call_of_the_marksman") { }
+
+    void OnQuestStatusChange(Player* player, Quest const* /*quest*/, QuestStatus /*oldStatus*/, QuestStatus newStatus) override
+    {
+        if (newStatus == QUEST_STATUS_INCOMPLETE)
+            player->m_Events.AddEventAtOffset(new MarksmanFlightEvent(player), 1500ms);
+    }
+};
+
+// =====================================================================================================================
+// Survival artifact: "The Eagle Spirit's Blessing" (39427) -> Talonclaw.
+//
+// Fly to Spiritwatch Point in Highmountain (obj 0/1, credits 110936/110937), slay Degar Bloodtotem (obj 2, kill 110685),
+// and receive Ohn'ahra's blessing (obj 3, credit 110938), then hand in to Apata Highmountain (110821). Nothing on the
+// Spiritwatch path is spawned, so we place Degar + Apata near Skyhorn (the nearest populated part of northern
+// Highmountain - exact Spiritwatch coords aren't derivable offline). Degar is a faction-35 placeholder, so the script
+// makes him hostile, and his death both credits obj 2 and grants Ohn'ahra's blessing (obj 3). Bound to 39427 + Degar.
+enum SurvivalArtifact
+{
+    QUEST_EAGLE_SPIRITS_BLESSING = 39427,
+    NPC_DEGAR_BLOODTOTEM         = 110685,
+    CREDIT_FLY_SPIRITWATCH       = 110936,
+    CREDIT_ENTER_SPIRITWATCH     = 110937,
+    CREDIT_EAGLE_BLESSING        = 110938
+};
+static constexpr Position SpiritwatchPoint = { 4757.0f, 3928.0f, 809.0f, 3.0f }; // near Skyhorn, Highmountain (map 1220)
+
+class SpiritwatchFlightEvent : public BasicEvent
+{
+public:
+    explicit SpiritwatchFlightEvent(Player* player) : _player(player) { }
+
+    bool Execute(uint64 /*time*/, uint32 /*diff*/) override
+    {
+        if (_player->IsInWorld())
+        {
+            _player->KilledMonsterCredit(CREDIT_FLY_SPIRITWATCH);    // obj 0
+            _player->TeleportTo(1220, SpiritwatchPoint.GetPositionX(), SpiritwatchPoint.GetPositionY(),
+                SpiritwatchPoint.GetPositionZ(), SpiritwatchPoint.GetOrientation());
+            _player->KilledMonsterCredit(CREDIT_ENTER_SPIRITWATCH);  // obj 1 (arrived at Spiritwatch Point)
+        }
+        return true;
+    }
+
+private:
+    Player* _player;
+};
+
+struct quest_eagle_spirits_blessing : QuestScript
+{
+    quest_eagle_spirits_blessing() : QuestScript("quest_eagle_spirits_blessing") { }
+
+    void OnQuestStatusChange(Player* player, Quest const* /*quest*/, QuestStatus /*oldStatus*/, QuestStatus newStatus) override
+    {
+        if (newStatus == QUEST_STATUS_INCOMPLETE)
+            player->m_Events.AddEventAtOffset(new SpiritwatchFlightEvent(player), 1500ms);
+    }
+};
+
+// Degar Bloodtotem (110685): the Survival obj-2 boss. Placeholder faction 35 -> made hostile; his death credits the
+// kill and grants Ohn'ahra's blessing (obj 3), leaving 39427 ready to hand in to Apata (110821).
+struct npc_degar_bloodtotem : public ScriptedAI
+{
+    npc_degar_bloodtotem(Creature* creature) : ScriptedAI(creature) { }
+
+    void Reset() override { me->SetFaction(FACTION_MONSTER_2); } // faction 16 - attackable Survival boss
+
+    void JustDied(Unit* killer) override
+    {
+        Player* player = killer ? killer->GetCharmerOrOwnerPlayerOrPlayerItself() : nullptr;
+        if (!player)
+            for (auto const& ref : me->GetMap()->GetPlayers())
+                if (Player* p = ref.GetSource()) { player = p; break; }
+        if (player)
+            player->KilledMonsterCredit(CREDIT_EAGLE_BLESSING); // obj 3 (kill of 110685 itself credits obj 2)
+    }
+};
+
 void AddSC_orderhall_hunter()
 {
     // Quest
     new quest_stolen_thunder();
     new quest_creators_workshop();
     new quest_never_hunt_alone();
+    new quest_call_of_the_marksman();
+    new quest_eagle_spirits_blessing();
 
     // Creature
     RegisterCreatureAI(npc_grif_wildheart_flight);
@@ -724,4 +846,5 @@ void AddSC_orderhall_hunter()
     RegisterCreatureAI(npc_warlord_volund);
     RegisterCreatureAI(npc_grif_temple_director);
     RegisterCreatureAI(npc_prustaga_temple);
+    RegisterCreatureAI(npc_degar_bloodtotem);
 }
