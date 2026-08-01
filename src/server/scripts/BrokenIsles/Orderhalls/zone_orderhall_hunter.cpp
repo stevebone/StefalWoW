@@ -42,14 +42,16 @@
 #include "GameEventSender.h"
 #include "GameObject.h"
 #include "GameObjectAI.h"
-#include "InstanceScenario.h"
 #include "Map.h"
+#include "MotionMaster.h"
 #include "Player.h"
 #include "QuestDef.h"
+#include "Scenario.h"
 #include "ScriptedCreature.h"
 #include "ScriptedGossip.h"
 #include "ScriptMgr.h"
 #include "SharedDefines.h"
+#include "TemporarySummon.h"
 #include "Unit.h"
 
 enum StolenThunderData
@@ -198,7 +200,7 @@ struct npc_prustaga_scenario_director : public ScriptedAI
             return;
         _pollTimer = 0;
 
-        InstanceScenario* scenario = me->GetMap()->GetInstanceScenario();
+        Scenario* scenario = me->GetScenario();
         if (!scenario)
             return;
 
@@ -302,14 +304,250 @@ struct quest_creators_workshop : QuestScript
     }
 };
 
+// =====================================================================================================================
+// Leg 3: "Never Hunt Alone" (42185) - the Temple of Storms (map 1609), scenario 1099.
+//
+// Mimiron sends the Hunter after Prustaga, who fled to Thorim's Temple of Storms with Titanstrike. This leg is
+// driven by InstanceScenario 1099 "Never Hunt Alone" (linked to map 1609 via the `scenarios` table). The temple in
+// our world DB has only the allies spawned (Grif 106715, Thorim 106714, Hati 103154) - the antagonists are missing,
+// so we spawn Prustaga (106744, repurposed - it spawns nowhere else) and a small vrykul horde (106302) and script
+// them hostile. The quest itself completes on three kill-credits (106671 on accept, 106672 on arrival, 114509 on
+// Prustaga's defeat); the scenario runs alongside for the on-screen step presentation, so a scenario hiccup can
+// never strand the questline.
+enum NeverHuntAloneData
+{
+    QUEST_NEVER_HUNT_ALONE   = 42185,
+    MAP_TEMPLE_OF_STORMS     = 1609,
+    NPC_GRIF_TEMPLE          = 106715, // temple ally + scenario 1099 director
+    NPC_THORIM               = 106714, // Lord of Thunder - converse (step 0)
+    NPC_HATI                 = 103154, // the wolf companion bound to Titanstrike (step 3)
+    NPC_PRUSTAGA_TEMPLE      = 106744, // the traitor, defeated here (step 2); repurposed spawn
+    NPC_VRYKUL_HORDE         = 106302, // Restless Tombguard - the vrykul adds (step 1)
+    NPC_CREDIT_MIMIRON_HEAD  = 106671, // 42185 objective 0
+    NPC_CREDIT_FLY_TEMPLE    = 106672, // 42185 objective 1 "Fly to the Temple of Storms"
+    NPC_CREDIT_TITANSTRIKE   = 114509, // 42185 objective 2 "Titanstrike recovered"
+    MAP_DALARAN_BROKEN_ISLE  = 1220,
+    FACTION_MONSTER          = 16       // generic hostile Stormheim faction
+};
+
+// Scenario 1099 step game-event assets (CriteriaType 92), in OrderIndex order.
+enum Scenario1099GameEvents
+{
+    GE_CONVERSE_THORIM    = 50895, // step 0 "Thorim, Lord of Thunder"
+    GE_FEND_VRYKUL        = 50910, // step 1 "Battle is Joined"
+    GE_DEFEAT_PRUSTAGA    = 50921, // step 2 "Madness of the Usurper"
+    GE_DEFEAT_PRUSTAGA_SUB= 50997, // step 2 child criterion
+    GE_BIND_HATI          = 50922, // step 3 "Heart of Thunder"
+    GE_WIELD_TITANSTRIKE  = 50923, // step 4 "The Power of the Titans"
+    GE_RIDE_HUEY_HOME     = 50924  // step 5 "Odyssey's End"
+};
+
+static constexpr Position ThorimThrone      = { 7450.0f, -535.3f, 1896.9f, 0.0f };
+static constexpr Position TempleLanding     = { 7420.0f, -540.0f, 1897.0f, 3.0f };  // facing the throne
+static constexpr Position DalaranReturn     = { -819.0f, 4300.0f, 746.0f, 4.6f };   // beside Grif 106879 in Dalaran
+
+// Transfer from the Creator's Workshop (1579) to the Temple of Storms (1609) - the "Fly to the Temple of Storms" leg.
+class TempleTransferEvent : public BasicEvent
+{
+public:
+    explicit TempleTransferEvent(Player* player) : _player(player) { }
+
+    bool Execute(uint64 /*time*/, uint32 /*diff*/) override
+    {
+        if (_player->IsInWorld())
+        {
+            _player->KilledMonsterCredit(NPC_CREDIT_FLY_TEMPLE);                    // objective 1
+            _player->TeleportTo(MAP_TEMPLE_OF_STORMS, TempleLanding.GetPositionX(), TempleLanding.GetPositionY(),
+                TempleLanding.GetPositionZ(), TempleLanding.GetOrientation());
+        }
+        return true;
+    }
+
+private:
+    Player* _player;
+};
+
+struct quest_never_hunt_alone : QuestScript
+{
+    quest_never_hunt_alone() : QuestScript("quest_never_hunt_alone") { }
+
+    void OnQuestStatusChange(Player* player, Quest const* /*quest*/, QuestStatus /*oldStatus*/, QuestStatus newStatus) override
+    {
+        if (newStatus == QUEST_STATUS_INCOMPLETE) // accepted from Mimiron in Ulduar
+        {
+            player->KilledMonsterCredit(NPC_CREDIT_MIMIRON_HEAD);                   // objective 0 (carry Mimiron's head)
+            player->m_Events.AddEventAtOffset(new TempleTransferEvent(player), 1500ms);
+        }
+    }
+};
+
+// Return to Dalaran once the temple scenario ends (step 5 "Ride Huey to return to Dalaran"), where "Never Hunt Alone"
+// turns in to Grif Wildheart (106879), leading into the class-hall chain (41009 -> 40953 -> 40954/40955).
+class DalaranReturnEvent : public BasicEvent
+{
+public:
+    explicit DalaranReturnEvent(Player* player) : _player(player) { }
+
+    bool Execute(uint64 /*time*/, uint32 /*diff*/) override
+    {
+        if (_player->IsInWorld() && _player->GetMapId() == MAP_TEMPLE_OF_STORMS)
+            _player->TeleportTo(MAP_DALARAN_BROKEN_ISLE, DalaranReturn.GetPositionX(), DalaranReturn.GetPositionY(),
+                DalaranReturn.GetPositionZ(), DalaranReturn.GetOrientation());
+        return true;
+    }
+
+private:
+    Player* _player;
+};
+
+// Scenario 1099 director, bound to the temple's Grif (106715). Mirrors the Shield's Rest director: it advances the
+// scenario off the real beats - conversing with Thorim, clearing the vrykul, Prustaga's defeat (fired from her AI
+// below), then the finale (bind Hati, wield Titanstrike, ride home).
+struct npc_grif_temple_director : public ScriptedAI
+{
+    npc_grif_temple_director(Creature* creature) : ScriptedAI(creature), _pollTimer(0) { }
+
+    uint32 _pollTimer;
+
+    void Reset() override
+    {
+        if (me->GetMap()->GetId() == MAP_TEMPLE_OF_STORMS)
+            me->setActive(true);
+    }
+
+    template <typename Pred>
+    Player* FindReachedPlayer(Pred pred) const
+    {
+        for (auto const& ref : me->GetMap()->GetPlayers())
+            if (Player* p = ref.GetSource())
+                if (p->IsInWorld() && p->IsAlive() && pred(p))
+                    return p;
+        return nullptr;
+    }
+
+    Player* AnyPlayer() const { return FindReachedPlayer([](Player*) { return true; }); }
+
+    // Give every player in the instance the wolf Hati as a companion that fights at their side (the artifact grants
+    // it permanently in retail; here it joins as a guardian for the finale and beyond).
+    void GrantHati()
+    {
+        for (auto const& ref : me->GetMap()->GetPlayers())
+            if (Player* p = ref.GetSource())
+                if (p->IsInWorld())
+                    if (Creature* hati = p->SummonCreature(NPC_HATI, *p, TEMPSUMMON_MANUAL_DESPAWN))
+                        hati->GetMotionMaster()->MoveFollow(p, 2.0f, static_cast<float>(M_PI));
+    }
+
+    void UpdateAI(uint32 diff) override
+    {
+        if (me->GetMap()->GetId() != MAP_TEMPLE_OF_STORMS)
+            return;
+
+        _pollTimer += diff;
+        if (_pollTimer < 1000)
+            return;
+        _pollTimer = 0;
+
+        Scenario* scenario = me->GetScenario();
+        if (!scenario)
+            return;
+
+        ScenarioStepEntry const* step = scenario->GetStep();
+        if (!step)
+            return;
+
+        switch (step->OrderIndex)
+        {
+            case 0: // Thorim, Lord of Thunder - converse with Thorim at the throne
+                if (Player* p = FindReachedPlayer([](Player* pl) { return pl->GetDistance(ThorimThrone) <= 25.0f; }))
+                    GameEvents::Trigger(GE_CONVERSE_THORIM, p, p);
+                break;
+            case 1: // Battle is Joined - fend off the vrykul horde (advances once every add is down)
+                if (!me->FindNearestCreature(NPC_VRYKUL_HORDE, 300.0f, true))
+                    if (Player* p = AnyPlayer())
+                        GameEvents::Trigger(GE_FEND_VRYKUL, p, p);
+                break;
+            case 2: // Madness of the Usurper - defeat Prustaga (fired from npc_prustaga_temple::JustDied)
+                break;
+            case 3: // Heart of Thunder - bind Hati's spirit to your own
+                if (Player* p = AnyPlayer())
+                {
+                    GrantHati();
+                    GameEvents::Trigger(GE_BIND_HATI, p, p);
+                }
+                break;
+            case 4: // The Power of the Titans - wield Titanstrike (recovers the artifact -> objective 2)
+                if (Player* p = AnyPlayer())
+                {
+                    for (auto const& ref : me->GetMap()->GetPlayers())
+                        if (Player* mp = ref.GetSource())
+                            if (mp->IsInWorld())
+                                mp->KilledMonsterCredit(NPC_CREDIT_TITANSTRIKE);   // objective 2 for the whole party
+                    GameEvents::Trigger(GE_WIELD_TITANSTRIKE, p, p);
+                }
+                break;
+            case 5: // Odyssey's End - ride Huey back to Dalaran
+                if (Player* p = AnyPlayer())
+                {
+                    GameEvents::Trigger(GE_RIDE_HUEY_HOME, p, p);
+                    for (auto const& ref : me->GetMap()->GetPlayers())
+                        if (Player* mp = ref.GetSource())
+                            if (mp->IsInWorld())
+                                mp->m_Events.AddEventAtOffset(new DalaranReturnEvent(mp), 4s);
+                }
+                break;
+            default:
+                break;
+        }
+    }
+};
+
+// Prustaga at the Temple of Storms (106744): scripted hostile, and her death completes scenario step 2 and grants
+// the "Titanstrike recovered" credit as a safety net (the director also grants it at step 4). Bound to 106744 via
+// creature_template.ScriptName.
+struct npc_prustaga_temple : public ScriptedAI
+{
+    npc_prustaga_temple(Creature* creature) : ScriptedAI(creature) { }
+
+    void Reset() override
+    {
+        if (me->GetMap()->GetId() == MAP_TEMPLE_OF_STORMS)
+            me->SetFaction(FACTION_MONSTER); // this entry is friendly by default; here she is the antagonist
+    }
+
+    void JustDied(Unit* killer) override
+    {
+        if (me->GetMap()->GetId() != MAP_TEMPLE_OF_STORMS)
+            return;
+
+        Player* player = killer ? killer->GetCharmerOrOwnerPlayerOrPlayerItself() : nullptr;
+        if (!player)
+            for (auto const& ref : me->GetMap()->GetPlayers())
+                if (Player* p = ref.GetSource())
+                {
+                    player = p;
+                    break;
+                }
+
+        if (player)
+        {
+            GameEvents::Trigger(GE_DEFEAT_PRUSTAGA, player, player);
+            GameEvents::Trigger(GE_DEFEAT_PRUSTAGA_SUB, player, player);
+        }
+    }
+};
+
 void AddSC_orderhall_hunter()
 {
     // Quest
     new quest_stolen_thunder();
     new quest_creators_workshop();
+    new quest_never_hunt_alone();
 
     // Creature
     RegisterCreatureAI(npc_grif_wildheart_flight);
     RegisterCreatureAI(npc_prustaga_scenario_director);
     RegisterCreatureAI(npc_warlord_volund);
+    RegisterCreatureAI(npc_grif_temple_director);
+    RegisterCreatureAI(npc_prustaga_temple);
 }
