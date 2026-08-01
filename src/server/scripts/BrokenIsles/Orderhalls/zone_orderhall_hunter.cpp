@@ -15,13 +15,35 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-// Beast Mastery Hunter artifact quest "Stolen Thunder" (41574) -> recovering Titanstrike from Warlord Volund's tomb on
-// Shield's Rest, the Prustaga betrayal, and the Mimiron transfer to the Creator's Workshop. Per-class Broken Isles
-// content (cf. zone_orderhall_warrior.cpp). The generic class-hall framework lives in orderhall_legion.cpp.
+// Beast Mastery Hunter artifact acquisition ("Stolen Thunder" 41574 -> Titanstrike). Per-class Broken Isles content
+// (cf. zone_orderhall_warrior.cpp); the generic class-hall framework lives in orderhall_legion.cpp.
+//
+// The acquisition is a three-map questline driven by two authored TrinityCore InstanceScenarios (the Legion artifact
+// scenarios ship as empty placeholder content in our world DB, so we wire the scenario-step progression here):
+//
+//   Dalaran --(Grif's flight)--> Shield's Rest (map 1495, SCENARIO 1068 "Thunder of the Titans")
+//        41574 "Stolen Thunder"  -> recover Titanstrike from Warlord Volund's tomb, then the Relay Device pad pulls
+//                                   the party to Keeper Mimiron in Ulduar.
+//   Ulduar / Creator's Workshop (map 1579, no scenario)
+//        42158 "The Creator's Workshop"  -> a scripted assist (kill-credit 106559), handed back to Mimiron who then
+//                                           offers "Never Hunt Alone" (42185, the Temple of Storms leg 1099).
+//
+// TrinityCore scenario mechanics used below: each ScenarioStep's CriteriaTree resolves to a single Type-92
+// (AnyoneTriggerGameEventScenario) criterion whose Asset is a GameEvent id. Firing that game event with a player in
+// the scenario as the source (GameEvents::Trigger) routes through Player::UpdateCriteria -> Scenario::UpdateCriteria,
+// completing the current step and advancing to the next. Completing the final step completes the scenario, which
+// fires CriteriaType::CompleteScenario(1068) and thereby satisfies 41574's objective 2 (CriteriaTree 47548 ->
+// Criteria 29856, Type 152 CompleteScenario, asset 1068). We drive those game events off the real in-tomb triggers
+// (reaching landmarks, Warlord Volund's death, stepping onto the teleport pad).
+
 #include "Creature.h"
+#include "DB2Structure.h"
 #include "EventProcessor.h"
+#include "GameEventSender.h"
 #include "GameObject.h"
 #include "GameObjectAI.h"
+#include "InstanceScenario.h"
+#include "Map.h"
 #include "Player.h"
 #include "QuestDef.h"
 #include "ScriptedCreature.h"
@@ -30,22 +52,60 @@
 #include "SharedDefines.h"
 #include "Unit.h"
 
+enum StolenThunderData
+{
+    QUEST_STOLEN_THUNDER        = 41574,
+    MAP_SHIELDS_REST            = 1495,   // Warlord Volund's tomb - scenario 1068 instance
+    SCENARIO_THUNDER_TITANS     = 1068,
+    NPC_PRUSTAGA_ALLY           = 104949, // the vrykul ally who guides you through the tomb (scenario director)
+    NPC_WARLORD_VOLUND          = 104956, // the tomb's final boss (scenario step 4)
+    NPC_CREDIT_FLY_SHIELDS_REST = 104993, // 41574 objective 0 "Fly with Grif to Shield's Rest"
+
+    MAP_CREATORS_WORKSHOP       = 1579,   // Ulduar - where the Relay Device pad drops the party
+    QUEST_CREATORS_WORKSHOP     = 42158,
+    NPC_CREDIT_MIMIRON_ASSIST   = 106559  // 42158's single objective "Kill Credit: Mimiron Assisted"
+};
+
+// Scenario 1068 step game-event assets (CriteriaType 92). One per authored ScenarioStep, in OrderIndex order.
+enum Scenario1068GameEvents
+{
+    GE_MEET_PRUSTAGA    = 49879, // step 0 "Making Introductions"     - meet Prustaga with Grif at the landing
+    GE_FIND_TOMB        = 50630, // step 1 "Tomb Raider"              - find Warlord Volund's tomb entrance
+    GE_PROTECT_PRUSTAGA = 49992, // step 2 "Volund's Hoard"           - Prustaga opens the tomb door
+    GE_SEARCH_TITAN     = 49889, // step 3 "Every Nook and Cranny"    - search the tomb for Titanstrike
+    GE_DEFEAT_VOLUND    = 50631, // step 4 "Volund's Last Stand"      - defeat Warlord Volund
+    GE_JOIN_MIMIRON     = 50632  // step 5 "Answering the Call"       - use the Relay Device pad to join Mimiron
+};
+
+// Relay Device pad (GO 249717) at the back of the tomb - a scenery (type-5) teleporter enabled by the scenario at
+// step 5. It is not client-clickable, so we complete step 5 by proximity when the player stands on it.
+static constexpr Position RelayDevicePad = { 4970.3f, 297.5f, -37.5f, 0.0f };
 
 // ---------------------------------------------------------------------------------------------------------------------
-// Hunter Beast Mastery artifact on-ramp: the flight to Shield's Rest.
+// Leg 0: the flight to Shield's Rest.
 //
-// Quest "Stolen Thunder" (41574) sends the Hunter to recover Titanstrike from Warlord Volund's tomb on the isle of
-// Shield's Rest - a fully populated sub-map (1495: Grif, Prustaga, Warlord Volund are all spawned there). In retail
-// you talk to Grif Wildheart and "Huey" flies you across (quest objective 1 = kill credit 104993). That scripted
-// flight is absent from our world DB, so the quest strands the player in Dalaran with no transport. Talking to Grif
-// while the flight leg is outstanding credits it and drops the player at the Shield's Rest landing beside Grif /
-// Prustaga so the scenario (tomb -> Titanstrike) can continue. Bound to Grif 106879 via creature_template.ScriptName.
-enum StolenThunder
+// "Stolen Thunder" (41574) opens with Grif Wildheart flying the Hunter from Dalaran to the isle of Shield's Rest
+// (objective 0 = kill-credit 104993). That scripted flight is absent from our world DB, so we credit the flight leg
+// and drop the player at the tomb landing beside Grif and Prustaga when the quest is accepted, so the scenario can
+// begin. (A real on-rails Huey flight is the intended presentation; this transfer is the functional stand-in.)
+// Bound to Grif 106879 via creature_template.ScriptName, and to 41574 via quest_template_addon.ScriptName.
+class ShieldsRestFlightEvent : public BasicEvent
 {
-    QUEST_STOLEN_THUNDER            = 41574,
-    NPC_CREDIT_FLY_TO_SHIELDS_REST  = 104993,
-    NPC_PRUSTAGA                    = 104949,   // the vrykul "ally" who betrays you and snatches Titanstrike
-    MAP_STORMHEIM_SHIELDS_REST      = 1495
+public:
+    explicit ShieldsRestFlightEvent(Player* player) : _player(player) { }
+
+    bool Execute(uint64 /*time*/, uint32 /*diff*/) override
+    {
+        if (_player->IsInWorld())
+        {
+            _player->KilledMonsterCredit(NPC_CREDIT_FLY_SHIELDS_REST);                 // objective 0
+            _player->TeleportTo(MAP_SHIELDS_REST, 4803.4f, 78.0f, -2.5f, 1.38f);       // landing beside Grif/Prustaga
+        }
+        return true;
+    }
+
+private:
+    Player* _player;
 };
 
 struct npc_grif_wildheart_flight : public ScriptedAI
@@ -54,43 +114,16 @@ struct npc_grif_wildheart_flight : public ScriptedAI
 
     bool OnGossipHello(Player* player) override
     {
-        // Only intercept while the "fly to Shield's Rest" leg of Stolen Thunder is still outstanding; otherwise fall
-        // through to Grif's normal quest gossip (offering/other states).
+        // Only intercept while "Stolen Thunder" is still in progress; otherwise fall through to Grif's normal quest
+        // gossip. Re-crediting the flight objective / re-porting is idempotent, so a status check is sufficient.
         if (player->GetQuestStatus(QUEST_STOLEN_THUNDER) == QUEST_STATUS_INCOMPLETE)
         {
             CloseGossipMenuFor(player);
-            player->KilledMonsterCredit(NPC_CREDIT_FLY_TO_SHIELDS_REST);           // completes objective "Fly with Grif to Shield's Rest"
-            player->TeleportTo(MAP_STORMHEIM_SHIELDS_REST, 4803.4f, 78.0f, -2.5f, 1.38f);
+            player->m_Events.AddEventAtOffset(new ShieldsRestFlightEvent(player), 500ms);
             return true;
         }
-
         return false;
     }
-};
-
-// Robust, phase-independent flight trigger for "Stolen Thunder" (41574). Talking to Grif is unreliable at this step -
-// there are several Grif spawns with mixed phasing plus a SmartAI one, so the gossip interaction doesn't consistently
-// reach the bound creature. Also fly the player when they ACCEPT the quest: credit the flight objective (104993) and
-// drop them at the Shield's Rest landing. Deferred ~1.5s so the accept flow settles before the map change. Bound via
-// quest_template_addon.ScriptName; the npc_grif_wildheart_flight gossip above still works whenever the player does
-// reach an interactable bound Grif.
-class StolenThunderFlightEvent : public BasicEvent
-{
-public:
-    explicit StolenThunderFlightEvent(Player* player) : _player(player) { }
-
-    bool Execute(uint64 /*time*/, uint32 /*diff*/) override
-    {
-        if (_player->IsInWorld())
-        {
-            _player->KilledMonsterCredit(NPC_CREDIT_FLY_TO_SHIELDS_REST);
-            _player->TeleportTo(MAP_STORMHEIM_SHIELDS_REST, 4803.4f, 78.0f, -2.5f, 1.38f);
-        }
-        return true;
-    }
-
-private:
-    Player* _player;
 };
 
 struct quest_stolen_thunder : QuestScript
@@ -99,14 +132,14 @@ struct quest_stolen_thunder : QuestScript
 
     void OnQuestStatusChange(Player* player, Quest const* /*quest*/, QuestStatus /*oldStatus*/, QuestStatus newStatus) override
     {
-        if (newStatus == QUEST_STATUS_INCOMPLETE)   // just accepted -> take the flight to Shield's Rest
-            player->m_Events.AddEventAtOffset(new StolenThunderFlightEvent(player), 1500ms);
+        if (newStatus == QUEST_STATUS_INCOMPLETE) // just accepted -> fly to Shield's Rest
+            player->m_Events.AddEventAtOffset(new ShieldsRestFlightEvent(player), 1500ms);
     }
 };
 
-// Deferred cross-map transfer to the Creator's Workshop (map 1579), where "Stolen Thunder" turns in to Mimiron and
-// the Hati questline continues. The Shield's Rest tomb (1495) and the workshop (1579) are separate maps, so the
-// questline's progression between them is inherently a map transfer (retail plays a Huey cinematic across it).
+// ---------------------------------------------------------------------------------------------------------------------
+// Leg 1 -> Leg 2 transfer: the Relay Device pad pulls the party from Volund's tomb (1495) to Keeper Mimiron in the
+// Creator's Workshop (1579). Scheduled by the scenario director when scenario 1068's final step completes.
 class TitanWorkshopTransferEvent : public BasicEvent
 {
 public:
@@ -114,8 +147,8 @@ public:
 
     bool Execute(uint64 /*time*/, uint32 /*diff*/) override
     {
-        if (_player->IsInWorld() && _player->GetMapId() == 1495)   // still at Volund's tomb
-            _player->TeleportTo(1579, 2782.0f, 2546.0f, 364.0f, 3.5f);   // Creator's Workshop, by Mimiron
+        if (_player->IsInWorld() && _player->GetMapId() == MAP_SHIELDS_REST)
+            _player->TeleportTo(MAP_CREATORS_WORKSHOP, 2782.0f, 2546.0f, 364.0f, 3.5f); // beside Mimiron (106558)
         return true;
     }
 
@@ -123,40 +156,160 @@ private:
     Player* _player;
 };
 
-// Titanstrike hand-off + betrayal. Reaching Titanstrike at the end of the tomb and claiming it (clicking the Titan
-// Chest) is the retail trigger: it completes "Stolen Thunder" (objective 2 "Track down Titanstrike", a CriteriaTree
-// the incomplete import can't otherwise satisfy), then Prustaga - the vrykul "ally" - betrays the group and snatches
-// the weapon, and moments later Mimiron teleports the player to the Creator's Workshop (map 1579) to continue the
-// chain (it turns in to Mimiron there). Bound to the Titan Chest GO (249718) via gameobject_template.ScriptName.
-// Warlord Volund stays a plain hostile boss fought on the way in - he is not the completion trigger.
-struct go_titanstrike : public GameObjectAI
+// ---------------------------------------------------------------------------------------------------------------------
+// Scenario 1068 director.
+//
+// Bound to Prustaga (104949), the tomb ally, via creature_template.ScriptName. Prustaga is set active so her AI keeps
+// updating while the party roams the far end of the tomb. Each poll she reads the running InstanceScenario's current
+// step and, once a player has reached that step's landmark, fires the step's game event to advance it. Firing is
+// idempotent and gated inside the scenario on step==currentStep, so re-firing (or firing while a later step is
+// current) is a no-op; a player who runs straight to the pad simply advances one soft step per poll until they reach
+// the Volund gate. Volund's death (step 4) is driven by npc_warlord_volund below.
+struct npc_prustaga_scenario_director : public ScriptedAI
 {
-    go_titanstrike(GameObject* go) : GameObjectAI(go) { }
+    npc_prustaga_scenario_director(Creature* creature) : ScriptedAI(creature), _pollTimer(0) { }
 
-    bool OnGossipHello(Player* player) override
+    uint32 _pollTimer;
+
+    void Reset() override
     {
-        if (player->GetQuestStatus(QUEST_STOLEN_THUNDER) != QUEST_STATUS_INCOMPLETE)
-            return false;   // not on this step -> default behaviour
+        if (me->GetMap()->GetId() == MAP_SHIELDS_REST)
+            me->setActive(true);
+    }
 
-        player->CompleteQuest(QUEST_STOLEN_THUNDER);   // claim Titanstrike -> objective 2 "Track down Titanstrike"
+    // Return the first live player on the map for whom pred() holds (a landmark-reached test), else nullptr.
+    template <typename Pred>
+    Player* FindReachedPlayer(Pred pred) const
+    {
+        for (auto const& ref : me->GetMap()->GetPlayers())
+            if (Player* p = ref.GetSource())
+                if (p->IsInWorld() && p->IsAlive() && pred(p))
+                    return p;
+        return nullptr;
+    }
 
-        // The betrayal: Prustaga snatches Titanstrike and gloats.
-        if (Creature* prustaga = me->FindNearestCreature(NPC_PRUSTAGA, 100.0f))
-            prustaga->HandleEmoteCommand(EMOTE_ONESHOT_LAUGH);
+    void UpdateAI(uint32 diff) override
+    {
+        if (me->GetMap()->GetId() != MAP_SHIELDS_REST)
+            return;
 
-        // ...then Mimiron teleports the player onward to the Creator's Workshop.
-        player->m_Events.AddEventAtOffset(new TitanWorkshopTransferEvent(player), 5s);
-        return true;   // handled -> suppress the default (empty) chest loot
+        _pollTimer += diff;
+        if (_pollTimer < 1000)
+            return;
+        _pollTimer = 0;
+
+        InstanceScenario* scenario = me->GetMap()->GetInstanceScenario();
+        if (!scenario)
+            return;
+
+        ScenarioStepEntry const* step = scenario->GetStep();
+        if (!step)
+            return;
+
+        switch (step->OrderIndex)
+        {
+            case 0: // Making Introductions - anyone present at the landing meets Prustaga with Grif
+                if (Player* p = FindReachedPlayer([](Player*) { return true; }))
+                    GameEvents::Trigger(GE_MEET_PRUSTAGA, p, p);
+                break;
+            case 1: // Tomb Raider - reached the tomb entrance (Tombs Door 243522 @ y~169)
+                if (Player* p = FindReachedPlayer([](Player* pl) { return pl->GetPositionY() >= 140.0f; }))
+                    GameEvents::Trigger(GE_FIND_TOMB, p, p);
+                break;
+            case 2: // Volund's Hoard - Prustaga opens the door; the player has pushed into the tomb (passage @ y~283)
+                if (Player* p = FindReachedPlayer([](Player* pl) { return pl->GetPositionY() >= 230.0f; }))
+                    GameEvents::Trigger(GE_PROTECT_PRUSTAGA, p, p);
+                break;
+            case 3: // Every Nook and Cranny - reached the inner chamber (chest/pad/Volund @ x~4970-5010)
+                if (Player* p = FindReachedPlayer([](Player* pl) { return pl->GetPositionX() >= 4900.0f; }))
+                    GameEvents::Trigger(GE_SEARCH_TITAN, p, p);
+                break;
+            case 4: // Volund's Last Stand - completed when Warlord Volund dies (npc_warlord_volund)
+                break;
+            case 5: // Answering the Call - step onto the Relay Device pad to join Mimiron in Ulduar
+                if (Player* p = FindReachedPlayer([](Player* pl) { return pl->GetDistance(RelayDevicePad) <= 9.0f; }))
+                {
+                    GameEvents::Trigger(GE_JOIN_MIMIRON, p, p); // completes the scenario -> 41574 objective 2
+                    // Mimiron pulls everyone in the instance onward to the Creator's Workshop.
+                    for (auto const& ref : me->GetMap()->GetPlayers())
+                        if (Player* mp = ref.GetSource())
+                            if (mp->IsInWorld())
+                                mp->m_Events.AddEventAtOffset(new TitanWorkshopTransferEvent(mp), 4s);
+                }
+                break;
+            default:
+                break;
+        }
     }
 };
+
+// Warlord Volund - scenario 1068 step 4. His death fires the "Defeat Warlord Volund" game event, advancing the
+// scenario to the final step (the Relay Device pad). Bound to 104956 via creature_template.ScriptName.
+struct npc_warlord_volund : public ScriptedAI
+{
+    npc_warlord_volund(Creature* creature) : ScriptedAI(creature) { }
+
+    void JustDied(Unit* killer) override
+    {
+        if (me->GetMap()->GetId() != MAP_SHIELDS_REST)
+            return;
+
+        Player* player = killer ? killer->GetCharmerOrOwnerPlayerOrPlayerItself() : nullptr;
+        if (!player) // pet/environmental kill - fall back to any player in the instance
+            for (auto const& ref : me->GetMap()->GetPlayers())
+                if (Player* p = ref.GetSource())
+                {
+                    player = p;
+                    break;
+                }
+
+        if (player)
+            GameEvents::Trigger(GE_DEFEAT_VOLUND, player, player);
+    }
+};
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Leg 2: "The Creator's Workshop" (42158), Keeper Mimiron in Ulduar (map 1579).
+//
+// The party arrives via the Relay Device pad already holding a completed "Stolen Thunder" to turn in to Mimiron, who
+// then offers 42158. Its single objective is a scripted assist (kill-credit 106559 "Mimiron Assisted"), not combat;
+// we grant it shortly after the quest is accepted so it can be handed straight back to Mimiron, who in turn offers
+// "Never Hunt Alone" (42185). Bound to 42158 via quest_template_addon.ScriptName.
+class CreatorsWorkshopAssistEvent : public BasicEvent
+{
+public:
+    explicit CreatorsWorkshopAssistEvent(Player* player) : _player(player) { }
+
+    bool Execute(uint64 /*time*/, uint32 /*diff*/) override
+    {
+        if (_player->IsInWorld())
+            _player->KilledMonsterCredit(NPC_CREDIT_MIMIRON_ASSIST);
+        return true;
+    }
+
+private:
+    Player* _player;
+};
+
+struct quest_creators_workshop : QuestScript
+{
+    quest_creators_workshop() : QuestScript("quest_creators_workshop") { }
+
+    void OnQuestStatusChange(Player* player, Quest const* /*quest*/, QuestStatus /*oldStatus*/, QuestStatus newStatus) override
+    {
+        if (newStatus == QUEST_STATUS_INCOMPLETE) // just accepted -> assist Mimiron
+            player->m_Events.AddEventAtOffset(new CreatorsWorkshopAssistEvent(player), 2s);
+    }
+};
+
 void AddSC_orderhall_hunter()
 {
     // Quest
     new quest_stolen_thunder();
+    new quest_creators_workshop();
 
     // Creature
     RegisterCreatureAI(npc_grif_wildheart_flight);
-
-    // GameObject
-    RegisterGameObjectAI(go_titanstrike);
+    RegisterCreatureAI(npc_prustaga_scenario_director);
+    RegisterCreatureAI(npc_warlord_volund);
 }
