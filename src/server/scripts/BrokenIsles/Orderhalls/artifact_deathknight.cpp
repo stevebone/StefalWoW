@@ -250,7 +250,7 @@ struct npc_dk_ariden : public ScriptedAI
 
     void JustEngagedWith(Unit* /*who*/) override
     {
-        me->Yell("You should not have come here, death knight. Apocalypse is mine, and mine it shall remain!", LANG_UNIVERSAL);
+        me->Yell("So this is what you're after? The artifacts belong here! Your Light does not reach here -- come and claim it!", LANG_UNIVERSAL);
     }
 
     void JustDied(Unit* /*killer*/) override
@@ -258,7 +258,7 @@ struct npc_dk_ariden : public ScriptedAI
         if (me->GetMap()->GetId() != MAP_KARAZHAN_CATACOMBS)
             return;
 
-        me->Yell("The Dark Riders... will avenge... me...", LANG_UNIVERSAL);
+        me->Yell("S... souls of the dead! Aid your master!", LANG_UNIVERSAL);
 
         for (auto const& ref : me->GetMap()->GetPlayers())
             if (Player* p = ref.GetSource())
@@ -266,6 +266,7 @@ struct npc_dk_ariden : public ScriptedAI
                 {
                     p->KilledMonsterCredit(CREDIT_DEFEAT_DARK_RIDERS); // 100813
                     p->KilledMonsterCredit(CREDIT_APOCALYPSE_LOOTED);  // 102571 - Apocalypse claimed
+                    ArtifactPlayScene(me->GetMap(), 1603); // DK Unholy - Apocalypse loot scene
                     p->m_Events.AddEventAtOffset(new DkChainStepEvent(p, {}, {}, MAP_DEADWIND_PASS, AridenReturnPos), 5s);
                 }
     }
@@ -359,7 +360,11 @@ struct npc_dk_blades_scenario_director : public ScriptedAI
                 if (_orderTimer >= 4000) ArtifactAdvanceScenario(me);
                 break;
             case 1: // The Gates Are Open - enter the citadel
-                if (ArtifactPlayerNear(me, IccCitadelBand, 120.0f)) ArtifactAdvanceScenario(me);
+                if (ArtifactPlayerNear(me, IccCitadelBand, 120.0f))
+                {
+                    ArtifactPlayScene(me->GetMap(), 1467); // DK Frost - Icecrown entrance scene
+                    ArtifactAdvanceScenario(me);
+                }
                 break;
             case 2: // Seek the Fragments - the Frostmourne shards
                 if (ArtifactPlayerNear(me, IccCitadelBand, 60.0f))
@@ -391,7 +396,11 @@ struct npc_dk_blades_scenario_director : public ScriptedAI
                 if (_orderTimer >= 4000) ArtifactAdvanceScenario(me);
                 break;
             case 6: // The Hungering Cold - claim the Blades
-                if (_orderTimer == 0) me->Say("The Blades of the Fallen Prince are yours now. Take them, and wield them well.", LANG_UNIVERSAL);
+                if (_orderTimer == 0)
+                {
+                    me->Say("The Blades of the Fallen Prince are yours now. Take them, and wield them well.", LANG_UNIVERSAL);
+                    ArtifactPlayScene(me->GetMap(), 1466); // DK Frost - Blades loot scene
+                }
                 if (_orderTimer >= 4000) ArtifactAdvanceScenario(me);
                 break;
             case 7: // Death's March - the Lich King's Blessing

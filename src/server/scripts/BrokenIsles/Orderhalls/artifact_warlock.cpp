@@ -238,6 +238,8 @@ struct npc_warlock_afflic_director : public ScriptedAI
             for (int i = 0; i < 8; ++i) // finish the on-screen scenario steps
                 ArtifactAdvanceScenario(me);
 
+            ArtifactPlayScene(me->GetMap(), 1573); // Warlock Affliction - Ulthalesh loot scene
+
             for (auto const& ref : me->GetMap()->GetPlayers())
                 if (Player* p = ref.GetSource())
                     if (p->IsInWorld())
@@ -370,7 +372,10 @@ struct quest_warlock_dark_whispers : QuestScript
     void OnQuestStatusChange(Player* player, Quest const* /*quest*/, QuestStatus /*oldStatus*/, QuestStatus newStatus) override
     {
         if (newStatus == QUEST_STATUS_INCOMPLETE) // take the Skull, then return to Calydus at the Dreadscar for turn-in
+        {
+            ArtifactPlayScene(player->GetMap(), 1617); // Warlock Demonology - Skull of the Man'ari loot scene
             ScheduleAction(player, { CREDIT_NISKARA_BUNNY, CREDIT_KILL_CREDIT }, QUEST_DARK_WHISPERS, MAP_DREADSCAR_RIFT, DreadscarReturn, 1500ms);
+        }
     }
 };
 
@@ -486,8 +491,12 @@ struct quest_warlock_ritual_ruination : QuestScript
     void OnQuestStatusChange(Player* player, Quest const* /*quest*/, QuestStatus /*oldStatus*/, QuestStatus newStatus) override
     {
         if (newStatus == QUEST_STATUS_INCOMPLETE) // scripted finale: fel-bat ride, Gul'dan, kill Allaris, loot, escape
+        {
+            ArtifactPlayScene(player->GetMap(), 1718); // Warlock Destruction - Broken Shore ritual/betrayal set-piece
             ScheduleAction(player, { CREDIT_FEL_BAT_RIDE, CREDIT_GULDAN_LISTENED, CREDIT_KILLED_ALLARIS,
                 CREDIT_ARTIFACT_LOOTED, CREDIT_RITUAL_RUINED, CREDIT_ESCAPE_DALARAN }, QUEST_RITUAL_RUINATION, -1, {}, 1500ms);
+            ArtifactPlayScene(player->GetMap(), 1681); // Warlock Destruction - Scepter of Sargeras loot scene
+        }
     }
 };
 

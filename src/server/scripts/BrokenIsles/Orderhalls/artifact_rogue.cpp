@@ -161,8 +161,15 @@ struct npc_kingslayers_melris : public ScriptedAI
 
     void Reset() override { me->SetFaction(FACTION_MONSTER_2); } // 16 - hostile final boss
 
+    void JustEngagedWith(Unit* /*who*/) override
+    {
+        ArtifactPlayScene(me->GetMap(), 1651); // Rogue Assassination - Melris reveal
+    }
+
     void JustDied(Unit* /*killer*/) override
     {
+        ArtifactPlayScene(me->GetMap(), 1654); // Kingslayers looted (artifact-claim cinematic)
+
         for (auto const& ref : me->GetMap()->GetPlayers())
             if (Player* p = ref.GetSource())
                 if (p->IsInWorld())
@@ -209,6 +216,7 @@ public:
             _player->KilledMonsterCredit(NPC_DREADBLADES_START);                    // obj0 (commandeer the ship)
             _player->TeleportTo(MAP_DREADBLADES, DreadbladesLanding.GetPositionX(), DreadbladesLanding.GetPositionY(),
                 DreadbladesLanding.GetPositionZ(), DreadbladesLanding.GetOrientation());
+            ArtifactPlayScene(_player->GetMap(), 1552); // Ship Leaves intro (pre-scenario boat departure)
         }
         return true;
     }
@@ -273,8 +281,15 @@ struct npc_dreadblades_eliza : public ScriptedAI
 {
     npc_dreadblades_eliza(Creature* creature) : ScriptedAI(creature) { }
 
+    void JustEngagedWith(Unit* /*who*/) override
+    {
+        ArtifactPlayScene(me->GetMap(), 1554); // Rogue Outlaw - Eliza reveal
+    }
+
     void JustDied(Unit* /*killer*/) override
     {
+        ArtifactPlayScene(me->GetMap(), 1555); // Dreadblades looted (artifact-claim cinematic)
+
         for (auto const& ref : me->GetMap()->GetPlayers())
             if (Player* p = ref.GetSource())
                 if (p->IsInWorld())
@@ -383,8 +398,15 @@ struct npc_devourer_akaari_final : public ScriptedAI
 {
     npc_devourer_akaari_final(Creature* creature) : ScriptedAI(creature) { }
 
+    void JustEngagedWith(Unit* /*who*/) override
+    {
+        ArtifactPlayScene(me->GetMap(), 1608); // Rogue Subtlety - Akaari reveal / Kil'jaeden ceremony
+    }
+
     void JustDied(Unit* /*killer*/) override
     {
+        ArtifactPlayScene(me->GetMap(), 1612); // Fangs of the Devourer looted (artifact-claim cinematic)
+
         for (auto const& ref : me->GetMap()->GetPlayers())
             if (Player* p = ref.GetSource())
                 if (p->IsInWorld())

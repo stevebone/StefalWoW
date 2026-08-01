@@ -214,7 +214,7 @@ struct npc_lord_korithis : public ScriptedAI
 
     void JustEngagedWith(Unit* /*who*/) override
     {
-        me->Yell("Yu'lon's brood will burn, and the Legion will feast on your ashes!", LANG_UNIVERSAL);
+        me->Yell("Your mortal allies will not help you, little snake! Your doom is at hand!", LANG_UNIVERSAL);
     }
 
     void JustDied(Unit* killer) override
@@ -227,6 +227,8 @@ struct npc_lord_korithis : public ScriptedAI
         if (Scenario* s = me->GetScenario())
             if (s->GetStep())
                 ArtifactAdvanceScenario(me); // step "Fu Zan, the Wanderer's Companion"
+
+        ArtifactPlayScene(me->GetMap(), 1668); // Monk Brewmaster - Fu Zan loot scene
 
         Player* credited = ResolveCreditPlayer(me, killer);
         for (auto const& ref : me->GetMap()->GetPlayers())
@@ -326,6 +328,8 @@ struct npc_aspersius : public ScriptedAI
             if (s->GetStep())
                 ArtifactAdvanceScenario(me); // step "The Emperor's Final Gift"
 
+        ArtifactPlayScene(me->GetMap(), 1557); // Monk Mistweaver - Sheilun loot scene
+
         Player* credited = ResolveCreditPlayer(me, killer);
         for (auto const& ref : me->GetMap()->GetPlayers())
             if (Player* p = ref.GetSource())
@@ -411,7 +415,7 @@ struct npc_typhinius : public ScriptedAI
 
     void JustEngagedWith(Unit* /*who*/) override
     {
-        me->Yell("The heavens answer to me alone! You will be scattered on the wind!", LANG_UNIVERSAL);
+        me->Yell("Are all of my servants weaklings? Fine, I shall end you myself!", LANG_UNIVERSAL);
     }
 
     void JustDied(Unit* killer) override
@@ -424,6 +428,8 @@ struct npc_typhinius : public ScriptedAI
         if (Scenario* s = me->GetScenario())
             if (s->GetStep())
                 ArtifactAdvanceScenario(me); // step "Fists of the Heavens"
+
+        ArtifactPlayScene(me->GetMap(), 1524); // Monk Windwalker - Fists of the Heavens loot scene
 
         Player* credited = ResolveCreditPlayer(me, killer);
         for (auto const& ref : me->GetMap()->GetPlayers())

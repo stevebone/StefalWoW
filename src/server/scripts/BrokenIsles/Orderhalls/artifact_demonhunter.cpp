@@ -200,7 +200,10 @@ struct npc_varedis_felsoul : public ScriptedAI
     void JustEngagedWith(Unit* /*who*/) override
     {
         if (me->GetMap()->GetId() == MAP_FELSOUL_HOLD)
-            me->Yell("You dare turn Illidan's gift against your own? I will scatter your ashes across Mardum!", LANG_UNIVERSAL);
+        {
+            me->Yell("So, Illidari, you seek my head, that you might take the Twinblades as your own? Allow me to introduce you to their power... personally.", LANG_UNIVERSAL);
+            ArtifactPlayScene(me->GetMap(), 1054); // DH Havoc - Varedis reveal scene
+        }
     }
 
     void JustDied(Unit* /*killer*/) override
@@ -208,8 +211,9 @@ struct npc_varedis_felsoul : public ScriptedAI
         if (me->GetMap()->GetId() != MAP_FELSOUL_HOLD)
             return;
 
-        me->Yell("The blades... were never... yours to take...", LANG_UNIVERSAL);
+        me->Yell("I have no need for mortal armaments! This is not over... Illidari.", LANG_UNIVERSAL);
         ArtifactAdvanceScenario(me); // on-screen scenario final beat (no-op if no scenario running)
+        ArtifactPlayScene(me->GetMap(), 1063); // DH Havoc - Twinblades looted
 
         for (auto const& ref : me->GetMap()->GetPlayers())
             if (Player* p = ref.GetSource())
@@ -299,7 +303,7 @@ struct npc_caria_felsoul : public ScriptedAI
     void JustEngagedWith(Unit* /*who*/) override
     {
         if (me->GetMap()->GetId() == MAP_BROKEN_SHORE_SCENARIO)
-            me->Yell("The Legion will drown this world in fel! You are already too late, Illidari!", LANG_UNIVERSAL);
+            me->Yell("WITNESS THE MIGHT OF THE ALDRACHI!", LANG_UNIVERSAL);
     }
 
     void JustDied(Unit* /*killer*/) override
@@ -307,8 +311,9 @@ struct npc_caria_felsoul : public ScriptedAI
         if (me->GetMap()->GetId() != MAP_BROKEN_SHORE_SCENARIO)
             return;
 
-        me->Yell("Sargeras... will... avenge me...", LANG_UNIVERSAL);
+        me->Yell("I will... be... reborn...", LANG_UNIVERSAL);
         ArtifactAdvanceScenario(me); // on-screen scenario final beat (no-op if no scenario running)
+        ArtifactPlayScene(me->GetMap(), 1245); // DH Vengeance - Warblades looted
 
         for (auto const& ref : me->GetMap()->GetPlayers())
             if (Player* p = ref.GetSource())
