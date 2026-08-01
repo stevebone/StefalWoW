@@ -510,6 +510,22 @@ struct quest_stolen_thunder : QuestScript
     }
 };
 
+// Titanstrike hand-off: defeating Warlord Volund (104956) at the end of the tomb completes "Stolen Thunder" for the
+// killer - objective 2 "Track down Titanstrike" (a CriteriaTree the incomplete import can't otherwise satisfy: the
+// tomb's Titan Chest has no loot table and there is no scenario framework here). Completing the quest lets the chain
+// continue (it turns in to Mimiron on map 1579). Bound to Warlord Volund via creature_template.ScriptName.
+struct npc_warlord_volund : public ScriptedAI
+{
+    npc_warlord_volund(Creature* creature) : ScriptedAI(creature) { }
+
+    void JustDied(Unit* killer) override
+    {
+        Player* player = killer ? killer->GetCharmerOrOwnerPlayerOrPlayerItself() : nullptr;
+        if (player && player->GetQuestStatus(QUEST_STOLEN_THUNDER) == QUEST_STATUS_INCOMPLETE)
+            player->CompleteQuest(QUEST_STOLEN_THUNDER);
+    }
+};
+
 void AddSC_garrison_generic()
 {
     // AreaTrigger
@@ -521,6 +537,7 @@ void AddSC_garrison_generic()
 
     // Creature
     RegisterCreatureAI(npc_grif_wildheart_flight);
+    RegisterCreatureAI(npc_warlord_volund);
 
     // Quest
     new quest_garrison_shipyard_intro();
