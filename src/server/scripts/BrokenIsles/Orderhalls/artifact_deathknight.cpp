@@ -428,13 +428,99 @@ struct npc_dk_blades_scenario_director : public ScriptedAI
 };
 
 // =====================================================================================================================
-// Blood artifact: "Maw of the Damned" - NOT IMPLEMENTED (documented, not stubbed).
+// Blood artifact: "Maw of the Damned" - quest 40740 "The Dead and the Damned".
 //
-// The world DB has no Blood acquisition quest_template, no quest_objectives, and the two "Maw of the Damned" display
-// creatures (103795 / 101478) are unspawned. Making it completable requires authoring a full quest_template +
-// quest_objectives (kill boss + "artifact looted" credit) and spawning an encounter, which is outside the scope of the
-// ScriptName/spawn SQL used here. No non-functional C++ is emitted for it; see risks for the authoring outline.
+// The quest IS in the world DB (given + turned in by Highlord Darion Mograine, 93437/113695, in Dalaran map 1220), but
+// shipped with NO objectives and NO encounter, so it auto-completed on accept and had no cutscene. We add a single
+// kill-Gorelix objective (SQL) and script the acquisition: on accept we fly the player to the Broken Shore (the retail
+// finale leg) and TRANSIENTLY summon Gorelix the Fleshripper (101778) - a TempSummon rather than a permanent spawn, so
+// he never bleeds into the OTHER classes' runs that share the Broken Shore scenario map (1500). Gorelix's reveal (scene
+// 1561) plays on engage and his death plays the Maw-of-the-Damned loot scene (1532), grants the kill objective, and
+// returns the player to Darion to hand 40740 in.
+//
+// LIMITATION: the exact retail encounter spot (Dalaran -> Darkstone Isle -> a Demon Portal on the Broken Shore) is not
+// in our DB; we reuse the verified Broken Shore scenario landing as a best-effort location. The Darkstone Isle leg and
+// the Lich King closing charge (Icecrown) are not reproduced. See the gap list.
 // =====================================================================================================================
+enum MawOfTheDamnedData
+{
+    QUEST_THE_DEAD_AND_THE_DAMNED = 40740,
+    NPC_GORELIX                   = 101778, // Gorelix the Fleshripper (already faction 16 / hostile in the DB)
+    MAP_BLOOD_BROKEN_SHORE        = 1500,   // shared Broken Shore scenario map - we only TempSummon here
+    MAP_DALARAN_BROKEN_ISLES      = 1220    // Darion Mograine (turn-in) is here
+};
+
+// Best-effort Broken Shore encounter spot (reuses the verified scenario landing) + Gorelix a few yards ahead, and the
+// return point beside Darion in Dalaran (the questender's spawn).
+static constexpr Position BloodBrokenShoreLanding = { -2505.00f, 118.00f, 9.40f, 6.00f };
+static constexpr Position GorelixSummonPos        = { -2492.00f, 118.00f, 9.40f, 3.14f };
+static constexpr Position DarionReturnPos         = { -1438.80f, 1160.70f, 319.10f, 3.90f };
+
+// Summons Gorelix beside the player AFTER the flight has landed them on the Broken Shore (a separate delayed event so
+// the summon lands on the destination map, not the origin). TempSummon => transient, no permanent shared-map spawn.
+class BloodGorelixSummonEvent : public BasicEvent
+{
+public:
+    explicit BloodGorelixSummonEvent(Player* player) : _player(player) { }
+
+    bool Execute(uint64 /*time*/, uint32 /*diff*/) override
+    {
+        if (_player->IsInWorld() && _player->GetMap()->GetId() == MAP_BLOOD_BROKEN_SHORE)
+            _player->SummonCreature(NPC_GORELIX, GorelixSummonPos, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 60s);
+        return true;
+    }
+
+private:
+    Player* _player;
+};
+
+// On accept (the quest has a kill objective now, so it enters INCOMPLETE): fly to the Broken Shore, then summon Gorelix.
+class quest_dk_the_dead_and_the_damned : public QuestScript
+{
+public:
+    quest_dk_the_dead_and_the_damned() : QuestScript("quest_dk_the_dead_and_the_damned") { }
+
+    void OnQuestStatusChange(Player* player, Quest const* /*quest*/, QuestStatus /*oldStatus*/, QuestStatus newStatus) override
+    {
+        if (newStatus != QUEST_STATUS_INCOMPLETE)
+            return;
+
+        player->m_Events.AddEventAtOffset(new DkChainStepEvent(player, {}, {}, MAP_BLOOD_BROKEN_SHORE, BloodBrokenShoreLanding), 1500ms);
+        player->m_Events.AddEventAtOffset(new BloodGorelixSummonEvent(player), 4s);
+    }
+};
+
+// Gorelix the Fleshripper - the Blood acquisition boss. Reveal scene on engage, Maw-of-the-Damned loot scene + kill
+// credit + return-to-Darion on death.
+struct npc_dk_gorelix : public ScriptedAI
+{
+    npc_dk_gorelix(Creature* creature) : ScriptedAI(creature) { }
+
+    void Reset() override
+    {
+        me->SetFaction(FACTION_MONSTER_2); // faction 16 - hostile
+    }
+
+    void JustEngagedWith(Unit* /*who*/) override
+    {
+        me->Yell("What is this? More foolish mortals infesting my realm? You've come a long way just to die.", LANG_UNIVERSAL);
+        ArtifactPlayScene(me->GetMap(), 1561); // DK Blood - Gorelix reveal scene
+    }
+
+    void JustDied(Unit* /*killer*/) override
+    {
+        me->Yell("Netrezaar... take... you...", LANG_UNIVERSAL);
+        ArtifactPlayScene(me->GetMap(), 1532); // DK Blood - Maw of the Damned loot scene
+
+        for (auto const& ref : me->GetMap()->GetPlayers())
+            if (Player* p = ref.GetSource())
+                if (p->IsInWorld() && p->GetQuestStatus(QUEST_THE_DEAD_AND_THE_DAMNED) == QUEST_STATUS_INCOMPLETE)
+                {
+                    p->KilledMonsterCredit(NPC_GORELIX); // completes the kill objective (also auto-credited on death)
+                    p->m_Events.AddEventAtOffset(new DkChainStepEvent(p, {}, {}, MAP_DALARAN_BROKEN_ISLES, DarionReturnPos), 5s);
+                }
+    }
+};
 
 void AddSC_artifact_deathknight()
 {
@@ -449,4 +535,8 @@ void AddSC_artifact_deathknight()
 
     // Frost - "Blades of the Fallen Prince" scenario 901
     RegisterCreatureAI(npc_dk_blades_scenario_director);
+
+    // Blood - "Maw of the Damned" (quest 40740)
+    new quest_dk_the_dead_and_the_damned();
+    RegisterCreatureAI(npc_dk_gorelix);
 }
