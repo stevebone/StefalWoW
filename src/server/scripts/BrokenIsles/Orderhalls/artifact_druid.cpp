@@ -356,6 +356,100 @@ struct quest_cleansing_the_mother_tree : QuestScript
 };
 
 // =====================================================================================================================
+// Guardian artifact: Claws of Ursoc.
+//   40647 "When Dreams Become Nightmares" (Lea Stonepaw 104535 -> ender 105354) - the Ursoc's Lair scenario (Emerald
+//        Dream/Nightmare). obj 101390 "Arch-Desecrator Malithar" (kill the boss - auto-credited by his death);
+//        obj 104543 "Dreaming Bunny" (a stage credit); obj 101334 "Complete the Ursoc's Lair Scenario".
+// Ursoc's Lair (map 1536) is already populated in integ_world (Spirit of Ursoc 101362, the Claws of Ursoc display
+// 105331, the in-lair Lea Stonepaw 105243, Rothoof trash) but had no boss and no quest-giver, so 40647 was unobtainable
+// and had no encounter. The SQL spawns the giver/ender Lea in the Dreamgrove (beside the other Druid artifact givers)
+// and spawns Malithar AT the Claws (the retail fight spot - he claims the Claws and fights there). On accept we teleport
+// the player into the lair; Malithar's death grants the two credit objectives, completes 40647, and returns the player
+// to the Dreamgrove to hand in.
+//
+// LIMITATION: the mid-scenario Xavius betrayal cinematic (Xavius appears, kidnaps Ursoc, leaves Malithar to seize the
+// Claws) is not reproduced - Malithar stands at the Claws from the start and delivers the transform line on engage.
+// There is no verified acquisition Scene for Guardian (Conversation-driven; sceneId 0), so dialogue is creature Say/Yell
+// (canon lines, correctly attributed to the in-lair Ursoc/Lea where they are present).
+// =====================================================================================================================
+enum ClawsOfUrsocData
+{
+    QUEST_WHEN_DREAMS_BECOME_NIGHTMARES = 40647,
+    MAP_URSOCS_LAIR                     = 1536,
+    MAP_DRUID_DREAMGROVE                = 1220,
+    NPC_ARCH_DESECRATOR_MALITHAR        = 101390,
+    NPC_SPIRIT_OF_URSOC                 = 101362,
+    NPC_LEA_STONEPAW_LAIR               = 105243,
+    CREDIT_DREAMING_BUNNY               = 104543, // stage credit (obj)
+    CREDIT_URSOCS_LAIR_COMPLETE         = 101334  // "Complete the Ursoc's Lair Scenario" (obj)
+};
+
+// Enter beside the in-lair Lea; return beside the Dreamgrove givers to hand in.
+static constexpr Position UrsocsLairEntrance = { -12412.00f, -12977.40f, 318.16f, 1.57f };
+static constexpr Position DreamgroveReturn   = { 3970.50f, 7395.00f, 24.00f, 5.35f };
+
+// Simple teleport helper (this file has no shared teleport event).
+class GuardianTeleportEvent : public BasicEvent
+{
+public:
+    GuardianTeleportEvent(Player* player, uint32 map, Position pos) : _player(player), _map(map), _pos(pos) { }
+    bool Execute(uint64 /*time*/, uint32 /*diff*/) override
+    {
+        if (_player->IsInWorld())
+            _player->TeleportTo(_map, _pos.GetPositionX(), _pos.GetPositionY(), _pos.GetPositionZ(), _pos.GetOrientation());
+        return true;
+    }
+private:
+    Player* _player;
+    uint32 _map;
+    Position _pos;
+};
+
+struct quest_when_dreams_become_nightmares : QuestScript
+{
+    quest_when_dreams_become_nightmares() : QuestScript("quest_when_dreams_become_nightmares") { }
+
+    void OnQuestStatusChange(Player* player, Quest const* /*quest*/, QuestStatus /*oldStatus*/, QuestStatus newStatus) override
+    {
+        if (newStatus == QUEST_STATUS_INCOMPLETE) // just accepted -> enter Ursoc's Lair
+            player->m_Events.AddEventAtOffset(new GuardianTeleportEvent(player, MAP_URSOCS_LAIR, UrsocsLairEntrance), 1500ms);
+    }
+};
+
+// Arch-Desecrator Malithar (101390) - the Guardian boss, wielding the corrupted Claws of Ursoc. Placeholder faction 35
+// -> hostile in Reset(). Death grants the two credit objectives (the kill of Malithar auto-credits obj 101390),
+// completes 40647, and returns the player to the Dreamgrove. Bound to 101390 via creature_template.ScriptName.
+struct npc_malithar : public ScriptedAI
+{
+    npc_malithar(Creature* creature) : ScriptedAI(creature) { }
+
+    void Reset() override { me->SetFaction(FACTION_MONSTER_2); } // faction 16 - attackable
+
+    void JustEngagedWith(Unit* /*who*/) override
+    {
+        if (Creature* ursoc = me->FindNearestCreature(NPC_SPIRIT_OF_URSOC, 200.0f))
+            ursoc->Yell("Vile beasts of the Nightmare! You will never take my claws!", LANG_UNIVERSAL);
+        me->Yell("AAARRRRGGGHHHH!!! THE CLAWS! THEY THIRST FOR BLOOD!!", LANG_UNIVERSAL);
+    }
+
+    void JustDied(Unit* /*killer*/) override
+    {
+        me->Yell("The claws... slip from my grasp...", LANG_UNIVERSAL);
+        if (Creature* lea = me->FindNearestCreature(NPC_LEA_STONEPAW_LAIR, 200.0f))
+            lea->Say("You did it! You got him! The claws are reclaimed!", LANG_UNIVERSAL);
+
+        for (auto const& ref : me->GetMap()->GetPlayers())
+            if (Player* p = ref.GetSource())
+                if (p->IsInWorld() && p->GetQuestStatus(QUEST_WHEN_DREAMS_BECOME_NIGHTMARES) == QUEST_STATUS_INCOMPLETE)
+                {
+                    p->KilledMonsterCredit(CREDIT_DREAMING_BUNNY);       // obj 104543
+                    p->KilledMonsterCredit(CREDIT_URSOCS_LAIR_COMPLETE); // obj 101334 (obj 101390 = Malithar's own death)
+                    p->m_Events.AddEventAtOffset(new GuardianTeleportEvent(p, MAP_DRUID_DREAMGROVE, DreamgroveReturn), 5s);
+                }
+    }
+};
+
+// =====================================================================================================================
 void AddSC_artifact_druid()
 {
     // Quest
@@ -365,8 +459,10 @@ void AddSC_artifact_druid()
     new quest_shrine_in_peril();            // 42440 Feral
     new quest_fangs_of_ashamane();          // 42430 Feral
     new quest_cleansing_the_mother_tree();  // 41689 Restoration
+    new quest_when_dreams_become_nightmares(); // 40647 Guardian
 
     // Creature
     RegisterCreatureAI(npc_ebonfang);           // 107729 Feral boss
     RegisterCreatureAI(npc_eredar_soul_lasher); // 107535 Feral adds
+    RegisterCreatureAI(npc_malithar);           // 101390 Guardian boss
 }
