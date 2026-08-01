@@ -474,6 +474,42 @@ struct npc_grif_wildheart_flight : public ScriptedAI
     }
 };
 
+// Robust, phase-independent flight trigger for "Stolen Thunder" (41574). Talking to Grif is unreliable at this step -
+// there are several Grif spawns with mixed phasing plus a SmartAI one, so the gossip interaction doesn't consistently
+// reach the bound creature. Also fly the player when they ACCEPT the quest: credit the flight objective (104993) and
+// drop them at the Shield's Rest landing. Deferred ~1.5s so the accept flow settles before the map change. Bound via
+// quest_template_addon.ScriptName; the npc_grif_wildheart_flight gossip above still works whenever the player does
+// reach an interactable bound Grif.
+class StolenThunderFlightEvent : public BasicEvent
+{
+public:
+    explicit StolenThunderFlightEvent(Player* player) : _player(player) { }
+
+    bool Execute(uint64 /*time*/, uint32 /*diff*/) override
+    {
+        if (_player->IsInWorld())
+        {
+            _player->KilledMonsterCredit(NPC_CREDIT_FLY_TO_SHIELDS_REST);
+            _player->TeleportTo(MAP_STORMHEIM_SHIELDS_REST, 4803.4f, 78.0f, -2.5f, 1.38f);
+        }
+        return true;
+    }
+
+private:
+    Player* _player;
+};
+
+struct quest_stolen_thunder : QuestScript
+{
+    quest_stolen_thunder() : QuestScript("quest_stolen_thunder") { }
+
+    void OnQuestStatusChange(Player* player, Quest const* /*quest*/, QuestStatus /*oldStatus*/, QuestStatus newStatus) override
+    {
+        if (newStatus == QUEST_STATUS_INCOMPLETE)   // just accepted -> take the flight to Shield's Rest
+            player->m_Events.AddEventAtOffset(new StolenThunderFlightEvent(player), 1500ms);
+    }
+};
+
 void AddSC_garrison_generic()
 {
     // AreaTrigger
@@ -489,6 +525,7 @@ void AddSC_garrison_generic()
     // Quest
     new quest_garrison_shipyard_intro();
     new quest_class_order_hall();
+    new quest_stolen_thunder();
 
     // Player
     new class_hall_messenger();

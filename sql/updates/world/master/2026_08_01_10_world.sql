@@ -8,3 +8,9 @@
 -- questgiver-only flag does nothing once the quest is in progress) which fires the script's OnGossipHello.
 --
 UPDATE `creature_template` SET `ScriptName`='npc_grif_wildheart_flight', `npcflag`=`npcflag`|1 WHERE `entry` IN (104381, 106879);
+
+-- Phase-independent fallback: fly the player to Shield's Rest when they ACCEPT "Stolen Thunder" (41574), since the
+-- Grif gossip interaction is unreliable at this step (mixed-phase Grif spawns). The quest script credits the flight
+-- objective (104993) and transports the player to the Shield's Rest landing on a short deferred event.
+INSERT INTO `quest_template_addon` (`ID`, `ScriptName`) VALUES (41574, 'quest_stolen_thunder')
+ON DUPLICATE KEY UPDATE `ScriptName` = VALUES(`ScriptName`);
