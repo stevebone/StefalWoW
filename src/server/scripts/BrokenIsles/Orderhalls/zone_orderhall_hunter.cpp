@@ -42,8 +42,10 @@
 #include "GameEventSender.h"
 #include "GameObject.h"
 #include "GameObjectAI.h"
+#include "Log.h"
 #include "Map.h"
 #include "MotionMaster.h"
+#include "ObjectAccessor.h"
 #include "Player.h"
 #include "QuestDef.h"
 #include "Scenario.h"
@@ -82,6 +84,19 @@ enum Scenario1068GameEvents
 // Relay Device pad (GO 249717) at the back of the tomb - a scenery (type-5) teleporter enabled by the scenario at
 // step 5. It is not client-clickable, so we complete step 5 by proximity when the player stands on it.
 static constexpr Position RelayDevicePad = { 4970.3f, 297.5f, -37.5f, 0.0f };
+
+// The escort: Prustaga leads the Hunter from the landing into the tomb, Grif (104904) at her side, both speaking the
+// scenario's lines. She pauses at each beat for the player to catch up. Progression is gated on how far the PLAYER has
+// pushed from the landing (below), NOT on the escort reaching a spot - so a mispathed escort can never block the run.
+enum { NPC_GRIF_LANDING = 104904 };
+static constexpr Position TombLanding = { 4803.4f, 78.0f, -2.5f, 1.38f };
+static constexpr Position TombBeat1   = { 4810.0f, 165.0f, -11.0f, 1.40f }; // tomb entrance   (step 1 Tomb Raider)
+static constexpr Position TombBeat2   = { 4844.0f, 285.0f, -29.0f, 1.40f }; // rune door       (step 2 Volund's Hoard)
+static constexpr Position TombBeat3   = { 4945.0f, 297.0f, -37.0f, 3.10f }; // the hoard room  (step 3 Every Nook)
+// Player distance-from-landing thresholds that fire steps 1/2/3 (monotonic, so rushing ahead still counts).
+static constexpr float StepDist1 = 65.0f;
+static constexpr float StepDist2 = 165.0f;
+static constexpr float StepDist3 = 235.0f;
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Leg 0: the flight to Shield's Rest.
@@ -159,19 +174,30 @@ private:
 };
 
 // ---------------------------------------------------------------------------------------------------------------------
-// Scenario 1068 director.
+// Scenario 1068 director + escort. Bound to Prustaga (104949) via creature_template.ScriptName; she is set active so
+// her AI runs wherever the party is.
 //
-// Bound to Prustaga (104949), the tomb ally, via creature_template.ScriptName. Prustaga is set active so her AI keeps
-// updating while the party roams the far end of the tomb. Each poll she reads the running InstanceScenario's current
-// step and, once a player has reached that step's landmark, fires the step's game event to advance it. Firing is
-// idempotent and gated inside the scenario on step==currentStep, so re-firing (or firing while a later step is
-// current) is a no-op; a player who runs straight to the pad simply advances one soft step per poll until they reach
-// the Volund gate. Volund's death (step 4) is driven by npc_warlord_volund below.
+// She plays the retail beats rather than ticking steps off in place: a short spoken introduction at the landing (with
+// Grif 104904), then she runs the Hunter into the tomb - Grif at her side, both speaking the scenario's lines - and
+// pauses at each beat (tomb entrance -> rune door she "dispels" -> the hoard room) for the player to keep up. Warlord
+// Volund's death (npc_warlord_volund) drives stage 4; at stage 5 she voices the betrayal and the Relay Device pad
+// sends the party to Mimiron.
+//
+// Crucially the scenario STEPS advance on how far the PLAYER has pushed from the landing (StepDist1/2/3) and on the
+// player reaching the pad - never on the escort reaching a spot - so if her path ever snags on the tomb geometry the
+// run still completes. The escort is the show; the player's own progress is the gate.
 struct npc_prustaga_scenario_director : public ScriptedAI
 {
-    npc_prustaga_scenario_director(Creature* creature) : ScriptedAI(creature), _pollTimer(0) { }
+    npc_prustaga_scenario_director(Creature* creature) : ScriptedAI(creature) { }
 
-    uint32 _pollTimer;
+    uint32 _pollTimer = 0;
+    uint32 _introTimer = 0;
+    uint8  _introLine = 0;
+    bool   _escortStarted = false;
+    uint8  _leadBeat = 0;       // beat Prustaga is currently walking to (1..3), 0 = not moving yet
+    bool   _leadArrived = false;
+    bool   _betrayed = false;
+    ObjectGuid _grifGuid;
 
     void Reset() override
     {
@@ -179,16 +205,29 @@ struct npc_prustaga_scenario_director : public ScriptedAI
             me->setActive(true);
     }
 
-    // Return the first live player on the map for whom pred() holds (a landmark-reached test), else nullptr.
-    template <typename Pred>
-    Player* FindReachedPlayer(Pred pred) const
+    // First live player within `within` yards of `pos` (a "player has reached here" test), else nullptr.
+    Player* PlayerNear(Position const& pos, float within) const
     {
         for (auto const& ref : me->GetMap()->GetPlayers())
             if (Player* p = ref.GetSource())
-                if (p->IsInWorld() && p->IsAlive() && pred(p))
+                if (p->IsInWorld() && p->IsAlive() && p->GetDistance(pos) <= within)
                     return p;
         return nullptr;
     }
+
+    // First live player who has pushed at least `dist` yards from the landing (monotonic progress into the tomb).
+    Player* PlayerBeyond(float dist) const
+    {
+        for (auto const& ref : me->GetMap()->GetPlayers())
+            if (Player* p = ref.GetSource())
+                if (p->IsInWorld() && p->IsAlive() && p->GetDistance(TombLanding) >= dist)
+                    return p;
+        return nullptr;
+    }
+
+    Creature* Grif() const { return ObjectAccessor::GetCreature(*me, _grifGuid); }
+    void SaySelf(char const* text) { me->Say(text, LANG_UNIVERSAL); }
+    void SayGrif(char const* text) { if (Creature* g = Grif()) g->Say(text, LANG_UNIVERSAL); }
 
     void UpdateAI(uint32 diff) override
     {
@@ -208,31 +247,115 @@ struct npc_prustaga_scenario_director : public ScriptedAI
         if (!step)
             return;
 
-        switch (step->OrderIndex)
+        uint8 const order = step->OrderIndex;
+
+        // --- Stage 0 "Making Introductions": a short spoken exchange at the landing, then Prustaga sets off. ---
+        if (order == 0)
         {
-            case 0: // Making Introductions - anyone present at the landing meets Prustaga with Grif
-                if (Player* p = FindReachedPlayer([](Player*) { return true; }))
-                    GameEvents::Trigger(GE_MEET_PRUSTAGA, p, p);
-                break;
-            case 1: // Tomb Raider - reached the tomb entrance (Tombs Door 243522 @ y~169)
-                if (Player* p = FindReachedPlayer([](Player* pl) { return pl->GetPositionY() >= 140.0f; }))
+            Player* p = PlayerBeyond(0.0f); // any player on the isle
+            if (!p)
+                return;
+            if (_grifGuid.IsEmpty())
+                if (Creature* g = me->FindNearestCreature(NPC_GRIF_LANDING, 80.0f))
+                    _grifGuid = g->GetGUID();
+
+            _introTimer += 1000;
+            switch (_introLine)
+            {
+                case 0: SayGrif("Prustaga! Brought a friend to join us, as promised."); ++_introLine; break;
+                case 1: if (_introTimer >= 4000) { SaySelf("I care nothing for friendship, soft-earthen - so long as this one helps us enter the tomb."); ++_introLine; } break;
+                case 2: if (_introTimer >= 8000) { SayGrif("Pipe down, ghostie! We're after yer gun for a good cause."); ++_introLine; } break;
+                case 3: if (_introTimer >= 11000)
+                        {
+                            SaySelf("Enough chatter. Move!");
+                            GameEvents::Trigger(GE_MEET_PRUSTAGA, p, p); // completes stage 0 -> the escort begins
+                            TC_LOG_INFO("scripts", "[Titanstrike 1068] stage 0 done - escort sets off");
+                            ++_introLine;
+                        }
+                        break;
+                default: break;
+            }
+            return;
+        }
+
+        // --- Kick off the escort the moment stage 1 is active. ---
+        if (!_escortStarted)
+        {
+            _escortStarted = true;
+            _leadBeat = 1;
+            _leadArrived = false;
+            me->SetWalk(false);
+            me->GetMotionMaster()->MovePoint(1, TombBeat1, true);
+            if (Creature* g = Grif())
+            {
+                g->SetWalk(false);
+                g->GetMotionMaster()->MoveFollow(me, 3.0f, static_cast<float>(M_PI));
+            }
+        }
+
+        // --- Escort pacing: Prustaga leads beat to beat, pausing for the player, speaking as she arrives. ---
+        if (_leadBeat >= 1 && _leadBeat <= 3)
+        {
+            Position const& target = (_leadBeat == 1) ? TombBeat1 : (_leadBeat == 2 ? TombBeat2 : TombBeat3);
+            if (!_leadArrived && me->GetDistance(target) <= 5.0f)
+            {
+                _leadArrived = true;
+                if (_leadBeat == 1)      SayGrif("There, up ahead - the tomb of Warlord Volund. Watch yerself.");
+                else if (_leadBeat == 2) SaySelf("I will dispel the runes on this door. Protect me!");
+                else                     { SaySelf("Titanstrike is close."); SayGrif("By Magni's beard! Volund had a taste for titan relics!"); }
+            }
+            // Move on to the next beat only once the player has pushed far enough in behind us.
+            if (_leadArrived && _leadBeat < 3)
+            {
+                float const gate = (_leadBeat == 1) ? StepDist1 : StepDist2;
+                if (PlayerBeyond(gate))
+                {
+                    ++_leadBeat;
+                    _leadArrived = false;
+                    Position const& next = (_leadBeat == 2) ? TombBeat2 : TombBeat3;
+                    me->GetMotionMaster()->MovePoint(_leadBeat, next, true);
+                }
+            }
+        }
+
+        // --- Step progression: gated purely on how far the PLAYER has advanced, so the escort can never block it. ---
+        switch (order)
+        {
+            case 1: // Tomb Raider - the tomb entrance
+                if (Player* p = PlayerBeyond(StepDist1))
+                {
                     GameEvents::Trigger(GE_FIND_TOMB, p, p);
+                    TC_LOG_INFO("scripts", "[Titanstrike 1068] stage 1 (Tomb Raider) fired");
+                }
                 break;
-            case 2: // Volund's Hoard - Prustaga opens the door; the player has pushed into the tomb (passage @ y~283)
-                if (Player* p = FindReachedPlayer([](Player* pl) { return pl->GetPositionY() >= 230.0f; }))
+            case 2: // Volund's Hoard - Prustaga dispels the runes; the door opens
+                if (Player* p = PlayerBeyond(StepDist2))
+                {
                     GameEvents::Trigger(GE_PROTECT_PRUSTAGA, p, p);
+                    SayGrif("Look! The door's openin'!");
+                    TC_LOG_INFO("scripts", "[Titanstrike 1068] stage 2 (Volund's Hoard) fired");
+                }
                 break;
-            case 3: // Every Nook and Cranny - reached the inner chamber (chest/pad/Volund @ x~4970-5010)
-                if (Player* p = FindReachedPlayer([](Player* pl) { return pl->GetPositionX() >= 4900.0f; }))
+            case 3: // Every Nook and Cranny - the hoard room
+                if (Player* p = PlayerBeyond(StepDist3))
+                {
                     GameEvents::Trigger(GE_SEARCH_TITAN, p, p);
+                    TC_LOG_INFO("scripts", "[Titanstrike 1068] stage 3 (Every Nook and Cranny) fired");
+                }
                 break;
-            case 4: // Volund's Last Stand - completed when Warlord Volund dies (npc_warlord_volund)
+            case 4: // Volund's Last Stand - the real fight; his death fires the event (npc_warlord_volund).
                 break;
-            case 5: // Answering the Call - step onto the Relay Device pad to join Mimiron in Ulduar
-                if (Player* p = FindReachedPlayer([](Player* pl) { return pl->GetDistance(RelayDevicePad) <= 9.0f; }))
+            case 5: // Answering the Call - the betrayal, then step onto the Relay Device pad.
+                if (!_betrayed)
+                {
+                    _betrayed = true;
+                    SaySelf("You've played your part. Now I shall play mine! The heart of this weapon will make me a titan!");
+                    SayGrif("Prustaga, no! ...We can't stop now - to the pad, quickly!");
+                }
+                if (Player* p = PlayerNear(RelayDevicePad, 15.0f))
                 {
                     GameEvents::Trigger(GE_JOIN_MIMIRON, p, p); // completes the scenario -> 41574 objective 2
-                    // Mimiron pulls everyone in the instance onward to the Creator's Workshop.
+                    TC_LOG_INFO("scripts", "[Titanstrike 1068] stage 5 (Answering the Call) fired -> transfer to Ulduar");
                     for (auto const& ref : me->GetMap()->GetPlayers())
                         if (Player* mp = ref.GetSource())
                             if (mp->IsInWorld())
@@ -251,10 +374,18 @@ struct npc_warlord_volund : public ScriptedAI
 {
     npc_warlord_volund(Creature* creature) : ScriptedAI(creature) { }
 
+    void JustEngagedWith(Unit* /*who*/) override
+    {
+        if (me->GetMap()->GetId() == MAP_SHIELDS_REST)
+            me->Yell("Thieves! Your heads will decorate my throne! You of flesh are not worthy to wield the storms!", LANG_UNIVERSAL);
+    }
+
     void JustDied(Unit* killer) override
     {
         if (me->GetMap()->GetId() != MAP_SHIELDS_REST)
             return;
+
+        me->Yell("You... cannot... control...", LANG_UNIVERSAL);
 
         Player* player = killer ? killer->GetCharmerOrOwnerPlayerOrPlayerItself() : nullptr;
         if (!player) // pet/environmental kill - fall back to any player in the instance
