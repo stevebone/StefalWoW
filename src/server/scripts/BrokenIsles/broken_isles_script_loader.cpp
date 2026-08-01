@@ -43,6 +43,7 @@ void AddSC_instance_eye_of_azshara();
 // Orderhalls
 void AddSC_orderhall_warrior();
 void AddSC_orderhall_rogue();
+void AddSC_orderhall_legion();
 
 // The name of this function should match:
 // void Add${NameOfDirectory}Scripts()
@@ -74,4 +75,5 @@ void AddBrokenIslesScripts()
     // Orderhalls
     AddSC_orderhall_warrior();
     AddSC_orderhall_rogue();
+    AddSC_orderhall_legion();   // Legion class order halls + BM Hunter artifact ("Stolen Thunder" / Titanstrike)
 }
