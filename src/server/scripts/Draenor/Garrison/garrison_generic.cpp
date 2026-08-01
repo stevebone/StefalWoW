@@ -510,10 +510,30 @@ struct quest_stolen_thunder : QuestScript
     }
 };
 
+// Deferred cross-map transfer to the Creator's Workshop (map 1579), where "Stolen Thunder" turns in to Mimiron and
+// the Hati questline continues. The Shield's Rest tomb (1495) and the workshop (1579) are separate maps, so the
+// questline's progression between them is inherently a map transfer (retail plays a Huey cinematic across it).
+class TitanWorkshopTransferEvent : public BasicEvent
+{
+public:
+    explicit TitanWorkshopTransferEvent(Player* player) : _player(player) { }
+
+    bool Execute(uint64 /*time*/, uint32 /*diff*/) override
+    {
+        if (_player->IsInWorld() && _player->GetMapId() == 1495)   // still at Volund's tomb
+            _player->TeleportTo(1579, 2782.0f, 2546.0f, 364.0f, 3.5f);   // Creator's Workshop, by Mimiron
+        return true;
+    }
+
+private:
+    Player* _player;
+};
+
 // Titanstrike hand-off: defeating Warlord Volund (104956) at the end of the tomb completes "Stolen Thunder" for the
 // killer - objective 2 "Track down Titanstrike" (a CriteriaTree the incomplete import can't otherwise satisfy: the
-// tomb's Titan Chest has no loot table and there is no scenario framework here). Completing the quest lets the chain
-// continue (it turns in to Mimiron on map 1579). Bound to Warlord Volund via creature_template.ScriptName.
+// tomb's Titan Chest has no loot table and there is no scenario framework here). Completing the quest and carrying the
+// player on to the Creator's Workshop (map 1579) lets the chain continue (it turns in to Mimiron there). Bound to
+// Warlord Volund via creature_template.ScriptName.
 struct npc_warlord_volund : public ScriptedAI
 {
     npc_warlord_volund(Creature* creature) : ScriptedAI(creature) { }
@@ -522,7 +542,11 @@ struct npc_warlord_volund : public ScriptedAI
     {
         Player* player = killer ? killer->GetCharmerOrOwnerPlayerOrPlayerItself() : nullptr;
         if (player && player->GetQuestStatus(QUEST_STOLEN_THUNDER) == QUEST_STATUS_INCOMPLETE)
+        {
             player->CompleteQuest(QUEST_STOLEN_THUNDER);
+            // Give the player a few seconds to loot, then carry them on to Mimiron's workshop to turn in / continue.
+            player->m_Events.AddEventAtOffset(new TitanWorkshopTransferEvent(player), 6s);
+        }
     }
 };
 
