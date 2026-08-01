@@ -403,17 +403,129 @@ struct npc_twilight_deacon_farthing : public ScriptedAI
 // NOTE: Zakajz the Corruptor (104276) is shared with the Warrior Arms artifact on the same map (1539), so a single
 // script owns him in artifact_warrior.cpp (npc_zakajz_corruptor) - it grants the Shadow completion (40710) too.
 
+// =====================================================================================================================
+// Holy (the REAL acquisition): "Return of the Light" (42074) -> T'uure, Beacon of the Naaru. The Niskara instance.
+//
+// "The Vindicator's Plea" (41957, above) is only the class-hall intro talk. The real T'uure acquisition is 42074 - given
+// by Jace Darkweaver (106011) at Netherlight Temple, turned in to Prophet Velen (101313), BOTH already spawned. Its 3
+// objectives are credit dummies: 106076 "Niskara Portal Key" (portal in), 106033 "Niskara Bunny" (stage), 106031 "Holy
+// Bunny" (T'uure claimed). Map 1489 (Niskara) is heavily populated with the DEMON HUNTER Niskara scenario, so we do NOT
+// permanently spawn our boss there - on accept we teleport the priest to the T'uure area (LegionCore's coords) and
+// TRANSIENTLY summon Lady Calindris (106318); her death grants the claim credits, completes 42074, returns to Velen.
+//
+// LIMITATION: map 1489 hosts the DH scenario; ambient demons may aggro the priest (thematically fine on a demon world).
+// LegionCore's full Boros heal-gate escort is simplified to the boss encounter. No verified Scene (Conversation-driven).
+// =====================================================================================================================
+enum ReturnOfLightData
+{
+    QUEST_RETURN_OF_THE_LIGHT = 42074,
+    MAP_NISKARA               = 1489,
+    MAP_NETHERLIGHT_TEMPLE    = 1220,
+    NPC_LADY_CALINDRIS        = 106318,
+    NPC_VINDICATOR_BOROS_NISK = 106134,
+    CREDIT_NISKARA_PORTAL     = 106076, // obj0 (on accept)
+    CREDIT_NISKARA_STAGE      = 106033, // obj1 (on Calindris death)
+    CREDIT_TUURE_CLAIMED      = 106031  // obj2 (on Calindris death)
+};
+
+static constexpr Position NiskaraEntrance = { 12.00f, 1189.50f, -45.98f, 0.0f };
+static constexpr Position CalindrisPos    = { 58.69f, 1212.91f, -39.64f, 3.14f };
+static constexpr Position VelenReturn     = { -693.4f, 4492.8f, 728.5f, 0.0f }; // beside Prophet Velen (turn-in)
+
+// Return the priest to Prophet Velen once T'uure is claimed.
+class PriestNiskaraReturnEvent : public BasicEvent
+{
+public:
+    explicit PriestNiskaraReturnEvent(Player* player) : _player(player) { }
+    bool Execute(uint64 /*time*/, uint32 /*diff*/) override
+    {
+        if (_player->IsInWorld() && _player->GetMapId() == MAP_NISKARA)
+            _player->TeleportTo(MAP_NETHERLIGHT_TEMPLE, VelenReturn.GetPositionX(), VelenReturn.GetPositionY(),
+                VelenReturn.GetPositionZ(), VelenReturn.GetOrientation());
+        return true;
+    }
+private:
+    Player* _player;
+};
+
+// Summon Lady Calindris (+ Boros for flavor) AFTER the portal teleport lands the priest on Niskara (transient - no
+// permanent spawn on the DH-populated map).
+class TuureSummonEvent : public BasicEvent
+{
+public:
+    explicit TuureSummonEvent(Player* player) : _player(player) { }
+    bool Execute(uint64 /*time*/, uint32 /*diff*/) override
+    {
+        if (_player->IsInWorld() && _player->GetMap()->GetId() == MAP_NISKARA)
+        {
+            _player->SummonCreature(NPC_VINDICATOR_BOROS_NISK, NiskaraEntrance.GetPositionX() + 4.0f,
+                NiskaraEntrance.GetPositionY(), NiskaraEntrance.GetPositionZ(), 0.0f, TEMPSUMMON_TIMED_DESPAWN, 5min);
+            _player->SummonCreature(NPC_LADY_CALINDRIS, CalindrisPos, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 60s);
+        }
+        return true;
+    }
+private:
+    Player* _player;
+};
+
+struct quest_return_of_the_light : QuestScript
+{
+    quest_return_of_the_light() : QuestScript("quest_return_of_the_light") { }
+
+    void OnQuestStatusChange(Player* player, Quest const* /*quest*/, QuestStatus /*oldStatus*/, QuestStatus newStatus) override
+    {
+        if (newStatus != QUEST_STATUS_INCOMPLETE)
+            return;
+        player->KilledMonsterCredit(CREDIT_NISKARA_PORTAL); // obj0 "portal in"
+        player->TeleportTo(MAP_NISKARA, NiskaraEntrance.GetPositionX(), NiskaraEntrance.GetPositionY(),
+            NiskaraEntrance.GetPositionZ(), NiskaraEntrance.GetOrientation());
+        player->m_Events.AddEventAtOffset(new TuureSummonEvent(player), 3s);
+    }
+};
+
+// Lady Calindris (106318): the T'uure boss on Niskara. Placeholder faction 35 -> hostile in Reset(). Her death grants
+// the stage + claim credits (T'uure absorbs the Light), completes 42074, and returns the priest to Velen. Bound via
+// creature_template.ScriptName.
+struct npc_lady_calindris : public ScriptedAI
+{
+    npc_lady_calindris(Creature* creature) : ScriptedAI(creature) { }
+
+    void Reset() override { me->SetFaction(FACTION_MONSTER_2); } // faction 16 - attackable
+
+    void JustEngagedWith(Unit* /*who*/) override
+    {
+        me->Yell("I grow tired of this! Be consumed by the darkness!", LANG_UNIVERSAL);
+    }
+
+    void JustDied(Unit* /*killer*/) override
+    {
+        me->Yell("My staff... it senses the Light within you! What is it... Nooooo!", LANG_UNIVERSAL);
+
+        for (auto const& ref : me->GetMap()->GetPlayers())
+            if (Player* p = ref.GetSource())
+                if (p->IsInWorld() && p->GetQuestStatus(QUEST_RETURN_OF_THE_LIGHT) == QUEST_STATUS_INCOMPLETE)
+                {
+                    p->KilledMonsterCredit(CREDIT_NISKARA_STAGE); // obj1
+                    p->KilledMonsterCredit(CREDIT_TUURE_CLAIMED); // obj2
+                    p->CompleteQuest(QUEST_RETURN_OF_THE_LIGHT);  // safety net: ready to hand in to Velen
+                    p->m_Events.AddEventAtOffset(new PriestNiskaraReturnEvent(p), 6s);
+                }
+    }
+};
+
 void AddSC_artifact_priest()
 {
     // Quests
     new quest_lights_wrath();
     new quest_vindicators_plea();
     new quest_blade_in_twilight();
+    new quest_return_of_the_light(); // 42074 Holy (T'uure)
 
     // Creatures
     RegisterCreatureAI(npc_azuregos_disc_director);
     RegisterCreatureAI(npc_judgments_flame);
     RegisterCreatureAI(npc_slaghammer_shadow_director);
     RegisterCreatureAI(npc_twilight_deacon_farthing);
+    RegisterCreatureAI(npc_lady_calindris); // 106318 Holy T'uure boss
     // Nexus-Prince Bilaal (104502) + Zakajz (104276) are owned by the Mage/Warrior files (shared bosses/maps).
 }
