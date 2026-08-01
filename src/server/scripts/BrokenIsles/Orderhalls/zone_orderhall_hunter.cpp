@@ -89,7 +89,7 @@ static constexpr Position RelayDevicePad = { 4970.3f, 297.5f, -37.5f, 0.0f };
 // The escort: Prustaga leads the Hunter from the landing into the tomb, Grif (104904) at her side, both speaking the
 // scenario's lines. She pauses at each beat for the player to catch up. Progression is gated on how far the PLAYER has
 // pushed from the landing (below), NOT on the escort reaching a spot - so a mispathed escort can never block the run.
-enum { NPC_GRIF_LANDING = 104904, NPC_IMAGE_OF_MIMIRON = 106557 };
+enum { NPC_GRIF_LANDING = 104904, NPC_IMAGE_OF_MIMIRON = 106557, NPC_XR9_47 = 105016 };
 static constexpr Position TombLanding = { 4803.4f, 78.0f, -2.5f, 1.38f };
 static constexpr Position TombBeat1   = { 4810.0f, 165.0f, -11.0f, 1.40f }; // tomb entrance   (step 1 Tomb Raider)
 static constexpr Position TombBeat2   = { 4844.0f, 285.0f, -29.0f, 1.40f }; // rune door       (step 2 Volund's Hoard)
@@ -399,8 +399,10 @@ struct npc_prustaga_scenario_director : public ScriptedAI
                 else
                 {
                     SaySelf("Titanstrike is close.");
-                    SayGrif("By Magni's beard! Volund had a taste for titan relics!");
-                    // The Image of Mimiron flickers to life at the Titan Chest and reads out the acquisition beat.
+                    SayGrif("By Magni's beard! Volund had a taste for titan relics! Lookee here... a mechagnome!");
+                    // Grif activates the mechagnome XR9-47, which boots the Image of Mimiron at the Titan Chest.
+                    if (Creature* xr = me->FindNearestCreature(NPC_XR9_47, 140.0f))
+                        xr->Say("Remote relay observer unit XR9-47 active. System status: damaged. Rebooting...", LANG_UNIVERSAL);
                     if (Creature* mimiron = me->FindNearestCreature(NPC_IMAGE_OF_MIMIRON, 140.0f))
                         mimiron->Say("Oh my stars! Yes, this is it! Titanstrike - forged to focus the fury of the storms!", LANG_UNIVERSAL);
                     SayGrif("There it is! Mission accomplished!");
