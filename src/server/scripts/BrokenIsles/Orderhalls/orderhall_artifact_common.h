@@ -26,6 +26,7 @@
 #include "Map.h"
 #include "Player.h"
 #include "Scenario.h"
+#include "SceneMgr.h"
 #include "SharedDefines.h"
 #include <initializer_list>
 
@@ -63,6 +64,19 @@ inline void ArtifactGrantCredits(Player* player, std::initializer_list<uint32> c
 {
     for (uint32 entry : creditEntries)
         player->KilledMonsterCredit(entry);
+}
+
+// Play a client-side scene (a Legion artifact reveal/claim cutscene) for every player on `map`, by its
+// SceneScriptPackage id. The package need not be in scene_template - PlaySceneByPackageId sends it straight to the
+// client, which has the package data. A 0 id is a no-op (for specs whose scene couldn't be verified).
+inline void ArtifactPlayScene(Map* map, uint32 scenePackageId)
+{
+    if (!scenePackageId)
+        return;
+    for (auto const& ref : map->GetPlayers())
+        if (Player* p = ref.GetSource())
+            if (p->IsInWorld())
+                p->GetSceneMgr().PlaySceneByPackageId(scenePackageId);
 }
 
 // First live player within `within` yards of `pos` on the object's map, else nullptr.

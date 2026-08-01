@@ -250,7 +250,10 @@ struct npc_zakajz_corruptor : public ScriptedAI
     void JustEngagedWith(Unit* /*who*/) override
     {
         if (me->GetMap()->GetId() == MAP_TOMB_OF_TYR)
+        {
             me->Yell("Flesh-thing! The blade of Tyr will not save you from the void!", LANG_UNIVERSAL);
+            ArtifactPlayScene(me->GetMap(), 1571); // "Warrior - Arms - Boss Reveal Scene" (Zakajz awakens)
+        }
     }
 
     void JustDied(Unit* /*killer*/) override
@@ -259,6 +262,7 @@ struct npc_zakajz_corruptor : public ScriptedAI
             return;
 
         me->Yell("The whispers... they fade...", LANG_UNIVERSAL);
+        ArtifactPlayScene(me->GetMap(), 1590); // "Warrior - Arms - Loot Scene" (Strom'kar claim)
 
         // Advance the scenario onto its final beats (the on-screen presentation) - safe no-ops if already complete.
         ArtifactAdvanceScenario(me);
@@ -346,7 +350,10 @@ struct npc_vigfus_bladewind_final : public ScriptedAI
     void JustEngagedWith(Unit* /*who*/) override
     {
         if (me->GetMap()->GetId() == MAP_TIDESKORN_HARBOR)
+        {
             me->Yell("The Warswords are mine! Helya promised me power beyond death!", LANG_UNIVERSAL);
+            ArtifactPlayScene(me->GetMap(), 1459); // "Warrior - Fury - Vigfus Reveal" scene
+        }
     }
 
     void JustDied(Unit* /*killer*/) override
@@ -354,6 +361,7 @@ struct npc_vigfus_bladewind_final : public ScriptedAI
         if (me->GetMap()->GetId() != MAP_TIDESKORN_HARBOR)
             return;
 
+        ArtifactPlayScene(me->GetMap(), 1580); // "Warrior - Fury - Loot Scene" (Warswords claim + Helya betrayal)
         for (auto const& ref : me->GetMap()->GetPlayers())
             if (Player* p = ref.GetSource())
                 if (p->IsInWorld() && p->GetQuestStatus(QUEST_THE_HUNTER_OF_HEROES) == QUEST_STATUS_INCOMPLETE)
@@ -429,7 +437,10 @@ struct npc_magnar_icebreaker : public ScriptedAI
     void JustEngagedWith(Unit* /*who*/) override
     {
         if (me->GetMap()->GetId() == MAP_SHIELDS_REST)
+        {
             me->Yell("The Scale of the Earth-Warder is not for the likes of you! I am the greatest warrior of the Valarjar!", LANG_UNIVERSAL);
+            ArtifactPlayScene(me->GetMap(), 1458); // "Warrior - Prot - Magnar Reveal" scene
+        }
     }
 
     void JustDied(Unit* /*killer*/) override
@@ -437,6 +448,7 @@ struct npc_magnar_icebreaker : public ScriptedAI
         if (me->GetMap()->GetId() != MAP_SHIELDS_REST)
             return;
 
+        ArtifactPlayScene(me->GetMap(), 1575); // "Warrior - Prot - Loot Scene" (Scale claim)
         for (auto const& ref : me->GetMap()->GetPlayers())
             if (Player* p = ref.GetSource())
                 if (p->IsInWorld() && p->GetQuestStatus(QUEST_LEGACY_OF_ICEBREAKER) == QUEST_STATUS_INCOMPLETE)
