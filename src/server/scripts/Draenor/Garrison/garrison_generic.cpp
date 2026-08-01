@@ -31,6 +31,8 @@
 #include "ObjectMgr.h"
 #include "Player.h"
 #include "QuestDef.h"
+#include "ScriptedCreature.h"
+#include "ScriptedGossip.h"
 #include "ScriptMgr.h"
 #include "TemporarySummon.h"
 #include "Unit.h"
@@ -436,6 +438,42 @@ public:
     }
 };
 
+// ---------------------------------------------------------------------------------------------------------------------
+// Hunter Beast Mastery artifact on-ramp: the flight to Shield's Rest.
+//
+// Quest "Stolen Thunder" (41574) sends the Hunter to recover Titanstrike from Warlord Volund's tomb on the isle of
+// Shield's Rest - a fully populated sub-map (1495: Grif, Prustaga, Warlord Volund are all spawned there). In retail
+// you talk to Grif Wildheart and "Huey" flies you across (quest objective 1 = kill credit 104993). That scripted
+// flight is absent from our world DB, so the quest strands the player in Dalaran with no transport. Talking to Grif
+// while the flight leg is outstanding credits it and drops the player at the Shield's Rest landing beside Grif /
+// Prustaga so the scenario (tomb -> Titanstrike) can continue. Bound to Grif 106879 via creature_template.ScriptName.
+enum StolenThunder
+{
+    QUEST_STOLEN_THUNDER            = 41574,
+    NPC_CREDIT_FLY_TO_SHIELDS_REST  = 104993,
+    MAP_STORMHEIM_SHIELDS_REST      = 1495
+};
+
+struct npc_grif_wildheart_flight : public ScriptedAI
+{
+    npc_grif_wildheart_flight(Creature* creature) : ScriptedAI(creature) { }
+
+    bool OnGossipHello(Player* player) override
+    {
+        // Only intercept while the "fly to Shield's Rest" leg of Stolen Thunder is still outstanding; otherwise fall
+        // through to Grif's normal quest gossip (offering/other states).
+        if (player->GetQuestStatus(QUEST_STOLEN_THUNDER) == QUEST_STATUS_INCOMPLETE)
+        {
+            CloseGossipMenuFor(player);
+            player->KilledMonsterCredit(NPC_CREDIT_FLY_TO_SHIELDS_REST);           // completes objective "Fly with Grif to Shield's Rest"
+            player->TeleportTo(MAP_STORMHEIM_SHIELDS_REST, 4803.4f, 78.0f, -2.5f, 1.38f);
+            return true;
+        }
+
+        return false;
+    }
+};
+
 void AddSC_garrison_generic()
 {
     // AreaTrigger
@@ -444,6 +482,9 @@ void AddSC_garrison_generic()
 
     // GameObject
     RegisterGameObjectAI(go_garrison_cache);
+
+    // Creature
+    RegisterCreatureAI(npc_grif_wildheart_flight);
 
     // Quest
     new quest_garrison_shipyard_intro();
