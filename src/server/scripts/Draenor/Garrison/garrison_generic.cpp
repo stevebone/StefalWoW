@@ -451,6 +451,7 @@ enum StolenThunder
 {
     QUEST_STOLEN_THUNDER            = 41574,
     NPC_CREDIT_FLY_TO_SHIELDS_REST  = 104993,
+    NPC_PRUSTAGA                    = 104949,   // the vrykul "ally" who betrays you and snatches Titanstrike
     MAP_STORMHEIM_SHIELDS_REST      = 1495
 };
 
@@ -529,24 +530,30 @@ private:
     Player* _player;
 };
 
-// Titanstrike hand-off: defeating Warlord Volund (104956) at the end of the tomb completes "Stolen Thunder" for the
-// killer - objective 2 "Track down Titanstrike" (a CriteriaTree the incomplete import can't otherwise satisfy: the
-// tomb's Titan Chest has no loot table and there is no scenario framework here). Completing the quest and carrying the
-// player on to the Creator's Workshop (map 1579) lets the chain continue (it turns in to Mimiron there). Bound to
-// Warlord Volund via creature_template.ScriptName.
-struct npc_warlord_volund : public ScriptedAI
+// Titanstrike hand-off + betrayal. Reaching Titanstrike at the end of the tomb and claiming it (clicking the Titan
+// Chest) is the retail trigger: it completes "Stolen Thunder" (objective 2 "Track down Titanstrike", a CriteriaTree
+// the incomplete import can't otherwise satisfy), then Prustaga - the vrykul "ally" - betrays the group and snatches
+// the weapon, and moments later Mimiron teleports the player to the Creator's Workshop (map 1579) to continue the
+// chain (it turns in to Mimiron there). Bound to the Titan Chest GO (249718) via gameobject_template.ScriptName.
+// Warlord Volund stays a plain hostile boss fought on the way in - he is not the completion trigger.
+struct go_titanstrike : public GameObjectAI
 {
-    npc_warlord_volund(Creature* creature) : ScriptedAI(creature) { }
+    go_titanstrike(GameObject* go) : GameObjectAI(go) { }
 
-    void JustDied(Unit* killer) override
+    bool OnGossipHello(Player* player) override
     {
-        Player* player = killer ? killer->GetCharmerOrOwnerPlayerOrPlayerItself() : nullptr;
-        if (player && player->GetQuestStatus(QUEST_STOLEN_THUNDER) == QUEST_STATUS_INCOMPLETE)
-        {
-            player->CompleteQuest(QUEST_STOLEN_THUNDER);
-            // Give the player a few seconds to loot, then carry them on to Mimiron's workshop to turn in / continue.
-            player->m_Events.AddEventAtOffset(new TitanWorkshopTransferEvent(player), 6s);
-        }
+        if (player->GetQuestStatus(QUEST_STOLEN_THUNDER) != QUEST_STATUS_INCOMPLETE)
+            return false;   // not on this step -> default behaviour
+
+        player->CompleteQuest(QUEST_STOLEN_THUNDER);   // claim Titanstrike -> objective 2 "Track down Titanstrike"
+
+        // The betrayal: Prustaga snatches Titanstrike and gloats.
+        if (Creature* prustaga = me->FindNearestCreature(NPC_PRUSTAGA, 100.0f))
+            prustaga->HandleEmoteCommand(EMOTE_ONESHOT_LAUGH);
+
+        // ...then Mimiron teleports the player onward to the Creator's Workshop.
+        player->m_Events.AddEventAtOffset(new TitanWorkshopTransferEvent(player), 5s);
+        return true;   // handled -> suppress the default (empty) chest loot
     }
 };
 
@@ -558,10 +565,10 @@ void AddSC_garrison_generic()
 
     // GameObject
     RegisterGameObjectAI(go_garrison_cache);
+    RegisterGameObjectAI(go_titanstrike);
 
     // Creature
     RegisterCreatureAI(npc_grif_wildheart_flight);
-    RegisterCreatureAI(npc_warlord_volund);
 
     // Quest
     new quest_garrison_shipyard_intro();
