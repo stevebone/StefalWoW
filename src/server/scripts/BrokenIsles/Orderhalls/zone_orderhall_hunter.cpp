@@ -198,6 +198,9 @@ struct npc_prustaga_scenario_director : public ScriptedAI
     uint8  _leadBeat = 0;       // beat Prustaga is currently walking to (1..3), 0 = not moving yet
     bool   _leadArrived = false;
     bool   _betrayed = false;
+    bool   _volundSeen = false;
+    bool   _volundDead = false;
+    bool   _completed = false;
     uint8  _lastOrder = 255;
     uint32 _hbTimer = 0;
     ObjectGuid _grifGuid;
@@ -242,15 +245,9 @@ struct npc_prustaga_scenario_director : public ScriptedAI
             return;
         _pollTimer = 0;
 
-        Scenario* scenario = me->GetScenario();
-        if (!scenario)
-            return;
-
-        ScenarioStepEntry const* step = scenario->GetStep();
-        if (!step)
-            return;
-
-        uint8 const order = step->OrderIndex;
+        Scenario* scenario = me->GetScenario();                            // only used for the diagnostic logs below
+        ScenarioStepEntry const* step = scenario ? scenario->GetStep() : nullptr;
+        uint8 const order = step ? step->OrderIndex : 0;
         if (order != _lastOrder)
         {
             TC_LOG_INFO("scripts", "[Titanstrike 1068] scenario step is now order {}", order);
@@ -264,55 +261,47 @@ struct npc_prustaga_scenario_director : public ScriptedAI
                 order, _introLine, _escortStarted, _leadBeat, int(me->GetPositionX()), int(me->GetPositionY()), int(me->GetPositionZ()));
         }
 
-        // --- Stage 0 "Making Introductions": a short spoken exchange at the landing, then Prustaga sets off. ---
-        if (order == 0)
-        {
-            Player* p = PlayerBeyond(0.0f); // any player on the isle
-            if (!p)
-                return;
-            if (_grifGuid.IsEmpty())
-                if (Creature* g = me->FindNearestCreature(NPC_GRIF_LANDING, 80.0f))
-                    _grifGuid = g->GetGUID();
+        Player* anyP = PlayerBeyond(0.0f); // any player on the isle
+        if (!anyP)
+            return;
+        if (_grifGuid.IsEmpty())
+            if (Creature* g = me->FindNearestCreature(NPC_GRIF_LANDING, 80.0f))
+                _grifGuid = g->GetGUID();
 
+        // --- Stage 0 "Making Introductions": a spoken exchange at the landing, then the escort sets off. NOTE: this
+        //     server's scenario-step criteria do not advance on the game events, so the escort and the quest are
+        //     driven from here directly (not off the scenario step); we still fire the game event in case the UI
+        //     listens. The escort begins when the intro dialogue finishes, independent of the scenario step. ---
+        if (!_escortStarted)
+        {
             _introTimer += 1000;
             switch (_introLine)
             {
                 case 0: SayGrif("Prustaga! Brought a friend to join us, as promised."); ++_introLine; break;
                 case 1: if (_introTimer >= 4000) { SaySelf("I care nothing for friendship, soft-earthen - so long as this one helps us enter the tomb."); ++_introLine; } break;
                 case 2: if (_introTimer >= 8000) { SayGrif("Pipe down, ghostie! We're after yer gun for a good cause."); ++_introLine; } break;
-                case 3: if (_introTimer >= 11000)
-                        {
-                            SaySelf("Enough chatter. Move!");
-                            GameEvents::Trigger(GE_MEET_PRUSTAGA, p, p); // completes stage 0 -> the escort begins
-                            TC_LOG_INFO("scripts", "[Titanstrike 1068] stage 0 done - escort sets off");
-                            ++_introLine;
-                        }
-                        break;
-                default: // speeches finished: keep nudging the game event each poll until the scenario advances off stage 0
-                        GameEvents::Trigger(GE_MEET_PRUSTAGA, p, p);
-                        break;
+                case 3: if (_introTimer >= 11000) { SaySelf("Enough chatter. Move!"); GameEvents::Trigger(GE_MEET_PRUSTAGA, anyP, anyP); ++_introLine; } break;
+                default: // speeches done: set the escort in motion
+                {
+                    _escortStarted = true;
+                    _leadBeat = 1;
+                    _leadArrived = false;
+                    me->SetWalk(false);
+                    me->GetMotionMaster()->Clear();
+                    me->GetMotionMaster()->MovePoint(1, TombBeat1, true);
+                    TC_LOG_INFO("scripts", "[Titanstrike 1068] escort START: Prustaga ({},{},{}) -> MovePoint beat1; movegen {}",
+                        int(me->GetPositionX()), int(me->GetPositionY()), int(me->GetPositionZ()),
+                        uint32(me->GetMotionMaster()->GetCurrentMovementGeneratorType()));
+                    if (Creature* g = Grif())
+                    {
+                        g->SetWalk(false);
+                        g->GetMotionMaster()->Clear(); // Grif is MovementType=2 (waypoint); drop it so he can follow
+                        g->GetMotionMaster()->MovePoint(1, TombBeat1.GetPositionX() - 3.0f, TombBeat1.GetPositionY(), TombBeat1.GetPositionZ(), true);
+                    }
+                    break;
+                }
             }
             return;
-        }
-
-        // --- Kick off the escort the moment stage 1 is active. ---
-        if (!_escortStarted)
-        {
-            _escortStarted = true;
-            _leadBeat = 1;
-            _leadArrived = false;
-            me->SetWalk(false);
-            me->GetMotionMaster()->Clear();
-            me->GetMotionMaster()->MovePoint(1, TombBeat1, true);
-            TC_LOG_INFO("scripts", "[Titanstrike 1068] escort START (order {}): Prustaga at ({},{},{}) -> MovePoint beat1; movegen now {}",
-                order, int(me->GetPositionX()), int(me->GetPositionY()), int(me->GetPositionZ()),
-                uint32(me->GetMotionMaster()->GetCurrentMovementGeneratorType()));
-            if (Creature* g = Grif())
-            {
-                g->SetWalk(false);
-                g->GetMotionMaster()->Clear(); // Grif is MovementType=2 (waypoint); drop it so he can follow the escort
-                g->GetMotionMaster()->MovePoint(1, TombBeat1.GetPositionX() - 3.0f, TombBeat1.GetPositionY(), TombBeat1.GetPositionZ(), true);
-            }
         }
 
         // --- Escort pacing: Prustaga leads beat to beat, pausing for the player, speaking as she arrives. ---
@@ -349,53 +338,53 @@ struct npc_prustaga_scenario_director : public ScriptedAI
             }
         }
 
-        // --- Step progression: gated purely on how far the PLAYER has advanced, so the escort can never block it. ---
-        switch (order)
+        // --- Best-effort scenario UI: nudge each step's game event as the player progresses. These are no-ops on this
+        //     server (the step criteria do not advance), but harmless and correct if the data is ever fixed. ---
+        if (PlayerBeyond(StepDist1)) GameEvents::Trigger(GE_FIND_TOMB, anyP, anyP);
+        if (PlayerBeyond(StepDist2)) GameEvents::Trigger(GE_PROTECT_PRUSTAGA, anyP, anyP);
+        if (PlayerBeyond(StepDist3)) GameEvents::Trigger(GE_SEARCH_TITAN, anyP, anyP);
+
+        // --- The finale is driven directly (not off the scenario step). Once the party has fought through to the
+        //     hoard chamber, watch for Warlord Volund's death for the betrayal beat, and when the player steps onto
+        //     the Relay Device pad complete "Stolen Thunder" and pull the party to Mimiron in Ulduar. ---
+        if (_leadBeat >= 3 || PlayerBeyond(StepDist3 - 30.0f))
         {
-            case 1: // Tomb Raider - the tomb entrance
-                if (Player* p = PlayerBeyond(StepDist1))
-                {
-                    GameEvents::Trigger(GE_FIND_TOMB, p, p);
-                    TC_LOG_INFO("scripts", "[Titanstrike 1068] stage 1 (Tomb Raider) fired");
-                }
-                break;
-            case 2: // Volund's Hoard - Prustaga dispels the runes; the door opens
-                if (Player* p = PlayerBeyond(StepDist2))
-                {
-                    GameEvents::Trigger(GE_PROTECT_PRUSTAGA, p, p);
-                    SayGrif("Look! The door's openin'!");
-                    TC_LOG_INFO("scripts", "[Titanstrike 1068] stage 2 (Volund's Hoard) fired");
-                }
-                break;
-            case 3: // Every Nook and Cranny - the hoard room
-                if (Player* p = PlayerBeyond(StepDist3))
-                {
-                    GameEvents::Trigger(GE_SEARCH_TITAN, p, p);
-                    TC_LOG_INFO("scripts", "[Titanstrike 1068] stage 3 (Every Nook and Cranny) fired");
-                }
-                break;
-            case 4: // Volund's Last Stand - the real fight; his death fires the event (npc_warlord_volund).
-                break;
-            case 5: // Answering the Call - the betrayal, then step onto the Relay Device pad.
+            if (me->FindNearestCreature(NPC_WARLORD_VOLUND, 300.0f, true))
+                _volundSeen = true;
+            else if (_volundSeen)
+                _volundDead = true;
+        }
+
+        if (_volundDead && !_betrayed)
+        {
+            _betrayed = true;
+            SaySelf("You've played your part. Now I shall play mine! The heart of this weapon will make me a titan!");
+            SayGrif("Prustaga, no! ...We can't stop now - to the pad, quickly!");
+        }
+
+        // Completion at the pad - robust: independent of the scenario step and of Volund detection (so it cannot
+        // softlock). Volund is a live hostile in the chamber, so the player fights him on the way regardless.
+        if (!_completed)
+            if (Player* p = PlayerNear(RelayDevicePad, 15.0f))
+            {
+                _completed = true;
                 if (!_betrayed)
                 {
                     _betrayed = true;
                     SaySelf("You've played your part. Now I shall play mine! The heart of this weapon will make me a titan!");
                     SayGrif("Prustaga, no! ...We can't stop now - to the pad, quickly!");
                 }
-                if (Player* p = PlayerNear(RelayDevicePad, 15.0f))
-                {
-                    GameEvents::Trigger(GE_JOIN_MIMIRON, p, p); // completes the scenario -> 41574 objective 2
-                    TC_LOG_INFO("scripts", "[Titanstrike 1068] stage 5 (Answering the Call) fired -> transfer to Ulduar");
-                    for (auto const& ref : me->GetMap()->GetPlayers())
-                        if (Player* mp = ref.GetSource())
-                            if (mp->IsInWorld())
-                                mp->m_Events.AddEventAtOffset(new TitanWorkshopTransferEvent(mp), 4s);
-                }
-                break;
-            default:
-                break;
-        }
+                TC_LOG_INFO("scripts", "[Titanstrike 1068] finale: pad reached -> completing 41574 + transfer to Ulduar");
+                for (auto const& ref : me->GetMap()->GetPlayers())
+                    if (Player* mp = ref.GetSource())
+                        if (mp->IsInWorld())
+                        {
+                            if (mp->GetQuestStatus(QUEST_STOLEN_THUNDER) == QUEST_STATUS_INCOMPLETE)
+                                mp->CompleteQuest(QUEST_STOLEN_THUNDER); // ready to hand in to Mimiron
+                            GameEvents::Trigger(GE_JOIN_MIMIRON, mp, mp);  // best-effort scenario UI
+                            mp->m_Events.AddEventAtOffset(new TitanWorkshopTransferEvent(mp), 4s);
+                        }
+            }
     }
 };
 
