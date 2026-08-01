@@ -326,8 +326,7 @@ enum NeverHuntAloneData
     NPC_CREDIT_MIMIRON_HEAD  = 106671, // 42185 objective 0
     NPC_CREDIT_FLY_TEMPLE    = 106672, // 42185 objective 1 "Fly to the Temple of Storms"
     NPC_CREDIT_TITANSTRIKE   = 114509, // 42185 objective 2 "Titanstrike recovered"
-    MAP_DALARAN_BROKEN_ISLE  = 1220,
-    FACTION_MONSTER          = 16       // generic hostile Stormheim faction
+    MAP_DALARAN_BROKEN_ISLE  = 1220
 };
 
 // Scenario 1099 step game-event assets (CriteriaType 92), in OrderIndex order.
@@ -498,7 +497,7 @@ struct npc_prustaga_temple : public ScriptedAI
     void Reset() override
     {
         if (me->GetMap()->GetId() == MAP_TEMPLE_OF_STORMS)
-            me->SetFaction(FACTION_MONSTER); // this entry is friendly by default; here she is the antagonist
+            me->SetFaction(FACTION_MONSTER_2); // faction 16; this entry is friendly by default, here the antagonist
     }
 
     void JustDied(Unit* killer) override
