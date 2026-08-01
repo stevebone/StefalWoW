@@ -162,6 +162,7 @@ public:
         if (Creature* grif = _player->FindNearestCreature(NPC_GRIF_DALARAN, 80.0f))
         {
             grif->Say("Hop on and let's get moving - ol' Huey don't bite much!", LANG_UNIVERSAL);
+            grif->Say("To Shield's Rest!", LANG_UNIVERSAL);
             grif->Say("Make yourself comfortable. It's a bit of a ride to Stormheim.", LANG_UNIVERSAL);
         }
 
