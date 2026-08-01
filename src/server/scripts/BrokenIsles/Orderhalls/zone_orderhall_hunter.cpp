@@ -199,6 +199,7 @@ struct npc_prustaga_scenario_director : public ScriptedAI
     bool   _leadArrived = false;
     bool   _betrayed = false;
     uint8  _lastOrder = 255;
+    uint32 _hbTimer = 0;
     ObjectGuid _grifGuid;
 
     void Reset() override
@@ -255,6 +256,13 @@ struct npc_prustaga_scenario_director : public ScriptedAI
             TC_LOG_INFO("scripts", "[Titanstrike 1068] scenario step is now order {}", order);
             _lastOrder = order;
         }
+        _hbTimer += 1000;
+        if (_hbTimer >= 10000)
+        {
+            _hbTimer = 0;
+            TC_LOG_INFO("scripts", "[Titanstrike 1068] director heartbeat: order={} introLine={} escortStarted={} leadBeat={} Prustaga({},{},{})",
+                order, _introLine, _escortStarted, _leadBeat, int(me->GetPositionX()), int(me->GetPositionY()), int(me->GetPositionZ()));
+        }
 
         // --- Stage 0 "Making Introductions": a short spoken exchange at the landing, then Prustaga sets off. ---
         if (order == 0)
@@ -280,7 +288,9 @@ struct npc_prustaga_scenario_director : public ScriptedAI
                             ++_introLine;
                         }
                         break;
-                default: break;
+                default: // speeches finished: keep nudging the game event each poll until the scenario advances off stage 0
+                        GameEvents::Trigger(GE_MEET_PRUSTAGA, p, p);
+                        break;
             }
             return;
         }
