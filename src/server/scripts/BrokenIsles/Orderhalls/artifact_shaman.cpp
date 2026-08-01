@@ -195,11 +195,11 @@ struct npc_rehgar_scenario_director : public ScriptedAI
             _stepTimer = 0;
             switch (order)
             {
-                case 0: me->Say("The White Tiger, Xuen, will test your worth. Speak with him.", LANG_UNIVERSAL); break;
-                case 1: me->Say("Sigurd the Giantslayer bars the way! Strike him down!", LANG_UNIVERSAL); break;
+                case 0: me->Say("Do you seek the weapons of the storm god? Step forward, shaman.", LANG_UNIVERSAL); break;
+                case 1: me->Say("Who challenges me!? The weapons of the storm belong to my clan by rights!", LANG_UNIVERSAL); break;
                 case 2: me->Say("Now - prove your storms in the trial of heroes. Fight at my side!", LANG_UNIVERSAL); break;
-                case 3: me->Say("The Weapons of the Storm answer only the worthy. Claim them.", LANG_UNIVERSAL); break;
-                case 4: me->Say("Lord Kra'vos guards the Fist of Ra-den. End him!", LANG_UNIVERSAL); break;
+                case 3: me->Say("The Fist of Ra-den is your final challenge. If you can wield it and live, the weapon is yours to command.", LANG_UNIVERSAL); break;
+                case 4: me->Say("Leave the mortals alive. We must find the weapons of their so-called Storm-God.", LANG_UNIVERSAL); break;
                 default: break;
             }
             return;
@@ -355,12 +355,12 @@ struct npc_erunak_scenario_director : public ScriptedAI
             _stepTimer = 0;
             switch (order)
             {
-                case 0: me->Say("The sea giant Grash is wounded - mend him, and he will fight for us.", LANG_UNIVERSAL); break;
+                case 0: me->Say("Shaman, speak with him. Perhaps we can gain a new ally down here.", LANG_UNIVERSAL); break;
                 case 1: me->Say("Wavespeaker Adelee is held in the depths. Free her!", LANG_UNIVERSAL); break;
                 case 2: me->Say("Kra'liss holds the central junction. Break through!", LANG_UNIVERSAL); break;
                 case 3: me->Say("Ascend through the water gauntlet - I will guide the tides.", LANG_UNIVERSAL); break;
-                case 4: me->Say("The Sea Witch, Lady Zithreen, awaits. Destroy her!", LANG_UNIVERSAL); break;
-                case 5: me->Say("Sharas'dal, Scepter of the Tides, is yours. Take it!", LANG_UNIVERSAL); break;
+                case 4: me->Say("Sharas'dal is mine, for the glory of my queen alone!", LANG_UNIVERSAL); break;
+                case 5: me->Say("Take up the Scepter, shaman. You have earned it.", LANG_UNIVERSAL); break;
                 default: break;
             }
             return;

@@ -176,15 +176,15 @@ struct npc_azuregos_disc_director : public ScriptedAI
             case 0: // The Azure Prisoner -> Seeking Answers: freed, then lead toward the Librarium
                 switch (_line)
                 {
-                    case 0: me->Say("Free at last! The void's grip is broken. I am Azuregos - I shall aid you, priest.", LANG_UNIVERSAL); ++_line; break;
-                    case 1: if (_timer >= 5000) { me->Say("The Nexus Vault holds Light's Wrath. Follow me - to the Librarium!", LANG_UNIVERSAL); ++_line; } break;
+                    case 0: me->Say("You are a capable healer, priest. I feel my strength returning.", LANG_UNIVERSAL); ++_line; break;
+                    case 1: if (_timer >= 5000) { me->Say("But first, I think I'll slip into a more comfortable form. These halls were never quite spacious enough for my tastes.", LANG_UNIVERSAL); ++_line; } break;
                     default: ArtifactAdvanceScenario(me); _phase = 1; break; // step 0 "The Azure Prisoner" done
                 }
                 break;
             case 1: // Seeking Answers -> Cleansed by Holy Fire: reached the Librarium, Judgment's Flame bars the way
                 if (ArtifactPlayerBeyond(me, NexusVaultLanding, 60.0f))
                 {
-                    me->Say("The Librarium. Judgment's Flame guards the way - put it down!", LANG_UNIVERSAL);
+                    me->Say("Priest, perhaps you can use your magic to influence his mind... Trick him into snuffing out his own flame!", LANG_UNIVERSAL);
                     ArtifactAdvanceScenario(me); // step 1 "Seeking Answers" done
                     _phase = 2;
                 }
@@ -348,7 +348,7 @@ struct npc_slaghammer_shadow_director : public ScriptedAI
             case 0: // The Twilight Camp -> Raiding the Tomb Raiders
                 switch (_line)
                 {
-                    case 0: me->Say("So the Conclave sent a priest. Good. The Twilight's Hammer defile the Tomb of Tyr below us.", LANG_UNIVERSAL); ++_line; break;
+                    case 0: me->Say("Moira said ye'd be comin'. I'm Slaghammer, payin' me family debt by hangin' oot wi' these buggers. Lemme take down this barrier.", LANG_UNIVERSAL); ++_line; break;
                     case 1: if (_timer >= 5000) { me->Say("Cut through their camp - the desecrated tomb lies beyond. Xal'atath waits within.", LANG_UNIVERSAL); ++_line; } break;
                     default: ArtifactAdvanceScenario(me); _phase = 1; break;
                 }

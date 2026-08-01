@@ -172,14 +172,14 @@ struct npc_travard_scenario_director : public ScriptedAI
         switch (_beat)
         {
             case 0:
-                me->Say("The portal drops us into the Crater. Stay close, champion - the Silver Hand awaits.", LANG_UNIVERSAL);
+                me->Say("Ah, there you are. The area was secured at great cost. This cannot continue - we must retrieve the Silver Hand and destroy the entrance to the tomb.", LANG_UNIVERSAL);
                 ArtifactAdvanceScenario(me);
                 ++_beat;
                 break;
             case 1:
                 if (ArtifactPlayerBeyond(me, SilverHandLanding, 45.0f))
                 {
-                    me->Say("Mordoth's abomination guards the relic ahead. Steel yourself!", LANG_UNIVERSAL);
+                    me->Say("Behold the Tomb of Tyr... wait! These monsters dare befoul the tomb?! This cannot stand - destroy these abominations!", LANG_UNIVERSAL);
                     ArtifactAdvanceScenario(me);
                     ++_beat;
                 }
@@ -214,7 +214,7 @@ struct npc_horrific_aberration : public ScriptedAI
         if (me->GetMap()->GetId() != MAP_TIRISFAL_SCENARIO)
             return;
 
-        me->Say("The Light... reclaims... its own...", LANG_UNIVERSAL);
+        me->Say("It is done. Quickly, take up the hammer! In so doing you will ensure Tyr's remains are protected for all time!", LANG_UNIVERSAL);
         ArtifactAdvanceScenario(me); // "Won Scenario" beat on-screen
 
         for (auto const& ref : me->GetMap()->GetPlayers())
@@ -284,14 +284,14 @@ struct npc_orik_scenario_director : public ScriptedAI
         switch (_beat)
         {
             case 0:
-                me->Say("Welcome to Shield's Rest, champion. The Truthguard lies within - but the shrine tests all who seek it.", LANG_UNIVERSAL);
+                me->Say("Cato! I'm glad ye could make it. The shield is close... I can feel it!", LANG_UNIVERSAL);
                 ArtifactAdvanceScenario(me);
                 ++_beat;
                 break;
             case 1:
                 if (ArtifactPlayerBeyond(me, TruthguardLanding, 60.0f))
                 {
-                    me->Say("The door opens. Beyond waits Yrgrim the Truthseeker - defeat him to prove your worth!", LANG_UNIVERSAL);
+                    me->Say("Lookee! Seems Yrgrim was the champion, and he came here after Tyr's fall. Tomb's up ahead - we'll follow yer lead, champion.", LANG_UNIVERSAL);
                     ArtifactAdvanceScenario(me);
                     ++_beat;
                 }
@@ -324,7 +324,7 @@ struct npc_yrgrim_truthseeker : public ScriptedAI
     void JustEngagedWith(Unit* /*who*/) override
     {
         if (me->GetMap()->GetId() == MAP_SHIELDS_REST)
-            me->Say("You would claim the Truthguard? Prove your conviction - or perish!", LANG_UNIVERSAL);
+            me->Say("I bid you greetings, Opener of Doors. You are the first. Long have I waited for one who proves worthy. Face me in battle that we might test your heart!", LANG_UNIVERSAL);
     }
 
     void JustDied(Unit* /*killer*/) override
@@ -332,7 +332,7 @@ struct npc_yrgrim_truthseeker : public ScriptedAI
         if (me->GetMap()->GetId() != MAP_SHIELDS_REST)
             return;
 
-        me->Say("Your truth... is proven. The Truthguard... is yours.", LANG_UNIVERSAL);
+        me->Say("I am beaten! You are indeed worthy. Were Tyr alive, he would make you his champion. I hereby bestow Truthguard upon you.", LANG_UNIVERSAL);
         ArtifactAdvanceScenario(me);
 
         for (auto const& ref : me->GetMap()->GetPlayers())
@@ -453,7 +453,7 @@ struct npc_balnazzar_risen : public ScriptedAI
         if (me->GetMap()->GetId() != MAP_BROKEN_SHORE)
             return;
 
-        me->Say("The Highlord... falls with me...", LANG_UNIVERSAL);
+        me->Say("You must... wield the blade... you must... stop the Legion... You must become... the Ashbringer...", LANG_UNIVERSAL);
         ArtifactAdvanceScenario(me);
 
         for (auto const& ref : me->GetMap()->GetPlayers())

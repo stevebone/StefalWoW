@@ -138,7 +138,7 @@ struct npc_nexus_prince_bilaal : public ScriptedAI
     void JustEngagedWith(Unit* /*who*/) override
     {
         if (me->GetMap()->GetId() == MAP_NEXUS_VAULT)
-            me->Yell("The Void hungers, and I am its hand! You will not leave this vault!", LANG_UNIVERSAL);
+            me->Yell("Fools! You may have destroyed the Surge Needles, but you are too late to stop us! The power of Aluneth will rip open the breach!", LANG_UNIVERSAL);
     }
 
     void JustDied(Unit* /*killer*/) override
@@ -146,7 +146,7 @@ struct npc_nexus_prince_bilaal : public ScriptedAI
         if (me->GetMap()->GetId() != MAP_NEXUS_VAULT)
             return;
 
-        me->Yell("Aegwynn's power... claims me...", LANG_UNIVERSAL);
+        me->Yell("What!? The void cannot be defeated! Noooo!", LANG_UNIVERSAL);
         ArtifactAdvanceScenario(me); // advance whatever scenario is running here (Mage or Priest Discipline)
 
         for (auto const& ref : me->GetMap()->GetPlayers())
@@ -306,7 +306,7 @@ struct npc_balaadur : public ScriptedAI
     void JustEngagedWith(Unit* /*who*/) override
     {
         if (me->GetMap()->GetId() == MAP_MAGE_HUNTER)
-            me->Yell("Another mage to add to my collection. Ebonchill will be mine!", LANG_UNIVERSAL);
+            me->Yell("For your insolence, your end will be painful and slow!", LANG_UNIVERSAL);
     }
 
     void JustDied(Unit* /*killer*/) override
@@ -314,7 +314,7 @@ struct npc_balaadur : public ScriptedAI
         if (me->GetMap()->GetId() != MAP_MAGE_HUNTER)
             return;
 
-        me->Yell("The Hunter of Mages... hunted...", LANG_UNIVERSAL);
+        me->Yell("Your world... will... fall...", LANG_UNIVERSAL);
 
         for (auto const& ref : me->GetMap()->GetPlayers())
             if (Player* p = ref.GetSource())
