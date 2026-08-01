@@ -235,6 +235,20 @@ struct npc_prustaga_scenario_director : public ScriptedAI
     void SaySelf(char const* text) { me->Say(text, LANG_UNIVERSAL); }
     void SayGrif(char const* text) { if (Creature* g = Grif()) g->Say(text, LANG_UNIVERSAL); }
 
+    // Advance the scenario UI one step by hand. The scenario's game-event criteria do not fire on this server's data,
+    // but Scenario::SetStepState/CompleteStep are public, so we mark the current step done and let CompleteStep move to
+    // the next (and, on the final step, complete the scenario) - exactly what the criteria path would have done.
+    void AdvanceScenario()
+    {
+        if (Scenario* s = me->GetScenario())
+            if (ScenarioStepEntry const* cur = s->GetStep())
+            {
+                s->SetStepState(cur, SCENARIO_STEP_DONE);
+                s->CompleteStep(cur);
+                TC_LOG_INFO("scripts", "[Titanstrike 1068] advanced scenario past step order {}", cur->OrderIndex);
+            }
+    }
+
     void UpdateAI(uint32 diff) override
     {
         if (me->GetMap()->GetId() != MAP_SHIELDS_REST)
@@ -298,6 +312,7 @@ struct npc_prustaga_scenario_director : public ScriptedAI
                         g->GetMotionMaster()->Clear(); // Grif is MovementType=2 (waypoint); drop it so he can follow
                         g->GetMotionMaster()->MovePoint(1, TombBeat1.GetPositionX() - 3.0f, TombBeat1.GetPositionY(), TombBeat1.GetPositionZ(), true);
                     }
+                    AdvanceScenario(); // stage 0 "Making Introductions" complete
                     break;
                 }
             }
@@ -338,15 +353,7 @@ struct npc_prustaga_scenario_director : public ScriptedAI
             }
         }
 
-        // --- Best-effort scenario UI: nudge each step's game event as the player progresses. These are no-ops on this
-        //     server (the step criteria do not advance), but harmless and correct if the data is ever fixed. ---
-        if (PlayerBeyond(StepDist1)) GameEvents::Trigger(GE_FIND_TOMB, anyP, anyP);
-        if (PlayerBeyond(StepDist2)) GameEvents::Trigger(GE_PROTECT_PRUSTAGA, anyP, anyP);
-        if (PlayerBeyond(StepDist3)) GameEvents::Trigger(GE_SEARCH_TITAN, anyP, anyP);
-
-        // --- The finale is driven directly (not off the scenario step). Once the party has fought through to the
-        //     hoard chamber, watch for Warlord Volund's death for the betrayal beat, and when the player steps onto
-        //     the Relay Device pad complete "Stolen Thunder" and pull the party to Mimiron in Ulduar. ---
+        // Watch for Warlord Volund's death once the party is deep enough that his chamber is loaded around us.
         if (_leadBeat >= 3 || PlayerBeyond(StepDist3 - 30.0f))
         {
             if (me->FindNearestCreature(NPC_WARLORD_VOLUND, 300.0f, true))
@@ -355,36 +362,55 @@ struct npc_prustaga_scenario_director : public ScriptedAI
                 _volundDead = true;
         }
 
-        if (_volundDead && !_betrayed)
+        // --- Drive the scenario stages by the player's own progress, advancing each via the public step API. ---
+        switch (order)
         {
-            _betrayed = true;
-            SaySelf("You've played your part. Now I shall play mine! The heart of this weapon will make me a titan!");
-            SayGrif("Prustaga, no! ...We can't stop now - to the pad, quickly!");
-        }
-
-        // Completion at the pad - robust: independent of the scenario step and of Volund detection (so it cannot
-        // softlock). Volund is a live hostile in the chamber, so the player fights him on the way regardless.
-        if (!_completed)
-            if (Player* p = PlayerNear(RelayDevicePad, 15.0f))
-            {
-                _completed = true;
-                if (!_betrayed)
+            case 1: // Tomb Raider -> reached the tomb entrance
+                if (PlayerBeyond(StepDist1))
+                    AdvanceScenario();
+                break;
+            case 2: // Volund's Hoard -> Prustaga dispelled the runes, the door is open
+                if (PlayerBeyond(StepDist2))
                 {
-                    _betrayed = true;
-                    SaySelf("You've played your part. Now I shall play mine! The heart of this weapon will make me a titan!");
-                    SayGrif("Prustaga, no! ...We can't stop now - to the pad, quickly!");
+                    SayGrif("Look! The door's openin'!");
+                    AdvanceScenario();
                 }
-                TC_LOG_INFO("scripts", "[Titanstrike 1068] finale: pad reached -> completing 41574 + transfer to Ulduar");
-                for (auto const& ref : me->GetMap()->GetPlayers())
-                    if (Player* mp = ref.GetSource())
-                        if (mp->IsInWorld())
-                        {
-                            if (mp->GetQuestStatus(QUEST_STOLEN_THUNDER) == QUEST_STATUS_INCOMPLETE)
-                                mp->CompleteQuest(QUEST_STOLEN_THUNDER); // ready to hand in to Mimiron
-                            GameEvents::Trigger(GE_JOIN_MIMIRON, mp, mp);  // best-effort scenario UI
-                            mp->m_Events.AddEventAtOffset(new TitanWorkshopTransferEvent(mp), 4s);
-                        }
-            }
+                break;
+            case 3: // Every Nook and Cranny -> reached the hoard room
+                if (PlayerBeyond(StepDist3))
+                    AdvanceScenario();
+                break;
+            case 4: // Volund's Last Stand -> he is defeated; the betrayal plays, then the stage advances
+                if (_volundDead)
+                {
+                    if (!_betrayed)
+                    {
+                        _betrayed = true;
+                        SaySelf("You've played your part. Now I shall play mine! The heart of this weapon will make me a titan!");
+                        SayGrif("Prustaga, no! ...We can't stop now - to the pad, quickly!");
+                    }
+                    AdvanceScenario();
+                }
+                break;
+            case 5: // Answering the Call -> step onto the Relay Device pad to join Mimiron in Ulduar
+                if (!_completed && PlayerNear(RelayDevicePad, 15.0f))
+                {
+                    _completed = true;
+                    AdvanceScenario(); // final step -> CompleteScenario (fires the CompleteScenario criteria)
+                    TC_LOG_INFO("scripts", "[Titanstrike 1068] finale: pad reached -> complete + transfer to Ulduar");
+                    for (auto const& ref : me->GetMap()->GetPlayers())
+                        if (Player* mp = ref.GetSource())
+                            if (mp->IsInWorld())
+                            {
+                                if (mp->GetQuestStatus(QUEST_STOLEN_THUNDER) == QUEST_STATUS_INCOMPLETE)
+                                    mp->CompleteQuest(QUEST_STOLEN_THUNDER); // safety net: ready to hand in to Mimiron
+                                mp->m_Events.AddEventAtOffset(new TitanWorkshopTransferEvent(mp), 4s);
+                            }
+                }
+                break;
+            default:
+                break;
+        }
     }
 };
 
