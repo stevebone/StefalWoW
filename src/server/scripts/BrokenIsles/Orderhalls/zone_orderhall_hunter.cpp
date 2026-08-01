@@ -45,6 +45,7 @@
 #include "Log.h"
 #include "Map.h"
 #include "MotionMaster.h"
+#include "MovementDefines.h"
 #include "ObjectAccessor.h"
 #include "Player.h"
 #include "QuestDef.h"
@@ -197,6 +198,7 @@ struct npc_prustaga_scenario_director : public ScriptedAI
     uint8  _leadBeat = 0;       // beat Prustaga is currently walking to (1..3), 0 = not moving yet
     bool   _leadArrived = false;
     bool   _betrayed = false;
+    uint8  _lastOrder = 255;
     ObjectGuid _grifGuid;
 
     void Reset() override
@@ -248,6 +250,11 @@ struct npc_prustaga_scenario_director : public ScriptedAI
             return;
 
         uint8 const order = step->OrderIndex;
+        if (order != _lastOrder)
+        {
+            TC_LOG_INFO("scripts", "[Titanstrike 1068] scenario step is now order {}", order);
+            _lastOrder = order;
+        }
 
         // --- Stage 0 "Making Introductions": a short spoken exchange at the landing, then Prustaga sets off. ---
         if (order == 0)
@@ -285,11 +292,16 @@ struct npc_prustaga_scenario_director : public ScriptedAI
             _leadBeat = 1;
             _leadArrived = false;
             me->SetWalk(false);
+            me->GetMotionMaster()->Clear();
             me->GetMotionMaster()->MovePoint(1, TombBeat1, true);
+            TC_LOG_INFO("scripts", "[Titanstrike 1068] escort START (order {}): Prustaga at ({},{},{}) -> MovePoint beat1; movegen now {}",
+                order, int(me->GetPositionX()), int(me->GetPositionY()), int(me->GetPositionZ()),
+                uint32(me->GetMotionMaster()->GetCurrentMovementGeneratorType()));
             if (Creature* g = Grif())
             {
                 g->SetWalk(false);
-                g->GetMotionMaster()->MoveFollow(me, 3.0f, static_cast<float>(M_PI));
+                g->GetMotionMaster()->Clear(); // Grif is MovementType=2 (waypoint); drop it so he can follow the escort
+                g->GetMotionMaster()->MovePoint(1, TombBeat1.GetPositionX() - 3.0f, TombBeat1.GetPositionY(), TombBeat1.GetPositionZ(), true);
             }
         }
 
@@ -297,6 +309,15 @@ struct npc_prustaga_scenario_director : public ScriptedAI
         if (_leadBeat >= 1 && _leadBeat <= 3)
         {
             Position const& target = (_leadBeat == 1) ? TombBeat1 : (_leadBeat == 2 ? TombBeat2 : TombBeat3);
+            // Self-heal: if her move to the beat was ever cancelled (she is idle short of it), re-issue it.
+            if (!_leadArrived && me->GetDistance(target) > 5.0f
+                && me->GetMotionMaster()->GetCurrentMovementGeneratorType() == IDLE_MOTION_TYPE)
+            {
+                me->GetMotionMaster()->MovePoint(_leadBeat, target, false); // straight-line fallback (no navmesh)
+                if (Creature* g = Grif())
+                    if (g->GetMotionMaster()->GetCurrentMovementGeneratorType() == IDLE_MOTION_TYPE)
+                        g->GetMotionMaster()->MovePoint(_leadBeat, target.GetPositionX() - 3.0f, target.GetPositionY(), target.GetPositionZ(), false);
+            }
             if (!_leadArrived && me->GetDistance(target) <= 5.0f)
             {
                 _leadArrived = true;
