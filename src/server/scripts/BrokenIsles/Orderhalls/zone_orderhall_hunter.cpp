@@ -100,13 +100,54 @@ static constexpr float StepDist2 = 165.0f;
 static constexpr float StepDist3 = 235.0f;
 
 // ---------------------------------------------------------------------------------------------------------------------
-// Leg 0: the flight to Shield's Rest.
+// Leg 0: the real "Huey" flight to Shield's Rest (matches the retail sequence in the reference video).
 //
-// "Stolen Thunder" (41574) opens with Grif Wildheart flying the Hunter from Dalaran to the isle of Shield's Rest
-// (objective 0 = kill-credit 104993). That scripted flight is absent from our world DB, so we credit the flight leg
-// and drop the player at the tomb landing beside Grif and Prustaga when the quest is accepted, so the scenario can
-// begin. (A real on-rails Huey flight is the intended presentation; this transfer is the functional stand-in.)
+// "Stolen Thunder" (41574) opens with Grif Wildheart flying the Hunter on his gyrocopter "Huey" from Dalaran to the
+// isle of Shield's Rest (objective 0 = kill-credit 104993). We reproduce the RIDDEN flight with the taxi system:
+// ActivateTaxiPathTo routes the player from Dalaran (node 1774) to Shield's Rest (node 1855), whose flight mount IS
+// Huey (creature 109682), so the approach is ridden on Huey as in the video. When the flight lands, the tomb scenario
+// instance (map 1495) is entered ("Dungeon Difficulty set to Normal Scenario"). If the taxi graph has no route, it
+// falls back to a direct teleport so the questline can never stall.
 // Bound to Grif 106879 via creature_template.ScriptName, and to 41574 via quest_template_addon.ScriptName.
+enum HueyFlightData
+{
+    NPC_GRIF_DALARAN  = 106879,
+    NPC_HUEY_MOUNT    = 109682,
+    TAXI_DALARAN      = 1774,
+    TAXI_SHIELDS_REST = 1855
+};
+
+// Waits for the Huey taxi flight to land, then enters the Shield's Rest scenario. Self-reschedules while the player is
+// still airborne (so it works for any flight length); a generous try-cap force-enters if the taxi never reports landing.
+class ShieldsRestArrivalEvent : public BasicEvent
+{
+public:
+    ShieldsRestArrivalEvent(Player* player, uint8 tries) : _player(player), _tries(tries) { }
+
+    bool Execute(uint64 /*time*/, uint32 /*diff*/) override
+    {
+        if (!_player->IsInWorld())
+            return true;
+
+        if (_player->IsInFlight() && _tries < 60) // still riding Huey - check again shortly
+        {
+            _player->m_Events.AddEventAtOffset(new ShieldsRestArrivalEvent(_player, _tries + 1), 3s);
+            return true;
+        }
+
+        if (_player->GetQuestStatus(QUEST_STOLEN_THUNDER) == QUEST_STATUS_INCOMPLETE)
+        {
+            _player->KilledMonsterCredit(NPC_CREDIT_FLY_SHIELDS_REST);            // objective 0
+            _player->TeleportTo(MAP_SHIELDS_REST, 4803.4f, 78.0f, -2.5f, 1.38f);  // tomb landing beside Prustaga
+        }
+        return true;
+    }
+
+private:
+    Player* _player;
+    uint8   _tries;
+};
+
 class ShieldsRestFlightEvent : public BasicEvent
 {
 public:
@@ -114,10 +155,24 @@ public:
 
     bool Execute(uint64 /*time*/, uint32 /*diff*/) override
     {
-        if (_player->IsInWorld())
+        if (!_player->IsInWorld())
+            return true;
+
+        // Grif's flight lines (from the reference video).
+        if (Creature* grif = _player->FindNearestCreature(NPC_GRIF_DALARAN, 80.0f))
         {
-            _player->KilledMonsterCredit(NPC_CREDIT_FLY_SHIELDS_REST);                 // objective 0
-            _player->TeleportTo(MAP_SHIELDS_REST, 4803.4f, 78.0f, -2.5f, 1.38f);       // landing beside Grif/Prustaga
+            grif->Say("Hop on and let's get moving - ol' Huey don't bite much!", LANG_UNIVERSAL);
+            grif->Say("Make yourself comfortable. It's a bit of a ride to Stormheim.", LANG_UNIVERSAL);
+        }
+
+        // Real ridden flight to Shield's Rest; the final leg into node 1855 is mounted on Huey (109682). Fall back to a
+        // direct teleport if the taxi graph cannot route it.
+        if (_player->ActivateTaxiPathTo({ TAXI_DALARAN, TAXI_SHIELDS_REST }, nullptr, 0, 0))
+            _player->m_Events.AddEventAtOffset(new ShieldsRestArrivalEvent(_player, 0), 4s);
+        else
+        {
+            _player->KilledMonsterCredit(NPC_CREDIT_FLY_SHIELDS_REST);
+            _player->TeleportTo(MAP_SHIELDS_REST, 4803.4f, 78.0f, -2.5f, 1.38f);
         }
         return true;
     }
