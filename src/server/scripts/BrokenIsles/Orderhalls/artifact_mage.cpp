@@ -396,20 +396,115 @@ struct npc_meryl_mage_hunter_director : public ScriptedAI
 };
 
 // =====================================================================================================================
-// NOTE: Fire / Felo'melorn has NO acquisition quest in this world DB (the entire Fire chain is missing - only the
-// reward tracker 41083 exists), so there is nothing to bind a QuestScript to and it is intentionally omitted. Scenario
-// 957 on map 1480 is spawn-ready (Lyandra Sunstrider 99615 f16, Iceborn Conjurer 98760 f14) should a quest be authored.
+// Fire artifact: "The Frozen Flame" (11997) -> Felo'melorn, Flamestrike of the Phoenix. Icecrown, map 1480 (shared with
+// the DK Frost scenario area). Quest 11997 IS in the world DB with two objectives - obj0 credit 99418 "Aethas's Portal"
+// (Mage Portal Taken, granted on accept) + obj1 credit 100290 "Flame Bunny" (Obtain Felo'melorn, granted on Lyandra's
+// death) - but it had NO quest-giver and no boss AI, so it was unobtainable. The SQL adds Meryl Felstorm (102700 /
+// 109222, already spawned in the Hall of the Guardian) as giver+ender - mirroring Frost's "The Mage Hunter" - and binds
+// the Lyandra boss AI. On accept we grant the portal credit and drop the player beside Lyandra in Icecrown; her death
+// grants the Felo'melorn credit + completes 11997, then returns the player to Meryl.
+//
+// LIMITATION: map 1480 is shared with the DK Frost scenario; Lyandra sits ~200y from the DK content so they don't
+// normally interfere, but Fire + DK-Frost run simultaneously on 1480 could see each other's actors. The Aethas Spellbind
+// / Gorewing-frees-Lyandra mid-fight beats are creature dialogue here, not a scripted phase (no Scene for Fire).
 // =====================================================================================================================
+enum FrozenFlameData
+{
+    QUEST_THE_FROZEN_FLAME   = 11997,
+    MAP_ICECROWN_FIRE        = 1480,
+    NPC_LYANDRA_SUNSTRIDER   = 99615,  // the boss (already faction 16 - hostile)
+    CREDIT_MAGE_PORTAL_TAKEN = 99418,  // 11997 obj0 (granted on accept)
+    CREDIT_FELOMELORN_LOOTED = 100290  // 11997 obj1 (granted on Lyandra's death)
+};
+
+// Player landing on map 1480 beside Lyandra Sunstrider (~4573, 2769, 361).
+static constexpr Position FrozenFlameLanding = { 4558.0f, 2769.0f, 361.3f, 0.0f };
+// Return beside Meryl Felstorm (102700) in Dalaran (the quest ender) - same spot as the Frost return.
+static constexpr Position FrozenFlameHome    = { -843.0f, 4432.0f, 742.5f, 2.60f };
+
+// Accepting "The Frozen Flame" opens Aethas's portal to Icecrown (obj0 credit 99418) and drops the player beside Lyandra.
+class FrozenFlamePortalEvent : public BasicEvent
+{
+public:
+    explicit FrozenFlamePortalEvent(Player* player) : _player(player) { }
+
+    bool Execute(uint64 /*time*/, uint32 /*diff*/) override
+    {
+        if (_player->IsInWorld())
+        {
+            _player->KilledMonsterCredit(CREDIT_MAGE_PORTAL_TAKEN); // obj0
+            _player->TeleportTo(MAP_ICECROWN_FIRE, FrozenFlameLanding.GetPositionX(), FrozenFlameLanding.GetPositionY(),
+                FrozenFlameLanding.GetPositionZ(), FrozenFlameLanding.GetOrientation());
+        }
+        return true;
+    }
+
+private:
+    Player* _player;
+};
+
+struct quest_the_frozen_flame : QuestScript
+{
+    quest_the_frozen_flame() : QuestScript("quest_the_frozen_flame") { }
+
+    void OnQuestStatusChange(Player* player, Quest const* /*quest*/, QuestStatus /*oldStatus*/, QuestStatus newStatus) override
+    {
+        if (newStatus == QUEST_STATUS_INCOMPLETE) // just accepted -> portal to Icecrown
+            player->m_Events.AddEventAtOffset(new FrozenFlamePortalEvent(player), 1500ms);
+    }
+};
+
+// Lyandra Sunstrider (99615): the Fire boss in Icecrown. Already faction 16; (re)asserted in Reset(). Her death grants
+// obj1 (credit 100290 "Obtain Felo'melorn") + completes 11997 (the authoritative completion point) and rides the player
+// home to Meryl. Bound to 99615 via creature_template.ScriptName.
+struct npc_lyandra_sunstrider : public ScriptedAI
+{
+    npc_lyandra_sunstrider(Creature* creature) : ScriptedAI(creature) { }
+
+    void Reset() override
+    {
+        if (me->GetMap()->GetId() == MAP_ICECROWN_FIRE)
+            me->SetFaction(FACTION_MONSTER_2); // faction 16 - attackable
+    }
+
+    void JustEngagedWith(Unit* /*who*/) override
+    {
+        if (me->GetMap()->GetId() == MAP_ICECROWN_FIRE)
+            me->Yell("This ends now!", LANG_UNIVERSAL);
+    }
+
+    void JustDied(Unit* /*killer*/) override
+    {
+        if (me->GetMap()->GetId() != MAP_ICECROWN_FIRE)
+            return;
+
+        me->Yell("So... cold... Felo'melorn is yours. Take it.", LANG_UNIVERSAL);
+
+        for (auto const& ref : me->GetMap()->GetPlayers())
+            if (Player* p = ref.GetSource())
+                if (p->IsInWorld())
+                {
+                    p->KilledMonsterCredit(CREDIT_FELOMELORN_LOOTED); // obj1
+                    if (p->GetQuestStatus(QUEST_THE_FROZEN_FLAME) == QUEST_STATUS_INCOMPLETE)
+                    {
+                        p->CompleteQuest(QUEST_THE_FROZEN_FLAME); // safety net: ready to hand in to Meryl
+                        p->m_Events.AddEventAtOffset(new MageReturnHomeEvent(p, MAP_ICECROWN_FIRE, MAP_DALARAN_BROKEN_ISLE, FrozenFlameHome), 6s);
+                    }
+                }
+    }
+};
 
 void AddSC_artifact_mage()
 {
     // Quest
     new quest_the_nexus_vault();
     new quest_the_mage_hunter();
+    new quest_the_frozen_flame();               // 11997 Fire
 
     // Creature
     RegisterCreatureAI(npc_nexus_prince_bilaal);
     RegisterCreatureAI(npc_azuregos_nexus_director);
     RegisterCreatureAI(npc_balaadur);
     RegisterCreatureAI(npc_meryl_mage_hunter_director);
+    RegisterCreatureAI(npc_lyandra_sunstrider); // 99615 Fire boss
 }
