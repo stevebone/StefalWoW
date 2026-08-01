@@ -43,7 +43,8 @@ void AddSC_instance_eye_of_azshara();
 // Orderhalls
 void AddSC_orderhall_warrior();
 void AddSC_orderhall_rogue();
-void AddSC_orderhall_legion();
+void AddSC_orderhall_hunter();
+void AddSC_orderhall_legion();   // generic class-hall framework (unlock + Dalaran class messenger)
 
 // The name of this function should match:
 // void Add${NameOfDirectory}Scripts()
@@ -75,5 +76,6 @@ void AddBrokenIslesScripts()
     // Orderhalls
     AddSC_orderhall_warrior();
     AddSC_orderhall_rogue();
-    AddSC_orderhall_legion();   // Legion class order halls + BM Hunter artifact ("Stolen Thunder" / Titanstrike)
+    AddSC_orderhall_hunter();    // BM Hunter artifact ("Stolen Thunder" / Titanstrike)
+    AddSC_orderhall_legion();    // generic class-hall framework (unlock + Dalaran class messenger)
 }
