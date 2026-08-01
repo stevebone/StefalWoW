@@ -229,38 +229,9 @@ struct npc_judgments_flame : public ScriptedAI
 // Nexus-Prince Bilaal (104502): scenario step 4 boss and the authoritative completion point for Discipline. Faction-35
 // placeholder -> made hostile; his death advances the remaining steps (seize / claim Light's Wrath), completes the
 // (objective-less) quest 41625, and returns the priest to Archmage Kalec. Bound to 104502 via ScriptName.
-struct npc_nexus_prince_bilaal : public ScriptedAI
-{
-    npc_nexus_prince_bilaal(Creature* creature) : ScriptedAI(creature) { }
-
-    void Reset() override { me->SetFaction(FACTION_MONSTER_2); } // faction 16 - attackable
-
-    void UpdateAI(uint32 /*diff*/) override
-    {
-        if (!UpdateVictim())
-            return;
-    }
-
-    void JustDied(Unit* /*killer*/) override
-    {
-        if (me->GetMap()->GetId() != MAP_NEXUS_VAULT)
-            return;
-
-        me->Yell("The void... will reclaim... all...", LANG_UNIVERSAL);
-        ArtifactAdvanceScenario(me); // step 4 "Consumed by Void" done
-        ArtifactAdvanceScenario(me); // step 5 "A Will of Fire" (seize Light's Wrath)
-        ArtifactAdvanceScenario(me); // step 6 "To Wield the Flame" -> completes the scenario
-
-        for (auto const& ref : me->GetMap()->GetPlayers())
-            if (Player* p = ref.GetSource())
-                if (p->IsInWorld())
-                {
-                    if (p->GetQuestStatus(QUEST_LIGHTS_WRATH) == QUEST_STATUS_INCOMPLETE)
-                        p->CompleteQuest(QUEST_LIGHTS_WRATH); // objective-less quest: mark ready to hand in to Kalec
-                    p->m_Events.AddEventAtOffset(new NexusVaultReturnEvent(p), 6s);
-                }
-    }
-};
+// NOTE: Nexus-Prince Bilaal (104502) is shared with the Mage artifact on the same map (1583), so a single script owns
+// him in artifact_mage.cpp (npc_nexus_prince_bilaal) - it grants the Discipline completion (41625) too. A duplicate
+// script here would collide on the script name, so the Priest Discipline completion lives in the Mage owner.
 
 // =====================================================================================================================
 // Holy: "The Vindicator's Plea" (41957) -> T'uure, Beacon of the Naaru.
@@ -429,33 +400,8 @@ struct npc_twilight_deacon_farthing : public ScriptedAI
 // Zakajz the Corruptor (104276): scenario step 9 boss (already hostile, faction 14) and the authoritative "won the
 // scenario" point. His death credits objective 1 and schedules the return that credits objective 2. Bound to 104276
 // via ScriptName - faction left untouched (already 14).
-struct npc_zakajz_corruptor : public ScriptedAI
-{
-    npc_zakajz_corruptor(Creature* creature) : ScriptedAI(creature) { }
-
-    void UpdateAI(uint32 /*diff*/) override
-    {
-        if (!UpdateVictim())
-            return;
-    }
-
-    void JustDied(Unit* /*killer*/) override
-    {
-        if (me->GetMap()->GetId() != MAP_TIRISFAL_SCENARIO)
-            return;
-
-        me->Yell("Impossible... the Blade... turns against me...", LANG_UNIVERSAL);
-        ArtifactAdvanceScenario(me); // step 9 "The True Death of Zakajz" -> completes the scenario
-
-        for (auto const& ref : me->GetMap()->GetPlayers())
-            if (Player* p = ref.GetSource())
-                if (p->IsInWorld())
-                {
-                    p->KilledMonsterCredit(CREDIT_SHADOW_WON);                            // objective 1 "won scenario"
-                    p->m_Events.AddEventAtOffset(new BladeTwilightReturnEvent(p), 6s);    // then credit obj 2 + return
-                }
-    }
-};
+// NOTE: Zakajz the Corruptor (104276) is shared with the Warrior Arms artifact on the same map (1539), so a single
+// script owns him in artifact_warrior.cpp (npc_zakajz_corruptor) - it grants the Shadow completion (40710) too.
 
 void AddSC_artifact_priest()
 {
@@ -467,8 +413,7 @@ void AddSC_artifact_priest()
     // Creatures
     RegisterCreatureAI(npc_azuregos_disc_director);
     RegisterCreatureAI(npc_judgments_flame);
-    RegisterCreatureAI(npc_nexus_prince_bilaal);
     RegisterCreatureAI(npc_slaghammer_shadow_director);
     RegisterCreatureAI(npc_twilight_deacon_farthing);
-    RegisterCreatureAI(npc_zakajz_corruptor);
+    // Nexus-Prince Bilaal (104502) + Zakajz (104276) are owned by the Mage/Warrior files (shared bosses/maps).
 }

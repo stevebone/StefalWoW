@@ -147,6 +147,7 @@ struct npc_nexus_prince_bilaal : public ScriptedAI
             return;
 
         me->Yell("Aegwynn's power... claims me...", LANG_UNIVERSAL);
+        ArtifactAdvanceScenario(me); // advance whatever scenario is running here (Mage or Priest Discipline)
 
         for (auto const& ref : me->GetMap()->GetPlayers())
             if (Player* p = ref.GetSource())
@@ -155,6 +156,12 @@ struct npc_nexus_prince_bilaal : public ScriptedAI
                     ArtifactGrantCredits(p, { CREDIT_BILAAL_TARGET, CREDIT_NEXUS_SCENARIO_DONE }); // obj0 + obj1
                     if (p->GetQuestStatus(QUEST_THE_NEXUS_VAULT) == QUEST_STATUS_INCOMPLETE)
                         p->CompleteQuest(QUEST_THE_NEXUS_VAULT); // safety net: ready to hand in to Kalec
+                    // Priest Discipline "The Light's Wrath" (41625) shares this boss + the Nexus Vault (map 1583).
+                    if (p->GetQuestStatus(41625) == QUEST_STATUS_INCOMPLETE)
+                    {
+                        p->CompleteQuest(41625);
+                        p->TeleportTo(1220, -857.2f, 4637.6f, 749.4f, 0.0f); // back beside Archmage Kalec
+                    }
                 }
     }
 };

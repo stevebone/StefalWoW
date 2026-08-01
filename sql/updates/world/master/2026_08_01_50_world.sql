@@ -417,5 +417,5 @@ INSERT INTO `creature` (`guid`,`id`,`map`,`zoneId`,`areaId`,`spawnDifficulties`,
 -- Destruction (Tol Barad scenario 1155, map 1630; Dreadscar return map 1107)
 INSERT INTO `creature` (`guid`,`id`,`map`,`zoneId`,`areaId`,`spawnDifficulties`,`phaseUseFlags`,`PhaseId`,`PhaseGroup`,`terrainSwapMap`,`modelid`,`equipment_id`,`position_x`,`position_y`,`position_z`,`orientation`,`spawntimesecs`,`wander_distance`,`currentwaypoint`,`curHealthPct`,`MovementType`,`npcflag`,`unit_flags`,`unit_flags2`,`unit_flags3`,`ScriptName`,`StringId`,`VerifiedBuild`) VALUES
 (50046020,109838,1630,0,0,'0',0,0,0,-1,0,0,-1038.6,1151.6,99.6,3.87,300,0,0,100,0,3,NULL,NULL,NULL,'',NULL,0),  -- Calydus, Tol Barad director + 43153 ender
-(50046021,106757,1630,0,0,'0',0,0,0,-1,0,0,-1030.0,1145.0,99.6,3.87,300,0,0,100,0,NULL,NULL,NULL,'',NULL,0),   -- Eye of the Beast, scenario 1155 finale boss
+(50046021,106757,1630,0,0,'0',0,0,0,-1,0,0,-1030.0,1145.0,99.6,3.87,300,0,0,100,0,0,NULL,NULL,NULL,'',NULL,0),   -- Eye of the Beast, scenario 1155 finale boss
 (50046022,109698,1107,0,0,'0',0,0,0,-1,0,0,3118.0,1104.0,286.6,4.65,300,0,0,100,0,3,NULL,NULL,NULL,'',NULL,0);   -- Calydus, 43100 quest-ender at the Dreadscar

@@ -266,12 +266,21 @@ struct npc_zakajz_corruptor : public ScriptedAI
 
         for (auto const& ref : me->GetMap()->GetPlayers())
             if (Player* p = ref.GetSource())
-                if (p->IsInWorld() && p->GetQuestStatus(QUEST_THE_SWORD_OF_KINGS) == QUEST_STATUS_INCOMPLETE)
+                if (p->IsInWorld())
                 {
-                    p->KilledMonsterCredit(CREDIT_WON_SCENARIO);   // objective 3
-                    p->AddItem(ITEM_STROMKAR, 1);                  // Strom'kar, the Warbreaker
-                    // Return after the finale beats; CompleteQuest there force-satisfies the Type-14 objective 2.
-                    p->m_Events.AddEventAtOffset(new ReturnToSkyholdEvent(p, 0, QUEST_THE_SWORD_OF_KINGS), 10s);
+                    if (p->GetQuestStatus(QUEST_THE_SWORD_OF_KINGS) == QUEST_STATUS_INCOMPLETE)
+                    {
+                        p->KilledMonsterCredit(CREDIT_WON_SCENARIO);   // objective 3
+                        p->AddItem(ITEM_STROMKAR, 1);                  // Strom'kar, the Warbreaker
+                        // Return after the finale beats; CompleteQuest there force-satisfies the Type-14 objective 2.
+                        p->m_Events.AddEventAtOffset(new ReturnToSkyholdEvent(p, 0, QUEST_THE_SWORD_OF_KINGS), 10s);
+                    }
+                    // Priest Shadow "Blade in Twilight" (40710) shares this boss + map (1539, Tomb of Tyr / Tirisfal).
+                    if (p->GetQuestStatus(40710) == QUEST_STATUS_INCOMPLETE)
+                    {
+                        p->CompleteQuest(40710);
+                        p->TeleportTo(1512, 1333.9f, 1335.6f, 177.2f, 3.1f); // back to Netherlight Temple (Priest hall)
+                    }
                 }
     }
 };
