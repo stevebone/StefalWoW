@@ -420,7 +420,7 @@ enum ReturnOfLightData
 {
     QUEST_RETURN_OF_THE_LIGHT = 42074,
     MAP_NISKARA               = 1489,
-    MAP_NETHERLIGHT_TEMPLE    = 1220,
+    MAP_TUURE_HOME            = 1220, // Prophet Velen (ender) is spawned here at -693,4492,728
     NPC_LADY_CALINDRIS        = 106318,
     NPC_VINDICATOR_BOROS_NISK = 106134,
     CREDIT_NISKARA_PORTAL     = 106076, // obj0 (on accept)
@@ -440,7 +440,7 @@ public:
     bool Execute(uint64 /*time*/, uint32 /*diff*/) override
     {
         if (_player->IsInWorld() && _player->GetMapId() == MAP_NISKARA)
-            _player->TeleportTo(MAP_NETHERLIGHT_TEMPLE, VelenReturn.GetPositionX(), VelenReturn.GetPositionY(),
+            _player->TeleportTo(MAP_TUURE_HOME, VelenReturn.GetPositionX(), VelenReturn.GetPositionY(),
                 VelenReturn.GetPositionZ(), VelenReturn.GetOrientation());
         return true;
     }
