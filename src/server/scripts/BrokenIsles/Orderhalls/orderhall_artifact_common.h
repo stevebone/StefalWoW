@@ -76,7 +76,7 @@ inline void ArtifactPlayScene(Map* map, uint32 scenePackageId)
     for (auto const& ref : map->GetPlayers())
         if (Player* p = ref.GetSource())
             if (p->IsInWorld())
-                p->GetSceneMgr().PlaySceneByPackageId(scenePackageId);
+                p->GetSceneMgr().PlaySceneByPackageId(scenePackageId, SceneFlag::None);
 }
 
 // First live player within `within` yards of `pos` on the object's map, else nullptr.
