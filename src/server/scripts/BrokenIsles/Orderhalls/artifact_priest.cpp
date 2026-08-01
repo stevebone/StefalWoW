@@ -215,7 +215,6 @@ struct npc_judgments_flame : public ScriptedAI
     {
         if (!UpdateVictim())
             return;
-        DoMeleeAttackIfReady();
     }
 
     void JustDied(Unit* /*killer*/) override
@@ -240,7 +239,6 @@ struct npc_nexus_prince_bilaal : public ScriptedAI
     {
         if (!UpdateVictim())
             return;
-        DoMeleeAttackIfReady();
     }
 
     void JustDied(Unit* /*killer*/) override
@@ -416,7 +414,6 @@ struct npc_twilight_deacon_farthing : public ScriptedAI
     {
         if (!UpdateVictim())
             return;
-        DoMeleeAttackIfReady();
     }
 
     void JustDied(Unit* /*killer*/) override
@@ -440,7 +437,6 @@ struct npc_zakajz_corruptor : public ScriptedAI
     {
         if (!UpdateVictim())
             return;
-        DoMeleeAttackIfReady();
     }
 
     void JustDied(Unit* /*killer*/) override
