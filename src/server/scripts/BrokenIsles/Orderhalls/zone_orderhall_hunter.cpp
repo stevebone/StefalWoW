@@ -400,9 +400,20 @@ private:
     Player* _player;
 };
 
-// Scenario 1099 director, bound to the temple's Grif (106715). Mirrors the Shield's Rest director: it advances the
-// scenario off the real beats - conversing with Thorim, clearing the vrykul, Prustaga's defeat (fired from her AI
-// below), then the finale (bind Hati, wield Titanstrike, ride home).
+// Give every player at the temple the wolf Hati as a companion at their side (the artifact grants it permanently in
+// retail; here it joins as a guardian for the finale and beyond).
+static void GrantHatiCompanion(Map* map)
+{
+    for (auto const& ref : map->GetPlayers())
+        if (Player* p = ref.GetSource())
+            if (p->IsInWorld())
+                if (Creature* hati = p->SummonCreature(NPC_HATI, *p, TEMPSUMMON_MANUAL_DESPAWN))
+                    hati->GetMotionMaster()->MoveFollow(p, 2.0f, static_cast<float>(M_PI));
+}
+
+// Scenario 1099 director, bound to the temple's Grif (106715). Mirrors the Shield's Rest director, but only fires the
+// on-screen scenario step game events - the gameplay outcomes (recovering Titanstrike, gaining Hati, riding home) are
+// driven authoritatively from Prustaga's death below, so the questline completes even if the scenario is unavailable.
 struct npc_grif_temple_director : public ScriptedAI
 {
     npc_grif_temple_director(Creature* creature) : ScriptedAI(creature), _pollTimer(0) { }
@@ -426,17 +437,6 @@ struct npc_grif_temple_director : public ScriptedAI
     }
 
     Player* AnyPlayer() const { return FindReachedPlayer([](Player*) { return true; }); }
-
-    // Give every player in the instance the wolf Hati as a companion that fights at their side (the artifact grants
-    // it permanently in retail; here it joins as a guardian for the finale and beyond).
-    void GrantHati()
-    {
-        for (auto const& ref : me->GetMap()->GetPlayers())
-            if (Player* p = ref.GetSource())
-                if (p->IsInWorld())
-                    if (Creature* hati = p->SummonCreature(NPC_HATI, *p, TEMPSUMMON_MANUAL_DESPAWN))
-                        hati->GetMotionMaster()->MoveFollow(p, 2.0f, static_cast<float>(M_PI));
-    }
 
     void UpdateAI(uint32 diff) override
     {
@@ -469,32 +469,17 @@ struct npc_grif_temple_director : public ScriptedAI
                 break;
             case 2: // Madness of the Usurper - defeat Prustaga (fired from npc_prustaga_temple::JustDied)
                 break;
-            case 3: // Heart of Thunder - bind Hati's spirit to your own
+            case 3: // Heart of Thunder - bind Hati's spirit (the companion is granted from Prustaga's death)
                 if (Player* p = AnyPlayer())
-                {
-                    GrantHati();
                     GameEvents::Trigger(GE_BIND_HATI, p, p);
-                }
                 break;
-            case 4: // The Power of the Titans - wield Titanstrike (recovers the artifact -> objective 2)
+            case 4: // The Power of the Titans - wield Titanstrike (the credit is granted from Prustaga's death)
                 if (Player* p = AnyPlayer())
-                {
-                    for (auto const& ref : me->GetMap()->GetPlayers())
-                        if (Player* mp = ref.GetSource())
-                            if (mp->IsInWorld())
-                                mp->KilledMonsterCredit(NPC_CREDIT_TITANSTRIKE);   // objective 2 for the whole party
                     GameEvents::Trigger(GE_WIELD_TITANSTRIKE, p, p);
-                }
                 break;
-            case 5: // Odyssey's End - ride Huey back to Dalaran
+            case 5: // Odyssey's End - ride Huey back to Dalaran (the return is scheduled from Prustaga's death)
                 if (Player* p = AnyPlayer())
-                {
                     GameEvents::Trigger(GE_RIDE_HUEY_HOME, p, p);
-                    for (auto const& ref : me->GetMap()->GetPlayers())
-                        if (Player* mp = ref.GetSource())
-                            if (mp->IsInWorld())
-                                mp->m_Events.AddEventAtOffset(new DalaranReturnEvent(mp), 4s);
-                }
                 break;
             default:
                 break;
@@ -502,9 +487,10 @@ struct npc_grif_temple_director : public ScriptedAI
     }
 };
 
-// Prustaga at the Temple of Storms (106744): scripted hostile, and her death completes scenario step 2 and grants
-// the "Titanstrike recovered" credit as a safety net (the director also grants it at step 4). Bound to 106744 via
-// creature_template.ScriptName.
+// Prustaga at the Temple of Storms (106744): scripted hostile, and the authoritative completion point for leg 3. Her
+// death completes scenario step 2 (on-screen) and, independently of the scenario, recovers Titanstrike (objective 2),
+// grants the Hati companion, and rides the party home to Dalaran a few seconds later (after the finale beats). Bound
+// to 106744 via creature_template.ScriptName.
 struct npc_prustaga_temple : public ScriptedAI
 {
     npc_prustaga_temple(Creature* creature) : ScriptedAI(creature) { }
@@ -531,9 +517,21 @@ struct npc_prustaga_temple : public ScriptedAI
 
         if (player)
         {
-            GameEvents::Trigger(GE_DEFEAT_PRUSTAGA, player, player);
+            GameEvents::Trigger(GE_DEFEAT_PRUSTAGA, player, player);      // scenario step 2 "Madness of the Usurper"
             GameEvents::Trigger(GE_DEFEAT_PRUSTAGA_SUB, player, player);
         }
+
+        // Authoritative outcome: recover Titanstrike (objective 2) and return home a few seconds later, so the leg
+        // completes whether or not scenario 1099 is running its on-screen steps.
+        for (auto const& ref : me->GetMap()->GetPlayers())
+            if (Player* p = ref.GetSource())
+                if (p->IsInWorld())
+                {
+                    p->KilledMonsterCredit(NPC_CREDIT_TITANSTRIKE);                        // objective 2
+                    p->m_Events.AddEventAtOffset(new DalaranReturnEvent(p), 12s);          // after the finale beats
+                }
+
+        GrantHatiCompanion(me->GetMap());
     }
 };
 
