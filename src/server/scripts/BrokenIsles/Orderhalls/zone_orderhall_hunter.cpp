@@ -895,6 +895,31 @@ struct npc_degar_bloodtotem : public ScriptedAI
     }
 };
 
+// Stormweaver Ingrida (105122) - the Stage-2 "Tomb Raider" mini-boss of Volund's tomb. Placeholder faction 35 -> made
+// hostile, with her engage/defeat lines from the reference video. Bound to 105122 via creature_template.ScriptName.
+struct npc_stormweaver_ingrida : public ScriptedAI
+{
+    npc_stormweaver_ingrida(Creature* creature) : ScriptedAI(creature) { }
+
+    void Reset() override
+    {
+        if (me->GetMap()->GetId() == MAP_SHIELDS_REST)
+            me->SetFaction(FACTION_MONSTER_2); // faction 16 - attackable mini-boss
+    }
+
+    void JustEngagedWith(Unit* /*who*/) override
+    {
+        if (me->GetMap()->GetId() == MAP_SHIELDS_REST)
+            me->Yell("You will find only death here! Flee now, and you may yet leave with your fragile lives.", LANG_UNIVERSAL);
+    }
+
+    void JustDied(Unit* /*killer*/) override
+    {
+        if (me->GetMap()->GetId() == MAP_SHIELDS_REST)
+            me->Yell("My warlord... we have... guests...", LANG_UNIVERSAL);
+    }
+};
+
 void AddSC_orderhall_hunter()
 {
     // Quest
@@ -907,6 +932,7 @@ void AddSC_orderhall_hunter()
     // Creature
     RegisterCreatureAI(npc_grif_wildheart_flight);
     RegisterCreatureAI(npc_prustaga_scenario_director);
+    RegisterCreatureAI(npc_stormweaver_ingrida);
     RegisterCreatureAI(npc_warlord_volund);
     RegisterCreatureAI(npc_grif_temple_director);
     RegisterCreatureAI(npc_prustaga_temple);
