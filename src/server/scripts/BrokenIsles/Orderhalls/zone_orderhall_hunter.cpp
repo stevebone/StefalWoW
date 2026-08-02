@@ -1079,6 +1079,77 @@ struct quest_the_campaign_begins : QuestScript
     }
 };
 
+// =====================================================================================================================
+// Campaign Batch 2 - Champion: Rexxar. Recruiting Rexxar (42390, find Rexxar in Highmountain) -> Survive the Night
+// (42392, the night vigil at his camp: tend the campfire + keep watch with Rexxar until dawn, when he pledges to the
+// Unseen Path). Rexxar (107425) is spawned at his Highmountain camp (map 1220 ~5295,5095,694). The objectives are Type-0
+// credits (Campfire 107495, Speak to Rexxar 109745, Rexxar 107425) with no script; grant them + play Rexxar's vigil
+// dialogue, holding the final "earned my axe" credit until dawn so the quest completes on the recruitment beat.
+// =====================================================================================================================
+enum HunterRexxarRecruit
+{
+    NPC_REXXAR_HIGHMOUNTAIN = 107425, NPC_REXXAR_GIVER = 107317,
+    CREDIT_CAMPFIRE     = 107495, // 42392 obj
+    CREDIT_SPEAK_REXXAR = 109745, // 42392 obj
+    CREDIT_REXXAR_PLEDGE = 107425 // 42392 obj (Rexxar) - the dawn recruitment credit
+};
+
+// Rexxar speaks a vigil beat (the night passing at his camp); the final beat pledges him to the Unseen Path and grants
+// the recruitment credit, so the quest completes on that moment rather than instantly on accept.
+class RexxarVigilEvent : public BasicEvent
+{
+public:
+    RexxarVigilEvent(Player* player, uint8 line) : _player(player), _line(line) { }
+    bool Execute(uint64 /*time*/, uint32 /*diff*/) override
+    {
+        if (!_player->IsInWorld())
+            return true;
+        Creature* rexxar = _player->FindNearestCreature(NPC_REXXAR_HIGHMOUNTAIN, 80.0f);
+        switch (_line)
+        {
+            case 0: if (rexxar) rexxar->Say("Sit, hunter. The night is long and the Legion hunts in the dark. We keep the fire lit and our bows ready.", LANG_UNIVERSAL); break;
+            case 1: if (rexxar) rexxar->Say("Misha! Easy, girl... just the wind. For now.", LANG_UNIVERSAL); break;
+            case 2:
+                if (rexxar)
+                    rexxar->Say("Dawn breaks, and you kept the watch without complaint. You have the heart of a true hunter. My axe is yours - the Unseen Path has a new ally.", LANG_UNIVERSAL);
+                if (_player->GetQuestStatus(42392) == QUEST_STATUS_INCOMPLETE)
+                    _player->KilledMonsterCredit(CREDIT_REXXAR_PLEDGE); // dawn: Rexxar pledges -> quest completes
+                break;
+        }
+        return true;
+    }
+private:
+    Player* _player;
+    uint8 _line;
+};
+
+struct quest_recruiting_rexxar : QuestScript
+{
+    quest_recruiting_rexxar() : QuestScript("quest_recruiting_rexxar") { }
+    void OnQuestStatusChange(Player* player, Quest const* /*quest*/, QuestStatus /*oldStatus*/, QuestStatus newStatus) override
+    {
+        if (newStatus == QUEST_STATUS_INCOMPLETE)
+            if (Creature* g = player->FindNearestCreature(NPC_REXXAR_GIVER, 50.0f))
+                g->Say("Rexxar walks the wilds of Highmountain, Huntmaster. Seek him out - the Champion of the Horde would make a mighty ally for the Unseen Path.", LANG_UNIVERSAL);
+    }
+};
+
+struct quest_survive_the_night : QuestScript
+{
+    quest_survive_the_night() : QuestScript("quest_survive_the_night") { }
+    void OnQuestStatusChange(Player* player, Quest const* /*quest*/, QuestStatus /*oldStatus*/, QuestStatus newStatus) override
+    {
+        if (newStatus == QUEST_STATUS_INCOMPLETE) // accepted at Rexxar's camp -> the night vigil
+        {
+            player->KilledMonsterCredit(CREDIT_CAMPFIRE);     // tend the campfire
+            player->KilledMonsterCredit(CREDIT_SPEAK_REXXAR);  // speak with Rexxar
+            player->m_Events.AddEventAtOffset(new RexxarVigilEvent(player, 0), 1s);
+            player->m_Events.AddEventAtOffset(new RexxarVigilEvent(player, 1), 7s);
+            player->m_Events.AddEventAtOffset(new RexxarVigilEvent(player, 2), 14s); // dawn -> pledge credit -> complete
+        }
+    }
+};
+
 void AddSC_orderhall_hunter()
 {
     // Quest
@@ -1092,6 +1163,8 @@ void AddSC_orderhall_hunter()
     new quest_oath_of_service();      // 40955 order-hall induction
     new quest_tactical_matters();     // 40958 order-hall induction
     new quest_the_campaign_begins();  // 40959 order-hall induction
+    new quest_recruiting_rexxar();    // 42390 champion: Rexxar
+    new quest_survive_the_night();    // 42392 champion: Rexxar (recruit)
 
     // Creature
     RegisterCreatureAI(npc_grif_wildheart_flight);
