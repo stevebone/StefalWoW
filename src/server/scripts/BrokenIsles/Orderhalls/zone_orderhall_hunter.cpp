@@ -55,6 +55,7 @@
 #include "ScriptedGossip.h"
 #include "ScriptMgr.h"
 #include "SharedDefines.h"
+#include "SpellScript.h"
 #include "TemporarySummon.h"
 #include "Unit.h"
 
@@ -1031,9 +1032,16 @@ struct quest_the_unseen_path : QuestScript
 enum HunterCampaignInduction
 {
     NPC_EMMAREL_LODGE          = 102574, CREDIT_TAKE_OATH   = 102794, // Oath of Service 40955
+    QUEST_OATH_OF_SERVICE      = 40955,
+    NPC_VISAGE_OF_OHNAHRA      = 102694,  // the idol you spell-click to swear the oath (npcflag SPELLCLICK, spell 203240)
+    SPELL_OATH_VISAGE_CLICK    = 203240,  // spell-click spell cast when interacting with the Visage
+    NPC_OHNAHRA_EAGLE_SPIRIT   = 102772,  // Ohn'ahra (Eagle Spirit) - descends over the lodge when the oath is sworn
     NPC_ALTAR_KEEPER_BIEHN     = 102940,                              // Tactical Matters 40958 (no objective)
     NPC_TACTICIAN_TINDERFELL   = 103023, CREDIT_ZONE_CHOSEN = 97067   // The Campaign Begins 40959
 };
+
+// Ohn'ahra descends from the sky over the lodge when the hunter swears the oath at her Visage (102694 @ 4635,5278,841).
+static constexpr Position OhnahraSkyPos = { 4635.0f, 5278.0f, 881.0f, 3.5f };
 
 // On accept, the quest-giver (spawned at the lodge) speaks the story beat and the objective credit is granted.
 static void HunterCampaignBeat(Player* player, uint32 giverEntry, char const* line, uint32 credit)
@@ -1051,9 +1059,11 @@ struct quest_oath_of_service : QuestScript
     {
         if (newStatus == QUEST_STATUS_INCOMPLETE)
         {
-            player->HandleEmoteCommand(EMOTE_ONESHOT_KNEEL); // kneel before the Visage of Ohn'ahra
+            // Emmarel directs the player to the Visage. The "Take the oath" credit is NOT granted here - it is earned by
+            // spell-clicking the Visage of Ohn'ahra (spell_hunter_oath_of_service on 203240), which also stages Ohn'ahra's
+            // descent. (credit = 0 so this is a pure story prompt.)
             HunterCampaignBeat(player, NPC_EMMAREL_LODGE,
-                "Kneel before the Visage of Ohn'ahra and swear your oath to the Unseen Path. From this day, we hunt as one.", CREDIT_TAKE_OATH);
+                "Kneel before the Visage of Ohn'ahra and swear your oath to the Unseen Path. From this day, we hunt as one.", 0);
         }
         else if (newStatus == QUEST_STATUS_REWARDED)
         {
@@ -1071,6 +1081,36 @@ struct quest_oath_of_service : QuestScript
                 hall->GenerateAvailableMissions();
             }
         }
+    }
+};
+
+// The oath itself: spell-clicking the Visage of Ohn'ahra (102694) casts 203240. Its client-side effects do not grant the
+// "Take the oath" credit (102794) server-side, so we grant it here and stage Ohn'ahra's descent over the lodge. The
+// npc_spellclick_spells row is set to cast_flags = 3 (clicker is caster AND target) so GetCaster() is the swearing hunter.
+class spell_hunter_oath_of_service : public SpellScript
+{
+    void HandleCast()
+    {
+        Player* player = GetCaster() ? GetCaster()->ToPlayer() : nullptr;
+        if (!player || player->GetQuestStatus(QUEST_OATH_OF_SERVICE) != QUEST_STATUS_INCOMPLETE)
+            return;
+
+        player->HandleEmoteCommand(EMOTE_ONESHOT_KNEEL); // kneel before the Visage
+        player->KilledMonsterCredit(CREDIT_TAKE_OATH);   // "Take the oath" objective
+
+        // Ohn'ahra descends from the sky, circles the lodge, speaks, and departs.
+        if (Creature* ohnahra = player->SummonCreature(NPC_OHNAHRA_EAGLE_SPIRIT, OhnahraSkyPos, TEMPSUMMON_TIMED_DESPAWN, 18s))
+        {
+            ohnahra->SetDisableGravity(true);
+            ohnahra->SetHover(true);
+            ohnahra->SetImmuneToAll(true);
+            ohnahra->Say("Rise, hunter. The Unseen Path claims you as its own. Hunt swiftly, and hunt true.", LANG_UNIVERSAL);
+        }
+    }
+
+    void Register() override
+    {
+        AfterCast += SpellCastFn(spell_hunter_oath_of_service::HandleCast);
     }
 };
 
@@ -1182,6 +1222,9 @@ void AddSC_orderhall_hunter()
     new quest_the_campaign_begins();  // 40959 order-hall induction
     new quest_recruiting_rexxar();    // 42390 champion: Rexxar
     new quest_survive_the_night();    // 42392 champion: Rexxar (recruit)
+
+    // Spell
+    RegisterSpellScript(spell_hunter_oath_of_service); // 203240 Visage of Ohn'ahra oath (grant credit + Ohn'ahra descends)
 
     // Creature
     RegisterCreatureAI(npc_grif_wildheart_flight);
