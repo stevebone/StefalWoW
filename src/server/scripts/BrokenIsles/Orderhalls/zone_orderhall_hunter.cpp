@@ -1114,6 +1114,26 @@ class spell_hunter_oath_of_service : public SpellScript
     }
 };
 
+// The "Eagle Sentinel" guards Trueshot Lodge: spell_area 208643 auto-applies to everyone who enters the hall (area
+// 7877) and ejects intruders by teleporting them out to Nesingwary's Retreat (4496,4850,662 on map 1220) via 208649.
+// Retail only ejects NON-hunters - the hall belongs to hunters - but TC never implemented that class check, so the
+// Sentinel was booting hunters too: a hunter walking up from Nesingwary got teleported (loading screen) straight back
+// every time. Skip the ejection teleport for HUNTER players; keep booting everyone else.
+class spell_hunter_eagle_sentinel_eject : public SpellScript
+{
+    void SkipHunters(SpellEffIndex effIndex)
+    {
+        if (Player* target = GetHitPlayer())
+            if (target->GetClass() == CLASS_HUNTER)
+                PreventHitDefaultEffect(effIndex);
+    }
+
+    void Register() override
+    {
+        OnEffectHitTarget += SpellEffectFn(spell_hunter_eagle_sentinel_eject::SkipHunters, EFFECT_0, SPELL_EFFECT_ANY);
+    }
+};
+
 struct quest_tactical_matters : QuestScript
 {
     quest_tactical_matters() : QuestScript("quest_tactical_matters") { }
@@ -1224,7 +1244,8 @@ void AddSC_orderhall_hunter()
     new quest_survive_the_night();    // 42392 champion: Rexxar (recruit)
 
     // Spell
-    RegisterSpellScript(spell_hunter_oath_of_service); // 203240 Visage of Ohn'ahra oath (grant credit + Ohn'ahra descends)
+    RegisterSpellScript(spell_hunter_oath_of_service);       // 203240 Visage of Ohn'ahra oath (grant credit + Ohn'ahra descends)
+    RegisterSpellScript(spell_hunter_eagle_sentinel_eject);  // 208649 Eagle Sentinel: don't eject hunters from their own hall
 
     // Creature
     RegisterCreatureAI(npc_grif_wildheart_flight);
