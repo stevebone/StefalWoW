@@ -977,6 +977,49 @@ struct npc_stormweaver_ingrida : public ScriptedAI
     }
 };
 
+// =====================================================================================================================
+// Hunter class-hall intro bridge: the retail chain Hunter to Hunter (40952) -> On Eagle's Wings (40953) -> The Unseen
+// Path (40954) carries the hunter from Dalaran to Trueshot Lodge and inducts them into the Unseen Path. Those quests'
+// objectives are Type-0 kill-credits granted by SCRIPTED interactions - "talk to the flight master Aludane" (40953) and
+// the Unseen Path induction scene (40954) - which TC never scripted (empty ScriptName in BOTH our DB and the clean world
+// DB), so the chain stalls with no credit. Grant the credits + do the flight as a teleport stand-in on accept (mirrors
+// the artifact-leg flights) so the order hall opens. Handoff from the artifact is in quest_never_hunt_alone above.
+// =====================================================================================================================
+enum HunterClassHallIntro
+{
+    CREDIT_TALK_FLIGHTMASTER = 102627, // 40953 obj0 "Speak to the flight master in Krasus' Landing"
+    CREDIT_FLY_TALON_PEAK    = 102626, // 40953 obj1 "Meet Emmarel Shadewarden at the Trueshot Lodge"
+    CREDIT_EMMAREL_SPEECH    = 102688  // 40954 obj0 (the Unseen Path induction)
+};
+static constexpr Position TrueshotLodgeArrival = { 4627.0f, 5338.0f, 849.0f, 3.0f }; // beside Emmarel (102578) at the lodge
+
+struct quest_on_eagles_wings : QuestScript
+{
+    quest_on_eagles_wings() : QuestScript("quest_on_eagles_wings") { }
+
+    void OnQuestStatusChange(Player* player, Quest const* /*quest*/, QuestStatus /*oldStatus*/, QuestStatus newStatus) override
+    {
+        if (newStatus == QUEST_STATUS_INCOMPLETE) // accepted from Emmarel at Hunter's Reach -> fly to Trueshot Lodge
+        {
+            player->KilledMonsterCredit(CREDIT_TALK_FLIGHTMASTER); // obj0 (talk-to-Aludane is unscripted base content)
+            player->KilledMonsterCredit(CREDIT_FLY_TALON_PEAK);    // obj1 (the eagle flight - teleport stand-in)
+            player->TeleportTo(MAP_DALARAN_BROKEN_ISLE, TrueshotLodgeArrival.GetPositionX(), TrueshotLodgeArrival.GetPositionY(),
+                TrueshotLodgeArrival.GetPositionZ(), TrueshotLodgeArrival.GetOrientation());
+        }
+    }
+};
+
+struct quest_the_unseen_path : QuestScript
+{
+    quest_the_unseen_path() : QuestScript("quest_the_unseen_path") { }
+
+    void OnQuestStatusChange(Player* player, Quest const* /*quest*/, QuestStatus /*oldStatus*/, QuestStatus newStatus) override
+    {
+        if (newStatus == QUEST_STATUS_INCOMPLETE) // accepted at the lodge -> the induction (scene unscripted; stand-in)
+            player->KilledMonsterCredit(CREDIT_EMMAREL_SPEECH); // obj0
+    }
+};
+
 void AddSC_orderhall_hunter()
 {
     // Quest
@@ -985,6 +1028,8 @@ void AddSC_orderhall_hunter()
     new quest_never_hunt_alone();
     new quest_call_of_the_marksman();
     new quest_eagle_spirits_blessing();
+    new quest_on_eagles_wings();   // 40953 class-hall intro
+    new quest_the_unseen_path();   // 40954 class-hall intro
 
     // Creature
     RegisterCreatureAI(npc_grif_wildheart_flight);
