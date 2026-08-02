@@ -656,14 +656,22 @@ static void GrantHatiCompanion(Map* map)
                     hati->GetMotionMaster()->MoveFollow(p, 2.0f, static_cast<float>(M_PI));
 }
 
-// Scenario 1099 director, bound to the temple's Grif (106715). Mirrors the Shield's Rest director, but only fires the
-// on-screen scenario step game events - the gameplay outcomes (recovering Titanstrike, gaining Hati, riding home) are
-// driven authoritatively from Prustaga's death below, so the questline completes even if the scenario is unavailable.
+// Scenario 1099 director, bound to the temple's Grif (106715). REWRITTEN to the working tomb-director pattern
+// (npc_prustaga_scenario_director): this server's CriteriaType-92 scenario-step game events do NOT advance the steps,
+// so the leg is driven directly off player progress here - the Thorim conversation, the vrykul battle, then Prustaga -
+// with AdvanceScenario() only best-effort updating the on-screen scenario UI. It is NEVER gated on me->GetScenario()
+// (the old code bailed when the scenario wasn't a server-side map instance, which left the whole leg dead: no dialogue,
+// no battle). The authoritative outcomes (Titanstrike, Hati, ride home) still fire from npc_prustaga_temple::JustDied.
 struct npc_grif_temple_director : public ScriptedAI
 {
-    npc_grif_temple_director(Creature* creature) : ScriptedAI(creature), _pollTimer(0) { }
+    npc_grif_temple_director(Creature* creature) : ScriptedAI(creature),
+        _pollTimer(0), _phase(0), _dlgTimer(0), _dlgLine(0), _vrykulEngaged(false) { }
 
     uint32 _pollTimer;
+    uint8  _phase;         // local progression (the scenario step is unreliable on this server)
+    uint32 _dlgTimer;
+    uint8  _dlgLine;
+    bool   _vrykulEngaged;
 
     void Reset() override
     {
@@ -671,17 +679,25 @@ struct npc_grif_temple_director : public ScriptedAI
             me->setActive(true);
     }
 
-    template <typename Pred>
-    Player* FindReachedPlayer(Pred pred) const
+    // Best-effort advance of the on-screen scenario (public SetStepState + CompleteStep); no-op if none is attached.
+    void AdvanceScenario()
+    {
+        if (Scenario* s = me->GetScenario())
+            if (ScenarioStepEntry const* cur = s->GetStep())
+            {
+                s->SetStepState(cur, SCENARIO_STEP_DONE);
+                s->CompleteStep(cur);
+            }
+    }
+
+    Player* AnyPlayer() const
     {
         for (auto const& ref : me->GetMap()->GetPlayers())
             if (Player* p = ref.GetSource())
-                if (p->IsInWorld() && p->IsAlive() && pred(p))
+                if (p->IsInWorld() && p->IsAlive())
                     return p;
         return nullptr;
     }
-
-    Player* AnyPlayer() const { return FindReachedPlayer([](Player*) { return true; }); }
 
     void UpdateAI(uint32 diff) override
     {
@@ -693,40 +709,67 @@ struct npc_grif_temple_director : public ScriptedAI
             return;
         _pollTimer = 0;
 
-        Scenario* scenario = me->GetScenario();
-        if (!scenario)
+        Player* p = AnyPlayer();
+        if (!p)
             return;
 
-        ScenarioStepEntry const* step = scenario->GetStep();
-        if (!step)
-            return;
-
-        switch (step->OrderIndex)
+        switch (_phase)
         {
-            case 0: // Thorim, Lord of Thunder - converse with Thorim at the throne
-                if (Player* p = FindReachedPlayer([](Player* pl) { return pl->GetDistance(ThorimThrone) <= 25.0f; }))
-                    GameEvents::Trigger(GE_CONVERSE_THORIM, p, p);
+            case 0: // "Thorim, Lord of Thunder" - converse at the throne, which kicks off the battle
+            {
+                if (p->GetDistance(ThorimThrone) > 40.0f)
+                    return; // wait for the hunter to reach Thorim's throne
+                _dlgTimer += 1000;
+                switch (_dlgLine)
+                {
+                    case 0:
+                        me->Yell("There he stands - Thorim, Lord of Thunder. Speak with him, quick!", LANG_UNIVERSAL);
+                        ++_dlgLine;
+                        break;
+                    case 1:
+                        if (_dlgTimer >= 4000)
+                        {
+                            if (Creature* t = me->FindNearestCreature(NPC_THORIM, 60.0f))
+                                t->Yell("You come for Titanstrike? Then prove yourself. Prustaga's vrykul defile my temple - drive them out!", LANG_UNIVERSAL);
+                            ++_dlgLine;
+                        }
+                        break;
+                    default:
+                        if (_dlgTimer >= 8000)
+                        {
+                            AdvanceScenario(); // step 0 done (best-effort)
+                            _phase = 1;
+                            _dlgTimer = 0;
+                        }
+                        break;
+                }
                 break;
-            case 1: // Battle is Joined - fend off the vrykul horde (advances once every add is down)
-                if (!me->FindNearestCreature(NPC_VRYKUL_HORDE, 300.0f, true))
-                    if (Player* p = AnyPlayer())
-                        GameEvents::Trigger(GE_FEND_VRYKUL, p, p);
+            }
+            case 1: // "Battle is Joined" - fend off the vrykul horde
+            {
+                if (!_vrykulEngaged)
+                {
+                    _vrykulEngaged = true;
+                    me->Yell("Here they come! Hold the line, hunter!", LANG_UNIVERSAL);
+                    // The vrykul are hostile (faction 16) but can idle just out of aggro range - pull them onto the hunter.
+                    std::list<Creature*> vrykul;
+                    me->GetCreatureListWithEntryInGrid(vrykul, NPC_VRYKUL_HORDE, 120.0f);
+                    for (Creature* v : vrykul)
+                        if (v->IsAlive() && !v->IsInCombat())
+                            v->AI()->AttackStart(p);
+                }
+                if (!me->FindNearestCreature(NPC_VRYKUL_HORDE, 300.0f, true)) // every vrykul is down
+                {
+                    me->Yell("That's the last of them! But Prustaga still holds Titanstrike - end her!", LANG_UNIVERSAL);
+                    AdvanceScenario();
+                    _phase = 2;
+                    if (Creature* pr = me->FindNearestCreature(NPC_PRUSTAGA_TEMPLE, 300.0f))
+                        if (pr->IsAlive() && !pr->IsInCombat())
+                            pr->AI()->AttackStart(p);
+                }
                 break;
-            case 2: // Madness of the Usurper - defeat Prustaga (fired from npc_prustaga_temple::JustDied)
-                break;
-            case 3: // Heart of Thunder - bind Hati's spirit (the companion is granted from Prustaga's death)
-                if (Player* p = AnyPlayer())
-                    GameEvents::Trigger(GE_BIND_HATI, p, p);
-                break;
-            case 4: // The Power of the Titans - wield Titanstrike (the credit is granted from Prustaga's death)
-                if (Player* p = AnyPlayer())
-                    GameEvents::Trigger(GE_WIELD_TITANSTRIKE, p, p);
-                break;
-            case 5: // Odyssey's End - ride Huey back to Dalaran (the return is scheduled from Prustaga's death)
-                if (Player* p = AnyPlayer())
-                    GameEvents::Trigger(GE_RIDE_HUEY_HOME, p, p);
-                break;
-            default:
+            }
+            default: // phase 2+: the Prustaga fight + finale (Titanstrike/Hati/ride home) fire from npc_prustaga_temple::JustDied
                 break;
         }
     }
