@@ -1020,6 +1020,65 @@ struct quest_the_unseen_path : QuestScript
     }
 };
 
+// =====================================================================================================================
+// Order-hall induction (the campaign start at Trueshot Lodge). See HUNTER_ORDERHALL_CAMPAIGN_PLAN.md. Swear the Unseen
+// Path oath before Ohn'ahra, meet the tacticians, and choose the first campaign zone. Objectives are Type-0 credits
+// ("Take Oath" 102794, "Zone Chosen" 97067) granted by interactions TC never scripted; the giver (all spawned at the
+// lodge) speaks the beat and the credit fires on accept. FUTURE (level-B refinement): the idol-of-Ohn'ahra GO oath +
+// the real zone-choice gossip UI + the kneel scene package.
+// =====================================================================================================================
+enum HunterCampaignInduction
+{
+    NPC_EMMAREL_LODGE          = 102574, CREDIT_TAKE_OATH   = 102794, // Oath of Service 40955
+    NPC_ALTAR_KEEPER_BIEHN     = 102940,                              // Tactical Matters 40958 (no objective)
+    NPC_TACTICIAN_TINDERFELL   = 103023, CREDIT_ZONE_CHOSEN = 97067   // The Campaign Begins 40959
+};
+
+// On accept, the quest-giver (spawned at the lodge) speaks the story beat and the objective credit is granted.
+static void HunterCampaignBeat(Player* player, uint32 giverEntry, char const* line, uint32 credit)
+{
+    if (Creature* giver = player->FindNearestCreature(giverEntry, 50.0f))
+        giver->Say(line, LANG_UNIVERSAL);
+    if (credit)
+        player->KilledMonsterCredit(credit);
+}
+
+struct quest_oath_of_service : QuestScript
+{
+    quest_oath_of_service() : QuestScript("quest_oath_of_service") { }
+    void OnQuestStatusChange(Player* player, Quest const* /*quest*/, QuestStatus /*oldStatus*/, QuestStatus newStatus) override
+    {
+        if (newStatus == QUEST_STATUS_INCOMPLETE)
+        {
+            player->HandleEmoteCommand(EMOTE_ONESHOT_KNEEL); // kneel before the Visage of Ohn'ahra
+            HunterCampaignBeat(player, NPC_EMMAREL_LODGE,
+                "Kneel before the Visage of Ohn'ahra and swear your oath to the Unseen Path. From this day, we hunt as one.", CREDIT_TAKE_OATH);
+        }
+    }
+};
+
+struct quest_tactical_matters : QuestScript
+{
+    quest_tactical_matters() : QuestScript("quest_tactical_matters") { }
+    void OnQuestStatusChange(Player* player, Quest const* /*quest*/, QuestStatus /*oldStatus*/, QuestStatus newStatus) override
+    {
+        if (newStatus == QUEST_STATUS_INCOMPLETE)
+            HunterCampaignBeat(player, NPC_ALTAR_KEEPER_BIEHN,
+                "The Legion spreads across the Broken Isles. Speak with our tacticians - our champions must strike where they are needed most.", 0);
+    }
+};
+
+struct quest_the_campaign_begins : QuestScript
+{
+    quest_the_campaign_begins() : QuestScript("quest_the_campaign_begins") { }
+    void OnQuestStatusChange(Player* player, Quest const* /*quest*/, QuestStatus /*oldStatus*/, QuestStatus newStatus) override
+    {
+        if (newStatus == QUEST_STATUS_INCOMPLETE)
+            HunterCampaignBeat(player, NPC_TACTICIAN_TINDERFELL,
+                "Choose where the Unseen Path strikes first. Our war against the Legion begins now, Huntmaster!", CREDIT_ZONE_CHOSEN);
+    }
+};
+
 void AddSC_orderhall_hunter()
 {
     // Quest
@@ -1030,6 +1089,9 @@ void AddSC_orderhall_hunter()
     new quest_eagle_spirits_blessing();
     new quest_on_eagles_wings();   // 40953 class-hall intro
     new quest_the_unseen_path();   // 40954 class-hall intro
+    new quest_oath_of_service();      // 40955 order-hall induction
+    new quest_tactical_matters();     // 40958 order-hall induction
+    new quest_the_campaign_begins();  // 40959 order-hall induction
 
     // Creature
     RegisterCreatureAI(npc_grif_wildheart_flight);
