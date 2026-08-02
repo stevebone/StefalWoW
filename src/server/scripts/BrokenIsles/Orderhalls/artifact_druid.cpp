@@ -48,6 +48,7 @@
 #include "ScriptedCreature.h"
 #include "ScriptMgr.h"
 #include "SharedDefines.h"
+#include "SpellScript.h"
 #include "orderhall_artifact_common.h"
 
 // =====================================================================================================================
@@ -450,6 +451,27 @@ struct npc_malithar : public ScriptedAI
 };
 
 // =====================================================================================================================
+// The Dreamgrove's guardian ejects intruders exactly like the hunter hall's Eagle Sentinel: spell_area 203810
+// ("Drowsy", Dreamgrove area 7846) auto-applies to everyone who enters and, via a 6s periodic trigger, casts 203822 -
+// a teleport-with-loading-screen (Effect 252, TARGET_DEST_DB) to 3689,7096,25, just outside the grove. Retail only
+// ejects NON-druids, but TC has no class check, so it teleports druids out of their own hall too. Skip the ejection
+// teleport for DRUID players; keep booting everyone else. (Verified against SpellEffect.db2 / spell_target_position.)
+class spell_druid_dreamgrove_eject : public SpellScript
+{
+    void SkipDruids(SpellEffIndex effIndex)
+    {
+        if (Player* target = GetHitPlayer())
+            if (target->GetClass() == CLASS_DRUID)
+                PreventHitDefaultEffect(effIndex);
+    }
+
+    void Register() override
+    {
+        OnEffectHitTarget += SpellEffectFn(spell_druid_dreamgrove_eject::SkipDruids, EFFECT_0, SPELL_EFFECT_ANY);
+    }
+};
+
+// =====================================================================================================================
 void AddSC_artifact_druid()
 {
     // Quest
@@ -465,4 +487,7 @@ void AddSC_artifact_druid()
     RegisterCreatureAI(npc_ebonfang);           // 107729 Feral boss
     RegisterCreatureAI(npc_eredar_soul_lasher); // 107535 Feral adds
     RegisterCreatureAI(npc_malithar);           // 101390 Guardian boss
+
+    // Spell
+    RegisterSpellScript(spell_druid_dreamgrove_eject); // 203822 Dreamgrove guardian: don't eject druids from their own hall
 }
