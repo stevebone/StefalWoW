@@ -39,6 +39,7 @@
 #include "Creature.h"
 #include "DB2Structure.h"
 #include "EventProcessor.h"
+#include "Garrison.h"
 #include "GameEventSender.h"
 #include "GameObject.h"
 #include "GameObjectAI.h"
@@ -1053,6 +1054,22 @@ struct quest_oath_of_service : QuestScript
             player->HandleEmoteCommand(EMOTE_ONESHOT_KNEEL); // kneel before the Visage of Ohn'ahra
             HunterCampaignBeat(player, NPC_EMMAREL_LODGE,
                 "Kneel before the Visage of Ohn'ahra and swear your oath to the Unseen Path. From this day, we hunt as one.", CREDIT_TAKE_OATH);
+        }
+        else if (newStatus == QUEST_STATUS_REWARDED)
+        {
+            // Swearing the oath INDUCTS the hunter into the Unseen Path. 40954/40955 are the class-order-hall unlock
+            // quests (ClassOrderHalls[CLASS_HUNTER] in orderhall_legion.cpp), whose quest_class_order_hall binding this
+            // script replaced to grant the induction credit - so we must ALSO establish the Trueshot Lodge class-order
+            // garrison + recruit the starting champions here. Without the CLASS_ORDER garrison the player is not a lodge
+            // MEMBER and the order-hall membership gate ports them back out to the overworld (Nesingwary's Retreat).
+            if (!player->GetGarrison(GARRISON_TYPE_CLASS_ORDER))
+                player->CreateGarrison(player->GetTeamId() == TEAM_ALLIANCE ? 161 : 163); // GARR_SITE_CLASS_HALL_ALLIANCE/HORDE
+            if (Garrison* hall = player->GetGarrison(GARRISON_TYPE_CLASS_ORDER))
+            {
+                for (uint32 champion : { 593u, 742u, 743u, 744u, 745u, 746u, 747u, 748u, 996u }) // hunter Trueshot Lodge champions
+                    hall->AddFollower(champion);
+                hall->GenerateAvailableMissions();
+            }
         }
     }
 };
