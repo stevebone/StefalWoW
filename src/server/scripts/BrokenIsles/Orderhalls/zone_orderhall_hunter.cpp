@@ -623,6 +623,18 @@ struct quest_never_hunt_alone : QuestScript
             player->KilledMonsterCredit(NPC_CREDIT_MIMIRON_HEAD);                   // objective 0 (carry Mimiron's head)
             player->m_Events.AddEventAtOffset(new TempleTransferEvent(player), 1500ms);
         }
+        else if (newStatus == QUEST_STATUS_REWARDED) // turned in to Grif -> hand off to the class-hall chain
+        {
+            // Our custom BM artifact flow (A Beastly Expedition -> ... -> Never Hunt Alone) runs PARALLEL to the retail
+            // Legion hunter intro (Clandestine Operation 40400 -> Rescue Mission 40419 -> Hunter to Hunter 40952), which
+            // the player never does here. So "On Eagle's Wings" (40953 - Emmarel Shadewarden at Hunter's Reach in Dalaran
+            // flies the hunter to Trueshot Lodge) has an unmet prerequisite and never offers, leaving the player with no
+            // route to the order hall. Mark that intro chain rewarded on artifact turn-in so 40953 lights up and the class
+            // hall opens - the retail progression the player expects after claiming Titanstrike.
+            for (uint32 intro : { 40400u, 40419u, 40952u })
+                if (!player->IsQuestRewarded(intro))
+                    player->SetRewardedQuest(intro);
+        }
     }
 };
 
