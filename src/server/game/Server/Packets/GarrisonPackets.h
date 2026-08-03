@@ -523,6 +523,21 @@ namespace WorldPackets
             std::vector<uint32> CraftableItemIDs;
         };
 
+        // Opens the class-hall Order Advancement talent tree. Fires GARRISON_TALENT_NPC_OPENED client-side ->
+        // OrderHallTalentFrame:SetGarrisonType(garrType, tree). Opcode recovered from the client binary; wire is a
+        // reconstruction (NpcGUID, tree, garrType) - verify against a sniff.
+        class GarrisonOpenTalentNpc final : public ServerPacket
+        {
+        public:
+            explicit GarrisonOpenTalentNpc() : ServerPacket(SMSG_GARRISON_OPEN_TALENT_NPC, 16 + 4 + 4) { }
+
+            WorldPacket const* Write() override;
+
+            ObjectGuid NpcGUID;
+            int32 GarrTalentTreeID = 0;
+            int32 GarrTypeID = 0;
+        };
+
         // IDA case 4980817 (§8.51): generic byte-block helper. Conservative shape: {u32 NewMinLevel}.
         class GarrisonAutoTroopMinLevelUpdateResult final : public ServerPacket
         {

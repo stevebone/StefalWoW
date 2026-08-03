@@ -572,6 +572,15 @@ WorldPacket const* GarrisonOpenCrafter::Write()
     return &_worldPacket;
 }
 
+WorldPacket const* GarrisonOpenTalentNpc::Write()
+{
+    _worldPacket << NpcGUID;
+    _worldPacket << int32(GarrTalentTreeID);
+    _worldPacket << int32(GarrTypeID);
+
+    return &_worldPacket;
+}
+
 // IDA case 4980817 (§8.51): generic byte-block helper. Conservative: u32 NewMinLevel.
 WorldPacket const* GarrisonAutoTroopMinLevelUpdateResult::Write()
 {

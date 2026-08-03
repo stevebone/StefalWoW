@@ -14238,6 +14238,31 @@ void Player::OnGossipSelect(WorldObject* source, int32 gossipOptionId, uint32 me
         }
     }
 
+    // Order Advancement: opening the class-hall talent tree requires SMSG_GARRISON_OPEN_TALENT_NPC, which fires
+    // GARRISON_TALENT_NPC_OPENED -> OrderHallTalentFrame:SetGarrisonType(garrType, tree). The generic NPC-interaction
+    // result above does NOT open that frame (it isn't registered with the interaction manager). Resolve the player's
+    // class-order talent tree (GarrTalentTree.ClassID == player class) and push the open packet.
+    if (gossipOptionNpc == GossipOptionNpc::GarrisonTalent)
+        if (GetGarrison(GARRISON_TYPE_CLASS_ORDER))
+        {
+            int32 treeId = 0;
+            if (std::vector<GarrTalentTreeEntry const*> const* trees = sGarrisonMgr.GetTalentTreesForGarrType(int8(GARRISON_TYPE_CLASS_ORDER)))
+                for (GarrTalentTreeEntry const* tree : *trees)
+                    if (tree->ClassID == int32(GetClass()))
+                    {
+                        treeId = tree->ID;
+                        break;
+                    }
+            if (treeId)
+            {
+                WorldPackets::Garrison::GarrisonOpenTalentNpc talentNpc;
+                talentNpc.NpcGUID = source->GetGUID();
+                talentNpc.GarrTalentTreeID = treeId;
+                talentNpc.GarrTypeID = GARRISON_TYPE_CLASS_ORDER;
+                SendDirectMessage(talentNpc.Write());
+            }
+        }
+
     ModifyMoney(-cost);
 }
 
