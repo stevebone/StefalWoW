@@ -432,7 +432,7 @@ public:
     uint32 SocketTalent(uint32 garrTalentID, int32 soulbindConduitID, int32 soulbindConduitRank);
     Talent const* GetTalent(uint32 garrTalentID) const;
     std::unordered_map<uint32, Talent> const& GetAllTalents() const { return _talents; }
-    void CompleteAllTalentResearch();
+    void CompleteAllTalentResearch(bool sendUpdate = false);
 
     // Trophy system
     void AddTrophy(uint32 trophyID);

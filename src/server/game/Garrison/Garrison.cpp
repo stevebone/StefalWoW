@@ -734,8 +734,8 @@ void Garrison::Update(uint32 diff)
     // needed here. (Buildings that finished while offline get their finalizer/complete state on the next
     // garrison map entry via Plot::CreateGameObject's CanActivate branch.)
 
-    // Complete talent research that has finished
-    CompleteAllTalentResearch();
+    // Complete talent research that has finished (push rank-ups to the client so the UI updates live)
+    CompleteAllTalentResearch(true);
 
     // Remove expired unclaimed missions
     RemoveExpiredMissions();
@@ -3954,7 +3954,7 @@ Garrison::Talent const* Garrison::GetTalent(uint32 garrTalentID) const
     return nullptr;
 }
 
-void Garrison::CompleteAllTalentResearch()
+void Garrison::CompleteAllTalentResearch(bool sendUpdate /*= false*/)
 {
     for (auto& [talentId, talent] : _talents)
     {
@@ -3969,6 +3969,23 @@ void Garrison::CompleteAllTalentResearch()
 
         TC_LOG_DEBUG("garrison", "Garrison::CompleteAllTalentResearch: Player {} talent {} completed research to rank {}",
             _owner->GetGUID().ToString().c_str(), talentId, talent.Rank);
+
+        // Push the rank-up to the client so the Order Advancement UI updates live. Without this the client only
+        // learns of a completed research on its next full garrison info (i.e. after a relog or re-interacting with
+        // the advisor). Suppressed during offline catch-up in LoadFromDB (the player is not yet in world).
+        if (sendUpdate)
+        {
+            if (GarrTalentEntry const* talentEntry = sGarrTalentStore.LookupEntry(talentId))
+                if (GarrTalentTreeEntry const* treeEntry = sGarrTalentTreeStore.LookupEntry(talentEntry->GarrTalentTreeID))
+                {
+                    WorldPackets::Garrison::GarrisonTalentCompleted completed;
+                    completed.GarrTypeID = treeEntry->GarrTypeID;
+                    completed.GarrTalentID = talentId;
+                    completed.Rank = talent.Rank;
+                    completed.ResearchStartTime = 0;
+                    _owner->SendDirectMessage(completed.Write());
+                }
+        }
     }
 }
 
