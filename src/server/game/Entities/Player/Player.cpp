@@ -14006,32 +14006,6 @@ void Player::PrepareGossipMenu(WorldObject* source, uint32 menuId, bool showQues
         if (canTalk)
             PlayerTalkClass->GetGossipMenu().AddMenuItem(gossipMenuItem, gossipMenuItem.MenuID, gossipMenuItem.OrderIndex);
     }
-
-    // Order Advancement: open the class-hall talent tree from the advisor NPC. We do NOT use the npcflag2
-    // GarrisonTalentNpc bit - setting it makes the client STOP sending gossip-hello for the NPC (it attempts a
-    // client-side talent interaction that is gated and silently no-ops, so clicking does nothing). Instead the advisors
-    // stay plain gossip NPCs and we synthesize an "Order Advancement" gossip option here; selecting it sends
-    // SMSG_GOSSIP_OPTION_NPC_INTERACTION with the tree's GossipNpcOption id (OnGossipSelect), which opens the tree.
-    // Advisors identified by entry (one per class hall - the "Further Advancement" targets); option emitted for the
-    // player's own class-order tree.
-    if (showQuests && GetGarrison(GARRISON_TYPE_CLASS_ORDER))
-        if (Creature* advisor = source->ToCreature())
-        {
-            static std::unordered_set<uint32> const OrderAdvancementAdvisors =
-            { 108050, 97989, 108331, 108018, 98939, 107994, 105998, 108527, 112199, 109901, 110725, 97485 };
-            if (OrderAdvancementAdvisors.count(advisor->GetEntry()))
-            {
-                static std::unordered_map<uint8, int32> const ClassOrderTalentOption =
-                {
-                    { CLASS_WARRIOR, 32286 }, { CLASS_PALADIN, 32236 }, { CLASS_HUNTER, 32330 }, { CLASS_ROGUE, 30518 },
-                    { CLASS_PRIEST, 30609 }, { CLASS_DEATH_KNIGHT, 30519 }, { CLASS_SHAMAN, 30488 }, { CLASS_MAGE, 30433 },
-                    { CLASS_WARLOCK, 30467 }, { CLASS_MONK, 30489 }, { CLASS_DRUID, 30379 }, { CLASS_DEMON_HUNTER, 32302 }
-                };
-                if (auto itr = ClassOrderTalentOption.find(GetClass()); itr != ClassOrderTalentOption.end())
-                    PlayerTalkClass->GetGossipMenu().AddMenuItem(0, -1, GossipOptionNpc::GarrisonTalent, "Order Advancement",
-                        LANG_UNIVERSAL, GossipOptionFlags::None, itr->second, 0, 0, false, 0, "", {}, {}, 0, 0);
-            }
-        }
 }
 
 void Player::SendPreparedGossip(WorldObject* source)
