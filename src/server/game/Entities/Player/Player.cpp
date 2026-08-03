@@ -62,6 +62,7 @@
 #include "GameObjectAI.h"
 #include "Garrison.h"
 #include "GarrisonMgr.h"
+#include "GarrisonPackets.h"
 #include "GitRevision.h"
 #include "GossipDef.h"
 #include "GridNotifiers.h"
