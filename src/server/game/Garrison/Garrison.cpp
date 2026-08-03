@@ -261,6 +261,22 @@ bool Garrison::LoadFromDB(PreparedQueryResult garrison, PreparedQueryResult blue
                 follower.PacketInfo.AbilityID = sGarrisonMgr.RollFollowerAbilities(follower.PacketInfo.GarrFollowerID,
                     followerEntry, follower.PacketInfo.Quality, GetFaction(), true);
         }
+
+        // Heal garrisons left OVER the active-follower cap (e.g. class halls whose champions were all recruited active
+        // before the cap was enforced - 9 active vs a cap of 6). Deactivate the excess so the player can run missions;
+        // the next SaveToDB persists it. Which of the excess get deactivated is unspecified (the player can re-toggle).
+        if (GarrFollowerTypeEntry const* followerType = sGarrisonMgr.GetFollowerTypeForGarrType(static_cast<int8>(GetType())))
+            if (followerType->MaxFollowers > 0)
+            {
+                uint32 activeCount = 0;
+                for (auto& [dbId, follower] : _followers)
+                {
+                    if (follower.PacketInfo.FollowerStatus & (FOLLOWER_STATUS_INACTIVE | FOLLOWER_STATUS_TROOP))
+                        continue;
+                    if (++activeCount > followerType->MaxFollowers)
+                        follower.PacketInfo.FollowerStatus |= FOLLOWER_STATUS_INACTIVE;
+                }
+            }
     }
 
     //           0      1            2          3              4          5                6              7               8        9
@@ -1187,6 +1203,22 @@ void Garrison::AddFollower(uint32 garrFollowerId)
     follower.PacketInfo.CurrentMissionID = 0;
     follower.PacketInfo.AbilityID = sGarrisonMgr.RollFollowerAbilities(garrFollowerId, followerEntry, follower.PacketInfo.Quality, GetFaction(), true);
     follower.PacketInfo.FollowerStatus = 0;
+
+    // Respect the active-follower cap: recruit as INACTIVE when the roster is already at MaxFollowers active. Without
+    // this, bulk-recruiting a class hall's champions (e.g. all 9 hunter champions at once when the cap is 6) leaves
+    // the garrison permanently over cap and the player unable to start missions.
+    if (GarrFollowerTypeEntry const* followerType = sGarrisonMgr.GetFollowerTypeForGarrType(static_cast<int8>(GetType())))
+        if (followerType->MaxFollowers > 0)
+        {
+            uint32 activeCount = 0;
+            for (auto const& p : _followers)
+                if (p.first != dbId
+                    && !(p.second.PacketInfo.FollowerStatus & (FOLLOWER_STATUS_INACTIVE | FOLLOWER_STATUS_TROOP)))
+                    ++activeCount;
+            if (activeCount >= followerType->MaxFollowers)
+                follower.PacketInfo.FollowerStatus |= FOLLOWER_STATUS_INACTIVE;
+        }
+
     follower.PacketInfo.ZoneSupportSpellID = sGarrisonMgr.GetFollowerZoneSupportSpell(garrFollowerId, GetFaction());
 
     addFollowerResult.Follower = follower.PacketInfo;
