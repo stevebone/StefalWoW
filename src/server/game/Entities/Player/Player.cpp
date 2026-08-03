@@ -14013,7 +14013,12 @@ void Player::PrepareGossipMenu(WorldObject* source, uint32 menuId, bool showQues
     // Add it on the top-level menu (showQuests), mapping the player's class -> its Order Advancement tree option id.
     if (showQuests)
         if (Creature* talentNpc = source->ToCreature())
-            if (talentNpc->HasNpcFlag2(UNIT_NPC_FLAG_2_GARRISON_TALENT_NPC) && GetGarrison(GARRISON_TYPE_CLASS_ORDER))
+        {
+            bool const talentFlag = talentNpc->HasNpcFlag2(UNIT_NPC_FLAG_2_GARRISON_TALENT_NPC);
+            if (talentFlag)
+                TC_LOG_INFO("misc", "[OrderAdv] PrepareGossip npc {} talentFlag={} classOrderGarr={} class={} menuId={}",
+                    talentNpc->GetEntry(), talentFlag, GetGarrison(GARRISON_TYPE_CLASS_ORDER) != nullptr, uint32(GetClass()), menuId);
+            if (talentFlag && GetGarrison(GARRISON_TYPE_CLASS_ORDER))
             {
                 static std::unordered_map<uint8, int32> const ClassOrderTalentOption =
                 {
@@ -14022,9 +14027,13 @@ void Player::PrepareGossipMenu(WorldObject* source, uint32 menuId, bool showQues
                     { CLASS_WARLOCK, 30467 }, { CLASS_MONK, 30489 }, { CLASS_DRUID, 30379 }, { CLASS_DEMON_HUNTER, 32302 }
                 };
                 if (auto itr = ClassOrderTalentOption.find(GetClass()); itr != ClassOrderTalentOption.end())
-                    PlayerTalkClass->GetGossipMenu().AddMenuItem(0, -1, GossipOptionNpc::GarrisonTalent, "Order Advancement",
+                {
+                    uint32 optId = PlayerTalkClass->GetGossipMenu().AddMenuItem(0, -1, GossipOptionNpc::GarrisonTalent, "Order Advancement",
                         LANG_UNIVERSAL, GossipOptionFlags::None, itr->second, 0, 0, false, 0, "", {}, {}, 0, 0);
+                    TC_LOG_INFO("misc", "[OrderAdv] added talent option orderIndex={} gossipNpcOptionId={}", optId, itr->second);
+                }
             }
+        }
 }
 
 void Player::SendPreparedGossip(WorldObject* source)
@@ -14242,6 +14251,8 @@ void Player::OnGossipSelect(WorldObject* source, int32 gossipOptionId, uint32 me
             if (addon && addon->FriendshipFactionID)
                 npcInteraction.FriendshipFactionID = addon->FriendshipFactionID;
 
+            TC_LOG_INFO("misc", "[OrderAdv] gossip select optionNpc={} -> sending GossipOptionNPCInteraction gossipNpcOptionId={}",
+                uint32(gossipOptionNpc), *item->GossipNpcOptionID);
             SendDirectMessage(npcInteraction.Write());
         }
         else
