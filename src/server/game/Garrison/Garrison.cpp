@@ -247,6 +247,20 @@ bool Garrison::LoadFromDB(PreparedQueryResult garrison, PreparedQueryResult blue
                 itr->second.PacketInfo.AbilityID.push_back(ability);
             } while (abilities->NextRow());
         }
+
+        // Heal followers persisted with NO abilities. Order Hall champions recruited before the class-order
+        // ability-load fix (GarrisonMgr::Initialize dropped every FOLLOWER_TYPE_CLASS_ORDER ability) were saved with
+        // an empty ability list, so their spec/counters were missing and missions counted nothing. Re-roll their
+        // default abilities on load; the next SaveToDB persists them. An empty ability list is invalid for any real
+        // follower, so this is safe for WoD garrison followers too (they won't be empty).
+        for (auto& [dbId, follower] : _followers)
+        {
+            if (!follower.PacketInfo.AbilityID.empty())
+                continue;
+            if (GarrFollowerEntry const* followerEntry = sGarrFollowerStore.LookupEntry(follower.PacketInfo.GarrFollowerID))
+                follower.PacketInfo.AbilityID = sGarrisonMgr.RollFollowerAbilities(follower.PacketInfo.GarrFollowerID,
+                    followerEntry, follower.PacketInfo.Quality, GetFaction(), true);
+        }
     }
 
     //           0      1            2          3              4          5                6              7               8        9

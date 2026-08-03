@@ -62,10 +62,18 @@ void GarrisonMgr::Initialize()
     {
         if (GarrAbilityEntry const* ability = sGarrAbilityStore.LookupEntry(followerAbility->GarrAbilityID))
         {
-            if (ability->GarrFollowerTypeID != FOLLOWER_TYPE_GARRISON)
+            // Load per-follower abilities for BOTH WoD garrison (type 1) and Legion class-order hall (type 4)
+            // followers. Previously only FOLLOWER_TYPE_GARRISON was allowed, so every Order Hall champion's
+            // counter/trait abilities (incl. their class spec, e.g. Marksmanship 365) were dropped here -> they
+            // recruited with an empty ability list, countered no mission mechanics, and their spec "didn't count".
+            if (ability->GarrFollowerTypeID != FOLLOWER_TYPE_GARRISON && ability->GarrFollowerTypeID != FOLLOWER_TYPE_CLASS_ORDER)
                 continue;
 
-            if (!(ability->Flags & GARRISON_ABILITY_CANNOT_ROLL) && ability->Flags & GARRISON_ABILITY_FLAG_TRAIT)
+            // The generic random-trait fill pool is per follower type - keep it WoD-only so garrison followers
+            // never roll a class-order trait (and vice versa). Class-order champions get their fixed abilities from
+            // GarrFollowerXAbility below, so they don't draw from a random pool.
+            if (ability->GarrFollowerTypeID == FOLLOWER_TYPE_GARRISON
+                && !(ability->Flags & GARRISON_ABILITY_CANNOT_ROLL) && ability->Flags & GARRISON_ABILITY_FLAG_TRAIT)
                 _garrisonFollowerRandomTraits.insert(ability);
 
             if (followerAbility->FactionIndex < 2)
