@@ -14007,17 +14007,20 @@ void Player::PrepareGossipMenu(WorldObject* source, uint32 menuId, bool showQues
             PlayerTalkClass->GetGossipMenu().AddMenuItem(gossipMenuItem, gossipMenuItem.MenuID, gossipMenuItem.OrderIndex);
     }
 
-    // Order Advancement: synthesize the class-hall talent-tree option for creatures flagged GarrisonTalentNpc. The
-    // client opens the tree only when OnGossipSelect emits SMSG_GOSSIP_OPTION_NPC_INTERACTION for an option carrying
-    // the tree's GossipNpcOption id - the client does not auto-add this option and TC does not load GossipNpcOption.db2.
-    // Add it on the top-level menu (showQuests), mapping the player's class -> its Order Advancement tree option id.
-    if (Creature* talentNpc = source->ToCreature())
-    {
-        bool const talentFlag = talentNpc->HasNpcFlag2(UNIT_NPC_FLAG_2_GARRISON_TALENT_NPC);
-        TC_LOG_INFO("misc", "[OrderAdv] PrepareGossip npc {} talentFlag={} showQuests={} classOrderGarr={} class={} menuId={}",
-            talentNpc->GetEntry(), talentFlag, showQuests, GetGarrison(GARRISON_TYPE_CLASS_ORDER) != nullptr, uint32(GetClass()), menuId);
-        if (showQuests && talentFlag && GetGarrison(GARRISON_TYPE_CLASS_ORDER))
+    // Order Advancement: open the class-hall talent tree from the advisor NPC. We do NOT use the npcflag2
+    // GarrisonTalentNpc bit - setting it makes the client STOP sending gossip-hello for the NPC (it attempts a
+    // client-side talent interaction that is gated and silently no-ops, so clicking does nothing). Instead the advisors
+    // stay plain gossip NPCs and we synthesize an "Order Advancement" gossip option here; selecting it sends
+    // SMSG_GOSSIP_OPTION_NPC_INTERACTION with the tree's GossipNpcOption id (OnGossipSelect), which opens the tree.
+    // Advisors identified by entry (one per class hall - the "Further Advancement" targets); option emitted for the
+    // player's own class-order tree.
+    if (showQuests && GetGarrison(GARRISON_TYPE_CLASS_ORDER))
+        if (Creature* advisor = source->ToCreature())
         {
+            static std::unordered_set<uint32> const OrderAdvancementAdvisors =
+            { 108050, 97989, 108331, 108018, 98939, 107994, 105998, 108527, 112199, 109901, 110725, 97485 };
+            if (OrderAdvancementAdvisors.count(advisor->GetEntry()))
+            {
                 static std::unordered_map<uint8, int32> const ClassOrderTalentOption =
                 {
                     { CLASS_WARRIOR, 32286 }, { CLASS_PALADIN, 32236 }, { CLASS_HUNTER, 32330 }, { CLASS_ROGUE, 30518 },
@@ -14025,11 +14028,8 @@ void Player::PrepareGossipMenu(WorldObject* source, uint32 menuId, bool showQues
                     { CLASS_WARLOCK, 30467 }, { CLASS_MONK, 30489 }, { CLASS_DRUID, 30379 }, { CLASS_DEMON_HUNTER, 32302 }
                 };
                 if (auto itr = ClassOrderTalentOption.find(GetClass()); itr != ClassOrderTalentOption.end())
-                {
-                    uint32 optId = PlayerTalkClass->GetGossipMenu().AddMenuItem(0, -1, GossipOptionNpc::GarrisonTalent, "Order Advancement",
+                    PlayerTalkClass->GetGossipMenu().AddMenuItem(0, -1, GossipOptionNpc::GarrisonTalent, "Order Advancement",
                         LANG_UNIVERSAL, GossipOptionFlags::None, itr->second, 0, 0, false, 0, "", {}, {}, 0, 0);
-                    TC_LOG_INFO("misc", "[OrderAdv] added talent option orderIndex={} gossipNpcOptionId={}", optId, itr->second);
-                }
             }
         }
 }
@@ -14249,8 +14249,6 @@ void Player::OnGossipSelect(WorldObject* source, int32 gossipOptionId, uint32 me
             if (addon && addon->FriendshipFactionID)
                 npcInteraction.FriendshipFactionID = addon->FriendshipFactionID;
 
-            TC_LOG_INFO("misc", "[OrderAdv] gossip select optionNpc={} -> sending GossipOptionNPCInteraction gossipNpcOptionId={}",
-                uint32(gossipOptionNpc), *item->GossipNpcOptionID);
             SendDirectMessage(npcInteraction.Write());
         }
         else
