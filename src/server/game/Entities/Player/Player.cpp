@@ -14011,15 +14011,13 @@ void Player::PrepareGossipMenu(WorldObject* source, uint32 menuId, bool showQues
     // client opens the tree only when OnGossipSelect emits SMSG_GOSSIP_OPTION_NPC_INTERACTION for an option carrying
     // the tree's GossipNpcOption id - the client does not auto-add this option and TC does not load GossipNpcOption.db2.
     // Add it on the top-level menu (showQuests), mapping the player's class -> its Order Advancement tree option id.
-    if (showQuests)
-        if (Creature* talentNpc = source->ToCreature())
+    if (Creature* talentNpc = source->ToCreature())
+    {
+        bool const talentFlag = talentNpc->HasNpcFlag2(UNIT_NPC_FLAG_2_GARRISON_TALENT_NPC);
+        TC_LOG_INFO("misc", "[OrderAdv] PrepareGossip npc {} talentFlag={} showQuests={} classOrderGarr={} class={} menuId={}",
+            talentNpc->GetEntry(), talentFlag, showQuests, GetGarrison(GARRISON_TYPE_CLASS_ORDER) != nullptr, uint32(GetClass()), menuId);
+        if (showQuests && talentFlag && GetGarrison(GARRISON_TYPE_CLASS_ORDER))
         {
-            bool const talentFlag = talentNpc->HasNpcFlag2(UNIT_NPC_FLAG_2_GARRISON_TALENT_NPC);
-            if (talentFlag)
-                TC_LOG_INFO("misc", "[OrderAdv] PrepareGossip npc {} talentFlag={} classOrderGarr={} class={} menuId={}",
-                    talentNpc->GetEntry(), talentFlag, GetGarrison(GARRISON_TYPE_CLASS_ORDER) != nullptr, uint32(GetClass()), menuId);
-            if (talentFlag && GetGarrison(GARRISON_TYPE_CLASS_ORDER))
-            {
                 static std::unordered_map<uint8, int32> const ClassOrderTalentOption =
                 {
                     { CLASS_WARRIOR, 32286 }, { CLASS_PALADIN, 32236 }, { CLASS_HUNTER, 32330 }, { CLASS_ROGUE, 30518 },
