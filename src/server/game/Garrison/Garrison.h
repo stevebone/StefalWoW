@@ -271,6 +271,7 @@ public:
         PreparedQueryResult specializations, PreparedQueryResult shipments, PreparedQueryResult talents,
         PreparedQueryResult trophies, PreparedQueryResult archivedMissions);
     void SaveToDB(CharacterDatabaseTransaction trans);
+    static void DeleteFromDB(ObjectGuid::LowType ownerGuid, GarrisonType garrType, CharacterDatabaseTransaction trans);
     static void DeleteFromDB(ObjectGuid::LowType ownerGuid, CharacterDatabaseTransaction trans);
 
     bool Create(uint32 garrSiteId);

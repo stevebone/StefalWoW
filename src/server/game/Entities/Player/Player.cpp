@@ -18846,19 +18846,40 @@ bool Player::LoadFromDB(ObjectGuid guid, CharacterDatabaseQueryHolder const& hol
 
     _LoadPlayerData(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_DATA_ELEMENTS), holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_DATA_FLAGS));
 
-    std::unique_ptr<Garrison> garrison = std::make_unique<Garrison>(this);
-    if (garrison->LoadFromDB(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_GARRISON),
-        holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_GARRISON_BLUEPRINTS),
-        holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_GARRISON_BUILDINGS),
-        holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_GARRISON_FOLLOWERS),
-        holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_GARRISON_FOLLOWER_ABILITIES),
-        holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_GARRISON_MISSIONS),
-        holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_GARRISON_SPECIALIZATIONS),
-        holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_GARRISON_SHIPMENTS),
-        holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_GARRISON_TALENTS),
-        holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_GARRISON_TROPHIES),
-        holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_GARRISON_ARCHIVED_MISSIONS)))
-        _garrisons[garrison->GetType()] = std::move(garrison);
+    // A character may own several garrisons (WoD garrison, Legion order hall, BfA war campaign, covenant sanctum).
+    // The login holder's GARRISON query returns every character_garrison row; load each with its own sub-tables
+    // filtered by garrType. The sub-table result cursors are consumed once, so they can't be shared across garrisons
+    // - fetch each garrison's rows synchronously here. Garrison::LoadFromDB itself is unchanged (reads the current
+    // header row + the filtered sub-results exactly as before), so a single garrison loads byte-identically.
+    if (PreparedQueryResult garrisonResult = holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_GARRISON))
+    {
+        ObjectGuid::LowType lowGuid = GetGUID().GetCounter();
+        do
+        {
+            uint8 garrType = static_cast<uint8>(garrisonResult->Fetch()[2].GetUInt32());   // character_garrison.type
+            auto byType = [&](CharacterDatabaseStatements idx) -> PreparedQueryResult
+            {
+                CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(idx);
+                stmt->setUInt64(0, lowGuid);
+                stmt->setUInt8(1, garrType);
+                return CharacterDatabase.Query(stmt);
+            };
+
+            std::unique_ptr<Garrison> garrison = std::make_unique<Garrison>(this);
+            if (garrison->LoadFromDB(garrisonResult,
+                byType(CHAR_SEL_CHARACTER_GARRISON_BLUEPRINTS_BY_TYPE),
+                byType(CHAR_SEL_CHARACTER_GARRISON_BUILDINGS_BY_TYPE),
+                byType(CHAR_SEL_CHARACTER_GARRISON_FOLLOWERS_BY_TYPE),
+                byType(CHAR_SEL_CHARACTER_GARRISON_FOLLOWER_ABILITIES_BY_TYPE),
+                byType(CHAR_SEL_CHARACTER_GARRISON_MISSIONS_BY_TYPE),
+                byType(CHAR_SEL_CHARACTER_GARRISON_SPECIALIZATIONS_BY_TYPE),
+                byType(CHAR_SEL_CHARACTER_GARRISON_SHIPMENTS_BY_TYPE),
+                byType(CHAR_SEL_CHARACTER_GARRISON_TALENTS_BY_TYPE),
+                byType(CHAR_SEL_CHARACTER_GARRISON_TROPHIES_BY_TYPE),
+                byType(CHAR_SEL_CHARACTER_GARRISON_ARCHIVED_MISSIONS_BY_TYPE)))
+                _garrisons[garrison->GetType()] = std::move(garrison);
+        } while (garrisonResult->NextRow());
+    }
 
     _InitHonorLevelOnLoadFromDB(fields.honor, fields.honorLevel);
 

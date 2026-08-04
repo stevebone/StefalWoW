@@ -1455,7 +1455,12 @@ namespace WorldPackets
 
             void Read() override;
 
+            // Wire (from client serializer CMSG_GARRISON_RESEARCH_TALENT_Write): PackedGuid NpcGUID, u32 GarrTalentID,
+            // u32 GarrTalentRank, Bits<1>. Reading only GarrTalentID (the old code) parsed the guid front as the id.
+            ObjectGuid NpcGUID;
             int32 GarrTalentID = 0;
+            int32 GarrTalentRank = 0;
+            bool Unused = false;
         };
 
         // IDA case 4980750: u32 Result, u8 GarrTypeID, Bits<1> (purpose unknown — observed

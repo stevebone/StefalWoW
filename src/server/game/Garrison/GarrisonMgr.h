@@ -68,6 +68,21 @@ struct GarrAbilities
     std::unordered_set<GarrAbilityEntry const*> Traits;
 };
 
+// Authored base/overmax mission reward (world table garrison_mission_reward). Base garrison mission
+// rewards (Garrison/Order/War Resources, Anima, gold, gear) are server-authoritative in retail - they
+// are NOT derivable from client DB2 - so they are seeded here (from real sniff data) with a per-GarrType
+// resource-currency formula fallback for unauthored missions. See GarrisonMgr::LoadMissionRewards.
+struct GarrisonMissionRewardEntry
+{
+    uint8  RewardType;      // 0 = base reward (granted on success), 1 = overmax/bonus (granted on bonus roll)
+    uint32 ItemId;
+    uint32 ItemQuantity;
+    uint32 CurrencyId;
+    uint32 CurrencyQuantity;
+    uint32 Gold;            // copper; emitted as reward.CurrencyID = 0
+    uint32 FollowerXP;      // 0 = use DB2 BaseFollowerXP (already pushed separately)
+};
+
 class TC_GAME_API GarrisonMgr
 {
 public:
@@ -124,6 +139,11 @@ public:
     GarrMechanicTypeEntry const* GetMechanicType(int32 garrMechanicTypeID) const;
     bool DoesAbilityCounterMechanic(GarrAbilityEntry const* ability, GarrMechanicTypeEntry const* mechanicType) const;
 
+    // Mission reward accessors (authored world table + per-GarrType formula fallback)
+    std::vector<GarrisonMissionRewardEntry> const* GetMissionRewards(uint32 garrMissionID) const;
+    uint32 GetMissionRewardCurrency(GarrMissionEntry const* mission) const;   // era resource currency (824/1101/1220/1560/1813)
+    uint32 ComputeBaseResourceReward(GarrMissionEntry const* mission) const;  // cost/duration-scaled fallback amount
+
     // Auto-combat accessors
     GarrAutoCombatantEntry const* GetAutoCombatant(uint32 garrAutoCombatantID) const;
     GarrAutoCombatantEntry const* GetAutoCombatantForEncounter(uint32 garrEncounterID) const;
@@ -134,6 +154,7 @@ private:
     void InitializeDbIdSequences();
     void LoadPlotFinalizeGOInfo();
     void LoadFollowerClassSpecAbilities();
+    void LoadMissionRewards();
 
     std::unordered_map<std::pair<uint32 /*garrSiteId*/, uint32 /*level*/>, GarrSiteLevelEntry const*> _garrSiteLevelBySiteAndLevel;
     std::unordered_map<uint32 /*garrSiteId*/, std::vector<GarrSiteLevelPlotInstEntry const*>> _garrisonPlotInstBySiteLevel;
@@ -158,6 +179,7 @@ private:
     std::unordered_map<uint32 /*garrMissionID*/, std::vector<GarrMissionXEncounterEntry const*>> _missionEncounters;
     std::unordered_map<uint32 /*garrEncounterID*/, std::vector<GarrMechanicEntry const*>> _encounterMechanics;
     std::unordered_map<uint32 /*garrMissionID*/, std::vector<GarrMissionXFollowerEntry const*>> _missionRequiredFollowers;
+    std::unordered_map<uint32 /*garrMissionID*/, std::vector<GarrisonMissionRewardEntry>> _missionRewards;
 
     // Talent system indices
     std::unordered_map<int8 /*garrTypeID*/, std::vector<GarrTalentTreeEntry const*>> _talentTreesByGarrType;

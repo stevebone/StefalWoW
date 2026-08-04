@@ -349,7 +349,9 @@ bool Garrison::LoadFromDB(PreparedQueryResult garrison, PreparedQueryResult blue
 
 void Garrison::SaveToDB(CharacterDatabaseTransaction trans)
 {
-    DeleteFromDB(_owner->GetGUID().GetCounter(), trans);
+    // Type-scoped: only wipe THIS garrison's rows, so a second garrison (BfA war campaign, covenant sanctum)
+    // save can't clobber the order hall / WoD garrison.
+    DeleteFromDB(_owner->GetGUID().GetCounter(), _garrType, trans);
 
     CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_CHARACTER_GARRISON);
     stmt->setUInt64(0, _owner->GetGUID().GetCounter());
@@ -367,6 +369,7 @@ void Garrison::SaveToDB(CharacterDatabaseTransaction trans)
         stmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_CHARACTER_GARRISON_BLUEPRINTS);
         stmt->setUInt64(0, _owner->GetGUID().GetCounter());
         stmt->setUInt32(1, building);
+        stmt->setUInt8(2, static_cast<uint8>(_garrType));
         trans->Append(stmt);
     }
 
@@ -383,19 +386,17 @@ void Garrison::SaveToDB(CharacterDatabaseTransaction trans)
             stmt->setBool(4, plot.BuildingInfo.PacketInfo->Active);
             stmt->setUInt32(5, plot.BuildingInfo.PacketInfo->CurrentGarSpecID);
             stmt->setInt64(6, plot.BuildingInfo.PacketInfo->TimeSpecCooldown);
+            stmt->setUInt8(7, static_cast<uint8>(_garrType));
             trans->Append(stmt);
         }
     }
-
-    stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CHARACTER_GARRISON_SPECIALIZATIONS);
-    stmt->setUInt64(0, _owner->GetGUID().GetCounter());
-    trans->Append(stmt);
 
     for (uint32 specId : _knownSpecializations)
     {
         stmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_CHARACTER_GARRISON_SPECIALIZATIONS);
         stmt->setUInt64(0, _owner->GetGUID().GetCounter());
         stmt->setUInt32(1, specId);
+        stmt->setUInt8(2, static_cast<uint8>(_garrType));
         trans->Append(stmt);
     }
 
@@ -417,6 +418,7 @@ void Garrison::SaveToDB(CharacterDatabaseTransaction trans)
         stmt->setUInt32(index++, follower.PacketInfo.FollowerStatus);
         stmt->setUInt32(index++, follower.PacketInfo.Durability);
         stmt->setString(index++, follower.PacketInfo.CustomName);
+        stmt->setUInt8(index++, static_cast<uint8>(_garrType));
         trans->Append(stmt);
 
         uint8 slot = 0;
@@ -445,6 +447,7 @@ void Garrison::SaveToDB(CharacterDatabaseTransaction trans)
         stmt->setInt32(index++, static_cast<int32>(Seconds(mission.PacketInfo.MissionDuration).count()));
         stmt->setInt32(index++, mission.PacketInfo.MissionState);
         stmt->setInt32(index++, mission.PacketInfo.SuccessChance);
+        stmt->setUInt8(index++, static_cast<uint8>(_garrType));
         trans->Append(stmt);
     }
 
@@ -460,12 +463,9 @@ void Garrison::SaveToDB(CharacterDatabaseTransaction trans)
         stmt->setInt64(index++, shipment.CreationTime);
         stmt->setInt32(index++, shipment.Duration);
         stmt->setUInt64(index++, shipment.AssignedFollowerDBID);
+        stmt->setUInt8(index++, static_cast<uint8>(_garrType));
         trans->Append(stmt);
     }
-
-    stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CHARACTER_GARRISON_TALENTS);
-    stmt->setUInt64(0, _owner->GetGUID().GetCounter());
-    trans->Append(stmt);
 
     for (auto const& [talentId, talent] : _talents)
     {
@@ -478,18 +478,16 @@ void Garrison::SaveToDB(CharacterDatabaseTransaction trans)
         stmt->setInt32(index++, talent.Flags);
         stmt->setInt32(index++, talent.SoulbindConduitID);
         stmt->setInt32(index++, talent.SoulbindConduitRank);
+        stmt->setUInt8(index++, static_cast<uint8>(_garrType));
         trans->Append(stmt);
     }
-
-    stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CHARACTER_GARRISON_TROPHIES);
-    stmt->setUInt64(0, _owner->GetGUID().GetCounter());
-    trans->Append(stmt);
 
     for (uint32 trophyId : _trophies)
     {
         stmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_CHARACTER_GARRISON_TROPHY);
         stmt->setUInt64(0, _owner->GetGUID().GetCounter());
         stmt->setUInt32(1, trophyId);
+        stmt->setUInt8(2, static_cast<uint8>(_garrType));
         trans->Append(stmt);
     }
 
@@ -503,47 +501,35 @@ void Garrison::SaveToDB(CharacterDatabaseTransaction trans)
     }
 }
 
+void Garrison::DeleteFromDB(ObjectGuid::LowType ownerGuid, GarrisonType garrType, CharacterDatabaseTransaction trans)
+{
+    // Per-garrison delete: scopes every table by (guid, garrType) so other garrisons on the same character
+    // are untouched. character_garrison uses its `type` column (same value).
+    uint8 gt = static_cast<uint8>(garrType);
+    auto del = [&](CharacterDatabaseStatements idx)
+    {
+        CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(idx);
+        stmt->setUInt64(0, ownerGuid);
+        stmt->setUInt8(1, gt);
+        trans->Append(stmt);
+    };
+    del(CHAR_DEL_CHARACTER_GARRISON);
+    del(CHAR_DEL_CHARACTER_GARRISON_BLUEPRINTS);
+    del(CHAR_DEL_CHARACTER_GARRISON_BUILDINGS);
+    del(CHAR_DEL_CHARACTER_GARRISON_FOLLOWERS);         // cascades follower_abilities via the LEFT JOIN
+    del(CHAR_DEL_CHARACTER_GARRISON_MISSIONS);
+    del(CHAR_DEL_CHARACTER_GARRISON_SPECIALIZATIONS);
+    del(CHAR_DEL_CHARACTER_GARRISON_SHIPMENTS);
+    del(CHAR_DEL_CHARACTER_GARRISON_TALENTS);
+    del(CHAR_DEL_CHARACTER_GARRISON_TROPHIES);
+    del(CHAR_DEL_CHARACTER_GARRISON_ARCHIVED_MISSIONS);
+}
+
 void Garrison::DeleteFromDB(ObjectGuid::LowType ownerGuid, CharacterDatabaseTransaction trans)
 {
-    CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CHARACTER_GARRISON);
-    stmt->setUInt64(0, ownerGuid);
-    trans->Append(stmt);
-
-    stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CHARACTER_GARRISON_BLUEPRINTS);
-    stmt->setUInt64(0, ownerGuid);
-    trans->Append(stmt);
-
-    stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CHARACTER_GARRISON_BUILDINGS);
-    stmt->setUInt64(0, ownerGuid);
-    trans->Append(stmt);
-
-    stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CHARACTER_GARRISON_FOLLOWERS);
-    stmt->setUInt64(0, ownerGuid);
-    trans->Append(stmt);
-
-    stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CHARACTER_GARRISON_MISSIONS);
-    stmt->setUInt64(0, ownerGuid);
-    trans->Append(stmt);
-
-    stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CHARACTER_GARRISON_SPECIALIZATIONS);
-    stmt->setUInt64(0, ownerGuid);
-    trans->Append(stmt);
-
-    stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CHARACTER_GARRISON_SHIPMENTS);
-    stmt->setUInt64(0, ownerGuid);
-    trans->Append(stmt);
-
-    stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CHARACTER_GARRISON_TALENTS);
-    stmt->setUInt64(0, ownerGuid);
-    trans->Append(stmt);
-
-    stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CHARACTER_GARRISON_TROPHIES);
-    stmt->setUInt64(0, ownerGuid);
-    trans->Append(stmt);
-
-    stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CHARACTER_GARRISON_ARCHIVED_MISSIONS);
-    stmt->setUInt64(0, ownerGuid);
-    trans->Append(stmt);
+    // Whole-character purge (character deletion): remove every garrison type the character might own.
+    for (GarrisonType t : { GARRISON_TYPE_GARRISON, GARRISON_TYPE_CLASS_ORDER, GARRISON_TYPE_WAR_CAMPAIGN, GARRISON_TYPE_COVENANT })
+        DeleteFromDB(ownerGuid, t, trans);
 }
 
 static GarrisonType GetGarrisonTypeFromSiteId(uint32 garrSiteId)
@@ -556,7 +542,9 @@ static GarrisonType GetGarrisonTypeFromSiteId(uint32 garrSiteId)
         case 71:  return GARRISON_TYPE_GARRISON;      // WoD garrison - Horde    (Frostwall, maps 1152/1330/1153)
         case 161: return GARRISON_TYPE_CLASS_ORDER;   // Legion class/order hall - Alliance (shared faction site, all classes)
         case 163: return GARRISON_TYPE_CLASS_ORDER;   // Legion class/order hall - Horde    (shared faction site, all classes)
-        case 173: return GARRISON_TYPE_WAR_CAMPAIGN;   // BfA
+        case 168: return GARRISON_TYPE_WAR_CAMPAIGN;   // BfA War Campaign - Alliance (GarrSiteLevel 599/600/601, maps 1643/1825/1771)
+        case 169: return GARRISON_TYPE_WAR_CAMPAIGN;   // BfA War Campaign - Horde    (GarrSiteLevel 611/612/613, maps 1642/1861/1876)
+        case 173: return GARRISON_TYPE_WAR_CAMPAIGN;   // BfA (legacy alias; real sites are 168/169 per GarrSiteLevel.db2)
         case 500: return GARRISON_TYPE_COVENANT;       // Shadowlands
         default:  return GARRISON_TYPE_GARRISON;
     }
@@ -584,8 +572,9 @@ bool Garrison::Create(uint32 garrSiteId)
 
 void Garrison::Delete()
 {
+    // Delete only THIS garrison's rows (scoped), so abandoning one garrison doesn't purge the character's others.
     CharacterDatabaseTransaction trans = CharacterDatabase.BeginTransaction();
-    DeleteFromDB(_owner->GetGUID().GetCounter(), trans);
+    DeleteFromDB(_owner->GetGUID().GetCounter(), _garrType, trans);
     CharacterDatabase.CommitTransaction(trans);
 
     WorldPackets::Garrison::GarrisonDeleteResult garrisonDelete;
@@ -1760,12 +1749,47 @@ void Garrison::PopulateMissionData(Mission& mission, GarrMissionEntry const* mis
         mission.PacketInfo.Rewards.push_back(std::move(reward));
     }
 
-    // Add currency/gold from mission cost currency as a reward if mission uses a reward pack
-    // (many missions grant garrison resources as primary reward)
-    if (missionEntry->MissionCostCurrencyTypesID != 0 && missionEntry->MissionCost > 0)
+    // Base item/currency/gold rewards. These are server-authoritative in retail (NOT in client DB2), so
+    // they come from the authored world table `garrison_mission_reward` (seeded from real sniff data) when
+    // present; otherwise a per-GarrType resource-currency formula grants an era-appropriate amount so every
+    // mission is at least resource-rewarding. Follower XP is already pushed above; the DB2-sourced
+    // OvermaxRewardPackID bonus item is handled by the block near the top of this function.
+    if (std::vector<GarrisonMissionRewardEntry> const* authored = sGarrisonMgr.GetMissionRewards(missionEntry->ID))
     {
-        // The reward is typically more than the cost, but varies per mission
-        // For now, base rewards are whatever the OvermaxRewards specify (this is correct for WoD)
+        for (GarrisonMissionRewardEntry const& r : *authored)
+        {
+            WorldPackets::Garrison::GarrisonMissionReward reward;
+            reward.ItemID = r.ItemId;
+            reward.ItemQuantity = r.ItemQuantity;
+            if (r.Gold > 0) // gold is emitted as currency id 0
+            {
+                reward.CurrencyID = 0;
+                reward.CurrencyQuantity = r.Gold;
+            }
+            else
+            {
+                reward.CurrencyID = r.CurrencyId;
+                reward.CurrencyQuantity = r.CurrencyQuantity;
+            }
+            reward.FollowerXP = r.FollowerXP;
+
+            if (r.RewardType == 1)
+                mission.PacketInfo.OvermaxRewards.push_back(std::move(reward));
+            else
+                mission.PacketInfo.Rewards.push_back(std::move(reward));
+        }
+    }
+    else
+    {
+        uint32 currencyId = sGarrisonMgr.GetMissionRewardCurrency(missionEntry);
+        uint32 amount = sGarrisonMgr.ComputeBaseResourceReward(missionEntry);
+        if (currencyId != 0 && amount != 0)
+        {
+            WorldPackets::Garrison::GarrisonMissionReward reward;
+            reward.CurrencyID = currencyId;
+            reward.CurrencyQuantity = amount;
+            mission.PacketInfo.Rewards.push_back(std::move(reward));
+        }
     }
 }
 
@@ -1883,84 +1907,127 @@ int32 Garrison::CalculateSuccessChance(uint32 missionRecID, std::vector<uint64> 
     if (!missionEntry)
         return 0;
 
-    int32 successChance = missionEntry->BaseCompletionChance;
+    Mission const* mission = GetMissionByRecID(missionRecID);
+    if (!mission)
+        return 0;
 
-    // Collect all follower counter abilities
-    std::unordered_set<uint8> counteredMechanicCategories;
-    int32 totalFollowerLevel = 0;
-    int32 totalFollowerItemLevel = 0;
-    uint32 followerCount = 0;
+    // WoD/Legion garrison mission success-chance formula, reverse-engineered from the client's
+    // ComputeSuccessChance (12.0.7 client RVA 0x1E6DAB0). The value stored here is exactly what the
+    // client shows at mission-complete (C_Garrison.GetMissionSuccessChance returns the server-stored
+    // chance), so it MUST match the setup-screen preview (C_Garrison.GetPartyMissionInfo) or the player
+    // sees "80% at start / 0% at completion".
+    //
+    // Result is a 0..cap percentage where the portion above 100 is the bonus-roll ("overmax") chance.
+    //   chance = base + (100 - base) * poolPct/100 + flat
+    // poolPct is normalized by totalWeight = MaxFollowers*100 + sum(combat-threat Factor). Each assigned
+    // follower fills the "MaxFollowers*100" share according to a level+item-level bias in [-1,+1]; each
+    // countered combat threat fills its Factor share. Fully staffing at/above target and countering every
+    // threat drives poolPct -> 100, i.e. chance -> 100.
+    constexpr float BIAS_MIN = 100.0f; // client global off_7FF72CC9A320+376
+    constexpr float BIAS_MAX = 150.0f; // client global off_7FF72CC9A320+380
 
+    float const base = float(missionEntry->BaseCompletionChance);
+    int32 const targetLevel = missionEntry->TargetLevel;
+    // A 0 target item level means "unset"; the client substitutes 600.
+    int32 const targetItemLevel = missionEntry->TargetItemLevel ? int32(missionEntry->TargetItemLevel) : 600;
+
+    // --- 1. Combat-threat list (GarrMechanicType.Category == 2) and total-weight normalizer ---
+    struct Threat { GarrMechanicTypeEntry const* type; float factor; };
+    std::vector<Threat> threats;
+    for (auto const& encounter : mission->PacketInfo.Encounters)
+    {
+        if (std::vector<GarrMechanicEntry const*> const* mechanics = sGarrisonMgr.GetEncounterMechanics(encounter.GarrEncounterID))
+        {
+            for (GarrMechanicEntry const* mechanic : *mechanics)
+            {
+                GarrMechanicTypeEntry const* mechanicType = sGarrisonMgr.GetMechanicType(mechanic->GarrMechanicTypeID);
+                if (mechanicType && mechanicType->Category == 2) // combat threat (weighs into the normalizer)
+                    threats.push_back({ mechanicType, mechanic->Factor });
+            }
+        }
+    }
+
+    float totalWeight = float(missionEntry->MaxFollowers) * BIAS_MIN;
+    for (Threat const& threat : threats)
+        totalWeight += threat.factor;
+    if (totalWeight <= 0.0f)
+        return std::clamp(int32(base), 0, 100);
+    float const norm = 100.0f / totalWeight;
+
+    // --- 2. Per-follower level+item-level bias, accumulate the follower share of the pool ---
+    struct FollowerBias { Follower const* follower; float bias; };
+    std::vector<FollowerBias> followers;
+    followers.reserve(followerDBIDs.size());
+
+    float poolPct = 0.0f;
     for (uint64 followerDbId : followerDBIDs)
     {
         Follower const* follower = GetFollower(followerDbId);
         if (!follower)
             continue;
 
-        ++followerCount;
-        totalFollowerLevel += follower->PacketInfo.FollowerLevel;
-        totalFollowerItemLevel += follower->GetItemLevel();
-
-        // Check each follower ability against mission mechanics
-        for (GarrAbilityEntry const* ability : follower->PacketInfo.AbilityID)
-        {
-            if (!ability || (ability->Flags & GARRISON_ABILITY_FLAG_TRAIT))
-                continue; // Skip traits, only counter abilities matter
-
-            // Check against each encounter's mechanics
-            Mission const* missionData = GetMissionByRecID(missionRecID);
-            if (missionData)
+        // Range divisors come from GarrFollowerType (Legion order-hall type 4: level 5 / item 30;
+        // WoD garrison type 1: level 3 / item 15). Fall back to the Legion values if the row is missing.
+        uint8 levelRange = 5, itemLevelRange = 30;
+        if (GarrFollowerEntry const* followerEntry = sGarrFollowerStore.LookupEntry(follower->PacketInfo.GarrFollowerID))
+            if (GarrFollowerTypeEntry const* followerType = sGarrFollowerTypeStore.LookupEntry(followerEntry->GarrFollowerTypeID))
             {
-                for (auto const& encounter : missionData->PacketInfo.Encounters)
+                levelRange = std::max<uint8>(1, followerType->LevelRangeBias);
+                itemLevelRange = std::max<uint8>(1, followerType->ItemLevelRangeBias);
+            }
+
+        float const levelBias = float(int32(follower->PacketInfo.FollowerLevel) - targetLevel) / float(levelRange);
+        float const itemLevelBias = float(int32(follower->GetItemLevel()) - targetItemLevel) / float(itemLevelRange);
+        float const bias = std::clamp(levelBias + itemLevelBias, -1.0f, 1.0f);
+        followers.push_back({ follower, bias });
+
+        // bias >= 0: weight ramps 100 -> 150; bias < 0: weight ramps 100 -> 0.
+        float const weight = (bias >= 0.0f) ? (BIAS_MIN + (BIAS_MAX - BIAS_MIN) * bias)
+                                            : ((bias + 1.0f) * BIAS_MIN);
+        poolPct += weight * norm;
+    }
+
+    if (followers.empty())
+        return 0;
+
+    // --- 3. Threat counters: a follower ability countering a threat removes up to its bias-scaled weight ---
+    // TC links ability<->mechanic through the shared GarrAbilityCategoryID (DoesAbilityCounterMechanic).
+    // A standard combat counter fully negates a standard 300-weight threat; below-target followers counter
+    // proportionally less. Partial-weight trait counters (GarrAbilityEffect.CombatWeight ramps) are an
+    // additive refinement the client applies on top - not modeled here.
+    for (Threat const& threat : threats)
+    {
+        float remaining = threat.factor;
+        for (FollowerBias const& fb : followers)
+        {
+            if (remaining <= 0.0f)
+                break;
+            for (GarrAbilityEntry const* ability : fb.follower->PacketInfo.AbilityID)
+            {
+                if (!ability || (ability->Flags & GARRISON_ABILITY_FLAG_TRAIT))
+                    continue;
+                if (sGarrisonMgr.DoesAbilityCounterMechanic(ability, threat.type))
                 {
-                    for (int32 mechanicTypeID : encounter.Mechanics)
-                    {
-                        GarrMechanicTypeEntry const* mechanicType = sGarrisonMgr.GetMechanicType(mechanicTypeID);
-                        if (mechanicType && sGarrisonMgr.DoesAbilityCounterMechanic(ability, mechanicType))
-                            counteredMechanicCategories.insert(mechanicType->GarrAbilityCategoryID);
-                    }
+                    float const reduction = (fb.bias >= 0.0f) ? threat.factor : (fb.bias + 1.0f) * threat.factor;
+                    remaining = std::max(remaining - reduction, 0.0f);
+                    break; // one counter per follower per threat
                 }
             }
         }
+        poolPct += (threat.factor - remaining) * norm;
     }
 
-    if (followerCount == 0)
-        return 0;
+    // --- 4. Final: fold the pool into base, cap (200 only if GarrType allows overmax) ---
+    // chance >= 0 here (base >= 0, poolPct is a sum of non-negative shares), so the int32 cast truncates
+    // toward zero exactly like the client's floor.
+    float chance = base + (100.0f - base) * poolPct * 0.01f;
 
-    // Count total mechanics across all encounters
-    uint32 totalMechanics = 0;
-    Mission const* mission = GetMissionByRecID(missionRecID);
-    if (mission)
-    {
-        for (auto const& encounter : mission->PacketInfo.Encounters)
-            totalMechanics += static_cast<uint32>(encounter.Mechanics.size());
-    }
+    float cap = 100.0f;
+    if (GarrTypeEntry const* garrType = sGarrTypeStore.LookupEntry(missionEntry->GarrTypeID))
+        if (garrType->Flags & 0x2) // "overmax allowed" - bonus chance may push the stored value up to 200
+            cap = 200.0f;
 
-    // Each countered mechanic adds a bonus proportional to mission complexity
-    // For a typical mission with 3 mechanics, each counter is worth ~10-15%
-    if (totalMechanics > 0)
-    {
-        uint32 countered = static_cast<uint32>(counteredMechanicCategories.size());
-        float counterBonus = (static_cast<float>(countered) / static_cast<float>(totalMechanics)) * 45.0f;
-        successChance += static_cast<int32>(counterBonus);
-    }
-
-    // Level difference penalty (only for under-leveled followers)
-    int32 avgFollowerLevel = totalFollowerLevel / static_cast<int32>(followerCount);
-    int32 levelDiff = avgFollowerLevel - static_cast<int32>(missionEntry->TargetLevel);
-    if (levelDiff < 0)
-        successChance += levelDiff * 3; // -3% per level below target
-
-    // Item level bonus for missions with item level requirements
-    if (missionEntry->TargetItemLevel > 0 && followerCount > 0)
-    {
-        int32 avgFollowerItemLevel = totalFollowerItemLevel / static_cast<int32>(followerCount);
-        int32 iLvlDiff = avgFollowerItemLevel - static_cast<int32>(missionEntry->TargetItemLevel);
-        if (iLvlDiff > 0)
-            successChance += std::min(iLvlDiff / 10, 10); // +1% per 10 iLvl above target, capped at +10%
-    }
-
-    return std::clamp(successChance, 0, 100);
+    return int32(std::clamp(chance, 0.0f, cap));
 }
 
 GarrisonError Garrison::StartMission(uint32 missionRecID, std::vector<uint64> const& followerDBIDs)

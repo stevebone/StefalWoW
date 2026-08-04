@@ -128,6 +128,9 @@ ByteBuffer& operator<<(ByteBuffer& data, GarrisonMissionReward const& missionRew
     data << uint32(missionRewardItem.FollowerXP);
     data << uint32(missionRewardItem.GarrMssnBonusAbilityID);
     data << int32(missionRewardItem.ItemFileDataID);
+    // itemInstance = OptionalInit bit + FlushBits. This is the SNIFF-CONFIRMED encoding (ADD_MISSION_RESULT
+    // decoded byte-exact / 0 trailing bytes). The talent socketData is the SAME reflection kind and must match
+    // this (bit), NOT a uint32 count - see operator<<(GarrisonTalent).
     data << OptionalInit(missionRewardItem.ItemInstance);
     data.FlushBits();
 
@@ -192,13 +195,31 @@ ByteBuffer& operator<<(ByteBuffer& data, GarrisonTalentSocketData const& talentS
 
 ByteBuffer& operator<<(ByteBuffer& data, GarrisonTalent const& talent)
 {
+    // Wire order (client JamGarrisonTalent, Ghidra-confirmed via ctor @client 0x729093890): garrTalentID(i32),
+    // garrTalentRank(i32), researchStartTime(i64), flags(i32), socketData(OptionalInit bit + FlushBits).
+    //
+    // The client reads the wire `flags` field with its OWN semantics, which differ from TC's internal
+    // Garrison::Talent::Flags. Bits were pinned by live client testing (the builder that computes these is
+    // control-flow-flattened, so it isn't offline-decompilable):
+    //   client bit 0x4 = "this talent is being researched" — gates whether the Order Advancement UI reads
+    //       researchStartTime and renders the research timer. Verified live: flags=0 kept the client's startTime in
+    //       memory (proven by a server-side diag log + a sentinel injection) but drew the talent idle; setting 0x4
+    //       makes C_Garrison.GetTalentInfo(id).isBeingResearched=true with the real DB2 researchDuration.
+    //   client bit 0x2 = a duration override that forces researchDuration to a fixed 24h; MUST NEVER be set.
+    // TC's internal flags (only GARRISON_TALENT_FLAG_TEMPORARY=0x1 today, an unrelated meaning) are not
+    // wire-compatible, so derive the wire value purely from research state.
+    int32 wireFlags = 0;
+    if (talent.ResearchStartTime != 0)
+        wireFlags |= 0x4; // client "being researched" bit (never 0x2 = duration override)
     data << int32(talent.GarrTalentID);
     data << int32(talent.Rank);
     data << talent.ResearchStartTime;
-    data << int32(talent.Flags);
+    data << int32(wireFlags);
+    // socketData is the SAME reflection kind (0x80003) as the reward itemInstance, which is sniff-confirmed as
+    // an OptionalInit bit (NOT a uint32 count). The prior uint32 "fix" made each talent 3 bytes too long,
+    // shifting the mission-reward data written right after the Talents block (rewards showed value x 2^16).
     data << OptionalInit(talent.Socket);
     data.FlushBits();
-
     if (talent.Socket)
         data << *talent.Socket;
 
@@ -1250,7 +1271,10 @@ void GarrisonLearnTalent::Read()
 
 void GarrisonResearchTalent::Read()
 {
+    _worldPacket >> NpcGUID;
     _worldPacket >> GarrTalentID;
+    _worldPacket >> GarrTalentRank;
+    _worldPacket >> Bits<1>(Unused);
 }
 
 // IDA case 4980750: u32 Result, u8 GarrTypeID, Bits<1>+Flush, GarrisonTalent.

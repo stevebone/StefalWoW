@@ -168,6 +168,7 @@ void GarrisonMgr::Initialize()
     InitializeDbIdSequences();
     LoadPlotFinalizeGOInfo();
     LoadFollowerClassSpecAbilities();
+    LoadMissionRewards();
 }
 
 GarrSiteLevelEntry const* GarrisonMgr::GetGarrSiteLevelEntry(uint32 garrSiteId, uint32 level) const
@@ -737,6 +738,106 @@ void GarrisonMgr::LoadFollowerClassSpecAbilities()
         pair.second.sort();
 
     TC_LOG_INFO("server.loading", ">> Loaded {} garrison follower class spec abilities in {}.", count, GetMSTimeDiffToNow(msTime));
+}
+
+void GarrisonMgr::LoadMissionRewards()
+{
+    _missionRewards.clear();
+
+    QueryResult result = WorldDatabase.Query("SELECT GarrMissionId, RewardType, ItemId, ItemQuantity, CurrencyId, CurrencyQuantity, Gold, FollowerXP FROM garrison_mission_reward");
+    if (!result)
+    {
+        TC_LOG_INFO("server.loading", ">> Loaded 0 garrison mission rewards. DB table `garrison_mission_reward` is empty (missions fall back to the per-GarrType resource formula).");
+        return;
+    }
+
+    uint32 msTime = getMSTime();
+    uint32 count = 0;
+    do
+    {
+        Field* fields = result->Fetch();
+        uint32 garrMissionId = fields[0].GetUInt32();
+
+        if (!sGarrMissionStore.LookupEntry(garrMissionId))
+        {
+            TC_LOG_ERROR("sql.sql", "Non-existing GarrMission.db2 entry {} was referenced in `garrison_mission_reward`; skipped.", garrMissionId);
+            continue;
+        }
+
+        GarrisonMissionRewardEntry reward;
+        reward.RewardType       = fields[1].GetUInt8();
+        reward.ItemId           = fields[2].GetUInt32();
+        reward.ItemQuantity     = fields[3].GetUInt32();
+        reward.CurrencyId       = fields[4].GetUInt32();
+        reward.CurrencyQuantity = fields[5].GetUInt32();
+        reward.Gold             = fields[6].GetUInt32();
+        reward.FollowerXP       = fields[7].GetUInt32();
+
+        _missionRewards[garrMissionId].push_back(reward);
+        ++count;
+
+    } while (result->NextRow());
+
+    TC_LOG_INFO("server.loading", ">> Loaded {} garrison mission rewards for {} missions in {}.", count, _missionRewards.size(), GetMSTimeDiffToNow(msTime));
+}
+
+std::vector<GarrisonMissionRewardEntry> const* GarrisonMgr::GetMissionRewards(uint32 garrMissionID) const
+{
+    auto itr = _missionRewards.find(garrMissionID);
+    return itr != _missionRewards.end() ? &itr->second : nullptr;
+}
+
+uint32 GarrisonMgr::GetMissionRewardCurrency(GarrMissionEntry const* mission) const
+{
+    if (!mission)
+        return 0;
+
+    // Reward currency is the garrison TYPE's resource currency, NOT the mission's cost currency: some Legion
+    // order-hall missions carry a stray MissionCostCurrencyTypesID (824) which previously leaked WoD Garrison
+    // Resources into order-hall rewards. WoD is the only type with two resources - land = Garrison Resources
+    // (824), shipyard = Oil (1101) - distinguished by the cost currency.
+    switch (mission->GarrTypeID)
+    {
+        case 2:   return mission->MissionCostCurrencyTypesID == 1101 ? 1101 : 824;  // WoD garrison / shipyard (Oil)
+        case 3:   return 1220;  // Legion Order Resources
+        case 9:   return 1560;  // BfA War Resources
+        case 111: return 1813;  // Shadowlands Reservoir Anima
+        default:  return mission->MissionCostCurrencyTypesID;  // unknown type: best-effort
+    }
+}
+
+uint32 GarrisonMgr::ComputeBaseResourceReward(GarrMissionEntry const* mission) const
+{
+    if (!mission)
+        return 0;
+
+    // Retail base resource rewards scale with a mission's investment (cost) and length (duration) and are
+    // net-positive over cost. Cost>0 "sink" missions pay back a multiple of their cost; cost==0 "faucet"
+    // missions pay a duration-scaled flat amount. Constants tuned to the live per-GarrType cost/duration
+    // medians and wiki reward amounts (see garrison_mission_success_formula memory / reward research).
+    float k = 0.0f, h = 0.0f, f = 0.0f;
+    uint32 minReward = 0, maxReward = 0;
+
+    uint32 currency = GetMissionRewardCurrency(mission);
+    switch (mission->GarrTypeID)
+    {
+        case 2:
+            if (currency == 1101) { k = 1.2f; h = 3.0f; f = 4.0f; minReward = 4;  maxReward = 60;  }  // WoD shipyard (Oil)
+            else                  { k = 1.5f; h = 5.0f; f = 5.0f; minReward = 5;  maxReward = 150; }  // WoD garrison (Garrison Resources)
+            break;
+        case 3:   k = 1.4f; h = 8.0f; f = 10.0f; minReward = 10; maxReward = 200; break;  // Legion Order Resources
+        case 9:   k = 1.5f; h = 6.0f; f = 8.0f;  minReward = 8;  maxReward = 150; break;  // BfA War Resources
+        case 111: k = 1.6f; h = 4.0f; f = 5.0f;  minReward = 5;  maxReward = 120; break;  // SL Reservoir Anima
+        default:  return 0;
+    }
+
+    float base;
+    if (mission->MissionCost > 0)
+        base = float(mission->MissionCost) * k;
+    else
+        base = (float(mission->MissionDuration) / 3600.0f) * h + f;
+
+    return std::clamp(uint32(base + 0.5f), minReward, maxReward);
 }
 
 GarrAutoCombatantEntry const* GarrisonMgr::GetAutoCombatant(uint32 garrAutoCombatantID) const

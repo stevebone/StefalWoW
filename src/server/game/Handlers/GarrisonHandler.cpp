@@ -176,7 +176,18 @@ void WorldSession::HandleGarrisonCompleteMission(WorldPackets::Garrison::Garriso
     // now: follower XP is still awarded, followers are freed and the mission is removed. On SUCCESS we
     // wait for CMSG_GARRISON_MISSION_BONUS_ROLL (the chest open) to grant rewards and remove the mission.
     if (result == GARRISON_SUCCESS && !succeeded)
-        garrison->FinalizeMission(garrisonCompleteMission.MissionRecID, false);
+    {
+        GarrisonError finalizeResult = garrison->FinalizeMission(garrisonCompleteMission.MissionRecID, false);
+
+        // The complete-result banner does not tell the client the mission record is gone, so without an
+        // explicit delete the failed mission lingers and reappears on the next scouting-map open. Mirror
+        // the reward path (HandleGarrisonGetMissionReward) and send a targeted deletion.
+        WorldPackets::Garrison::GarrisonDeleteMissionResult deleteMissionResult;
+        deleteMissionResult.Result = finalizeResult;
+        deleteMissionResult.MissionRecID = garrisonCompleteMission.MissionRecID;
+        deleteMissionResult.GarrTypeID = garrison->GetType();
+        SendPacket(deleteMissionResult.Write());
+    }
 }
 
 void WorldSession::HandleGarrisonMissionBonusRoll(WorldPackets::Garrison::GarrisonMissionBonusRoll& garrisonMissionBonusRoll)
@@ -642,11 +653,14 @@ void WorldSession::HandleCreateShipment(WorldPackets::Garrison::CreateShipment& 
 
 void WorldSession::HandleGetLandingPageShipments(WorldPackets::Garrison::GetLandingPageShipments& /*getLandingPageShipments*/)
 {
-    Garrison* garrison = _player->GetGarrison();
-    if (!garrison)
-        return;
-
-    garrison->SendLandingPageShipments();
+    // A character may own several garrisons (WoD garrison type 2, Legion order hall type 3, BfA war campaign,
+    // covenant sanctum). The CMSG carries no type, and the no-arg GetGarrison() resolves ONLY the WoD garrison
+    // (type 2) -- so an order-hall-only character got null here and we never sent the response. That left the
+    // client's GARRISON_LANDINGPAGE_SHIPMENTS event unfired, so the class-hall report never rebuilt its shipment
+    // list (and thus never showed the talent-research progress bar even though the research data was correct).
+    // Send for every owned garrison; the client's report filters shipments to its own garrison type.
+    for (auto const& [type, garrison] : _player->GetGarrisons())
+        garrison->SendLandingPageShipments();
 }
 
 void WorldSession::HandleSetUsingPartyGarrison(WorldPackets::Garrison::SetUsingPartyGarrison& setUsingPartyGarrison)
