@@ -1503,7 +1503,7 @@ enum OpcodeServer : uint32
     SMSG_GARRISON_CREATE_RESULT                                     = 0x4C000C,
     SMSG_GARRISON_DELETE_MISSION_RESULT                             = 0x4C0023,
     SMSG_GARRISON_DELETE_RESULT                                     = 0x4C0035,
-    SMSG_GARRISON_OPEN_TALENT_NPC                                   = 0x4C0036, // recovered from client (unnamed class getter mov [rdx],0x4C0036); fires GARRISON_TALENT_NPC_OPENED
+    SMSG_GARRISON_OPEN_TALENT_NPC                                   = 0x4C0031, // recovered from client: unnamed msg-class in the OPEN_NPC cluster (after OPEN_RECRUITMENT 0x30); 40-byte simple message (guid+tree+garrType), trivial dtor. Fires GARRISON_TALENT_NPC_OPENED.
     SMSG_GARRISON_FOLLOWER_ACTIVATIONS_SET                          = 0x4C002B,
     SMSG_GARRISON_FOLLOWER_CHANGED_FLAGS                            = 0x4C0029,
     SMSG_GARRISON_FOLLOWER_CHANGED_ITEM_LEVEL                       = 0x4C0027,
