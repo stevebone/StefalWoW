@@ -14164,33 +14164,12 @@ void Player::OnGossipSelect(WorldObject* source, int32 gossipOptionId, uint32 me
             break;
         case GossipOptionNpc::GarrisonRecruitment: // NYI
             break;
-        case GossipOptionNpc::GarrisonTalent:
-            // Order Advancement (class-hall talent tree). Send ONLY the dedicated open packet, which fires
-            // GARRISON_TALENT_NPC_OPENED -> OrderHallTalentFrame:SetGarrisonType(garrType, tree) client-side.
-            // Deliberately kept out of the generic NPCInteractionOpenResult(GarrTalent) path below: the client
-            // has no interaction-manager frame registered for that type, so sending it starts a client-side
-            // interaction that never resolves (stuck "book cursor", gossip stops opening on the NPC).
-            if (GetGarrison(GARRISON_TYPE_CLASS_ORDER))
-            {
-                int32 treeId = 0;
-                if (std::vector<GarrTalentTreeEntry const*> const* trees = sGarrisonMgr.GetTalentTreesForGarrType(int8(GARRISON_TYPE_CLASS_ORDER)))
-                    for (GarrTalentTreeEntry const* tree : *trees)
-                        if (tree->ClassID == int32(GetClass()))
-                        {
-                            treeId = tree->ID;
-                            break;
-                        }
-                if (treeId)
-                {
-                    PlayerTalkClass->GetInteractionData().StartInteraction(source->GetGUID(), PlayerInteractionType::GarrTalent);
-                    WorldPackets::Garrison::GarrisonOpenTalentNpc talentNpc;
-                    talentNpc.NpcGUID = source->GetGUID();
-                    talentNpc.GarrTalentTreeID = treeId;
-                    talentNpc.GarrTypeID = GARRISON_TYPE_CLASS_ORDER;
-                    SendDirectMessage(talentNpc.Write());
-                }
-            }
-            break;
+        // GossipOptionNpc::GarrisonTalent (Order Advancement) intentionally has NO case: it falls through to
+        // `default` (handled = false), so the generic immersive-interaction path below runs. The client resolves
+        // the option's GossipNpcOptionID (GossipNPCOption.db2) to PlayerInteractionType::GarrTalent and fires
+        // GARRISON_TALENT_NPC_OPENED -> OrderHallTalentFrame. No dedicated open-talent packet/opcode is needed
+        // (verified by client RE; a dedicated packet leaves a stuck "book cursor" because no frame is registered
+        // for it). The option only needs its GossipNpcOptionID set in GossipNPCOption.db2 (e.g. Hunter = 32330).
         case GossipOptionNpc::ChromieTimeNpc: // NYI
             break;
         case GossipOptionNpc::RuneforgeLegendaryCrafting: // NYI
