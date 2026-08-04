@@ -361,7 +361,7 @@ NonDefaultConstructible<SpellEffectHandlerFn> SpellEffectHandlers[TOTAL_SPELL_EF
     &Spell::EffectNULL,                                     //269 SPELL_EFFECT_INCREASE_ITEM_BONUS_LIST_GROUP_STEP
     &Spell::EffectNULL,                                     //270 SPELL_EFFECT_270
     &Spell::EffectUnused,                                   //271 SPELL_EFFECT_APPLY_AREA_AURA_PARTY_NONRANDOM
-    &Spell::EffectNULL,                                     //272 SPELL_EFFECT_SET_COVENANT
+    &Spell::EffectSetCovenant,                              //272 SPELL_EFFECT_SET_COVENANT
     &Spell::EffectNULL,                                     //273 SPELL_EFFECT_CRAFT_RUNEFORGE_LEGENDARY
     &Spell::EffectUnused,                                   //274 SPELL_EFFECT_274
     &Spell::EffectUnused,                                   //275 SPELL_EFFECT_275
@@ -370,7 +370,7 @@ NonDefaultConstructible<SpellEffectHandlerFn> SpellEffectHandlers[TOTAL_SPELL_EF
     &Spell::EffectNULL,                                     //278 SPELL_EFFECT_278
     &Spell::EffectNULL,                                     //279 SPELL_EFFECT_LEARN_GARR_TALENT
     &Spell::EffectUnused,                                   //280 SPELL_EFFECT_280
-    &Spell::EffectNULL,                                     //281 SPELL_EFFECT_LEARN_SOULBIND_CONDUIT
+    &Spell::EffectLearnSoulbindConduit,                     //281 SPELL_EFFECT_LEARN_SOULBIND_CONDUIT
     &Spell::EffectNULL,                                     //282 SPELL_EFFECT_CONVERT_ITEMS_TO_CURRENCY
     &Spell::EffectSkipCampaign,                             //283 SPELL_EFFECT_COMPLETE_CAMPAIGN
     &Spell::EffectSendChatMessage,                          //284 SPELL_EFFECT_SEND_CHAT_MESSAGE
@@ -6374,4 +6374,631 @@ void Spell::EffectEquipTransmogOutfit()
     }
 
     target->EquipTransmogOutfit(m_misc.EquipTransmogOutfit.TransmogOutfitId, static_cast<TransmogSituationTrigger>(m_misc.EquipTransmogOutfit.SituationTrigger), locked);
+}
+
+void Spell::EffectGiveHouseLevel()
+{
+    if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT_TARGET)
+        return;
+
+    Player* player = Object::ToPlayer(unitTarget);
+    if (!player)
+        return;
+
+    Housing* housing = player->GetHousing();
+    if (!housing)
+        return;
+
+    uint32 levelsToAdd = std::max(GetEffectValueAsInt(), 1);
+
+    TC_LOG_DEBUG("spells", "Spell::EffectGiveHouseLevel: Adding {} level(s) to house for player {} (house {}, current level {})",
+        levelsToAdd, player->GetName(), housing->GetHouseGuid().ToString(), housing->GetLevel());
+
+    housing->AddLevel(levelsToAdd);
+}
+
+void Spell::EffectCollectHousingDecor()
+{
+    if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT_TARGET)
+        return;
+
+    Player* player = Object::ToPlayer(unitTarget);
+    if (!player)
+        return;
+
+    Housing* housing = player->GetHousing();
+    if (!housing)
+        return;
+
+    uint32 decorEntryId = effectInfo->MiscValue;
+    if (!decorEntryId)
+        return;
+
+    HouseDecorData const* decorData = sHousingMgr.GetHouseDecorData(decorEntryId);
+    if (!decorData)
+    {
+        TC_LOG_ERROR("spells", "Spell::EffectCollectHousingDecor: Invalid HouseDecor ID {} from spell {}",
+            decorEntryId, m_spellInfo->Id);
+        return;
+    }
+
+    HousingResult result = housing->AddToCatalog(decorEntryId, DECOR_SOURCE_SPELL,
+        std::to_string(m_spellInfo->Id));
+
+    if (result != HOUSING_RESULT_SUCCESS)
+    {
+        TC_LOG_ERROR("spells", "Spell::EffectCollectHousingDecor: AddToCatalog failed (result={}) for decor {} spell {}",
+            uint32(result), decorEntryId, m_spellInfo->Id);
+        return;
+    }
+
+    // Notify client of the new decor acquisition
+    WorldPackets::Housing::HousingFirstTimeDecorAcquisition decorAcq;
+    decorAcq.DecorEntryID = decorEntryId;
+    player->SendDirectMessage(decorAcq.Write());
+
+    // If the Account entity's FHousingStorage_C has already been populated (player opened
+    // edit mode), add the new catalog entry directly and send a VALUES_UPDATE so the client's
+    // decor list refreshes without requiring a relog or mode toggle.
+    if (housing->IsStoragePopulated())
+    {
+        Housing::CatalogEntry const* catEntry = nullptr;
+        for (Housing::CatalogEntry const* entry : housing->GetCatalogEntries())
+        {
+            if (entry->DecorEntryId == decorEntryId)
+            {
+                catEntry = entry;
+                break;
+            }
+        }
+        if (catEntry)
+        {
+            // Generate a unique GUID for the new storage entry (same scheme as PopulateCatalogStorageEntries)
+            uint64 catalogGuidBase = player->GetGUID().GetCounter() * 100000;
+            uint32 storageIdx = catEntry->Count > 0 ? catEntry->Count - 1 : 0;
+            uint64 uniqueId = catalogGuidBase + decorEntryId * 100 + storageIdx;
+            ObjectGuid catalogDecorGuid = ObjectGuid::Create<HighGuid::Housing>(
+                /*subType*/ 1,
+                /*arg1*/ sRealmList->GetCurrentRealmId().Realm,
+                /*arg2*/ decorEntryId,
+                uniqueId);
+
+            Battlenet::Account& account = player->GetSession()->GetBattlenetAccount();
+            account.SetHousingDecorStorageEntry(catalogDecorGuid, ObjectGuid::Empty,
+                catEntry->SourceType, catEntry->SourceValue);
+            account.SendUpdateToPlayer(player);
+        }
+    }
+
+    TC_LOG_DEBUG("spells", "Spell::EffectCollectHousingDecor: Player {} learned decor '{}' (ID: {}) from spell {}",
+        player->GetName(), decorData->Name, decorEntryId, m_spellInfo->Id);
+}
+
+void Spell::EffectLearnHouseRoom()
+{
+    if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT_TARGET)
+        return;
+
+    Player* player = Object::ToPlayer(unitTarget);
+    if (!player)
+        return;
+
+    Housing* housing = player->GetHousing();
+    if (!housing)
+        return;
+
+    uint32 houseRoomId = effectInfo->MiscValue;
+    if (!houseRoomId)
+        return;
+
+    HouseRoomData const* roomData = sHousingMgr.GetHouseRoomData(houseRoomId);
+    if (!roomData)
+    {
+        TC_LOG_ERROR("spells", "Spell::EffectLearnHouseRoom: Invalid HouseRoom ID {} from spell {}",
+            houseRoomId, m_spellInfo->Id);
+        return;
+    }
+
+    TC_LOG_DEBUG("spells", "Spell::EffectLearnHouseRoom: Player {} learned house room '{}' (ID: {})",
+        player->GetName(), roomData->Name, houseRoomId);
+
+    // Send collection update to the client
+    WorldPackets::Housing::AccountRoomCollectionUpdate collectionUpdate;
+    collectionUpdate.AddSingle(houseRoomId);
+    player->SendDirectMessage(collectionUpdate.Write());
+}
+
+void Spell::EffectLearnHouseExteriorComponent()
+{
+    if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT_TARGET)
+        return;
+
+    Player* player = Object::ToPlayer(unitTarget);
+    if (!player)
+        return;
+
+    Housing* housing = player->GetHousing();
+    if (!housing)
+        return;
+
+    uint32 exteriorComponentId = effectInfo->MiscValue;
+    if (!exteriorComponentId)
+        return;
+
+    TC_LOG_DEBUG("spells", "Spell::EffectLearnHouseExteriorComponent: Player {} learned exterior component ID {} from spell {}",
+        player->GetName(), exteriorComponentId, m_spellInfo->Id);
+
+    // Send collection update to the client
+    WorldPackets::Housing::AccountExteriorFixtureCollectionUpdate collectionUpdate;
+    collectionUpdate.AddSingle(exteriorComponentId);
+    player->SendDirectMessage(collectionUpdate.Write());
+}
+
+void Spell::EffectLearnHouseTheme()
+{
+    if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT_TARGET)
+        return;
+
+    Player* player = Object::ToPlayer(unitTarget);
+    if (!player)
+        return;
+
+    Housing* housing = player->GetHousing();
+    if (!housing)
+        return;
+
+    uint32 houseThemeId = effectInfo->MiscValue;
+    if (!houseThemeId)
+        return;
+
+    HouseThemeData const* themeData = sHousingMgr.GetHouseThemeData(houseThemeId);
+    if (!themeData)
+    {
+        TC_LOG_ERROR("spells", "Spell::EffectLearnHouseTheme: Invalid HouseTheme ID {} from spell {}",
+            houseThemeId, m_spellInfo->Id);
+        return;
+    }
+
+    TC_LOG_DEBUG("spells", "Spell::EffectLearnHouseTheme: Player {} learned house theme '{}' (ID: {})",
+        player->GetName(), themeData->Name, houseThemeId);
+
+    // Send collection update to the client
+    WorldPackets::Housing::AccountRoomThemeCollectionUpdate collectionUpdate;
+    collectionUpdate.AddSingle(houseThemeId);
+    player->SendDirectMessage(collectionUpdate.Write());
+}
+
+void Spell::EffectLearnHouseRoomComponentTexture()
+{
+    if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT_TARGET)
+        return;
+
+    Player* player = Object::ToPlayer(unitTarget);
+    if (!player)
+        return;
+
+    Housing* housing = player->GetHousing();
+    if (!housing)
+        return;
+
+    uint32 textureId = effectInfo->MiscValue;
+    if (!textureId)
+        return;
+
+    TC_LOG_DEBUG("spells", "Spell::EffectLearnHouseRoomComponentTexture: Player {} learned room component texture ID {} from spell {}",
+        player->GetName(), textureId, m_spellInfo->Id);
+
+    // Send collection update to the client (texture = material in the collection system)
+    WorldPackets::Housing::AccountRoomMaterialCollectionUpdate collectionUpdate;
+    collectionUpdate.AddSingle(textureId);
+    player->SendDirectMessage(collectionUpdate.Write());
+}
+
+void Spell::EffectSetNeighborhoodInitiative()
+{
+    if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT_TARGET)
+        return;
+
+    Player* player = Object::ToPlayer(unitTarget);
+    if (!player)
+        return;
+
+    Housing* housing = player->GetHousing();
+    if (!housing)
+        return;
+
+    uint32 initiativeId = effectInfo->MiscValue;
+    if (!initiativeId)
+        return;
+
+    NeighborhoodInitiativeData const* initiativeData = sHousingMgr.GetNeighborhoodInitiativeData(initiativeId);
+    if (!initiativeData)
+    {
+        TC_LOG_ERROR("spells", "Spell::EffectSetNeighborhoodInitiative: Invalid NeighborhoodInitiative ID {} from spell {}",
+            initiativeId, m_spellInfo->Id);
+        return;
+    }
+
+    // Resolve the player's neighborhood
+    ObjectGuid neighborhoodGuid = housing->GetNeighborhoodGuid();
+    Neighborhood* neighborhood = sNeighborhoodMgr.GetNeighborhood(neighborhoodGuid);
+    if (!neighborhood)
+    {
+        TC_LOG_ERROR("spells", "Spell::EffectSetNeighborhoodInitiative: Player {} has no valid neighborhood (guid: {})",
+            player->GetName(), neighborhoodGuid.ToString());
+        return;
+    }
+
+    // Only the neighborhood owner or managers should be able to set initiatives
+    if (!neighborhood->IsOwner(player->GetGUID()) && !neighborhood->IsManager(player->GetGUID()))
+    {
+        TC_LOG_DEBUG("spells", "Spell::EffectSetNeighborhoodInitiative: Player {} is not owner/manager of neighborhood {}",
+            player->GetName(), neighborhoodGuid.ToString());
+        return;
+    }
+
+    TC_LOG_DEBUG("spells", "Spell::EffectSetNeighborhoodInitiative: Player {} set initiative '{}' (ID: {}) on neighborhood {}",
+        player->GetName(), initiativeData->Name, initiativeId, neighborhoodGuid.ToString());
+}
+
+void Spell::EffectRestoreGarrisonTroopVitality()
+{
+    if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT_TARGET)
+        return;
+
+    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+        return;
+
+    if (Garrison* garrison = unitTarget->ToPlayer()->GetGarrison())
+        garrison->HealAllFollowers();
+}
+
+void Spell::EffectLearnGarrisonSpecialization()
+{
+    if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT_TARGET)
+        return;
+
+    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+        return;
+
+    if (Garrison* garrison = unitTarget->ToPlayer()->GetGarrison())
+        garrison->LearnSpecialization(effectInfo->MiscValue);
+}
+
+void Spell::EffectCreateShipment()
+{
+    if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT_TARGET)
+        return;
+
+    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+        return;
+
+    if (Garrison* garrison = unitTarget->ToPlayer()->GetGarrison())
+        garrison->CreateShipment(m_caster->GetGUID(), effectInfo->MiscValue > 0 ? effectInfo->MiscValue : 1);
+}
+
+void Spell::EffectUpgradeGarrison()
+{
+    if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT_TARGET)
+        return;
+
+    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+        return;
+
+    if (Garrison* garrison = unitTarget->ToPlayer()->GetGarrison())
+        garrison->Upgrade();
+}
+
+void Spell::EffectAddGarrisonMission()
+{
+    if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT_TARGET)
+        return;
+
+    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+        return;
+
+    if (Garrison* garrison = unitTarget->ToPlayer()->GetGarrison())
+        garrison->AddMission(effectInfo->MiscValue);
+}
+
+void Spell::EffectSetFollowerQuality()
+{
+    if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT_TARGET)
+        return;
+
+    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+        return;
+
+    Player* player = unitTarget->ToPlayer();
+    Garrison* garrison = player->GetGarrison();
+    if (!garrison)
+        return;
+
+    // MiscValue = quality to set, the targeted follower is determined by the spell target
+    // For item-cast spells, the follower dbId is typically stored in the spell's misc data
+    // Iterate followers and set quality on the first one found that matches (or use generic approach)
+    // In practice, these spells are cast on a specific follower via the garrison UI
+    uint32 quality = effectInfo->MiscValue;
+    for (auto& [dbId, follower] : garrison->GetFollowerMap())
+    {
+        // This effect is typically cast via items targeting a specific follower
+        // Since we don't have a direct follower target, apply to all active non-troop followers
+        // In a real scenario, the UI sends the follower context
+        garrison->SetFollowerQuality(dbId, quality);
+        break; // Apply to first eligible follower (placeholder - needs UI integration)
+    }
+}
+
+void Spell::EffectIncreaseFollowerExperience()
+{
+    if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT_TARGET)
+        return;
+
+    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+        return;
+
+    Player* player = unitTarget->ToPlayer();
+    Garrison* garrison = player->GetGarrison();
+    if (!garrison)
+        return;
+
+    int32 effectDamage = GetEffectValueAsInt();
+    uint32 xp = effectDamage > 0 ? uint32(effectDamage) : effectInfo->MiscValue;
+    for (auto& [dbId, follower] : garrison->GetFollowerMap())
+    {
+        garrison->AddFollowerXP(dbId, xp);
+        break; // Apply to first eligible follower
+    }
+}
+
+void Spell::EffectRandomizeFollowerAbilities()
+{
+    if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT_TARGET)
+        return;
+
+    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+        return;
+
+    Player* player = unitTarget->ToPlayer();
+    Garrison* garrison = player->GetGarrison();
+    if (!garrison)
+        return;
+
+    for (auto& [dbId, follower] : garrison->GetFollowerMap())
+    {
+        garrison->RandomizeFollowerAbilities(dbId);
+        break;
+    }
+}
+
+void Spell::EffectEndGarrisonBuildingConstruction()
+{
+    if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT_TARGET)
+        return;
+
+    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+        return;
+
+    Player* player = unitTarget->ToPlayer();
+    Garrison* garrison = player->GetGarrison();
+    if (!garrison)
+        return;
+
+    // MiscValue = plot instance ID, or 0 to complete all buildings
+    if (effectInfo->MiscValue > 0)
+    {
+        garrison->EndBuildingConstruction(effectInfo->MiscValue);
+    }
+    else
+    {
+        for (Garrison::Plot* plot : garrison->GetPlots())
+            if (plot->BuildingInfo.PacketInfo && !plot->BuildingInfo.PacketInfo->Active)
+                garrison->EndBuildingConstruction(plot->PacketInfo.GarrPlotInstanceID);
+    }
+}
+
+void Spell::EffectLearnFollowerAbility()
+{
+    if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT_TARGET)
+        return;
+
+    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+        return;
+
+    Player* player = unitTarget->ToPlayer();
+    Garrison* garrison = player->GetGarrison();
+    if (!garrison)
+        return;
+
+    uint32 abilityId = effectInfo->MiscValue;
+    for (auto& [dbId, follower] : garrison->GetFollowerMap())
+    {
+        garrison->LearnFollowerAbility(dbId, abilityId);
+        break;
+    }
+}
+
+void Spell::EffectFinishGarrisonMission()
+{
+    if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT_TARGET)
+        return;
+
+    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+        return;
+
+    if (Garrison* garrison = unitTarget->ToPlayer()->GetGarrison())
+        garrison->FinishMission(effectInfo->MiscValue);
+}
+
+void Spell::EffectAddGarrisonMissionSet()
+{
+    if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT_TARGET)
+        return;
+
+    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+        return;
+
+    Garrison* garrison = unitTarget->ToPlayer()->GetGarrison();
+    if (!garrison)
+        return;
+
+    // MiscValue = GarrMissionSetID -- add all missions that belong to this set
+    uint32 missionSetId = effectInfo->MiscValue;
+    for (GarrMissionEntry const* mission : sGarrMissionStore)
+        if (mission->GarrMissionSetID == missionSetId)
+            garrison->AddMission(mission->ID);
+}
+
+void Spell::EffectFinishShipment()
+{
+    if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT_TARGET)
+        return;
+
+    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+        return;
+
+    Garrison* garrison = unitTarget->ToPlayer()->GetGarrison();
+    if (!garrison)
+        return;
+
+    // Complete the next pending shipment across all plots
+    for (Garrison::Plot* plot : garrison->GetPlots())
+    {
+        if (plot->BuildingInfo.PacketInfo)
+        {
+            garrison->FinishShipment(plot->PacketInfo.GarrPlotInstanceID);
+            break; // Only finish one shipment per cast
+        }
+    }
+}
+
+void Spell::EffectSetGarrisonCacheSize()
+{
+    if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT_TARGET)
+        return;
+
+    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+        return;
+
+    if (Garrison* garrison = unitTarget->ToPlayer()->GetGarrison())
+        garrison->SetGarrisonCacheSize(effectInfo->MiscValue);
+}
+
+void Spell::EffectLearnGarrTalent()
+{
+    if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT_TARGET)
+        return;
+
+    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+        return;
+
+    // Find the correct garrison type for this talent
+    GarrTalentEntry const* talentEntry = sGarrTalentStore.LookupEntry(effectInfo->MiscValue);
+    if (!talentEntry)
+        return;
+
+    GarrTalentTreeEntry const* treeEntry = sGarrTalentTreeStore.LookupEntry(talentEntry->GarrTalentTreeID);
+    if (!treeEntry)
+        return;
+
+    Garrison* garrison = unitTarget->ToPlayer()->GetGarrison(static_cast<GarrisonType>(treeEntry->GarrTypeID));
+    if (!garrison)
+        return;
+
+    garrison->LearnTalent(effectInfo->MiscValue, false);
+}
+
+void Spell::EffectSetCovenant()
+{
+    if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT_TARGET)
+        return;
+
+    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+        return;
+
+    // MiscValue = Covenant.db2 id chosen by the covenant-choice quest's reward spell. Joining a covenant
+    // is the Blizzlike entry point (soulbinds unlock afterwards) - there is no dedicated covenant opcode.
+    int32 covenantId = effectInfo->MiscValue;
+    if (covenantId < 0 || !sCovenantStore.LookupEntry(uint32(covenantId)))
+        return;
+
+    unitTarget->ToPlayer()->SetActiveCovenant(uint32(covenantId));
+}
+
+void Spell::EffectLearnSoulbindConduit()
+{
+    if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT_TARGET)
+        return;
+
+    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+        return;
+
+    // MiscValue = SoulbindConduit.db2 id; the rank comes from the spell's base points (MiscValueB is unused
+    // for conduit grants). A negative/zero rank falls back to the conduit's lowest defined rank.
+    int32 conduitId = effectInfo->MiscValue;
+    if (conduitId <= 0)
+        return;
+
+    int32 rankValue = GetEffectValueAsInt();                    // spell base points = 1-based conduit rank (0 when unspecified)
+    int32 rank = rankValue > 0 ? rankValue - 1 : -1;            // CollectConduit wants a 0-based index (<0 = lowest defined rank)
+    unitTarget->ToPlayer()->CollectConduit(uint32(conduitId), rank);
+}
+
+void Spell::EffectSetGarrisonFollowerLevel()
+{
+    if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT_TARGET)
+        return;
+
+    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+        return;
+
+    Player* player = unitTarget->ToPlayer();
+    Garrison* garrison = player->GetGarrison();
+    if (!garrison)
+        return;
+
+    uint32 level = effectInfo->MiscValue;
+    for (auto& [dbId, follower] : garrison->GetFollowerMap())
+    {
+        garrison->SetFollowerLevel(dbId, level);
+        break;
+    }
+}
+
+void Spell::EffectModifyFollowerItemLevel()
+{
+    if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT_TARGET)
+        return;
+
+    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+        return;
+
+    Player* player = unitTarget->ToPlayer();
+    Garrison* garrison = player->GetGarrison();
+    if (!garrison)
+        return;
+
+    // MiscValue contains GarrItemLevelUpgradeData ID or direct iLevel delta
+    // MiscValueB: 0 = weapon, 1 = armor, other = both
+    int32 miscValue = effectInfo->MiscValue;
+    int32 miscValueB = effectInfo->MiscValueB;
+    int32 iLevelDelta = GetEffectValueAsInt();
+
+    // Try to look up GarrItemLevelUpgradeData entry
+    GarrItemLevelUpgradeDataEntry const* upgradeData = sGarrItemLevelUpgradeDataStore.LookupEntry(miscValue);
+
+    // The target follower is typically determined by the garrison UI interaction.
+    // When cast from items, the follower dbId is passed via the spell's target info.
+    // For now, we apply to the first eligible non-inactive, non-troop follower.
+    // TODO: When proper follower targeting is available, use that instead.
+    for (auto const& [dbId, follower] : garrison->GetFollowerMap())
+    {
+        if (follower.PacketInfo.FollowerStatus & FOLLOWER_STATUS_INACTIVE)
+            continue;
+        if (follower.PacketInfo.FollowerStatus & FOLLOWER_STATUS_TROOP)
+            continue;
+
+        garrison->UpgradeFollowerItemLevel(dbId, iLevelDelta, miscValueB, upgradeData);
+        break;
+    }
 }

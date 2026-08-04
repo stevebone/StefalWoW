@@ -20525,6 +20525,24 @@ void Player::ActivateSoulbind(SoulbindEntry const* soulbind)
     ApplyConduitSpells();
 }
 
+void Player::SetActiveCovenant(uint32 covenantId)
+{
+    // Blizzlike join order is: choose covenant (this) -> then its soulbinds unlock. Driven by
+    // SPELL_EFFECT_SET_COVENANT (the covenant-choice quest's reward spell); there is no covenant opcode.
+    // Unlike ActivateSoulbind (which implies the covenant), this sets the covenant WITHOUT touching the
+    // active soulbind, so a player can join before picking a soulbind.
+    if (m_activeCovenantId == covenantId)
+        return;
+
+    m_activeCovenantId = covenantId;
+
+    CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_REP_CHARACTER_COVENANT);
+    stmt->setUInt64(0, GetGUID().GetCounter());
+    stmt->setUInt32(1, m_activeCovenantId);
+    stmt->setUInt32(2, m_activeSoulbindId);
+    CharacterDatabase.Execute(stmt);
+}
+
 void Player::_LoadSoulbindConduits(PreparedQueryResult result)
 {
     if (!result)
