@@ -179,8 +179,9 @@ void GarrisonMgr::Initialize()
 void GarrisonMgr::LoadOrderHallShipments()
 {
     _orderHallContainerByNpc.clear();
+    _orderHallGateByNpc.clear();
 
-    QueryResult result = WorldDatabase.Query("SELECT npcEntry, containerId FROM garrison_order_hall_shipment");
+    QueryResult result = WorldDatabase.Query("SELECT npcEntry, containerId, requiredTalentId, weeklyLimit FROM garrison_order_hall_shipment");
     if (!result)
     {
         TC_LOG_INFO("server.loading", ">> Loaded 0 order-hall troop recruiters. DB table `garrison_order_hall_shipment` is empty.");
@@ -193,6 +194,8 @@ void GarrisonMgr::LoadOrderHallShipments()
         Field* fields = result->Fetch();
         uint32 npcEntry = fields[0].GetUInt32();
         uint32 containerId = fields[1].GetUInt32();
+        uint32 requiredTalentId = fields[2].GetUInt32();
+        uint32 weeklyLimit = fields[3].GetUInt32();
 
         CharShipmentContainerEntry const* container = sCharShipmentContainerStore.LookupEntry(containerId);
         if (!container)
@@ -202,6 +205,12 @@ void GarrisonMgr::LoadOrderHallShipments()
         }
 
         _orderHallContainerByNpc[npcEntry] = container;
+        if (requiredTalentId || weeklyLimit)
+        {
+            OrderHallShipmentGate& gate = _orderHallGateByNpc[npcEntry];
+            gate.RequiredTalentId = requiredTalentId;
+            gate.WeeklyLimit = weeklyLimit;
+        }
         ++count;
     } while (result->NextRow());
 
@@ -212,6 +221,12 @@ CharShipmentContainerEntry const* GarrisonMgr::GetShipmentContainerForNpc(uint32
 {
     auto itr = _orderHallContainerByNpc.find(creatureEntry);
     return itr != _orderHallContainerByNpc.end() ? itr->second : nullptr;
+}
+
+GarrisonMgr::OrderHallShipmentGate const* GarrisonMgr::GetOrderHallShipmentGate(uint32 creatureEntry) const
+{
+    auto itr = _orderHallGateByNpc.find(creatureEntry);
+    return itr != _orderHallGateByNpc.end() ? &itr->second : nullptr;
 }
 
 GarrSiteLevelEntry const* GarrisonMgr::GetGarrSiteLevelEntry(uint32 garrSiteId, uint32 level) const

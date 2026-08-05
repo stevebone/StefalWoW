@@ -126,6 +126,15 @@ public:
     std::vector<CharShipmentEntry const*> const* GetShipmentsForContainer(uint32 containerID) const;
     uint64 GenerateShipmentDbId();
 
+    // Optional gate on an order-hall work order (e.g. the Hunter "Unseen Path" talent unlocks a
+    // "Requisition a Seal of Broken Fate" order, capped at 3 per week).
+    struct OrderHallShipmentGate
+    {
+        uint32 RequiredTalentId = 0;    // GarrTalent that must be researched to place this order (0 = none)
+        uint32 WeeklyLimit      = 0;    // per-week cap on orders placed at this NPC (0 = unlimited)
+    };
+    OrderHallShipmentGate const* GetOrderHallShipmentGate(uint32 creatureEntry) const;
+
     // Talent system accessors
     std::vector<GarrTalentTreeEntry const*> const* GetTalentTreesForGarrType(int8 garrTypeID) const;
     std::vector<GarrTalentEntry const*> const* GetTalentsForTree(uint32 garrTalentTreeID) const;
@@ -197,6 +206,7 @@ private:
     // Shipment system indices
     std::unordered_map<uint8 /*garrBuildingType*/, CharShipmentContainerEntry const*> _shipmentContainersByBuildingType;
     std::unordered_map<uint32 /*creatureEntry*/, CharShipmentContainerEntry const*> _orderHallContainerByNpc;
+    std::unordered_map<uint32 /*creatureEntry*/, OrderHallShipmentGate> _orderHallGateByNpc;
     std::unordered_map<uint32 /*containerID*/, std::vector<CharShipmentEntry const*>> _shipmentsByContainer;
 
     uint64 _followerDbIdGenerator = UI64LIT(1);

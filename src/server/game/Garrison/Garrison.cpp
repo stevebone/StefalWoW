@@ -3753,10 +3753,42 @@ GarrisonError Garrison::CreateTroopShipment(ObjectGuid npcGUID, uint32 count)
     if (!shipmentEntries || shipmentEntries->empty())
         return GARRISON_ERROR_INTERNAL_ERROR;
 
-    // The troop shipment is the one carrying a GarrFollowerID.
+    // The troop shipment is the one carrying a GarrFollowerID. If the container has none (e.g. the "Requisition a
+    // Seal of Broken Fate" order unlocked by the Hunter "Unseen Path" talent), it is an item work order whose
+    // output is delivered by CompleteShipment (DummyItemID / OnCompleteSpellID) exactly like a WoD profession order.
     CharShipmentEntry const* shipmentEntry = shipmentEntries->front();
     for (CharShipmentEntry const* s : *shipmentEntries)
         if (s->GarrFollowerID) { shipmentEntry = s; break; }
+
+    // Optional gate: a research-talent unlock and/or a weekly cap. "Unseen Path" (talent 377) unlocks the Hunter
+    // Seal of Broken Fate work order, capped at 3 per week. Both are configured per NPC in garrison_order_hall_shipment.
+    GarrisonMgr::OrderHallShipmentGate const* gate = sGarrisonMgr.GetOrderHallShipmentGate(npc->GetEntry());
+    uint32 weeklyPlaced = 0;
+    if (gate)
+    {
+        // The work order only exists once the unlocking talent has been researched (Rank >= 1 = completed).
+        if (gate->RequiredTalentId)
+        {
+            auto tItr = _talents.find(gate->RequiredTalentId);
+            if (tItr == _talents.end() || tItr->second.Rank < 1)
+                return GARRISON_ERROR_INVALID_TALENT;
+        }
+        // Per-week cap on placed orders (persisted; the counter resets at the weekly quest reset).
+        if (gate->WeeklyLimit)
+        {
+            time_t const now = GameTime::GetGameTime();
+            if (QueryResult r = CharacterDatabase.Query(Trinity::StringFormat(
+                    "SELECT placed, weekReset FROM character_garrison_weekly_shipments WHERE guid = {} AND npcEntry = {}",
+                    _owner->GetGUID().GetCounter(), npc->GetEntry())))
+            {
+                Field* f = r->Fetch();
+                if (now < time_t(f[1].GetInt64()))      // counter is still valid for the current week
+                    weeklyPlaced = f[0].GetUInt32();
+            }
+            if (weeklyPlaced >= gate->WeeklyLimit)
+                return GARRISON_ERROR_INVALID_TALENT;   // already at this week's cap (client also gates this)
+        }
+    }
 
     uint32 const maxShipments = container->BaseCapacity ? container->BaseCapacity : 1;
     uint32 existingCount = 0;
@@ -3828,6 +3860,16 @@ GarrisonError Garrison::CreateTroopShipment(ObjectGuid npcGUID, uint32 count)
         stmt->setUInt8(index++, static_cast<uint8>(_garrType)); // 8th column; the loader reads shipments BY_TYPE, so 0 would orphan them on relogin
         CharacterDatabase.Execute(stmt);
         ++existingCount;
+
+        // Count this placement against the weekly cap (Seal of Broken Fate = 3/week). Persisted so the limit
+        // survives relog; weekReset is the server's weekly quest reset, after which the counter starts fresh.
+        if (gate && gate->WeeklyLimit)
+        {
+            ++weeklyPlaced;
+            CharacterDatabase.Execute(Trinity::StringFormat(
+                "REPLACE INTO character_garrison_weekly_shipments (guid, npcEntry, placed, weekReset) VALUES ({}, {}, {}, {})",
+                _owner->GetGUID().GetCounter(), npc->GetEntry(), weeklyPlaced, int64(sWorld->GetNextWeeklyQuestsResetTime())));
+        }
 
         WorldPackets::Garrison::CreateShipmentResponse response;
         response.ShipmentID = shipment.DbID;
