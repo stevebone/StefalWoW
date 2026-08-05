@@ -170,6 +170,7 @@ void GarrisonMgr::Initialize()
     LoadFollowerClassSpecAbilities();
     LoadMissionRewards();
     LoadOrderHallShipments();
+    LoadOrderHallStandards();
 }
 
 // Class-hall / order-hall (and any non-plot garrison) troop recruiters aren't garrison plot buildings, so the
@@ -180,6 +181,7 @@ void GarrisonMgr::LoadOrderHallShipments()
 {
     _orderHallContainerByNpc.clear();
     _orderHallGateByNpc.clear();
+    _recruiterByContainer.clear();
 
     QueryResult result = WorldDatabase.Query("SELECT npcEntry, containerId, requiredTalentId, weeklyLimit FROM garrison_order_hall_shipment");
     if (!result)
@@ -205,6 +207,7 @@ void GarrisonMgr::LoadOrderHallShipments()
         }
 
         _orderHallContainerByNpc[npcEntry] = container;
+        _recruiterByContainer[containerId] = npcEntry;
         if (requiredTalentId || weeklyLimit)
         {
             OrderHallShipmentGate& gate = _orderHallGateByNpc[npcEntry];
@@ -234,6 +237,40 @@ uint32 GarrisonMgr::GetStandardGoForContainer(uint32 containerId) const
 {
     auto itr = _orderHallStandardGoByContainer.find(containerId);
     return itr != _orderHallStandardGoByContainer.end() ? itr->second : 0;
+}
+
+void GarrisonMgr::LoadOrderHallStandards()
+{
+    _orderHallStandardByContainer.clear();
+
+    QueryResult result = WorldDatabase.Query("SELECT containerId, goEntry, map, posX, posY, posZ, orientation FROM garrison_order_hall_standard");
+    if (!result)
+        return;
+
+    uint32 count = 0;
+    do
+    {
+        Field* fields = result->Fetch();
+        OrderHallStandard& standard = _orderHallStandardByContainer[fields[0].GetUInt32()];
+        standard.GoEntry = fields[1].GetUInt32();
+        standard.MapId = fields[2].GetUInt32();
+        standard.Pos.Relocate(fields[3].GetFloat(), fields[4].GetFloat(), fields[5].GetFloat(), fields[6].GetFloat());
+        ++count;
+    } while (result->NextRow());
+
+    TC_LOG_INFO("server.loading", ">> Loaded {} order-hall standard spawn points.", count);
+}
+
+GarrisonMgr::OrderHallStandard const* GarrisonMgr::GetOrderHallStandard(uint32 containerId) const
+{
+    auto itr = _orderHallStandardByContainer.find(containerId);
+    return itr != _orderHallStandardByContainer.end() ? &itr->second : nullptr;
+}
+
+uint32 GarrisonMgr::GetRecruiterForContainer(uint32 containerId) const
+{
+    auto itr = _recruiterByContainer.find(containerId);
+    return itr != _recruiterByContainer.end() ? itr->second : 0;
 }
 
 GarrisonMgr::OrderHallShipmentGate const* GarrisonMgr::GetOrderHallShipmentGate(uint32 creatureEntry) const

@@ -139,6 +139,19 @@ public:
     // out a container's finished orders. 0 = none.
     uint32 GetStandardGoForContainer(uint32 containerId) const;
 
+    // Where a container's per-player standard spawns when its troops are ready (garrison_order_hall_standard).
+    struct OrderHallStandard
+    {
+        uint32 GoEntry = 0;
+        uint32 MapId = 0;
+        Position Pos;
+    };
+    OrderHallStandard const* GetOrderHallStandard(uint32 containerId) const;
+    // The recruiter creature that hosts a container's work order (reverse of garrison_order_hall_shipment) - the NPC
+    // that shows the "working" clock while an order recruits. 0 = none.
+    uint32 GetRecruiterForContainer(uint32 containerId) const;
+    void LoadOrderHallStandards();
+
     // Talent system accessors
     std::vector<GarrTalentTreeEntry const*> const* GetTalentTreesForGarrType(int8 garrTypeID) const;
     std::vector<GarrTalentEntry const*> const* GetTalentsForTree(uint32 garrTalentTreeID) const;
@@ -212,6 +225,8 @@ private:
     std::unordered_map<uint32 /*creatureEntry*/, CharShipmentContainerEntry const*> _orderHallContainerByNpc;
     std::unordered_map<uint32 /*creatureEntry*/, OrderHallShipmentGate> _orderHallGateByNpc;
     std::unordered_map<uint32 /*containerId*/, uint32 /*goEntry*/> _orderHallStandardGoByContainer;
+    std::unordered_map<uint32 /*containerId*/, OrderHallStandard> _orderHallStandardByContainer;
+    std::unordered_map<uint32 /*containerId*/, uint32 /*npcEntry*/> _recruiterByContainer;
     std::unordered_map<uint32 /*containerID*/, std::vector<CharShipmentEntry const*>> _shipmentsByContainer;
 
     uint64 _followerDbIdGenerator = UI64LIT(1);
