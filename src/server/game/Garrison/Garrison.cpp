@@ -3779,7 +3779,7 @@ GarrisonError Garrison::CreateTroopShipment(ObjectGuid npcGUID, uint32 count)
             time_t const now = GameTime::GetGameTime();
             if (QueryResult r = CharacterDatabase.Query(Trinity::StringFormat(
                     "SELECT placed, weekReset FROM character_garrison_weekly_shipments WHERE guid = {} AND npcEntry = {}",
-                    _owner->GetGUID().GetCounter(), npc->GetEntry())))
+                    _owner->GetGUID().GetCounter(), npc->GetEntry()).c_str()))
             {
                 Field* f = r->Fetch();
                 if (now < time_t(f[1].GetInt64()))      // counter is still valid for the current week
@@ -3868,7 +3868,7 @@ GarrisonError Garrison::CreateTroopShipment(ObjectGuid npcGUID, uint32 count)
             ++weeklyPlaced;
             CharacterDatabase.Execute(Trinity::StringFormat(
                 "REPLACE INTO character_garrison_weekly_shipments (guid, npcEntry, placed, weekReset) VALUES ({}, {}, {}, {})",
-                _owner->GetGUID().GetCounter(), npc->GetEntry(), weeklyPlaced, int64(sWorld->GetNextWeeklyQuestsResetTime())));
+                _owner->GetGUID().GetCounter(), npc->GetEntry(), weeklyPlaced, int64(sWorld->GetNextWeeklyQuestsResetTime())).c_str());
         }
 
         WorldPackets::Garrison::CreateShipmentResponse response;
