@@ -746,14 +746,10 @@ void Garrison::Update(uint32 diff)
     // Keep each work-order crate's "filled with goods" display in sync with the orders on its plot.
     UpdateWorkOrderCrates();
 
-    // Class-hall / order-hall troop work orders are plotless (no work-order crate GO to click), so auto-complete
-    // finished ones here - CompleteShipment mints the recruited GarrFollower troop.
-    std::vector<uint64> readyTroopShipments;
-    for (auto const& p : _shipments)
-        if (p.second.PlotInstanceID == 0 && p.second.IsReady())
-            readyTroopShipments.push_back(p.first);
-    for (uint64 dbId : readyTroopShipments)
-        CompleteShipment(dbId);
+    // Class-hall / order-hall work orders (plotless) are NOT auto-completed. Retail leaves each finished order
+    // waiting at its container's "standard" GameObject (GAMEOBJECT_TYPE_GARRISON_SHIPMENT, e.g. "Training Troops"):
+    // the player walks up and clicks it to pick up the recruited troop / produced good
+    // (GameObject::Use -> CollectReadyShipmentsForContainer). See GameObject.cpp.
 
     // Buildings are NOT auto-completed when their construction timer finishes. Retail leaves the finished
     // building as "ready to complete": the player walks to the plot and clicks it (construction sign), the
@@ -3996,6 +3992,31 @@ void Garrison::SendOpenShipmentUI(ObjectGuid npcGuid)
     result.NpcGUID = npcGuid;
     result.CharShipmentContainerID = container->ID;
     _owner->SendDirectMessage(result.Write());
+}
+
+void Garrison::CollectReadyShipmentsForContainer(uint32 containerId)
+{
+    // Pick up every ready plotless work order belonging to this container. Fired when the player clicks the
+    // container's "standard" GameObject (GAMEOBJECT_TYPE_GARRISON_SHIPMENT, e.g. "Training Troops" / "Seal of Broken
+    // Fate"): CompleteShipment mints the recruited troop or delivers the produced good and removes the order.
+    std::vector<CharShipmentEntry const*> const* entries = sGarrisonMgr.GetShipmentsForContainer(containerId);
+    if (!entries)
+        return;
+
+    std::vector<uint64> ready;
+    for (auto const& p : _shipments)
+    {
+        if (p.second.PlotInstanceID != 0 || !p.second.IsReady())
+            continue;
+        for (CharShipmentEntry const* e : *entries)
+            if (e->ID == p.second.ShipmentRecID)
+            {
+                ready.push_back(p.first);
+                break;
+            }
+    }
+    for (uint64 dbId : ready)
+        CompleteShipment(dbId);
 }
 
 void Garrison::UpdateWorkOrderCrates()

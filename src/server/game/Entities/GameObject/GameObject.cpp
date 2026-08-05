@@ -32,6 +32,7 @@
 #include "GameObjectModel.h"
 #include "GameObjectPackets.h"
 #include "GameTime.h"
+#include "Garrison.h"
 #include "GossipDef.h"
 #include "GridNotifiersImpl.h"
 #include "Group.h"
@@ -3518,6 +3519,23 @@ void GameObject::Use(Unit* user, bool ignoreCastInProgress /*= false*/)
             if (Loot* loot = GetLootForPlayer(player))
                 player->SendLoot(*loot);
             break;
+        }
+        case GAMEOBJECT_TYPE_GARRISON_SHIPMENT:             //45
+        {
+            // Order-hall / garrison work-order "standard" (e.g. Training Troops, Seal of Broken Fate). Clicking it
+            // collects the ready orders for its CharShipmentContainer: troops join the roster, item orders deliver
+            // their goods. Finished plotless orders wait at the standard to be picked up (no background auto-collect).
+            Player* player = user->ToPlayer();
+            if (!player)
+                return;
+
+            uint32 const containerId = GetGOInfo()->garrisonShipment.ShipmentContainer;
+            if (!containerId)
+                return;
+
+            for (auto const& [garrType, garrison] : player->GetGarrisons())
+                garrison->CollectReadyShipmentsForContainer(containerId);
+            return;
         }
         default:
             if (GetGoType() >= MAX_GAMEOBJECT_TYPE)

@@ -421,6 +421,7 @@ public:
     GarrisonError CreateTroopShipment(ObjectGuid npcGUID, uint32 count); // order-hall/class-hall troop work order (plotless)
     void CompleteShipment(uint64 dbId);
     void CollectReadyShipments(uint32 plotInstanceId);
+    void CollectReadyShipmentsForContainer(uint32 containerId); // plotless orders: picked up at the container's "standard" GO
     void SendOpenShipmentUI(ObjectGuid npcGuid);
     // Swap each building's work-order crate GO display to the "filled" model (CharShipmentContainer
     // Small/Medium/Large DisplayInfoID by order count) while it holds orders, base model when empty.
