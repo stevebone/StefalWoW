@@ -125,6 +125,7 @@ public:
     CharShipmentContainerEntry const* GetShipmentContainerForNpc(uint32 creatureEntry) const;
     std::vector<CharShipmentEntry const*> const* GetShipmentsForContainer(uint32 containerID) const;
     uint64 GenerateShipmentDbId();
+    uint64 GenerateMissionDbId();
 
     // Optional gate on an order-hall work order (e.g. the Hunter "Unseen Path" talent unlocks a
     // "Requisition a Seal of Broken Fate" order, capped at 3 per week).
@@ -231,6 +232,7 @@ private:
 
     uint64 _followerDbIdGenerator = UI64LIT(1);
     uint64 _shipmentDbIdGenerator = UI64LIT(1);
+    uint64 _missionDbIdGenerator = UI64LIT(1);
 };
 
 #define sGarrisonMgr GarrisonMgr::Instance()

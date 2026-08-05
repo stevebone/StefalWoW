@@ -296,9 +296,7 @@ bool Garrison::LoadFromDB(PreparedQueryResult garrison, PreparedQueryResult blue
             if (!sGarrMissionStore.LookupEntry(missionRecID))
                 continue;
 
-            if (_missionDbIdGenerator <= dbId)
-                _missionDbIdGenerator = dbId + 1;
-
+            // (mission dbId sequence is seeded globally in GarrisonMgr::InitializeDbIdSequences from the whole table)
             Mission& mission = _missions[dbId];
             mission.PacketInfo.DbID = dbId;
             mission.PacketInfo.MissionRecID = missionRecID;
@@ -2704,7 +2702,9 @@ void Garrison::GenerateAvailableMissions()
 
 uint64 Garrison::GenerateMissionDbId()
 {
-    return _missionDbIdGenerator++;
+    // Global across all of the character's garrisons - character_garrison_missions.dbId is a per-character PK, so a
+    // per-Garrison counter let the war-campaign garrison reuse the WoD garrison's ids (duplicate-key on save).
+    return sGarrisonMgr.GenerateMissionDbId();
 }
 
 // ============================================================

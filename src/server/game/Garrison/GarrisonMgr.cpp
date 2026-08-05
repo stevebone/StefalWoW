@@ -676,6 +676,17 @@ uint64 GarrisonMgr::GenerateShipmentDbId()
     return _shipmentDbIdGenerator++;
 }
 
+uint64 GarrisonMgr::GenerateMissionDbId()
+{
+    if (_missionDbIdGenerator >= std::numeric_limits<uint64>::max())
+    {
+        TC_LOG_ERROR("misc", "Garrison mission db id overflow! Can't continue, shutting down server. ");
+        World::StopNow(ERROR_EXIT_CODE);
+    }
+
+    return _missionDbIdGenerator++;
+}
+
 std::vector<GarrTalentTreeEntry const*> const* GarrisonMgr::GetTalentTreesForGarrType(int8 garrTypeID) const
 {
     auto itr = _talentTreesByGarrType.find(garrTypeID);
@@ -719,6 +730,11 @@ void GarrisonMgr::InitializeDbIdSequences()
 
     if (QueryResult result = CharacterDatabase.Query("SELECT MAX(dbId) FROM character_garrison_shipments"))
         _shipmentDbIdGenerator = (*result)[0].GetUInt64() + 1;
+
+    // Global across ALL garrison types (WoD, order hall, war campaign, covenant): character_garrison_missions.dbId is
+    // a per-character PK, so a per-Garrison counter collided (war-campaign garrison reused the WoD garrison's ids).
+    if (QueryResult result = CharacterDatabase.Query("SELECT MAX(dbId) FROM character_garrison_missions"))
+        _missionDbIdGenerator = (*result)[0].GetUInt64() + 1;
 }
 
 void GarrisonMgr::LoadPlotFinalizeGOInfo()
