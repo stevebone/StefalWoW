@@ -4384,6 +4384,23 @@ uint32 Garrison::ResearchTalent(uint32 garrTalentID)
         talent.ResearchStartTime = 0;
     }
 
+    // Legion Order Advancement intro quests ("Using Lost Knowledge" 46940 and its per-class equivalents) close their
+    // "Start a Research Work Order" objective via a hidden monster-credit marker fired the moment a research begins.
+    // Each class order hall has its own marker; a character only ever holds their own class's quest, so crediting the
+    // whole set is safe -- KilledMonsterCredit is a no-op for a marker the player has no active objective for.
+    static constexpr uint32 ResearchWorkOrderCreditMarkers[] = {
+        120959, // Hunter        (46940 Using Lost Knowledge)
+        111740, // 43887
+        111739, // 43886
+        110624, // 43749
+        106942, // 43881
+        102641, // 43885
+         97111, // 43877
+         91190  // 43883
+    };
+    for (uint32 marker : ResearchWorkOrderCreditMarkers)
+        _owner->KilledMonsterCredit(marker);
+
     // Send result
     WorldPackets::Garrison::GarrisonResearchTalentResult result;
     result.Result = GARRISON_SUCCESS;
