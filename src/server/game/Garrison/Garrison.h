@@ -502,7 +502,6 @@ private:
     // Shipments
     std::unordered_map<uint64 /*dbId*/, Shipment> _shipments;
     std::unordered_map<uint32 /*containerId*/, uint8> _shownStandardContainers; // standards we've lit up, so they reset to base after collection
-    std::unordered_map<uint32 /*containerId*/, ObjectGuid> _privateStandards;   // per-player private "standard" GOs showing THIS owner's order state
     std::unordered_map<uint32 /*garrTalentID*/, Talent> _talents;
 
     // Trophies
