@@ -169,6 +169,49 @@ void GarrisonMgr::Initialize()
     LoadPlotFinalizeGOInfo();
     LoadFollowerClassSpecAbilities();
     LoadMissionRewards();
+    LoadOrderHallShipments();
+}
+
+// Class-hall / order-hall (and any non-plot garrison) troop recruiters aren't garrison plot buildings, so the
+// WoD building-type container index can't resolve them (all GarrTypeID 3 containers have GarrBuildingType 0 and
+// collide). This world table maps a recruiter creature entry -> its CharShipmentContainer (whose CharShipment
+// rows carry a GarrFollowerID = the recruited troop). See Garrison::CreateTroopShipment.
+void GarrisonMgr::LoadOrderHallShipments()
+{
+    _orderHallContainerByNpc.clear();
+
+    QueryResult result = WorldDatabase.Query("SELECT npcEntry, containerId FROM garrison_order_hall_shipment");
+    if (!result)
+    {
+        TC_LOG_INFO("server.loading", ">> Loaded 0 order-hall troop recruiters. DB table `garrison_order_hall_shipment` is empty.");
+        return;
+    }
+
+    uint32 count = 0;
+    do
+    {
+        Field* fields = result->Fetch();
+        uint32 npcEntry = fields[0].GetUInt32();
+        uint32 containerId = fields[1].GetUInt32();
+
+        CharShipmentContainerEntry const* container = sCharShipmentContainerStore.LookupEntry(containerId);
+        if (!container)
+        {
+            TC_LOG_ERROR("sql.sql", "Non-existing CharShipmentContainer.db2 entry {} referenced in `garrison_order_hall_shipment` (npcEntry {}); skipped.", containerId, npcEntry);
+            continue;
+        }
+
+        _orderHallContainerByNpc[npcEntry] = container;
+        ++count;
+    } while (result->NextRow());
+
+    TC_LOG_INFO("server.loading", ">> Loaded {} order-hall troop recruiter -> container mappings.", count);
+}
+
+CharShipmentContainerEntry const* GarrisonMgr::GetShipmentContainerForNpc(uint32 creatureEntry) const
+{
+    auto itr = _orderHallContainerByNpc.find(creatureEntry);
+    return itr != _orderHallContainerByNpc.end() ? itr->second : nullptr;
 }
 
 GarrSiteLevelEntry const* GarrisonMgr::GetGarrSiteLevelEntry(uint32 garrSiteId, uint32 level) const

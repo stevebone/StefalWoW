@@ -746,6 +746,15 @@ void Garrison::Update(uint32 diff)
     // Keep each work-order crate's "filled with goods" display in sync with the orders on its plot.
     UpdateWorkOrderCrates();
 
+    // Class-hall / order-hall troop work orders are plotless (no work-order crate GO to click), so auto-complete
+    // finished ones here - CompleteShipment mints the recruited GarrFollower troop.
+    std::vector<uint64> readyTroopShipments;
+    for (auto const& p : _shipments)
+        if (p.second.PlotInstanceID == 0 && p.second.IsReady())
+            readyTroopShipments.push_back(p.first);
+    for (uint64 dbId : readyTroopShipments)
+        CompleteShipment(dbId);
+
     // Buildings are NOT auto-completed when their construction timer finishes. Retail leaves the finished
     // building as "ready to complete": the player walks to the plot and clicks it (construction sign), the
     // client then sends CMSG_GARRISON_SET_BUILDING_ACTIVE -> HandleGarrisonSetBuildingActive -> ActivateBuilding.
@@ -3507,7 +3516,7 @@ GarrisonError Garrison::CreateShipment(ObjectGuid npcGUID, uint32 count)
 {
     uint32 plotInstanceId = FindPlotInstanceForNpc(npcGUID);
     if (!plotInstanceId)
-        return GARRISON_ERROR_INVALID_PLOT_INSTANCEID;
+        return CreateTroopShipment(npcGUID, count); // recruiter NPC is not a garrison plot building (class/order hall troops)
 
     Plot* plot = GetPlot(plotInstanceId);
     if (!plot || !plot->BuildingInfo.PacketInfo || !plot->BuildingInfo.PacketInfo->Active)
@@ -3729,6 +3738,105 @@ GarrisonError Garrison::CreateShipment(ObjectGuid npcGUID, uint32 count)
     return GARRISON_SUCCESS;
 }
 
+GarrisonError Garrison::CreateTroopShipment(ObjectGuid npcGUID, uint32 count)
+{
+    // Class-hall / order-hall troop recruitment. The recruiter NPC is not a garrison plot building, so resolve
+    // its CharShipmentContainer from the garrison_order_hall_shipment map. Each queued order matures into a
+    // GarrFollower troop (see CompleteShipment). Shipments are stored plotless (PlotInstanceID = 0).
+    Creature* npc = ObjectAccessor::GetCreature(*_owner, npcGUID);
+    CharShipmentContainerEntry const* container = npc ? sGarrisonMgr.GetShipmentContainerForNpc(npc->GetEntry()) : nullptr;
+    if (!container)
+        return GARRISON_ERROR_INVALID_PLOT_INSTANCEID;
+
+    std::vector<CharShipmentEntry const*> const* shipmentEntries = sGarrisonMgr.GetShipmentsForContainer(container->ID);
+    if (!shipmentEntries || shipmentEntries->empty())
+        return GARRISON_ERROR_INTERNAL_ERROR;
+
+    // The troop shipment is the one carrying a GarrFollowerID.
+    CharShipmentEntry const* shipmentEntry = shipmentEntries->front();
+    for (CharShipmentEntry const* s : *shipmentEntries)
+        if (s->GarrFollowerID) { shipmentEntry = s; break; }
+
+    uint32 const maxShipments = container->BaseCapacity ? container->BaseCapacity : 1;
+    uint32 existingCount = 0;
+    for (auto const& p : _shipments)
+        if (p.second.PlotInstanceID == 0 && p.second.ShipmentRecID == shipmentEntry->ID)
+            ++existingCount;
+
+    for (uint32 i = 0; i < count; ++i)
+    {
+        if (existingCount >= maxShipments)
+            break;
+
+        // Cost = the shipment spell's reagents/currencies (identical to WoD work orders).
+        SpellInfo const* costSpell = shipmentEntry->SpellID > 0 ? sSpellMgr->GetSpellInfo(uint32(shipmentEntry->SpellID), DIFFICULTY_NONE) : nullptr;
+        bool affordable = true;
+        if (costSpell)
+        {
+            for (std::size_t r = 0; r < costSpell->Reagent.size() && affordable; ++r)
+                if (costSpell->Reagent[r] > 0 && costSpell->ReagentCount[r] > 0
+                    && !_owner->HasItemCount(uint32(costSpell->Reagent[r]), uint32(costSpell->ReagentCount[r])))
+                    affordable = false;
+            for (SpellReagentsCurrencyEntry const* rc : costSpell->ReagentsCurrency)
+                if (affordable && rc->CurrencyCount > 0 && !_owner->HasCurrency(uint32(rc->CurrencyTypesID), uint32(rc->CurrencyCount)))
+                    affordable = false;
+        }
+        if (!affordable)
+        {
+            WorldPackets::Garrison::CreateShipmentResponse fail;
+            fail.ShipmentID = 0;
+            fail.ShipmentRecID = shipmentEntry->ID;
+            fail.Result = GARRISON_ERROR_NOT_ENOUGH_CURRENCY;
+            _owner->SendDirectMessage(fail.Write());
+            break;
+        }
+        if (costSpell)
+        {
+            for (std::size_t r = 0; r < costSpell->Reagent.size(); ++r)
+                if (costSpell->Reagent[r] > 0 && costSpell->ReagentCount[r] > 0)
+                    _owner->DestroyItemCount(uint32(costSpell->Reagent[r]), uint32(costSpell->ReagentCount[r]), true);
+            for (SpellReagentsCurrencyEntry const* rc : costSpell->ReagentsCurrency)
+                if (rc->CurrencyCount > 0)
+                    _owner->RemoveCurrency(uint32(rc->CurrencyTypesID), rc->CurrencyCount, CurrencyDestroyReason::Garrison);
+        }
+
+        uint64 dbId = sGarrisonMgr.GenerateShipmentDbId();
+        // A new troop begins recruiting when the latest in-progress one for this container finishes.
+        time_t startTime = GameTime::GetGameTime();
+        for (auto const& p : _shipments)
+            if (p.second.PlotInstanceID == 0 && p.second.ShipmentRecID == shipmentEntry->ID)
+                startTime = std::max<time_t>(startTime, p.second.CreationTime + p.second.Duration);
+
+        Shipment& shipment = _shipments[dbId];
+        shipment.DbID = dbId;
+        shipment.ShipmentRecID = shipmentEntry->ID;
+        shipment.PlotInstanceID = 0;
+        shipment.CreationTime = startTime;
+        shipment.Duration = shipmentEntry->Duration;
+        shipment.AssignedFollowerDBID = 0;
+
+        CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_CHARACTER_GARRISON_SHIPMENTS);
+        uint8 index = 0;
+        stmt->setUInt64(index++, shipment.DbID);
+        stmt->setUInt64(index++, _owner->GetGUID().GetCounter());
+        stmt->setUInt32(index++, shipment.ShipmentRecID);
+        stmt->setUInt32(index++, shipment.PlotInstanceID);
+        stmt->setInt64(index++, shipment.CreationTime);
+        stmt->setInt32(index++, shipment.Duration);
+        stmt->setUInt64(index++, shipment.AssignedFollowerDBID);
+        CharacterDatabase.Execute(stmt);
+        ++existingCount;
+
+        WorldPackets::Garrison::CreateShipmentResponse response;
+        response.ShipmentID = shipment.DbID;
+        response.ShipmentRecID = 0;
+        response.Result = GARRISON_SUCCESS;
+        _owner->SendDirectMessage(response.Write());
+    }
+
+    return GARRISON_SUCCESS;
+}
+
 void Garrison::CompleteShipment(uint64 dbId)
 {
     auto itr = _shipments.find(dbId);
@@ -3772,6 +3880,12 @@ void Garrison::CompleteShipment(uint64 dbId)
                 CharacterDatabase.CommitTransaction(trans);
             }
         }
+
+        // Troop work orders (class-hall / order-hall recruitment): the shipment yields a GarrFollower "troop"
+        // (GarrFollowerTypeID 4, FOLLOWER_STATUS_TROOP) instead of an item. Mint it onto this garrison; it is
+        // persisted with the other followers by SaveToDB.
+        if (shipmentEntry->GarrFollowerID)
+            AddTroop(shipmentEntry->GarrFollowerID, GARRISON_TROOP_DEFAULT_DURABILITY);
     }
 
     WorldPackets::Garrison::CompleteShipmentResponse response;
@@ -3806,7 +3920,18 @@ void Garrison::SendOpenShipmentUI(ObjectGuid npcGuid)
     // npcGuid is the interacted creature/gameobject; it belongs to a building plot via BuildingInfo.Spawns.
     uint32 plotInstanceId = FindPlotInstanceForNpc(npcGuid);
     if (!plotInstanceId)
+    {
+        // Class-hall / order-hall recruiter: no plot building - resolve the container by NPC entry.
+        Creature* npc = ObjectAccessor::GetCreature(*_owner, npcGuid);
+        if (CharShipmentContainerEntry const* container = npc ? sGarrisonMgr.GetShipmentContainerForNpc(npc->GetEntry()) : nullptr)
+        {
+            WorldPackets::Garrison::OpenShipmentNpcResult result;
+            result.NpcGUID = npcGuid;
+            result.CharShipmentContainerID = container->ID;
+            _owner->SendDirectMessage(result.Write());
+        }
         return;
+    }
 
     Plot const* plot = GetPlot(plotInstanceId);
     if (!plot || !plot->BuildingInfo.PacketInfo || !plot->BuildingInfo.PacketInfo->Active)
@@ -3950,6 +4075,32 @@ void Garrison::SendShipmentInfo(ObjectGuid npcGUID)
     uint32 plotInstanceId = FindPlotInstanceForNpc(npcGUID);
     if (!plotInstanceId)
     {
+        // Class-hall / order-hall recruiter: resolve container by NPC and report plotless troop shipments.
+        Creature* npc = ObjectAccessor::GetCreature(*_owner, npcGUID);
+        CharShipmentContainerEntry const* container = npc ? sGarrisonMgr.GetShipmentContainerForNpc(npc->GetEntry()) : nullptr;
+        std::vector<CharShipmentEntry const*> const* entries = container ? sGarrisonMgr.GetShipmentsForContainer(container->ID) : nullptr;
+        if (container && entries && !entries->empty())
+        {
+            CharShipmentEntry const* recipe = entries->front();
+            for (CharShipmentEntry const* s : *entries)
+                if (s->GarrFollowerID) { recipe = s; break; }
+            response.Success = true;
+            response.ShipmentID = recipe->ID;
+            response.MaxShipments = container->BaseCapacity ? container->BaseCapacity : 1;
+            response.PlotInstanceID = 0;
+            for (auto const& p : _shipments)
+                if (p.second.PlotInstanceID == 0 && p.second.ShipmentRecID == recipe->ID)
+                {
+                    WorldPackets::Garrison::CharacterShipment& ps = response.Shipments.emplace_back();
+                    ps.ShipmentRecID = p.second.ShipmentRecID;
+                    ps.ShipmentID = p.second.DbID;
+                    ps.AssignedFollowerDBID = p.second.AssignedFollowerDBID;
+                    ps.CreationTime = p.second.CreationTime;
+                    ps.ShipmentDuration = p.second.Duration;
+                    ps.BuildingTypeID = 0;
+                    ps.GarrTypeID = static_cast<uint8>(GetType());
+                }
+        }
         _owner->SendDirectMessage(response.Write());
         return;
     }

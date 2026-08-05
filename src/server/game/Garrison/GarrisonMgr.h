@@ -122,6 +122,7 @@ public:
 
     // Shipment system accessors
     CharShipmentContainerEntry const* GetShipmentContainerForBuilding(uint8 garrBuildingType, uint8 factionIndex) const;
+    CharShipmentContainerEntry const* GetShipmentContainerForNpc(uint32 creatureEntry) const;
     std::vector<CharShipmentEntry const*> const* GetShipmentsForContainer(uint32 containerID) const;
     uint64 GenerateShipmentDbId();
 
@@ -155,6 +156,7 @@ private:
     void LoadPlotFinalizeGOInfo();
     void LoadFollowerClassSpecAbilities();
     void LoadMissionRewards();
+    void LoadOrderHallShipments();
 
     std::unordered_map<std::pair<uint32 /*garrSiteId*/, uint32 /*level*/>, GarrSiteLevelEntry const*> _garrSiteLevelBySiteAndLevel;
     std::unordered_map<uint32 /*garrSiteId*/, std::vector<GarrSiteLevelPlotInstEntry const*>> _garrisonPlotInstBySiteLevel;
@@ -194,6 +196,7 @@ private:
 
     // Shipment system indices
     std::unordered_map<uint8 /*garrBuildingType*/, CharShipmentContainerEntry const*> _shipmentContainersByBuildingType;
+    std::unordered_map<uint32 /*creatureEntry*/, CharShipmentContainerEntry const*> _orderHallContainerByNpc;
     std::unordered_map<uint32 /*containerID*/, std::vector<CharShipmentEntry const*>> _shipmentsByContainer;
 
     uint64 _followerDbIdGenerator = UI64LIT(1);

@@ -184,6 +184,10 @@ enum GarrisonFollowerStatus
     FOLLOWER_STATUS_NO_XP_GAIN  = 0x10
 };
 
+// Charge count minted onto a recruited class-hall/order-hall troop. CharShipment carries no charge field;
+// Legion troops are created with 3 charges (each mission use spends one).
+enum : uint32 { GARRISON_TROOP_DEFAULT_DURABILITY = 3 };
+
 class TC_GAME_API Garrison
 {
 public:
@@ -414,6 +418,7 @@ public:
 
     // Shipments (work orders)
     GarrisonError CreateShipment(ObjectGuid npcGUID, uint32 count);
+    GarrisonError CreateTroopShipment(ObjectGuid npcGUID, uint32 count); // order-hall/class-hall troop work order (plotless)
     void CompleteShipment(uint64 dbId);
     void CollectReadyShipments(uint32 plotInstanceId);
     void SendOpenShipmentUI(ObjectGuid npcGuid);
