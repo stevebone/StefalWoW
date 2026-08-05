@@ -4027,72 +4027,91 @@ void Garrison::UpdateOrderHallStandards()
     if (!_owner->IsInWorld())
         return;
 
-    // Which containers currently have an order still recruiting (in-progress) for THIS owner.
-    std::unordered_map<uint32 /*containerId*/, bool> recruiting;
+    Map* map = _owner->IsInWorld() ? _owner->GetMap() : nullptr;
+
+    // Per-container order state for THIS owner (plotless orders only).
+    std::unordered_map<uint32 /*containerId*/, std::pair<uint32 /*ready*/, uint32 /*inProgress*/>> counts;
     for (auto const& p : _shipments)
     {
-        if (p.second.PlotInstanceID != 0 || p.second.IsReady())
+        if (p.second.PlotInstanceID != 0)
             continue;
         CharShipmentEntry const* shipmentEntry = sCharShipmentStore.LookupEntry(p.second.ShipmentRecID);
-        if (shipmentEntry && shipmentEntry->ContainerID)
-            recruiting[shipmentEntry->ContainerID] = true;
-    }
-
-    // Show a PER-PLAYER "working" clock on the container's standard GO. The standard is a SHARED world object (no
-    // personal phase exists in the class hall - sniff-confirmed PersonalGUID=0), so its model can't carry per-player
-    // state. Instead we play the CharShipmentContainer's WorkingSpellVisualID as a spell-visual kit sent ONLY to the
-    // owner (SMSG_GAME_OBJECT_PLAY_SPELL_VISUAL_KIT via SendDirectMessage) and cancel it for them when the order
-    // finishes - the retail-correct way to show a personal work-order clock on a shared standard.
-    auto sendWorkingVisual = [this](uint32 containerId, bool play)
-    {
-        CharShipmentContainerEntry const* container = sCharShipmentContainerStore.LookupEntry(containerId);
-        if (!container || container->WorkingSpellVisualID <= 0)
-            return;
-        uint32 goEntry = sGarrisonMgr.GetStandardGoForContainer(containerId);
-        if (!goEntry)
-            return;
-
-        std::vector<GameObject*> standards;
-        _owner->GetGameObjectListWithEntryInGrid(standards, goEntry, 150.0f);
-        for (GameObject* standard : standards)
-        {
-            if (play)
-            {
-                WorldPackets::Spells::GameObjectPlaySpellVisualKit kit;
-                kit.Object = standard->GetGUID();
-                kit.KitRecID = container->WorkingSpellVisualID;
-                kit.KitType = 0;   // SpellCastDirected-style; loops until cancelled
-                kit.Duration = 0;
-                _owner->SendDirectMessage(kit.Write());
-            }
-            else
-            {
-                WorldPackets::Spells::CancelSpellVisualKit cancel;
-                cancel.Source = standard->GetGUID();
-                cancel.SpellVisualKitID = container->WorkingSpellVisualID;
-                _owner->SendDirectMessage(cancel.Write());
-            }
-        }
-    };
-
-    // Start the clock for newly-recruiting containers; stop it for ones that just finished/collected.
-    for (auto const& [containerId, isRecruiting] : recruiting)
-    {
-        if (isRecruiting && !_shownStandardContainers.count(containerId))
-        {
-            sendWorkingVisual(containerId, true);
-            _shownStandardContainers[containerId] = 1;
-        }
-    }
-    for (auto itr = _shownStandardContainers.begin(); itr != _shownStandardContainers.end(); )
-    {
-        if (recruiting.count(itr->first))
-            ++itr;
+        if (!shipmentEntry || !shipmentEntry->ContainerID)
+            continue;
+        auto& c = counts[shipmentEntry->ContainerID];
+        if (p.second.IsReady())
+            ++c.first;
         else
+            ++c.second;
+    }
+
+    // Per-player standards. There is NO personal phase in the class hall (sniff-confirmed PersonalGUID=0), so the
+    // shared "standard" GO can't carry per-player state on its model. Retail's answer is a PRIVATE object: for the
+    // owner we summon a private clone of the standard (visible only to them) at the shared standard's spot, set its
+    // model to their order state (filled "goods" model when ready, "working" model while recruiting) and play the
+    // container's WorkingSpellVisualID clock on it (the private GO only broadcasts to its owner). The shared standard
+    // stays as the always-visible, clickable base that everyone sees and collects from.
+    for (auto const& [containerId, rc] : counts)
+    {
+        CharShipmentContainerEntry const* container = map ? sCharShipmentContainerStore.LookupEntry(containerId) : nullptr;
+        uint32 goEntry = container ? sGarrisonMgr.GetStandardGoForContainer(containerId) : 0;
+        if (!goEntry)
+            continue;
+
+        uint32 displayId = 0;
+        if (rc.first > 0)
         {
-            sendWorkingVisual(itr->first, false);
-            itr = _shownStandardContainers.erase(itr);
+            if (container->LargeThreshold && rc.first >= container->LargeThreshold && container->LargeDisplayInfoID)
+                displayId = container->LargeDisplayInfoID;
+            else if (container->MediumThreshold && rc.first >= container->MediumThreshold && container->MediumDisplayInfoID)
+                displayId = container->MediumDisplayInfoID;
+            else
+                displayId = container->SmallDisplayInfoID;
         }
+        else if (rc.second > 0)
+            displayId = container->WorkingDisplayInfoID;
+        if (!displayId)
+            continue;
+
+        auto itr = _privateStandards.find(containerId);
+        GameObject* priv = itr != _privateStandards.end() ? map->GetGameObject(itr->second) : nullptr;
+        if (!priv)
+        {
+            // Anchor on the shared standard's spot; only spawn when the owner is actually at the lodge (near it).
+            std::vector<GameObject*> shared;
+            _owner->GetGameObjectListWithEntryInGrid(shared, goEntry, 100.0f);
+            if (shared.empty())
+                continue;
+            GameObject* base = shared.front();
+
+            priv = _owner->SummonGameObject(goEntry, *base, base->GetLocalRotation(), Seconds(60));
+            if (!priv)
+                continue;
+            priv->SetPrivateObjectOwner(_owner->GetGUID());
+            _privateStandards[containerId] = priv->GetGUID();
+
+            if (rc.second > 0 && container->WorkingSpellVisualID > 0)
+                priv->SendPlaySpellVisualKit(container->WorkingSpellVisualID, 0, 0); // private GO -> only the owner sees it
+        }
+
+        priv->SetDisplayId(displayId);
+        priv->DespawnOrUnsummon(Seconds(60)); // keepalive; auto-despawns if this stops being refreshed (owner left / logged out)
+    }
+
+    // Despawn private standards for containers that no longer have orders; drop stale entries the keepalive removed.
+    for (auto itr = _privateStandards.begin(); itr != _privateStandards.end(); )
+    {
+        GameObject* go = map ? map->GetGameObject(itr->second) : nullptr;
+        if (!counts.count(itr->first))
+        {
+            if (go)
+                go->Delete();
+            itr = _privateStandards.erase(itr);
+        }
+        else if (!go)
+            itr = _privateStandards.erase(itr); // auto-despawned while owner was away; re-summon when back near
+        else
+            ++itr;
     }
 }
 
