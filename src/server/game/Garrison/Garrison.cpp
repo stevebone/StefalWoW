@@ -3686,6 +3686,7 @@ GarrisonError Garrison::CreateShipment(ObjectGuid npcGUID, uint32 count)
         stmt->setInt64(index++, shipment.CreationTime);
         stmt->setInt32(index++, shipment.Duration);
         stmt->setUInt64(index++, shipment.AssignedFollowerDBID);
+        stmt->setUInt8(index++, static_cast<uint8>(_garrType)); // 8th column; the loader reads shipments BY_TYPE, so 0 would orphan them on relogin
         CharacterDatabase.Execute(stmt);
 
         ++existingCount;
@@ -3824,6 +3825,7 @@ GarrisonError Garrison::CreateTroopShipment(ObjectGuid npcGUID, uint32 count)
         stmt->setInt64(index++, shipment.CreationTime);
         stmt->setInt32(index++, shipment.Duration);
         stmt->setUInt64(index++, shipment.AssignedFollowerDBID);
+        stmt->setUInt8(index++, static_cast<uint8>(_garrType)); // 8th column; the loader reads shipments BY_TYPE, so 0 would orphan them on relogin
         CharacterDatabase.Execute(stmt);
         ++existingCount;
 
@@ -4095,6 +4097,7 @@ void Garrison::SendShipmentInfo(ObjectGuid npcGUID)
                     ps.ShipmentRecID = p.second.ShipmentRecID;
                     ps.ShipmentID = p.second.DbID;
                     ps.AssignedFollowerDBID = p.second.AssignedFollowerDBID;
+                    ps.ContainerID = container->ID;
                     ps.CreationTime = p.second.CreationTime;
                     ps.ShipmentDuration = p.second.Duration;
                     ps.BuildingTypeID = 0;
@@ -4150,6 +4153,7 @@ void Garrison::SendShipmentInfo(ObjectGuid npcGUID)
         packetShipment.ShipmentRecID = shipment->ShipmentRecID;
         packetShipment.ShipmentID = shipment->DbID;
         packetShipment.AssignedFollowerDBID = shipment->AssignedFollowerDBID;
+        packetShipment.ContainerID = container->ID;
         packetShipment.CreationTime = shipment->CreationTime;
         packetShipment.ShipmentDuration = shipment->Duration;
         packetShipment.BuildingTypeID = building->BuildingType;
