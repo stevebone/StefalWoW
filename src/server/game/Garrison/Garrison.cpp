@@ -36,6 +36,7 @@
 #include "Random.h"
 #include "SpellInfo.h"
 #include "SpellMgr.h"
+#include "SpellPackets.h"
 #include "VehicleDefines.h"
 #include "advstd.h"
 
@@ -4026,73 +4027,70 @@ void Garrison::UpdateOrderHallStandards()
     if (!_owner->IsInWorld())
         return;
 
-    // Tally the owner's plotless orders per container.
-    std::unordered_map<uint32 /*containerId*/, std::pair<uint32 /*ready*/, uint32 /*inProgress*/>> counts;
+    // Which containers currently have an order still recruiting (in-progress) for THIS owner.
+    std::unordered_map<uint32 /*containerId*/, bool> recruiting;
     for (auto const& p : _shipments)
     {
-        if (p.second.PlotInstanceID != 0)
+        if (p.second.PlotInstanceID != 0 || p.second.IsReady())
             continue;
         CharShipmentEntry const* shipmentEntry = sCharShipmentStore.LookupEntry(p.second.ShipmentRecID);
-        if (!shipmentEntry || !shipmentEntry->ContainerID)
-            continue;
-        auto& c = counts[shipmentEntry->ContainerID];
-        if (p.second.IsReady())
-            ++c.first;
-        else
-            ++c.second;
+        if (shipmentEntry && shipmentEntry->ContainerID)
+            recruiting[shipmentEntry->ContainerID] = true;
     }
 
-    // Swap the container's "standard" GO to the working model while recruiting, the filled model (by ready count vs
-    // the container thresholds) when an order is ready to collect, or the base/empty model otherwise. The standard is
-    // a shared world GO, so this is correct for a single viewer; a live realm would phase it per player.
-    auto applyDisplay = [this](uint32 containerId, uint32 ready, uint32 inProgress)
+    // Show a PER-PLAYER "working" clock on the container's standard GO. The standard is a SHARED world object (no
+    // personal phase exists in the class hall - sniff-confirmed PersonalGUID=0), so its model can't carry per-player
+    // state. Instead we play the CharShipmentContainer's WorkingSpellVisualID as a spell-visual kit sent ONLY to the
+    // owner (SMSG_GAME_OBJECT_PLAY_SPELL_VISUAL_KIT via SendDirectMessage) and cancel it for them when the order
+    // finishes - the retail-correct way to show a personal work-order clock on a shared standard.
+    auto sendWorkingVisual = [this](uint32 containerId, bool play)
     {
+        CharShipmentContainerEntry const* container = sCharShipmentContainerStore.LookupEntry(containerId);
+        if (!container || container->WorkingSpellVisualID <= 0)
+            return;
         uint32 goEntry = sGarrisonMgr.GetStandardGoForContainer(containerId);
         if (!goEntry)
             return;
 
         std::vector<GameObject*> standards;
         _owner->GetGameObjectListWithEntryInGrid(standards, goEntry, 150.0f);
-        if (standards.empty())
-            return;
-
-        CharShipmentContainerEntry const* container = sCharShipmentContainerStore.LookupEntry(containerId);
         for (GameObject* standard : standards)
         {
-            uint32 displayId = standard->GetGOInfo()->displayId; // base / empty
-            if (container)
+            if (play)
             {
-                if (ready > 0)
-                {
-                    if (container->LargeThreshold && ready >= container->LargeThreshold && container->LargeDisplayInfoID)
-                        displayId = container->LargeDisplayInfoID;
-                    else if (container->MediumThreshold && ready >= container->MediumThreshold && container->MediumDisplayInfoID)
-                        displayId = container->MediumDisplayInfoID;
-                    else if (container->SmallDisplayInfoID)
-                        displayId = container->SmallDisplayInfoID;
-                }
-                else if (inProgress > 0 && container->WorkingDisplayInfoID)
-                    displayId = container->WorkingDisplayInfoID;
+                WorldPackets::Spells::GameObjectPlaySpellVisualKit kit;
+                kit.Object = standard->GetGUID();
+                kit.KitRecID = container->WorkingSpellVisualID;
+                kit.KitType = 0;   // SpellCastDirected-style; loops until cancelled
+                kit.Duration = 0;
+                _owner->SendDirectMessage(kit.Write());
             }
-            if (displayId && standard->GetDisplayId() != displayId)
-                standard->SetDisplayId(displayId);
+            else
+            {
+                WorldPackets::Spells::CancelSpellVisualKit cancel;
+                cancel.Source = standard->GetGUID();
+                cancel.SpellVisualKitID = container->WorkingSpellVisualID;
+                _owner->SendDirectMessage(cancel.Write());
+            }
         }
     };
 
-    for (auto const& [containerId, rc] : counts)
+    // Start the clock for newly-recruiting containers; stop it for ones that just finished/collected.
+    for (auto const& [containerId, isRecruiting] : recruiting)
     {
-        applyDisplay(containerId, rc.first, rc.second);
-        _shownStandardContainers[containerId] = 1;
+        if (isRecruiting && !_shownStandardContainers.count(containerId))
+        {
+            sendWorkingVisual(containerId, true);
+            _shownStandardContainers[containerId] = 1;
+        }
     }
-
-    // Reset standards for containers that no longer have any order (e.g. just collected) back to the base model.
     for (auto itr = _shownStandardContainers.begin(); itr != _shownStandardContainers.end(); )
     {
-        if (counts.count(itr->first))
+        if (recruiting.count(itr->first))
             ++itr;
         else
         {
-            applyDisplay(itr->first, 0, 0);
+            sendWorkingVisual(itr->first, false);
             itr = _shownStandardContainers.erase(itr);
         }
     }
