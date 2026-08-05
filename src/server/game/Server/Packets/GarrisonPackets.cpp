@@ -1398,17 +1398,18 @@ WorldPacket const* GetShipmentInfoResponse::Write()
     _worldPacket << int32(PlotInstanceID);
     for (CharacterShipment const& shipment : Shipments)
     {
-        _worldPacket << int32(shipment.ShipmentRecID);
+        // JamCharacterShipment on the wire (binary-verified via the landing-page reader RVA 0x6BCE20; the same JAM
+        // type is shared by both packets, so this MUST match GetLandingPageShipmentsResponse exactly):
+        //   RecID(u32) ShipmentID(u64) AssignedFollowerDBID(u64) CreationTime(i64) BuildingType(u64, high dword=0) GarrType(u8)
+        // = 37 bytes. There is NO ContainerID and NO duration on the wire; the client reads the order duration from
+        // CharShipment.db2 via RecID. The previous layout (extra ContainerID/ShipmentDuration/UnkInt32 fields) over-ran
+        // each element, so with >=2 pending shipments the client parsed the trailing ones past the packet buffer ->
+        // GetPendingShipmentInfo returned a nil duration -> SecondsToTime(nil) in GarrisonCapacitiveDisplayFrame_Update.
+        _worldPacket << uint32(shipment.ShipmentRecID);
         _worldPacket << uint64(shipment.ShipmentID);
         _worldPacket << uint64(shipment.AssignedFollowerDBID);
-        _worldPacket << uint32(shipment.ContainerID);   // sniff-decoded: sits between AssignedFollowerDBID and CreationTime.
-                                                        // Omitting it made every shipment 4 bytes short; with >=2 pending
-                                                        // the shortfall accumulated and the client read the last shipment's
-                                                        // duration past the buffer end -> nil -> SecondsToTime(nil) error.
         _worldPacket << shipment.CreationTime;
-        _worldPacket << int32(shipment.ShipmentDuration);
-        _worldPacket << int32(shipment.BuildingTypeID);
-        _worldPacket << int32(shipment.UnkInt32);
+        _worldPacket << uint64(uint32(shipment.BuildingTypeID));
         _worldPacket << uint8(shipment.GarrTypeID);
     }
 
