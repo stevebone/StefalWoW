@@ -619,9 +619,21 @@ void WorldSession::HandleGarrisonResearchTalent(WorldPackets::Garrison::Garrison
 // Other utility handlers
 // ============================================================
 
+// Troop recruiters for the class Order Hall (GarrisonType 3) are ordinary world creatures, not part of the
+// WoD garrison. The shipment CMSGs carry only the NPC GUID, and no-arg GetGarrison() resolves the WoD garrison
+// (type 2) -- which is null for an order-hall-only character (e.g. a Hunter). Route a known order-hall recruiter
+// to its type-3 garrison; everything else keeps the WoD default.
+static Garrison* ResolveShipmentGarrison(Player* player, ObjectGuid npcGUID)
+{
+    if (Creature const* npc = ObjectAccessor::GetCreature(*player, npcGUID))
+        if (sGarrisonMgr.GetShipmentContainerForNpc(npc->GetEntry()))
+            return player->GetGarrison(GARRISON_TYPE_CLASS_ORDER);
+    return player->GetGarrison();
+}
+
 void WorldSession::HandleGarrisonRequestShipmentInfo(WorldPackets::Garrison::GarrisonRequestShipmentInfo& garrisonRequestShipmentInfo)
 {
-    Garrison* garrison = _player->GetGarrison();
+    Garrison* garrison = ResolveShipmentGarrison(_player, garrisonRequestShipmentInfo.NpcGUID);
     if (!garrison)
     {
         WorldPackets::Garrison::GetShipmentInfoResponse response;
@@ -634,7 +646,7 @@ void WorldSession::HandleGarrisonRequestShipmentInfo(WorldPackets::Garrison::Gar
 
 void WorldSession::HandleOpenShipmentNpc(WorldPackets::Garrison::OpenShipmentNpc& openShipmentNpc)
 {
-    Garrison* garrison = _player->GetGarrison();
+    Garrison* garrison = ResolveShipmentGarrison(_player, openShipmentNpc.NpcGUID);
     if (!garrison)
         return;
 
@@ -644,7 +656,7 @@ void WorldSession::HandleOpenShipmentNpc(WorldPackets::Garrison::OpenShipmentNpc
 
 void WorldSession::HandleCreateShipment(WorldPackets::Garrison::CreateShipment& createShipment)
 {
-    Garrison* garrison = _player->GetGarrison();
+    Garrison* garrison = ResolveShipmentGarrison(_player, createShipment.NpcGUID);
     if (!garrison)
         return;
 
