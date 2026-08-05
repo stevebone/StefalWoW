@@ -215,12 +215,25 @@ void GarrisonMgr::LoadOrderHallShipments()
     } while (result->NextRow());
 
     TC_LOG_INFO("server.loading", ">> Loaded {} order-hall troop recruiter -> container mappings.", count);
+
+    // Map each CharShipmentContainer to its "standard" GameObject (GAMEOBJECT_TYPE_GARRISON_SHIPMENT), so finished
+    // plotless orders can light up the standard's ready/working display (Garrison::UpdateOrderHallStandards).
+    _orderHallStandardGoByContainer.clear();
+    for (auto const& [goEntry, goTemplate] : sObjectMgr->GetGameObjectTemplates())
+        if (goTemplate.type == GAMEOBJECT_TYPE_GARRISON_SHIPMENT && goTemplate.garrisonShipment.ShipmentContainer)
+            _orderHallStandardGoByContainer.emplace(goTemplate.garrisonShipment.ShipmentContainer, goEntry);
 }
 
 CharShipmentContainerEntry const* GarrisonMgr::GetShipmentContainerForNpc(uint32 creatureEntry) const
 {
     auto itr = _orderHallContainerByNpc.find(creatureEntry);
     return itr != _orderHallContainerByNpc.end() ? itr->second : nullptr;
+}
+
+uint32 GarrisonMgr::GetStandardGoForContainer(uint32 containerId) const
+{
+    auto itr = _orderHallStandardGoByContainer.find(containerId);
+    return itr != _orderHallStandardGoByContainer.end() ? itr->second : 0;
 }
 
 GarrisonMgr::OrderHallShipmentGate const* GarrisonMgr::GetOrderHallShipmentGate(uint32 creatureEntry) const

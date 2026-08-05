@@ -135,6 +135,10 @@ public:
     };
     OrderHallShipmentGate const* GetOrderHallShipmentGate(uint32 creatureEntry) const;
 
+    // The "standard" GameObject (GAMEOBJECT_TYPE_GARRISON_SHIPMENT, e.g. "Training Troops") that displays and hands
+    // out a container's finished orders. 0 = none.
+    uint32 GetStandardGoForContainer(uint32 containerId) const;
+
     // Talent system accessors
     std::vector<GarrTalentTreeEntry const*> const* GetTalentTreesForGarrType(int8 garrTypeID) const;
     std::vector<GarrTalentEntry const*> const* GetTalentsForTree(uint32 garrTalentTreeID) const;
@@ -207,6 +211,7 @@ private:
     std::unordered_map<uint8 /*garrBuildingType*/, CharShipmentContainerEntry const*> _shipmentContainersByBuildingType;
     std::unordered_map<uint32 /*creatureEntry*/, CharShipmentContainerEntry const*> _orderHallContainerByNpc;
     std::unordered_map<uint32 /*creatureEntry*/, OrderHallShipmentGate> _orderHallGateByNpc;
+    std::unordered_map<uint32 /*containerId*/, uint32 /*goEntry*/> _orderHallStandardGoByContainer;
     std::unordered_map<uint32 /*containerID*/, std::vector<CharShipmentEntry const*>> _shipmentsByContainer;
 
     uint64 _followerDbIdGenerator = UI64LIT(1);

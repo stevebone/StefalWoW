@@ -749,7 +749,9 @@ void Garrison::Update(uint32 diff)
     // Class-hall / order-hall work orders (plotless) are NOT auto-completed. Retail leaves each finished order
     // waiting at its container's "standard" GameObject (GAMEOBJECT_TYPE_GARRISON_SHIPMENT, e.g. "Training Troops"):
     // the player walks up and clicks it to pick up the recruited troop / produced good
-    // (GameObject::Use -> CollectReadyShipmentsForContainer). See GameObject.cpp.
+    // (GameObject::Use -> CollectReadyShipmentsForContainer). See GameObject.cpp. Keep those standards' models in
+    // sync with the owner's orders (recruiting = "working" model, ready = filled model, else empty).
+    UpdateOrderHallStandards();
 
     // Buildings are NOT auto-completed when their construction timer finishes. Retail leaves the finished
     // building as "ready to complete": the player walks to the plot and clicks it (construction sign), the
@@ -4017,6 +4019,83 @@ void Garrison::CollectReadyShipmentsForContainer(uint32 containerId)
     }
     for (uint64 dbId : ready)
         CompleteShipment(dbId);
+}
+
+void Garrison::UpdateOrderHallStandards()
+{
+    if (!_owner->IsInWorld())
+        return;
+
+    // Tally the owner's plotless orders per container.
+    std::unordered_map<uint32 /*containerId*/, std::pair<uint32 /*ready*/, uint32 /*inProgress*/>> counts;
+    for (auto const& p : _shipments)
+    {
+        if (p.second.PlotInstanceID != 0)
+            continue;
+        CharShipmentEntry const* shipmentEntry = sCharShipmentStore.LookupEntry(p.second.ShipmentRecID);
+        if (!shipmentEntry || !shipmentEntry->ContainerID)
+            continue;
+        auto& c = counts[shipmentEntry->ContainerID];
+        if (p.second.IsReady())
+            ++c.first;
+        else
+            ++c.second;
+    }
+
+    // Swap the container's "standard" GO to the working model while recruiting, the filled model (by ready count vs
+    // the container thresholds) when an order is ready to collect, or the base/empty model otherwise. The standard is
+    // a shared world GO, so this is correct for a single viewer; a live realm would phase it per player.
+    auto applyDisplay = [this](uint32 containerId, uint32 ready, uint32 inProgress)
+    {
+        uint32 goEntry = sGarrisonMgr.GetStandardGoForContainer(containerId);
+        if (!goEntry)
+            return;
+
+        std::vector<GameObject*> standards;
+        _owner->GetGameObjectListWithEntryInGrid(standards, goEntry, 150.0f);
+        if (standards.empty())
+            return;
+
+        CharShipmentContainerEntry const* container = sCharShipmentContainerStore.LookupEntry(containerId);
+        for (GameObject* standard : standards)
+        {
+            uint32 displayId = standard->GetGOInfo()->displayId; // base / empty
+            if (container)
+            {
+                if (ready > 0)
+                {
+                    if (container->LargeThreshold && ready >= container->LargeThreshold && container->LargeDisplayInfoID)
+                        displayId = container->LargeDisplayInfoID;
+                    else if (container->MediumThreshold && ready >= container->MediumThreshold && container->MediumDisplayInfoID)
+                        displayId = container->MediumDisplayInfoID;
+                    else if (container->SmallDisplayInfoID)
+                        displayId = container->SmallDisplayInfoID;
+                }
+                else if (inProgress > 0 && container->WorkingDisplayInfoID)
+                    displayId = container->WorkingDisplayInfoID;
+            }
+            if (displayId && standard->GetDisplayId() != displayId)
+                standard->SetDisplayId(displayId);
+        }
+    };
+
+    for (auto const& [containerId, rc] : counts)
+    {
+        applyDisplay(containerId, rc.first, rc.second);
+        _shownStandardContainers[containerId] = 1;
+    }
+
+    // Reset standards for containers that no longer have any order (e.g. just collected) back to the base model.
+    for (auto itr = _shownStandardContainers.begin(); itr != _shownStandardContainers.end(); )
+    {
+        if (counts.count(itr->first))
+            ++itr;
+        else
+        {
+            applyDisplay(itr->first, 0, 0);
+            itr = _shownStandardContainers.erase(itr);
+        }
+    }
 }
 
 void Garrison::UpdateWorkOrderCrates()

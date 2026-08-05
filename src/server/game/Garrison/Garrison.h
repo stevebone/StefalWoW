@@ -422,6 +422,7 @@ public:
     void CompleteShipment(uint64 dbId);
     void CollectReadyShipments(uint32 plotInstanceId);
     void CollectReadyShipmentsForContainer(uint32 containerId); // plotless orders: picked up at the container's "standard" GO
+    void UpdateOrderHallStandards(); // sync each plotless container's "standard" GO display to the owner's orders (working/ready/empty)
     void SendOpenShipmentUI(ObjectGuid npcGuid);
     // Swap each building's work-order crate GO display to the "filled" model (CharShipmentContainer
     // Small/Medium/Large DisplayInfoID by order count) while it holds orders, base model when empty.
@@ -500,6 +501,7 @@ private:
 
     // Shipments
     std::unordered_map<uint64 /*dbId*/, Shipment> _shipments;
+    std::unordered_map<uint32 /*containerId*/, uint8> _shownStandardContainers; // standards we've lit up, so they reset to base after collection
     std::unordered_map<uint32 /*garrTalentID*/, Talent> _talents;
 
     // Trophies
