@@ -5529,8 +5529,16 @@ void Spell::EffectAddGarrisonFollower()
     if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
         return;
 
-    if (Garrison* garrison = unitTarget->ToPlayer()->GetGarrison())
-        garrison->AddFollower(effectInfo->MiscValue);
+    // Route to the follower's own garrison type. GetGarrison() defaults to the WoD garrison (type 2),
+    // so without this every Legion/BfA/Shadowlands follower-granting spell silently failed with
+    // GARRISON_ERROR_INVALID_GARRISON (follower GarrTypeID != garrison type).
+    uint32 garrFollowerId = effectInfo->MiscValue;
+    GarrisonType garrType = GARRISON_TYPE_GARRISON;
+    if (GarrFollowerEntry const* followerEntry = sGarrFollowerStore.LookupEntry(garrFollowerId))
+        garrType = GarrisonType(followerEntry->GarrTypeID);
+
+    if (Garrison* garrison = unitTarget->ToPlayer()->GetGarrison(garrType))
+        garrison->AddFollower(garrFollowerId);
 }
 
 void Spell::EffectCreateHeirloomItem()

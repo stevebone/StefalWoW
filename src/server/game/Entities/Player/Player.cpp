@@ -15278,6 +15278,40 @@ void Player::RewardQuest(Quest const* quest, LootItemType rewardType, uint32 rew
     UpdateCriteria(CriteriaType::CompleteQuest, quest->GetQuestId());
     UpdateCriteria(CriteriaType::CompleteAnyReplayQuest, 1);
 
+    // Grant any garrison/war-campaign champions (GarrFollower) mapped to this quest turn-in.
+    // Retail encodes several of these as the quest's RewardSpell (SPELL_EFFECT_ADD_GARRISON_FOLLOWER),
+    // but that path only reaches the follower's own garrison type via Spell::EffectAddGarrisonFollower;
+    // this data-driven table is the authoritative, faction-agnostic mechanism and also covers champions
+    // that are not granted through a reward spell.
+    if (std::vector<QuestGarrisonFollower> const* garrisonFollowers = sObjectMgr->GetQuestGarrisonFollowers(quest_id))
+    {
+        for (QuestGarrisonFollower const& reward : *garrisonFollowers)
+        {
+            GarrisonType garrType = GarrisonType(reward.GarrType);
+            Garrison* garrison = GetGarrison(garrType);
+
+            // Ensure the target garrison exists. In retail the war-campaign garrison is created earlier in
+            // the campaign; create it here as a safety net for the known war-campaign sites so a champion
+            // reward is never silently lost. Unknown types are left to their own creation path.
+            if (!garrison && garrType == GARRISON_TYPE_WAR_CAMPAIGN)
+            {
+                CreateGarrison(GetTeam() == ALLIANCE ? 168 : 169);
+                garrison = GetGarrison(garrType);
+            }
+
+            if (!garrison)
+            {
+                TC_LOG_DEBUG("entities.player.quest", "Player::RewardQuest: quest {} grants GarrFollower {} for GarrType {} but player {} has no such garrison; skipped.",
+                    quest_id, reward.GarrFollowerID, reward.GarrType, GetGUID().ToString());
+                continue;
+            }
+
+            // Idempotent: never double-grant a champion the player already owns.
+            if (!garrison->GetFollowerByEntry(reward.GarrFollowerID))
+                garrison->AddFollower(reward.GarrFollowerID);
+        }
+    }
+
     // make full db save
     SaveToDB(false);
 

@@ -6575,6 +6575,57 @@ void ObjectMgr::LoadQuestGreetings()
     TC_LOG_INFO("server.loading", ">> Loaded {} quest_greeting in {} ms", count, GetMSTimeDiffToNow(oldMSTime));
 }
 
+std::vector<QuestGarrisonFollower> const* ObjectMgr::GetQuestGarrisonFollowers(uint32 questId) const
+{
+    return Trinity::Containers::MapGetValuePtr(_questGarrisonFollowerStore, questId);
+}
+
+void ObjectMgr::LoadQuestGarrisonFollowers()
+{
+    uint32 oldMSTime = getMSTime();
+
+    _questGarrisonFollowerStore.clear();
+
+    //                                               0            1               2
+    QueryResult result = WorldDatabase.Query("SELECT QuestID, GarrFollowerID, GarrType FROM quest_reward_garrison_follower");
+    if (!result)
+    {
+        TC_LOG_INFO("server.loading", ">> Loaded 0 quest garrison follower rewards, table is empty!");
+        return;
+    }
+
+    uint32 count = 0;
+    do
+    {
+        Field* fields = result->Fetch();
+
+        uint32 questId          = fields[0].GetUInt32();
+        uint32 garrFollowerId   = fields[1].GetUInt32();
+        uint8 garrType          = fields[2].GetUInt8();
+
+        if (!GetQuestTemplate(questId))
+        {
+            TC_LOG_ERROR("sql.sql", "Table `quest_reward_garrison_follower` has reward for non-existent quest {}, skipped.", questId);
+            continue;
+        }
+
+        if (!sGarrFollowerStore.LookupEntry(garrFollowerId))
+        {
+            TC_LOG_ERROR("sql.sql", "Table `quest_reward_garrison_follower` (QuestID {}) references non-existent GarrFollower.db2 id {}, skipped.", questId, garrFollowerId);
+            continue;
+        }
+
+        QuestGarrisonFollower reward;
+        reward.GarrFollowerID = garrFollowerId;
+        reward.GarrType = garrType;
+        _questGarrisonFollowerStore[questId].push_back(reward);
+        ++count;
+    }
+    while (result->NextRow());
+
+    TC_LOG_INFO("server.loading", ">> Loaded {} quest garrison follower rewards in {} ms", count, GetMSTimeDiffToNow(oldMSTime));
+}
+
 void ObjectMgr::LoadTavernAreaTriggers()
 {
     uint32 oldMSTime = getMSTime();

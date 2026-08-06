@@ -825,6 +825,15 @@ struct QuestPOIData
 
 typedef std::unordered_map<uint32, QuestPOIData> QuestPOIContainer;
 
+// Maps a quest turn-in to one or more garrison/war-campaign champions (GarrFollower) it should grant.
+struct QuestGarrisonFollower
+{
+    uint32 GarrFollowerID = 0;
+    uint8 GarrType = 0;
+};
+
+typedef std::unordered_map<uint32 /*questId*/, std::vector<QuestGarrisonFollower>> QuestGarrisonFollowerContainer;
+
 typedef std::array<std::unordered_map<uint32, QuestGreeting>, 2> QuestGreetingContainer;
 typedef std::array<std::unordered_map<uint32, QuestGreetingLocale>, 2> QuestGreetingLocaleContainer;
 
@@ -1121,6 +1130,8 @@ class TC_GAME_API ObjectMgr
         QuestGreeting const* GetQuestGreeting(TypeID type, uint32 id) const;
         QuestGreetingLocale const* GetQuestGreetingLocale(TypeID type, uint32 id) const;
 
+        std::vector<QuestGarrisonFollower> const* GetQuestGarrisonFollowers(uint32 questId) const;
+
         WorldSafeLocsEntry const* GetDefaultGraveyard(uint32 team) const;
         WorldSafeLocsEntry const* GetClosestGraveyard(WorldLocation const& location, uint32 team, WorldObject* conditionObject) const;
         WorldSafeLocsEntry const* GetClosestGraveyardInZone(WorldLocation const& location, uint32 team, WorldObject* conditionObject, uint32 zoneId) const;
@@ -1269,6 +1280,7 @@ class TC_GAME_API ObjectMgr
         void LoadAccessRequirements();
         void LoadQuestAreaTriggers();
         void LoadQuestGreetings();
+        void LoadQuestGarrisonFollowers();
         void LoadAreaTriggerScripts();
         void LoadTavernAreaTriggers();
         void LoadGameObjectForQuests();
@@ -1708,6 +1720,7 @@ class TC_GAME_API ObjectMgr
         NpcTextContainer _npcTextStore;
         QuestGreetingContainer _questGreetingStore;
         QuestGreetingLocaleContainer _questGreetingLocaleStore;
+        QuestGarrisonFollowerContainer _questGarrisonFollowerStore;
         AreaTriggerContainer _areaTriggerStore;
         AreaTriggerScriptContainer _areaTriggerScriptStore;
         std::unordered_map<uint32, AreaTriggerPolygon> _areaTriggerPolygons;
