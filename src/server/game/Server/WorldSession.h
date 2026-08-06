@@ -319,6 +319,12 @@ namespace WorldPackets
         class CollectionItemSetFavorite;
     }
 
+    namespace Contribution
+    {
+        class ContributionContribute;
+        class ContributionLastUpdateRequest;
+    }
+
     namespace Combat
     {
         class AttackSwing;
@@ -1855,6 +1861,8 @@ class TC_GAME_API WorldSession
         void HandleObjectUpdateFailedOpcode(WorldPackets::Misc::ObjectUpdateFailed& objectUpdateFailed);
         void HandleObjectUpdateRescuedOpcode(WorldPackets::Misc::ObjectUpdateRescued& objectUpdateRescued);
         void HandleCloseInteraction(WorldPackets::Misc::CloseInteraction& closeInteraction);
+        void HandleContributionContribute(WorldPackets::Contribution::ContributionContribute& contribute);
+        void HandleContributionLastUpdateRequest(WorldPackets::Contribution::ContributionLastUpdateRequest& request);
         void HandleConversationLineStarted(WorldPackets::Misc::ConversationLineStarted& conversationLineStarted);
         void HandleKeyboundOverride(WorldPackets::Spells::KeyboundOverride& keyboundOverride);
         void HandleQueryCountdownTimer(WorldPackets::Misc::QueryCountdownTimer& queryCountdownTimer);

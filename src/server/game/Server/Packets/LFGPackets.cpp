@@ -412,4 +412,12 @@ WorldPacket const* LFGTeleportDenied::Write()
 
     return &_worldPacket;
 }
+
+WorldPacket const* OpenLfgDungeonFinder::Write()
+{
+    // INFERRED (needs sniff validation) - single uint32 LFGDungeons.db2 id. See the class comment in LFGPackets.h.
+    _worldPacket << uint32(DungeonID);
+
+    return &_worldPacket;
+}
 }

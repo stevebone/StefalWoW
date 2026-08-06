@@ -38,6 +38,7 @@
 #include "ChatPackets.h"
 #include "ClientConfigPackets.h"
 #include "CollectionPackets.h"
+#include "ContributionPackets.h"
 #include "CombatLogPackets.h"
 #include "CombatPackets.h"
 #include "DuelPackets.h"
@@ -80,6 +81,7 @@
 #include "TransmogrificationPackets.h"
 #include "VehiclePackets.h"
 #include "VignettePackets.h"
+#include "WarfrontPackets.h"
 #include "WhoPackets.h"
 #include "WorldStatePackets.h"
 

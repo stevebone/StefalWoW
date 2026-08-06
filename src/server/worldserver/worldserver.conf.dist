@@ -4391,6 +4391,36 @@ Pvp.FactionBalance.Pct20 = 0.8
 ###################################################################################################
 
 ###################################################################################################
+# WARFRONT SETTINGS
+#
+#    Warfront.TimeScale
+#        Description: Multiplier applied to every BfA Warfront cycle timer (7-day siege window, ~5-day world-boss
+#                     window). Lower it to compress the whole cycle for testing (e.g. 0.001 turns the 7-day siege
+#                     into ~10 minutes). Clamped to a small positive floor so timers always progress.
+#        Default:     1.0 - (retail-length cycle)
+
+Warfront.TimeScale = 1.0
+
+#    Warfront.NativeUI.Enable
+#        Description: Enables the native Warfront / Contribution Collector DISPLAY round-trip, i.e. sending
+#                     SMSG_CONTRIBUTION_LAST_UPDATE_RESPONSE (0x4202C4) in reply to
+#                     CMSG_CONTRIBUTION_LAST_UPDATE_REQUEST (0x3B00FE) and whenever a contribution bar moves,
+#                     plus SMSG_WARFRONT_COMPLETE (0x420206) when a warfront assault is won.
+#                     WARNING: the BODIES of both of those server messages are INFERRED, not byte-recovered - the
+#                     client deserializers are reflection-read and could not be recovered offline (see
+#                     WARFRONT_OPCODE_SPEC.md sections C and E). A wrong layout can disconnect or crash a live
+#                     client. Leave this off until the layouts have been confirmed against a packet sniff.
+#                     Receiving/logging CMSG_CONTRIBUTION_LAST_UPDATE_REQUEST is always active and unaffected by
+#                     this flag (reading is harmless); the received field values are logged to the "warfront" logger.
+#        Default:     0 - (disabled; no inferred server message is ever put on the wire)
+#                     1 - (enabled; only for deliberate protocol testing)
+
+Warfront.NativeUI.Enable = 0
+
+#
+###################################################################################################
+
+###################################################################################################
 # LOAD SETTINGS
 #
 # These settings control content loading

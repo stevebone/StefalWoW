@@ -427,6 +427,23 @@ namespace WorldPackets
 
             lfg::LfgTeleportResult Reason;
         };
+
+        // SMSG_OPEN_LFG_DUNGEON_FINDER (0x560015): makes the client open its native dungeon/group finder panel
+        // preselected to the given LFGDungeons.db2 id. Used to surface the BfA warfront war-table assault entry,
+        // whose "Join Battle" button then sends CMSG_DF_JOIN back with slot = dungeonID | (TypeID << 24).
+        //
+        // !! INFERRED (needs sniff validation): no serializer and no 0x811C9DC5 reflection descriptor for this
+        // opcode was recovered offline; a single uint32 dungeon id is the asserted body. Senders must gate this
+        // behind a config opt-in (see WarfrontMgr::IsNativeUiEnabled / Warfront.NativeUI.Enable).
+        class OpenLfgDungeonFinder final : public ServerPacket
+        {
+        public:
+            explicit OpenLfgDungeonFinder(uint32 dungeonId = 0) : ServerPacket(SMSG_OPEN_LFG_DUNGEON_FINDER, 4), DungeonID(dungeonId) { }
+
+            WorldPacket const* Write() override;
+
+            uint32 DungeonID;   // INFERRED (needs sniff validation)
+        };
     }
 }
 

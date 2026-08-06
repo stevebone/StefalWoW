@@ -16,6 +16,7 @@
  */
 
 #include "CharacterCache.h"
+#include "Chat.h"
 #include "DB2Stores.h"
 #include "WorldSession.h"
 #include "GameTime.h"
@@ -26,9 +27,69 @@
 #include "ObjectAccessor.h"
 #include "ObjectMgr.h"
 #include "Player.h"
+#include "Warfront.h"
+#include "WarfrontMgr.h"
+
+namespace
+{
+    // The BfA war-table "Join Battle" button queues through the LFG system, not BattlemasterList: the client calls
+    // JoinSingleLFG(LE_LFG_CATEGORY_SCENARIO, lfgDungeonID), which sends CMSG_DF_JOIN with
+    // slot = dungeonID | (TypeID << 24) (warfronts are TypeID 1). A warfront is one faction versus NPCs, so the
+    // normal LFG group-forming/proposal flow is wrong for it - there is nobody to match against and no role check to
+    // run. Instead we hand the request to WarfrontMgr's single-team enrollment queue, which at the configured
+    // min-player floor forms the battle group and teleports the enrolled players into the instanced battle map.
+    //
+    // Returns true when the join was consumed as a warfront join (so the caller must NOT continue into JoinLfg).
+    // Robust against an empty slot list and against a request that mixes warfront and normal dungeons: the first
+    // warfront slot wins (a warfront cannot be co-queued with anything else).
+    bool TryHandleWarfrontLfgJoin(WorldSession* session, WorldPackets::LFG::DFJoin const& dfJoin)
+    {
+        Player* player = session->GetPlayer();
+        if (!player)
+            return false;
+
+        for (uint32 slot : dfJoin.Slots)
+        {
+            // Same decode the normal path uses below: the low 24 bits are the LFGDungeons.db2 id.
+            uint32 const dungeonId = slot & 0x00FFFFFF;
+
+            uint32 battleMapId = 0;
+            uint32 const warfrontId = WarfrontMgr::GetWarfrontForLfgDungeon(dungeonId, &battleMapId);
+            if (!warfrontId)
+                continue;   // an ordinary LFG slot - keep looking
+
+            // TODO: the Heroic warfront dungeon ids (2007/1982/2032/2031) resolve to the same warfront and battle
+            // map as their Normal twins; per-difficulty scaling/lockouts are a later phase.
+            std::string reason;
+            bool const joined = sWarfrontMgr->EnqueuePlayer(player, warfrontId, &reason);
+
+            Warfront const* wf = sWarfrontMgr->GetWarfront(warfrontId);
+            TC_LOG_INFO("warfront", "CMSG_DF_JOIN intercepted as warfront join: {} slot 0x{:X} (LFGDungeon {}) -> "
+                "warfront {} '{}', battle map {} : {}",
+                session->GetPlayerInfo(), slot, dungeonId, warfrontId, wf ? wf->Name : "<unknown>", battleMapId,
+                joined ? "ACCEPTED" : (reason.empty() ? "REJECTED (no reason given)" : "REJECTED - " + reason));
+
+            // Never let the button fail silently - always tell the player what happened.
+            if (joined)
+                ChatHandler(session).SendSysMessage("You have joined the assault. Stand ready - you will be summoned when the war party musters.");
+            else
+                ChatHandler(session).SendSysMessage(reason.empty() ? "You cannot join the assault right now." : reason.c_str());
+
+            return true;
+        }
+
+        return false;
+    }
+}
 
 void WorldSession::HandleLfgJoinOpcode(WorldPackets::LFG::DFJoin& dfJoin)
 {
+    // Warfront interception runs BEFORE the dungeon-finder option / group-leader gates below: a warfront assault is
+    // not a dungeon-finder queue, so it must work regardless of how LFG itself is configured, and a non-leader in a
+    // party may still enroll himself for the assault.
+    if (TryHandleWarfrontLfgJoin(this, dfJoin))
+        return;
+
     if (!sLFGMgr->isOptionEnabled(lfg::LFG_OPTION_ENABLE_DUNGEON_FINDER | lfg::LFG_OPTION_ENABLE_RAID_BROWSER) ||
         (GetPlayer()->GetGroup() && GetPlayer()->GetGroup()->GetLeaderGUID() != GetPlayer()->GetGUID() &&
         (GetPlayer()->GetGroup()->GetMembersCount() == MAX_GROUP_SIZE || !GetPlayer()->GetGroup()->isLFGGroup())))
