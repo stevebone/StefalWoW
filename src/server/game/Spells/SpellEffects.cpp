@@ -363,7 +363,7 @@ NonDefaultConstructible<SpellEffectHandlerFn> SpellEffectHandlers[TOTAL_SPELL_EF
     &Spell::EffectNULL,                                     //269 SPELL_EFFECT_INCREASE_ITEM_BONUS_LIST_GROUP_STEP
     &Spell::EffectNULL,                                     //270 SPELL_EFFECT_270
     &Spell::EffectUnused,                                   //271 SPELL_EFFECT_APPLY_AREA_AURA_PARTY_NONRANDOM
-    &Spell::EffectNULL,                                     //272 SPELL_EFFECT_SET_COVENANT
+    &Spell::EffectSetCovenant,                              //272 SPELL_EFFECT_SET_COVENANT
     &Spell::EffectNULL,                                     //273 SPELL_EFFECT_CRAFT_RUNEFORGE_LEGENDARY
     &Spell::EffectUnused,                                   //274 SPELL_EFFECT_274
     &Spell::EffectUnused,                                   //275 SPELL_EFFECT_275
@@ -372,7 +372,7 @@ NonDefaultConstructible<SpellEffectHandlerFn> SpellEffectHandlers[TOTAL_SPELL_EF
     &Spell::EffectNULL,                                     //278 SPELL_EFFECT_278
     &Spell::EffectLearnGarrTalent,                           //279 SPELL_EFFECT_LEARN_GARR_TALENT
     &Spell::EffectUnused,                                   //280 SPELL_EFFECT_280
-    &Spell::EffectNULL,                                     //281 SPELL_EFFECT_LEARN_SOULBIND_CONDUIT
+    &Spell::EffectLearnSoulbindConduit,                     //281 SPELL_EFFECT_LEARN_SOULBIND_CONDUIT
     &Spell::EffectNULL,                                     //282 SPELL_EFFECT_CONVERT_ITEMS_TO_CURRENCY
     &Spell::EffectSkipCampaign,                             //283 SPELL_EFFECT_COMPLETE_CAMPAIGN
     &Spell::EffectSendChatMessage,                          //284 SPELL_EFFECT_SEND_CHAT_MESSAGE
@@ -6652,6 +6652,42 @@ void Spell::EffectLearnGarrTalent()
         return;
 
     garrison->LearnTalent(effectInfo->MiscValue, false);
+}
+
+void Spell::EffectSetCovenant()
+{
+    if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT_TARGET)
+        return;
+
+    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+        return;
+
+    // MiscValue = Covenant.db2 id chosen by the covenant-choice quest's reward spell. Joining a covenant
+    // is the Blizzlike entry point (soulbinds unlock afterwards) - there is no dedicated covenant opcode.
+    int32 covenantId = effectInfo->MiscValue;
+    if (covenantId < 0 || !sCovenantStore.LookupEntry(uint32(covenantId)))
+        return;
+
+    unitTarget->ToPlayer()->SetActiveCovenant(uint32(covenantId));
+}
+
+void Spell::EffectLearnSoulbindConduit()
+{
+    if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT_TARGET)
+        return;
+
+    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+        return;
+
+    // MiscValue = SoulbindConduit.db2 id; the rank comes from the spell's base points (MiscValueB is unused
+    // for conduit grants). A negative/zero rank falls back to the conduit's lowest defined rank.
+    int32 conduitId = effectInfo->MiscValue;
+    if (conduitId <= 0)
+        return;
+
+    int32 rankValue = GetEffectValueAsInt();                    // spell base points = 1-based conduit rank (0 when unspecified)
+    int32 rank = rankValue > 0 ? rankValue - 1 : -1;            // CollectConduit wants a 0-based index (<0 = lowest defined rank)
+    unitTarget->ToPlayer()->CollectConduit(uint32(conduitId), rank);
 }
 
 void Spell::EffectSetGarrisonFollowerLevel()

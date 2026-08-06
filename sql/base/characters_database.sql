@@ -591,6 +591,67 @@ LOCK TABLES `character_aura_stored_location` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `character_covenant`
+--
+
+DROP TABLE IF EXISTS `character_covenant`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `character_covenant` (
+  `guid` bigint unsigned NOT NULL DEFAULT '0',
+  `covenantId` int unsigned NOT NULL DEFAULT '0',
+  `soulbindId` int unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`guid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Player active covenant/soulbind';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `character_soulbind_conduits`
+--
+
+DROP TABLE IF EXISTS `character_soulbind_conduits`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `character_soulbind_conduits` (
+  `guid` bigint unsigned NOT NULL DEFAULT '0',
+  `conduitId` int unsigned NOT NULL DEFAULT '0',
+  `rankIndex` int unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`guid`,`conduitId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Player soulbind conduit collection (owned conduit -> rank)';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `character_soulbind_conduit_sockets`
+--
+
+DROP TABLE IF EXISTS `character_soulbind_conduit_sockets`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `character_soulbind_conduit_sockets` (
+  `guid` bigint unsigned NOT NULL DEFAULT '0',
+  `garrTalentId` int unsigned NOT NULL DEFAULT '0',
+  `conduitId` int unsigned NOT NULL DEFAULT '0',
+  `garrTalentTreeId` int unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`guid`,`garrTalentId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Conduits socketed into soulbind tree nodes';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `character_covenant_renown`
+--
+
+DROP TABLE IF EXISTS `character_covenant_renown`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `character_covenant_renown` (
+  `guid` bigint unsigned NOT NULL DEFAULT '0',
+  `covenantId` int unsigned NOT NULL DEFAULT '0',
+  `grantedLevel` int unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`guid`,`covenantId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Highest covenant renown level whose rewards were granted';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `character_bank_tab_settings`
 --
 

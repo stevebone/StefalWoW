@@ -83,6 +83,8 @@ DB2Storage<BattlePetSpeciesEntry>               sBattlePetSpeciesStore("BattlePe
 DB2Storage<BattlePetSpeciesStateEntry>          sBattlePetSpeciesStateStore("BattlePetSpeciesState.db2", &BattlePetSpeciesStateLoadInfo::Instance);
 DB2Storage<BattlemasterListEntry>               sBattlemasterListStore("BattlemasterList.db2", &BattlemasterListLoadInfo::Instance);
 DB2Storage<BattlemasterListXMapEntry>           sBattlemasterListXMapStore("BattlemasterListXMap.db2", &BattlemasterListXMapLoadInfo::Instance);
+DB2Storage<BountyEntry>                          sBountyStore("Bounty.db2", &BountyLoadInfo::Instance);
+DB2Storage<BountySetEntry>                       sBountySetStore("BountySet.db2", &BountySetLoadInfo::Instance);
 DB2Storage<BroadcastTextEntry>                  sBroadcastTextStore("BroadcastText.db2", &BroadcastTextLoadInfo::Instance);
 DB2Storage<BroadcastTextDurationEntry>          sBroadcastTextDurationStore("BroadcastTextDuration.db2", &BroadcastTextDurationLoadInfo::Instance);
 DB2Storage<CampaignEntry>                       sCampaignStore("Campaign.db2", &CampaignLoadInfo::Instance);
@@ -119,6 +121,8 @@ DB2Storage<ContentTuningXExpectedEntry>         sContentTuningXExpectedStore("Co
 DB2Storage<ContentTuningXLabelEntry>            sContentTuningXLabelStore("ContentTuningXLabel.db2", &ContentTuningXLabelLoadInfo::Instance);
 DB2Storage<ConversationLineEntry>               sConversationLineStore("ConversationLine.db2", &ConversationLineLoadInfo::Instance);
 DB2Storage<CorruptionEffectsEntry>              sCorruptionEffectsStore("CorruptionEffects.db2", &CorruptionEffectsLoadInfo::Instance);
+DB2Storage<CovenantEntry>                       sCovenantStore("Covenant.db2", &CovenantLoadInfo::Instance);
+DB2Storage<RenownRewardsEntry>                  sRenownRewardsStore("RenownRewards.db2", &RenownRewardsLoadInfo::Instance);
 DB2Storage<CraftingQualityEntry>                sCraftingQualityStore("CraftingQuality.db2", &CraftingQualityLoadInfo::Instance);
 DB2Storage<CreatureDisplayInfoEntry>            sCreatureDisplayInfoStore("CreatureDisplayInfo.db2", &CreatureDisplayInfoLoadInfo::Instance);
 DB2Storage<CreatureDisplayInfoExtraEntry>       sCreatureDisplayInfoExtraStore("CreatureDisplayInfoExtra.db2", &CreatureDisplayInfoExtraLoadInfo::Instance);
@@ -346,7 +350,11 @@ DB2Storage<SkillLineEntry>                      sSkillLineStore("SkillLine.db2",
 DB2Storage<SkillLineAbilityEntry>               sSkillLineAbilityStore("SkillLineAbility.db2", &SkillLineAbilityLoadInfo::Instance);
 DB2Storage<SkillLineXTraitTreeEntry>            sSkillLineXTraitTreeStore("SkillLineXTraitTree.db2", &SkillLineXTraitTreeLoadInfo::Instance);
 DB2Storage<SkillRaceClassInfoEntry>             sSkillRaceClassInfoStore("SkillRaceClassInfo.db2", &SkillRaceClassInfoLoadInfo::Instance);
+DB2Storage<SoulbindEntry>                       sSoulbindStore("Soulbind.db2", &SoulbindLoadInfo::Instance);
+DB2Storage<SoulbindConduitEntry>                sSoulbindConduitStore("SoulbindConduit.db2", &SoulbindConduitLoadInfo::Instance);
+DB2Storage<SoulbindConduitItemEntry>            sSoulbindConduitItemStore("SoulbindConduitItem.db2", &SoulbindConduitItemLoadInfo::Instance);
 DB2Storage<SoulbindConduitRankEntry>            sSoulbindConduitRankStore("SoulbindConduitRank.db2", &SoulbindConduitRankLoadInfo::Instance);
+DB2Storage<SoulbindConduitRankPropertiesEntry>  sSoulbindConduitRankPropertiesStore("SoulbindConduitRankProperties.db2", &SoulbindConduitRankPropertiesLoadInfo::Instance);
 DB2Storage<SoundKitEntry>                       sSoundKitStore("SoundKit.db2", &SoundKitLoadInfo::Instance);
 DB2Storage<SpecializationSpellsEntry>           sSpecializationSpellsStore("SpecializationSpells.db2", &SpecializationSpellsLoadInfo::Instance);
 DB2Storage<SpecSetMemberEntry>                  sSpecSetMemberStore("SpecSetMember.db2", &SpecSetMemberLoadInfo::Instance);
@@ -588,6 +596,9 @@ namespace
     std::unordered_map<uint32, std::vector<SkillLineAbilityEntry const*>> _skillLineAbilitiesBySkillupSkill;
     SkillRaceClassInfoContainer _skillRaceClassInfoBySkill;
     std::unordered_map<std::pair<int32, int32>, SoulbindConduitRankEntry const*> _soulbindConduitRanks;
+    std::unordered_map<uint32 /*itemId*/, uint32 /*conduitId*/> _conduitsByItem;
+    std::unordered_map<std::pair<int32 /*covenantId*/, int32 /*level*/>, std::vector<RenownRewardsEntry const*>> _renownRewards;
+    std::unordered_map<int32 /*bountySetId*/, std::vector<BountyEntry const*>> _bountiesByBountySet;
     SpecializationSpellsContainer _specializationSpellsBySpec;
     std::unordered_set<std::pair<int32, uint32>> _specsBySpecSet;
     std::unordered_set<uint8> _spellFamilyNames;
@@ -771,6 +782,8 @@ uint32 DB2Manager::LoadStores(std::string const& dataPath, LocaleConstant defaul
     LOAD_DB2(sBattlePetSpeciesStateStore);
     LOAD_DB2(sBattlemasterListStore);
     LOAD_DB2(sBattlemasterListXMapStore);
+    LOAD_DB2(sBountyStore);
+    LOAD_DB2(sBountySetStore);
     LOAD_DB2(sBroadcastTextStore);
     LOAD_DB2(sBroadcastTextDurationStore);
     LOAD_DB2(sCampaignStore);
@@ -807,6 +820,8 @@ uint32 DB2Manager::LoadStores(std::string const& dataPath, LocaleConstant defaul
     LOAD_DB2(sContentTuningXLabelStore);
     LOAD_DB2(sConversationLineStore);
     LOAD_DB2(sCorruptionEffectsStore);
+    LOAD_DB2(sCovenantStore);
+    LOAD_DB2(sRenownRewardsStore);
     LOAD_DB2(sCraftingQualityStore);
     LOAD_DB2(sCreatureDisplayInfoStore);
     LOAD_DB2(sCreatureDisplayInfoExtraStore);
@@ -1034,7 +1049,11 @@ uint32 DB2Manager::LoadStores(std::string const& dataPath, LocaleConstant defaul
     LOAD_DB2(sSkillLineAbilityStore);
     LOAD_DB2(sSkillLineXTraitTreeStore);
     LOAD_DB2(sSkillRaceClassInfoStore);
+    LOAD_DB2(sSoulbindStore);
+    LOAD_DB2(sSoulbindConduitStore);
+    LOAD_DB2(sSoulbindConduitItemStore);
     LOAD_DB2(sSoulbindConduitRankStore);
+    LOAD_DB2(sSoulbindConduitRankPropertiesStore);
     LOAD_DB2(sSoundKitStore);
     LOAD_DB2(sSpecializationSpellsStore);
     LOAD_DB2(sSpecSetMemberStore);
@@ -1629,6 +1648,16 @@ void DB2Manager::IndexLoadedStores()
 
     for (SoulbindConduitRankEntry const* soulbindConduitRank : sSoulbindConduitRankStore)
         _soulbindConduitRanks[{ soulbindConduitRank->SoulbindConduitID, soulbindConduitRank->RankIndex }] = soulbindConduitRank;
+
+    for (SoulbindConduitItemEntry const* conduitItem : sSoulbindConduitItemStore)
+        if (conduitItem->ItemID > 0 && conduitItem->ConduitID > 0)
+            _conduitsByItem[uint32(conduitItem->ItemID)] = uint32(conduitItem->ConduitID);
+
+    for (RenownRewardsEntry const* renownReward : sRenownRewardsStore)
+        _renownRewards[{ renownReward->CovenantID, renownReward->Level }].push_back(renownReward);
+
+    for (BountyEntry const* bounty : sBountyStore)
+        _bountiesByBountySet[bounty->BountySetID].push_back(bounty);
 
     for (SpecializationSpellsEntry const* specSpells : sSpecializationSpellsStore)
         _specializationSpellsBySpec[specSpells->SpecID].push_back(specSpells);
@@ -3116,6 +3145,41 @@ std::vector<SkillRaceClassInfoEntry const*> DB2Manager::GetSkillRaceClassInfo(ui
 SoulbindConduitRankEntry const* DB2Manager::GetSoulbindConduitRank(int32 soulbindConduitId, int32 rank) const
 {
     return Trinity::Containers::MapGetValuePtr(_soulbindConduitRanks, { soulbindConduitId, rank });
+}
+
+uint32 DB2Manager::GetConduitForItem(uint32 itemId) const
+{
+    auto itr = _conduitsByItem.find(itemId);
+    return itr != _conduitsByItem.end() ? itr->second : 0;
+}
+
+std::vector<RenownRewardsEntry const*> const* DB2Manager::GetRenownRewards(int32 covenantId, int32 level) const
+{
+    return Trinity::Containers::MapGetValuePtr(_renownRewards, { covenantId, level });
+}
+
+std::vector<BountyEntry const*> const* DB2Manager::GetBountiesForBountySet(int32 bountySetId) const
+{
+    return Trinity::Containers::MapGetValuePtr(_bountiesByBountySet, bountySetId);
+}
+
+int32 DB2Manager::GetConduitRankForItemLevel(uint32 itemLevel) const
+{
+    // SoulbindConduitRankProperties maps a rank to the item level that grants it. Pick the highest rank whose ItemLevel
+    // does not exceed the acquired item's level (a stronger duplicate upgrades the collection). -1 if no row qualifies.
+    int32 bestRank = -1;
+    int32 bestItemLevel = -1;
+    for (SoulbindConduitRankPropertiesEntry const* props : sSoulbindConduitRankPropertiesStore)
+    {
+        if (props->ItemLevel > int32(itemLevel))
+            continue;
+        if (props->ItemLevel > bestItemLevel)
+        {
+            bestItemLevel = props->ItemLevel;
+            bestRank = props->Rank;
+        }
+    }
+    return bestRank;
 }
 
 std::vector<SpecializationSpellsEntry const*> const* DB2Manager::GetSpecializationSpells(uint32 specId) const

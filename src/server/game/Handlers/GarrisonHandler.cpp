@@ -831,8 +831,14 @@ void WorldSession::HandleGarrisonSocketTalent(WorldPackets::Garrison::GarrisonSo
 {
     // Socket a conduit into a garrison/soulbind talent node. Validated against the talent's tree + the player's
     // garrison of that type, then persisted through the garrison (character_garrison_talents SoulbindConduitID/Rank).
-    // NOTE: the integration branch routed this through the Covenant/Soulbind feature (Player::SocketConduit); that
-    // feature is not part of this garrison branch, so socketing goes straight through Garrison::SocketTalent here.
+    //
+    // Two persistence paths exist and both are needed - they are complementary, not alternatives:
+    //   * Garrison::SocketTalent    -> character_garrison_talents (the generic garrison-talent path, all GarrTypes)
+    //   * Player::SocketConduit     -> character_soulbind_conduit_socket + applies the conduit's spell, and is the
+    //                                  only path that validates conduit ownership and covenant match
+    // A Covenant (GarrType 111) soulbind tree therefore runs BOTH; every other garrison type runs the garrison path
+    // only. The conduit path deliberately runs before the garrison lookup, because a covenant soulbind tree is edited
+    // through the soulbind UI and must keep working even if the player has no GARRISON_TYPE_COVENANT garrison object.
     GarrTalentEntry const* talentEntry = sGarrTalentStore.LookupEntry(packet.GarrTalentID);
     if (!talentEntry)
     {
@@ -851,9 +857,28 @@ void WorldSession::HandleGarrisonSocketTalent(WorldPackets::Garrison::GarrisonSo
         return;
     }
 
+    uint32 const treeId = uint32(talentEntry->GarrTalentTreeID);
+
+    // Covenant/soulbind path. The client only edits the currently-active soulbind's tree, so accept the node either
+    // because its tree is a Covenant tree or because it is the active soulbind's tree. Each socket is validated
+    // server-side (conduit exists, is owned, its covenant matches) inside Player::SocketConduit, which fails closed.
+    bool socketedConduit = false;
+    if (treeEntry->GarrTypeID == GARRISON_TYPE_COVENANT)
+        socketedConduit = true;
+    else if (SoulbindEntry const* soulbind = sSoulbindStore.LookupEntry(_player->GetActiveSoulbind()))
+        socketedConduit = uint32(soulbind->GarrTalentTreeID) == treeId;
+
+    if (socketedConduit)
+        for (WorldPackets::Garrison::GarrisonTalentSocketData const& socket : packet.Sockets)
+            _player->SocketConduit(treeId, uint32(packet.GarrTalentID), uint32(socket.SoulbindConduitID));
+
     Garrison* garrison = _player->GetGarrison(static_cast<GarrisonType>(treeEntry->GarrTypeID));
     if (!garrison)
     {
+        // Already handled as a soulbind conduit socket - a missing garrison object is not an error in that case.
+        if (socketedConduit)
+            return;
+
         WorldPackets::Garrison::GarrisonResearchTalentResult result;
         result.Result = GARRISON_ERROR_NO_GARRISON;
         result.GarrTypeID = treeEntry->GarrTypeID;

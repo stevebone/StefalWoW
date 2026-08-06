@@ -771,6 +771,33 @@ struct BattlemasterListXMapLoadInfo
     static constexpr DB2LoadInfo Instance{ Fields, 3, &BattlemasterListXMapMeta::Instance, HOTFIX_SEL_BATTLEMASTER_LIST_X_MAP };
 };
 
+struct BountyLoadInfo
+{
+    static constexpr DB2FieldMeta Fields[6] =
+    {
+        { .IsSigned = false, .Type = FT_INT, .Name = "ID" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "QuestID" },
+        { .IsSigned = false, .Type = FT_SHORT, .Name = "FactionID" },
+        { .IsSigned = false, .Type = FT_INT, .Name = "IconFileDataID" },
+        { .IsSigned = false, .Type = FT_INT, .Name = "TurninPlayerConditionID" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "BountySetID" },
+    };
+
+    static constexpr DB2LoadInfo Instance{ Fields, 6, &BountyMeta::Instance, HOTFIX_SEL_BOUNTY };
+};
+
+struct BountySetLoadInfo
+{
+    static constexpr DB2FieldMeta Fields[3] =
+    {
+        { .IsSigned = false, .Type = FT_INT, .Name = "ID" },
+        { .IsSigned = false, .Type = FT_INT, .Name = "VisiblePlayerConditionID" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "LockedQuestID" },
+    };
+
+    static constexpr DB2LoadInfo Instance{ Fields, 3, &BountySetMeta::Instance, HOTFIX_SEL_BOUNTY_SET };
+};
+
 struct BroadcastTextLoadInfo
 {
     static constexpr DB2FieldMeta Fields[17] =
@@ -1487,6 +1514,55 @@ struct CorruptionEffectsLoadInfo
     };
 
     static constexpr DB2LoadInfo Instance{ Fields, 5, &CorruptionEffectsMeta::Instance, HOTFIX_SEL_CORRUPTION_EFFECTS };
+};
+
+struct RenownRewardsLoadInfo
+{
+    static constexpr DB2FieldMeta Fields[20] =
+    {
+        { .IsSigned = false, .Type = FT_INT, .Name = "ID" },
+        { .IsSigned = false, .Type = FT_STRING, .Name = "Name" },
+        { .IsSigned = false, .Type = FT_STRING, .Name = "Description" },
+        { .IsSigned = false, .Type = FT_STRING, .Name = "ToastDescription" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "CovenantID" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "Level" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "Icon" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "Flags" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "UiOrder" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "ItemID" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "SpellID" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "MountID" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "TransmogID" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "TransmogSetID" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "CharTitlesID" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "GarrFollowerID" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "TransmogIllusionID" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "Field_12_0_0_63534_016" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "QuestID" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "PlayerConditionID" },
+    };
+
+    static constexpr DB2LoadInfo Instance{ Fields, 20, &RenownRewardsMeta::Instance, HOTFIX_SEL_RENOWN_REWARDS };
+};
+
+struct CovenantLoadInfo
+{
+    static constexpr DB2FieldMeta Fields[11] =
+    {
+        { .IsSigned = false, .Type = FT_INT, .Name = "ID" },
+        { .IsSigned = false, .Type = FT_STRING, .Name = "Name" },
+        { .IsSigned = false, .Type = FT_STRING, .Name = "Description" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "BountySetID" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "SkillLineID" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "DeathTeleportSpellID" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "Field_9_0_2_36165_006" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "Field_9_0_2_36165_007" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "FactionID" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "CurrencyTypesID" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "RequiredPlayerConditionID" },
+    };
+
+    static constexpr DB2LoadInfo Instance{ Fields, 11, &CovenantMeta::Instance, HOTFIX_SEL_COVENANT };
 };
 
 struct CraftingQualityLoadInfo
@@ -5841,6 +5917,48 @@ struct SkillRaceClassInfoLoadInfo
     static constexpr DB2LoadInfo Instance{ Fields, 9, &SkillRaceClassInfoMeta::Instance, HOTFIX_SEL_SKILL_RACE_CLASS_INFO };
 };
 
+struct SoulbindLoadInfo
+{
+    static constexpr DB2FieldMeta Fields[7] =
+    {
+        { .IsSigned = false, .Type = FT_INT, .Name = "ID" },
+        { .IsSigned = false, .Type = FT_STRING, .Name = "Name" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "CovenantID" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "GarrTalentTreeID" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "CreatureID" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "GarrFollowerID" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "PlayerConditionID" },
+    };
+
+    static constexpr DB2LoadInfo Instance{ Fields, 7, &SoulbindMeta::Instance, HOTFIX_SEL_SOULBIND };
+};
+
+struct SoulbindConduitLoadInfo
+{
+    static constexpr DB2FieldMeta Fields[5] =
+    {
+        { .IsSigned = false, .Type = FT_INT, .Name = "ID" },
+        { .IsSigned = false, .Type = FT_BYTE, .Name = "ConduitType" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "CovenantID" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "SpecSetID" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "Flags" },
+    };
+
+    static constexpr DB2LoadInfo Instance{ Fields, 5, &SoulbindConduitMeta::Instance, HOTFIX_SEL_SOULBIND_CONDUIT };
+};
+
+struct SoulbindConduitItemLoadInfo
+{
+    static constexpr DB2FieldMeta Fields[3] =
+    {
+        { .IsSigned = false, .Type = FT_INT, .Name = "ID" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "ItemID" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "ConduitID" },
+    };
+
+    static constexpr DB2LoadInfo Instance{ Fields, 3, &SoulbindConduitItemMeta::Instance, HOTFIX_SEL_SOULBIND_CONDUIT_ITEM };
+};
+
 struct SoulbindConduitRankLoadInfo
 {
     static constexpr DB2FieldMeta Fields[5] =
@@ -5853,6 +5971,19 @@ struct SoulbindConduitRankLoadInfo
     };
 
     static constexpr DB2LoadInfo Instance{ Fields, 5, &SoulbindConduitRankMeta::Instance, HOTFIX_SEL_SOULBIND_CONDUIT_RANK };
+};
+
+struct SoulbindConduitRankPropertiesLoadInfo
+{
+    static constexpr DB2FieldMeta Fields[4] =
+    {
+        { .IsSigned = false, .Type = FT_INT, .Name = "ID" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "Rank" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "ItemLevel" },
+        { .IsSigned = true, .Type = FT_BYTE, .Name = "QualityID" },
+    };
+
+    static constexpr DB2LoadInfo Instance{ Fields, 4, &SoulbindConduitRankPropertiesMeta::Instance, HOTFIX_SEL_SOULBIND_CONDUIT_RANK_PROPERTIES };
 };
 
 struct SoundKitLoadInfo
