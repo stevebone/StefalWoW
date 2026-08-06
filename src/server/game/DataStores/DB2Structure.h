@@ -1091,6 +1091,17 @@ struct ContentTuningXLabelEntry
     uint32 ContentTuningID;
 };
 
+struct ContributionEntry
+{
+    uint32 ID;
+    LocalizedString Description;
+    LocalizedString Name;
+    int32 ManagedWorldStateInputID;
+    int32 OrderIndex;
+    int32 ContributionStyleContainer;
+    std::array<int32, 4> UiTextureAtlasMemberID;
+};
+
 struct ConversationLineEntry
 {
     uint32 ID;
@@ -1170,6 +1181,13 @@ struct CraftingQualityEntry
 //    int32 Flags[9];
 //    uint32 CreatureID;
 //};
+
+struct CreatureXContributionEntry
+{
+    uint32 ID;
+    int32 ContributionID;
+    int32 CreatureID;
+};
 
 struct CreatureDisplayInfoEntry
 {
@@ -3437,6 +3455,38 @@ struct MailTemplateEntry
 {
     uint32 ID;
     LocalizedString Body;
+};
+
+struct ManagedWorldStateEntry
+{
+    uint32 ID;
+    int32 CurrentStageWorldStateID;
+    int32 ProgressWorldStateID;
+    uint32 UpTimeSecs;
+    uint32 DownTimeSecs;
+    int32 AccumulationStateTargetValue;
+    int32 DepletionStateTargetValue;
+    int32 AccumulationAmountPerMinute;
+    int32 DepletionAmountPerMinute;
+    int8 Field_8_1_5_29418_009;
+    std::array<int32, 4> OccurrencesWorldStateID;
+};
+
+struct ManagedWorldStateInputEntry
+{
+    uint32 ID;
+    int32 ManagedWorldStateID;
+    int32 QuestID;
+    int32 ValidInputConditionID;
+};
+
+struct ManagedWorldStateBuffEntry
+{
+    uint32 ID;
+    int32 BuffSpellID;
+    uint32 PlayerConditionID;
+    uint32 OccurrenceValue;
+    int32 ManagedWorldStateID;
 };
 
 struct MapEntry

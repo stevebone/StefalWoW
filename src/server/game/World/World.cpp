@@ -62,8 +62,10 @@
 #include "IPLocation.h"
 #include "InstanceLockMgr.h"
 #include "ItemBonusMgr.h"
+#include "ContributionMgr.h"
 #include "LFGMgr.h"
 #include "Language.h"
+#include "ManagedWorldStateMgr.h"
 #include "LanguageMgr.h"
 #include "Log.h"
 #include "LootItemStorage.h"
@@ -1618,8 +1620,14 @@ bool World::SetInitialWorldSettings()
     TC_LOG_INFO("server.loading", "Loading World State templates...");
     WorldStateMgr::LoadFromDB();                               // must be loaded before battleground, outdoor PvP, game events and conditions
 
+    TC_LOG_INFO("server.loading", "Loading Managed World States...");
+    sManagedWorldStateMgr->Load();                            // must be after world state values are available to restore persisted progress
+
+    TC_LOG_INFO("server.loading", "Loading Contribution collectors...");
+    sContributionMgr->Load();                                 // must be after ManagedWorldStateMgr::Load (builds the ManagedWorldState -> Contribution reverse index)
+
     TC_LOG_INFO("server.loading", "Initializing Warfronts...");
-    sWarfrontMgr->Initialize();                               // BfA warfront cycle owner; after world states are restored
+    sWarfrontMgr->Initialize();                               // BfA warfront cycle owner; after world states are restored and the contribution bars exist
 
     TC_LOG_INFO("server.loading", "Loading Game Event Data...");               // must be after loading pools fully
     sGameEventMgr->LoadFromDB();
@@ -2342,6 +2350,11 @@ void World::Update(uint32 diff)
     {
         TC_METRIC_TIMER("world_update_time", TC_METRIC_TAG("type", "Update outdoor pvp"));
         sOutdoorPvPMgr->Update(diff);
+    }
+
+    {
+        TC_METRIC_TIMER("world_update_time", TC_METRIC_TAG("type", "Update managed world states"));
+        sManagedWorldStateMgr->Update(diff);
     }
 
     {

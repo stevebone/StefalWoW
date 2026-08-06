@@ -515,6 +515,26 @@ void HotfixDatabaseConnection::DoPrepareStatements()
     PrepareStatement(HOTFIX_SEL_CONTENT_TUNING_X_LABEL, "SELECT ID, LabelID, ContentTuningID FROM content_tuning_x_label"
         " WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
     PREPARE_MAX_ID_STMT(HOTFIX_SEL_CONTENT_TUNING_X_LABEL, "SELECT MAX(ID) + 1 FROM content_tuning_x_label", CONNECTION_SYNCH);
+    PrepareStatement(HOTFIX_SEL_CONTRIBUTION, "SELECT ID, Description, Name, ManagedWorldStateInputID, OrderIndex, ContributionStyleContainer,"
+        " UiTextureAtlasMemberID1, UiTextureAtlasMemberID2, UiTextureAtlasMemberID3, UiTextureAtlasMemberID4 FROM contribution"
+        " WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
+    PREPARE_MAX_ID_STMT(HOTFIX_SEL_CONTRIBUTION, "SELECT MAX(ID) + 1 FROM contribution", CONNECTION_SYNCH);
+    PREPARE_LOCALE_STMT(HOTFIX_SEL_CONTRIBUTION, "SELECT ID, Description_lang, Name_lang FROM contribution_locale"
+        " WHERE (`VerifiedBuild` > 0) = ? AND locale = ?", CONNECTION_SYNCH);
+    PrepareStatement(HOTFIX_SEL_CREATURE_X_CONTRIBUTION, "SELECT ID, ContributionID, CreatureID FROM creature_x_contribution"
+        " WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
+    PREPARE_MAX_ID_STMT(HOTFIX_SEL_CREATURE_X_CONTRIBUTION, "SELECT MAX(ID) + 1 FROM creature_x_contribution", CONNECTION_SYNCH);
+    PrepareStatement(HOTFIX_SEL_MANAGED_WORLD_STATE, "SELECT ID, CurrentStageWorldStateID, ProgressWorldStateID, UpTimeSecs, DownTimeSecs,"
+        " AccumulationStateTargetValue, DepletionStateTargetValue, AccumulationAmountPerMinute, DepletionAmountPerMinute, Field_8_1_5_29418_009,"
+        " OccurrencesWorldStateID1, OccurrencesWorldStateID2, OccurrencesWorldStateID3, OccurrencesWorldStateID4 FROM managed_world_state"
+        " WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
+    PREPARE_MAX_ID_STMT(HOTFIX_SEL_MANAGED_WORLD_STATE, "SELECT MAX(ID) + 1 FROM managed_world_state", CONNECTION_SYNCH);
+    PrepareStatement(HOTFIX_SEL_MANAGED_WORLD_STATE_INPUT, "SELECT ID, ManagedWorldStateID, QuestID, ValidInputConditionID FROM managed_world_state_input"
+        " WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
+    PREPARE_MAX_ID_STMT(HOTFIX_SEL_MANAGED_WORLD_STATE_INPUT, "SELECT MAX(ID) + 1 FROM managed_world_state_input", CONNECTION_SYNCH);
+    PrepareStatement(HOTFIX_SEL_MANAGED_WORLD_STATE_BUFF, "SELECT ID, BuffSpellID, PlayerConditionID, OccurrenceValue, ManagedWorldStateID FROM managed_world_state_buff"
+        " WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
+    PREPARE_MAX_ID_STMT(HOTFIX_SEL_MANAGED_WORLD_STATE_BUFF, "SELECT MAX(ID) + 1 FROM managed_world_state_buff", CONNECTION_SYNCH);
 
     // ConversationLine.db2
     PrepareStatement(HOTFIX_SEL_CONVERSATION_LINE, "SELECT ID, BroadcastTextID, Unused1020, SpellVisualKitID, AdditionalDuration, "
