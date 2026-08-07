@@ -1590,4 +1590,12 @@ WorldPacket const* DeleteExpiredMissionsResult::Write()
 
     return &_worldPacket;
 }
+
+WorldPacket const* UpdateDailyMissionCounter::Write()
+{
+    _worldPacket << uint8(GarrTypeID);
+    _worldPacket << uint16(Count);
+
+    return &_worldPacket;
+}
 }

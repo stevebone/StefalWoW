@@ -24,6 +24,7 @@
 #include "Optional.h"
 #include "QuaternionData.h"
 #include "SharedDefines.h"
+#include <algorithm>
 #include <unordered_map>
 
 class GameObject;
@@ -381,6 +382,14 @@ public:
     void RemoveExpiredMissions();
     uint32 GetAndIncrementSessionMissionCount() { return _sessionMissionCount++; }
     void SendDeleteExpiredMissionsResult() const;
+    // Read-only views used by the criteria/PlayerCondition modifier evaluators (ModifierTreeType 141/177/186/195).
+    std::unordered_map<uint64 /*dbId*/, Mission> const& GetAllMissions() const { return _missions; }
+    // GarrMission record ids of every mission this garrison has finalized (success or failure).
+    std::vector<int32> const& GetArchivedMissions() const { return _archivedMissions; }
+    bool HasCompletedMission(uint32 garrMissionRecID) const
+    {
+        return std::find(_archivedMissions.begin(), _archivedMissions.end(), int32(garrMissionRecID)) != _archivedMissions.end();
+    }
 
     // Recruitment
     void SetRecruitmentPreferences(uint32 abilityId, uint32 traitId);
@@ -438,6 +447,8 @@ public:
     uint32 LearnTalent(uint32 garrTalentID, bool isTemporary);
     uint32 ResearchTalent(uint32 garrTalentID);
     uint32 SocketTalent(uint32 garrTalentID, int32 soulbindConduitID, int32 soulbindConduitRank);
+    // Wipes every talent in one tree (server-driven respec) and pushes the removal to the client.
+    uint32 ResetTalentTree(uint32 garrTalentTreeID);
     Talent const* GetTalent(uint32 garrTalentID) const;
     std::unordered_map<uint32, Talent> const& GetAllTalents() const { return _talents; }
     void CompleteAllTalentResearch(bool sendUpdate = false);

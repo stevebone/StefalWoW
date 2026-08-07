@@ -1862,6 +1862,27 @@ namespace WorldPackets
 
             std::vector<GarrisonTrophyData> Trophies;
         };
+
+        // Incremental push of the "missions started today" counter, mirroring the
+        // GarrisonInfo::NumMissionsStartedToday field that is otherwise only sent on a full
+        // GetGarrisonInfo round trip.
+        //
+        // Wire, read straight off the 68275 client deserializer for SMSG_UPDATE_DAILY_MISSION_COUNTER
+        // (0x4C0021): one 1-byte read stored at +0, then one 2-byte read stored at +2, i.e.
+        //     { uint8 GarrTypeID; uint16 Count; }
+        // The 16-bit reader is the same one SMSG_QUEST_UPDATE_ADD_CREDIT uses for its Count/Required
+        // pair, whose TrinityCore class is live and known-correct - so the width is confirmed here,
+        // not assumed.
+        class UpdateDailyMissionCounter final : public ServerPacket
+        {
+        public:
+            explicit UpdateDailyMissionCounter() : ServerPacket(SMSG_UPDATE_DAILY_MISSION_COUNTER, 1 + 2) { }
+
+            WorldPacket const* Write() override;
+
+            uint8 GarrTypeID = 0;
+            uint16 Count = 0;
+        };
     }
 }
 

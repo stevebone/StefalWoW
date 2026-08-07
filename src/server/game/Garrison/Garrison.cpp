@@ -41,6 +41,9 @@
 #include "SpellPackets.h"
 #include "VehicleDefines.h"
 #include "advstd.h"
+#include <algorithm>
+#include <limits>
+#include <vector>
 
 Garrison::Garrison(Player* owner) : _owner(owner), _garrType(GARRISON_TYPE_GARRISON), _siteLevel(nullptr), _followerActivationsRemainingToday(1)
 {
@@ -568,6 +571,9 @@ bool Garrison::Create(uint32 garrSiteId)
     _owner->SendDirectMessage(garrisonCreateResult.Write());
     PhasingHandler::OnConditionChange(_owner);
     SendRemoteInfo();
+
+    // CriteriaType::AcquireGarrison (177) - miscValue1 = the GarrType just acquired.
+    _owner->UpdateCriteria(CriteriaType::AcquireGarrison, GetType());
     return true;
 }
 
@@ -858,7 +864,14 @@ void Garrison::LearnBlueprint(uint32 garrBuildingId)
     else if (HasBlueprint(garrBuildingId))
         learnBlueprintResult.Result = GARRISON_ERROR_BLUEPRINT_EXISTS;
     else
+    {
         _knownBuildings.insert(garrBuildingId);
+
+        // CriteriaType::LearnGarrisonBlueprint (179, Asset = GarrBuildingID) and
+        // CriteriaType::LearnAnyGarrisonBlueprint (178, no asset). miscValue1 = GarrBuilding id.
+        _owner->UpdateCriteria(CriteriaType::LearnGarrisonBlueprint, garrBuildingId);
+        _owner->UpdateCriteria(CriteriaType::LearnAnyGarrisonBlueprint, garrBuildingId);
+    }
 
     _owner->SendDirectMessage(learnBlueprintResult.Write());
 }
@@ -942,6 +955,9 @@ void Garrison::PlaceBuilding(uint32 garrPlotInstanceId, uint32 garrBuildingId)
         }
 
         _owner->UpdateCriteria(CriteriaType::PlaceGarrisonBuilding, garrBuildingId);
+        // CriteriaType::PlaceAnyGarrisonBuilding (166) - counter, no asset. miscValue1 = GarrBuilding id
+        // so ModifierTree building conditions can still discriminate.
+        _owner->UpdateCriteria(CriteriaType::PlaceAnyGarrisonBuilding, garrBuildingId);
     }
 
     _owner->SendDirectMessage(placeBuildingResult.Write());
@@ -1018,6 +1034,8 @@ void Garrison::ActivateBuilding(uint32 garrPlotInstanceId)
             _owner->SendDirectMessage(buildingActivated.Write());
 
             _owner->UpdateCriteria(CriteriaType::ActivateAnyGarrisonBuilding, plot->BuildingInfo.PacketInfo->GarrBuildingID);
+            // CriteriaType::ActivateGarrisonBuilding (169, Asset = GarrBuildingID).
+            _owner->UpdateCriteria(CriteriaType::ActivateGarrisonBuilding, plot->BuildingInfo.PacketInfo->GarrBuildingID);
         }
     }
 }
@@ -1129,6 +1147,11 @@ void Garrison::LearnSpecialization(uint32 garrSpecId)
 
     _knownSpecializations.insert(garrSpecId);
     SendBlueprintAndSpecializationData();
+
+    // CriteriaType::LearnGarrisonSpecialization (181, Asset = GarrSpecializationID) and
+    // CriteriaType::LearnAnyGarrisonSpecialization (180, no asset).
+    _owner->UpdateCriteria(CriteriaType::LearnGarrisonSpecialization, garrSpecId);
+    _owner->UpdateCriteria(CriteriaType::LearnAnyGarrisonSpecialization, garrSpecId);
 }
 
 void Garrison::SetBuildingSpecialization(uint32 garrPlotInstanceId, uint32 garrSpecId)
@@ -1221,7 +1244,14 @@ void Garrison::AddFollower(uint32 garrFollowerId)
     addFollowerResult.Follower = follower.PacketInfo;
     _owner->SendDirectMessage(addFollowerResult.Write());
 
-    _owner->UpdateCriteria(CriteriaType::RecruitGarrisonFollower, follower.PacketInfo.DbID);
+    // Criteria for follower events key on the GarrFollower **record id**, never on the runtime DbID:
+    // CriteriaHandler::RequirementsSatisfied compares miscValue1 against Criteria.Asset.GarrFollowerID and the
+    // garrison ModifierTree evaluators (GarrisonFollowerType 187, GarrisonFollowerItemLevel... 168,
+    // HasGarrisonFollower 157) all resolve miscValue1 through sGarrFollowerStore / PacketInfo.GarrFollowerID.
+    // Passing DbID here meant no RecruitGarrisonFollower criterion could ever match.
+    _owner->UpdateCriteria(CriteriaType::RecruitGarrisonFollower, garrFollowerId);
+    // CriteriaType::RecruitAnyGarrisonFollower (175) - counter, gated by ModifierTree on follower type/quality.
+    _owner->UpdateCriteria(CriteriaType::RecruitAnyGarrisonFollower, garrFollowerId);
 }
 
 void Garrison::AddTroop(uint32 garrFollowerId, uint32 durability)
@@ -1254,6 +1284,9 @@ void Garrison::AddTroop(uint32 garrFollowerId, uint32 durability)
 
     addFollowerResult.Follower = follower.PacketInfo;
     _owner->SendDirectMessage(addFollowerResult.Write());
+
+    // CriteriaType::RecruitAnyGarrisonTroop (200) - counter ("Recruit 20 troops."). miscValue1 = GarrFollower id.
+    _owner->UpdateCriteria(CriteriaType::RecruitAnyGarrisonTroop, garrFollowerId);
 }
 
 Garrison::Follower const* Garrison::GetFollower(uint64 dbId) const
@@ -2141,6 +2174,19 @@ GarrisonError Garrison::StartMission(uint32 missionRecID, std::vector<uint64> co
     }
     ++_missionsStartedToday;
 
+    // Keep the client's daily counter in step. Without this the value only refreshes on a full
+    // GetGarrisonInfo round trip, so the mission-list cap reads stale for the rest of the session.
+    WorldPackets::Garrison::UpdateDailyMissionCounter dailyCounter;
+    dailyCounter.GarrTypeID = static_cast<uint8>(GetType());
+    dailyCounter.Count = static_cast<uint16>(std::min<uint32>(_missionsStartedToday, std::numeric_limits<uint16>::max()));
+    _owner->SendDirectMessage(dailyCounter.Write());
+
+    // CriteriaType::StartGarrisonMission (172, Asset = GarrMissionID) and
+    // CriteriaType::StartAnyGarrisonMissionWithFollowerType (171, Asset = GarrFollowerTypeID).
+    // miscValue2 carries the GarrMission record id so mission-scoped ModifierTree conditions can discriminate.
+    _owner->UpdateCriteria(CriteriaType::StartGarrisonMission, missionRecID);
+    _owner->UpdateCriteria(CriteriaType::StartAnyGarrisonMissionWithFollowerType, missionEntry->GarrFollowerTypeID, missionRecID);
+
     return GARRISON_SUCCESS;
 }
 
@@ -2291,6 +2337,9 @@ GarrisonError Garrison::FinalizeMission(uint32 missionRecID, bool grantOvermax)
                     follower->PacketInfo.Xp -= levelXP->XpToNextLevel;
                     follower->PacketInfo.FollowerLevel++;
                     levelXP = sGarrisonMgr.GetFollowerLevelXP(followerTypeID, follower->PacketInfo.FollowerLevel);
+                    // CriteriaType::LevelChangedForGarrisonFollower (184). Fired once per level gained; the
+                    // ModifierTree (GarrisonFollowerLevelEqual 146) only matches the level it asks for.
+                    _owner->UpdateCriteria(CriteriaType::LevelChangedForGarrisonFollower, follower->PacketInfo.GarrFollowerID, follower->PacketInfo.FollowerLevel);
                 }
 
                 // Only a follower at its TRUE terminal level rolls excess XP into quality (iLvl). The DB2
@@ -2315,6 +2364,10 @@ GarrisonError Garrison::FinalizeMission(uint32 missionRecID, bool grantOvermax)
                         }
 
                         qualityEntry = sGarrisonMgr.GetFollowerQuality(followerTypeID, follower->PacketInfo.Quality);
+
+                        // CriteriaType::QualityUpgradedForGarrisonFollower (187). miscValue1 = GarrFollower id,
+                        // miscValue2 = the new quality.
+                        _owner->UpdateCriteria(CriteriaType::QualityUpgradedForGarrisonFollower, follower->PacketInfo.GarrFollowerID, follower->PacketInfo.Quality);
                     }
 
                     // Fully maxed (top level AND top quality): no bar left to fill.
@@ -2449,6 +2502,15 @@ GarrisonError Garrison::FinalizeMission(uint32 missionRecID, bool grantOvermax)
                 }
             }
         }
+    }
+
+    // CriteriaType::SucceedGarrisonMission (174, Asset = GarrMissionID) and
+    // CriteriaType::SucceedAnyGarrisonMissionWithFollowerType (173, Asset = GarrFollowerTypeID). Only a
+    // SUCCESSFUL mission counts - a failed run must not advance "Complete N garrison missions".
+    if (succeeded)
+    {
+        _owner->UpdateCriteria(CriteriaType::SucceedGarrisonMission, missionRecID);
+        _owner->UpdateCriteria(CriteriaType::SucceedAnyGarrisonMissionWithFollowerType, missionEntry->GarrFollowerTypeID, missionRecID);
     }
 
     // Archive the completed mission
@@ -3018,6 +3080,10 @@ void Garrison::SetFollowerQuality(uint64 dbId, uint32 quality)
     changedQuality.OldFollower = oldFollowerState;
     changedQuality.Follower = follower->PacketInfo;
     _owner->SendDirectMessage(changedQuality.Write());
+
+    // CriteriaType::QualityUpgradedForGarrisonFollower (187) - only an actual upgrade counts.
+    if (quality > oldFollowerState.Quality)
+        _owner->UpdateCriteria(CriteriaType::QualityUpgradedForGarrisonFollower, follower->PacketInfo.GarrFollowerID, quality);
 }
 
 void Garrison::SetFollowerLevel(uint64 dbId, uint32 level)
@@ -3026,6 +3092,8 @@ void Garrison::SetFollowerLevel(uint64 dbId, uint32 level)
     if (!follower)
         return;
 
+    uint32 const oldLevel = follower->PacketInfo.FollowerLevel;
+
     follower->PacketInfo.FollowerLevel = level;
     follower->PacketInfo.Xp = 0;
 
@@ -3033,6 +3101,11 @@ void Garrison::SetFollowerLevel(uint64 dbId, uint32 level)
     updateFollower.Result = GARRISON_SUCCESS;
     updateFollower.Follower = follower->PacketInfo;
     _owner->SendDirectMessage(updateFollower.Write());
+
+    // CriteriaType::LevelChangedForGarrisonFollower (184). miscValue1 = GarrFollower id (what the
+    // GarrisonFollowerType/-Level ModifierTree evaluators resolve), miscValue2 = the new level.
+    if (level != oldLevel)
+        _owner->UpdateCriteria(CriteriaType::LevelChangedForGarrisonFollower, follower->PacketInfo.GarrFollowerID, level);
 }
 
 void Garrison::AddFollowerXP(uint64 dbId, uint32 xp)
@@ -3250,6 +3323,12 @@ GarrisonError Garrison::UpgradeFollowerItemLevel(uint64 dbId, int32 amount, int3
     changedItemLevel.OldFollower = oldFollowerState;
     changedItemLevel.Follower = follower->PacketInfo;
     _owner->SendDirectMessage(changedItemLevel.Write());
+
+    // CriteriaType::ItemLevelChangedForGarrisonFollower (183). miscValue1 = GarrFollower id, which is what
+    // ModifierTreeType::GarrisonFollowerItemLevelEqualOrGreaterThan (168) resolves; miscValue2 = new iLvl.
+    if (follower->PacketInfo.ItemLevelWeapon != oldFollowerState.ItemLevelWeapon
+        || follower->PacketInfo.ItemLevelArmor != oldFollowerState.ItemLevelArmor)
+        _owner->UpdateCriteria(CriteriaType::ItemLevelChangedForGarrisonFollower, follower->PacketInfo.GarrFollowerID, follower->GetItemLevel());
 
     return GARRISON_SUCCESS;
 }
@@ -3931,6 +4010,11 @@ void Garrison::CompleteShipment(uint64 dbId)
         // persisted with the other followers by SaveToDB.
         if (shipmentEntry->GarrFollowerID)
             AddTroop(shipmentEntry->GarrFollowerID, GARRISON_TROOP_DEFAULT_DURABILITY);
+
+        // CriteriaType::CollectGarrisonShipment (182, Asset = CharShipmentContainerID). Real Criteria rows
+        // carry container ids (31/37/51...), so miscValue1 must be the container, not the shipment record.
+        // miscValue2 carries the CharShipment record id for ModifierTree discrimination.
+        _owner->UpdateCriteria(CriteriaType::CollectGarrisonShipment, shipmentEntry->ContainerID, shipmentEntry->ID);
     }
 
     WorldPackets::Garrison::CompleteShipmentResponse response;
@@ -4433,6 +4517,12 @@ void Garrison::CompleteAllTalentResearch(bool sendUpdate /*= false*/)
         talent.Rank++;
         talent.ResearchStartTime = 0;
 
+        // CriteriaType::CompleteResearchGarrisonTalent (198, Asset = GarrTalentID) and
+        // CriteriaType::CompleteResearchAnyGarrisonTalent (197, no asset - gated by ModifierTree
+        // GarrisonTalentSelected/Researched). miscValue2 = the rank that just finished researching.
+        _owner->UpdateCriteria(CriteriaType::CompleteResearchGarrisonTalent, talentId, talent.Rank);
+        _owner->UpdateCriteria(CriteriaType::CompleteResearchAnyGarrisonTalent, talentId, talent.Rank);
+
         TC_LOG_DEBUG("garrison", "Garrison::CompleteAllTalentResearch: Player {} talent {} completed research to rank {}",
             _owner->GetGUID().ToString().c_str(), talentId, talent.Rank);
 
@@ -4575,11 +4665,20 @@ uint32 Garrison::ResearchTalent(uint32 garrTalentID)
     // Start research
     talent.ResearchStartTime = GameTime::GetGameTime();
 
+    // CriteriaType::StartResearchGarrisonTalent (202, Asset = GarrTalentID) and
+    // CriteriaType::StartResearchAnyGarrisonTalent (201, no asset).
+    _owner->UpdateCriteria(CriteriaType::StartResearchGarrisonTalent, garrTalentID, talent.Rank + 1);
+    _owner->UpdateCriteria(CriteriaType::StartResearchAnyGarrisonTalent, garrTalentID, talent.Rank + 1);
+
     // If research is instant (duration 0), complete immediately
     if (rankEntry->ResearchDurationSecs <= 0)
     {
         talent.Rank++;
         talent.ResearchStartTime = 0;
+
+        // An instant research never passes through CompleteAllTalentResearch, so credit the completion here.
+        _owner->UpdateCriteria(CriteriaType::CompleteResearchGarrisonTalent, garrTalentID, talent.Rank);
+        _owner->UpdateCriteria(CriteriaType::CompleteResearchAnyGarrisonTalent, garrTalentID, talent.Rank);
     }
 
     // Legion Order Advancement intro quests ("Using Lost Knowledge" 46940 and its per-class equivalents) close their
@@ -4637,6 +4736,13 @@ uint32 Garrison::SocketTalent(uint32 garrTalentID, int32 soulbindConduitID, int3
     talent.SoulbindConduitID = soulbindConduitID;
     talent.SoulbindConduitRank = soulbindConduitRank;
 
+    // CriteriaType::SocketGarrisonTalent (227, Asset = GarrTalentID) - miscValue2 = the conduit socketed.
+    _owner->UpdateCriteria(CriteriaType::SocketGarrisonTalent, garrTalentID, soulbindConduitID);
+    // CriteriaType::SocketAnySoulbindConduit (228) - only a real conduit counts; clearing a socket
+    // (conduit id 0) is not a "socket a conduit" event.
+    if (soulbindConduitID > 0)
+        _owner->UpdateCriteria(CriteriaType::SocketAnySoulbindConduit, soulbindConduitID, soulbindConduitRank);
+
     // Send result
     WorldPackets::Garrison::GarrisonResearchTalentResult result;
     result.Result = GARRISON_SUCCESS;
@@ -4650,6 +4756,96 @@ uint32 Garrison::SocketTalent(uint32 garrTalentID, int32 soulbindConduitID, int3
     socket.SoulbindConduitRank = talent.SoulbindConduitRank;
     result.Talent.Socket = socket;
     _owner->SendDirectMessage(result.Write());
+
+    // Dedicated socket-data push. GarrisonResearchTalentResult above carries the whole talent; these
+    // two opcodes are the incremental form the client uses to update just the conduit slot, and are
+    // type-correct for whichever garrison owns this talent (WoD 2 / Order Hall 3 / War Campaign 9 /
+    // Covenant 111).
+    if (talent.SoulbindConduitID)
+    {
+        WorldPackets::Garrison::GarrisonTalentUpdateSocketData socketUpdate;
+        socketUpdate.GarrTypeID = static_cast<uint8>(GetType());
+        socketUpdate.GarrTalentID = talent.GarrTalentID;
+        WorldPackets::Garrison::GarrisonTalentSocketData socketData;
+        socketData.SoulbindConduitID = talent.SoulbindConduitID;
+        socketData.SoulbindConduitRank = talent.SoulbindConduitRank;
+        socketUpdate.Socket = socketData;
+        _owner->SendDirectMessage(socketUpdate.Write());
+    }
+    else
+    {
+        // Conduit cleared out of the socket - the slot is now empty rather than holding rank 0.
+        WorldPackets::Garrison::GarrisonTalentRemoveSocketData socketRemove;
+        socketRemove.GarrTypeID = static_cast<uint8>(GetType());
+        socketRemove.GarrTalentID = talent.GarrTalentID;
+        _owner->SendDirectMessage(socketRemove.Write());
+    }
+
+    return GARRISON_SUCCESS;
+}
+
+// Server-driven full respec of one talent tree: erases every talent belonging to the tree from
+// memory and from character_garrison_talents, then tells the client. There is no
+// CMSG_GARRISON_RESET_TALENT_TREE in the 12.0.7 opcode set, so this is reachable through
+// `.garrison resettalents <treeId>` rather than a client request.
+uint32 Garrison::ResetTalentTree(uint32 garrTalentTreeID)
+{
+    GarrTalentTreeEntry const* treeEntry = sGarrTalentTreeStore.LookupEntry(garrTalentTreeID);
+    if (!treeEntry)
+        return GARRISON_ERROR_INVALID_TALENT;
+
+    // Refuse to reset a tree that does not belong to this garrison type.
+    if (treeEntry->GarrTypeID != GetType())
+        return GARRISON_ERROR_INVALID_TALENT;
+
+    // Collect first: the client tracks individual talents, so each one is announced separately.
+    std::vector<uint32> removedTalents;
+    bool hadSocketData = false;
+    for (auto const& [talentId, talent] : _talents)
+    {
+        GarrTalentEntry const* talentEntry = sGarrTalentStore.LookupEntry(talentId);
+        if (!talentEntry || talentEntry->GarrTalentTreeID != garrTalentTreeID)
+            continue;
+
+        removedTalents.push_back(talentId);
+        if (talent.SoulbindConduitID)
+            hadSocketData = true;
+    }
+
+    if (removedTalents.empty())
+        return GARRISON_ERROR_INVALID_TALENT;
+
+    CharacterDatabaseTransaction trans = CharacterDatabase.BeginTransaction();
+    for (uint32 talentId : removedTalents)
+    {
+        _talents.erase(talentId);
+
+        CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CHARACTER_GARRISON_TALENT);
+        stmt->setUInt64(0, _owner->GetGUID().GetCounter());
+        stmt->setUInt32(1, talentId);
+        trans->Append(stmt);
+
+        WorldPackets::Garrison::GarrisonTalentRemoved talentRemoved;
+        talentRemoved.GarrTypeID = static_cast<uint8>(GetType());
+        talentRemoved.GarrTalentID = talentId;
+        _owner->SendDirectMessage(talentRemoved.Write());
+    }
+    CharacterDatabase.CommitTransaction(trans);
+
+    // Tree-level notifications. The socket-data reset is only meaningful when the tree actually
+    // held conduit data, so it is not sent unconditionally.
+    if (hadSocketData)
+    {
+        WorldPackets::Garrison::GarrisonResetTalentTreeSocketData socketReset;
+        socketReset.GarrTypeID = static_cast<uint8>(GetType());
+        socketReset.GarrTalentTreeID = garrTalentTreeID;
+        _owner->SendDirectMessage(socketReset.Write());
+    }
+
+    WorldPackets::Garrison::GarrisonResetTalentTree treeReset;
+    treeReset.GarrTypeID = static_cast<uint8>(GetType());
+    treeReset.GarrTalentTreeID = garrTalentTreeID;
+    _owner->SendDirectMessage(treeReset.Write());
 
     return GARRISON_SUCCESS;
 }

@@ -2909,6 +2909,9 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         // Soulbind conduit collection (server-authoritative: conduitId -> owned RankIndex)
         bool HasConduit(uint32 conduitId) const { return m_soulbindConduits.find(conduitId) != m_soulbindConduits.end(); }
         int32 GetConduitRank(uint32 conduitId) const;
+        // Read-only view of the whole conduit collection. Used by ModifierTreeType
+        // PlayerSoulbindConduitCountAtRankEqualOrGreaterThan (309), which counts conduits at a minimum rank.
+        std::unordered_map<uint32 /*conduitId*/, uint32 /*rankIndex*/> const& GetSoulbindConduits() const { return m_soulbindConduits; }
         bool CollectConduit(uint32 conduitId, int32 rankIndex = -1);   // grant/upgrade; rankIndex < 0 => lowest defined rank
         void SetActiveCovenant(uint32 covenantId);              // SPELL_EFFECT_SET_COVENANT: join covenant, persist (soulbind-independent)
         void TryCollectConduitFromItem(Item* item);                    // auto-collect when a conduit item is acquired (SoulbindConduitItem)

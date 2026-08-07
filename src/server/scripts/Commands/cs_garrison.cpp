@@ -25,6 +25,7 @@ EndScriptData */
 #include "ScriptMgr.h"
 #include "Chat.h"
 #include "ChatCommand.h"
+#include "DB2Stores.h"
 #include "DB2Structure.h"
 #include "Garrison.h"
 #include "Player.h"
@@ -75,6 +76,7 @@ public:
             { "champions", HandleGarrisonChampionsCommand, rbac::RBAC_PERM_COMMAND_GM, Console::No },
             { "enter",     HandleGarrisonEnterCommand,     rbac::RBAC_PERM_COMMAND_GM, Console::No },
             { "exit",      HandleGarrisonExitCommand,      rbac::RBAC_PERM_COMMAND_GM, Console::No },
+            { "resettalents", HandleGarrisonResetTalentsCommand, rbac::RBAC_PERM_COMMAND_GM, Console::No },
         };
 
         static ChatCommandTable commandTable =
@@ -222,6 +224,52 @@ public:
     }
 
     // .garrison exit   - return from the Order Hall to Dalaran (Broken Isles).
+    // .garrison resettalents <garrTalentTreeID>  - wipe every talent the selected player has in the
+    //   given GarrTalentTree and push the reset to the client. The tree must belong to a garrison
+    //   type the player actually owns. There is no client request for this in 12.0.7, so a GM
+    //   command is the only trigger.
+    static bool HandleGarrisonResetTalentsCommand(ChatHandler* handler, uint32 garrTalentTreeID)
+    {
+        Player* target = handler->getSelectedPlayerOrSelf();
+        if (!target)
+        {
+            handler->SendSysMessage(LANG_PLAYER_NOT_FOUND);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        if (handler->HasLowerSecurity(target, ObjectGuid::Empty))
+            return false;
+
+        GarrTalentTreeEntry const* treeEntry = sGarrTalentTreeStore.LookupEntry(garrTalentTreeID);
+        if (!treeEntry)
+        {
+            handler->PSendSysMessage("GarrTalentTree {} does not exist.", garrTalentTreeID);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        Garrison* garrison = target->GetGarrison(GarrisonType(treeEntry->GarrTypeID));
+        if (!garrison)
+        {
+            handler->PSendSysMessage("{} has no garrison of type {} (required by GarrTalentTree {}).",
+                target->GetName(), uint32(treeEntry->GarrTypeID), garrTalentTreeID);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        if (garrison->ResetTalentTree(garrTalentTreeID) != GARRISON_SUCCESS)
+        {
+            handler->PSendSysMessage("{} has no researched talents in GarrTalentTree {}.", target->GetName(), garrTalentTreeID);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        handler->PSendSysMessage("Reset GarrTalentTree {} for {} (garrison type {}).",
+            garrTalentTreeID, target->GetName(), uint32(treeEntry->GarrTypeID));
+        return true;
+    }
+
     static bool HandleGarrisonExitCommand(ChatHandler* handler)
     {
         Player* target = handler->getSelectedPlayerOrSelf();

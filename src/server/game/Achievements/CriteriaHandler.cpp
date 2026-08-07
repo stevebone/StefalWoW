@@ -569,6 +569,22 @@ void CriteriaHandler::UpdateCriteria(Criteria const* criteria, uint64 miscValue1
         case CriteriaType::SellItemsToVendors:
         case CriteriaType::ReachMaxLevel:
         case CriteriaType::LearnTaxiNode:
+        // --- garrison (all four live garrison types: WoD 2 / Order Hall 3 / War Campaign 9 / Covenant 111)
+        case CriteriaType::PlaceAnyGarrisonBuilding:
+        case CriteriaType::AcquireGarrison:
+        case CriteriaType::StartAnyGarrisonMissionWithFollowerType:
+        case CriteriaType::SucceedAnyGarrisonMissionWithFollowerType:
+        case CriteriaType::RecruitAnyGarrisonFollower:
+        case CriteriaType::RecruitAnyGarrisonTroop:
+        case CriteriaType::LearnAnyGarrisonBlueprint:
+        case CriteriaType::LearnAnyGarrisonSpecialization:
+        case CriteriaType::CollectGarrisonShipment:
+        case CriteriaType::ItemLevelChangedForGarrisonFollower:
+        case CriteriaType::LevelChangedForGarrisonFollower:
+        case CriteriaType::QualityUpgradedForGarrisonFollower:
+        case CriteriaType::StartResearchAnyGarrisonTalent:
+        case CriteriaType::CompleteResearchAnyGarrisonTalent:
+        case CriteriaType::SocketAnySoulbindConduit:
             SetCriteriaProgress(criteria, 1, referencePlayer, PROGRESS_ACCUMULATE);
             break;
         // std case: increment at miscValue1
@@ -700,6 +716,16 @@ void CriteriaHandler::UpdateCriteria(Criteria const* criteria, uint64 miscValue1
         case CriteriaType::CollectTransmogSetFromGroup:
         case CriteriaType::EnterTopLevelArea:
         case CriteriaType::LeaveTopLevelArea:
+        // one-shot "did this specific thing" criteria - the asset already pins the exact subject
+        case CriteriaType::ActivateGarrisonBuilding:
+        case CriteriaType::UpgradeGarrison:
+        case CriteriaType::StartGarrisonMission:
+        case CriteriaType::SucceedGarrisonMission:
+        case CriteriaType::LearnGarrisonBlueprint:
+        case CriteriaType::LearnGarrisonSpecialization:
+        case CriteriaType::StartResearchGarrisonTalent:
+        case CriteriaType::CompleteResearchGarrisonTalent:
+        case CriteriaType::SocketGarrisonTalent:
             SetCriteriaProgress(criteria, 1, referencePlayer);
             break;
         case CriteriaType::BankSlotsPurchased:
@@ -833,16 +859,6 @@ void CriteriaHandler::UpdateCriteria(Criteria const* criteria, uint64 miscValue1
         case CriteriaType::AccountObtainPetThroughBattle:
         case CriteriaType::WinPetBattle:
         case CriteriaType::PlayerObtainPetThroughBattle:
-        case CriteriaType::ActivateGarrisonBuilding:
-        case CriteriaType::UpgradeGarrison:
-        case CriteriaType::StartAnyGarrisonMissionWithFollowerType:
-        case CriteriaType::SucceedAnyGarrisonMissionWithFollowerType:
-        case CriteriaType::SucceedGarrisonMission:
-        case CriteriaType::RecruitAnyGarrisonFollower:
-        case CriteriaType::LearnAnyGarrisonBlueprint:
-        case CriteriaType::CollectGarrisonShipment:
-        case CriteriaType::ItemLevelChangedForGarrisonFollower:
-        case CriteriaType::LevelChangedForGarrisonFollower:
         case CriteriaType::LearnToy:
         case CriteriaType::LearnAnyToy:
         case CriteriaType::FindResearchObject:
@@ -860,17 +876,12 @@ void CriteriaHandler::UpdateCriteria(Criteria const* criteria, uint64 miscValue1
         case CriteriaType::KickTargetInLFGDungeon:
         case CriteriaType::AbandonedLFGDungeon:
         case CriteriaType::GroupedTankLeftEarlyInLFGDungeon:
-        case CriteriaType::StartGarrisonMission:
-        case CriteriaType::QualityUpgradedForGarrisonFollower:
-        case CriteriaType::CompleteResearchGarrisonTalent:
-        case CriteriaType::RecruitAnyGarrisonTroop:
         case CriteriaType::CompleteAnyWorldQuest:
         case CriteriaType::ParagonLevelIncreaseWithFaction:
         case CriteriaType::PlayerHasEarnedHonor:
         case CriteriaType::ChooseRelicTalent:
         case CriteriaType::AccountHonorLevelReached:
         case CriteriaType::MythicPlusCompleted:
-        case CriteriaType::SocketAnySoulbindConduit:
         case CriteriaType::ObtainAnyItemWithCurrencyValue:
         case CriteriaType::EarnExpansionLevel:
         case CriteriaType::LearnTransmog:
@@ -1663,6 +1674,7 @@ bool CriteriaHandler::RequirementsSatisfied(Criteria const* criteria, uint64 mis
             break;
         case CriteriaType::PlaceGarrisonBuilding:
         case CriteriaType::ActivateGarrisonBuilding:
+        case CriteriaType::LearnGarrisonBlueprint:
             if (miscValue1 != uint32(criteria->Entry->Asset.GarrBuildingID))
                 return false;
             break;
@@ -1712,6 +1724,58 @@ bool CriteriaHandler::RequirementsSatisfied(Criteria const* criteria, uint64 mis
             break;
         case CriteriaType::LearnTaxiNode:
             if (miscValue1 != uint32(criteria->Entry->Asset.TaxiNodesID))
+                return false;
+            break;
+        // ---------------------------------------------------------------------------------------------
+        // Garrison (WoD 2 / Order Hall 3 / War Campaign 9 / Covenant 111) - see Garrison.cpp call sites.
+        // ---------------------------------------------------------------------------------------------
+        case CriteriaType::UpgradeGarrison:
+            // Asset = the tier the criterion wants; miscValue1 = the tier just reached. Upgrades can skip
+            // tiers (Create->Upgrade->Upgrade is 1->2->3 today, but data may jump), so this is >=, not ==.
+            if (!miscValue1 || miscValue1 < uint32(criteria->Entry->Asset.GarrisonLevel))
+                return false;
+            break;
+        case CriteriaType::StartAnyGarrisonMissionWithFollowerType:
+        case CriteriaType::SucceedAnyGarrisonMissionWithFollowerType:
+            // Asset = GarrFollowerType; miscValue1 = GarrMission.GarrFollowerTypeID, miscValue2 = mission id.
+            if (miscValue1 != uint32(criteria->Entry->Asset.GarrFollowerTypeID))
+                return false;
+            break;
+        case CriteriaType::StartGarrisonMission:
+        case CriteriaType::SucceedGarrisonMission:
+            if (!miscValue1 || miscValue1 != uint32(criteria->Entry->Asset.GarrMissionID))
+                return false;
+            break;
+        case CriteriaType::LearnGarrisonSpecialization:
+            if (!miscValue1 || miscValue1 != uint32(criteria->Entry->Asset.GarrSpecializationID))
+                return false;
+            break;
+        case CriteriaType::CollectGarrisonShipment:
+            // Asset = CharShipmentContainerID (real rows carry 31/37/51/...), miscValue2 = CharShipment id.
+            if (!miscValue1 || miscValue1 != uint32(criteria->Entry->Asset.CharShipmentContainerID))
+                return false;
+            break;
+        case CriteriaType::CompleteResearchGarrisonTalent:
+        case CriteriaType::StartResearchGarrisonTalent:
+        case CriteriaType::SocketGarrisonTalent:
+            if (!miscValue1 || miscValue1 != uint32(criteria->Entry->Asset.GarrTalentID))
+                return false;
+            break;
+        case CriteriaType::PlaceAnyGarrisonBuilding:
+        case CriteriaType::AcquireGarrison:
+        case CriteriaType::LearnAnyGarrisonBlueprint:
+        case CriteriaType::LearnAnyGarrisonSpecialization:
+        case CriteriaType::RecruitAnyGarrisonFollower:
+        case CriteriaType::RecruitAnyGarrisonTroop:
+        case CriteriaType::ItemLevelChangedForGarrisonFollower:
+        case CriteriaType::LevelChangedForGarrisonFollower:
+        case CriteriaType::QualityUpgradedForGarrisonFollower:
+        case CriteriaType::StartResearchAnyGarrisonTalent:
+        case CriteriaType::CompleteResearchAnyGarrisonTalent:
+        case CriteriaType::SocketAnySoulbindConduit:
+            // No asset - the ModifierTree does the discriminating, but it needs a real subject id in
+            // miscValue1 (GarrFollower / GarrTalent / SoulbindConduit / GarrBuilding).
+            if (!miscValue1)
                 return false;
             break;
         default:
@@ -2569,8 +2633,29 @@ bool CriteriaHandler::ModifierSatisfied(ModifierTreeEntry const* modifier, uint6
             if (!referencePlayer->GetMap()->IsGarrison() || referencePlayer->GetMap()->GetInstanceId() != referencePlayer->GetGUID().GetCounter())
                 return false;
             break;
-        case ModifierTreeType::GarrisonShipmentOfTypeIsPending: // 139 NYI
-            return false;
+        case ModifierTreeType::GarrisonShipmentOfTypeIsPending: // 139
+        {
+            // "Shipment of type {CharShipmentContainer} is pending" - an order for that container exists and
+            // has not finished yet. Work orders are per-garrison, so every garrison the player owns is checked.
+            bool pending = false;
+            for (auto const& [garrTypeId, garrison] : referencePlayer->GetGarrisons())
+            {
+                for (Garrison::Shipment const* shipment : garrison->GetAllShipments())
+                {
+                    CharShipmentEntry const* shipmentEntry = sCharShipmentStore.LookupEntry(shipment->ShipmentRecID);
+                    if (shipmentEntry && shipmentEntry->ContainerID == reqValue && !shipment->IsReady())
+                    {
+                        pending = true;
+                        break;
+                    }
+                }
+                if (pending)
+                    break;
+            }
+            if (!pending)
+                return false;
+            break;
+        }
         case ModifierTreeType::GarrisonBuildingIsUnderConstruction: // 140
         {
             GarrBuildingEntry const* building = sGarrBuildingStore.LookupEntry(reqValue);
@@ -2588,8 +2673,20 @@ bool CriteriaHandler::ModifierSatisfied(ModifierTreeEntry const* modifier, uint6
             }
             return false;
         }
-        case ModifierTreeType::GarrisonMissionHasBeenCompleted: // 141 NYI
-            return false;
+        case ModifierTreeType::GarrisonMissionHasBeenCompleted: // 141
+        {
+            // reqValue = GarrMission record id. Garrison::FinalizeMission archives every mission it retires.
+            bool completed = false;
+            for (auto const& [garrTypeId, garrison] : referencePlayer->GetGarrisons())
+                if (garrison->HasCompletedMission(reqValue))
+                {
+                    completed = true;
+                    break;
+                }
+            if (!completed)
+                return false;
+            break;
+        }
         case ModifierTreeType::GarrisonBuildingLevelEqual: // 142
         {
             Garrison* garrison = referencePlayer->GetGarrison();
@@ -2657,23 +2754,36 @@ bool CriteriaHandler::ModifierSatisfied(ModifierTreeEntry const* modifier, uint6
             }
             break;
         }
+        // 145/146 sit in the same AND-trees as GarrisonFollowerType (187) and
+        // GarrisonFollowerItemLevelEqualOrGreaterThan (168) - e.g. ModifierTree 41766 = {146 level 110, 187
+        // type 4} and 16119 = {168 ilvl 625, 187 type 1}. 187/168 resolve miscValue1 through
+        // sGarrFollowerStore / PacketInfo.GarrFollowerID, so miscValue1 is the GarrFollower RECORD id, never
+        // the runtime DbID that GetFollower() takes; looking it up as a DbID made every such tree unsatisfiable.
+        // The garrison is likewise resolved by follower ownership rather than assuming the WoD garrison,
+        // because these trees are also used by Order Hall / Covenant followers (secondaryAsset 0 = any).
         case ModifierTreeType::GarrisonFollowerQualityEqual: // 145
         {
-            Garrison const* garrison = referencePlayer->GetGarrison();
-            if (!garrison || garrison->GetType() != GARRISON_TYPE_GARRISON)
-                return false;
             if (miscValue1)
             {
-                Garrison::Follower const* follower = garrison->GetFollower(miscValue1);
-                if (!follower || follower->PacketInfo.Quality < reqValue)
+                bool found = false;
+                for (auto const& [garrTypeId, garrison] : referencePlayer->GetGarrisons())
+                    if (Garrison::Follower const* follower = garrison->GetFollowerByEntry(uint32(miscValue1)))
+                        if (follower->PacketInfo.Quality >= reqValue)
+                        {
+                            found = true;
+                            break;
+                        }
+                if (!found)
                     return false;
             }
             else
             {
-                uint32 followerCount = garrison->CountFollowers([reqValue](Garrison::Follower const& follower)
-                {
-                    return follower.PacketInfo.Quality >= reqValue;
-                });
+                uint32 followerCount = 0;
+                for (auto const& [garrTypeId, garrison] : referencePlayer->GetGarrisons())
+                    followerCount += garrison->CountFollowers([reqValue](Garrison::Follower const& follower)
+                    {
+                        return follower.PacketInfo.Quality >= reqValue;
+                    });
                 if (followerCount < 1)
                     return false;
             }
@@ -2681,21 +2791,36 @@ bool CriteriaHandler::ModifierSatisfied(ModifierTreeEntry const* modifier, uint6
         }
         case ModifierTreeType::GarrisonFollowerLevelEqual: // 146
         {
-            Garrison const* garrison = referencePlayer->GetGarrison();
-            if (!garrison || garrison->GetType() != GarrisonType(secondaryAsset))
-                return false;
+            // secondaryAsset = GarrType, 0 == any garrison type.
             if (miscValue1)
             {
-                Garrison::Follower const* follower = garrison->GetFollower(miscValue1);
-                if (!follower || follower->PacketInfo.FollowerLevel != reqValue)
+                bool found = false;
+                for (auto const& [garrTypeId, garrison] : referencePlayer->GetGarrisons())
+                {
+                    if (secondaryAsset && garrison->GetType() != GarrisonType(secondaryAsset))
+                        continue;
+                    if (Garrison::Follower const* follower = garrison->GetFollowerByEntry(uint32(miscValue1)))
+                        if (follower->PacketInfo.FollowerLevel == reqValue)
+                        {
+                            found = true;
+                            break;
+                        }
+                }
+                if (!found)
                     return false;
             }
             else
             {
-                uint32 followerCount = garrison->CountFollowers([reqValue](Garrison::Follower const& follower)
+                uint32 followerCount = 0;
+                for (auto const& [garrTypeId, garrison] : referencePlayer->GetGarrisons())
                 {
-                    return follower.PacketInfo.FollowerLevel == reqValue;
-                });
+                    if (secondaryAsset && garrison->GetType() != GarrisonType(secondaryAsset))
+                        continue;
+                    followerCount += garrison->CountFollowers([reqValue](Garrison::Follower const& follower)
+                    {
+                        return follower.PacketInfo.FollowerLevel == reqValue;
+                    });
+                }
                 if (followerCount < 1)
                     return false;
             }
@@ -2808,7 +2933,27 @@ bool CriteriaHandler::ModifierSatisfied(ModifierTreeEntry const* modifier, uint6
         case ModifierTreeType::IsQARealm: // 162
             return false; // always false
         case ModifierTreeType::GarrisonShipmentContainerIsFull: // 163
-            return false;
+        {
+            // "Shipment Container {CharShipmentContainer} is full" - outstanding orders for the container have
+            // reached CharShipment::MaxShipments, the same cap Garrison::CreateShipment enforces.
+            uint32 maxShipments = 0;
+            for (CharShipmentEntry const* shipmentEntry : sCharShipmentStore)
+                if (shipmentEntry->ContainerID == reqValue)
+                    maxShipments = std::max<uint32>(maxShipments, shipmentEntry->MaxShipments);
+            if (!maxShipments)
+                return false;
+
+            uint32 orders = 0;
+            for (auto const& [garrTypeId, garrison] : referencePlayer->GetGarrisons())
+                for (Garrison::Shipment const* shipment : garrison->GetAllShipments())
+                    if (CharShipmentEntry const* shipmentEntry = sCharShipmentStore.LookupEntry(shipment->ShipmentRecID))
+                        if (shipmentEntry->ContainerID == reqValue)
+                            ++orders;
+
+            if (orders < maxShipments)
+                return false;
+            break;
+        }
         case ModifierTreeType::PlayerCountIsValidToStartGarrisonInvasion: // 164
             return true; // Only 1 player is required and referencePlayer->GetMap() will ALWAYS have at least the referencePlayer on it
         case ModifierTreeType::InstancePlayerCountEqualOrLessThan: // 165
@@ -2836,13 +2981,12 @@ bool CriteriaHandler::ModifierSatisfied(ModifierTreeEntry const* modifier, uint6
         {
             if (!miscValue1)
                 return false;
-            Garrison const* garrison = referencePlayer->GetGarrison();
-            if (!garrison)
-                return false;
-            uint32 followerCount = garrison->CountFollowers([miscValue1, reqValue](Garrison::Follower const& follower)
-            {
-                return follower.PacketInfo.GarrFollowerID == miscValue1 && follower.GetItemLevel() >= reqValue;
-            });
+            uint32 followerCount = 0;
+            for (auto const& [garrTypeId, garrison] : referencePlayer->GetGarrisons())
+                followerCount += garrison->CountFollowers([miscValue1, reqValue](Garrison::Follower const& follower)
+                {
+                    return follower.PacketInfo.GarrFollowerID == miscValue1 && follower.GetItemLevel() >= reqValue;
+                });
             if (followerCount < 1)
                 return false;
             break;
@@ -2916,8 +3060,27 @@ bool CriteriaHandler::ModifierSatisfied(ModifierTreeEntry const* modifier, uint6
                 return false;
             break;
         }
-        case ModifierTreeType::GarrisonMissionCountLessThan: // 177 NYI
-            return false;
+        case ModifierTreeType::GarrisonMissionCountLessThan: // 177
+        {
+            // "Player has less than {#Available} available and {#In-Progress} in-progress missions of garrison
+            // type {GarrType}". Mission states: 0 = offered/available, 1 = in progress.
+            Garrison const* garrison = referencePlayer->GetGarrison(GarrisonType(tertiaryAsset));
+            if (!garrison)
+                break; // no garrison of that type == zero missions, which is "less than" any positive bound
+
+            uint32 available = 0;
+            uint32 inProgress = 0;
+            for (auto const& [dbId, mission] : garrison->GetAllMissions())
+            {
+                if (mission.PacketInfo.MissionState == 0)
+                    ++available;
+                else if (mission.PacketInfo.MissionState == 1)
+                    ++inProgress;
+            }
+            if (available >= reqValue || inProgress >= secondaryAsset)
+                return false;
+            break;
+        }
         case ModifierTreeType::GarrisonPlotInstanceCountEqualOrGreaterThan: // 178
         {
             Garrison* garrison = referencePlayer->GetGarrison();
@@ -2998,8 +3161,27 @@ bool CriteriaHandler::ModifierSatisfied(ModifierTreeEntry const* modifier, uint6
                 return false;
             break;
         }
-        case ModifierTreeType::GarrisonMissionCountInSetLessThan: // 186 NYI
-            return false;
+        case ModifierTreeType::GarrisonMissionCountInSetLessThan: // 186
+        {
+            // "Player has less than {#Missions} available and in-progress missions of set {GarrMissionSet} in
+            // garrison type {GarrType}". GarrMission::GarrMissionSetID carries the set.
+            Garrison const* garrison = referencePlayer->GetGarrison(GarrisonType(tertiaryAsset));
+            if (!garrison)
+                break;
+
+            uint32 count = 0;
+            for (auto const& [dbId, mission] : garrison->GetAllMissions())
+            {
+                if (mission.PacketInfo.MissionState != 0 && mission.PacketInfo.MissionState != 1)
+                    continue;
+                if (GarrMissionEntry const* missionEntry = sGarrMissionStore.LookupEntry(mission.PacketInfo.MissionRecID))
+                    if (missionEntry->GarrMissionSetID == secondaryAsset)
+                        ++count;
+            }
+            if (count >= reqValue)
+                return false;
+            break;
+        }
         case ModifierTreeType::GarrisonFollowerType: // 187
         {
             GarrFollowerEntry const* garrFollower = sGarrFollowerStore.LookupEntry(miscValue1);
@@ -3023,7 +3205,26 @@ bool CriteriaHandler::ModifierSatisfied(ModifierTreeEntry const* modifier, uint6
             break;
         case ModifierTreeType::PrestigeLevelEqualOrGreaterThan: // 194
             return false; // OBSOLOTE
-        case ModifierTreeType::GarrisonMissionIsReadyToCollect: // 195 NYI
+        case ModifierTreeType::GarrisonMissionIsReadyToCollect: // 195
+        {
+            // reqValue = GarrMission record id. States 2/3 are the "completed, awaiting collection" states
+            // Garrison::FinalizeMission accepts.
+            bool ready = false;
+            for (auto const& [garrTypeId, garrison] : referencePlayer->GetGarrisons())
+            {
+                if (Garrison::Mission const* mission = garrison->GetMissionByRecID(reqValue))
+                {
+                    if (mission->PacketInfo.MissionState == 2 || mission->PacketInfo.MissionState == 3)
+                    {
+                        ready = true;
+                        break;
+                    }
+                }
+            }
+            if (!ready)
+                return false;
+            break;
+        }
         case ModifierTreeType::PlayerIsInstanceOwner: // 196 NYI
             return false;
         case ModifierTreeType::PlayerHasHeirloom: // 197
@@ -3043,9 +3244,36 @@ bool CriteriaHandler::ModifierSatisfied(ModifierTreeEntry const* modifier, uint6
                 return false;
             break;
         }
-        case ModifierTreeType::GarrisonTalentSelected: // 201 NYI
-        case ModifierTreeType::GarrisonTalentResearched: // 202 NYI
-            return false;
+        case ModifierTreeType::GarrisonTalentSelected: // 201
+        {
+            // "Garrison has talent {GarrTalent} selected" - the node has been picked (Garrison::LearnTalent
+            // inserts it at rank 0), regardless of whether its research has finished.
+            bool selected = false;
+            for (auto const& [garrTypeId, garrison] : referencePlayer->GetGarrisons())
+                if (garrison->GetTalent(reqValue))
+                {
+                    selected = true;
+                    break;
+                }
+            if (!selected)
+                return false;
+            break;
+        }
+        case ModifierTreeType::GarrisonTalentResearched: // 202
+        {
+            // "researched" == the research completed at least once, i.e. Rank >= 1.
+            bool researched = false;
+            for (auto const& [garrTypeId, garrison] : referencePlayer->GetGarrisons())
+                if (Garrison::Talent const* talent = garrison->GetTalent(reqValue))
+                    if (talent->Rank >= 1)
+                    {
+                        researched = true;
+                        break;
+                    }
+            if (!researched)
+                return false;
+            break;
+        }
         case ModifierTreeType::PlayerHasRestriction: // 203
         {
             int32 restrictionIndex = referencePlayer->m_activePlayerData->CharacterRestrictions.FindIndexIf([reqValue](UF::CharacterRestriction const& restriction)
@@ -3069,8 +3297,20 @@ bool CriteriaHandler::ModifierSatisfied(ModifierTreeEntry const* modifier, uint6
                 return false;
             break;
         }
-        case ModifierTreeType::GarrisonTalentResearchInProgress: // 207 NYI
-            return false;
+        case ModifierTreeType::GarrisonTalentResearchInProgress: // 207
+        {
+            bool researching = false;
+            for (auto const& [garrTypeId, garrison] : referencePlayer->GetGarrisons())
+                if (Garrison::Talent const* talent = garrison->GetTalent(reqValue))
+                    if (talent->IsResearching())
+                    {
+                        researching = true;
+                        break;
+                    }
+            if (!researching)
+                return false;
+            break;
+        }
         case ModifierTreeType::PlayerEquippedArtifactAppearanceSet: // 208
         {
             if (Aura const* artifactAura = referencePlayer->GetAura(ARTIFACTS_ALL_WEAPONS_GENERAL_WEAPON_EQUIPPED_PASSIVE))
@@ -3127,8 +3367,28 @@ bool CriteriaHandler::ModifierSatisfied(ModifierTreeEntry const* modifier, uint6
             if (referencePlayer->GetReputationMgr().GetParagonLevel(miscValue1) < int32(reqValue))
                 return false;
             return false;
-        case ModifierTreeType::GarrisonShipmentIsReady: // 219 NYI
-            return false;
+        case ModifierTreeType::GarrisonShipmentIsReady: // 219
+        {
+            // "Shipment in container type {CharShipmentContainer} ready" - a finished, uncollected work order.
+            bool ready = false;
+            for (auto const& [garrTypeId, garrison] : referencePlayer->GetGarrisons())
+            {
+                for (Garrison::Shipment const* shipment : garrison->GetAllShipments())
+                {
+                    CharShipmentEntry const* shipmentEntry = sCharShipmentStore.LookupEntry(shipment->ShipmentRecID);
+                    if (shipmentEntry && shipmentEntry->ContainerID == reqValue && shipment->IsReady())
+                    {
+                        ready = true;
+                        break;
+                    }
+                }
+                if (ready)
+                    break;
+            }
+            if (!ready)
+                return false;
+            break;
+        }
         case ModifierTreeType::PlayerIsInPvpBrawl: // 220
         {
             BattlemasterListEntry const* bg = sBattlemasterListStore.LookupEntry(referencePlayer->GetBattlegroundTypeId());
@@ -3611,8 +3871,21 @@ bool CriteriaHandler::ModifierSatisfied(ModifierTreeEntry const* modifier, uint6
                 return false;
             break;
         }
-        case ModifierTreeType::GarrisonHasPermanentTalent: // 290 NYI
-            return false;
+        case ModifierTreeType::GarrisonHasPermanentTalent: // 290
+        {
+            // A permanent (non-temporary) talent: learned and not flagged GARRISON_TALENT_FLAG_TEMPORARY.
+            bool permanent = false;
+            for (auto const& [garrTypeId, garrison] : referencePlayer->GetGarrisons())
+                if (Garrison::Talent const* talent = garrison->GetTalent(reqValue))
+                    if (!talent->IsTemporary())
+                    {
+                        permanent = true;
+                        break;
+                    }
+            if (!permanent)
+                return false;
+            break;
+        }
         case ModifierTreeType::HasActiveSoulbind: // 291
             if (referencePlayer->m_playerData->SoulbindID != int32(reqValue))
                 return false;
@@ -3684,8 +3957,11 @@ bool CriteriaHandler::ModifierSatisfied(ModifierTreeEntry const* modifier, uint6
                 return false;
             break;
         }
-        case ModifierTreeType::PlayerHasSoulbindConduitRankEqualOrGreaterThan: // 307 NYI
-            return false;
+        case ModifierTreeType::PlayerHasSoulbindConduitRankEqualOrGreaterThan: // 307
+            // reqValue = SoulbindConduit, secondaryAsset = Rank. GetConduitRank returns -1 when not collected.
+            if (referencePlayer->GetConduitRank(reqValue) < int32(secondaryAsset))
+                return false;
+            break;
         case ModifierTreeType::PlayerSpellShapeshiftFormCreatureDisplayInfoSelection: // 308
         {
             ShapeshiftFormModelData const* formModelData = sDB2Manager.GetShapeshiftFormModelData(referencePlayer->GetRace(), referencePlayer->GetNativeGender(), secondaryAsset);
@@ -3702,8 +3978,17 @@ bool CriteriaHandler::ModifierSatisfied(ModifierTreeEntry const* modifier, uint6
                 return false;
             break;
         }
-        case ModifierTreeType::PlayerSoulbindConduitCountAtRankEqualOrGreaterThan: // 309 NYI
-            return false;
+        case ModifierTreeType::PlayerSoulbindConduitCountAtRankEqualOrGreaterThan: // 309
+        {
+            // reqValue = how many conduits, secondaryAsset = the minimum rank each must be at.
+            uint32 count = 0;
+            for (auto const& [conduitId, rank] : referencePlayer->GetSoulbindConduits())
+                if (rank >= secondaryAsset)
+                    ++count;
+            if (count < reqValue)
+                return false;
+            break;
+        }
         case ModifierTreeType::PlayerIsRestrictedAccount: // 310
             return false;
         case ModifierTreeType::PlayerIsFlying: // 311
@@ -3732,7 +4017,21 @@ bool CriteriaHandler::ModifierSatisfied(ModifierTreeEntry const* modifier, uint6
         case ModifierTreeType::PlayerHasTBCCollectorsEdition: // 315
         case ModifierTreeType::PlayerHasWrathCollectorsEdition: // 316
             return false;
-        case ModifierTreeType::GarrisonTalentResearchedAndAtRankEqualOrGreaterThan: // 317 NYI
+        case ModifierTreeType::GarrisonTalentResearchedAndAtRankEqualOrGreaterThan: // 317
+        {
+            // reqValue = GarrTalent, secondaryAsset = minimum rank (rank 0 means "picked but not researched").
+            bool ok = false;
+            for (auto const& [garrTypeId, garrison] : referencePlayer->GetGarrisons())
+                if (Garrison::Talent const* talent = garrison->GetTalent(reqValue))
+                    if (talent->Rank >= 1 && talent->Rank >= int32(secondaryAsset))
+                    {
+                        ok = true;
+                        break;
+                    }
+            if (!ok)
+                return false;
+            break;
+        }
         case ModifierTreeType::CurrencySpentOnGarrisonTalentResearchEqualOrGreaterThan: // 318 NYI
         case ModifierTreeType::RenownCatchupActive: // 319 NYI
         case ModifierTreeType::RapidRenownCatchupActive: // 320 NYI
@@ -4993,10 +5292,10 @@ std::span<CriteriaType const> CriteriaMgr::GetRetroactivelyUpdateableCriteriaTyp
         //CriteriaType::GuildTabardCreated, /*NYI*/
         CriteriaType::LearnedNewPet,
         CriteriaType::UniquePetsOwned,
-        //CriteriaType::UpgradeGarrison, /*NYI*/
-        //CriteriaType::AcquireGarrison, /*NYI*/
-        //CriteriaType::LearnGarrisonBlueprint, /*NYI*/
-        //CriteriaType::LearnGarrisonSpecialization, /*NYI*/
+        //CriteriaType::UpgradeGarrison, // implemented, but event-driven only (Garrison::Upgrade)
+        //CriteriaType::AcquireGarrison, // implemented, but event-driven only (Garrison::Create)
+        //CriteriaType::LearnGarrisonBlueprint, // implemented, but event-driven only (Garrison::LearnBlueprint)
+        //CriteriaType::LearnGarrisonSpecialization, // implemented, but event-driven only (Garrison::LearnSpecialization)
         //CriteriaType::LearnToy, /*NYI*/ // Learn Toy "{Item}"
         //CriteriaType::LearnAnyToy, /*NYI*/ // Learn Any Toy
         //CriteriaType::LearnTransmog, /*NYI*/
