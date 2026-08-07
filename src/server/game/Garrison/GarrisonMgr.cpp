@@ -24,6 +24,8 @@
 #include "Log.h"
 #include "ObjectMgr.h"
 #include "Random.h"
+#include "SpellInfo.h"
+#include "SpellMgr.h"
 #include "Timer.h"
 #include "World.h"
 
@@ -176,6 +178,8 @@ void GarrisonMgr::Initialize()
     LoadOrderHallShipments();
     LoadOrderHallStandards();
     LoadConservatoryWildseeds();
+    LoadConservatoryCatalysts();
+    LoadConservatoryYields();
 }
 
 // Class-hall / order-hall (and any non-plot garrison) troop recruiters aren't garrison plot buildings, so the
@@ -314,7 +318,7 @@ void GarrisonMgr::LoadConservatoryWildseeds()
             TC_LOG_ERROR("sql.sql", "Table `garrison_conservatory_wildseed` row {} has maturationSeconds 0; "
                 "it will be refused at plant time.", wildseed.WildseedEntry);
 
-        if (!wildseed.RequiredTier || wildseed.RequiredTier > CONSERVATORY_MAX_PLOTS)
+        if (!wildseed.RequiredTier || wildseed.RequiredTier > CONSERVATORY_MAX_TIERS)
             wildseed.RequiredTier = 1;
 
         _conservatoryWildseeds[wildseed.WildseedEntry] = wildseed;
@@ -328,6 +332,159 @@ ConservatoryWildseedTemplate const* GarrisonMgr::GetConservatoryWildseed(uint32 
 {
     auto itr = _conservatoryWildseeds.find(wildseedEntry);
     return itr != _conservatoryWildseeds.end() ? &itr->second : nullptr;
+}
+
+// Queen's Conservatory catalysts. Unlike the wildseed kinds, WHAT a catalyst does is published by the client:
+// the three items 176921 Temporal Leaves / 176922 Wild Nightbloom / 176832 Wildseed Root Grain share the Use
+// spell 323169 "Infuse Catalyst" and each one's own description states its effect verbatim (quoted in
+// QueensConservatory.h and in world migration 2026_08_07_63). What is NOT published is the effect's magnitude
+// in server terms and the loot table each combination pays out, so the whole set is a world table and no item
+// id is compiled in. An empty table is valid - AttachCatalyst then refuses with CONSERVATORY_ERROR_NO_CATALYST_DATA
+// instead of recording a link that changes nothing, which is precisely the silent no-op this table replaces.
+void GarrisonMgr::LoadConservatoryCatalysts()
+{
+    _conservatoryCatalysts.clear();
+
+    QueryResult result = WorldDatabase.Query("SELECT catalystItemId, effectType, effectValue, maxPerPlot, spellId "
+        "FROM garrison_conservatory_catalyst");
+    if (!result)
+    {
+        TC_LOG_INFO("server.loading", ">> Loaded 0 Queen's Conservatory catalysts. DB table "
+            "`garrison_conservatory_catalyst` is empty - linking catalysts stays disabled until it is authored.");
+        return;
+    }
+
+    uint32 count = 0;
+    do
+    {
+        Field* fields = result->Fetch();
+        ConservatoryCatalystTemplate catalyst;
+        catalyst.CatalystItemId = fields[0].GetUInt32();
+        catalyst.EffectType     = ConservatoryCatalystEffect(fields[1].GetUInt8());
+        catalyst.EffectValue    = fields[2].GetInt32();
+        catalyst.MaxPerPlot     = fields[3].GetUInt8();
+        catalyst.SpellId        = fields[4].GetUInt32();
+
+        if (!catalyst.CatalystItemId)
+        {
+            TC_LOG_ERROR("sql.sql", "Table `garrison_conservatory_catalyst` has a row with catalystItemId 0; skipped.");
+            continue;
+        }
+
+        // The item has to be a real one or the link could never be paid for.
+        if (!sObjectMgr->GetItemTemplate(catalyst.CatalystItemId))
+        {
+            TC_LOG_ERROR("sql.sql", "Non-existing item {} referenced as catalystItemId in "
+                "`garrison_conservatory_catalyst`; row skipped.", catalyst.CatalystItemId);
+            continue;
+        }
+
+        if (catalyst.EffectType == CONSERVATORY_CATALYST_EFFECT_NONE || catalyst.EffectType >= CONSERVATORY_CATALYST_EFFECT_MAX)
+        {
+            TC_LOG_ERROR("sql.sql", "Table `garrison_conservatory_catalyst` row {} has effectType {}, which is not "
+                "one of 1 TIME_DELTA / 2 YIELD_QUALITY / 3 YIELD_QUANTITY; row skipped rather than linked as a "
+                "catalyst that would do nothing.", catalyst.CatalystItemId, uint32(catalyst.EffectType));
+            continue;
+        }
+
+        // A TIME_DELTA of zero would move no clock, i.e. exactly the no-op this table exists to prevent.
+        if (catalyst.EffectType == CONSERVATORY_CATALYST_EFFECT_TIME_DELTA && !catalyst.EffectValue)
+        {
+            TC_LOG_ERROR("sql.sql", "Table `garrison_conservatory_catalyst` row {} is TIME_DELTA with effectValue 0 "
+                "and would change nothing; row skipped.", catalyst.CatalystItemId);
+            continue;
+        }
+
+        if (catalyst.SpellId && !sSpellMgr->GetSpellInfo(catalyst.SpellId, DIFFICULTY_NONE))
+            TC_LOG_ERROR("sql.sql", "Table `garrison_conservatory_catalyst` row {} references spell {}, which is not "
+                "in the spell store. The column is provenance only, so the row is kept.",
+                catalyst.CatalystItemId, catalyst.SpellId);
+
+        if (!catalyst.MaxPerPlot || catalyst.MaxPerPlot > CONSERVATORY_MAX_CATALYSTS)
+            catalyst.MaxPerPlot = CONSERVATORY_MAX_CATALYSTS;
+
+        _conservatoryCatalysts[catalyst.CatalystItemId] = catalyst;
+        ++count;
+    } while (result->NextRow());
+
+    TC_LOG_INFO("server.loading", ">> Loaded {} Queen's Conservatory catalysts.", count);
+}
+
+ConservatoryCatalystTemplate const* GarrisonMgr::GetConservatoryCatalyst(uint32 catalystItemId) const
+{
+    auto itr = _conservatoryCatalysts.find(catalystItemId);
+    return itr != _conservatoryCatalysts.end() ? &itr->second : nullptr;
+}
+
+// Which gameobject_loot_template a harvest rolls for a given catalyst combination. `gameobject_loot_template`
+// 350978 - the "Queen's Conservatory Cache" chest - flattens every outcome into one table, so rolling it means
+// every harvest can produce every satchel tier and size no matter what was linked to the pod. This table is
+// what makes the catalysts matter. A combination with no row is a REFUSAL, never a fallback to another table;
+// see QueensConservatory::ResolveHarvestLootId.
+void GarrisonMgr::LoadConservatoryYields()
+{
+    _conservatoryYields.clear();
+
+    QueryResult result = WorldDatabase.Query("SELECT spiritItemId, rootGrainCount, nightbloomCount, lootId "
+        "FROM garrison_conservatory_yield");
+    if (!result)
+    {
+        TC_LOG_INFO("server.loading", ">> Loaded 0 Queen's Conservatory yield rows. DB table "
+            "`garrison_conservatory_yield` is empty - harvests fall back to the wildseed's reward chest.");
+        return;
+    }
+
+    uint32 count = 0;
+    do
+    {
+        Field* fields = result->Fetch();
+        ConservatoryYieldKey key;
+        key.SpiritItemId    = fields[0].GetUInt32();
+        key.RootGrainCount  = fields[1].GetUInt8();
+        key.NightbloomCount = fields[2].GetUInt8();
+        uint32 const lootId = fields[3].GetUInt32();
+
+        if (!lootId)
+        {
+            TC_LOG_ERROR("sql.sql", "Table `garrison_conservatory_yield` row ({}, {}, {}) has lootId 0; skipped.",
+                key.SpiritItemId, uint32(key.RootGrainCount), uint32(key.NightbloomCount));
+            continue;
+        }
+
+        if (key.RootGrainCount > CONSERVATORY_MAX_CATALYSTS || key.NightbloomCount > CONSERVATORY_MAX_CATALYSTS
+            || key.RootGrainCount + key.NightbloomCount > CONSERVATORY_MAX_CATALYSTS)
+        {
+            TC_LOG_ERROR("sql.sql", "Table `garrison_conservatory_yield` row ({}, {}, {}) needs more catalyst links "
+                "than any wildseed pod has ({}); skipped.", key.SpiritItemId, uint32(key.RootGrainCount),
+                uint32(key.NightbloomCount), uint32(CONSERVATORY_MAX_CATALYSTS));
+            continue;
+        }
+
+        if (key.SpiritItemId && !_conservatoryWildseeds.count(key.SpiritItemId))
+            TC_LOG_ERROR("sql.sql", "Table `garrison_conservatory_yield` row ({}, {}, {}) names a spiritItemId with "
+                "no `garrison_conservatory_wildseed` row; it can never be selected.", key.SpiritItemId,
+                uint32(key.RootGrainCount), uint32(key.NightbloomCount));
+
+        _conservatoryYields[key] = lootId;
+        ++count;
+    } while (result->NextRow());
+
+    TC_LOG_INFO("server.loading", ">> Loaded {} Queen's Conservatory yield rows.", count);
+}
+
+uint32 GarrisonMgr::GetConservatoryYieldLootId(uint32 spiritItemId, uint8 rootGrainCount, uint8 nightbloomCount) const
+{
+    // A spirit-specific row wins over the wildcard, so a single spirit can be re-pointed without restating the
+    // whole grid.
+    if (spiritItemId)
+    {
+        auto itr = _conservatoryYields.find({ spiritItemId, rootGrainCount, nightbloomCount });
+        if (itr != _conservatoryYields.end())
+            return itr->second;
+    }
+
+    auto itr = _conservatoryYields.find({ 0, rootGrainCount, nightbloomCount });
+    return itr != _conservatoryYields.end() ? itr->second : 0;
 }
 
 void GarrisonMgr::LoadOrderHallStandards()
