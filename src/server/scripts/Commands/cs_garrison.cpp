@@ -30,6 +30,7 @@ EndScriptData */
 #include "AbominationFactory.h"
 #include "Garrison.h"
 #include "GarrisonMgr.h"
+#include "PathOfAscension.h"
 #include "QueensConservatory.h"
 #include "Player.h"
 #include "RBAC.h"
@@ -90,6 +91,14 @@ public:
             { "build",  HandleAbominationBuildCommand,  rbac::RBAC_PERM_COMMAND_GM, Console::No },
         };
 
+        static ChatCommandTable ascensionCommandTable =
+        {
+            { "status",   HandleAscensionStatusCommand,   rbac::RBAC_PERM_COMMAND_GM, Console::No },
+            { "capture",  HandleAscensionCaptureCommand,  rbac::RBAC_PERM_COMMAND_GM, Console::No },
+            { "start",    HandleAscensionStartCommand,    rbac::RBAC_PERM_COMMAND_GM, Console::No },
+            { "complete", HandleAscensionCompleteCommand, rbac::RBAC_PERM_COMMAND_GM, Console::No },
+        };
+
         static ChatCommandTable garrisonCommandTable =
         {
             { "upgrade",   HandleGarrisonUpgradeCommand,   rbac::RBAC_PERM_COMMAND_GM, Console::No },
@@ -100,6 +109,7 @@ public:
             { "resettalents", HandleGarrisonResetTalentsCommand, rbac::RBAC_PERM_COMMAND_GM, Console::No },
             { "conservatory", conservatoryCommandTable },
             { "abomination",  abominationCommandTable },
+            { "ascension",    ascensionCommandTable },
         };
 
         static ChatCommandTable commandTable =
@@ -652,6 +662,177 @@ public:
         }
 
         handler->PSendSysMessage("Added construct {} to {}'s stable.", recipeSpellId, target->GetName());
+        return true;
+    }
+
+    // Path of Ascension (Kyrian unique sanctum feature, GarrTalentTree 320). Like the Conservatory and the
+    // Abomination Factory, the 12.0.7 client has no opcode of its own for it - the research half rides the
+    // generic garrison-talent wire, and the activity is a SOLO scenario (1803) on map 2375 "Ascension
+    // Coliseum" run at one of the four "Path of Ascension: ..." difficulties (168 Courage / 169 Loyalty /
+    // 170 Wisdom / 171 Humility). These commands exist so the engine can be driven and inspected before the
+    // Coliseum is spawned and the memory roster authored.
+    static PathOfAscension* GetPathOfAscensionFor(ChatHandler* handler, Player* target)
+    {
+        Garrison* garrison = target->GetGarrison(GARRISON_TYPE_COVENANT);
+        if (!garrison)
+        {
+            handler->PSendSysMessage("{} has no covenant sanctum (GarrType 111).", target->GetName());
+            handler->SetSentErrorMessage(true);
+            return nullptr;
+        }
+
+        return &garrison->GetPathOfAscension();
+    }
+
+    static char const* AscensionErrorText(PathOfAscensionError error)
+    {
+        switch (error)
+        {
+            case ASCENSION_OK:                          return "ok";
+            case ASCENSION_ERROR_NOT_KYRIAN:            return "the character is not pledged to the Kyrian";
+            case ASCENSION_ERROR_NOT_UNLOCKED:          return "GarrTalentTree 320 tier 1 (talent 1091 'First Steps') is not researched";
+            case ASCENSION_ERROR_UNKNOWN_MEMORY:        return "world table `garrison_ascension_memory` has no row with that memoryId";
+            case ASCENSION_ERROR_NO_MEMORY_DATA:        return "world table `garrison_ascension_memory` is empty - no 12.0.7 client row says which memories are the six the first tier captures and the four the second adds, so the roster must be authored";
+            case ASCENSION_ERROR_MEMORY_TIER_TOO_LOW:   return "that memory needs more researched tiers of GarrTalentTree 320 than the character has";
+            case ASCENSION_ERROR_MEMORY_CAPACITY:       return "the sanctum already holds as many memories as the researched tiers allow (six at one tier, ten from two)";
+            case ASCENSION_ERROR_ALREADY_CAPTURED:      return "that memory is already captured";
+            case ASCENSION_ERROR_NOT_CAPTURED:          return "that memory has not been captured";
+            case ASCENSION_ERROR_INVALID_TRIAL:         return "trial must be 1 Courage, 2 Loyalty, 3 Wisdom or 4 Humility (Difficulty 168-171)";
+            case ASCENSION_ERROR_TRIAL_LOCKED:          return "that trial is not open for that memory at the current research";
+            case ASCENSION_ERROR_NO_ARENA_CONTENT:      return "the Ascension Coliseum (scenario 1803 on map 2375) is not authored in this world DB - no `scenarios` row and/or no spawns, so a trial cannot be entered and is refused rather than faked";
+            default:                                    return "unknown error";
+        }
+    }
+
+    // .garrison ascension status
+    static bool HandleAscensionStatusCommand(ChatHandler* handler)
+    {
+        Player* target = handler->getSelectedPlayerOrSelf();
+        if (!target)
+        {
+            handler->SendSysMessage(LANG_PLAYER_NOT_FOUND);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        PathOfAscension* ascension = GetPathOfAscensionFor(handler, target);
+        if (!ascension)
+            return false;
+
+        handler->PSendSysMessage("Path of Ascension for {}: accessible {}, researched tiers {}/{}.",
+            target->GetName(), ascension->IsAccessible() ? "yes" : "no",
+            ascension->GetResearchedTiers(), uint32(ASCENSION_MAX_TIERS));
+        handler->PSendSysMessage("  memories {}/{} held, highest trial offered {}, weekly quest slots {}, braziers lit {}/2.",
+            uint32(ascension->GetMemories().size()), ascension->GetMemoryCapacity(),
+            PathOfAscension::GetTrialName(ascension->GetMaxTrial()),
+            ascension->GetWeeklyQuestSlots(), ascension->GetActiveBraziers());
+        handler->PSendSysMessage("  total trial wins {} (what the 'Defeat N bosses in the Path of Ascension' achievements count).",
+            ascension->GetTotalTrialWins());
+
+        for (AscensionMemory const* memory : ascension->GetMemories())
+        {
+            AscensionMemoryTemplate const* memoryTemplate = sGarrisonMgr.GetAscensionMemory(memory->MemoryId);
+            handler->PSendSysMessage("    memory {} (creature {}) captured at {}, highest trial won: {}.",
+                memory->MemoryId, memoryTemplate ? memoryTemplate->CreatureId : 0, int64(memory->CapturedTime),
+                PathOfAscension::GetTrialName(AscensionTrial(memory->HighestTrialWon)));
+        }
+
+        if (sGarrisonMgr.GetAscensionMemories().empty())
+            handler->SendSysMessage("  world table `garrison_ascension_memory` is empty - no memory can be captured "
+                "until the roster is authored.");
+        else
+            handler->PSendSysMessage("  {} authored memory row(s) loaded.", uint32(sGarrisonMgr.GetAscensionMemories().size()));
+
+        handler->PSendSysMessage("  Ascension Coliseum (scenario {} on map {}): {}.",
+            uint32(ASCENSION_SCENARIO_ID), uint32(ASCENSION_MAP_ID),
+            sGarrisonMgr.IsAscensionArenaAuthored() ? "authored" : "NOT authored - trials are refused");
+        return true;
+    }
+
+    // .garrison ascension capture <memoryId>
+    static bool HandleAscensionCaptureCommand(ChatHandler* handler, uint32 memoryId)
+    {
+        Player* target = handler->getSelectedPlayerOrSelf();
+        if (!target)
+        {
+            handler->SendSysMessage(LANG_PLAYER_NOT_FOUND);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        PathOfAscension* ascension = GetPathOfAscensionFor(handler, target);
+        if (!ascension)
+            return false;
+
+        PathOfAscensionError result = ascension->CaptureMemory(memoryId);
+        if (result != ASCENSION_OK)
+        {
+            handler->PSendSysMessage("Could not capture: {}.", AscensionErrorText(result));
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        handler->PSendSysMessage("Captured memory {} for {} ({} of {} held).", memoryId, target->GetName(),
+            uint32(ascension->GetMemories().size()), ascension->GetMemoryCapacity());
+        return true;
+    }
+
+    // .garrison ascension start <memoryId> <trial>   - runs every entry gate without changing any state.
+    static bool HandleAscensionStartCommand(ChatHandler* handler, uint32 memoryId, uint8 trial)
+    {
+        Player* target = handler->getSelectedPlayerOrSelf();
+        if (!target)
+        {
+            handler->SendSysMessage(LANG_PLAYER_NOT_FOUND);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        PathOfAscension* ascension = GetPathOfAscensionFor(handler, target);
+        if (!ascension)
+            return false;
+
+        PathOfAscensionError result = ascension->StartTrial(memoryId, AscensionTrial(trial));
+        if (result != ASCENSION_OK)
+        {
+            handler->PSendSysMessage("Cannot enter: {}.", AscensionErrorText(result));
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        handler->PSendSysMessage("{} may enter the {} against memory {} (scenario {} on map {}, Difficulty {}).",
+            target->GetName(), PathOfAscension::GetTrialName(AscensionTrial(trial)), memoryId,
+            uint32(ASCENSION_SCENARIO_ID), uint32(ASCENSION_MAP_ID),
+            PathOfAscension::GetTrialDifficultyId(AscensionTrial(trial)));
+        return true;
+    }
+
+    // .garrison ascension complete <memoryId> <trial>   - records a won trial without fighting it.
+    static bool HandleAscensionCompleteCommand(ChatHandler* handler, uint32 memoryId, uint8 trial)
+    {
+        Player* target = handler->getSelectedPlayerOrSelf();
+        if (!target)
+        {
+            handler->SendSysMessage(LANG_PLAYER_NOT_FOUND);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        PathOfAscension* ascension = GetPathOfAscensionFor(handler, target);
+        if (!ascension)
+            return false;
+
+        PathOfAscensionError result = ascension->CompleteTrial(memoryId, AscensionTrial(trial));
+        if (result != ASCENSION_OK)
+        {
+            handler->PSendSysMessage("Could not record the win: {}.", AscensionErrorText(result));
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        handler->PSendSysMessage("Recorded {} against memory {} for {} (kill credit awarded, total wins {}).",
+            PathOfAscension::GetTrialName(AscensionTrial(trial)), memoryId, target->GetName(),
+            ascension->GetTotalTrialWins());
         return true;
     }
 };

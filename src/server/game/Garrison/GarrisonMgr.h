@@ -20,6 +20,7 @@
 
 #include "AbominationFactory.h"
 #include "Define.h"
+#include "PathOfAscension.h"
 #include "Hash.h"
 #include "Position.h"
 #include "QueensConservatory.h"
@@ -193,6 +194,18 @@ public:
     uint8 GetAbominationRecipeRank(uint32 spellId) const;
     std::unordered_map<uint32, AbominationRecipeTemplate> const& GetAbominationRecipes() const { return _abominationRecipes; }
 
+    // Path of Ascension (Kyrian unique sanctum feature, GarrTalentTree 320). The tier ladder, the four trial
+    // difficulties (Difficulty 168-171), the scenario (1798) and its map (2375) are all client data and are
+    // consumed directly. What no 68275 row states is WHICH memory occupies which slot of that ladder, so the
+    // memory roster is authored in the world table `garrison_ascension_memory`. See PathOfAscension.h.
+    void LoadAscensionMemories();
+    AscensionMemoryTemplate const* GetAscensionMemory(uint32 memoryId) const;
+    std::unordered_map<uint32, AscensionMemoryTemplate> const& GetAscensionMemories() const { return _ascensionMemories; }
+    // True when this world DB actually instantiates scenario 1798 on map 2375 (a `scenarios` row plus at least
+    // one spawn on the map). False means the Ascension Coliseum is unauthored and a trial must be refused
+    // rather than started - PathOfAscension::StartTrial answers ASCENSION_ERROR_NO_ARENA_CONTENT.
+    bool IsAscensionArenaAuthored() const { return _ascensionArenaAuthored; }
+
     // Talent system accessors
     std::vector<GarrTalentTreeEntry const*> const* GetTalentTreesForGarrType(int8 garrTypeID) const;
     std::vector<GarrTalentEntry const*> const* GetTalentsForTree(uint32 garrTalentTreeID) const;
@@ -281,6 +294,10 @@ private:
     std::unordered_set<uint32 /*spellId*/> _abominationStitchingSpells;
     std::unordered_set<uint32 /*spellId*/> _abominationConstructSpells;
     std::unordered_map<uint32 /*spellId*/, AbominationRecipeTemplate> _abominationRecipes;
+
+    // Path of Ascension. The memory roster is authored content; the arena flag is a fact about this world DB.
+    std::unordered_map<uint32 /*memoryId*/, AscensionMemoryTemplate> _ascensionMemories;
+    bool _ascensionArenaAuthored = false;
 
     uint64 _followerDbIdGenerator = UI64LIT(1);
     uint64 _shipmentDbIdGenerator = UI64LIT(1);

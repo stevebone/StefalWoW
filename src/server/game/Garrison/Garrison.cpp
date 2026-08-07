@@ -29,6 +29,7 @@
 #include "GarrisonAutoCombat.h"
 #include "GarrisonMgr.h"
 #include "AbominationFactory.h"
+#include "PathOfAscension.h"
 #include "QueensConservatory.h"
 #include "Item.h"
 #include "Log.h"
@@ -48,7 +49,7 @@
 #include <limits>
 #include <vector>
 
-Garrison::Garrison(Player* owner) : _owner(owner), _garrType(GARRISON_TYPE_GARRISON), _siteLevel(nullptr), _followerActivationsRemainingToday(1), _conservatory(owner), _abominationFactory(owner)
+Garrison::Garrison(Player* owner) : _owner(owner), _garrType(GARRISON_TYPE_GARRISON), _siteLevel(nullptr), _followerActivationsRemainingToday(1), _conservatory(owner), _abominationFactory(owner), _pathOfAscension(owner)
 {
     // Fire the first periodic pass on the very next tick after login (instead of waiting a full interval),
     // so finished-order crates activate, completed constructions/research resolve, etc. right away.
@@ -364,6 +365,11 @@ bool Garrison::LoadFromDB(PreparedQueryResult garrison, PreparedQueryResult blue
         CharacterDatabasePreparedStatement* abominationStmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_CHARACTER_GARRISON_ABOMINATION);
         abominationStmt->setUInt64(0, _owner->GetGUID().GetCounter());
         _abominationFactory.LoadFromDB(CharacterDatabase.Query(abominationStmt));
+
+        // Path of Ascension captured memories (Kyrian unique sanctum feature) - same story, same synchronous load.
+        CharacterDatabasePreparedStatement* ascensionStmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_CHARACTER_GARRISON_ASCENSION);
+        ascensionStmt->setUInt64(0, _owner->GetGUID().GetCounter());
+        _pathOfAscension.LoadFromDB(CharacterDatabase.Query(ascensionStmt));
     }
 
     return true;
@@ -390,6 +396,7 @@ void Garrison::SaveToDB(CharacterDatabaseTransaction trans)
     {
         _conservatory.SaveToDB(trans);
         _abominationFactory.SaveToDB(trans);
+        _pathOfAscension.SaveToDB(trans);
     }
 
     for (uint32 building : _knownBuildings)
@@ -562,6 +569,10 @@ void Garrison::DeleteFromDB(ObjectGuid::LowType ownerGuid, GarrisonType garrType
 
         // Same for the Abomination Factory stable.
         stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CHARACTER_GARRISON_ABOMINATION);
+        stmt->setUInt64(0, ownerGuid);
+        trans->Append(stmt);
+
+        stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CHARACTER_GARRISON_ASCENSION);
         stmt->setUInt64(0, ownerGuid);
         trans->Append(stmt);
     }
@@ -841,6 +852,9 @@ void Garrison::Update(uint32 diff)
         // GarrTalentTree 321, so a tier that finished while offline (or one just completed by the research pass
         // above) grants its rank without a relog.
         _abominationFactory.Update();
+        // Keep Path of Ascension trial progress inside the ceiling the researched tiers of GarrTalentTree 320
+        // still support (a talent reset can lower it). Captures themselves are never dropped.
+        _pathOfAscension.Update();
     }
 
     // Remove expired unclaimed missions

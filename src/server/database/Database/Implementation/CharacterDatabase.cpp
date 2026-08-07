@@ -869,6 +869,11 @@ void CharacterDatabaseConnection::DoPrepareStatements()
     PrepareStatement(CHAR_INS_CHARACTER_GARRISON_ABOMINATION, "INSERT INTO character_garrison_abomination_factory (guid, recipeSpellId, builtTime) VALUES (?, ?, ?)", CONNECTION_ASYNC);
     PrepareStatement(CHAR_DEL_CHARACTER_GARRISON_ABOMINATION, "DELETE FROM character_garrison_abomination_factory WHERE guid = ?", CONNECTION_ASYNC);
 
+    // Path of Ascension (Kyrian unique sanctum feature, GarrTalentTree 320)
+    PrepareStatement(CHAR_SEL_CHARACTER_GARRISON_ASCENSION, "SELECT memoryId, capturedTime, highestTrialWon, lastCompletedTime FROM character_garrison_path_of_ascension WHERE guid = ?", CONNECTION_SYNCH);
+    PrepareStatement(CHAR_INS_CHARACTER_GARRISON_ASCENSION, "INSERT INTO character_garrison_path_of_ascension (guid, memoryId, capturedTime, highestTrialWon, lastCompletedTime) VALUES (?, ?, ?, ?, ?)", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_DEL_CHARACTER_GARRISON_ASCENSION, "DELETE FROM character_garrison_path_of_ascension WHERE guid = ?", CONNECTION_ASYNC);
+
     // Black Market
     PrepareStatement(CHAR_SEL_BLACKMARKET_AUCTIONS, "SELECT marketId, currentBid, time, numBids, bidder FROM blackmarket_auctions", CONNECTION_SYNCH);
     PrepareStatement(CHAR_DEL_BLACKMARKET_AUCTIONS, "DELETE FROM blackmarket_auctions WHERE marketId = ?", CONNECTION_ASYNC);

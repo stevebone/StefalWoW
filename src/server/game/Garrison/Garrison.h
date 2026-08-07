@@ -23,6 +23,7 @@
 #include "DatabaseEnvFwd.h"
 #include "GarrisonPackets.h"
 #include "Optional.h"
+#include "PathOfAscension.h"
 #include "QueensConservatory.h"
 #include "QuaternionData.h"
 #include "SharedDefines.h"
@@ -519,6 +520,11 @@ public:
     AbominationFactory& GetAbominationFactory() { return _abominationFactory; }
     AbominationFactory const& GetAbominationFactory() const { return _abominationFactory; }
 
+    // Path of Ascension - the Kyrian unique sanctum feature (GarrTalentTree 320). Only meaningful on a
+    // GARRISON_TYPE_COVENANT garrison owned by a Kyrian character; it reports zero researched tiers otherwise.
+    PathOfAscension& GetPathOfAscension() { return _pathOfAscension; }
+    PathOfAscension const& GetPathOfAscension() const { return _pathOfAscension; }
+
     void BuildInfoPacket(WorldPackets::Garrison::GarrisonInfo& garrison) const;
     void SendRemoteInfo() const;
     void SendInfo() const;
@@ -606,6 +612,9 @@ private:
 
     // Necrolord unique sanctum feature; inert for every other garrison type.
     AbominationFactory _abominationFactory;
+
+    // Kyrian unique sanctum feature; inert for every other garrison type.
+    PathOfAscension _pathOfAscension;
 
     // Temporary storage for BuildInfoPacket (mission copies with cleared inline rewards)
     mutable std::vector<WorldPackets::Garrison::GarrisonMission> _infoMissions;
