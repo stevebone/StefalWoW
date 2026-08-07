@@ -19,6 +19,7 @@
 void AddSC_covenant_playerchoice_scripts();
 void AddSC_covenant_spell_scripts();
 void AddSC_torghast_spell_scripts();
+void AddSC_oribos();
 
 void AddSC_boss_sylvanas_windrunner();
 void AddSC_instance_sanctum_of_domination();
@@ -33,6 +34,7 @@ void AddShadowlandsScripts()
     AddSC_covenant_playerchoice_scripts();
     AddSC_covenant_spell_scripts();
     AddSC_torghast_spell_scripts();
+    AddSC_oribos();
 
     // Sanctum of Domination
     AddSC_boss_sylvanas_windrunner();

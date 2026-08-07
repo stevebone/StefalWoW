@@ -1,0 +1,24 @@
+-- Quest 62159 "Aiding the Shadowlands" (and its three later repeats) could not be completed.
+--
+-- The covenant intro ends with Tal-Inara 159478 "Honored Voice" (Ring of Fates, Oribos, map 2222) handing out
+-- 62159, whose one objective 407308 is QUEST_OBJECTIVE_MONSTER on creature 173614 "Scene Kill Credit",
+-- "Speak with Tal-Inara to choose where to go". 173614 has zero spawns anywhere in the world - it is a
+-- credit-only entry, exactly the arrangement 167383 has for quest 62000 "Choosing Your Purpose" - so nothing
+-- in the world could ever award it and the quest was a dead end.
+--
+-- The answer is menu 26284 option 4 "I am ready to go.", which had ActionMenuID = 0, GossipNpcOptionID = NULL,
+-- no conditions and no smart_scripts: selecting it did nothing at all. Tal-Inara had no ScriptName either, so
+-- there was no C++ side to pick it up. This binds npc_tal_inara to her; the script awards
+-- KilledMonsterCredit(173614) when that option is selected while one of the four quests is outstanding.
+--
+-- The same objective/credit pair is shared by the three later "pick the next zone" steps of the levelling
+-- campaign, all given and turned in by Tal-Inara off the same menu, so they are fixed by the same script:
+--
+--   QuestID | Objective | LogTitle
+--   --------+-----------+------------------------
+--    62159  |  407308   | Aiding the Shadowlands
+--    63208  |  409231   | The Next Step
+--    63209  |  409233   | Furthering the Purpose
+--    63210  |  409235   | The Last Step
+
+UPDATE `creature_template` SET `ScriptName` = 'npc_tal_inara' WHERE `entry` = 159478;
