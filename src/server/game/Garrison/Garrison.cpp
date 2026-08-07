@@ -741,6 +741,28 @@ bool Garrison::IsMissionFollowerTypeAvailable(int8 followerTypeId) const
     return false;
 }
 
+int32 Garrison::GetFollowerMaxHealth(GarrFollowerEntry const* followerEntry, uint32 followerLevel)
+{
+    if (!followerEntry || !followerEntry->AutoCombatantID)
+        return 0;
+
+    GarrAutoCombatantEntry const* statline = sGarrisonMgr.GetAutoCombatant(followerEntry->AutoCombatantID);
+    return statline ? GarrisonAutoCombat::ScaleHealth(statline, followerLevel) : 0;
+}
+
+bool Garrison::IsFollowerCovenantAllowed(GarrFollowerEntry const* followerEntry) const
+{
+    if (!followerEntry)
+        return false;
+
+    // 0 = not covenant-bound. Every WoD/Legion/War-Campaign follower is 0, so the other three
+    // garrison types never see this gate do anything.
+    if (!followerEntry->CovenantID)
+        return true;
+
+    return uint32(followerEntry->CovenantID) == _owner->GetActiveCovenant();
+}
+
 void Garrison::Update(uint32 diff)
 {
     _updateTimer += diff;
@@ -1205,6 +1227,16 @@ void Garrison::AddFollower(uint32 garrFollowerId)
         return;
     }
 
+    // Covenant ownership. GarrFollower.CovenantID splits the 138 Shadowlands companions
+    // {0: 41 shared, 1: 30 Kyrian, 2: 22 Venthyr, 3: 23 Night Fae, 4: 22 Necrolord} - a
+    // Necrolord companion must not end up in a Kyrian sanctum. 0 means "any covenant".
+    if (!IsFollowerCovenantAllowed(followerEntry))
+    {
+        addFollowerResult.Result = GARRISON_ERROR_INVALID_FOLLOWER;
+        _owner->SendDirectMessage(addFollowerResult.Write());
+        return;
+    }
+
     if (_followerIds.count(garrFollowerId))
     {
         addFollowerResult.Result = GARRISON_ERROR_FOLLOWER_EXISTS;
@@ -1227,6 +1259,10 @@ void Garrison::AddFollower(uint32 garrFollowerId)
     follower.PacketInfo.CurrentMissionID = 0;
     follower.PacketInfo.AbilityID = sGarrisonMgr.RollFollowerAbilities(garrFollowerId, followerEntry, follower.PacketInfo.Quality, GetFaction(), true);
     follower.PacketInfo.FollowerStatus = 0;
+    // Adventures companions carry health between missions; they start at the full value their
+    // GarrAutoCombatant statline gives at their level. Followers without a statline (all of
+    // WoD/Legion/War Campaign) keep the pre-existing durability-driven model untouched.
+    follower.PacketInfo.Health = GetFollowerMaxHealth(followerEntry, follower.PacketInfo.FollowerLevel);
 
     // Respect the active-follower cap: recruit as INACTIVE when the roster is already at MaxFollowers active. Without
     // this, bulk-recruiting a class hall's champions (e.g. all 9 hunter champions at once when the cap is 6) leaves
@@ -1726,18 +1762,21 @@ void Garrison::PopulateMissionData(Mission& mission, GarrMissionEntry const* mis
                     encounter.Mechanics.push_back(mechanic->GarrMechanicTypeID);
             }
 
-            // Also add the encounter's environment mechanic type if it has one
-            if (encounterEntry->EnvGarrMechanicTypeID != 0)
-                encounter.Mechanics.push_back(encounterEntry->EnvGarrMechanicTypeID);
+            // GarrEncounter publishes no mechanic column in build 12.0.7.68275 - an encounter's
+            // mechanics come from GarrEncounterXMechanic (above) and the mission-wide environment
+            // mechanic from GarrMission.EnvGarrMechanicTypeID, which the client reads from DB2
+            // itself. The field previously appended here was really GarrEncounter.Flags.
 
-            // Populate auto-combat data from combatant linked to this encounter
+            // Auto-combat statline for this encounter, scaled to the mission's target level. The
+            // board slot comes from GarrMissionXEncounter (GarrAutoCombatant has no board column).
             if (GarrAutoCombatantEntry const* combatant = sGarrisonMgr.GetAutoCombatantForEncounter(encounterEntry->ID))
             {
+                uint32 encounterLevel = uint32(std::max<int32>(missionEntry->TargetLevel, 1));
                 encounter.GarrAutoCombatantID = combatant->ID;
-                encounter.Health = combatant->Health;
-                encounter.MaxHealth = combatant->MaxHealth;
-                encounter.Attack = combatant->Attack;
-                encounter.BoardIndex = static_cast<int8>(combatant->BoardIndex);
+                encounter.MaxHealth = GarrisonAutoCombat::ScaleHealth(combatant, encounterLevel);
+                encounter.Health = encounter.MaxHealth;
+                encounter.Attack = GarrisonAutoCombat::ScaleAttack(combatant, encounterLevel);
+                encounter.BoardIndex = missionEncounter->BoardIndex;
             }
 
             mission.PacketInfo.Encounters.push_back(std::move(encounter));
@@ -2248,6 +2287,7 @@ bool Garrison::RollMissionOutcome(Mission const& mission, uint32 missionRecID) c
             if (Follower const* follower = GetFollower(followerDbId))
             {
                 AutoCombatCombatant unit = GarrisonAutoCombat::BuildFollowerCombatant(
+                    sGarrFollowerStore.LookupEntry(follower->PacketInfo.GarrFollowerID),
                     follower->PacketInfo.FollowerLevel, follower->PacketInfo.Quality,
                     follower->PacketInfo.ItemLevelWeapon, follower->PacketInfo.ItemLevelArmor,
                     follower->PacketInfo.BoardIndex >= 0 ? follower->PacketInfo.BoardIndex : boardIdx,
@@ -2256,6 +2296,11 @@ bool Garrison::RollMissionOutcome(Mission const& mission, uint32 missionRecID) c
                 ++boardIdx;
             }
         }
+
+        // Enemies scale to the mission's own target level, the same statline curve the companions
+        // use. The board slot and the level both come from the mission, never from the statline.
+        GarrMissionEntry const* missionEntry = sGarrMissionStore.LookupEntry(missionRecID);
+        uint32 encounterLevel = missionEntry ? uint32(std::max<int32>(missionEntry->TargetLevel, 1)) : 1u;
 
         std::vector<AutoCombatCombatant> enemyUnits;
         for (auto const& encounter : mission.PacketInfo.Encounters)
@@ -2267,7 +2312,7 @@ bool Garrison::RollMissionOutcome(Mission const& mission, uint32 missionRecID) c
             if (!combatant)
                 continue;
 
-            enemyUnits.push_back(GarrisonAutoCombat::BuildEnemyCombatant(combatant));
+            enemyUnits.push_back(GarrisonAutoCombat::BuildEnemyCombatant(combatant, encounterLevel, encounter.BoardIndex));
         }
 
         AutoCombatResult combatResult = GarrisonAutoCombat::SimulateCombat(playerUnits, enemyUnits);
@@ -2696,10 +2741,18 @@ void Garrison::GenerateAvailableMissions()
         // scale against. Retail offers the standard mission pool to a garrison with no active followers (sniff
         // "garrison and hall of class table quest.pkt": 42 missions offered), so a type with no roster yet must
         // not be starved to zero - a just-built shipyard with no ships still offers the full naval pool.
-        if (int32 avgLevel = avgLevelForType(mission->GarrFollowerTypeID); avgLevel >= 0)
+        // Shadowlands Adventures (GarrTypeID 111) are exempt: all 175 covenant missions are
+        // TargetLevel 60 while 87 of the 138 companions start at FollowerLevel 1, so a +/-5 window
+        // against the roster average would leave the Adventures board permanently empty. Retail
+        // gates those missions on renown and each mission's own difficulty, never on the average
+        // level of the roster. The window still applies to GarrTypes 2/3/9 exactly as before.
+        if (GetType() != GARRISON_TYPE_COVENANT)
         {
-            if (std::abs(avgLevel - static_cast<int32>(mission->TargetLevel)) > 5)
-                continue;
+            if (int32 avgLevel = avgLevelForType(mission->GarrFollowerTypeID); avgLevel >= 0)
+            {
+                if (std::abs(avgLevel - static_cast<int32>(mission->TargetLevel)) > 5)
+                    continue;
+            }
         }
 
         // NOTE: intentionally NOT gating the OFFER on current idle-follower count.
@@ -2825,6 +2878,11 @@ void Garrison::GenerateRecruits(uint32 faction)
 
         // Skip unique followers that are faction-specific
         if (follower->Flags & GARRISON_FOLLOWER_FLAG_UNIQUE)
+            continue;
+
+        // Never offer another covenant's companion (no-op for GarrTypes 2/3/9 - all their
+        // followers have CovenantID 0).
+        if (!IsFollowerCovenantAllowed(follower))
             continue;
 
         eligibleFollowers.push_back(follower);
@@ -3013,7 +3071,13 @@ void Garrison::HealAllFollowers()
 {
     for (auto& p : _followers)
     {
-        p.second.PacketInfo.Health = static_cast<int32>(p.second.PacketInfo.Durability);
+        GarrFollowerEntry const* followerEntry = sGarrFollowerStore.LookupEntry(p.second.PacketInfo.GarrFollowerID);
+        // Adventures companions heal back to their statline maximum; everyone else keeps the
+        // durability-driven value this function has always restored.
+        if (int32 maxHealth = GetFollowerMaxHealth(followerEntry, p.second.PacketInfo.FollowerLevel))
+            p.second.PacketInfo.Health = maxHealth;
+        else
+            p.second.PacketInfo.Health = static_cast<int32>(p.second.PacketInfo.Durability);
         p.second.PacketInfo.FollowerStatus &= ~FOLLOWER_STATUS_EXHAUSTED;
     }
 }

@@ -334,6 +334,13 @@ public:
     // Whether missions/followers of the given GarrFollowerType are available to this garrison: the garrison's own
     // primary type always is; the shipyard (naval) type only once the shipyard is built. Gates naval mission offers.
     bool IsMissionFollowerTypeAvailable(int8 followerTypeId) const;
+    // Whether the owner's active covenant may hold this follower. GarrFollower.CovenantID is 0 for followers that
+    // belong to no covenant (every WoD/Legion/War-Campaign follower, plus 41 of the 138 Shadowlands companions) and
+    // 1-4 for a covenant-exclusive companion, which only that covenant's sanctum may recruit.
+    bool IsFollowerCovenantAllowed(GarrFollowerEntry const* followerEntry) const;
+    // Full health of a follower at the given level, taken from its GarrAutoCombatant statline.
+    // 0 when the follower publishes no statline (all WoD/Legion/War-Campaign followers).
+    static int32 GetFollowerMaxHealth(GarrFollowerEntry const* followerEntry, uint32 followerLevel);
     // Build a ship (a GarrFollowerType-2 GarrFollower) at the shipyard. Validates the shipyard exists, the id is a
     // real ship, it is not already owned, and the ship soft-cap is not exceeded, then adds it as a follower.
     GarrisonError BuildShip(uint32 garrFollowerId);

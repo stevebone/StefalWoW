@@ -25,6 +25,7 @@
 struct GarrAutoCombatantEntry;
 struct GarrAutoSpellEntry;
 struct GarrAutoSpellEffectEntry;
+struct GarrFollowerEntry;
 
 enum AutoCombatEffectType : uint8
 {
@@ -52,12 +53,16 @@ enum AutoCombatTargetType : uint8
     AUTO_COMBAT_TARGET_MAX
 };
 
+// GarrAutoCombatant.Role, values documented in the GarrAutoCombatant.dbd definition
+// (WoWDBDefs, layout 0x6ADAF487 = build 12.0.7.68275).
 enum AutoCombatRole : int32
 {
-    AUTO_COMBAT_ROLE_DPS        = 0,
-    AUTO_COMBAT_ROLE_TANK       = 1,
-    AUTO_COMBAT_ROLE_HEALER     = 2,
-    AUTO_COMBAT_ROLE_SUPPORT    = 3
+    AUTO_COMBAT_ROLE_NONE               = 0,
+    AUTO_COMBAT_ROLE_MELEE              = 1,
+    AUTO_COMBAT_ROLE_RANGED_PHYSICAL    = 2,
+    AUTO_COMBAT_ROLE_RANGED_MAGIC       = 3,
+    AUTO_COMBAT_ROLE_HEAL_SUPPORT       = 4,
+    AUTO_COMBAT_ROLE_TANK               = 5
 };
 
 struct AutoCombatPeriodicEffect
@@ -82,10 +87,11 @@ struct TC_GAME_API AutoCombatCombatant
     int32 MaxHealth = 0;
     int32 BaseAttack = 0;
     int8 BoardIndex = -1;
-    int32 Role = AUTO_COMBAT_ROLE_DPS;
+    int32 Role = AUTO_COMBAT_ROLE_NONE;
     int32 AutoAttackSpellID = 0;
     int32 PrimarySpellID = 0;
-    int32 Flags = 0;
+    int32 SecondarySpellID = 0;
+    int32 PassiveSpellID = 0;
     bool IsPlayerSide = false;
     uint64 FollowerDbID = 0;
 
@@ -132,12 +138,21 @@ public:
         std::vector<AutoCombatCombatant>& playerUnits,
         std::vector<AutoCombatCombatant>& enemyUnits);
 
+    // Health/attack of a GarrAutoCombatant statline at the given level. HealthBase/AttackBase are
+    // the level-1 values, the GainPerLevel columns the per-level increment.
+    static int32 ScaleHealth(GarrAutoCombatantEntry const* entry, uint32 level);
+    static int32 ScaleAttack(GarrAutoCombatantEntry const* entry, uint32 level);
+
+    // followerEntry may be null (callers that only have the runtime follower record). When it
+    // carries an AutoCombatantID the combatant is built entirely from GarrAutoCombatant; otherwise
+    // the legacy WoD/Legion approximation below is used.
     static AutoCombatCombatant BuildFollowerCombatant(
+        GarrFollowerEntry const* followerEntry,
         uint32 followerLevel, uint32 quality, uint32 itemLevelWeapon,
         uint32 itemLevelArmor, int8 boardIndex, uint64 followerDbID);
 
     static AutoCombatCombatant BuildEnemyCombatant(
-        GarrAutoCombatantEntry const* entry);
+        GarrAutoCombatantEntry const* entry, uint32 level, int8 boardIndex);
 
 private:
     static void ProcessTurn(

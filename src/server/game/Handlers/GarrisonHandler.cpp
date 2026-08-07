@@ -380,15 +380,28 @@ void WorldSession::HandleGarrisonFullyHealAllFollowers(WorldPackets::Garrison::G
 
 void WorldSession::HandleGarrisonAddFollowerHealth(WorldPackets::Garrison::GarrisonAddFollowerHealth& garrisonAddFollowerHealth)
 {
-    Garrison* garrison = _player->GetGarrison();
-    if (!garrison)
-        return;
+    // Follower DbIDs are unique across all of the character's garrisons, and healing a follower is an
+    // Adventures (GarrType 111) mechanic - the no-arg GetGarrison() only ever searched the WoD
+    // garrison, so a covenant companion could never be found here.
+    Garrison::Follower* follower = nullptr;
+    for (auto const& [garrType, garrison] : _player->GetGarrisons())
+    {
+        follower = garrison->GetFollower(garrisonAddFollowerHealth.FollowerDBID);
+        if (follower)
+            break;
+    }
 
-    Garrison::Follower* follower = garrison->GetFollower(garrisonAddFollowerHealth.FollowerDBID);
     if (!follower)
         return;
 
-    follower->PacketInfo.Health = std::min(follower->PacketInfo.Health + garrisonAddFollowerHealth.HealthToAdd, static_cast<int32>(follower->PacketInfo.Durability));
+    // Cap at the follower's own maximum: the GarrAutoCombatant statline for Adventures companions,
+    // the durability charge count for the older follower model that publishes no statline.
+    GarrFollowerEntry const* followerEntry = sGarrFollowerStore.LookupEntry(follower->PacketInfo.GarrFollowerID);
+    int32 maxHealth = Garrison::GetFollowerMaxHealth(followerEntry, follower->PacketInfo.FollowerLevel);
+    if (!maxHealth)
+        maxHealth = static_cast<int32>(follower->PacketInfo.Durability);
+
+    follower->PacketInfo.Health = std::min(follower->PacketInfo.Health + garrisonAddFollowerHealth.HealthToAdd, maxHealth);
 
     WorldPackets::Garrison::GarrisonUpdateFollower updateFollower;
     updateFollower.Result = GARRISON_SUCCESS;

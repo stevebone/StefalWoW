@@ -2004,18 +2004,23 @@ struct GarrAbilityEffectEntry
     int32 ActionRecordID;
 };
 
+// GarrAutoCombatant.db2, layout 0x6ADAF487 (12.0.7.68275, WoWDBDefs). The statline is a level
+// curve, not a flat block. There is no BoardIndex column here (board position lives on
+// GarrMissionXEncounter) and no back-reference to an encounter (GarrEncounter.AutoCombatantID
+// points this way instead). Role values per the DBD: 0 None, 1 Melee, 2 RangedPhysical,
+// 3 RangedMagic, 4 HealSupport, 5 Tank - see AutoCombatRole.
 struct GarrAutoCombatantEntry
 {
     uint32 ID;
-    int32 Attack;
-    int32 Health;
-    int32 MaxHealth;
-    int32 AutoAttackSpellID;
+    int32 HealthBase;
+    int32 HealthGainPerLevel;
+    int32 AttackBase;
+    int32 AttackGainPerLevel;
+    int32 AttackSpellID;
+    int32 AbilitySpellID;
+    int32 AbilitySpellID2;
+    int32 PassiveSpellID;
     int32 Role;
-    int32 BoardIndex;
-    int32 GarrEncounterID;
-    int32 GarrAutoSpellID;
-    int32 Flags;
 };
 
 struct GarrAutoSpellEntry
@@ -2127,17 +2132,18 @@ struct GarrClassSpecPlayerCondEntry
     uint8 Flags;
 };
 
+// GarrEncounter.db2, layout 0x90365AF7 (12.0.7.68275, WoWDBDefs).
 struct GarrEncounterEntry
 {
     uint32 ID;
     LocalizedString Name;
     int32 CreatureID;
-    int32 CreatureDisplayInfoID;
-    uint32 UiAnimHeight;
+    int32 PortraitFileDataID;
+    uint32 UiTextureKitID;
     float UiAnimScale;
-    float UiTextureScale;
-    int32 EnvGarrMechanicTypeID;
-    int32 GarrEncounterSetID;
+    float UiAnimHeight;
+    int32 Flags;
+    int32 AutoCombatantID;
 };
 
 struct GarrEncounterXMechanicEntry
@@ -2356,13 +2362,15 @@ struct GarrMissionTextureEntry
     uint16 UiTextureAtlasMemberID;
 };
 
+// GarrMissionXEncounter.db2, layout 0x08428AE4 (12.0.7.68275, WoWDBDefs). BoardIndex is the
+// enemy's slot on the Adventures board (-1 for the pre-Shadowlands rows that have no board).
 struct GarrMissionXEncounterEntry
 {
     uint32 ID;
     uint32 GarrEncounterID;
-    uint32 GarrMissionSetEncounterID;
-    uint8 CombatWeightBase;
-    int8 CombatWeightMax;
+    uint32 GarrEncounterSetID;
+    uint8 OrderIndex;
+    int8 BoardIndex;
     int32 GarrMissionID;
 };
 

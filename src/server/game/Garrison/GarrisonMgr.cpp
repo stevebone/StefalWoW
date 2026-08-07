@@ -161,9 +161,13 @@ void GarrisonMgr::Initialize()
     for (GarrEncounterSetXEncounterEntry const* xref : sGarrEncounterSetXEncounterStore)
         _encounterSetEncounters[xref->GarrEncounterSetID].push_back(xref->GarrEncounterID);
 
-    for (GarrAutoCombatantEntry const* combatant : sGarrAutoCombatantStore)
-        if (combatant->GarrEncounterID != 0)
-            _autoCombatantByEncounter[combatant->GarrEncounterID] = combatant;
+    // The encounter -> statline link lives on GarrEncounter.AutoCombatantID; GarrAutoCombatant has
+    // no back-reference to an encounter. 251 of 2626 encounters carry one and every one of them
+    // belongs to a GarrTypeID 111 (Shadowlands Adventures) mission.
+    for (GarrEncounterEntry const* encounter : sGarrEncounterStore)
+        if (encounter->AutoCombatantID != 0)
+            if (GarrAutoCombatantEntry const* combatant = sGarrAutoCombatantStore.LookupEntry(encounter->AutoCombatantID))
+                _autoCombatantByEncounter[encounter->ID] = combatant;
 
     InitializeDbIdSequences();
     LoadPlotFinalizeGOInfo();

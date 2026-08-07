@@ -182,17 +182,56 @@ AutoCombatResult GarrisonAutoCombat::SimulateCombat(
     return result;
 }
 
+// A GarrAutoCombatant statline is a level curve: HealthBase/AttackBase are the level-1 values and
+// the *GainPerLevel columns the per-level increment. Both sides of an Adventures board are built
+// from the same table, so both scale the same way.
+int32 GarrisonAutoCombat::ScaleHealth(GarrAutoCombatantEntry const* entry, uint32 level)
+{
+    int32 levelsGained = int32(std::max<uint32>(level, 1) - 1);
+    return std::max(entry->HealthBase + entry->HealthGainPerLevel * levelsGained, 1);
+}
+
+int32 GarrisonAutoCombat::ScaleAttack(GarrAutoCombatantEntry const* entry, uint32 level)
+{
+    int32 levelsGained = int32(std::max<uint32>(level, 1) - 1);
+    return std::max(entry->AttackBase + entry->AttackGainPerLevel * levelsGained, 0);
+}
+
 AutoCombatCombatant GarrisonAutoCombat::BuildFollowerCombatant(
+    GarrFollowerEntry const* followerEntry,
     uint32 followerLevel, uint32 quality, uint32 itemLevelWeapon,
     uint32 itemLevelArmor, int8 boardIndex, uint64 followerDbID)
 {
     AutoCombatCombatant combatant;
+    combatant.BoardIndex = boardIndex;
+    combatant.IsPlayerSide = true;
+    combatant.FollowerDbID = followerDbID;
 
-    // No DB2 publishes follower auto-combat stats directly (GarrAutoCombatant only
-    // covers enemies via GarrEncounterID). The formula below is an empirical scaling
-    // calibrated so that quality/level-equivalent followers fall within the 1000-3000
-    // HP range typical of GarrAutoCombatant enemy entries; tune against sniffed
-    // adventure outcomes when available.
+    // Shadowlands companions (GarrFollowerType 123) publish their entire auto-combat statline in
+    // GarrAutoCombatant, reached through GarrFollower.AutoCombatantID - all 138 type-123 rows carry
+    // a non-zero, non-dangling id. Rarity is already baked into the referenced row (each companion
+    // points at its own statline), so no quality/item-level term belongs here.
+    if (followerEntry && followerEntry->AutoCombatantID)
+    {
+        if (GarrAutoCombatantEntry const* statline = sGarrisonMgr.GetAutoCombatant(followerEntry->AutoCombatantID))
+        {
+            combatant.AutoCombatantID = statline->ID;
+            combatant.MaxHealth = ScaleHealth(statline, followerLevel);
+            combatant.CurrentHealth = combatant.MaxHealth;
+            combatant.BaseAttack = ScaleAttack(statline, followerLevel);
+            combatant.Role = statline->Role;
+            combatant.AutoAttackSpellID = statline->AttackSpellID;
+            combatant.PrimarySpellID = statline->AbilitySpellID;
+            combatant.SecondarySpellID = statline->AbilitySpellID2;
+            combatant.PassiveSpellID = statline->PassiveSpellID;
+            return combatant;
+        }
+    }
+
+    // WoD / Legion / War Campaign followers publish no AutoCombatantID, and none of their missions
+    // carry auto-combat encounters (every GarrEncounter with an AutoCombatantID belongs to a
+    // GarrTypeID 111 mission), so this branch is only reachable for a hand-built simulation. Keep
+    // the pre-existing approximation there rather than leaving those followers statless.
     uint32 avgItemLevel = (itemLevelWeapon + itemLevelArmor) / 2;
 
     combatant.MaxHealth = 1000 + static_cast<int32>(followerLevel) * 100
@@ -202,28 +241,26 @@ AutoCombatCombatant GarrisonAutoCombat::BuildFollowerCombatant(
     combatant.BaseAttack = 50 + static_cast<int32>(followerLevel) * 10
         + static_cast<int32>(quality) * 20
         + static_cast<int32>(avgItemLevel) * 2;
-    combatant.BoardIndex = boardIndex;
-    combatant.IsPlayerSide = true;
-    combatant.FollowerDbID = followerDbID;
-    combatant.Role = AUTO_COMBAT_ROLE_DPS;
+    combatant.Role = AUTO_COMBAT_ROLE_MELEE;
 
     return combatant;
 }
 
 AutoCombatCombatant GarrisonAutoCombat::BuildEnemyCombatant(
-    GarrAutoCombatantEntry const* entry)
+    GarrAutoCombatantEntry const* entry, uint32 level, int8 boardIndex)
 {
     AutoCombatCombatant combatant;
 
     combatant.AutoCombatantID = entry->ID;
-    combatant.CurrentHealth = entry->Health;
-    combatant.MaxHealth = entry->MaxHealth;
-    combatant.BaseAttack = entry->Attack;
-    combatant.BoardIndex = static_cast<int8>(entry->BoardIndex);
+    combatant.MaxHealth = ScaleHealth(entry, level);
+    combatant.CurrentHealth = combatant.MaxHealth;
+    combatant.BaseAttack = ScaleAttack(entry, level);
+    combatant.BoardIndex = boardIndex;
     combatant.Role = entry->Role;
-    combatant.AutoAttackSpellID = entry->AutoAttackSpellID;
-    combatant.PrimarySpellID = entry->GarrAutoSpellID;
-    combatant.Flags = entry->Flags;
+    combatant.AutoAttackSpellID = entry->AttackSpellID;
+    combatant.PrimarySpellID = entry->AbilitySpellID;
+    combatant.SecondarySpellID = entry->AbilitySpellID2;
+    combatant.PassiveSpellID = entry->PassiveSpellID;
     combatant.IsPlayerSide = false;
 
     return combatant;
@@ -239,7 +276,7 @@ void GarrisonAutoCombat::ProcessTurn(
         return;
 
     // Healers prioritize healing wounded allies
-    if (combatant.Role == AUTO_COMBAT_ROLE_HEALER)
+    if (combatant.Role == AUTO_COMBAT_ROLE_HEAL_SUPPORT)
     {
         AutoCombatCombatant* woundedAlly = FindLowestHPAlive(allies);
         if (woundedAlly && woundedAlly->CurrentHealth < woundedAlly->MaxHealth)
@@ -259,6 +296,15 @@ void GarrisonAutoCombat::ProcessTurn(
         && combatant.SpellCooldowns.find(combatant.PrimarySpellID) == combatant.SpellCooldowns.end())
     {
         ResolveSpell(combatant, combatant.PrimarySpellID, allies, enemies, round);
+        return;
+    }
+
+    // GarrAutoCombatant publishes a second ability slot; use it while the first is on cooldown
+    // rather than dropping straight to the auto-attack.
+    if (combatant.SecondarySpellID != 0
+        && combatant.SpellCooldowns.find(combatant.SecondarySpellID) == combatant.SpellCooldowns.end())
+    {
+        ResolveSpell(combatant, combatant.SecondarySpellID, allies, enemies, round);
         return;
     }
 

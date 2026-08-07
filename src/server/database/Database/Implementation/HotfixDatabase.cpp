@@ -773,8 +773,8 @@ void HotfixDatabaseConnection::DoPrepareStatements()
     PREPARE_MAX_ID_STMT(HOTFIX_SEL_GARR_ABILITY_EFFECT, "SELECT MAX(ID) + 1 FROM garr_ability_effect", CONNECTION_SYNCH);
 
     // GarrAutoCombatant.db2
-    PrepareStatement(HOTFIX_SEL_GARR_AUTO_COMBATANT, "SELECT ID, Attack, Health, MaxHealth, AutoAttackSpellID, Role, BoardIndex, "
-        "GarrEncounterID, GarrAutoSpellID, Flags FROM garr_auto_combatant WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
+    PrepareStatement(HOTFIX_SEL_GARR_AUTO_COMBATANT, "SELECT ID, HealthBase, HealthGainPerLevel, AttackBase, AttackGainPerLevel, AttackSpellID, "
+        "AbilitySpellID, AbilitySpellID2, PassiveSpellID, Role FROM garr_auto_combatant WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
     PREPARE_MAX_ID_STMT(HOTFIX_SEL_GARR_AUTO_COMBATANT, "SELECT MAX(ID) + 1 FROM garr_auto_combatant", CONNECTION_SYNCH);
 
     // GarrAutoSpell.db2
@@ -823,8 +823,8 @@ void HotfixDatabaseConnection::DoPrepareStatements()
         " AND locale = ?", CONNECTION_SYNCH);
 
     // GarrEncounter.db2
-    PrepareStatement(HOTFIX_SEL_GARR_ENCOUNTER, "SELECT ID, Name, CreatureID, CreatureDisplayInfoID, UiAnimHeight, UiAnimScale, UiTextureScale, "
-        "EnvGarrMechanicTypeID, GarrEncounterSetID FROM garr_encounter WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
+    PrepareStatement(HOTFIX_SEL_GARR_ENCOUNTER, "SELECT ID, Name, CreatureID, PortraitFileDataID, UiTextureKitID, UiAnimScale, UiAnimHeight, "
+        "Flags, AutoCombatantID FROM garr_encounter WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
     PREPARE_MAX_ID_STMT(HOTFIX_SEL_GARR_ENCOUNTER, "SELECT MAX(ID) + 1 FROM garr_encounter", CONNECTION_SYNCH);
     PREPARE_LOCALE_STMT(HOTFIX_SEL_GARR_ENCOUNTER, "SELECT ID, Name_lang FROM garr_encounter_locale WHERE (`VerifiedBuild` > 0) = ? AND locale = ?", CONNECTION_SYNCH);
 
@@ -939,7 +939,7 @@ void HotfixDatabaseConnection::DoPrepareStatements()
         " AND locale = ?", CONNECTION_SYNCH);
 
     // GarrMissionXEncounter.db2
-    PrepareStatement(HOTFIX_SEL_GARR_MISSION_X_ENCOUNTER, "SELECT ID, GarrEncounterID, GarrMissionSetEncounterID, CombatWeightBase, CombatWeightMax, "
+    PrepareStatement(HOTFIX_SEL_GARR_MISSION_X_ENCOUNTER, "SELECT ID, GarrEncounterID, GarrEncounterSetID, OrderIndex, BoardIndex, "
         "GarrMissionID FROM garr_mission_x_encounter WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
     PREPARE_MAX_ID_STMT(HOTFIX_SEL_GARR_MISSION_X_ENCOUNTER, "SELECT MAX(ID) + 1 FROM garr_mission_x_encounter", CONNECTION_SYNCH);
 
