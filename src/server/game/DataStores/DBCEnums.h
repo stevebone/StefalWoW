@@ -854,6 +854,10 @@ enum CurrencyConsts
 {
     CURRENCY_TYPE_ANCIENT_MANA    = 1155,
     CURRENCY_TYPE_AZERITE         = 1553,
+    // Shared "Renown" display currency of the Shadowlands covenants. Renown itself is stored per covenant
+    // (Covenant.db2 CurrencyTypesID: 1829-1832); this is the view of the ACTIVE covenant's track that the
+    // client UI and every renown PlayerCondition/ModifierTree in the build read. See Player::GetCovenantRenownCurrency.
+    CURRENCY_TYPE_COVENANT_RENOWN = 1822,
 
     CURRENCY_MAX_CAP_ANCIENT_MANA = 2000
 };

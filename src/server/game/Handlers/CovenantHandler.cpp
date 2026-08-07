@@ -171,9 +171,19 @@ void WorldSession::HandleRequestCovenantCallings(WorldPackets::Covenant::Request
 
 void WorldSession::HandleCovenantRenownRequestCatchupState(WorldPackets::Covenant::CovenantRenownRequestCatchupState& /*packet*/)
 {
-    // Core does not implement accelerated renown catch-up, so report it as inactive. Answers the client's query so
-    // its renown UI stops waiting (mirrors the default-response pattern of the other covenant info handlers).
+    Player* player = GetPlayer();
+    if (!player)
+        return;
+
+    // The packet carries exactly one bit: is accelerated renown catch-up running for this player right now.
+    // It is answered from Player::IsCovenantRenownCatchupActive, the single authority for that question - see
+    // there for why the answer is currently always "no" and what would have to exist for it to be "yes".
+    // Answering false is a true statement about this server rather than a placeholder: no code path grants
+    // boosted renown, so claiming otherwise would make the client's renown UI advertise a bonus never paid.
+    // The player's actual renown state is not carried by this packet at all - it reaches the client as
+    // currency 1822, which Player::SyncCovenantRenownDisplayCurrency keeps equal to the active covenant's
+    // renown currency (Covenant.db2 CurrencyTypesID).
     WorldPackets::Covenant::CovenantRenownSendCatchupState response;
-    response.IsActive = false;
+    response.IsActive = player->IsCovenantRenownCatchupActive();
     SendPacket(response.Write());
 }

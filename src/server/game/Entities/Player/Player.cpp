@@ -16790,6 +16790,35 @@ void Player::CurrencyChanged(uint32 currencyId, int32 change)
     UpdateQuestObjectiveProgress(QUEST_OBJECTIVE_CURRENCY, currencyId, change);
     UpdateQuestObjectiveProgress(QUEST_OBJECTIVE_HAVE_CURRENCY, currencyId, change);
     UpdateQuestObjectiveProgress(QUEST_OBJECTIVE_OBTAIN_CURRENCY, currencyId, change);
+
+    // A Shadowlands covenant stores its renown in a per-covenant currency (Covenant.db2 CurrencyTypesID), so a
+    // change to one of those currencies IS a renown level change. This is the hook the reputation-driven path
+    // gets from ReputationMgr - see Player::GetCovenantRenownCurrency for why the reputation path can never
+    // fire for covenants 1-4.
+    if (uint32 covenantId = GetCovenantIdForRenownCurrency(currencyId))
+    {
+        UpdateCovenantRenownRewards(covenantId);
+        if (covenantId == m_activeCovenantId)
+            SyncCovenantRenownDisplayCurrency();
+    }
+    else if (currencyId == CURRENCY_TYPE_COVENANT_RENOWN && change > 0)
+    {
+        // Renown-granting CONTENT awards the shared display currency, not the per-covenant one: every quest in
+        // the world database that awards renown awards 1822 (58407 "The Medallion of Dominion", 62406 "Staff of
+        // the Primus", 60108 "Drust and Ashes"), and the per-covenant currencies carry an AwardConditionID
+        // (PlayerCondition 70101-70104, "CovenantID == n") marking them as the covenant-scoped copy. So a gain
+        // on 1822 is credited to the active covenant's track, which is where renown is actually stored; the
+        // resulting change on that currency runs the branch above and mirrors the value straight back, so this
+        // settles in one round trip instead of looping. Losses are never forwarded - the track is the authority
+        // and a spurious display loss self-heals on the next sync.
+        if (CurrencyTypesEntry const* covenantCurrency = GetCovenantRenownCurrency(m_activeCovenantId))
+        {
+            int32 unclaimed = int32(GetCurrencyQuantity(CURRENCY_TYPE_COVENANT_RENOWN))
+                - int32(GetCurrencyQuantity(covenantCurrency->ID));
+            if (unclaimed > 0)
+                ModifyCurrency(covenantCurrency->ID, unclaimed, CurrencyGainSource::RenownRepGain);
+        }
+    }
 }
 
 void Player::UpdateQuestObjectiveProgress(QuestObjectiveType objectiveType, int32 objectId, int64 addCount, ObjectGuid victimGuid /*= ObjectGuid::Empty*/,
@@ -20542,9 +20571,123 @@ void Player::_LoadRenownRewards(PreparedQueryResult result)
     } while (result->NextRow());
 }
 
+namespace
+{
+// Shadowlands covenant renown.
+//
+// CURRENCY_TYPE_COVENANT_RENOWN (1822) is the shared display currency. The client's renown UI reads it, and so
+// does every renown gate in the build: all 46 PlayerCondition rows in 12.0.7.68275 that reference a renown
+// currency reference 1822 and none reference the per-covenant currencies 1829-1832, as do the
+// ModifierTreeType 119 (PlayerHasCurrencyEqualOrGreaterThan) nodes behind the sanctum reservoir gates. So 1822
+// has to track the ACTIVE covenant's renown or none of those gates can ever evaluate true.
+//
+// Renown level for a covenant-renown currency quantity: level = quantity + 1.
+//
+// RenownRewards.db2 publishes levels 1..80 for covenants 1-4, while CurrencyTypes 1822/1829-1832 all cap at
+// MaxQty 79 (and share MaxQtyWorldStateID 19735, "Covenant Renown (Currency) - Max quantity", default 79).
+// Quantity 0 is therefore Renown 1 - the level a character holds the moment it joins - and quantity 79 is
+// Renown 80; without the offset the level-80 rewards would be unreachable.
+//
+// The offset is specific to the Shadowlands covenants. For every Dragonflight/TWW major faction the highest
+// RenownRewards level equals the currency MaxQty exactly (Valdrakken Accord 2088 MaxQty 30 / levels 1..30,
+// Maruuk Centaur 2002 MaxQty 25 / levels 1..25, Loamm Niffen 2402 MaxQty 20 / levels 1..20, ...), which is
+// why ReputationMgr::GetRenownLevel returns the raw quantity for the reputation-driven path and must not be
+// changed. Cross-check: the two sanctum reservoir gates PlayerCondition 82863 / 82871 (recorded as the
+// Renown 11 / Renown 19 requirements of GarrTalent 1138/1141/1144/1147 and 1139/1142/1145/1148) resolve to
+// ModifierTree 145849 / 145865, both ModifierTreeType 119 on currency 1822 with amounts 10 and 18.
+constexpr int32 COVENANT_RENOWN_LEVEL_OFFSET = 1;
+}
+
+CurrencyTypesEntry const* Player::GetCovenantRenownCurrency(uint32 covenantId)
+{
+    CovenantEntry const* covenant = covenantId ? sCovenantStore.LookupEntry(covenantId) : nullptr;
+    if (!covenant || covenant->CurrencyTypesID <= 0)
+        return nullptr;
+
+    // Covenant.db2 also carries the Dragonflight and later major factions, and they publish a CurrencyTypesID
+    // too. Those run on renown REPUTATION (their Faction row publishes RenownCurrencyID) and are served by
+    // UpdateRenownRewards(FactionEntry const*); claiming them here would double-grant and would apply the
+    // Shadowlands-only level offset to them. Only covenants whose faction publishes no renown currency - which
+    // in this build is exactly the four Shadowlands covenants - are currency-driven.
+    FactionEntry const* faction = sFactionStore.LookupEntry(uint32(covenant->FactionID));
+    if (!faction || faction->RenownCurrencyID > 0)
+        return nullptr;
+
+    return sCurrencyTypesStore.LookupEntry(uint32(covenant->CurrencyTypesID));
+}
+
+uint32 Player::GetCovenantIdForRenownCurrency(uint32 currencyId)
+{
+    if (!currencyId)
+        return 0;
+
+    for (CovenantEntry const* covenant : sCovenantStore)
+        if (CurrencyTypesEntry const* currency = GetCovenantRenownCurrency(covenant->ID))
+            if (currency->ID == currencyId)
+                return covenant->ID;
+
+    return 0;
+}
+
+uint32 Player::GetCovenantRenownLevel(uint32 covenantId /*= 0*/) const
+{
+    if (!covenantId)
+        covenantId = m_activeCovenantId;
+
+    CurrencyTypesEntry const* currency = GetCovenantRenownCurrency(covenantId);
+    if (!currency)
+        return 0;
+
+    return GetCurrencyQuantity(currency->ID) + COVENANT_RENOWN_LEVEL_OFFSET;
+}
+
+void Player::SyncCovenantRenownDisplayCurrency()
+{
+    if (!sCurrencyTypesStore.LookupEntry(CURRENCY_TYPE_COVENANT_RENOWN))
+        return;
+
+    // The per-covenant currency is the authority; 1822 is a view of it. A character with no covenant has no
+    // renown, so the view goes to zero - covenant PlayerConditions test 1822 without also testing CovenantID,
+    // and a stale display value would satisfy them.
+    uint32 target = 0;
+    if (CurrencyTypesEntry const* covenantCurrency = GetCovenantRenownCurrency(m_activeCovenantId))
+        target = GetCurrencyQuantity(covenantCurrency->ID);
+
+    int32 delta = int32(target) - int32(GetCurrencyQuantity(CURRENCY_TYPE_COVENANT_RENOWN));
+    if (!delta)
+        return;
+
+    // 1822 shares MaxQtyWorldStateID 19735 with the per-covenant currencies, so ModifyCurrency's cap clamp can
+    // never make the view disagree with the track it views. On a covenant switch the view moves down to the
+    // newly-active covenant's own (independently stored) renown - hence FactionConversion as the reason.
+    ModifyCurrency(CURRENCY_TYPE_COVENANT_RENOWN, delta, CurrencyGainSource::RenownRepGain,
+        CurrencyDestroyReason::FactionConversion);
+}
+
+bool Player::IsCovenantRenownCatchupActive() const
+{
+    // Accelerated renown catch-up is NOT implemented, so the honest answer is "no".
+    //
+    // Retail gated renown gains by calendar week and boosted gains for a character below the account's
+    // renown high-water mark. Neither the weekly schedule nor the boost rate is published anywhere in the
+    // 12.0.7.68275 client data - CurrencyTypes 1822/1829-1832 all have MaxEarnablePerWeek = 0, and the only
+    // two ModifierTree rows of type RenownCatchupActive/RapidRenownCatchupActive (167897/167898) carry no
+    // assets - so there is nothing to derive the mechanic from. Reporting true here would promise the client's
+    // renown UI a bonus the server never pays, so it stays false until real accelerated gains exist.
+    return false;
+}
+
 void Player::GrantRenownReward(RenownRewardsEntry const* reward)
 {
     if (!reward)
+        return;
+
+    // RenownRewards rows can carry an eligibility gate, and it is load-bearing rather than cosmetic: the
+    // Renown 48 batch is twelve rows per covenant, one per class (PlayerCondition 39985/39986/39987/40073/
+    // 42230/42788-42794 are pure ClassMask conditions), and the two Kyrian Renown 4 companions 1270/1271 are
+    // gated on the campaign quests 60294/60293 (PlayerCondition 85540/85541). Ungated, every character would
+    // receive all twelve class items and both companions.
+    if (reward->PlayerConditionID > 0 && !ConditionMgr::IsPlayerMeetingCondition(this, uint32(reward->PlayerConditionID)))
         return;
 
     if (reward->SpellID > 0)
@@ -20570,11 +20713,28 @@ void Player::GrantRenownReward(RenownRewardsEntry const* reward)
         GetSession()->GetCollectionMgr()->AddTransmogSet(uint32(reward->TransmogSetID));
 
     if (reward->GarrFollowerID > 0)
-        if (Garrison* garrison = GetGarrison())
-            garrison->AddFollower(uint32(reward->GarrFollowerID));
+    {
+        // Route to the follower's own garrison type. The no-arg GetGarrison() is the WoD garrison (type 2), and
+        // all 37 GarrFollowerID rewards of covenants 1-4 are GarrTypeID 111 (the covenant sanctum), so this
+        // grant silently did nothing for every covenant companion - the same failure class already fixed in
+        // Spell::EffectAddGarrisonFollower.
+        GarrisonType garrType = GARRISON_TYPE_GARRISON;
+        if (GarrFollowerEntry const* followerEntry = sGarrFollowerStore.LookupEntry(uint32(reward->GarrFollowerID)))
+            garrType = GarrisonType(followerEntry->GarrTypeID);
 
-    // Remaining RenownRewards fields with no clean single-call grant path (follow-up): TransmogIllusionID (no
-    // CollectionMgr add-illusion API) and QuestID (reward-quest grant semantics need confirmation).
+        if (Garrison* garrison = GetGarrison(garrType))
+            garrison->AddFollower(uint32(reward->GarrFollowerID));
+    }
+
+    if (reward->TransmogIllusionID > 0)
+        if (sTransmogIllusionStore.LookupEntry(uint32(reward->TransmogIllusionID)))
+            GetSession()->GetCollectionMgr()->AddTransmogIllusion(uint32(reward->TransmogIllusionID));
+
+    // RenownRewards.QuestID is deliberately NOT granted. It is not a reward quest: 424 of the 511 covenant rows
+    // carry one, and the same id repeats across unrelated rows of the same covenant (e.g. Kyrian 64508 appears
+    // on the Renown 1, 4, 5 and 6 rows, which award nothing, a companion, a campaign milestone and a transmog
+    // respectively). It reads as the quest the UI links the row to, not something to hand out; pushing 424
+    // quests at a character would be destructive. Left until the field's meaning is confirmed in-game.
 }
 
 void Player::UpdateRenownRewards(FactionEntry const* renownFaction)
@@ -20600,7 +20760,27 @@ void Player::UpdateRenownRewards(FactionEntry const* renownFaction)
     if (!covenantId)
         return;
 
-    int32 currentLevel = GetReputationMgr().GetRenownLevel(renownFaction);
+    GrantRenownRewardsUpTo(covenantId, GetReputationMgr().GetRenownLevel(renownFaction));
+}
+
+void Player::UpdateCovenantRenownRewards(uint32 covenantId)
+{
+    // Same in-world guard as the reputation path: never grant items mid-load. A character that already holds
+    // renown is caught up by UpdateAllRenownRewards() once it is in world.
+    if (!IsInWorld())
+        return;
+
+    if (!GetCovenantRenownCurrency(covenantId))
+        return;
+
+    GrantRenownRewardsUpTo(covenantId, int32(GetCovenantRenownLevel(covenantId)));
+}
+
+void Player::GrantRenownRewardsUpTo(uint32 covenantId, int32 currentLevel)
+{
+    if (!covenantId || currentLevel <= 0)
+        return;
+
     uint32& granted = m_renownRewardsGranted[covenantId];
     if (int32(granted) >= currentLevel)
         return;
@@ -20621,9 +20801,20 @@ void Player::UpdateRenownRewards(FactionEntry const* renownFaction)
 
 void Player::UpdateAllRenownRewards()
 {
+    // Reputation-driven renown (Dragonflight and later major factions).
     for (CovenantEntry const* covenant : sCovenantStore)
         if (FactionEntry const* faction = sFactionStore.LookupEntry(uint32(covenant->FactionID)))
             UpdateRenownRewards(faction);
+
+    // Currency-driven renown (the four Shadowlands covenants). Every covenant is walked, not just the active
+    // one: the per-covenant currencies 1829-1832 persist independently, so a character that switched covenants
+    // still owns - and is still owed the rewards of - its other tracks.
+    for (CovenantEntry const* covenant : sCovenantStore)
+        UpdateCovenantRenownRewards(covenant->ID);
+
+    // 1822 is a display mirror of the active covenant's track and nothing writes it directly; refresh it once
+    // the character is in world so the renown UI and the renown PlayerConditions see the right value on login.
+    SyncCovenantRenownDisplayCurrency();
 }
 
 void Player::ActivateSoulbind(SoulbindEntry const* soulbind)
@@ -20706,6 +20897,15 @@ void Player::SetActiveCovenant(uint32 covenantId)
     // silently no-ops without it. Guarded so it is created once and re-running the covenant choice is harmless.
     if (m_activeCovenantId && !GetGarrison(GARRISON_TYPE_COVENANT))
         CreateGarrison(GARR_SITE_COVENANT_SANCTUM);
+
+    if (changed)
+    {
+        // Renown is per-covenant and never resets, so the joined covenant's own track becomes current: repoint
+        // the 1822 display mirror at it and hand over anything already earned there (a returning member keeps
+        // the renown it had). A brand-new member sits at currency 0, which is Renown 1.
+        SyncCovenantRenownDisplayCurrency();
+        UpdateCovenantRenownRewards(m_activeCovenantId);
+    }
 }
 
 void Player::_LoadSoulbindConduits(PreparedQueryResult result)

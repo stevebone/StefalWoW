@@ -2923,10 +2923,37 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         void RemoveConduitSpells();     // strip conduit spells (on soulbind switch)
         int32 GetConduitSpell(uint32 conduitId) const;   // owned rank -> SoulbindConduitRank.SpellID (0 if none)
 
-        // Covenant renown rewards. The renown LEVEL itself is a renown-reputation (TC ReputationMgr) and is client-synced
-        // by the standard reputation packets; this grants the per-level RenownRewards (item/spell/title/mount) once each.
+        // Covenant renown.
+        //
+        // There are two renown engines and Covenant.db2 feeds both:
+        //  - Dragonflight and later major factions (Covenant.db2 rows 12+) run on renown REPUTATION: their
+        //    Faction row publishes RenownCurrencyID, ReputationMgr::IsRenownReputation is true and
+        //    ReputationMgr::GetRenownLevel returns the level. UpdateRenownRewards(FactionEntry const*) serves those.
+        //  - The four Shadowlands covenants (1-4) do NOT. Factions 2407/2410/2413/2465 publish
+        //    RenownCurrencyID = 0 and RenownFactionID = 0, so IsRenownReputation is false for them and the
+        //    reputation path can never fire for a covenant. Their renown is the per-covenant currency named by
+        //    Covenant.db2 CurrencyTypesID (1829 Kyrian / 1830 Venthyr / 1831 Night Fae / 1832 Necrolord).
+        //    That is also why one character can hold four independent renown tracks.
+        // Both paths converge on GrantRenownRewardsUpTo(), which grants each RenownRewards row exactly once.
         void UpdateRenownRewards(FactionEntry const* renownFaction);
         void UpdateAllRenownRewards();   // login catch-up: grant any renown rewards earned before this feature existed
+
+        // The currency a Shadowlands covenant stores its renown in, or nullptr for any covenant whose renown is
+        // reputation-driven (and therefore not handled here).
+        static CurrencyTypesEntry const* GetCovenantRenownCurrency(uint32 covenantId);
+        // Inverse lookup: which Shadowlands covenant owns this currency id (0 if none).
+        static uint32 GetCovenantIdForRenownCurrency(uint32 currencyId);
+        // Renown level of a Shadowlands covenant (defaults to the active one). 0 when the covenant has no
+        // currency-driven renown; otherwise >= 1, because currency quantity 0 is Renown 1.
+        uint32 GetCovenantRenownLevel(uint32 covenantId = 0) const;
+        // Grant the RenownRewards rows unlocked by the covenant's current currency-driven renown level.
+        void UpdateCovenantRenownRewards(uint32 covenantId);
+        // Keep the shared display currency (1822 "Renown") equal to the ACTIVE covenant's track. The client's
+        // renown UI and every renown PlayerCondition/ModifierTree in the build read 1822, never 1829-1832.
+        void SyncCovenantRenownDisplayCurrency();
+        // Whether accelerated renown catch-up is currently running for this player
+        // (answers SMSG_COVENANT_RENOWN_SEND_CATCHUP_STATE).
+        bool IsCovenantRenownCatchupActive() const;
 
         bool IsAdvancedCombatLoggingEnabled() const { return _advancedCombatLoggingEnabled; }
         void SetAdvancedCombatLogging(bool enabled) { _advancedCombatLoggingEnabled = enabled; }
@@ -3180,6 +3207,9 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         void _LoadSoulbindConduitSockets(PreparedQueryResult result);
         void _LoadRenownRewards(PreparedQueryResult result);
         void GrantRenownReward(RenownRewardsEntry const* reward);
+        // Shared tail of both renown engines: grant every not-yet-granted RenownRewards row up to currentLevel
+        // for this covenant, then persist the new high-water mark to character_covenant_renown.
+        void GrantRenownRewardsUpTo(uint32 covenantId, int32 currentLevel);
         void _LoadQuestStatus(PreparedQueryResult result);
         void _LoadQuestStatusObjectives(PreparedQueryResult result);
         void _LoadQuestStatusObjectiveSpawnTrackings(PreparedQueryResult result);
