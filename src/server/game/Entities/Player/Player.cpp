@@ -50,6 +50,7 @@
 #include "Common.h"
 #include "ConditionMgr.h"
 #include "Containers.h"
+#include "CovenantPackets.h"
 #include "CreatureAI.h"
 #include "DB2Stores.h"
 #include "DatabaseEnv.h"
@@ -14174,6 +14175,31 @@ void Player::OnGossipSelect(WorldObject* source, int32 gossipOptionId, uint32 me
         // GARRISON_TALENT_NPC_OPENED -> OrderHallTalentFrame. No dedicated open-talent packet/opcode is needed
         // (verified by client RE; a dedicated packet leaves a stuck "book cursor" because no frame is registered
         // for it). The option only needs its GossipNpcOptionID set in GossipNPCOption.db2 (e.g. Hunter = 32330).
+        case GossipOptionNpc::CovenantPreviewNpc:
+        {
+            // Tell the client which covenant to preview. The covenant is NOT inferred from the creature entry - it
+            // comes from the gossip option's own GossipNPCOption.db2 row (CovenantID column), e.g. option 32285 = Kyrian
+            // on Polemarch Adrestes, 32306 = Venthyr on General Draven.
+            int32 covenantId = 0;
+            if (item->GossipNpcOptionID)
+                if (GossipNPCOptionEntry const* npcOption = sGossipNPCOptionStore.LookupEntry(*item->GossipNpcOptionID))
+                    covenantId = npcOption->CovenantID;
+
+            if (covenantId > 0)
+            {
+                WorldPackets::Covenant::CovenantPreviewOpenNpc preview;
+                preview.NpcGUID = guid;
+                preview.CovenantID = covenantId;
+                SendDirectMessage(preview.Write());
+            }
+            else
+                TC_LOG_DEBUG("entities.player", "Player::OnGossipSelect: covenant preview option {} on menu {} has no GossipNPCOption CovenantID; preview not sent.",
+                    gossipOptionId, menuId);
+
+            // Fall through to the generic path so the CovenantPreview interaction is still opened.
+            handled = false;
+            break;
+        }
         case GossipOptionNpc::ChromieTimeNpc: // NYI
             break;
         case GossipOptionNpc::RuneforgeLegendaryCrafting: // NYI
@@ -18908,6 +18934,13 @@ bool Player::LoadFromDB(ObjectGuid guid, CharacterDatabaseQueryHolder const& hol
         } while (garrisonResult->NextRow());
     }
 
+    // Safety net for characters that joined a covenant before the sanctum garrison existed (or whose creation was
+    // lost): give them the GarrType 111 garrison now. Same pattern as the war-campaign create in RewardQuest.
+    // No SQL migration is needed - the row is written by the next SaveToDB. Must run after both _LoadCovenant and
+    // the garrison load loop above.
+    if (m_activeCovenantId && !GetGarrison(GARRISON_TYPE_COVENANT))
+        CreateGarrison(GARR_SITE_COVENANT_SANCTUM);
+
     _InitHonorLevelOnLoadFromDB(fields.honor, fields.honorLevel);
 
     _restMgr->LoadRestBonus(REST_TYPE_HONOR, fields.honorRestState, fields.honorRestBonus);
@@ -20486,6 +20519,15 @@ void Player::_LoadCovenant(PreparedQueryResult result)
     Field* fields = result->Fetch();
     m_activeCovenantId = fields[0].GetUInt32();
     m_activeSoulbindId = fields[1].GetUInt32();
+
+    // Replicate to the client. PlayerData::CovenantID/SoulbindID are what C_Covenants.GetActiveCovenantID() and
+    // C_Soulbinds.GetActiveSoulbindID() read, and what the covenant/soulbind PlayerConditions and criteria test;
+    // without these writes the whole covenant UI behaves as if the character never joined one.
+    SetUpdateFieldValue(m_values.ModifyValue(&Player::m_playerData).ModifyValue(&UF::PlayerData::CovenantID), int32(m_activeCovenantId));
+    SetUpdateFieldValue(m_values.ModifyValue(&Player::m_playerData).ModifyValue(&UF::PlayerData::SoulbindID), int32(m_activeSoulbindId));
+
+    // Covenant membership grants a hidden SkillLine that gates covenant-locked objects (see ApplyCovenantSkillLines).
+    ApplyCovenantSkillLines();
 }
 
 void Player::_LoadRenownRewards(PreparedQueryResult result)
@@ -20592,10 +20634,13 @@ void Player::ActivateSoulbind(SoulbindEntry const* soulbind)
     // Switching soulbinds changes the active tree, so strip the previously-applied conduit spells first.
     RemoveConduitSpells();
 
-    // Activating a soulbind implies membership in its covenant (there is no separate covenant-choice opcode in
-    // the client protocol), so keep the active covenant consistent with the chosen soulbind.
-    m_activeCovenantId = uint32(soulbind->CovenantID);
+    // The active covenant is NOT derived from the soulbind. It is set by the covenant-choice flow
+    // (SPELL_EFFECT_SET_COVENANT -> SetActiveCovenant). Deriving it here let any client free-switch covenant by
+    // simply activating a foreign covenant's soulbind; WorldSession::HandleActivateSoulbind now rejects a soulbind
+    // whose CovenantID does not match the player's, and this function no longer overwrites it.
     m_activeSoulbindId = soulbind->ID;
+
+    SetUpdateFieldValue(m_values.ModifyValue(&Player::m_playerData).ModifyValue(&UF::PlayerData::SoulbindID), int32(m_activeSoulbindId));
 
     CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_REP_CHARACTER_COVENANT);
     stmt->setUInt64(0, GetGUID().GetCounter());
@@ -20607,22 +20652,60 @@ void Player::ActivateSoulbind(SoulbindEntry const* soulbind)
     ApplyConduitSpells();
 }
 
+void Player::ApplyCovenantSkillLines()
+{
+    // Covenant membership is expressed to the lock system as a hidden SkillLine (Covenant.db2 SkillLineID:
+    // 2730 Kyrian / 2731 Venthyr / 2732 Night Fae / 2733 Necrolord). LOCKTYPE_COVENANT_* (157-160) resolve to
+    // those skills via SkillByLockType (SharedDefines.h) and Spell::CanOpenLock compares the player's skill value
+    // against Lock.db2's required value. The four covenant Lock rows (3285-3288) all require 300, and the skill
+    // lines have no SkillTiers cap (SkillRaceClassInfo.SkillTierID = 0), so membership grants exactly 300.
+    constexpr uint16 CovenantSkillValue = 300;
+
+    for (CovenantEntry const* covenant : sCovenantStore)
+    {
+        if (covenant->SkillLineID <= 0)
+            continue;
+
+        bool const isActive = covenant->ID == m_activeCovenantId;
+        uint16 const value = isActive ? CovenantSkillValue : 0;
+
+        // Skip no-op writes so this stays cheap and idempotent (it runs on every load and covenant set).
+        if (GetPureSkillValue(uint32(covenant->SkillLineID)) == value)
+            continue;
+
+        SetSkill(uint32(covenant->SkillLineID), 0, value, value);
+    }
+}
+
 void Player::SetActiveCovenant(uint32 covenantId)
 {
     // Blizzlike join order is: choose covenant (this) -> then its soulbinds unlock. Driven by
     // SPELL_EFFECT_SET_COVENANT (the covenant-choice quest's reward spell); there is no covenant opcode.
-    // Unlike ActivateSoulbind (which implies the covenant), this sets the covenant WITHOUT touching the
+    // Unlike ActivateSoulbind (which does not imply the covenant), this sets the covenant WITHOUT touching the
     // active soulbind, so a player can join before picking a soulbind.
-    if (m_activeCovenantId == covenantId)
-        return;
-
+    bool const changed = m_activeCovenantId != covenantId;
     m_activeCovenantId = covenantId;
 
-    CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_REP_CHARACTER_COVENANT);
-    stmt->setUInt64(0, GetGUID().GetCounter());
-    stmt->setUInt32(1, m_activeCovenantId);
-    stmt->setUInt32(2, m_activeSoulbindId);
-    CharacterDatabase.Execute(stmt);
+    // Replicate to the client (drives C_Covenants.GetActiveCovenantID, covenant PlayerConditions and criteria).
+    SetUpdateFieldValue(m_values.ModifyValue(&Player::m_playerData).ModifyValue(&UF::PlayerData::CovenantID), int32(m_activeCovenantId));
+
+    // Grant the joined covenant's SkillLine and strip the other three (idempotent).
+    ApplyCovenantSkillLines();
+
+    if (changed)
+    {
+        CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_REP_CHARACTER_COVENANT);
+        stmt->setUInt64(0, GetGUID().GetCounter());
+        stmt->setUInt32(1, m_activeCovenantId);
+        stmt->setUInt32(2, m_activeSoulbindId);
+        CharacterDatabase.Execute(stmt);
+    }
+
+    // Joining a covenant grants the covenant sanctum (GarrType 111, GarrSite 296). It backs the Sanctum UI,
+    // sanctum research (GarrTalentTree rows with GarrTypeID 111) and Adventures, and SPELL_EFFECT_LEARN_GARR_TALENT
+    // silently no-ops without it. Guarded so it is created once and re-running the covenant choice is harmless.
+    if (m_activeCovenantId && !GetGarrison(GARRISON_TYPE_COVENANT))
+        CreateGarrison(GARR_SITE_COVENANT_SANCTUM);
 }
 
 void Player::_LoadSoulbindConduits(PreparedQueryResult result)

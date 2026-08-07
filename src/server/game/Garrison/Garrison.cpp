@@ -548,8 +548,11 @@ static GarrisonType GetGarrisonTypeFromSiteId(uint32 garrSiteId)
         case 163: return GARRISON_TYPE_CLASS_ORDER;   // Legion class/order hall - Horde    (shared faction site, all classes)
         case 168: return GARRISON_TYPE_WAR_CAMPAIGN;   // BfA War Campaign - Alliance (GarrSiteLevel 599/600/601, maps 1643/1825/1771)
         case 169: return GARRISON_TYPE_WAR_CAMPAIGN;   // BfA War Campaign - Horde    (GarrSiteLevel 611/612/613, maps 1642/1861/1876)
-        case 173: return GARRISON_TYPE_WAR_CAMPAIGN;   // BfA (legacy alias; real sites are 168/169 per GarrSiteLevel.db2)
-        case 500: return GARRISON_TYPE_COVENANT;       // Shadowlands
+        case GARR_SITE_COVENANT_SANCTUM:               // Shadowlands covenant sanctum (all four covenants share the site)
+                  return GARRISON_TYPE_COVENANT;       // GarrSiteLevel 837/838/839 -> maps 2222/2162/2236; GarrType 111 publishes MapIDs 2222/2162
+        // Sites 173 (BfA "legacy alias") and 500 (Shadowlands) used to be mapped here. Neither has ANY GarrSiteLevel
+        // row in 12.0.7, so Garrison::Create always failed on them - they were dead branches. Do not re-add them:
+        // the real war-campaign sites are 168/169 and the real covenant site is 296.
         default:  return GARRISON_TYPE_GARRISON;
     }
 }

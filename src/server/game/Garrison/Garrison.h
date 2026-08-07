@@ -43,6 +43,13 @@ enum GarrisonType : int32
     GARRISON_TYPE_COVENANT      = 111
 };
 
+// Known GarrSite ids. GarrSite.db2 (GarrSiteID -> GarrTypeID) is not shipped in 12.0.x, so the ids the core creates
+// garrisons with are named here; GetGarrisonTypeFromSiteId (Garrison.cpp) maps them back to a GarrisonType.
+enum GarrisonSiteId : uint32
+{
+    GARR_SITE_COVENANT_SANCTUM  = 296   // Shadowlands covenant sanctum (GarrSiteLevel 837/838/839 -> maps 2222/2162/2236)
+};
+
 enum GarrisonFactionIndex
 {
     GARRISON_FACTION_INDEX_HORDE    = 0,

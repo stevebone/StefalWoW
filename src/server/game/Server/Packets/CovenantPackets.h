@@ -19,6 +19,7 @@
 #define TRINITYCORE_COVENANT_PACKETS_H
 
 #include "Packet.h"
+#include "ObjectGuid.h"
 
 namespace WorldPackets
 {
@@ -33,6 +34,37 @@ namespace Covenant
         void Read() override;
 
         int32 SoulbindID = 0;
+    };
+
+    // SMSG_ACTIVATE_SOULBIND_FAILED (0x5F0023). Wire (client reader, all_smsg_layouts_68275 0x5f0023, dispatcher
+    // 0x7FF72911F1D0): a single uint32. Sent when CMSG_ACTIVATE_SOULBIND is rejected, so the client stops waiting on
+    // the requested soulbind and reverts its UI.
+    // NOTE: the STRUCTURE is client-derived and proven; the field's SEMANTICS are inferred (the requested SoulbindID,
+    // echoed back) - the alternative reading is an error code. Echoing the id the client just sent is the safe choice:
+    // it is correct under the first reading and, under the second, still fails closed without a wrong error string.
+    class ActivateSoulbindFailed final : public ServerPacket
+    {
+    public:
+        ActivateSoulbindFailed() : ServerPacket(SMSG_ACTIVATE_SOULBIND_FAILED, 4) { }
+
+        WorldPacket const* Write() override;
+
+        int32 SoulbindID = 0;
+    };
+
+    // SMSG_COVENANT_PREVIEW_OPEN_NPC (0x4202A5). Wire (client reader sub_7FF7290AF0E0, dispatcher 0x7FF729103660):
+    // ObjectGuid (16) followed by uint32 (4). Opens the covenant-preview UI for the NPC the player is talking to.
+    // NOTE: structure proven, semantics of the uint32 inferred as the CovenantID (1-4). It is sourced from the
+    // gossip option's GossipNPCOption.db2 row (CovenantID column), never guessed per-creature.
+    class CovenantPreviewOpenNpc final : public ServerPacket
+    {
+    public:
+        CovenantPreviewOpenNpc() : ServerPacket(SMSG_COVENANT_PREVIEW_OPEN_NPC, 16 + 4) { }
+
+        WorldPacket const* Write() override;
+
+        ObjectGuid NpcGUID;
+        int32 CovenantID = 0;
     };
 
     // CMSG_REQUEST_COVENANT_CALLINGS (0x3A0269). Empty payload; the client asks which covenant callings (bounties) are available.

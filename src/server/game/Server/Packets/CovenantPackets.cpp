@@ -22,6 +22,21 @@ void WorldPackets::Covenant::ActivateSoulbind::Read()
     _worldPacket >> SoulbindID;
 }
 
+WorldPacket const* WorldPackets::Covenant::ActivateSoulbindFailed::Write()
+{
+    _worldPacket << int32(SoulbindID);
+
+    return &_worldPacket;
+}
+
+WorldPacket const* WorldPackets::Covenant::CovenantPreviewOpenNpc::Write()
+{
+    _worldPacket << NpcGUID;
+    _worldPacket << int32(CovenantID);
+
+    return &_worldPacket;
+}
+
 WorldPacket const* WorldPackets::Covenant::CovenantCallingsAvailabilityResponse::Write()
 {
     _worldPacket.WriteBit(CallingsUnlocked);
