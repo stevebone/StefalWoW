@@ -182,6 +182,7 @@ void GarrisonMgr::Initialize()
     LoadConservatoryCatalysts();
     LoadConservatoryYields();
     LoadAbominationRecipes();
+    LoadAscensionMemories();
 }
 
 // Class-hall / order-hall (and any non-plot garrison) troop recruiters aren't garrison plot buildings, so the
@@ -582,6 +583,123 @@ uint8 GarrisonMgr::GetAbominationRecipeRank(uint32 spellId) const
 {
     auto itr = _abominationRecipes.find(spellId);
     return itr != _abominationRecipes.end() ? itr->second.RequiredRank : uint8(0);
+}
+
+// Path of Ascension (Kyrian unique sanctum feature, GarrTalentTree 320).
+//
+// Almost the whole feature is published by the 12.0.7.68275 client and is read straight out of it - the five
+// talents 1091-1095 and their costs, the four trial difficulties 168-171 ("Path of Ascension: Courage /
+// Loyalty / Wisdom / Humility"), scenario 1803 on map 2375, and the ten memory quests already sitting in
+// `integ_world` under QuestSortID -595 with their kill-credit objectives and reward items. What NO row in the
+// build states is which memory is one of the SIX the first tier captures versus the FOUR the second adds, and
+// which memories are the "some" that gain a second trial at tier 2 versus "the rest" at tier 3. That mapping
+// is content, so it is authored here instead of being invented in C++; an empty table is a valid state and
+// simply leaves PathOfAscension::CaptureMemory answering ASCENSION_ERROR_NO_MEMORY_DATA.
+void GarrisonMgr::LoadAscensionMemories()
+{
+    _ascensionMemories.clear();
+    _ascensionArenaAuthored = false;
+
+    // Does this world DB actually instantiate the Ascension Coliseum? Scenario 1803 and map 2375 are real
+    // client data, but a scenario only runs if `scenarios` names it for the map AND the map has something in
+    // it. Both halves are checked so a half-authored arena cannot report itself as playable.
+    if (QueryResult arena = WorldDatabase.PQuery("SELECT "
+        "(SELECT COUNT(*) FROM scenarios WHERE map = {}), "
+        "(SELECT COUNT(*) FROM creature WHERE map = {})", uint32(ASCENSION_MAP_ID), uint32(ASCENSION_MAP_ID)))
+    {
+        Field* fields = arena->Fetch();
+        _ascensionArenaAuthored = fields[0].GetUInt64() > 0 && fields[1].GetUInt64() > 0;
+    }
+
+    if (!_ascensionArenaAuthored)
+        TC_LOG_INFO("server.loading", ">> Path of Ascension: the Ascension Coliseum (scenario {} on map {}) is not "
+            "authored in this world DB - no `scenarios` row and/or no spawns. Trials will be refused rather than "
+            "started.", uint32(ASCENSION_SCENARIO_ID), uint32(ASCENSION_MAP_ID));
+
+    QueryResult result = WorldDatabase.Query("SELECT memoryId, creatureId, captureQuestId, requiredTier, "
+        "courageTier, loyaltyTier, wisdomTier, humilityTier FROM garrison_ascension_memory");
+    if (!result)
+    {
+        TC_LOG_INFO("server.loading", ">> Loaded 0 Path of Ascension memories. DB table `garrison_ascension_memory` "
+            "is empty - no memory can be captured until the roster is authored.");
+        return;
+    }
+
+    uint32 count = 0;
+    do
+    {
+        Field* fields = result->Fetch();
+        AscensionMemoryTemplate memory;
+        memory.MemoryId       = fields[0].GetUInt32();
+        memory.CreatureId     = fields[1].GetUInt32();
+        memory.CaptureQuestId = fields[2].GetUInt32();
+        memory.RequiredTier   = fields[3].GetUInt8();
+        memory.CourageTier    = fields[4].GetUInt8();
+        memory.LoyaltyTier    = fields[5].GetUInt8();
+        memory.WisdomTier     = fields[6].GetUInt8();
+        memory.HumilityTier   = fields[7].GetUInt8();
+
+        // A memory must name a creature that exists: CompleteTrial credits it, and that credit is what makes
+        // the memory's own quest pay out. Without it a completion would silently reward nothing.
+        if (!sObjectMgr->GetCreatureTemplate(memory.CreatureId))
+        {
+            TC_LOG_ERROR("sql.sql", "Table `garrison_ascension_memory` row {} names creatureId {} which has no "
+                "creature_template; row skipped.", memory.MemoryId, memory.CreatureId);
+            continue;
+        }
+
+        if (memory.CaptureQuestId && !sObjectMgr->GetQuestTemplate(memory.CaptureQuestId))
+        {
+            TC_LOG_ERROR("sql.sql", "Table `garrison_ascension_memory` row {} names captureQuestId {} which does "
+                "not exist; row skipped.", memory.MemoryId, memory.CaptureQuestId);
+            continue;
+        }
+
+        if (!memory.RequiredTier || memory.RequiredTier > ASCENSION_MAX_TIERS)
+        {
+            TC_LOG_ERROR("sql.sql", "Table `garrison_ascension_memory` row {} has requiredTier {} outside 1-{}; "
+                "row skipped.", memory.MemoryId, uint32(memory.RequiredTier), uint32(ASCENSION_MAX_TIERS));
+            continue;
+        }
+
+        bool badTrialTier = false;
+        for (uint8 trial = ASCENSION_TRIAL_COURAGE; trial <= ASCENSION_TRIAL_MAX; ++trial)
+        {
+            uint8 const trialTier = memory.GetTrialTier(AscensionTrial(trial));
+            if (trialTier > ASCENSION_MAX_TIERS)
+            {
+                TC_LOG_ERROR("sql.sql", "Table `garrison_ascension_memory` row {} opens {} at researched tier {}, "
+                    "outside 0-{}; row skipped.", memory.MemoryId, PathOfAscension::GetTrialName(AscensionTrial(trial)),
+                    uint32(trialTier), uint32(ASCENSION_MAX_TIERS));
+                badTrialTier = true;
+                break;
+            }
+
+            // A trial cannot open before the memory can be captured - that combination could never be entered.
+            if (trialTier && trialTier < memory.RequiredTier)
+            {
+                TC_LOG_ERROR("sql.sql", "Table `garrison_ascension_memory` row {} opens {} at tier {} but the memory "
+                    "is only capturable at tier {}; row skipped.", memory.MemoryId,
+                    PathOfAscension::GetTrialName(AscensionTrial(trial)), uint32(trialTier), uint32(memory.RequiredTier));
+                badTrialTier = true;
+                break;
+            }
+        }
+
+        if (badTrialTier)
+            continue;
+
+        _ascensionMemories[memory.MemoryId] = memory;
+        ++count;
+    } while (result->NextRow());
+
+    TC_LOG_INFO("server.loading", ">> Loaded {} Path of Ascension memories.", count);
+}
+
+AscensionMemoryTemplate const* GarrisonMgr::GetAscensionMemory(uint32 memoryId) const
+{
+    auto itr = _ascensionMemories.find(memoryId);
+    return itr != _ascensionMemories.end() ? &itr->second : nullptr;
 }
 
 void GarrisonMgr::LoadOrderHallStandards()
