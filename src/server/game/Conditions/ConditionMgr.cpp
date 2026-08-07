@@ -163,7 +163,7 @@ ConditionMgr::ConditionTypeInfo const ConditionMgr::StaticConditionTypeData[COND
     { .Name = "Label",                     .HasConditionValue1 =  true, .HasConditionValue2 = false, .HasConditionValue3 = false, .HasConditionStringValue1 = false },
     { .Name = "Chromie Time",              .HasConditionValue1 =  true, .HasConditionValue2 = false, .HasConditionValue3 = false, .HasConditionStringValue1 = false }, // 60 - reserved (upstream)
     { .Name = "Group status",              .HasConditionValue1 =  true, .HasConditionValue2 = false, .HasConditionValue3 = false, .HasConditionStringValue1 = false },
-    { .Name = "Covenant",                  .HasConditionValue1 =  true, .HasConditionValue2 = false, .HasConditionValue3 = false, .HasConditionStringValue1 = false }
+    { .Name = "Covenant",                  .HasConditionValue1 =  true, .HasConditionValue2 =  true, .HasConditionValue3 = false, .HasConditionStringValue1 = false }
 };
 
 static bool MeetsGroupStatusCondition(Player const* player, GroupStatusCondition status)
@@ -711,8 +711,24 @@ bool Condition::Meets(ConditionSourceInfo& sourceInfo) const
         case CONDITION_COVENANT:
         {
             // ConditionValue1 0 means "any covenant", so this doubles as the has-not-chosen-yet test when negated.
-            if (Player const* player = object->ToPlayer())
+            Player const* player = object->ToPlayer();
+            if (!player)
+                break;
+
+            if (!ConditionValue2)
+            {
                 condMeets = ConditionValue1 ? player->GetActiveCovenant() == ConditionValue1 : player->GetActiveCovenant() != 0;
+                break;
+            }
+
+            // ConditionValue2 = minimum renown level. Renown is per covenant and survives leaving one, so with the
+            // "any covenant" wildcard this asks what the 9.1.5 free-switch rule asks - "has this character ever
+            // taken a covenant to Renown N" - without requiring it to be in one right now.
+            if (ConditionValue1)
+                condMeets = player->GetActiveCovenant() == ConditionValue1
+                    && player->GetCovenantRenownLevel(ConditionValue1) >= ConditionValue2;
+            else
+                condMeets = player->GetHighestCovenantRenownLevel() >= ConditionValue2;
             break;
         }
         default:

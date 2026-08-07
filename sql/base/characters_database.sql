@@ -606,6 +606,21 @@ CREATE TABLE `character_covenant` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `character_covenant_soulbind`
+--
+
+DROP TABLE IF EXISTS `character_covenant_soulbind`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `character_covenant_soulbind` (
+  `guid` bigint unsigned NOT NULL DEFAULT '0',
+  `covenantId` int unsigned NOT NULL DEFAULT '0',
+  `soulbindId` int unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`guid`,`covenantId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Soulbind last active per covenant (also the set of covenants ever joined)';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `character_soulbind_conduits`
 --
 
