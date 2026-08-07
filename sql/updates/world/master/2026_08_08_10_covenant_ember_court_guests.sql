@@ -1,5 +1,6 @@
 --
--- The Ember Court - the authored per-guest preferences (Venthyr unique sanctum feature, GarrTalentTree 324).
+-- The Ember Court - the authored per-guest DISLIKES (Venthyr unique sanctum feature, GarrTalentTree 324).
+-- Everything else about a guest, including what they LIKE, is client data and is not repeated here.
 --
 -- WHY THIS TABLE IS EMPTY
 -- -----------------------
@@ -61,73 +62,75 @@
 --                           Court" (Foreman Flatfinger 172605 -> Theotar 161979, both already spawned).
 --
 -- What NO 68275 client row anywhere states:
---   1. WHICH of the five attributes each of the sixteen guests LIKES, and which end of that axis. The
---      rehearsal scenario states three preferences in passing - "Temel likes a CLEAN court", "Theotar likes a
---      FORMAL court", "Watchmaster Boromod likes a CASUAL court" - but those three are the HOST and the
---      tutorial cast, not the sixteen guests. No DB2 row and no world row maps any of the sixteen to any axis.
---   2. WHICH attribute each guest DISLIKES. Same absence; the rehearsal only hints that one exists ("Not
---      everyone prefers the court to be Formal").
---   3. WHAT VALUE counts as the "Elated" mood. Achievement 14724 names the rung and nothing publishes the
---      rungs below it, the thresholds, or how attribute levels move a guest between them. "Elated" does not
---      occur in GlobalStrings.db2 at all (checked - control terms in the same table do hit).
--- Those three are exactly the columns below, and they are CONTENT, so they are authored here rather than
--- invented in C++. Until a row exists the engine is deliberately half-inert: a Venthyr who researches the
--- tree gets the correct guest slots, butler and staff count, can RSVP and build a guest list, and
--- `.garrison embercourt status` reports all of it - but StartCourt answers EMBER_COURT_ERROR_NO_GUEST_DATA.
+--   1. WHAT EACH GUEST DISLIKES. Only "Likes:" strings exist. A scan of all 172,667 `ItemSparse`
+--      Description_lang values for "dislike" returns four unrelated items, so the method works and the
+--      absence is real. Treating the opposite pole of a like as a dislike would be a guess, so it is not
+--      done - a dislike exists only if it is authored here.
+-- That is the ONE thing this table carries, and it SHIPS EMPTY. An empty table is a perfectly normal state:
+-- it means no guest has an authored dislike, which is exactly what the build says.
 --
--- ALSO NOT DERIVABLE, and NOT worked around anywhere in the core:
---   * THE TRIBUTE CHEST AND ITS LOOT. `gameobject_template` has ZERO rows whose name contains "Ember Court";
---     the only "Tribute Chest" rows in the DB are the Wrath-era Argent Crusade chests 195665-195672 and the
---     unrelated Dragonflight 355936. With no chest there is no `gameobject_loot_template`, and no table
---     anywhere maps a final court rating to a reward tier. The core therefore awards NO tribute.
---   * THE COURT COOLDOWN. Spell 336617 is named "Ember Court Timer" but publishes no interval the server
---     could enforce, so none is enforced.
---   * THE SUPPLY COSTS. No `npc_vendor` row anywhere prices a Court supply in currency 1820 or 1837.
+-- IMPORTANT - what this table NO LONGER carries, because it turned out to be derivable after all:
+--   * EACH GUEST'S LIKES. Published on that guest's own mood-icon item in `ItemSparse`: Display_lang is the
+--     guest's name and Description_lang is a literal "Likes: <poles>" list, so the row binds to the guest by
+--     name with no ordering assumption. All sixteen are in EmberCourt.cpp:
+--       178886 Baroness Vashj        Dangerous, Decadent, Exciting   178888 Choofa            Exciting
+--       181338 Lady Moonberry        Messy, Exciting, Casual         178889 Cryptkeeper Kassir Formal
+--       181339 Mikanikos             Clean, Safe, Humble             181344 Droman Aliothe     Relaxing
+--       181340 The Countess          Decadent, Relaxing, Formal      181345 Grandmaster Vole   Dangerous
+--       181341 Alexandros Mograine   Safe, Humble                    181346 Kleia and Pelagos  Humble
+--       181342 Hunt-Captain Korayn   Dangerous, Casual               181347 P.D. Marileth      Messy
+--       178887 Polemarch Adrestes    Clean, Formal                   181348 Sika               Clean
+--       181343 Rendle and Cudgelface Messy, Relaxing                 181349 Stonehead          Casual
+--     Cross-validated: items 181390/181391/181392 give Temel "Clean", Theotar "Formal" and Watchmaster
+--     Boromod "Casual", reproducing the rehearsal scenario's own step text word for word.
+--   * THE MOOD LADDER, five rungs: Miserable < Uncomfortable < Happy < Very Happy < Elated. Published three
+--     agreeing ways - SpellName 327199/327200/327201/327781/327202 ("UI: <Rung> [DNT]"), the literal
+--     "Mood: <Rung>" strings in `UiWidgetStringSource` (a count returns exactly these five and no sixth), and
+--     the icons UI_EmberCourt-Emoji-<Rung>.blp as FileDataID 3750310-3750314. "Elated", the rung Achievement
+--     14724 requires, is therefore the TOP of the ladder = 5, a derived constant rather than a tunable.
+--   * THE FIVE AXES, confirmed a third time by the "Adjust World State" spells 321808 Cleanliness / 321809
+--     Danger / 321810 Decadence / 321811 Excitement / 321812 Formality (+322728 Bonus Happiness), whose order
+--     is the order the C++ enum uses.
 --
--- AND SEPARATELY: THE VENUE ITSELF IS NOT AUTHORED IN THIS WORLD DB. Method-validated, each with a control:
---     SELECT COUNT(*) FROM scenarios  WHERE map = 2222;         -> 0    (control: 317 rows in the table)
---     SELECT COUNT(*) FROM creature   WHERE id = 164966;        -> 0    (Temel, The Party Herald - the host)
---     SELECT COUNT(*) FROM creature   WHERE id IN (165453,165490,165493,165494,165496); -> 0
---                                                                      (all five staff: Lady Ilinca Concierge,
---                                                                       Picky Stefan Refreshments, Boot the
---                                                                       Beaut Themes, Hips Entertainment,
---                                                                       Watchmaster Boromod Security)
---     SELECT COUNT(*) FROM creature   WHERE areaId = 13329;     -> 0    (control: areaId 12917 Sinfall -> 130)
---     SELECT COUNT(*) FROM gameobject WHERE areaId = 13329;     -> 0
---     34 `creature_template` rows named "Ember Court Socialite"/"Ember Court Noble" exist and ALL have 0 spawns.
--- Because of that EmberCourt::StartCourt refuses with EMBER_COURT_ERROR_NO_VENUE_CONTENT instead of starting
--- a party that could never be attended, and a court is NEVER auto-completed - the only way attendance is
--- recorded is a real completion or the explicit `.garrison embercourt complete` GM command. Authoring the
--- `scenarios` row plus the Sinfall spawns flips GarrisonMgr::IsEmberCourtVenueAuthored() and turns the venue
--- gate off with no code change.
+-- STILL NOT DERIVABLE, and NOT worked around anywhere in the core:
+--   * THE NUMERIC HAPPINESS THRESHOLDS behind the rungs. The rung shown is driven by per-guest, per-rung
+--     shown-state WorldStates (190 widgets over WorldState 32788-33058) that the SERVER sets; no constant
+--     says how much happiness earns which rung. The core therefore never COMPUTES a mood - a mood is only
+--     ever reported to it by a real completion, and is validated against the five-rung ladder.
+--   * THE TRIBUTE PAYOUT. No tribute-chest gameobject exists: `gameobject_template` has ZERO rows named
+--     "%Ember Court%" (control: 30 rows named "%Tribute%" for other content), and `GameObjects.db2` has none
+--     on map 2222 (control: 449 rows on map 2222, all Bastion WMO labels; 2,953 on map 0). Every one of the
+--     sixteen Ember Court `ModifierTree` ids is absent from a 230,888-row table that is dense around them
+--     (4,693 rows in 145000-152000), so the rating->reward logic is server-side only. Nothing awards tribute.
+--   * THE COURT COOLDOWN. Spell 336617 "Ember Court Timer" has DurationIndex 0 and no `SpellCooldowns`,
+--     `SpellCategories` or `SpellAuraOptions` row, and its own description shows it is the REHEARSAL PREP
+--     timer, not a lockout. No interval is enforced.
+--   * THE THEME -> ATTRIBUTE DELTAS. The 16 "Contract:" supply items 176126-176141 and their spells
+--     321611-321658 only say "adds an option"; the per-theme axis movement lives in server scripts.
 --
 -- Authoring a row is validated at load: `guestIndex` must be 0-15, each attribute must be 0-5 and each pole
 -- 0-2, an attribute and its pole must both be set or both be 0, and a guest may not both prefer and dislike
 -- the same end of the same axis.
 --
+-- Authoring a row is validated at load: `guestIndex` must be 0-15, the attribute must be 0-5 and the pole
+-- 0-2, both must be set or both 0, and a guest may not be made to dislike a pole its own client-published
+-- "Likes:" list names.
+--
 -- Columns:
---   guestIndex          0-15, the CriteriaTree 87983 child OrderIndex (see the roster in the characters-DB
---                       migration 2026_08_08_10_covenant_ember_court.sql)
---   preferredAttribute  1 Cleanliness, 2 Danger, 3 Decadence, 4 Excitement, 5 Formality; 0 = none authored
---   preferredPole       1 = the LOW end (Messy/Safe/Humble/Relaxing/Casual),
---                       2 = the HIGH end (Clean/Dangerous/Decadent/Exciting/Formal); 0 = none
---   dislikedAttribute   same encoding as preferredAttribute
---   dislikedPole        same encoding as preferredPole
---   elatedMoodLevel     the mood value that earns this guest's Achievement 14724 credit. 0 = not authored,
---                       so the credit can never fire by accident.
+--   guestIndex         0-15, the CriteriaTree 87983 child OrderIndex (see the roster in the characters-DB
+--                      migration 2026_08_08_10_covenant_ember_court.sql)
+--   dislikedAttribute  1 Cleanliness, 2 Danger, 3 Decadence, 4 Excitement, 5 Formality; 0 = none authored
+--   dislikedPole       1 = the LOW end (Messy/Safe/Humble/Relaxing/Casual),
+--                      2 = the HIGH end (Clean/Dangerous/Decadent/Exciting/Formal); 0 = none
 --
 -- Idempotent.
 --
 CREATE TABLE IF NOT EXISTS `garrison_ember_court_guest` (
-  `guestIndex`         TINYINT UNSIGNED NOT NULL DEFAULT 0,
-  `preferredAttribute` TINYINT UNSIGNED NOT NULL DEFAULT 0,
-  `preferredPole`      TINYINT UNSIGNED NOT NULL DEFAULT 0,
-  `dislikedAttribute`  TINYINT UNSIGNED NOT NULL DEFAULT 0,
-  `dislikedPole`       TINYINT UNSIGNED NOT NULL DEFAULT 0,
-  `elatedMoodLevel`    TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  `guestIndex`        TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  `dislikedAttribute` TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  `dislikedPole`      TINYINT UNSIGNED NOT NULL DEFAULT 0,
   PRIMARY KEY (`guestIndex`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Ember Court per-guest preferences (unauthored by design - see file header)';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Ember Court per-guest dislikes (unpublished by the client - see file header)';
 
--- No INSERTs. Adding one is a content decision that needs a Shadowlands-era sniff or a design ruling on each
--- guest's liked/disliked attribute and on the numeric mood scale; see the file header for exactly which
--- values are missing and which query establishes each absence.
+-- No INSERTs. The 12.0.7.68275 build publishes no dislikes at all, so authoring one is a design decision, not
+-- a transcription. Everything else about a guest is read from the client - see the file header.

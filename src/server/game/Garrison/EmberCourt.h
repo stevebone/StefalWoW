@@ -204,25 +204,71 @@ class Player;
  * EmberCourtAttribute encodes.
  *
  * ---------------------------------------------------------------------------------------------------------
+ * THE MOOD LADDER AND EVERY GUEST'S TASTE - BOTH PUBLISHED, BOTH READ FROM THE CLIENT
+ * ---------------------------------------------------------------------------------------------------------
+ * The mood scale has FIVE rungs, and it is published three independent ways that agree exactly:
+ *     Miserable < Uncomfortable < Happy < Very Happy < Elated
+ *   * `SpellName` 327199 "UI: Miserable [DNT]", 327200 "UI: Uncomfortable", 327201 "UI: Happy",
+ *     327781 "UI: Very Happy", 327202 "UI: Elated" (327781 sits outside the contiguous run; that is what the
+ *     rows say). 346342 "UI: Angry" exists but belongs only to item 184534 "Entitled Guest", a joke item.
+ *   * `UiWidgetStringSource.Value_lang` carries literal "Mood: <Rung>" strings, and a count over that table
+ *     returns EXACTLY those five rungs and no sixth (12-13 rows each, one per guest).
+ *   * `ManifestInterfaceData` ships UI_EmberCourt-Emoji-{Miserable,Uncomfortable,Happy,VeryHappy,Elated}.blp
+ *     as FileDataIDs 3750310-3750314.
+ * "Elated", the one rung Achievement 14724 names, is therefore the TOP of the ladder = 5. (It is genuinely
+ * absent from GlobalStrings.db2 - that check was right, it was just looking in the wrong table.)
+ *
+ * Each guest's taste is published too, on that guest's own mood-icon item in `ItemSparse`: the item's
+ * Display_lang is the guest's name and its Description_lang is a literal "Likes: <poles>" list. The item name
+ * binds the row to the guest directly, so nothing here depends on an assumed ordering:
+ *     178886 Baroness Vashj          Likes: Dangerous, Decadent, Exciting
+ *     181338 Lady Moonberry          Likes: Messy, Exciting, Casual
+ *     181339 Mikanikos               Likes: Clean, Safe, Humble
+ *     181340 The Countess            Likes: Decadent, Relaxing, Formal
+ *     181341 Alexandros Mograine     Likes: Safe, Humble
+ *     181342 Hunt-Captain Korayn     Likes: Dangerous, Casual
+ *     178887 Polemarch Adrestes      Likes: Clean, Formal
+ *     181343 Rendle and Cudgelface   Likes: Messy, Relaxing
+ *     178888 Choofa                  Likes: Exciting
+ *     178889 Cryptkeeper Kassir      Likes: Formal
+ *     181344 Droman Aliothe          Likes: Relaxing
+ *     181345 Grandmaster Vole        Likes: Dangerous
+ *     181346 Kleia and Pelagos       Likes: Humble
+ *     181347 Plague Deviser Marileth Likes: Messy
+ *     181348 Sika                    Likes: Clean
+ *     181349 Stonehead               Likes: Casual
+ * (178677 Prince Renathal "Formal, Clean, Safe" and 181390/181391/181392 Temel/Theotar/Boromod
+ * "Clean"/"Formal"/"Casual" are the HOST and the rehearsal cast, not guests, so they are not in the roster -
+ * but note 181390-181392 reproduce the rehearsal's own step text exactly, which cross-validates the reading.)
+ *
+ * The five axes are confirmed a third time by the client's own "Adjust World State" spells - 321808
+ * Cleanliness, 321809 Danger, 321810 Decadence, 321811 Excitement, 321812 Formality (plus 322728 Bonus
+ * Happiness). Their order is the order EmberCourtAttribute uses, so the enum is not a local invention.
+ *
+ * ---------------------------------------------------------------------------------------------------------
  * NOT DERIVABLE OFFLINE - deliberately left as data, never guessed
  * ---------------------------------------------------------------------------------------------------------
- *   * WHICH attributes each guest likes or dislikes. The rehearsal scenario states three preferences in
- *     passing (Temel likes Clean, Theotar likes Formal, Boromod likes Casual) and those three are the HOSTS
- *     and the tutorial cast, not the sixteen guests. No DB2 row and no `integ_world` row maps any of the
- *     sixteen to any of the five axes.
- *   * THE HAPPINESS/MOOD SCALE. Achievement 14724 names exactly one rung, "Elated", and nothing publishes the
- *     rungs below it, the thresholds between them, or how attribute levels move a guest between them.
- *     "Elated" is not even present in GlobalStrings.db2 (checked; the control terms in the same table do hit).
+ *   * WHAT EACH GUEST DISLIKES. Only "Likes:" strings exist. A scan of all 172,667 ItemSparse descriptions for
+ *     "dislike" returns four unrelated items, so the method works and the absence is real. Assuming a guest
+ *     dislikes the opposite pole of what it likes would be a guess, so it is not assumed - the dislike is the
+ *     one column of the world table `garrison_ember_court_guest`, which SHIPS EMPTY.
+ *   * THE NUMERIC HAPPINESS THRESHOLDS behind the five rungs. The rung shown is driven by per-guest,
+ *     per-rung shown-state WorldStates (190 widgets over WorldState 32788-33058) that the SERVER sets; no
+ *     constant anywhere says how much happiness earns which rung. So this class never COMPUTES a mood - a
+ *     mood is only ever reported to it by a real court completion, and it is validated against the ladder.
  *   * THE TRIBUTE PAYOUT. There is no tribute-chest gameobject at all: `gameobject_template` has ZERO rows
- *     whose name contains "Ember Court", and the only "Tribute Chest" rows in the DB are the Wrath-era Argent
- *     Crusade chests 195665-195672 and the unrelated Dragonflight 355936. With no chest there is no
- *     `gameobject_loot_template`, and no table anywhere maps a final rating to a reward tier.
- *   * THE COURT COOLDOWN. Spell 336617 is named "Ember Court Timer", but no interval this class could enforce
- *     is published, so NO interval is enforced. `lastCourtTime` is recorded and exposed; the gap between
- *     courts is left to whoever authors the venue rather than invented here.
- *   * THE SUPPLY COSTS. No `npc_vendor` row anywhere prices a Court supply in currency 1820 or 1837.
- *   Those first three are exactly the columns of the world table `garrison_ember_court_guest`, one row per
- *   guest. THE TABLE SHIPS EMPTY.
+ *     whose name contains "Ember Court" and `GameObjects.db2` has none on map 2222 (control: 449 rows on map
+ *     2222, all Bastion WMO labels; 2,953 on map 0). With no chest there is no `gameobject_loot_template`,
+ *     and every one of the sixteen Ember Court `ModifierTree` ids is ABSENT from a 230,888-row table that is
+ *     dense around them (4,693 rows in 145000-152000) - i.e. the rating->reward logic is server-side only.
+ *     Nothing here awards tribute.
+ *   * THE COURT COOLDOWN. Spell 336617 "Ember Court Timer" has DurationIndex 0, no `SpellCooldowns` row, no
+ *     `SpellCategories` row and no `SpellAuraOptions` row, and its own description ("You have limited time to
+ *     help Temel clean up the court before your first guest arrives!") shows it is the REHEARSAL PREP timer,
+ *     not a lockout. No interval is enforced. `lastCourtTime` is recorded and exposed instead.
+ *   * THE SUPPLY COSTS. Not implemented here at all - nothing in this class buys or charges for anything.
+ *     (For whoever does build it: the supplies are the sixteen "Contract:" items 176126-176141, which have no
+ *     vendor row and are earned from the 24 "Restock:" quests at 5 Infused Ruby each - quest 62078 costs 20.)
  *
  *   * AND THE VENUE ITSELF IS NOT AUTHORED IN THIS WORLD DB. Method-validated:
  *         SELECT COUNT(*) FROM scenarios WHERE map = 2222;                 -> 0   (317 rows exist overall)
@@ -293,6 +339,22 @@ enum EmberCourtAttributePole : uint8
     EMBER_COURT_POLE_HIGH   = 2     // Clean / Dangerous / Decadent / Exciting / Formal
 };
 
+// The mood ladder, five rungs. Published three ways that agree exactly - SpellName 327199/327200/327201/
+// 327781/327202 ("UI: <Rung> [DNT]"), the literal "Mood: <Rung>" strings in UiWidgetStringSource (a count
+// over that table returns exactly these five and no sixth), and the five
+// UI_EmberCourt-Emoji-<Rung>.blp icons (FileDataID 3750310-3750314). "Elated" is the rung Achievement 14724
+// "People Pleaser" requires, and it is the top.
+enum EmberCourtMood : uint8
+{
+    EMBER_COURT_MOOD_NONE           = 0,    // never hosted / not reported
+    EMBER_COURT_MOOD_MISERABLE      = 1,
+    EMBER_COURT_MOOD_UNCOMFORTABLE  = 2,
+    EMBER_COURT_MOOD_HAPPY          = 3,
+    EMBER_COURT_MOOD_VERY_HAPPY     = 4,
+    EMBER_COURT_MOOD_ELATED         = 5,
+    EMBER_COURT_MOOD_MAX            = 5
+};
+
 enum EmberCourtError : uint32
 {
     EMBER_COURT_OK = 0,
@@ -304,7 +366,7 @@ enum EmberCourtError : uint32
     EMBER_COURT_ERROR_GUEST_NOT_INVITED,
     EMBER_COURT_ERROR_GUEST_SLOTS_FULL,     // the guest list is as long as the researched talents allow (2-4)
     EMBER_COURT_ERROR_NO_GUESTS_INVITED,    // a court with nobody on the list is not a court
-    EMBER_COURT_ERROR_NO_GUEST_DATA,        // world table `garrison_ember_court_guest` is empty - see the header
+    EMBER_COURT_ERROR_INVALID_MOOD,         // a reported mood outside the five-rung ladder
     EMBER_COURT_ERROR_NO_VENUE_CONTENT      // scenario 1791 / area 13329 unauthored - refuse rather than fake it
 };
 
@@ -318,21 +380,21 @@ struct EmberCourtGuest
     uint32      CreatureId      = 0;    // that guest's creature_template entry
     uint32      HostedCriteriaQuestId = 0;  // Criteria(Type 27).Asset under Achievement 14723 "Be Our Guest"
     uint32      ElatedCriteriaQuestId = 0;  // ... under Achievement 14724 "People Pleaser"
+    uint32      MoodItemId  = 0;    // this guest's ItemSparse mood-icon item; its Description is "Likes: ..."
+    // What this guest LIKES, indexed by EmberCourtAttribute (so [0] is unused). The value is the pole of that
+    // axis the guest enjoys, or EMBER_COURT_POLE_NONE when the guest does not care about that axis. Read
+    // verbatim from MoodItemId's ItemSparse Description_lang - see the roster in the file header.
+    uint8       LikedPoles[EMBER_COURT_ATTRIBUTE_MAX + 1] = { };
 };
 
-// The AUTHORED half of a guest: what the client does not publish. One row of `garrison_ember_court_guest`.
+// The AUTHORED half of a guest: the ONE thing the client does not publish about them. One row of
+// `garrison_ember_court_guest`. What a guest LIKES is client data and lives in EmberCourtGuest above; only
+// the DISLIKE is missing from the build, and it is not inferred from the like.
 struct EmberCourtGuestTemplate
 {
     uint8 GuestIndex        = 0;
-    // The axis this guest cares about and which end of it pleases them. Both 0 = no preference authored.
-    uint8 PreferredAttribute = EMBER_COURT_ATTRIBUTE_NONE;
-    uint8 PreferredPole      = EMBER_COURT_POLE_NONE;
-    // The axis/pole that displeases them, if any.
-    uint8 DislikedAttribute  = EMBER_COURT_ATTRIBUTE_NONE;
-    uint8 DislikedPole       = EMBER_COURT_POLE_NONE;
-    // Mood rung this guest must reach for the "Elated" credit. 0 = not authored, so it can never be claimed
-    // by accident. Achievement 14724 names the rung; nothing publishes its numeric value.
-    uint8 ElatedMoodLevel    = 0;
+    uint8 DislikedAttribute = EMBER_COURT_ATTRIBUTE_NONE;
+    uint8 DislikedPole      = EMBER_COURT_POLE_NONE;
 };
 
 // One guest's standing with this character.
@@ -356,6 +418,13 @@ public:
     static char const* GetAttributeName(EmberCourtAttribute attribute);
     // "Messy"/"Clean" etc - the CriteriaTree 88024-88033 pole names for an axis.
     static char const* GetAttributePoleName(EmberCourtAttribute attribute, EmberCourtAttributePole pole);
+    // "Miserable".."Elated" - the five-rung ladder, see EmberCourtMood.
+    static char const* GetMoodName(EmberCourtMood mood);
+    // Does this guest enjoy that end of that axis? Pure client data (the guest's "Likes:" list).
+    static bool IsAttributeLiked(uint8 guestIndex, EmberCourtAttribute attribute, EmberCourtAttributePole pole);
+    // Does this guest dislike it? Answers false unless a `garrison_ember_court_guest` row says so - the build
+    // publishes no dislikes, and the opposite of a like is NOT assumed to be one.
+    static bool IsAttributeDisliked(uint8 guestIndex, EmberCourtAttribute attribute, EmberCourtAttributePole pole);
 
     // --- lifecycle -------------------------------------------------------------------------------------
     void LoadFromDB(PreparedQueryResult result);

@@ -33,25 +33,54 @@ namespace
 // Achievement 14723 "Be Our Guest"). Cross-checked name-for-name against the sixteen "RSVP: <Guest>" quests
 // already in `integ_world`, which is where RsvpQuestId and CreatureId come from - each of those quests is
 // both started and ended by that guest's own creature. See the file header for the full derivation.
+// Shorthands for the ten poles, so the roster below reads exactly like the "Likes:" strings it was copied
+// from. The array is indexed by EmberCourtAttribute, so slot 0 is unused and every axis the guest does not
+// care about stays EMBER_COURT_POLE_NONE.
+#define L_MESSY     EMBER_COURT_POLE_LOW    // Cleanliness low
+#define L_CLEAN     EMBER_COURT_POLE_HIGH   // Cleanliness high
+#define L_SAFE      EMBER_COURT_POLE_LOW    // Danger low
+#define L_DANGEROUS EMBER_COURT_POLE_HIGH   // Danger high
+#define L_HUMBLE    EMBER_COURT_POLE_LOW    // Decadence low
+#define L_DECADENT  EMBER_COURT_POLE_HIGH   // Decadence high
+#define L_RELAXING  EMBER_COURT_POLE_LOW    // Excitement low
+#define L_EXCITING  EMBER_COURT_POLE_HIGH   // Excitement high
+#define L_CASUAL    EMBER_COURT_POLE_LOW    // Formality low
+#define L_FORMAL    EMBER_COURT_POLE_HIGH   // Formality high
+#define N_          EMBER_COURT_POLE_NONE
+
+// LikedPoles is { unused, Cleanliness, Danger, Decadence, Excitement, Formality }, matching
+// EmberCourtAttribute - which is itself the client's own axis order (spells 321808-321812).
 EmberCourtGuest const EmberCourtGuestRoster[EMBER_COURT_GUEST_COUNT] =
-{
-    {  0, "Baroness Vashj",          61174, 162487, 62487, 62503 },
-    {  1, "Lady Moonberry",          61354, 172098, 62488, 62504 },
-    {  2, "Mikanikos",               61173, 171647, 62489, 62505 },
-    {  3, "The Countess",            60948, 171106, 62490, 62506 },
-    {  4, "Alexandros Mograine",     61255, 171933, 62491, 62508 },
-    {  5, "Hunt-Captain Korayn",     61109, 171319, 62492, 62509 },
-    {  6, "Polemarch Adrestes",      61123, 171385, 62493, 62510 },
-    {  7, "Rendle and Cudgelface",   61059, 171190, 62494, 62507 },
-    {  8, "Choofa",                  61139, 160814, 62495, 62511 },
-    {  9, "Cryptkeeper Kassir",      60236, 163073, 62496, 62512 },
-    { 10, "Droman Aliothe",          61129, 160894, 62497, 62513 },
-    { 11, "Grandmaster Vole",        61092, 163019, 62498, 62514 },
-    { 12, "Kleia and Pelagos",       61256, 171951, 62499, 62515 },
-    { 13, "Plague Deviser Marileth", 61105, 159930, 62500, 62516 },
-    { 14, "Sika",                    61130, 166577, 62501, 62517 },
-    { 15, "Stonehead",               60916, 157199, 62502, 62518 }
+{   // idx name                      RSVP   creature hosted elated  item     unused Clean       Danger       Decad       Excite      Formal
+    {  0, "Baroness Vashj",          61174, 162487, 62487, 62503, 178886, { N_, N_,          L_DANGEROUS, L_DECADENT, L_EXCITING, N_       } },
+    {  1, "Lady Moonberry",          61354, 172098, 62488, 62504, 181338, { N_, L_MESSY,     N_,          N_,         L_EXCITING, L_CASUAL } },
+    {  2, "Mikanikos",               61173, 171647, 62489, 62505, 181339, { N_, L_CLEAN,     L_SAFE,      L_HUMBLE,   N_,         N_       } },
+    {  3, "The Countess",            60948, 171106, 62490, 62506, 181340, { N_, N_,          N_,          L_DECADENT, L_RELAXING, L_FORMAL } },
+    {  4, "Alexandros Mograine",     61255, 171933, 62491, 62508, 181341, { N_, N_,          L_SAFE,      L_HUMBLE,   N_,         N_       } },
+    {  5, "Hunt-Captain Korayn",     61109, 171319, 62492, 62509, 181342, { N_, N_,          L_DANGEROUS, N_,         N_,         L_CASUAL } },
+    {  6, "Polemarch Adrestes",      61123, 171385, 62493, 62510, 178887, { N_, L_CLEAN,     N_,          N_,         N_,         L_FORMAL } },
+    {  7, "Rendle and Cudgelface",   61059, 171190, 62494, 62507, 181343, { N_, L_MESSY,     N_,          N_,         L_RELAXING, N_       } },
+    {  8, "Choofa",                  61139, 160814, 62495, 62511, 178888, { N_, N_,          N_,          N_,         L_EXCITING, N_       } },
+    {  9, "Cryptkeeper Kassir",      60236, 163073, 62496, 62512, 178889, { N_, N_,          N_,          N_,         N_,         L_FORMAL } },
+    { 10, "Droman Aliothe",          61129, 160894, 62497, 62513, 181344, { N_, N_,          N_,          N_,         L_RELAXING, N_       } },
+    { 11, "Grandmaster Vole",        61092, 163019, 62498, 62514, 181345, { N_, N_,          L_DANGEROUS, N_,         N_,         N_       } },
+    { 12, "Kleia and Pelagos",       61256, 171951, 62499, 62515, 181346, { N_, N_,          N_,          L_HUMBLE,   N_,         N_       } },
+    { 13, "Plague Deviser Marileth", 61105, 159930, 62500, 62516, 181347, { N_, L_MESSY,     N_,          N_,         N_,         N_       } },
+    { 14, "Sika",                    61130, 166577, 62501, 62517, 181348, { N_, L_CLEAN,     N_,          N_,         N_,         N_       } },
+    { 15, "Stonehead",               60916, 157199, 62502, 62518, 181349, { N_, N_,          N_,          N_,         N_,         L_CASUAL } }
 };
+
+#undef L_MESSY
+#undef L_CLEAN
+#undef L_SAFE
+#undef L_DANGEROUS
+#undef L_HUMBLE
+#undef L_DECADENT
+#undef L_RELAXING
+#undef L_EXCITING
+#undef L_CASUAL
+#undef L_FORMAL
+#undef N_
 }
 
 EmberCourt::EmberCourt(Player* owner) : _owner(owner)
@@ -103,6 +132,48 @@ char const* EmberCourt::GetAttributePoleName(EmberCourtAttribute attribute, Embe
         case EMBER_COURT_ATTRIBUTE_FORMALITY:   return low ? "Casual"   : "Formal";
         default:                                return "none";
     }
+}
+
+char const* EmberCourt::GetMoodName(EmberCourtMood mood)
+{
+    // SpellName 327199/327200/327201/327781/327202, and the same five as literal "Mood: <Rung>" strings in
+    // UiWidgetStringSource.
+    switch (mood)
+    {
+        case EMBER_COURT_MOOD_MISERABLE:        return "Miserable";
+        case EMBER_COURT_MOOD_UNCOMFORTABLE:    return "Uncomfortable";
+        case EMBER_COURT_MOOD_HAPPY:            return "Happy";
+        case EMBER_COURT_MOOD_VERY_HAPPY:       return "Very Happy";
+        case EMBER_COURT_MOOD_ELATED:           return "Elated";
+        default:                                return "none";
+    }
+}
+
+bool EmberCourt::IsAttributeLiked(uint8 guestIndex, EmberCourtAttribute attribute, EmberCourtAttributePole pole)
+{
+    EmberCourtGuest const* guest = GetGuestInfo(guestIndex);
+    if (!guest || attribute == EMBER_COURT_ATTRIBUTE_NONE || attribute > EMBER_COURT_ATTRIBUTE_MAX)
+        return false;
+
+    if (pole != EMBER_COURT_POLE_LOW && pole != EMBER_COURT_POLE_HIGH)
+        return false;
+
+    return guest->LikedPoles[attribute] == pole;
+}
+
+bool EmberCourt::IsAttributeDisliked(uint8 guestIndex, EmberCourtAttribute attribute, EmberCourtAttributePole pole)
+{
+    if (attribute == EMBER_COURT_ATTRIBUTE_NONE || attribute > EMBER_COURT_ATTRIBUTE_MAX)
+        return false;
+
+    if (pole != EMBER_COURT_POLE_LOW && pole != EMBER_COURT_POLE_HIGH)
+        return false;
+
+    // The 68275 build publishes no dislikes at all - every guest item carries only a "Likes:" list. The
+    // opposite pole of a like is deliberately NOT treated as a dislike; that would be a guess. A dislike
+    // exists only when it has been authored.
+    EmberCourtGuestTemplate const* guestTemplate = sGarrisonMgr.GetEmberCourtGuest(guestIndex);
+    return guestTemplate && guestTemplate->DislikedAttribute == attribute && guestTemplate->DislikedPole == pole;
 }
 
 uint32 EmberCourt::GetEmberCourtTreeId() const
@@ -334,11 +405,9 @@ EmberCourtError EmberCourt::StartCourt() const
     if (!sGarrisonMgr.IsEmberCourtVenueAuthored())
         return EMBER_COURT_ERROR_NO_VENUE_CONTENT;
 
-    // The per-guest content (which attributes please whom, and what mood counts as Elated) is authored in
-    // `garrison_ember_court_guest`. Without it a court would run with no way to move anyone's mood.
-    if (sGarrisonMgr.GetEmberCourtGuests().empty())
-        return EMBER_COURT_ERROR_NO_GUEST_DATA;
-
+    // NOTE there is deliberately no check on `garrison_ember_court_guest` here. That table now carries only
+    // each guest's DISLIKE, which the 68275 build does not publish at all and which a court does not need -
+    // every guest's LIKES are client data and are already in the roster. An empty table is a normal state.
     return EMBER_COURT_OK;
 }
 
@@ -353,6 +422,13 @@ EmberCourtError EmberCourt::CompleteCourt(std::unordered_map<uint8, uint8> const
     std::vector<uint8> const invited = GetInvitedGuests();
     if (invited.empty())
         return EMBER_COURT_ERROR_NO_GUESTS_INVITED;
+
+    // A mood is only ever REPORTED to this class, never computed by it (the thresholds behind the rungs are
+    // server-side WorldStates that the build does not publish). It is still validated against the ladder, so
+    // a caller cannot smuggle in a sixth rung and have it stored as a high-water mark.
+    for (auto const& [guestIndex, mood] : moods)
+        if (mood > EMBER_COURT_MOOD_MAX)
+            return EMBER_COURT_ERROR_INVALID_MOOD;
 
     for (uint8 guestIndex : invited)
     {
@@ -377,9 +453,9 @@ EmberCourtError EmberCourt::CompleteCourt(std::unordered_map<uint8, uint8> const
             if (guest->HostedCriteriaQuestId)
                 _owner->UpdateCriteria(CriteriaType::CompleteQuest, guest->HostedCriteriaQuestId);
 
-            EmberCourtGuestTemplate const* guestTemplate = sGarrisonMgr.GetEmberCourtGuest(guestIndex);
-            if (guest->ElatedCriteriaQuestId && guestTemplate && guestTemplate->ElatedMoodLevel
-                && mood >= guestTemplate->ElatedMoodLevel)
+            // Achievement 14724 "People Pleaser" asks for the ELATED rung specifically, and Elated is the top
+            // of the five-rung ladder the client publishes - so the bar is a derived constant, not a tunable.
+            if (guest->ElatedCriteriaQuestId && mood >= EMBER_COURT_MOOD_ELATED)
                 _owner->UpdateCriteria(CriteriaType::CompleteQuest, guest->ElatedCriteriaQuestId);
         }
     }
@@ -449,7 +525,8 @@ void EmberCourt::LoadFromDB(PreparedQueryResult result)
 
         EmberCourtGuestState& state = GetOrCreateGuestState(guestIndex);
         state.TimesHosted    = fields[1].GetUInt32();
-        state.HighestMood    = fields[2].GetUInt8();
+        // Clamp to the five-rung ladder so a hand-edited row cannot resurrect a sixth rung.
+        state.HighestMood    = std::min<uint8>(fields[2].GetUInt8(), uint8(EMBER_COURT_MOOD_MAX));
         state.LastHostedTime = fields[3].GetInt64();
         state.Invited        = fields[4].GetBool();
 

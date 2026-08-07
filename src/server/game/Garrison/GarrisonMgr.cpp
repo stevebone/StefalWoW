@@ -709,10 +709,11 @@ AscensionMemoryTemplate const* GarrisonMgr::GetAscensionMemory(uint32 memoryId) 
 // talents 1111-1115 with their guest-slot wording, scenario 1791 and its four steps, AreaTable 13329
 // "SinfallScenario", the sixteen guests (CriteriaTree 87983 cross-checked against the sixteen "RSVP: <Guest>"
 // quests in `integ_world`), and the five attribute axes (CriteriaTree 88024-88033 + UiWidgetVisualization
-// 1435-1440). What NO row in the build states is WHICH attributes each guest likes or dislikes, or what mood
-// value counts as "Elated". That is content, so it is authored here instead of being invented in C++; an
-// empty table is a valid state and simply leaves EmberCourt::StartCourt answering
-// EMBER_COURT_ERROR_NO_GUEST_DATA.
+// 1435-1440), the five-rung mood ladder (SpellName 327199/327200/327201/327781/327202 + the "Mood: <Rung>"
+// strings in UiWidgetStringSource), and every guest's LIKES (that guest's ItemSparse mood-icon item, whose
+// Description_lang is a literal "Likes: <poles>" list). The single thing NO row in the build states is what
+// each guest DISLIKES - only "Likes:" strings exist - so that, and only that, is authored here. An empty
+// table is a perfectly normal state: a guest simply has no dislike, and nothing is inferred from its likes.
 void GarrisonMgr::LoadEmberCourtGuests()
 {
     _emberCourtGuests.clear();
@@ -734,12 +735,13 @@ void GarrisonMgr::LoadEmberCourtGuests()
             "authored in this world DB - no `scenarios` row and/or no spawns. Courts will be refused rather "
             "than started.", uint32(EMBER_COURT_SCENARIO_ID), uint32(EMBER_COURT_AREA_ID), uint32(EMBER_COURT_MAP_ID));
 
-    QueryResult result = WorldDatabase.Query("SELECT guestIndex, preferredAttribute, preferredPole, "
-        "dislikedAttribute, dislikedPole, elatedMoodLevel FROM garrison_ember_court_guest");
+    QueryResult result = WorldDatabase.Query("SELECT guestIndex, dislikedAttribute, dislikedPole "
+        "FROM garrison_ember_court_guest");
     if (!result)
     {
-        TC_LOG_INFO("server.loading", ">> Loaded 0 Ember Court guests. DB table `garrison_ember_court_guest` is "
-            "empty - no court can be held until the per-guest preferences are authored.");
+        TC_LOG_INFO("server.loading", ">> Loaded 0 Ember Court guest dislikes. DB table "
+            "`garrison_ember_court_guest` is empty - the 12.0.7 build publishes no dislikes, so this is the "
+            "expected state; every guest's LIKES are client data and are already loaded.");
         return;
     }
 
@@ -748,12 +750,9 @@ void GarrisonMgr::LoadEmberCourtGuests()
     {
         Field* fields = result->Fetch();
         EmberCourtGuestTemplate guest;
-        guest.GuestIndex         = fields[0].GetUInt8();
-        guest.PreferredAttribute = fields[1].GetUInt8();
-        guest.PreferredPole      = fields[2].GetUInt8();
-        guest.DislikedAttribute  = fields[3].GetUInt8();
-        guest.DislikedPole       = fields[4].GetUInt8();
-        guest.ElatedMoodLevel    = fields[5].GetUInt8();
+        guest.GuestIndex        = fields[0].GetUInt8();
+        guest.DislikedAttribute = fields[1].GetUInt8();
+        guest.DislikedPole      = fields[2].GetUInt8();
 
         // The roster is fixed at sixteen by the client (CriteriaTree 87983 has exactly sixteen children); an
         // index outside it names nobody.
@@ -765,10 +764,9 @@ void GarrisonMgr::LoadEmberCourtGuests()
             continue;
         }
 
-        struct { uint8 attribute; uint8 pole; char const* what; } const axes[2] =
+        struct { uint8 attribute; uint8 pole; char const* what; } const axes[1] =
         {
-            { guest.PreferredAttribute, guest.PreferredPole, "preferred" },
-            { guest.DislikedAttribute,  guest.DislikedPole,  "disliked"  }
+            { guest.DislikedAttribute, guest.DislikedPole, "disliked" }
         };
 
         bool badAttribute = false;
@@ -805,15 +803,16 @@ void GarrisonMgr::LoadEmberCourtGuests()
         if (badAttribute)
             continue;
 
-        // Liking and disliking the same end of the same axis is contradictory.
-        if (guest.PreferredAttribute != EMBER_COURT_ATTRIBUTE_NONE
-            && guest.PreferredAttribute == guest.DislikedAttribute
-            && guest.PreferredPole == guest.DislikedPole)
+        // A guest cannot dislike the very pole its own client-published "Likes:" list names.
+        if (guest.DislikedAttribute != EMBER_COURT_ATTRIBUTE_NONE
+            && EmberCourt::IsAttributeLiked(guest.GuestIndex, EmberCourtAttribute(guest.DislikedAttribute),
+                EmberCourtAttributePole(guest.DislikedPole)))
         {
-            TC_LOG_ERROR("sql.sql", "Table `garrison_ember_court_guest` row {} both prefers and dislikes {} {}; "
-                "row skipped.", uint32(guest.GuestIndex),
-                EmberCourt::GetAttributePoleName(EmberCourtAttribute(guest.PreferredAttribute), EmberCourtAttributePole(guest.PreferredPole)),
-                EmberCourt::GetAttributeName(EmberCourtAttribute(guest.PreferredAttribute)));
+            TC_LOG_ERROR("sql.sql", "Table `garrison_ember_court_guest` row {} makes the guest dislike {} {}, "
+                "but the client's own 'Likes:' list for them says they like it; row skipped.",
+                uint32(guest.GuestIndex),
+                EmberCourt::GetAttributePoleName(EmberCourtAttribute(guest.DislikedAttribute), EmberCourtAttributePole(guest.DislikedPole)),
+                EmberCourt::GetAttributeName(EmberCourtAttribute(guest.DislikedAttribute)));
             continue;
         }
 
@@ -821,7 +820,7 @@ void GarrisonMgr::LoadEmberCourtGuests()
         ++count;
     } while (result->NextRow());
 
-    TC_LOG_INFO("server.loading", ">> Loaded {} Ember Court guests.", count);
+    TC_LOG_INFO("server.loading", ">> Loaded {} Ember Court guest dislikes.", count);
 }
 
 EmberCourtGuestTemplate const* GarrisonMgr::GetEmberCourtGuest(uint8 guestIndex) const

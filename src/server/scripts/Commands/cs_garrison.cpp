@@ -880,7 +880,7 @@ public:
             case EMBER_COURT_ERROR_GUEST_NOT_INVITED:       return "that guest is not on the guest list";
             case EMBER_COURT_ERROR_GUEST_SLOTS_FULL:        return "the guest list is already as long as the researched talents allow (2 base, 3 with 'Court Influencer', 4 with 'Discerning Taste')";
             case EMBER_COURT_ERROR_NO_GUESTS_INVITED:       return "nobody is on the guest list";
-            case EMBER_COURT_ERROR_NO_GUEST_DATA:           return "world table `garrison_ember_court_guest` is empty - no 12.0.7 client row says which attributes each guest likes or what mood counts as 'Elated', so the preferences must be authored";
+            case EMBER_COURT_ERROR_INVALID_MOOD:            return "mood must be 0-5 (1 Miserable, 2 Uncomfortable, 3 Happy, 4 Very Happy, 5 Elated)";
             case EMBER_COURT_ERROR_NO_VENUE_CONTENT:        return "the Ember Court venue (scenario 1791 in area 13329 on map 2222) is not authored in this world DB - no `scenarios` row and/or no spawns, so a court cannot be held and is refused rather than faked";
             default:                                        return "unknown error";
         }
@@ -921,10 +921,10 @@ public:
         }
 
         if (sGarrisonMgr.GetEmberCourtGuests().empty())
-            handler->SendSysMessage("  world table `garrison_ember_court_guest` is empty - no court can be held "
-                "until the per-guest preferences are authored.");
+            handler->SendSysMessage("  world table `garrison_ember_court_guest` is empty - expected: the 12.0.7 "
+                "build publishes no guest dislikes. Every guest's LIKES are client data and are loaded.");
         else
-            handler->PSendSysMessage("  {} authored guest row(s) loaded.", uint32(sGarrisonMgr.GetEmberCourtGuests().size()));
+            handler->PSendSysMessage("  {} authored guest dislike row(s) loaded.", uint32(sGarrisonMgr.GetEmberCourtGuests().size()));
 
         handler->PSendSysMessage("  venue (scenario {} in area {} on map {}): {}.",
             uint32(EMBER_COURT_SCENARIO_ID), uint32(EMBER_COURT_AREA_ID), uint32(EMBER_COURT_MAP_ID),
@@ -950,11 +950,27 @@ public:
         for (EmberCourtGuest const& guest : EmberCourt::GetGuestRoster())
         {
             EmberCourtGuestState const* state = court->GetGuestState(guest.Index);
+
+            // The guest's client-published "Likes:" list (ItemSparse item guest.MoodItemId).
+            std::ostringstream likes;
+            for (uint8 attribute = EMBER_COURT_ATTRIBUTE_CLEANLINESS; attribute <= EMBER_COURT_ATTRIBUTE_MAX; ++attribute)
+            {
+                EmberCourtAttributePole const pole = EmberCourtAttributePole(guest.LikedPoles[attribute]);
+                if (pole == EMBER_COURT_POLE_NONE)
+                    continue;
+
+                if (likes.tellp() > 0)
+                    likes << ", ";
+                likes << EmberCourt::GetAttributePoleName(EmberCourtAttribute(attribute), pole);
+            }
+
             handler->PSendSysMessage("  [{}] {} - RSVP quest {} {}, hosted {}x, best mood {}{}.",
                 guest.Index, guest.Name, guest.RsvpQuestId,
                 court->IsGuestUnlocked(guest.Index) ? "COMPLETED" : "not completed",
-                state ? state->TimesHosted : 0, state ? uint32(state->HighestMood) : 0,
+                state ? state->TimesHosted : 0,
+                EmberCourt::GetMoodName(state ? EmberCourtMood(state->HighestMood) : EMBER_COURT_MOOD_NONE),
                 court->IsGuestInvited(guest.Index) ? ", INVITED" : "");
+            handler->PSendSysMessage("        likes: {} (item {}).", likes.str(), guest.MoodItemId);
         }
         return true;
     }
