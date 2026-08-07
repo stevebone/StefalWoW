@@ -15087,6 +15087,11 @@ void Player::RewardQuest(Quest const* quest, LootItemType rewardType, uint32 rew
     uint32 quest_id = quest->GetQuestId();
     QuestStatus oldStatus = GetQuestStatus(quest_id);
 
+    // A turned-in calling frees its slot on the board straight away; the replacement arrives at the next daily
+    // reset. The client agrees with this ordering - it re-requests the callings on QUEST_TURNED_IN.
+    if (quest->GetQuestTag() == QuestTagType::CovenantCalling)
+        OnCovenantCallingCompleted(quest_id);
+
     if (quest->IsDaily() || quest->IsDFQuest())
     {
         SetDailyQuestStatus(quest_id);
@@ -16817,6 +16822,47 @@ void Player::CurrencyChanged(uint32 currencyId, int32 change)
                 - int32(GetCurrencyQuantity(covenantCurrency->ID));
             if (unclaimed > 0)
                 ModifyCurrency(covenantCurrency->ID, unclaimed, CurrencyGainSource::RenownRepGain);
+        }
+    }
+
+    // Reservoir anima works the same way as renown - per-covenant storage (1859-1862) behind a shared display
+    // currency (1813) - with one difference that matters: anima is SPENT. Sanctum research and Anima Conductor
+    // channels charge 1813, so unlike renown the mirror has to carry losses as well as gains, or a spend would
+    // be undone by the next sync and anima would be infinite.
+    // Both directions of the anima mirror move currency, and moving currency re-enters this function. The
+    // round trip is designed to settle immediately (the second hop finds the two sides equal and does nothing),
+    // but "designed to settle" is not "cannot loop": if the view and the track ever clamped differently the
+    // pair would oscillate forever and take the world thread with them. This latch makes that impossible -
+    // the outermost hop owns the reconciliation and any nested one is skipped, leaving at worst a divergence
+    // that the next sync (login, covenant switch, next anima change) repairs.
+    if (m_covenantAnimaSyncing)
+        return;
+
+    if (uint32 animaCovenantId = GetCovenantIdForAnimaCurrency(currencyId))
+    {
+        if (animaCovenantId == m_activeCovenantId)
+        {
+            m_covenantAnimaSyncing = true;
+            SyncCovenantAnimaDisplayCurrency();
+            m_covenantAnimaSyncing = false;
+        }
+    }
+    else if (currencyId == CURRENCY_TYPE_RESERVOIR_ANIMA)
+    {
+        // Every anima gain and every anima charge in the build lands on 1813; credit or debit it against the
+        // active covenant's track, which is where anima is actually stored. CurrencyChanged runs after the
+        // storage has already been updated, so the difference below is the amount the track still owes or owns.
+        if (CurrencyTypesEntry const* covenantCurrency = GetCovenantAnimaCurrency(m_activeCovenantId))
+        {
+            int32 unbanked = int32(GetCurrencyQuantity(CURRENCY_TYPE_RESERVOIR_ANIMA))
+                - int32(GetCurrencyQuantity(covenantCurrency->ID));
+            if (unbanked)
+            {
+                m_covenantAnimaSyncing = true;
+                ModifyCurrency(covenantCurrency->ID, unbanked, CurrencyGainSource::Vendor,
+                    CurrencyDestroyReason::Garrison);
+                m_covenantAnimaSyncing = false;
+            }
         }
     }
 }
@@ -18781,6 +18827,7 @@ bool Player::LoadFromDB(ObjectGuid guid, CharacterDatabaseQueryHolder const& hol
     _LoadSoulbindConduits(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_SOULBIND_CONDUITS));
     _LoadSoulbindConduitSockets(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_SOULBIND_CONDUIT_SOCKETS));
     _LoadRenownRewards(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_RENOWN_REWARDS));
+    _LoadCovenantCallings(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_COVENANT_CALLINGS));
     ApplyConduitSpells();   // spell/aura systems are ready by here (mirrors _LoadGlyphAuras above)
 
     _LoadInventory(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_INVENTORY),
@@ -18975,6 +19022,11 @@ bool Player::LoadFromDB(ObjectGuid guid, CharacterDatabaseQueryHolder const& hol
     // point where both the garrisons and the covenant/soulbind state (_LoadCovenant, above) are loaded.
     for (auto const& [garrType, garrison] : GetGarrisons())
         garrison->ApplyAllTalentPerks();
+
+    // Roll the calling board forward over every daily reset that passed while the character was offline. The
+    // board is stored as timestamps, so this is pure catch-up arithmetic and produces the same result whether
+    // the character was away for an hour or a month.
+    UpdateCovenantCallings();
 
     _InitHonorLevelOnLoadFromDB(fields.honor, fields.honorLevel);
 
@@ -20683,6 +20735,432 @@ bool Player::IsCovenantRenownCatchupActive() const
     return false;
 }
 
+namespace
+{
+// The four Shadowlands covenants store their reservoir anima the same way they store their renown: in a
+// per-covenant currency, with a shared display currency mirroring the active one.
+//
+//   1859 Reservoir Anima-Kyrian / 1860 -Venthyr / 1861 -Night Fae / 1862 -Necrolord
+//
+// All four carry AwardConditionID 70101-70104 (the same "CovenantID == n" PlayerConditions the renown family
+// uses) and the same MaxQty 200000 as the shared 1813, which is what makes the mirror safe: the view can never
+// clamp differently from the track it views. The order below is covenant id order and is asserted against the
+// AwardConditionID mapping rather than assumed - see GetCovenantAnimaCurrency.
+constexpr std::array<uint32, 4> CovenantAnimaCurrencies = { 1859, 1860, 1861, 1862 };
+
+// Covenant Callings.
+//
+// Three numbers govern the board, and all three are read off the 12.0.7.68275 client rather than assumed:
+//
+//  * MaxSlots = 3. CovenantCallingsConstants.Callings.MaxCallings = 3 (Blizzard_APIDocumentationGenerated/
+//    CovenantCallingsConstantsDocumentation.lua). The client iterates exactly 1..MaxCallings over the id list
+//    this server sends and treats a missing entry as "already done today" (CovenantCallingMixin:Init sets
+//    isLockedToday when its bounty is nil).
+//
+//  * One new calling per daily reset. CovenantCallingsMixin:GetDaysUntilNext returns
+//    "index - firstLockedIndex + 1" for a locked slot, i.e. the first empty slot refills in 1 day, the second
+//    in 2 and the third in 3 (the matching BOUNTY_BOARD_NO_CALLINGS_DAYS_1/2/3 strings exist). A board emptied
+//    by completing all three therefore comes back one calling at a time, not all at once.
+//
+//  * Three days of offer life. That is the same statement seen from the other side: a full board refills over
+//    exactly three resets, so an untaken calling can be at most three resets old. It is the only one of the
+//    three that has no single line of client data naming it, and it is what makes 1-per-day and 3-concurrent
+//    consistent instead of contradictory.
+//
+// A completed calling frees its slot immediately and the slot refills at the NEXT reset (the 1-day rule).
+// An expired calling frees its slot at a reset boundary and refills in the SAME pass, so a board nobody
+// touches stays full at three rather than flickering empty for a day.
+namespace CovenantCallings
+{
+    constexpr uint8 MaxSlots = 3;
+    constexpr time_t OfferDuration = 3 * DAY;
+}
+}
+
+CurrencyTypesEntry const* Player::GetCovenantAnimaCurrency(uint32 covenantId)
+{
+    // Only the four Shadowlands covenants have an anima track; Covenant.db2 rows 12+ (the Dragonflight and
+    // later major factions) reuse the table for renown only and must not be given one.
+    if (!covenantId || covenantId > CovenantAnimaCurrencies.size())
+        return nullptr;
+
+    if (!sCovenantStore.LookupEntry(covenantId))
+        return nullptr;
+
+    return sCurrencyTypesStore.LookupEntry(CovenantAnimaCurrencies[covenantId - 1]);
+}
+
+uint32 Player::GetCovenantIdForAnimaCurrency(uint32 currencyId)
+{
+    if (!currencyId)
+        return 0;
+
+    for (std::size_t i = 0; i < CovenantAnimaCurrencies.size(); ++i)
+        if (CovenantAnimaCurrencies[i] == currencyId)
+            return uint32(i) + 1;
+
+    return 0;
+}
+
+void Player::SyncCovenantAnimaDisplayCurrency()
+{
+    if (!sCurrencyTypesStore.LookupEntry(CURRENCY_TYPE_RESERVOIR_ANIMA))
+        return;
+
+    CurrencyTypesEntry const* covenantCurrency = GetCovenantAnimaCurrency(m_activeCovenantId);
+    if (!covenantCurrency)
+    {
+        // No covenant, no track to mirror. The view is deliberately LEFT ALONE rather than zeroed: a character
+        // that banked reservoir anima before it was covenant-scoped (or before it joined at all) holds that
+        // balance only on 1813, and zeroing the view here would be the only place in this system that can
+        // destroy a balance. It is handed to a track by MigrateLegacyReservoirAnima the moment one exists.
+        return;
+    }
+
+    // The per-covenant currency is the authority; 1813 is a view of it. Repointing the view at a switch is safe
+    // because the invariant "view == active track" holds at all times while a covenant is active - see
+    // Player::CurrencyChanged, which forwards every change on the view into the track in both directions. So the
+    // outgoing covenant's balance is already banked on its own currency before the view moves off it.
+    int32 delta = int32(GetCurrencyQuantity(covenantCurrency->ID)) - int32(GetCurrencyQuantity(CURRENCY_TYPE_RESERVOIR_ANIMA));
+    if (!delta)
+        return;
+
+    ModifyCurrency(CURRENCY_TYPE_RESERVOIR_ANIMA, delta, CurrencyGainSource::Vendor,
+        CurrencyDestroyReason::FactionConversion);
+}
+
+void Player::MigrateLegacyReservoirAnima()
+{
+    // One-shot repair for characters whose reservoir anima predates covenant scoping: everything that ever
+    // grants anima targets 1813 (SPELL_EFFECT_GIVE_CURRENCY 166 - nothing in the build targets 1859-1862), so
+    // such a character has a balance on the view and nothing on its track.
+    //
+    // It is safe to run on every login because it can only ever move anima ONTO the track, and it self-disables:
+    // once the view and the track agree there is nothing to move, and the invariant maintained by CurrencyChanged
+    // keeps them in agreement from then on. It must run BEFORE the first SyncCovenantAnimaDisplayCurrency of the
+    // session, which repoints the view at the track.
+    CurrencyTypesEntry const* covenantCurrency = GetCovenantAnimaCurrency(m_activeCovenantId);
+    if (!covenantCurrency)
+        return;
+
+    int32 unbanked = int32(GetCurrencyQuantity(CURRENCY_TYPE_RESERVOIR_ANIMA))
+        - int32(GetCurrencyQuantity(covenantCurrency->ID));
+    if (unbanked > 0)
+        ModifyCurrency(covenantCurrency->ID, unbanked, CurrencyGainSource::Vendor);
+}
+
+bool Player::AreCovenantCallingsUnlocked() const
+{
+    CovenantEntry const* covenant = m_activeCovenantId ? sCovenantStore.LookupEntry(m_activeCovenantId) : nullptr;
+    if (!covenant || covenant->BountySetID <= 0)
+        return false;
+
+    BountySetEntry const* bountySet = sBountySetStore.LookupEntry(uint32(covenant->BountySetID));
+    if (!bountySet)
+        return false;
+
+    // BountySet.VisiblePlayerConditionID is the real gate and the only one that works. Every covenant bounty set
+    // (111 Kyrian / 112 Venthyr / 113 Necrolord / 114 Night Fae) carries LockedQuestID = 0, so the LockedQuestID
+    // test this used to do could never refuse anything - callings unlocked the instant a character joined.
+    // The VisiblePlayerConditionID rows (84987/84989/84988/84990) each pin CovenantID plus the covenant campaign
+    // chapter that actually opens callings in retail (PrevQuestID 57559 "Choosing Your Purpose" + the covenant's
+    // own chapter quest, PrevQuestLogic 5).
+    //
+    // Note the pairing is taken from Covenant.BountySetID -> BountySet.VisiblePlayerConditionID and never from
+    // the numeric order of the ids: BountySet 113 belongs to covenant 4 (Necrolord) and 114 to covenant 3
+    // (Night Fae), and PlayerCondition 84988/84990 carry CovenantID 4/3 to match. Reading them in id order
+    // would gate two of the four covenants on another covenant's campaign.
+    if (bountySet->VisiblePlayerConditionID > 0
+        && !ConditionMgr::IsPlayerMeetingCondition(this, uint32(bountySet->VisiblePlayerConditionID)))
+        return false;
+
+    return true;
+}
+
+uint32 Player::RollCovenantCalling(uint32 covenantId, uint8 slot, time_t issueTime) const
+{
+    CovenantEntry const* covenant = sCovenantStore.LookupEntry(covenantId);
+    if (!covenant || covenant->BountySetID <= 0)
+        return 0;
+
+    std::vector<BountyEntry const*> const* bounties = sDB2Manager.GetBountiesForBountySet(covenant->BountySetID);
+    if (!bounties)
+        return 0;
+
+    std::vector<BountyEntry const*> eligible;
+    eligible.reserve(bounties->size());
+    for (BountyEntry const* bounty : *bounties)
+    {
+        if (bounty->QuestID <= 0)
+            continue;
+
+        // Never offer the same calling twice at once.
+        bool alreadyOffered = false;
+        if (std::vector<CovenantCallingSlot> const* slots = Trinity::Containers::MapGetValuePtr(m_covenantCallings, covenantId))
+            for (CovenantCallingSlot const& existing : *slots)
+                if (existing.BountyID == bounty->ID)
+                    alreadyOffered = true;
+
+        if (alreadyOffered)
+            continue;
+
+        // Nor one the character is already carrying or has already completed in this daily period - the client
+        // would render it as an offer it can neither accept nor turn in.
+        if (GetQuestStatus(uint32(bounty->QuestID)) != QUEST_STATUS_NONE || IsDailyQuestDone(uint32(bounty->QuestID)))
+            continue;
+
+        // Bounty.TurninPlayerConditionID gates whether the bounty's turn-in is possible at all. It is honoured
+        // here for completeness, but note that it is 0 on all 96 covenant Bounty rows in 12.0.7.68275 (only 7
+        // rows in the whole table carry one, and they are Legion/BfA emissaries), so this can never fire for a
+        // covenant today. It is kept because the field is the plan's stated gate and costs nothing.
+        if (bounty->TurninPlayerConditionID > 0
+            && !ConditionMgr::IsPlayerMeetingCondition(this, uint32(bounty->TurninPlayerConditionID)))
+            continue;
+
+        eligible.push_back(bounty);
+    }
+
+    if (eligible.empty())
+        return 0;
+
+    std::sort(eligible.begin(), eligible.end(), [](BountyEntry const* left, BountyEntry const* right)
+    {
+        return left->ID < right->ID;
+    });
+
+    // Deterministic rather than random: the same character, slot and issue boundary must always produce the
+    // same calling. The issue stamp is a daily-reset boundary, so the pick is stable for the whole day and a
+    // server restart mid-day cannot hand the player a different board than the one they were already looking at.
+    uint64 seed = GetGUID().GetCounter();
+    seed = seed * 1099511628211ull + uint64(issueTime);
+    seed = seed * 1099511628211ull + uint64(slot);
+    seed = seed * 1099511628211ull + uint64(covenantId);
+    seed ^= seed >> 29;
+
+    return eligible[seed % eligible.size()]->ID;
+}
+
+void Player::UpdateCovenantCallings()
+{
+    uint32 const covenantId = m_activeCovenantId;
+    if (!covenantId)
+        return;
+
+    if (!AreCovenantCallingsUnlocked())
+        return;
+
+    time_t const now = GameTime::GetGameTime();
+    // The daily reset boundary that is currently in force. Anchoring every timestamp on it is what makes the
+    // board roll over exactly at reset instead of drifting to whenever the player happened to log in.
+    time_t const lastReset = sWorld->GetNextDailyQuestsResetTime() - DAY;
+    time_t const nextReset = sWorld->GetNextDailyQuestsResetTime();
+
+    std::vector<CovenantCallingSlot>& slots = m_covenantCallings[covenantId];
+
+    // A board that has never existed starts with every slot due at the current reset, so a character that has
+    // just unlocked callings sees a full board of three rather than one calling and a two-day wait. This is the
+    // steady state of the three rules above (issue one per reset, keep three, three-day life), just entered at
+    // once instead of over three days.
+    if (slots.empty())
+    {
+        slots.resize(CovenantCallings::MaxSlots);
+        for (CovenantCallingSlot& slot : slots)
+            slot.RefillTime = lastReset;
+
+        m_covenantCallingsChanged = true;
+    }
+    else if (slots.size() < CovenantCallings::MaxSlots)
+    {
+        // Defensive: a partially-written board (a truncated row set) is topped up rather than left short.
+        while (slots.size() < CovenantCallings::MaxSlots)
+            slots.push_back(CovenantCallingSlot{ 0, 0, lastReset });
+
+        m_covenantCallingsChanged = true;
+    }
+
+    // 1. Expire. An offer that has run out frees its slot and becomes due immediately: its expiry is itself a
+    //    reset boundary, so "immediately" means "at this reset", and the replacement is issued in step 3 below.
+    for (CovenantCallingSlot& slot : slots)
+    {
+        if (!slot.BountyID || slot.ExpireTime > now)
+            continue;
+
+        slot.BountyID = 0;
+        slot.RefillTime = slot.ExpireTime;
+        slot.ExpireTime = 0;
+        m_covenantCallingsChanged = true;
+    }
+
+    // 2. Schedule any slot that was freed without a refill date (a completed calling). Pending slots queue up
+    //    behind whatever is already scheduled, one per reset - which is exactly the 1/2/3-day countdown the
+    //    client renders from GetDaysUntilNext.
+    {
+        time_t cursor = lastReset;
+        for (CovenantCallingSlot const& slot : slots)
+            if (!slot.BountyID && slot.RefillTime > cursor)
+                cursor = slot.RefillTime;
+
+        for (CovenantCallingSlot& slot : slots)
+        {
+            if (slot.BountyID || slot.RefillTime)
+                continue;
+
+            cursor += DAY;
+            slot.RefillTime = cursor;
+            m_covenantCallingsChanged = true;
+        }
+    }
+
+    // 3. Issue. Every slot whose refill boundary has passed gets a calling, so a character who was offline for
+    //    three days comes back to a full board instead of losing the days they were away. The offer is stamped
+    //    with the boundary it was due at, not with "now", which keeps expiry on reset boundaries.
+    for (uint8 i = 0; i < slots.size(); ++i)
+    {
+        CovenantCallingSlot& slot = slots[i];
+        if (slot.BountyID || !slot.RefillTime || slot.RefillTime > now)
+            continue;
+
+        uint32 const bountyId = RollCovenantCalling(covenantId, i, slot.RefillTime);
+        if (!bountyId)
+            continue;   // pool exhausted for now; the slot stays due and is retried on the next pass
+
+        slot.BountyID = bountyId;
+        slot.ExpireTime = slot.RefillTime + CovenantCallings::OfferDuration;
+        slot.RefillTime = 0;
+        m_covenantCallingsChanged = true;
+
+        // An offer issued at a boundary already more than OfferDuration in the past would be born expired
+        // (a character offline for a week). Give it the current period instead of a dead slot.
+        if (slot.ExpireTime <= now)
+            slot.ExpireTime = nextReset + CovenantCallings::OfferDuration - DAY;
+    }
+}
+
+std::vector<int32> Player::GetCovenantCallingBountyIDs() const
+{
+    std::vector<int32> bountyIds;
+
+    std::vector<CovenantCallingSlot> const* slots = Trinity::Containers::MapGetValuePtr(m_covenantCallings, m_activeCovenantId);
+    if (!slots)
+        return bountyIds;
+
+    // Slot order matters: the client indexes the list 1..MaxCallings and treats every index past the end as a
+    // calling already dealt with today, which is precisely what an empty slot means.
+    bountyIds.reserve(slots->size());
+    for (CovenantCallingSlot const& slot : *slots)
+        if (slot.BountyID)
+            bountyIds.push_back(int32(slot.BountyID));
+
+    return bountyIds;
+}
+
+void Player::SendCovenantCallingsUpdate()
+{
+    WorldPackets::Covenant::CovenantCallingsAvailabilityResponse response;
+    response.CallingsUnlocked = AreCovenantCallingsUnlocked();
+    if (response.CallingsUnlocked)
+        response.BountyIDs = GetCovenantCallingBountyIDs();
+
+    SendDirectMessage(response.Write());
+}
+
+void Player::OnCovenantCallingCompleted(uint32 questId)
+{
+    std::vector<CovenantCallingSlot>* slots = Trinity::Containers::MapGetValuePtr(m_covenantCallings, m_activeCovenantId);
+    if (!slots)
+        return;
+
+    bool freed = false;
+    for (CovenantCallingSlot& slot : *slots)
+    {
+        if (!slot.BountyID)
+            continue;
+
+        BountyEntry const* bounty = sBountyStore.LookupEntry(slot.BountyID);
+        if (!bounty || uint32(bounty->QuestID) != questId)
+            continue;
+
+        // Freed with no refill date: UpdateCovenantCallings schedules it for the next reset, so a completed
+        // calling is replaced tomorrow rather than sitting out the rest of its three-day offer window.
+        slot.BountyID = 0;
+        slot.ExpireTime = 0;
+        slot.RefillTime = 0;
+        freed = true;
+    }
+
+    if (!freed)
+        return;
+
+    m_covenantCallingsChanged = true;
+    UpdateCovenantCallings();
+    SendCovenantCallingsUpdate();
+}
+
+void Player::_LoadCovenantCallings(PreparedQueryResult result)
+{
+    if (!result)
+        return;
+
+    do
+    {
+        Field* fields = result->Fetch();
+
+        uint32 const covenantId = fields[0].GetUInt32();
+        uint8 const slotIndex = fields[1].GetUInt8();
+        if (!covenantId || slotIndex >= CovenantCallings::MaxSlots)
+            continue;
+
+        std::vector<CovenantCallingSlot>& slots = m_covenantCallings[covenantId];
+        if (slots.empty())
+            slots.resize(CovenantCallings::MaxSlots);
+
+        CovenantCallingSlot& slot = slots[slotIndex];
+        slot.BountyID = fields[2].GetUInt32();
+        slot.ExpireTime = fields[3].GetInt64();
+        slot.RefillTime = fields[4].GetInt64();
+
+        // A bounty that no longer exists in DB2 (a build change) must not keep its slot hostage.
+        if (slot.BountyID && !sBountyStore.LookupEntry(slot.BountyID))
+        {
+            slot.BountyID = 0;
+            slot.ExpireTime = 0;
+            slot.RefillTime = 0;
+            m_covenantCallingsChanged = true;
+        }
+    } while (result->NextRow());
+}
+
+void Player::_SaveCovenantCallings(CharacterDatabaseTransaction trans)
+{
+    if (!m_covenantCallingsChanged)
+        return;
+
+    CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CHARACTER_COVENANT_CALLINGS);
+    stmt->setUInt64(0, GetGUID().GetCounter());
+    trans->Append(stmt);
+
+    for (auto const& [covenantId, slots] : m_covenantCallings)
+    {
+        for (uint8 i = 0; i < slots.size(); ++i)
+        {
+            CovenantCallingSlot const& slot = slots[i];
+            if (!slot.BountyID && !slot.RefillTime)
+                continue;   // a slot with nothing to remember costs nothing to forget
+
+            stmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_CHARACTER_COVENANT_CALLINGS);
+            stmt->setUInt64(0, GetGUID().GetCounter());
+            stmt->setUInt32(1, covenantId);
+            stmt->setUInt8(2, i);
+            stmt->setUInt32(3, slot.BountyID);
+            stmt->setInt64(4, slot.ExpireTime);
+            stmt->setInt64(5, slot.RefillTime);
+            trans->Append(stmt);
+        }
+    }
+
+    m_covenantCallingsChanged = false;
+}
+
 void Player::GrantRenownReward(RenownRewardsEntry const* reward)
 {
     if (!reward)
@@ -20828,6 +21306,11 @@ void Player::UpdateAllRenownRewards()
     // 1822 is a display mirror of the active covenant's track and nothing writes it directly; refresh it once
     // the character is in world so the renown UI and the renown PlayerConditions see the right value on login.
     SyncCovenantRenownDisplayCurrency();
+
+    // Same for the reservoir anima view (1813), but bank any pre-covenant-scoping balance onto the track first
+    // so that repointing the view cannot cost anybody the anima they had.
+    MigrateLegacyReservoirAnima();
+    SyncCovenantAnimaDisplayCurrency();
 }
 
 void Player::ActivateSoulbind(SoulbindEntry const* soulbind)
@@ -20921,6 +21404,15 @@ void Player::SetActiveCovenant(uint32 covenantId)
         // the renown it had). A brand-new member sits at currency 0, which is Renown 1.
         SyncCovenantRenownDisplayCurrency();
         UpdateCovenantRenownRewards(m_activeCovenantId);
+
+        // Reservoir anima is per covenant for the same reason and repoints the same way. The outgoing covenant's
+        // balance is already banked on its own currency (CurrencyChanged keeps view and track equal while it is
+        // active), so this hands the character its new covenant's own reservoir, not a copy of the old one.
+        SyncCovenantAnimaDisplayCurrency();
+
+        // The calling board is per covenant too; seed/roll the new covenant's board and tell the client.
+        UpdateCovenantCallings();
+        SendCovenantCallingsUpdate();
     }
 }
 
@@ -21551,6 +22043,7 @@ void Player::SaveToDB(LoginDatabaseTransaction loginTransaction, CharacterDataba
     _SaveCUFProfiles(trans);
     _SavePlayerData(trans);
     _SaveCharacterBankTabSettings(trans);
+    _SaveCovenantCallings(trans);
     for (auto const& [type, garrison] : _garrisons)
         garrison->SaveToDB(trans);
 
@@ -26373,7 +26866,17 @@ void Player::DailyReset()
     m_lastDailyQuestTime = 0;
 
     for (auto const& [type, garrison] : _garrisons)
+    {
         garrison->ResetFollowerActivationLimit();
+        // An Anima Conductor channel bought with reservoir anima lasts until the daily reset (the client's own
+        // confirm dialog counts down C_DateAndTime.GetSecondsUntilDailyReset), so this is where it lapses.
+        garrison->ExpireTemporaryChannelAnima();
+    }
+
+    // One new calling per daily reset, and any offer that has run out of its three days lapses here.
+    UpdateCovenantCallings();
+    if (AreCovenantCallingsUnlocked())
+        SendCovenantCallingsUpdate();
 
     FailCriteria(CriteriaFailEvent::DailyQuestsCleared, 0);
 }

@@ -858,6 +858,16 @@ enum CurrencyConsts
     // (Covenant.db2 CurrencyTypesID: 1829-1832); this is the view of the ACTIVE covenant's track that the
     // client UI and every renown PlayerCondition/ModifierTree in the build read. See Player::GetCovenantRenownCurrency.
     CURRENCY_TYPE_COVENANT_RENOWN = 1822,
+    // Shared "Reservoir Anima" display currency of the Shadowlands covenants (MaxQty 200000). Exactly like
+    // renown, the storage is per covenant - CurrencyTypes 1859-1862 "Reservoir Anima-<covenant>", each carrying
+    // AwardConditionID 70101-70104 ("CovenantID == n") and the same MaxQty 200000 - and 1813 is the view of the
+    // ACTIVE covenant's track. Every anima grant in the build targets 1813 (SPELL_EFFECT_GIVE_CURRENCY 166);
+    // nothing ever targets 1859-1862 directly. See Player::SyncCovenantAnimaDisplayCurrency.
+    CURRENCY_TYPE_RESERVOIR_ANIMA = 1813,
+    // "Channeled Anima" (MaxQty 50). Ten of these are the alternate, permanent cost of an Anima Conductor
+    // channel (GarrTalentRank.AlternateResearchCost = 10 x 1808 on every Channel Anima talent); the client's
+    // reinforce bar is literally ten gems (MAX_ANIMA_GEM_COUNT in Blizzard_AnimaDiversionUI.lua).
+    CURRENCY_TYPE_CHANNELED_ANIMA = 1808,
 
     CURRENCY_MAX_CAP_ANCIENT_MANA = 2000
 };

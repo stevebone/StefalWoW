@@ -1036,6 +1036,7 @@ enum PlayerLoginQueryIndex
     PLAYER_LOGIN_QUERY_LOAD_SOULBIND_CONDUITS,
     PLAYER_LOGIN_QUERY_LOAD_SOULBIND_CONDUIT_SOCKETS,
     PLAYER_LOGIN_QUERY_LOAD_RENOWN_REWARDS,
+    PLAYER_LOGIN_QUERY_LOAD_COVENANT_CALLINGS,
     MAX_PLAYER_LOGIN_QUERY
 };
 
@@ -2959,6 +2960,40 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         // (answers SMSG_COVENANT_RENOWN_SEND_CATCHUP_STATE).
         bool IsCovenantRenownCatchupActive() const;
 
+        // The reservoir anima track of a Shadowlands covenant (CurrencyTypes 1859-1862), or nullptr for a
+        // covenant that has none. See Player::SyncCovenantAnimaDisplayCurrency for why 1813 is only a view.
+        static CurrencyTypesEntry const* GetCovenantAnimaCurrency(uint32 covenantId);
+        // Inverse lookup: which Shadowlands covenant owns this reservoir-anima currency id (0 if none).
+        static uint32 GetCovenantIdForAnimaCurrency(uint32 currencyId);
+        // Keep the shared display currency (1813 "Reservoir Anima") equal to the ACTIVE covenant's track.
+        void SyncCovenantAnimaDisplayCurrency();
+        // One-shot, non-destructive: hand any anima held only on the 1813 view to the active covenant's track.
+        void MigrateLegacyReservoirAnima();
+
+        // Covenant Callings (the daily bounty board answered by CMSG_REQUEST_COVENANT_CALLINGS).
+        //
+        // A calling board is per covenant and holds exactly CovenantCallings::MaxSlots slots. A slot either
+        // holds a bounty (with the moment it expires) or is empty (with the daily reset at which it refills).
+        // Everything is anchored on daily-reset boundaries so the board rolls over exactly at reset and is a
+        // pure function of stored timestamps - it needs no scheduler and survives a restart untouched.
+        struct CovenantCallingSlot
+        {
+            uint32 BountyID = 0;        // 0 = empty slot
+            time_t ExpireTime = 0;      // occupied slot: when the offer lapses (always a reset boundary + 3 days)
+            time_t RefillTime = 0;      // empty slot: the reset boundary at which a new bounty is issued
+        };
+
+        // Are callings unlocked for the active covenant (BountySet.VisiblePlayerConditionID)?
+        bool AreCovenantCallingsUnlocked() const;
+        // Run the board's lifecycle (expire, schedule, issue) up to "now". Cheap and idempotent.
+        void UpdateCovenantCallings();
+        // The bounty ids currently offered, in slot order (empty slots omitted).
+        std::vector<int32> GetCovenantCallingBountyIDs() const;
+        // Send SMSG_COVENANT_CALLINGS_AVAILABILITY_RESPONSE with the current board.
+        void SendCovenantCallingsUpdate();
+        // A calling quest was turned in - free its slot so the next daily reset issues a replacement.
+        void OnCovenantCallingCompleted(uint32 questId);
+
         bool IsAdvancedCombatLoggingEnabled() const { return _advancedCombatLoggingEnabled; }
         void SetAdvancedCombatLogging(bool enabled) { _advancedCombatLoggingEnabled = enabled; }
 
@@ -3210,6 +3245,10 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         void _LoadSoulbindConduits(PreparedQueryResult result);
         void _LoadSoulbindConduitSockets(PreparedQueryResult result);
         void _LoadRenownRewards(PreparedQueryResult result);
+        void _LoadCovenantCallings(PreparedQueryResult result);
+        void _SaveCovenantCallings(CharacterDatabaseTransaction trans);
+        // Pick a bounty for one empty slot out of the covenant's BountySet pool (0 when nothing is eligible).
+        uint32 RollCovenantCalling(uint32 covenantId, uint8 slot, time_t issueTime) const;
         void GrantRenownReward(RenownRewardsEntry const* reward);
         // Shared tail of both renown engines: grant every not-yet-granted RenownRewards row up to currentLevel
         // for this covenant, then persist the new high-water mark to character_covenant_renown.
@@ -3456,6 +3495,12 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         std::unordered_map<uint32 /*conduitId*/, uint32 /*rankIndex*/> m_soulbindConduits;
         // garrTalent node id -> (conduitId, garrTalentTreeID); tree id lets us apply only the active soulbind's sockets
         std::unordered_map<uint32 /*garrTalentId*/, std::pair<uint32 /*conduitId*/, uint32 /*treeId*/>> m_soulbindConduitSockets;
+        // Calling boards, one per covenant the character has ever had callings for (a covenant switch must not
+        // discard the other covenant's board - the per-covenant currencies prove Blizzard keeps all four tracks).
+        std::unordered_map<uint32 /*covenantId*/, std::vector<CovenantCallingSlot>> m_covenantCallings;
+        bool m_covenantCallingsChanged = false;
+        // Re-entrancy latch for the 1813 <-> 1859-1862 reservoir-anima mirror; see Player::CurrencyChanged.
+        bool m_covenantAnimaSyncing = false;
 
         uint32 m_lastFallTime;
         float  m_lastFallZ;
