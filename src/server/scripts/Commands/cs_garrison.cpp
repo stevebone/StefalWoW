@@ -35,6 +35,7 @@ EndScriptData */
 #include "WorldSession.h"
 
 #include <iterator>
+#include <sstream>
 #include <unordered_map>
 
 using namespace Trinity::ChatCommands;
@@ -299,9 +300,15 @@ public:
     // ---------------------------------------------------------------------------------------------------
     // Queen's Conservatory (Night Fae unique sanctum feature). The 12.0.7 client has no CMSG for planting or
     // harvesting - C_ArdenwealdGardening exposes only GetGardenData/IsGardenAccessible and no mutators - and
-    // the retail plot GameObjects (Wildseed 352697, catalysts 353652/353653/353654, and the reward chest
-    // "Queen's Conservatory Cache" 350978) have no spawns in this world DB. So, exactly like
-    // .garrison resettalents, a GM command is the only trigger the engine can currently be driven from.
+    // neither the retail Wildseed of Regrowth (creature 165466), the Anima Catalyst Plot (creature 165480)
+    // nor the reward chest "Queen's Conservatory Cache" (GameObject 350978) has a spawn in this world DB. So,
+    // exactly like .garrison resettalents, a GM command is the only trigger the engine can be driven from.
+    //
+    // NB: GameObjects 353652/353653/353654 "Catalyst of Power/Renewal/Might" are NOT the Conservatory
+    // catalysts - they are Revendreth vampire-bottle props (displayIds 64892-64894 ->
+    // world/expansion08/doodads/vampire/9vm_vampire_bottle*.m2, AreaTable 10413 on map 2222; the
+    // Conservatory is AreaTable 13367 on map 2363). The real catalysts are the items 176921 / 176922 /
+    // 176832, which is what `.garrison conservatory catalyst` now takes; see QueensConservatory.h.
     // ---------------------------------------------------------------------------------------------------
 
     static QueensConservatory* GetConservatoryFor(ChatHandler* handler, Player* target)
@@ -332,9 +339,15 @@ public:
             case CONSERVATORY_ERROR_NO_WILDSEED_DATA:    return "world table `garrison_conservatory_wildseed` is empty (or the row has maturationSeconds 0) - the maturation time and plant cost are not published by any 12.0.7 client data and must be authored";
             case CONSERVATORY_ERROR_TIER_TOO_LOW:        return "that wildseed needs more Conservatory tiers researched";
             case CONSERVATORY_ERROR_CANT_AFFORD:         return "the character cannot pay the wildseed's cost";
-            case CONSERVATORY_ERROR_INVALID_CATALYST:    return "invalid catalyst slot or gameobject entry";
-            case CONSERVATORY_ERROR_CATALYST_SLOT_TAKEN: return "that catalyst slot is already filled";
-            case CONSERVATORY_ERROR_NO_CATALYST_PLOTS:   return "catalyst plots need tier 2 (talent 1087 'Initial Growth')";
+            case CONSERVATORY_ERROR_INVALID_CATALYST:    return "no `garrison_conservatory_catalyst` row with that item id (shipped set: 176921 Temporal Leaves, 176922 Wild Nightbloom, 176832 Wildseed Root Grain)";
+            case CONSERVATORY_ERROR_CATALYST_SLOT_TAKEN: return "that pod's catalyst links are all used up (caps per pod are 1/2/2/2/3/4)";
+            case CONSERVATORY_ERROR_NO_CATALYST_PLOTS:   return "catalyst plots need 2 researched tiers (talent 1087 'Initial Growth')";
+            case CONSERVATORY_ERROR_NO_CATALYST_DATA:    return "world table `garrison_conservatory_catalyst` is empty - apply 2026_08_07_63_covenant_conservatory_catalysts.sql";
+            case CONSERVATORY_ERROR_CATALYST_LIMIT:      return "that catalyst's own maxPerPlot is already reached on this pod";
+            case CONSERVATORY_ERROR_NO_CATALYST_ITEM:    return "the character does not carry that catalyst item";
+            case CONSERVATORY_ERROR_NO_YIELD_FOR_COMBINATION:
+                                                         return "no `garrison_conservatory_yield` row for the resulting catalyst set - that combination's reward satchel does not exist in this build (there is no Artisan's Overflowing and no Spirit-Tender's Large/Stuffed/Overflowing Satchel), so the link is refused rather than left unharvestable";
+            case CONSERVATORY_ERROR_NO_LOOT_TEMPLATE:    return "the loot table this harvest resolves to has no rows in `gameobject_loot_template`";
             default:                                     return "unknown error";
         }
     }
@@ -360,22 +373,63 @@ public:
         int64 remaining = 0;
         conservatory->GetGardenData(active, ready, remaining);
 
-        handler->PSendSysMessage("Queen's Conservatory for {}: accessible {}, {} wildseed plot(s), catalyst plots {}.",
-            target->GetName(), conservatory->IsAccessible() ? "yes" : "no", conservatory->GetPlotCount(),
-            conservatory->HasCatalystPlots() ? "yes" : "no");
+        handler->PSendSysMessage("Queen's Conservatory for {}: accessible {}, {} researched tier(s) -> {} wildseed pod(s), catalyst plots {}.",
+            target->GetName(), conservatory->IsAccessible() ? "yes" : "no", conservatory->GetResearchedTiers(),
+            conservatory->GetPlotCount(), conservatory->HasCatalystPlots() ? "yes" : "no");
         handler->PSendSysMessage("GetGardenData(): active {}, ready {}, remainingSeconds {}.", active, ready, remaining);
 
         for (ConservatoryPlot const* plot : conservatory->GetPlots())
         {
             char const* state = plot->State == CONSERVATORY_PLOT_GROWING ? "growing"
                 : (plot->State == CONSERVATORY_PLOT_READY ? "READY" : "empty");
-            handler->PSendSysMessage("  plot {}: {} (wildseed {}, matures at {}, {} catalyst(s))",
-                uint32(plot->PlotId), state, plot->WildseedEntry, int64(plot->MaturesAt), plot->CountCatalysts());
+
+            uint8 rootGrainCount = 0;
+            uint8 nightbloomCount = 0;
+            conservatory->GetCatalystCounts(*plot, rootGrainCount, nightbloomCount);
+
+            handler->PSendSysMessage("  pod {}: {} (wildseed {}, matures at {}, {}/{} catalyst link(s): "
+                "{} quality + {} quantity)",
+                uint32(plot->PlotId), state, plot->WildseedEntry, int64(plot->MaturesAt), plot->CountCatalysts(),
+                uint32(QueensConservatory::GetCatalystLinkCap(plot->PlotId)), uint32(rootGrainCount), uint32(nightbloomCount));
+
+            // Show the loot table this pod would actually roll, so the command can never imply a payout that
+            // HarvestWildseed would refuse.
+            if (plot->IsOccupied())
+            {
+                uint32 lootId = 0;
+                if (ConservatoryError error = conservatory->ResolveHarvestLootId(*plot, lootId))
+                    handler->PSendSysMessage("    harvest would REFUSE: {}.", ConservatoryErrorText(error));
+                else
+                    handler->PSendSysMessage("    harvest rolls gameobject_loot_template {}.", lootId);
+            }
         }
 
         if (sGarrisonMgr.GetConservatoryWildseeds().empty())
             handler->SendSysMessage("NOTE: `garrison_conservatory_wildseed` is empty, so planting is disabled. "
                 "Maturation time and plant cost have no source in any 12.0.7 DB2 or in the world DB; they must be authored.");
+
+        if (sGarrisonMgr.GetConservatoryCatalysts().empty())
+            handler->SendSysMessage("NOTE: `garrison_conservatory_catalyst` is empty, so linking catalysts is "
+                "disabled. Apply 2026_08_07_63_covenant_conservatory_catalysts.sql.");
+        else
+        {
+            std::ostringstream known;
+            for (auto const& [itemId, catalyst] : sGarrisonMgr.GetConservatoryCatalysts())
+            {
+                char const* effect = catalyst.EffectType == CONSERVATORY_CATALYST_EFFECT_TIME_DELTA ? "TIME_DELTA"
+                    : (catalyst.EffectType == CONSERVATORY_CATALYST_EFFECT_YIELD_QUALITY ? "YIELD_QUALITY" : "YIELD_QUANTITY");
+                known << ' ' << itemId << '(' << effect;
+                if (catalyst.EffectType == CONSERVATORY_CATALYST_EFFECT_TIME_DELTA)
+                    known << ' ' << catalyst.EffectValue << 's';
+                known << ", max " << uint32(catalyst.MaxPerPlot) << ')';
+            }
+            handler->PSendSysMessage("Catalyst items:{}", known.str());
+        }
+
+        if (sGarrisonMgr.GetConservatoryYields().empty())
+            handler->SendSysMessage("NOTE: `garrison_conservatory_yield` is empty, so a harvest falls back to the "
+                "wildseed's reward chest (gameobject_loot_template 350978), which flattens every catalyst outcome "
+                "into one table.");
 
         return true;
     }
@@ -407,8 +461,12 @@ public:
         return true;
     }
 
-    // .garrison conservatory catalyst <plotId> <slot> <gameobjectEntry>
-    static bool HandleConservatoryCatalystCommand(ChatHandler* handler, uint8 plotId, uint8 slot, uint32 gameObjectEntry)
+    // .garrison conservatory catalyst <plotId> <catalystItemId>
+    //   Links a catalyst ITEM to the wildseed growing in pod <plotId>: 176921 Temporal Leaves (-1 day),
+    //   176922 Wild Nightbloom (bigger satchel), 176832 Wildseed Root Grain (better satchel). The item is
+    //   consumed from the character's bags, so it has to be there. There is no slot argument any more - the
+    //   next free link on the pod is used, and how many links a pod has is fixed by its position (1/2/2/2/3/4).
+    static bool HandleConservatoryCatalystCommand(ChatHandler* handler, uint8 plotId, uint32 catalystItemId)
     {
         Player* target = handler->getSelectedPlayerOrSelf();
         if (!target)
@@ -422,7 +480,7 @@ public:
         if (!conservatory)
             return false;
 
-        ConservatoryError result = conservatory->AttachCatalyst(plotId, slot, gameObjectEntry);
+        ConservatoryError result = conservatory->AttachCatalyst(plotId, catalystItemId);
         if (result != CONSERVATORY_OK)
         {
             handler->PSendSysMessage("Could not attach catalyst: {}.", ConservatoryErrorText(result));
@@ -430,7 +488,11 @@ public:
             return false;
         }
 
-        handler->PSendSysMessage("Attached catalyst {} to plot {} slot {}.", gameObjectEntry, uint32(plotId), uint32(slot));
+        ConservatoryPlot const* plot = conservatory->GetPlot(plotId);
+        handler->PSendSysMessage("Linked catalyst item {} to pod {} for {} - item consumed, {}/{} link(s) used, "
+            "matures at {}.", catalystItemId, uint32(plotId), target->GetName(),
+            plot ? plot->CountCatalysts() : 0, uint32(QueensConservatory::GetCatalystLinkCap(plotId)),
+            plot ? int64(plot->MaturesAt) : 0);
         return true;
     }
 
@@ -449,6 +511,11 @@ public:
         if (!conservatory)
             return false;
 
+        // Resolve the loot table before harvesting so the confirmation can name the table the catalysts picked.
+        uint32 lootId = 0;
+        if (ConservatoryPlot const* plot = conservatory->GetPlot(plotId))
+            conservatory->ResolveHarvestLootId(*plot, lootId);
+
         ConservatoryError result = conservatory->HarvestWildseed(plotId);
         if (result != CONSERVATORY_OK)
         {
@@ -457,8 +524,8 @@ public:
             return false;
         }
 
-        handler->PSendSysMessage("Harvested plot {} for {} (rolled the reward chest's loot template).",
-            uint32(plotId), target->GetName());
+        handler->PSendSysMessage("Harvested pod {} for {} (rolled gameobject_loot_template {}, chosen by the "
+            "pod's catalyst set).", uint32(plotId), target->GetName(), lootId);
         return true;
     }
 };

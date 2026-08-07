@@ -42,6 +42,26 @@ uint32 ConservatoryPlot::CountCatalysts() const
     return uint32(std::count_if(Catalysts.begin(), Catalysts.end(), [](uint32 c) { return c != 0; }));
 }
 
+uint32 ConservatoryPlot::CountCatalyst(uint32 catalystItemId) const
+{
+    if (!catalystItemId)
+        return 0;
+
+    return uint32(std::count(Catalysts.begin(), Catalysts.end(), catalystItemId));
+}
+
+// Catalyst links per pod. [WEB, Wowhead "Night Fae Covenant Queen's Conservatory"] a fully upgraded
+// Conservatory has "1 pod with 1 catalyst link, 3 pods with 2, 1 pod with 3 and 1 pod with 4", which lines
+// up with the talents' own wording: 1089 "Flourishing Beds" is where "[y]ou can now use the wildseed that
+// has three possible catalyst connections" and 1090 "Final Forms" adds the pod that "can benefit from four
+// possible catalyst links". Pods are handed out in that order, so the caps are positional.
+static constexpr std::array<uint8, CONSERVATORY_MAX_PLOTS> CatalystLinkCap = { 1, 2, 2, 2, 3, 4 };
+
+uint8 QueensConservatory::GetCatalystLinkCap(uint8 plotId)
+{
+    return plotId < CatalystLinkCap.size() ? CatalystLinkCap[plotId] : uint8(0);
+}
+
 QueensConservatory::QueensConservatory(Player* owner) : _owner(owner)
 {
 }
@@ -61,7 +81,7 @@ uint32 QueensConservatory::GetConservatoryTreeId() const
     return 0;
 }
 
-uint32 QueensConservatory::GetPlotCount() const
+uint32 QueensConservatory::GetResearchedTiers() const
 {
     uint32 const treeId = GetConservatoryTreeId();
     if (!treeId)
@@ -75,15 +95,27 @@ uint32 QueensConservatory::GetPlotCount() const
     if (!talents)
         return 0;
 
-    // One wildseed plot per completed tier - see the ladder quoted in QueensConservatory.h. A talent counts as
-    // completed at Rank >= 1, the same test the rest of the sanctum uses.
+    // A talent counts as completed at Rank >= 1, the same test the rest of the sanctum uses.
     uint32 unlocked = 0;
     for (GarrTalentEntry const* talent : *talents)
         if (Garrison::Talent const* owned = garrison->GetTalent(talent->ID))
             if (owned->Rank >= 1)
                 ++unlocked;
 
-    return std::min<uint32>(unlocked, CONSERVATORY_MAX_PLOTS);
+    return std::min<uint32>(unlocked, CONSERVATORY_MAX_TIERS);
+}
+
+uint32 QueensConservatory::GetPlotCount() const
+{
+    // tiers + 1, not tiers: "First Planting" restores the Conservatory and tier 1 "Initial Growth" already
+    // "activates an additional wildseed", so a tier-1 Conservatory has two pods and a fully researched one
+    // has six. Returning tiers capped at 5 - what this used to do - made pod 5, the only one with four
+    // catalyst links, unreachable no matter how much was researched.
+    uint32 const tiers = GetResearchedTiers();
+    if (!tiers)
+        return 0;
+
+    return std::min<uint32>(tiers + 1, CONSERVATORY_MAX_PLOTS);
 }
 
 bool QueensConservatory::IsAccessible() const
@@ -93,9 +125,33 @@ bool QueensConservatory::IsAccessible() const
 
 bool QueensConservatory::HasCatalystPlots() const
 {
-    // Talent 1087 "Initial Growth" (tier 1, the second tier researched) is the one that "[g]rants you access to
-    // catalyst plots", so catalysts exist from two researched tiers upwards.
-    return GetPlotCount() >= 2;
+    // Talent 1087 "Initial Growth" (the second tier researched) is the one that "[g]rants you access to
+    // catalyst plots", so catalysts exist from two researched TIERS upwards - expressed in tiers rather than
+    // in pods so that the tiers+1 pod ladder cannot shift this gate by accident.
+    return GetResearchedTiers() >= CONSERVATORY_CATALYST_PLOTS_TIER;
+}
+
+void QueensConservatory::GetCatalystCounts(ConservatoryPlot const& plot, uint8& rootGrainCount, uint8& nightbloomCount) const
+{
+    rootGrainCount = 0;
+    nightbloomCount = 0;
+
+    for (uint32 catalystItemId : plot.Catalysts)
+    {
+        if (!catalystItemId)
+            continue;
+
+        ConservatoryCatalystTemplate const* catalyst = sGarrisonMgr.GetConservatoryCatalyst(catalystItemId);
+        if (!catalyst)
+            continue;   // reported where it matters (load time, and ResolveHarvestLootId)
+
+        switch (catalyst->EffectType)
+        {
+            case CONSERVATORY_CATALYST_EFFECT_YIELD_QUALITY:  ++rootGrainCount;  break;
+            case CONSERVATORY_CATALYST_EFFECT_YIELD_QUANTITY: ++nightbloomCount; break;
+            default: break;   // TIME_DELTA has already been applied to MaturesAt; it does not key the yield
+        }
+    }
 }
 
 ConservatoryPlot const* QueensConservatory::GetPlot(uint8 plotId) const
@@ -252,7 +308,9 @@ ConservatoryError QueensConservatory::PlantWildseed(uint8 plotId, uint32 wildsee
     if (!wildseed)
         return CONSERVATORY_ERROR_UNKNOWN_WILDSEED;
 
-    if (plotCount < wildseed->RequiredTier)
+    // requiredTier is in RESEARCHED TIERS, not in pods - the two stopped being the same number when the pod
+    // ladder became tiers + 1.
+    if (GetResearchedTiers() < wildseed->RequiredTier)
         return CONSERVATORY_ERROR_TIER_TOO_LOW;
 
     // A wildseed with no maturation time would complete the instant it is planted, which is not a loop. Treat a
@@ -290,7 +348,7 @@ ConservatoryError QueensConservatory::PlantWildseed(uint8 plotId, uint32 wildsee
     return CONSERVATORY_OK;
 }
 
-ConservatoryError QueensConservatory::AttachCatalyst(uint8 plotId, uint8 slot, uint32 catalystGoEntry)
+ConservatoryError QueensConservatory::AttachCatalyst(uint8 plotId, uint32 catalystItemId)
 {
     if (!_owner || _owner->GetActiveCovenant() != COVENANT_ID_NIGHT_FAE)
         return CONSERVATORY_ERROR_NOT_NIGHT_FAE;
@@ -298,24 +356,131 @@ ConservatoryError QueensConservatory::AttachCatalyst(uint8 plotId, uint8 slot, u
     if (!HasCatalystPlots())
         return CONSERVATORY_ERROR_NO_CATALYST_PLOTS;
 
-    if (slot >= CONSERVATORY_MAX_CATALYSTS)
-        return CONSERVATORY_ERROR_INVALID_CATALYST;
-
     auto itr = _plots.find(plotId);
     if (itr == _plots.end() || itr->second.State != CONSERVATORY_PLOT_GROWING)
         return CONSERVATORY_ERROR_PLOT_EMPTY;
 
-    // The catalysts are real GameObject templates (353652 Catalyst of Power / 353653 Catalyst of Renewal /
-    // 353654 Catalyst of Might). Requiring the entry to exist keeps the column honest without pinning the set.
-    if (!sObjectMgr->GetGameObjectTemplate(catalystGoEntry))
+    ConservatoryPlot& plot = itr->second;
+
+    // A catalyst is an ITEM (176921 Temporal Leaves / 176922 Wild Nightbloom / 176832 Wildseed Root Grain),
+    // and which items those are is content. With nothing authored there is no truthful effect to apply and
+    // nothing honest to consume, so the link is refused rather than recorded as a decoration.
+    if (sGarrisonMgr.GetConservatoryCatalysts().empty())
+        return CONSERVATORY_ERROR_NO_CATALYST_DATA;
+
+    ConservatoryCatalystTemplate const* catalyst = sGarrisonMgr.GetConservatoryCatalyst(catalystItemId);
+    if (!catalyst)
         return CONSERVATORY_ERROR_INVALID_CATALYST;
 
-    ConservatoryPlot& plot = itr->second;
-    if (plot.Catalysts[slot])
+    // Structural cap of this particular pod ({1,2,2,2,3,4}), then the catalyst's own maxPerPlot.
+    uint8 const linkCap = GetCatalystLinkCap(plotId);
+    if (!linkCap || plot.CountCatalysts() >= linkCap)
         return CONSERVATORY_ERROR_CATALYST_SLOT_TAKEN;
 
-    plot.Catalysts[slot] = catalystGoEntry;
+    if (catalyst->MaxPerPlot && plot.CountCatalyst(catalystItemId) >= catalyst->MaxPerPlot)
+        return CONSERVATORY_ERROR_CATALYST_LIMIT;
+
+    auto freeSlot = std::find(plot.Catalysts.begin(), plot.Catalysts.end(), 0u);
+    if (freeSlot == plot.Catalysts.end())
+        return CONSERVATORY_ERROR_CATALYST_SLOT_TAKEN;
+
+    if (!_owner->HasItemCount(catalystItemId, 1))
+        return CONSERVATORY_ERROR_NO_CATALYST_ITEM;
+
+    // Refuse now, while the item is still in the player's bags, any combination that has no authored payout.
+    // As shipped, `garrison_conservatory_yield` covers all fourteen combinations four links can reach, so
+    // this cannot fire; it is the guard that keeps a later edit of that table from stranding a growing pod
+    // in a state HarvestWildseed would have to refuse.
+    if (!sGarrisonMgr.GetConservatoryYields().empty())
+    {
+        ConservatoryPlot prospective = plot;
+        prospective.Catalysts[std::distance(plot.Catalysts.begin(), freeSlot)] = catalystItemId;
+
+        uint8 rootGrainCount = 0;
+        uint8 nightbloomCount = 0;
+        GetCatalystCounts(prospective, rootGrainCount, nightbloomCount);
+
+        if (!sGarrisonMgr.GetConservatoryYieldLootId(plot.WildseedEntry, rootGrainCount, nightbloomCount))
+            return CONSERVATORY_ERROR_NO_YIELD_FOR_COMBINATION;
+    }
+
+    // Every check has passed - only now is anything taken or written.
+    _owner->DestroyItemCount(catalystItemId, 1, true);
+    *freeSlot = catalystItemId;
+
+    // "These enchanted leaves reduce the Wildseed of Regrowth process by 1 day." A TIME_DELTA catalyst has to
+    // move the clock or attaching it is exactly the no-op this change exists to remove. Never rewind past
+    // now: a pod that the deltas have already carried to term simply becomes harvestable.
+    if (catalyst->EffectType == CONSERVATORY_CATALYST_EFFECT_TIME_DELTA && catalyst->EffectValue && plot.MaturesAt)
+    {
+        time_t const now = GameTime::GetGameTime();
+        plot.MaturesAt = std::max<time_t>(now, plot.MaturesAt + time_t(catalyst->EffectValue));
+        if (plot.MaturesAt <= now)
+            plot.State = CONSERVATORY_PLOT_READY;
+    }
+
     MarkChanged();
+    RefreshClientState();
+
+    TC_LOG_DEBUG("garrison", "QueensConservatory: player {} linked catalyst item {} to plot {} ({}/{} links, "
+        "matures at {}).", _owner->GetGUID().ToString(), catalystItemId, uint32(plotId), plot.CountCatalysts(),
+        uint32(linkCap), int64(plot.MaturesAt));
+
+    return CONSERVATORY_OK;
+}
+
+ConservatoryError QueensConservatory::ResolveHarvestLootId(ConservatoryPlot const& plot, uint32& lootId) const
+{
+    lootId = 0;
+
+    // With a yield table authored, the catalysts linked to this pod pick the loot table - that is the whole
+    // point of attaching them. `garrison_conservatory_yield` prefers a spirit-specific row and falls back to
+    // the spiritItemId 0 wildcard.
+    if (!sGarrisonMgr.GetConservatoryYields().empty())
+    {
+        uint8 rootGrainCount = 0;
+        uint8 nightbloomCount = 0;
+        GetCatalystCounts(plot, rootGrainCount, nightbloomCount);
+
+        lootId = sGarrisonMgr.GetConservatoryYieldLootId(plot.WildseedEntry, rootGrainCount, nightbloomCount);
+        if (!lootId)
+        {
+            TC_LOG_ERROR("garrison", "QueensConservatory: no `garrison_conservatory_yield` row for wildseed {} "
+                "with {} quality and {} quantity catalyst(s); refusing to roll a table that does not describe "
+                "this harvest.", plot.WildseedEntry, uint32(rootGrainCount), uint32(nightbloomCount));
+            return CONSERVATORY_ERROR_NO_YIELD_FOR_COMBINATION;
+        }
+    }
+    else
+    {
+        // No yield data: fall back to the wildseed's reward chest, i.e. exactly the pre-catalyst behaviour.
+        // Reachable only with zero catalysts attached, because AttachCatalyst refuses without catalyst data.
+        uint32 rewardGoEntry = CONSERVATORY_DEFAULT_REWARD_GO;
+        if (ConservatoryWildseedTemplate const* wildseed = sGarrisonMgr.GetConservatoryWildseed(plot.WildseedEntry))
+            if (wildseed->RewardGameObjectId)
+                rewardGoEntry = wildseed->RewardGameObjectId;
+
+        if (GameObjectTemplate const* goTemplate = sObjectMgr->GetGameObjectTemplate(rewardGoEntry))
+            lootId = goTemplate->GetLootId();
+
+        if (!lootId)
+        {
+            TC_LOG_ERROR("garrison", "QueensConservatory: reward GameObject {} for wildseed {} has no loot "
+                "template.", rewardGoEntry, plot.WildseedEntry);
+            return CONSERVATORY_ERROR_NO_LOOT_TEMPLATE;
+        }
+    }
+
+    // A loot id that has no rows would make FillLoot a no-op and AutoStore hand over nothing, which is the
+    // silent success this whole change exists to remove. Refuse instead.
+    if (!LootTemplates_Gameobject.HaveLootFor(lootId))
+    {
+        TC_LOG_ERROR("garrison", "QueensConservatory: gameobject_loot_template {} has no rows; refusing to "
+            "harvest wildseed {} rather than pay out nothing.", lootId, plot.WildseedEntry);
+        lootId = 0;
+        return CONSERVATORY_ERROR_NO_LOOT_TEMPLATE;
+    }
+
     return CONSERVATORY_OK;
 }
 
@@ -337,29 +502,29 @@ ConservatoryError QueensConservatory::HarvestWildseed(uint8 plotId)
     if (plot.State != CONSERVATORY_PLOT_READY)
         return CONSERVATORY_ERROR_NOT_READY;
 
-    uint32 rewardGoEntry = CONSERVATORY_DEFAULT_REWARD_GO;
-    if (ConservatoryWildseedTemplate const* wildseed = sGarrisonMgr.GetConservatoryWildseed(plot.WildseedEntry))
-        if (wildseed->RewardGameObjectId)
-            rewardGoEntry = wildseed->RewardGameObjectId;
-
-    // Pay out the reward chest's own loot template (GameObject 350978 "Queen's Conservatory Cache" ->
-    // gameobject_loot_template 350978), pushed straight into the bags the same way a chest's push-loot is.
+    // Resolve the payout BEFORE the plot is cleared, so a refusal leaves the wildseed exactly where it was
+    // and the player can claim it once the data is fixed.
     uint32 lootId = 0;
-    if (GameObjectTemplate const* goTemplate = sObjectMgr->GetGameObjectTemplate(rewardGoEntry))
-        lootId = goTemplate->GetLootId();
-
-    if (!lootId)
-    {
-        TC_LOG_ERROR("garrison", "QueensConservatory: reward GameObject {} for wildseed {} has no loot template; "
-            "player {} harvested nothing.", rewardGoEntry, plot.WildseedEntry, _owner->GetGUID().ToString());
-        return CONSERVATORY_ERROR_UNKNOWN_WILDSEED;
-    }
+    if (ConservatoryError error = ResolveHarvestLootId(plot, lootId))
+        return error;
 
     Map* map = _owner->GetMap();
+    ItemContext const context = ItemBonusMgr::GetContextForPlayer(map ? map->GetMapDifficulty() : nullptr, _owner);
     Loot harvestLoot(map, _owner->GetGUID(), LOOT_CHEST, nullptr);
-    harvestLoot.FillLoot(lootId, LootTemplates_Gameobject, _owner, true, false, LOOT_MODE_DEFAULT,
-        ItemBonusMgr::GetContextForPlayer(map ? map->GetMapDifficulty() : nullptr, _owner));
-    harvestLoot.AutoStore(_owner, NULL_BAG, NULL_SLOT, true);
+    if (!harvestLoot.FillLoot(lootId, LootTemplates_Gameobject, _owner, true, false, LOOT_MODE_DEFAULT, context))
+    {
+        TC_LOG_ERROR("garrison", "QueensConservatory: gameobject_loot_template {} produced nothing for player {}; "
+            "the wildseed on plot {} is left planted rather than consumed for no reward.",
+            lootId, _owner->GetGUID().ToString(), uint32(plotId));
+        return CONSERVATORY_ERROR_NO_LOOT_TEMPLATE;
+    }
+
+    // A full bag must not swallow the payout: whatever could not be stored goes out by Postmaster mail, so
+    // the plot is only ever emptied against rewards the player actually received.
+    if (!harvestLoot.AutoStore(_owner, NULL_BAG, NULL_SLOT, true))
+        for (LootItem const& item : harvestLoot.items)
+            if (!item.is_looted && item.type == LootItemType::Item && item.itemid)
+                _owner->SendItemRetrievalMail(item.itemid, item.count, item.context);
 
     plot.WildseedEntry = 0;
     plot.PlantedTime = 0;
@@ -404,6 +569,31 @@ void QueensConservatory::LoadFromDB(PreparedQueryResult result)
 
         if (plot.State > CONSERVATORY_PLOT_READY)
             plot.State = CONSERVATORY_PLOT_EMPTY;
+
+        // catalyst1..4 hold `garrison_conservatory_catalyst`.catalystItemId. Rows written by the first
+        // revision of this feature hold GameObject entries instead (353652/353653/353654), and a catalyst can
+        // also be retired from the table under a pod that is still growing. Either way the value no longer
+        // means anything, so it is dropped loudly rather than counted towards a yield it does not describe.
+        // Only compacts once the catalyst table is loaded; an empty table is left alone so a world DB that
+        // has not had 2026_08_07_63 applied does not lose player state.
+        if (!sGarrisonMgr.GetConservatoryCatalysts().empty())
+        {
+            for (uint32& catalystItemId : plot.Catalysts)
+            {
+                if (!catalystItemId || sGarrisonMgr.GetConservatoryCatalyst(catalystItemId))
+                    continue;
+
+                TC_LOG_ERROR("garrison", "QueensConservatory: player {} plot {} references catalyst {}, which is "
+                    "not in `garrison_conservatory_catalyst`; the link is dropped.",
+                    _owner->GetGUID().ToString(), uint32(plot.PlotId), catalystItemId);
+                catalystItemId = 0;
+            }
+
+            // Keep the live links packed at the front so the link cap is a simple count.
+            auto end = std::stable_partition(plot.Catalysts.begin(), plot.Catalysts.end(),
+                [](uint32 c) { return c != 0; });
+            std::fill(end, plot.Catalysts.end(), 0u);
+        }
 
         _plots[plot.PlotId] = plot;
     } while (result->NextRow());

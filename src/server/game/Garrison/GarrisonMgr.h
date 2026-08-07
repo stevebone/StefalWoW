@@ -23,6 +23,7 @@
 #include "Position.h"
 #include "QueensConservatory.h"
 #include <list>
+#include <map>
 #include <set>
 #include <unordered_map>
 #include <unordered_set>
@@ -162,6 +163,21 @@ public:
     ConservatoryWildseedTemplate const* GetConservatoryWildseed(uint32 wildseedEntry) const;
     std::unordered_map<uint32, ConservatoryWildseedTemplate> const& GetConservatoryWildseeds() const { return _conservatoryWildseeds; }
 
+    // The catalyst items a wildseed pod can be linked to (world table `garrison_conservatory_catalyst`) and
+    // the loot table each catalyst combination pays out (`garrison_conservatory_yield`). The catalyst effects
+    // ARE client-derived - each item's own description states them - but the item set and the loot tables are
+    // content, so neither is compiled in. Empty tables are valid: AttachCatalyst then refuses, and a harvest
+    // falls back to the wildseed's reward chest exactly as it did before catalysts existed.
+    void LoadConservatoryCatalysts();
+    ConservatoryCatalystTemplate const* GetConservatoryCatalyst(uint32 catalystItemId) const;
+    std::unordered_map<uint32, ConservatoryCatalystTemplate> const& GetConservatoryCatalysts() const { return _conservatoryCatalysts; }
+
+    void LoadConservatoryYields();
+    // gameobject_loot_template entry for this catalyst set, preferring a spirit-specific row over the
+    // spiritItemId 0 wildcard. 0 means "no row" - the caller must refuse, never fall back to another table.
+    uint32 GetConservatoryYieldLootId(uint32 spiritItemId, uint8 rootGrainCount, uint8 nightbloomCount) const;
+    std::map<ConservatoryYieldKey, uint32> const& GetConservatoryYields() const { return _conservatoryYields; }
+
     // Talent system accessors
     std::vector<GarrTalentTreeEntry const*> const* GetTalentTreesForGarrType(int8 garrTypeID) const;
     std::vector<GarrTalentEntry const*> const* GetTalentsForTree(uint32 garrTalentTreeID) const;
@@ -241,6 +257,10 @@ private:
 
     // Queen's Conservatory authored wildseed kinds (world table `garrison_conservatory_wildseed`).
     std::unordered_map<uint32 /*wildseedEntry*/, ConservatoryWildseedTemplate> _conservatoryWildseeds;
+    // Queen's Conservatory catalyst items (`garrison_conservatory_catalyst`) and the loot table each
+    // catalyst combination rolls (`garrison_conservatory_yield`).
+    std::unordered_map<uint32 /*catalystItemId*/, ConservatoryCatalystTemplate> _conservatoryCatalysts;
+    std::map<ConservatoryYieldKey, uint32 /*lootId*/> _conservatoryYields;
 
     uint64 _followerDbIdGenerator = UI64LIT(1);
     uint64 _shipmentDbIdGenerator = UI64LIT(1);
