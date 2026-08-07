@@ -21,6 +21,7 @@
 #include "Define.h"
 #include "Hash.h"
 #include "Position.h"
+#include "QueensConservatory.h"
 #include <list>
 #include <set>
 #include <unordered_map>
@@ -153,6 +154,14 @@ public:
     uint32 GetRecruiterForContainer(uint32 containerId) const;
     void LoadOrderHallStandards();
 
+    // Queen's Conservatory (Night Fae unique sanctum feature, GarrTalentTree 319). The wildseed kinds - their
+    // cost, maturation time and reward chest - have no representation in any 12.0.7 DB2, so they are authored
+    // content in the world table `garrison_conservatory_wildseed` rather than constants in the core. With no
+    // rows loaded the Conservatory engine simply refuses to plant; see QueensConservatory.h.
+    void LoadConservatoryWildseeds();
+    ConservatoryWildseedTemplate const* GetConservatoryWildseed(uint32 wildseedEntry) const;
+    std::unordered_map<uint32, ConservatoryWildseedTemplate> const& GetConservatoryWildseeds() const { return _conservatoryWildseeds; }
+
     // Talent system accessors
     std::vector<GarrTalentTreeEntry const*> const* GetTalentTreesForGarrType(int8 garrTypeID) const;
     std::vector<GarrTalentEntry const*> const* GetTalentsForTree(uint32 garrTalentTreeID) const;
@@ -229,6 +238,9 @@ private:
     std::unordered_map<uint32 /*containerId*/, OrderHallStandard> _orderHallStandardByContainer;
     std::unordered_map<uint32 /*containerId*/, uint32 /*npcEntry*/> _recruiterByContainer;
     std::unordered_map<uint32 /*containerID*/, std::vector<CharShipmentEntry const*>> _shipmentsByContainer;
+
+    // Queen's Conservatory authored wildseed kinds (world table `garrison_conservatory_wildseed`).
+    std::unordered_map<uint32 /*wildseedEntry*/, ConservatoryWildseedTemplate> _conservatoryWildseeds;
 
     uint64 _followerDbIdGenerator = UI64LIT(1);
     uint64 _shipmentDbIdGenerator = UI64LIT(1);

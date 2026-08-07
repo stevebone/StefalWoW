@@ -22,6 +22,7 @@
 #include "DatabaseEnvFwd.h"
 #include "GarrisonPackets.h"
 #include "Optional.h"
+#include "QueensConservatory.h"
 #include "QuaternionData.h"
 #include "SharedDefines.h"
 #include <algorithm>
@@ -507,6 +508,11 @@ public:
     bool HasTrophy(uint32 trophyID) const { return _trophies.count(trophyID) > 0; }
     std::unordered_set<uint32> const& GetTrophies() const { return _trophies; }
 
+    // Queen's Conservatory - the Night Fae unique sanctum feature (GarrTalentTree 319). Only meaningful on a
+    // GARRISON_TYPE_COVENANT garrison owned by a Night Fae character; it reports zero plots for anything else.
+    QueensConservatory& GetConservatory() { return _conservatory; }
+    QueensConservatory const& GetConservatory() const { return _conservatory; }
+
     void BuildInfoPacket(WorldPackets::Garrison::GarrisonInfo& garrison) const;
     void SendRemoteInfo() const;
     void SendInfo() const;
@@ -588,6 +594,9 @@ private:
 
     // Trophies
     std::unordered_set<uint32 /*trophyID*/> _trophies;
+
+    // Night Fae unique sanctum feature; inert for every other garrison type.
+    QueensConservatory _conservatory;
 
     // Temporary storage for BuildInfoPacket (mission copies with cleared inline rewards)
     mutable std::vector<WorldPackets::Garrison::GarrisonMission> _infoMissions;
