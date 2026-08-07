@@ -23,7 +23,23 @@
 #include <unordered_map>
 #include <vector>
 
+class Creature;
 class Player;
+
+// Mirrors Enum.ContributionResult from the client (ContributionCollectorDocumentation.lua, build 68275). The client
+// surfaces these through CONTRIBUTION_COLLECTOR_PENDING / C_ContributionCollector.GetContributionResult; we use the
+// same vocabulary server-side so the reason a donation was refused is never lost.
+enum class ContributionResult : uint8
+{
+    Success                 = 0,
+    MustBeNearNpc           = 1,
+    IncorrectState          = 2,
+    InvalidID               = 3,
+    QuestDataMissing        = 4,
+    FailedConditionCheck    = 5,
+    UnableToCompleteTurnIn  = 6,
+    InternalError           = 7,
+};
 
 // Handles the war-effort Contribution Collector flow: a player at a collector NPC turns in the required
 // currency/items (defined by the contribution's ManagedWorldStateInput.QuestID) to advance the associated
@@ -44,9 +60,38 @@ public:
     // Builds the collector-creature -> contribution index from CreatureXContribution.db2.
     void Load();
 
-    // Validates the collector and the player's eligibility, consumes the turn-in cost, and advances the
-    // associated managed world state.
-    void Contribute(Player* player, ObjectGuid collectorGuid, uint32 contributionId);
+    // Validates the collector and the player's eligibility, consumes the turn-in cost, advances the associated
+    // managed world state and awards the retail "Donation Credit" kill credit. Returns the exact refusal reason
+    // using the client's own ContributionResult vocabulary; ContributionResult::Success means the bar moved.
+    ContributionResult Contribute(Player* player, ObjectGuid collectorGuid, uint32 contributionId);
+
+    // True when this creature is flagged as a Contribution Collector and CreatureXContribution authorizes it for
+    // the given contribution. Public so gossip scripts can offer the donate path only where it is legal.
+    bool IsCollectorFor(Creature const* creature, uint32 contributionId) const;
+
+    // The contribution offered by `creatureEntry` whose bar is the given managed world state (0 when none). This is
+    // how a war-table recruiter resolves "the donate option for MY faction's bar of THIS warfront".
+    uint32 GetContributionForCreatureAndManagedWorldState(uint32 creatureEntry, uint32 managedWorldStateId) const;
+
+    // The cost one donation to this contribution takes, resolved from the contribution's ManagedWorldStateInput
+    // quest when the client data defines one, otherwise from the server-side war-effort fallback (see the .cpp).
+    // Returns false when the contribution id is unknown. `outQuestId` is 0 when the fallback cost is in play.
+    struct ContributionCost
+    {
+        uint32 QuestID = 0;         // ManagedWorldStateInput.QuestID (0 = client data defines no turn-in quest)
+        uint32 CurrencyID = 0;      // currency to consume (0 = none)
+        uint32 CurrencyAmount = 0;
+        uint32 ItemID = 0;          // item to consume (0 = none)
+        uint32 ItemAmount = 0;
+        int32  ProgressAmount = 0;  // how far one donation pushes the bar
+    };
+    bool GetContributionCost(uint32 contributionId, ContributionCost& out) const;
+
+    // The ManagedWorldState id whose bar this contribution feeds (0 when unknown).
+    uint32 GetManagedWorldStateForContribution(uint32 contributionId) const;
+
+    // Human-readable form of a refusal, for gossip/chat feedback.
+    static char const* GetResultText(ContributionResult result);
 
     // --- native UI last-update round-trip (SMSG_CONTRIBUTION_LAST_UPDATE_RESPONSE) ------------------------------
     // The response is a twelve-byte timestamp acknowledgement { uint32 Data, uint32 ContributionID,

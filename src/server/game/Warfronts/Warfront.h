@@ -92,6 +92,52 @@ enum WarfrontInstanceCommand : uint32
 // (SMSG_RECEIVE_PING_WORLD_POINT). A fixed id means each refresh replaces the previous pin instead of stacking them.
 inline constexpr uint32 WarfrontBossPinFrameId = 0xF0B055;
 
+// --- Blizzlike unlock chain (BfA war campaign) -------------------------------------------------------------------
+// Retail gates warfront queueing behind war-campaign progression, not behind a GM command. Two hurdles per faction:
+//
+//   1. the campaign hurdle - the quest that opens World Quests, which is what actually makes the warfront intro
+//      appear at all ("Uniting Kul Tiras" 51918 Alliance / "Uniting Zandalar" 51916 Horde). The three war-campaign
+//      Footholds are criteria of the *Ready for War* ACHIEVEMENT (12510 A / 12509 H), not direct quest prerequisites,
+//      so they are deliberately not gated on here.
+//
+//   2. the warfront intro chain, which ends at a quest whose completion is what opens the assault:
+//        Stromgarde (8.0) A: The Warfront Looms 53175 -> To the Front 53194 -> Touring the Front 53197
+//                            -> Back to Boralus 53198   [UNLOCK]   -> Warfront: The Battle for Stromgarde 53414
+//        Stromgarde (8.0) H: The Warfront Looms 53207 -> To the Front 53208 -> Touring the Front 53210
+//                            -> Back to Zuldazar 53212  [UNLOCK]   -> Warfront: The Battle for Stromgarde 53416
+//        Darkshore  (8.1) A: On Whispered Winds 53847 -> ... -> In Darkest Night 53990
+//                            -> We Are Coming 54871      [UNLOCK]  -> Warfront: The Battle for Darkshore 53992
+//        Darkshore  (8.1) H: Trouble in Darkshore 54042 -> ... -> Aftermath 54050
+//                            -> Warfront Preparations 54416 [UNLOCK] -> Warfront: The Battle for Darkshore 53955
+//
+// Darkshore is an independent 8.1 chain - it does NOT require the Stromgarde chain.
+//
+// Every id below was verified to exist in the realm's quest_template. Holding (or having completed) the terminal
+// "Warfront: The Battle for X" quest also counts as unlocked, because it can only be picked up after the intro.
+enum WarfrontUnlockQuests : uint32
+{
+    // campaign hurdle (World Quest unlock)
+    QUEST_UNITING_KUL_TIRAS                 = 51918,    // Alliance
+    QUEST_UNITING_ZANDALAR                  = 51916,    // Horde
+
+    // Stromgarde intro terminal + warfront quest
+    QUEST_BACK_TO_BORALUS                   = 53198,    // Alliance unlock
+    QUEST_WARFRONT_STROMGARDE_ALLIANCE      = 53414,
+    QUEST_BACK_TO_ZULDAZAR                  = 53212,    // Horde unlock
+    QUEST_WARFRONT_STROMGARDE_HORDE         = 53416,
+
+    // Darkshore intro terminal + warfront quest
+    QUEST_WE_ARE_COMING                     = 54871,    // Alliance unlock
+    QUEST_WARFRONT_DARKSHORE_ALLIANCE       = 53992,
+    QUEST_WARFRONT_PREPARATIONS             = 54416,    // Horde unlock
+    QUEST_WARFRONT_DARKSHORE_HORDE          = 53955,
+};
+
+// Retail kill-credit creature awarded for a single war-effort donation. It is the objective of the weekly
+// "Warfront Contribution" quests (53185 Alliance / 53209 Horde, objective type 0, ObjectID 143337, "Make a donation
+// to the war effort"), so handing it out on a successful contribution is what closes that loop.
+inline constexpr uint32 WarfrontDonationCreditCreature = 143337;
+
 // One independent state machine per contested zone. WarfrontMgr owns the cycle; it does NOT own the fight (that is
 // the instance) nor the contribution bar counter (that is ManagedWorldStateMgr). It observes the bar, drives the
 // phase transitions, flips zone control and (in a later phase) spawns/despawns the world boss.
@@ -144,6 +190,24 @@ struct Warfront
     uint32 GetWorldBossForController() const
     {
         return ControllingTeam == TEAM_ALLIANCE ? WorldBossWhenAllianceControls : WorldBossWhenHordeControls;
+    }
+
+    // --- Blizzlike unlock gate (see WarfrontUnlockQuests above) --------------------------------------------------
+    uint32 CampaignQuest_Alliance = 0;   // "Uniting Kul Tiras" - opens World Quests, i.e. the war campaign hurdle
+    uint32 CampaignQuest_Horde    = 0;   // "Uniting Zandalar"
+    uint32 UnlockQuest_Alliance   = 0;   // terminal quest of the warfront intro chain; completing it opens the assault
+    uint32 UnlockQuest_Horde      = 0;
+    uint32 WarfrontQuest_Alliance = 0;   // "Warfront: The Battle for X" - only obtainable after the intro chain
+    uint32 WarfrontQuest_Horde    = 0;
+
+    uint32 GetCampaignQuest(TeamId team) const { return team == TEAM_ALLIANCE ? CampaignQuest_Alliance : CampaignQuest_Horde; }
+    uint32 GetUnlockQuest(TeamId team) const   { return team == TEAM_ALLIANCE ? UnlockQuest_Alliance   : UnlockQuest_Horde;   }
+    uint32 GetWarfrontQuest(TeamId team) const { return team == TEAM_ALLIANCE ? WarfrontQuest_Alliance : WarfrontQuest_Horde; }
+
+    // Returns the ManagedWorldState id that drives the given team's contribution bar (0 when unwired).
+    uint32 GetContributionMWS(TeamId team) const
+    {
+        return team == TEAM_ALLIANCE ? ContributionMWS_Alliance : ContributionMWS_Horde;
     }
 
     // Returns the ManagedWorldState id that drives the *challenger's* bar (the one WarfrontMgr watches).

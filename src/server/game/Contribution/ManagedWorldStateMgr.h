@@ -64,7 +64,9 @@ public:
     void Update(uint32 diff);
 
     // Adds (or, with a negative amount, removes) progress to a managed world state; clamps to the depletion/target
-    // bounds and pushes the updated world states. Returns false if the id is unknown. Used by the Contribute path.
+    // bounds and pushes the updated world states. Returns false when the id is unknown OR when the clamp meant the
+    // bar did not actually move (i.e. it was already full) - the Contribute path relies on that to refuse a
+    // donation instead of consuming its cost for nothing.
     bool AddProgress(uint32 managedWorldStateId, int32 amount);
 
     // Resets a managed world state's progress bar to its empty (depletion-target) floor and restarts its up window.

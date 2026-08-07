@@ -73,12 +73,26 @@ public:
     WarfrontQueue* GetQueue(uint32 warfrontId);
     WarfrontQueue const* GetQueue(uint32 warfrontId) const;
 
-    // Gate for enrolling: warfront in SIEGE, player is on the challenging team, meets the level prereq, not already
-    // enrolled. `reason` (optional) receives a LANG_* / plain string suitable for player feedback when false.
-    bool CanQueue(Player* player, uint32 warfrontId, std::string* reason = nullptr) const;
+    // Gate for enrolling: warfront unlocked by the war campaign, warfront in SIEGE, player is on the challenging
+    // team, meets the level prereq, not already enrolled. `reason` (optional) receives a plain string suitable for
+    // player feedback when false. `ignoreUnlockGate` is only used by the GM testing override.
+    bool CanQueue(Player* player, uint32 warfrontId, std::string* reason = nullptr, bool ignoreUnlockGate = false) const;
 
     // Enrolls the player into the warfront queue if CanQueue passes. Returns true on a fresh enrollment.
-    bool EnqueuePlayer(Player* player, uint32 warfrontId, std::string* reason = nullptr);
+    bool EnqueuePlayer(Player* player, uint32 warfrontId, std::string* reason = nullptr, bool ignoreUnlockGate = false);
+
+    // --- Blizzlike unlock gate (Warfront.h §"Blizzlike unlock chain") -------------------------------------------
+    // True when this character has progressed the war campaign far enough to assault this warfront: the World-Quest
+    // campaign quest AND the terminal quest of the warfront intro chain (or the "Warfront: The Battle for X" quest
+    // itself, which is only obtainable after that chain). `reason` receives the exact missing step when false.
+    bool HasUnlockedWarfront(Player const* player, uint32 warfrontId, std::string* reason = nullptr) const;
+
+    // worldserver.conf Warfront.RequireUnlockQuest - lets a test realm drop the war-campaign requirement.
+    static bool IsUnlockGateEnabled();
+
+    // Live contribution-bar readout for the given team's bar of this warfront, as a 0..1 fraction of the way from
+    // the empty floor to the accumulation target. Returns false when the warfront/bar is unknown.
+    bool GetContributionProgress(uint32 warfrontId, TeamId team, float& outFraction, int32& outProgress, int32& outTarget) const;
 
     // --- LFG wiring: the native war-table "Join Battle" button (see Warfront.h §"LFG wiring") -------------------
     // Resolves an LFGDungeons.db2 id carried by CMSG_DF_JOIN to the warfront it belongs to. Returns 0 when the id

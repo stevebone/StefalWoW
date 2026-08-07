@@ -16,6 +16,7 @@
  */
 
 #include "WorldSession.h"
+#include "Chat.h"
 #include "ContributionMgr.h"
 #include "ContributionPackets.h"
 #include "Log.h"
@@ -29,7 +30,12 @@ void WorldSession::HandleContributionContribute(WorldPackets::Contribution::Cont
 
     // The payload id is the contribution id (C_ContributionCollector.Contribute(contributionID) - the collector's
     // OrderIndex is a client-side Contribution.db2 lookup and never travels on the wire).
-    sContributionMgr->Contribute(player, contribute.CollectorGUID, contribute.ContributionID);
+    ContributionResult const result = sContributionMgr->Contribute(player, contribute.CollectorGUID, contribute.ContributionID);
+
+    // The client learns the outcome through CONTRIBUTION_COLLECTOR_PENDING, whose server message body is not
+    // recovered, so the refusal is reported in chat instead of being silently swallowed.
+    if (result != ContributionResult::Success)
+        ChatHandler(this).SendSysMessage(ContributionMgr::GetResultText(result));
 
     // The bar itself moves through the realm-wide world-state broadcast off ManagedWorldStateMgr::PushProgress; this
     // only acks the collector's last-update timestamp. No-op unless Warfront.NativeUI.Enable = 1.

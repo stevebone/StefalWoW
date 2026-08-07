@@ -17,6 +17,7 @@
 
 #include "ManagedWorldStateMgr.h"
 #include "ConditionMgr.h"
+#include "Config.h"
 #include "ContributionMgr.h"
 #include "DB2Stores.h"
 #include "Log.h"
@@ -31,6 +32,26 @@
 namespace
 {
     constexpr uint32 ACCUMULATION_INTERVAL_MS = MINUTE * IN_MILLISECONDS;
+
+    // ManagedWorldState.db2 only populates one of the four OccurrencesWorldStateID slots, and for every warfront bar
+    // in build 68275 it is NOT slot 0 (e.g. state 113 uses slots 1 and 2, slot 0 is 0). Reading slot 0 blindly means
+    // the occurrence counter is never persisted or broadcast for exactly the states we care about.
+    int32 GetOccurrencesWorldStateId(ManagedWorldStateEntry const* entry)
+    {
+        for (int32 worldStateId : entry->OccurrencesWorldStateID)
+            if (worldStateId)
+                return worldStateId;
+
+        return 0;
+    }
+
+    // worldserver.conf Contribution.AccumulationRate - scales the DB2's per-minute accumulation so a test realm can
+    // watch a warfront bar fill (and therefore flip CONTRIBUTION -> SIEGE on its own) without a GM command. At the
+    // retail default of 1.0 the warfront bars need 500000000 / 86805 = 5760 minutes = exactly 4 days to fill.
+    float GetAccumulationRate()
+    {
+        return std::max(0.0f, sConfigMgr->GetFloatDefault("Contribution.AccumulationRate", 1.0f));
+    }
 }
 
 ManagedWorldStateMgr::ManagedWorldStateMgr() = default;
@@ -63,8 +84,8 @@ void ManagedWorldStateMgr::Load()
             state.Progress = WorldStateMgr::GetValue(entry->ProgressWorldStateID, nullptr);
         if (entry->CurrentStageWorldStateID)
             state.Stage = WorldStateMgr::GetValue(entry->CurrentStageWorldStateID, nullptr);
-        if (entry->OccurrencesWorldStateID[0])
-            state.Occurrences = WorldStateMgr::GetValue(entry->OccurrencesWorldStateID[0], nullptr);
+        if (int32 const occurrencesWorldStateId = GetOccurrencesWorldStateId(entry))
+            state.Occurrences = WorldStateMgr::GetValue(occurrencesWorldStateId, nullptr);
 
         // Derive the phase from the restored Progress rather than always starting in Up. The phase + timers are NOT
         // persisted (only Progress/Stage/Occurrences are), so a cycling state (both windows set) that was saved at or
@@ -126,7 +147,13 @@ void ManagedWorldStateMgr::ApplyMinuteTick(StateData& state)
     int32 const oldProgress = state.Progress;
 
     if (state.CurrentPhase == Phase::Up && entry->AccumulationAmountPerMinute)
-        state.Progress = std::min(state.Progress + entry->AccumulationAmountPerMinute, entry->AccumulationStateTargetValue);
+    {
+        // The passive fill is what drives the retail cycle on its own; the rate is scalable for testing, and a rate
+        // of 0 freezes it so the bar can only be moved by actual player donations.
+        float const rate = GetAccumulationRate();
+        int32 const perMinute = rate > 0.0f ? std::max(1, int32(float(entry->AccumulationAmountPerMinute) * rate)) : 0;
+        state.Progress = std::min(state.Progress + perMinute, entry->AccumulationStateTargetValue);
+    }
     else if (state.CurrentPhase == Phase::Down && entry->DepletionAmountPerMinute)
         state.Progress = std::max(state.Progress - entry->DepletionAmountPerMinute, entry->DepletionStateTargetValue);
 
@@ -149,8 +176,11 @@ bool ManagedWorldStateMgr::AddProgress(uint32 managedWorldStateId, int32 amount)
     int32 const oldProgress = state.Progress;
 
     state.Progress = std::clamp(state.Progress + amount, entry->DepletionStateTargetValue, entry->AccumulationStateTargetValue);
+
+    // The clamp swallowed the whole amount - the bar is already at its target (or floor). Report that as "no
+    // progress was made" so a caller that charges for the attempt (ContributionMgr::Contribute) can back out.
     if (state.Progress == oldProgress)
-        return true;
+        return false;
 
     PushProgress(state);
     if (state.Progress >= entry->AccumulationStateTargetValue && oldProgress < entry->AccumulationStateTargetValue)
@@ -277,6 +307,6 @@ void ManagedWorldStateMgr::PushStage(StateData const& state) const
 
 void ManagedWorldStateMgr::PushOccurrences(StateData const& state) const
 {
-    if (state.Entry->OccurrencesWorldStateID[0])
-        WorldStateMgr::SetValueAndSaveInDb(state.Entry->OccurrencesWorldStateID[0], state.Occurrences, false, nullptr);
+    if (int32 const occurrencesWorldStateId = GetOccurrencesWorldStateId(state.Entry))
+        WorldStateMgr::SetValueAndSaveInDb(occurrencesWorldStateId, state.Occurrences, false, nullptr);
 }

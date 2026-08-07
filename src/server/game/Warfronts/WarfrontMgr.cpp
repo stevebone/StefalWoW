@@ -25,8 +25,11 @@
 #include "Map.h"
 #include "MapManager.h"
 #include "LFGPackets.h"
+#include "ObjectMgr.h"
 #include "Player.h"
 #include "Position.h"
+#include "QuestDef.h"
+#include "StringFormat.h"
 #include "TemporarySummon.h"
 #include "WarfrontPackets.h"
 #include "World.h"
@@ -50,6 +53,13 @@ namespace
 bool WarfrontMgr::IsNativeUiEnabled()
 {
     return sConfigMgr->GetBoolDefault("Warfront.NativeUI.Enable", false);
+}
+
+// Blizzlike default: warfronts are war-campaign content and stay locked until that campaign has been progressed.
+// A test realm can drop the requirement, but the normal path is the quest chain.
+bool WarfrontMgr::IsUnlockGateEnabled()
+{
+    return sConfigMgr->GetBoolDefault("Warfront.RequireUnlockQuest", true);
 }
 
 WarfrontMgr::WarfrontMgr() : _updateTimer(0)
@@ -98,6 +108,13 @@ void WarfrontMgr::SeedDefaults()
     stromgarde.WorldBossWhenAllianceControls = 138122;  // Doom's Howl
     stromgarde.WorldBossWhenHordeControls    = 137374;  // The Lion's Roar
     stromgarde.WorldBossX = -1071.33f; stromgarde.WorldBossY = -2423.93f; stromgarde.WorldBossZ = 54.36f; stromgarde.WorldBossO = 1.5708f;
+    // Blizzlike unlock: war campaign (World Quests) + the 8.0 warfront intro chain. See Warfront.h.
+    stromgarde.CampaignQuest_Alliance = QUEST_UNITING_KUL_TIRAS;
+    stromgarde.CampaignQuest_Horde    = QUEST_UNITING_ZANDALAR;
+    stromgarde.UnlockQuest_Alliance   = QUEST_BACK_TO_BORALUS;
+    stromgarde.UnlockQuest_Horde      = QUEST_BACK_TO_ZULDAZAR;
+    stromgarde.WarfrontQuest_Alliance = QUEST_WARFRONT_STROMGARDE_ALLIANCE;
+    stromgarde.WarfrontQuest_Horde    = QUEST_WARFRONT_STROMGARDE_HORDE;
     // No classic world states: the retail warfront outdoor UI is driven by the ContributionCollector protocol
     // (Enum.ContributionState Building/Active/UnderAttack/Destroyed + %), fed by the ManagedWorldState bar above,
     // and the in-battle counters by the Scenario/UIWidgetSet stack - confirmed from the client UI source
@@ -125,6 +142,14 @@ void WarfrontMgr::SeedDefaults()
     darkshore.WorldBossWhenAllianceControls = 144946;   // Ivus the Forest Lord
     darkshore.WorldBossWhenHordeControls    = 148295;   // Ivus the Decayed
     darkshore.WorldBossX = 4506.22f; darkshore.WorldBossY = 407.36f; darkshore.WorldBossZ = 31.73f; darkshore.WorldBossO = 3.5f;
+    // Blizzlike unlock: the 8.1 Darkshore chain is INDEPENDENT of the Stromgarde chain, but shares the same
+    // war-campaign (World Quest) hurdle. See Warfront.h.
+    darkshore.CampaignQuest_Alliance = QUEST_UNITING_KUL_TIRAS;
+    darkshore.CampaignQuest_Horde    = QUEST_UNITING_ZANDALAR;
+    darkshore.UnlockQuest_Alliance   = QUEST_WE_ARE_COMING;
+    darkshore.UnlockQuest_Horde      = QUEST_WARFRONT_PREPARATIONS;
+    darkshore.WarfrontQuest_Alliance = QUEST_WARFRONT_DARKSHORE_ALLIANCE;
+    darkshore.WarfrontQuest_Horde    = QUEST_WARFRONT_DARKSHORE_HORDE;
     // (world states left 0 - see the ContributionCollector note under Stromgarde above)
     _warfronts[WARFRONT_DARKSHORE] = darkshore;
 }
@@ -474,7 +499,86 @@ void WarfrontMgr::CloseQueue(uint32 warfrontId)
         queue->Close();
 }
 
-bool WarfrontMgr::CanQueue(Player* player, uint32 warfrontId, std::string* reason /*= nullptr*/) const
+bool WarfrontMgr::HasUnlockedWarfront(Player const* player, uint32 warfrontId, std::string* reason /*= nullptr*/) const
+{
+    auto fail = [reason](std::string msg) { if (reason) *reason = std::move(msg); return false; };
+
+    if (!player)
+        return false;
+
+    Warfront const* wf = GetWarfront(warfrontId);
+    if (!wf)
+        return fail("That warfront does not exist.");
+
+    if (!IsUnlockGateEnabled())
+        return true;
+
+    TeamId const team = player->GetTeamId();
+
+    // A character that already holds (or has completed) the terminal "Warfront: The Battle for X" quest has, by
+    // definition, finished the whole intro chain - accept it without re-checking the earlier steps.
+    if (uint32 const warfrontQuest = wf->GetWarfrontQuest(team))
+        if (player->GetQuestStatus(warfrontQuest) != QUEST_STATUS_NONE || player->IsQuestRewarded(warfrontQuest))
+            return true;
+
+    auto questName = [](uint32 questId) -> std::string
+    {
+        if (Quest const* quest = sObjectMgr->GetQuestTemplate(questId))
+            if (!quest->GetLogTitle().empty())
+                return quest->GetLogTitle();
+
+        return Trinity::StringFormat("quest {}", questId);
+    };
+
+    // 1) the war-campaign hurdle: the quest that opens World Quests. Without it the warfront intro never appears.
+    if (uint32 const campaignQuest = wf->GetCampaignQuest(team))
+    {
+        if (!player->IsQuestRewarded(campaignQuest))
+            return fail(Trinity::StringFormat("You have not yet earned your commander's trust. Complete \"{}\" first.",
+                questName(campaignQuest)));
+    }
+
+    // 2) the terminal quest of this warfront's own intro chain.
+    if (uint32 const unlockQuest = wf->GetUnlockQuest(team))
+    {
+        if (!player->IsQuestRewarded(unlockQuest))
+            return fail(Trinity::StringFormat("The front is not yours to join yet. Finish \"{}\" to be cleared for the assault.",
+                questName(unlockQuest)));
+    }
+
+    return true;
+}
+
+bool WarfrontMgr::GetContributionProgress(uint32 warfrontId, TeamId team, float& outFraction, int32& outProgress, int32& outTarget) const
+{
+    outFraction = 0.0f;
+    outProgress = 0;
+    outTarget = 0;
+
+    Warfront const* wf = GetWarfront(warfrontId);
+    if (!wf)
+        return false;
+
+    uint32 const managedWorldStateId = wf->GetContributionMWS(team);
+    if (!managedWorldStateId)
+        return false;
+
+    ManagedWorldStateSnapshot snapshot;
+    if (!sManagedWorldStateMgr->GetSnapshot(managedWorldStateId, snapshot))
+        return false;
+
+    outProgress = snapshot.Progress;
+    outTarget = snapshot.Target;
+
+    // The bar's empty position is the depletion floor, not zero - normalise against the usable span.
+    int32 const span = snapshot.Target - snapshot.Floor;
+    if (span > 0)
+        outFraction = std::clamp(float(snapshot.Progress - snapshot.Floor) / float(span), 0.0f, 1.0f);
+
+    return true;
+}
+
+bool WarfrontMgr::CanQueue(Player* player, uint32 warfrontId, std::string* reason /*= nullptr*/, bool ignoreUnlockGate /*= false*/) const
 {
     auto fail = [reason](char const* msg) { if (reason) *reason = msg; return false; };
 
@@ -484,6 +588,10 @@ bool WarfrontMgr::CanQueue(Player* player, uint32 warfrontId, std::string* reaso
     Warfront const* wf = GetWarfront(warfrontId);
     if (!wf)
         return fail("That warfront does not exist.");
+
+    // Blizzlike gate first, so the player is told about the war campaign rather than about the cycle phase.
+    if (!ignoreUnlockGate && !HasUnlockedWarfront(player, warfrontId, reason))
+        return false;
 
     if (wf->State != WF_SIEGE)
         return fail("The assault is not available yet - the war effort is still gathering strength.");
@@ -505,9 +613,9 @@ bool WarfrontMgr::CanQueue(Player* player, uint32 warfrontId, std::string* reaso
     return true;
 }
 
-bool WarfrontMgr::EnqueuePlayer(Player* player, uint32 warfrontId, std::string* reason /*= nullptr*/)
+bool WarfrontMgr::EnqueuePlayer(Player* player, uint32 warfrontId, std::string* reason /*= nullptr*/, bool ignoreUnlockGate /*= false*/)
 {
-    if (!CanQueue(player, warfrontId, reason))
+    if (!CanQueue(player, warfrontId, reason, ignoreUnlockGate))
         return false;
 
     WarfrontQueue* queue = GetQueue(warfrontId);
@@ -606,5 +714,6 @@ bool WarfrontMgr::DevJoinAssault(Player* player, uint32 warfrontId, std::string*
 
     // Enroll the caller; at the test min-player floor Enqueue immediately forms the battle group and teleports the
     // player into the assault instance (WarfrontQueue::FormBattleGroup), where the scripted scenario musters the boss.
-    return EnqueuePlayer(player, warfrontId, reason);
+    // This is the GM/testing override, so it deliberately bypasses the war-campaign unlock gate.
+    return EnqueuePlayer(player, warfrontId, reason, true);
 }
