@@ -16,6 +16,7 @@
  */
 
 #include "CovenantPackets.h"
+#include "Util.h"
 
 void WorldPackets::Covenant::ActivateSoulbind::Read()
 {
@@ -24,6 +25,10 @@ void WorldPackets::Covenant::ActivateSoulbind::Read()
 
 WorldPacket const* WorldPackets::Covenant::ActivateSoulbindFailed::Write()
 {
+    // Reason is a 4-bit field occupying the high nibble of the first byte; the dword that follows is byte-aligned.
+    _worldPacket.WriteBits(AsUnderlyingType(Reason), 4);
+    _worldPacket.FlushBits();
+
     _worldPacket << int32(SoulbindID);
 
     return &_worldPacket;

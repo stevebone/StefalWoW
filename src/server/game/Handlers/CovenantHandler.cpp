@@ -22,7 +22,6 @@
 #include "Garrison.h"
 #include "GameTime.h"
 #include "Log.h"
-#include "MiscPackets.h"
 #include "Player.h"
 #include "RestMgr.h"
 #include "SharedDefines.h"
@@ -52,19 +51,22 @@ void WorldSession::HandleActivateSoulbind(WorldPackets::Covenant::ActivateSoulbi
     if (!player)
         return;
 
-    auto fail = [&]
+    // The client renders the error string itself from the reason code, so nothing else needs to be sent.
+    auto fail = [&](WorldPackets::Covenant::SoulbindActivationError reason)
     {
         WorldPackets::Covenant::ActivateSoulbindFailed failed;
+        failed.Reason = reason;
         failed.SoulbindID = packet.SoulbindID;
         SendPacket(failed.Write());
     };
+    using SoulbindError = WorldPackets::Covenant::SoulbindActivationError;
 
     SoulbindEntry const* soulbind = sSoulbindStore.LookupEntry(packet.SoulbindID);
     if (!soulbind)
     {
         TC_LOG_DEBUG("network", "CMSG_ACTIVATE_SOULBIND: {} sent an unknown SoulbindID {}",
             player->GetGUID().ToString(), packet.SoulbindID);
-        fail();
+        fail(SoulbindError::CantDoThatRightNow);
         return;
     }
 
@@ -75,7 +77,7 @@ void WorldSession::HandleActivateSoulbind(WorldPackets::Covenant::ActivateSoulbi
     {
         TC_LOG_DEBUG("network", "CMSG_ACTIVATE_SOULBIND: {} tried to activate soulbind {} of covenant {} while in covenant {}",
             player->GetGUID().ToString(), soulbind->ID, soulbind->CovenantID, player->GetActiveCovenant());
-        fail();
+        fail(SoulbindError::CantDoThatRightNow);
         return;
     }
 
@@ -84,17 +86,30 @@ void WorldSession::HandleActivateSoulbind(WorldPackets::Covenant::ActivateSoulbi
     {
         TC_LOG_DEBUG("network", "CMSG_ACTIVATE_SOULBIND: {} tried to activate not-yet-unlocked soulbind {} (PlayerCondition {})",
             player->GetGUID().ToString(), soulbind->ID, soulbind->PlayerConditionID);
-        fail();
+        fail(SoulbindError::CantDoThatRightNow);
         return;
     }
 
     if (soulbind->ID == player->GetActiveSoulbind())
         return;     // already active - nothing to do, and not an error
 
+    // Retail refuses a soulbind swap while dead or in combat, and requires a rest area or the sanctum. The client
+    // owns the error text for each of these reasons, so only the reason code is sent.
+    if (!player->IsAlive())
+    {
+        fail(SoulbindError::PlayerDead);
+        return;
+    }
+
+    if (player->IsInCombat())
+    {
+        fail(SoulbindError::AffectingCombat);
+        return;
+    }
+
     if (!CanChangeSoulbind(player))
     {
-        player->SendDirectMessage(WorldPackets::Misc::DisplayGameError(GameError::ERR_ACTIVATE_SOULBIND_FAILED_REST_AREA).Write());
-        fail();
+        fail(SoulbindError::RestArea);
         return;
     }
 

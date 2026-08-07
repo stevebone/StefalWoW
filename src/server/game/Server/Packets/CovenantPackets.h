@@ -36,26 +36,55 @@ namespace Covenant
         int32 SoulbindID = 0;
     };
 
-    // SMSG_ACTIVATE_SOULBIND_FAILED (0x5F0023). Wire (client reader, all_smsg_layouts_68275 0x5f0023, dispatcher
-    // 0x7FF72911F1D0): a single uint32. Sent when CMSG_ACTIVATE_SOULBIND is rejected, so the client stops waiting on
-    // the requested soulbind and reverts its UI.
-    // NOTE: the STRUCTURE is client-derived and proven; the field's SEMANTICS are inferred (the requested SoulbindID,
-    // echoed back) - the alternative reading is an error code. Echoing the id the client just sent is the safe choice:
-    // it is correct under the first reading and, under the second, still fails closed without a wrong error string.
+    // Reason codes for SMSG_ACTIVATE_SOULBIND_FAILED. The client turns the reason into a GAMEERROR string itself
+    // (sub_7FF72A6F1940, a 10-entry jump table); values 2, 4, 5 and anything above 9 fall through to
+    // ERR_CANT_DO_THAT_RIGHT_NOW. Because the client displays the error from this code, the server must NOT also
+    // send SMSG_DISPLAY_GAME_ERROR for the same failure - that would double up the message.
+    enum class SoulbindActivationError : uint8
+    {
+        None                = 0,    // maps to GAMEERROR 1241 == the table size, i.e. nothing is displayed
+        CantDoThatRightNow  = 1,    // ERR_CANT_DO_THAT_RIGHT_NOW
+        NoSpec              = 3,    // ERR_NO_SPEC
+        AffectingCombat     = 6,    // ERR_AFFECTING_COMBAT
+        ChallengeModeActive = 7,    // ERR_CANT_DO_THAT_CHALLENGE_MODE_ACTIVE
+        RestArea            = 8,    // ERR_ACTIVATE_SOULBIND_FAILED_REST_AREA
+        PlayerDead          = 9     // ERR_PLAYER_DEAD
+    };
+
+    // SMSG_ACTIVATE_SOULBIND_FAILED (0x5F0023). Sent when CMSG_ACTIVATE_SOULBIND is rejected, so the client stops
+    // waiting on the requested soulbind and shows the reason.
+    //
+    // Wire, read straight off the dispatcher sub_7FF72911F1D0, case 0x5F0023, at 0x7FF7291207AD:
+    //     Bits<4> Reason   - sub_7FF7290650F0, a 4-bit MSB-first read, so it is the HIGH nibble of byte 0
+    //     uint32           - sub_7FF72BE6C410, a plain byte-aligned little-endian dword
+    // That is 5 bytes on the wire, NOT the bare { uint32 } recorded in all_smsg_layouts_68275.json: that extractor
+    // does not model bit-packed fields and silently dropped the leading nibble. Trust this disassembly over the JSON.
+    //
+    // Only Reason is consumed. The sole subscriber (sub_7FF72A6F19B0) reads obj+0x20 (Reason) and never touches
+    // obj+0x24 (the dword), and no Lua event is fired on this path, so the dword's meaning is UNDETERMINED. We echo
+    // the requested SoulbindID - the plausible reading, since CMSG_ACTIVATE_SOULBIND is itself { uint32 SoulbindID } -
+    // and it is inert either way.
     class ActivateSoulbindFailed final : public ServerPacket
     {
     public:
-        ActivateSoulbindFailed() : ServerPacket(SMSG_ACTIVATE_SOULBIND_FAILED, 4) { }
+        ActivateSoulbindFailed() : ServerPacket(SMSG_ACTIVATE_SOULBIND_FAILED, 1 + 4) { }
 
         WorldPacket const* Write() override;
 
+        SoulbindActivationError Reason = SoulbindActivationError::CantDoThatRightNow;
         int32 SoulbindID = 0;
     };
 
     // SMSG_COVENANT_PREVIEW_OPEN_NPC (0x4202A5). Wire (client reader sub_7FF7290AF0E0, dispatcher 0x7FF729103660):
-    // ObjectGuid (16) followed by uint32 (4). Opens the covenant-preview UI for the NPC the player is talking to.
-    // NOTE: structure proven, semantics of the uint32 inferred as the CovenantID (1-4). It is sourced from the
-    // gossip option's GossipNPCOption.db2 row (CovenantID column), never guessed per-creature.
+    // ObjectGuid (16) followed by uint32 (4). Drives the client's COVENANT_PREVIEW_OPEN Lua event.
+    //
+    // CovenantID is CONFIRMED, not inferred: the listener (0x7FF72AB65D90 -> sub_7FF72ACD2D40) passes the dword to
+    // Covenant.db2 GetRecord() - the same call C_Covenants.GetCovenantData(covenantID) makes - and to
+    // UICovenantPreview secondary index #0, which is keyed on the CovenantID column, not on the row ID. So it is
+    // the covenant id 1-4, NOT a UiCovenantPreview row id (5/6/7 would fail the Covenant.db2 lookup outright).
+    // We source it from the gossip option's GossipNPCOption.db2 row, never guessed per-creature.
+    //
+    // NpcGUID is read into obj+0x20 but ignored by that listener; it is sent for correctness/consistency.
     class CovenantPreviewOpenNpc final : public ServerPacket
     {
     public:
