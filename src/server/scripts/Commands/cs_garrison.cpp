@@ -28,6 +28,8 @@ EndScriptData */
 #include "DB2Stores.h"
 #include "DB2Structure.h"
 #include "Garrison.h"
+#include "GarrisonMgr.h"
+#include "QueensConservatory.h"
 #include "Player.h"
 #include "RBAC.h"
 #include "WorldSession.h"
@@ -69,6 +71,14 @@ public:
 
     std::span<ChatCommandBuilder const> GetCommands() const override
     {
+        static ChatCommandTable conservatoryCommandTable =
+        {
+            { "status",   HandleConservatoryStatusCommand,   rbac::RBAC_PERM_COMMAND_GM, Console::No },
+            { "plant",    HandleConservatoryPlantCommand,    rbac::RBAC_PERM_COMMAND_GM, Console::No },
+            { "catalyst", HandleConservatoryCatalystCommand, rbac::RBAC_PERM_COMMAND_GM, Console::No },
+            { "harvest",  HandleConservatoryHarvestCommand,  rbac::RBAC_PERM_COMMAND_GM, Console::No },
+        };
+
         static ChatCommandTable garrisonCommandTable =
         {
             { "upgrade",   HandleGarrisonUpgradeCommand,   rbac::RBAC_PERM_COMMAND_GM, Console::No },
@@ -77,6 +87,7 @@ public:
             { "enter",     HandleGarrisonEnterCommand,     rbac::RBAC_PERM_COMMAND_GM, Console::No },
             { "exit",      HandleGarrisonExitCommand,      rbac::RBAC_PERM_COMMAND_GM, Console::No },
             { "resettalents", HandleGarrisonResetTalentsCommand, rbac::RBAC_PERM_COMMAND_GM, Console::No },
+            { "conservatory", conservatoryCommandTable },
         };
 
         static ChatCommandTable commandTable =
@@ -282,6 +293,172 @@ public:
 
         target->TeleportTo(1220, -849.908f, 4461.17f, 735.661f, 0.0f);
         handler->PSendSysMessage("Returned {} to Dalaran.", target->GetName());
+        return true;
+    }
+
+    // ---------------------------------------------------------------------------------------------------
+    // Queen's Conservatory (Night Fae unique sanctum feature). The 12.0.7 client has no CMSG for planting or
+    // harvesting - C_ArdenwealdGardening exposes only GetGardenData/IsGardenAccessible and no mutators - and
+    // the retail plot GameObjects (Wildseed 352697, catalysts 353652/353653/353654, and the reward chest
+    // "Queen's Conservatory Cache" 350978) have no spawns in this world DB. So, exactly like
+    // .garrison resettalents, a GM command is the only trigger the engine can currently be driven from.
+    // ---------------------------------------------------------------------------------------------------
+
+    static QueensConservatory* GetConservatoryFor(ChatHandler* handler, Player* target)
+    {
+        Garrison* garrison = target->GetGarrison(GARRISON_TYPE_COVENANT);
+        if (!garrison)
+        {
+            handler->PSendSysMessage("{} has no covenant sanctum (GarrType 111).", target->GetName());
+            handler->SetSentErrorMessage(true);
+            return nullptr;
+        }
+
+        return &garrison->GetConservatory();
+    }
+
+    static char const* ConservatoryErrorText(ConservatoryError error)
+    {
+        switch (error)
+        {
+            case CONSERVATORY_OK:                        return "ok";
+            case CONSERVATORY_ERROR_NOT_NIGHT_FAE:       return "the character is not pledged to the Night Fae";
+            case CONSERVATORY_ERROR_NOT_UNLOCKED:        return "GarrTalentTree 319 tier 1 (talent 1086 'First Planting') is not researched";
+            case CONSERVATORY_ERROR_INVALID_PLOT:        return "no such wildseed plot at the current Conservatory tier";
+            case CONSERVATORY_ERROR_PLOT_OCCUPIED:       return "that plot already holds a wildseed";
+            case CONSERVATORY_ERROR_PLOT_EMPTY:          return "that plot is empty";
+            case CONSERVATORY_ERROR_NOT_READY:           return "that wildseed has not finished maturing";
+            case CONSERVATORY_ERROR_UNKNOWN_WILDSEED:    return "no `garrison_conservatory_wildseed` row with that entry";
+            case CONSERVATORY_ERROR_NO_WILDSEED_DATA:    return "world table `garrison_conservatory_wildseed` is empty (or the row has maturationSeconds 0) - the maturation time and plant cost are not published by any 12.0.7 client data and must be authored";
+            case CONSERVATORY_ERROR_TIER_TOO_LOW:        return "that wildseed needs more Conservatory tiers researched";
+            case CONSERVATORY_ERROR_CANT_AFFORD:         return "the character cannot pay the wildseed's cost";
+            case CONSERVATORY_ERROR_INVALID_CATALYST:    return "invalid catalyst slot or gameobject entry";
+            case CONSERVATORY_ERROR_CATALYST_SLOT_TAKEN: return "that catalyst slot is already filled";
+            case CONSERVATORY_ERROR_NO_CATALYST_PLOTS:   return "catalyst plots need tier 2 (talent 1087 'Initial Growth')";
+            default:                                     return "unknown error";
+        }
+    }
+
+    // .garrison conservatory status  - plot count, per-plot state, and the three numbers the client's
+    //   C_ArdenwealdGardening.GetGardenData() will report.
+    static bool HandleConservatoryStatusCommand(ChatHandler* handler)
+    {
+        Player* target = handler->getSelectedPlayerOrSelf();
+        if (!target)
+        {
+            handler->SendSysMessage(LANG_PLAYER_NOT_FOUND);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        QueensConservatory* conservatory = GetConservatoryFor(handler, target);
+        if (!conservatory)
+            return false;
+
+        uint32 active = 0;
+        uint32 ready = 0;
+        int64 remaining = 0;
+        conservatory->GetGardenData(active, ready, remaining);
+
+        handler->PSendSysMessage("Queen's Conservatory for {}: accessible {}, {} wildseed plot(s), catalyst plots {}.",
+            target->GetName(), conservatory->IsAccessible() ? "yes" : "no", conservatory->GetPlotCount(),
+            conservatory->HasCatalystPlots() ? "yes" : "no");
+        handler->PSendSysMessage("GetGardenData(): active {}, ready {}, remainingSeconds {}.", active, ready, remaining);
+
+        for (ConservatoryPlot const* plot : conservatory->GetPlots())
+        {
+            char const* state = plot->State == CONSERVATORY_PLOT_GROWING ? "growing"
+                : (plot->State == CONSERVATORY_PLOT_READY ? "READY" : "empty");
+            handler->PSendSysMessage("  plot {}: {} (wildseed {}, matures at {}, {} catalyst(s))",
+                uint32(plot->PlotId), state, plot->WildseedEntry, int64(plot->MaturesAt), plot->CountCatalysts());
+        }
+
+        if (sGarrisonMgr.GetConservatoryWildseeds().empty())
+            handler->SendSysMessage("NOTE: `garrison_conservatory_wildseed` is empty, so planting is disabled. "
+                "Maturation time and plant cost have no source in any 12.0.7 DB2 or in the world DB; they must be authored.");
+
+        return true;
+    }
+
+    // .garrison conservatory plant <plotId> <wildseedEntry>
+    static bool HandleConservatoryPlantCommand(ChatHandler* handler, uint8 plotId, uint32 wildseedEntry)
+    {
+        Player* target = handler->getSelectedPlayerOrSelf();
+        if (!target)
+        {
+            handler->SendSysMessage(LANG_PLAYER_NOT_FOUND);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        QueensConservatory* conservatory = GetConservatoryFor(handler, target);
+        if (!conservatory)
+            return false;
+
+        ConservatoryError result = conservatory->PlantWildseed(plotId, wildseedEntry);
+        if (result != CONSERVATORY_OK)
+        {
+            handler->PSendSysMessage("Could not plant: {}.", ConservatoryErrorText(result));
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        handler->PSendSysMessage("Planted wildseed {} on plot {} for {}.", wildseedEntry, uint32(plotId), target->GetName());
+        return true;
+    }
+
+    // .garrison conservatory catalyst <plotId> <slot> <gameobjectEntry>
+    static bool HandleConservatoryCatalystCommand(ChatHandler* handler, uint8 plotId, uint8 slot, uint32 gameObjectEntry)
+    {
+        Player* target = handler->getSelectedPlayerOrSelf();
+        if (!target)
+        {
+            handler->SendSysMessage(LANG_PLAYER_NOT_FOUND);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        QueensConservatory* conservatory = GetConservatoryFor(handler, target);
+        if (!conservatory)
+            return false;
+
+        ConservatoryError result = conservatory->AttachCatalyst(plotId, slot, gameObjectEntry);
+        if (result != CONSERVATORY_OK)
+        {
+            handler->PSendSysMessage("Could not attach catalyst: {}.", ConservatoryErrorText(result));
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        handler->PSendSysMessage("Attached catalyst {} to plot {} slot {}.", gameObjectEntry, uint32(plotId), uint32(slot));
+        return true;
+    }
+
+    // .garrison conservatory harvest <plotId>
+    static bool HandleConservatoryHarvestCommand(ChatHandler* handler, uint8 plotId)
+    {
+        Player* target = handler->getSelectedPlayerOrSelf();
+        if (!target)
+        {
+            handler->SendSysMessage(LANG_PLAYER_NOT_FOUND);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        QueensConservatory* conservatory = GetConservatoryFor(handler, target);
+        if (!conservatory)
+            return false;
+
+        ConservatoryError result = conservatory->HarvestWildseed(plotId);
+        if (result != CONSERVATORY_OK)
+        {
+            handler->PSendSysMessage("Could not harvest: {}.", ConservatoryErrorText(result));
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        handler->PSendSysMessage("Harvested plot {} for {} (rolled the reward chest's loot template).",
+            uint32(plotId), target->GetName());
         return true;
     }
 };

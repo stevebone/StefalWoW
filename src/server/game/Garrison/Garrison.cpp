@@ -28,6 +28,7 @@
 #include "GameTime.h"
 #include "GarrisonAutoCombat.h"
 #include "GarrisonMgr.h"
+#include "QueensConservatory.h"
 #include "Item.h"
 #include "Log.h"
 #include "Mail.h"
@@ -46,7 +47,7 @@
 #include <limits>
 #include <vector>
 
-Garrison::Garrison(Player* owner) : _owner(owner), _garrType(GARRISON_TYPE_GARRISON), _siteLevel(nullptr), _followerActivationsRemainingToday(1)
+Garrison::Garrison(Player* owner) : _owner(owner), _garrType(GARRISON_TYPE_GARRISON), _siteLevel(nullptr), _followerActivationsRemainingToday(1), _conservatory(owner)
 {
     // Fire the first periodic pass on the very next tick after login (instead of waiting a full interval),
     // so finished-order crates activate, completed constructions/research resolve, etc. right away.
@@ -349,6 +350,16 @@ bool Garrison::LoadFromDB(PreparedQueryResult garrison, PreparedQueryResult blue
     // Complete any talent research that finished while offline
     CompleteAllTalentResearch();
 
+    // Queen's Conservatory wildseed plots (Night Fae unique sanctum feature). Only the covenant sanctum has one;
+    // every other garrison type leaves it empty. Loaded synchronously here rather than threaded through the
+    // login query set, so the covenant work stays contained to the sanctum path.
+    if (_garrType == GARRISON_TYPE_COVENANT)
+    {
+        CharacterDatabasePreparedStatement* conservatoryStmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_CHARACTER_GARRISON_CONSERVATORY);
+        conservatoryStmt->setUInt64(0, _owner->GetGUID().GetCounter());
+        _conservatory.LoadFromDB(CharacterDatabase.Query(conservatoryStmt));
+    }
+
     return true;
 }
 
@@ -368,6 +379,9 @@ void Garrison::SaveToDB(CharacterDatabaseTransaction trans)
     stmt->setInt64(6, _cacheLastUsed);
     stmt->setUInt32(7, _shipyardBuilding);
     trans->Append(stmt);
+
+    if (_garrType == GARRISON_TYPE_COVENANT)
+        _conservatory.SaveToDB(trans);
 
     for (uint32 building : _knownBuildings)
     {
@@ -528,6 +542,15 @@ void Garrison::DeleteFromDB(ObjectGuid::LowType ownerGuid, GarrisonType garrType
     del(CHAR_DEL_CHARACTER_GARRISON_TALENTS);
     del(CHAR_DEL_CHARACTER_GARRISON_TROPHIES);
     del(CHAR_DEL_CHARACTER_GARRISON_ARCHIVED_MISSIONS);
+
+    // The Queen's Conservatory only exists on the covenant sanctum, so its table is keyed by guid alone and is
+    // purged here rather than through the generic (guid, garrType) sweep above.
+    if (garrType == GARRISON_TYPE_COVENANT)
+    {
+        CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CHARACTER_GARRISON_CONSERVATORY);
+        stmt->setUInt64(0, ownerGuid);
+        trans->Append(stmt);
+    }
 }
 
 void Garrison::DeleteFromDB(ObjectGuid::LowType ownerGuid, CharacterDatabaseTransaction trans)
@@ -795,6 +818,10 @@ void Garrison::Update(uint32 diff)
 
     // Complete talent research that has finished (push rank-ups to the client so the UI updates live)
     CompleteAllTalentResearch(true);
+
+    // Flip Queen's Conservatory wildseeds that have finished maturing to "ready to harvest".
+    if (_garrType == GARRISON_TYPE_COVENANT)
+        _conservatory.Update();
 
     // Remove expired unclaimed missions
     RemoveExpiredMissions();

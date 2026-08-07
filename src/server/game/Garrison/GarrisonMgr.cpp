@@ -175,6 +175,7 @@ void GarrisonMgr::Initialize()
     LoadMissionRewards();
     LoadOrderHallShipments();
     LoadOrderHallStandards();
+    LoadConservatoryWildseeds();
 }
 
 // Class-hall / order-hall (and any non-plot garrison) troop recruiters aren't garrison plot buildings, so the
@@ -241,6 +242,92 @@ uint32 GarrisonMgr::GetStandardGoForContainer(uint32 containerId) const
 {
     auto itr = _orderHallStandardGoByContainer.find(containerId);
     return itr != _orderHallStandardGoByContainer.end() ? itr->second : 0;
+}
+
+// Queen's Conservatory wildseed kinds. The 12.0.7 client publishes the Conservatory's unlock ladder
+// (GarrTalentTree 319 + GarrTalent 1086-1090 + their GarrTalentRank/GarrTalentCost rows) and the harvest
+// reward (GameObject 350978 "Queen's Conservatory Cache" -> gameobject_loot_template 350978), but nothing
+// anywhere describes what an individual wildseed costs, how long it takes to mature, or which catalyst
+// combination changes the yield. Those are therefore authored here instead of guessed in code. An empty
+// table is a valid state: QueensConservatory::PlantWildseed then answers CONSERVATORY_ERROR_NO_WILDSEED_DATA
+// and nothing else about the sanctum changes.
+void GarrisonMgr::LoadConservatoryWildseeds()
+{
+    _conservatoryWildseeds.clear();
+
+    QueryResult result = WorldDatabase.Query("SELECT wildseedEntry, costCurrencyId, costCurrencyCount, costItemId, "
+        "costItemCount, maturationSeconds, rewardGameObjectId, requiredTier FROM garrison_conservatory_wildseed");
+    if (!result)
+    {
+        TC_LOG_INFO("server.loading", ">> Loaded 0 Queen's Conservatory wildseed kinds. DB table "
+            "`garrison_conservatory_wildseed` is empty - planting stays disabled until it is authored.");
+        return;
+    }
+
+    uint32 count = 0;
+    do
+    {
+        Field* fields = result->Fetch();
+        ConservatoryWildseedTemplate wildseed;
+        wildseed.WildseedEntry      = fields[0].GetUInt32();
+        wildseed.CostCurrencyId     = fields[1].GetUInt32();
+        wildseed.CostCurrencyCount  = fields[2].GetUInt32();
+        wildseed.CostItemId         = fields[3].GetUInt32();
+        wildseed.CostItemCount      = fields[4].GetUInt32();
+        wildseed.MaturationSeconds  = fields[5].GetUInt32();
+        wildseed.RewardGameObjectId = fields[6].GetUInt32();
+        wildseed.RequiredTier       = fields[7].GetUInt8();
+
+        if (!wildseed.WildseedEntry)
+        {
+            TC_LOG_ERROR("sql.sql", "Table `garrison_conservatory_wildseed` has a row with wildseedEntry 0; skipped.");
+            continue;
+        }
+
+        if (wildseed.CostCurrencyId && !sCurrencyTypesStore.LookupEntry(wildseed.CostCurrencyId))
+        {
+            TC_LOG_ERROR("sql.sql", "Non-existing CurrencyTypes.db2 entry {} referenced in "
+                "`garrison_conservatory_wildseed` (wildseedEntry {}); cost cleared.", wildseed.CostCurrencyId, wildseed.WildseedEntry);
+            wildseed.CostCurrencyId = 0;
+            wildseed.CostCurrencyCount = 0;
+        }
+
+        if (wildseed.CostItemId && !sObjectMgr->GetItemTemplate(wildseed.CostItemId))
+        {
+            TC_LOG_ERROR("sql.sql", "Non-existing item {} referenced in `garrison_conservatory_wildseed` "
+                "(wildseedEntry {}); cost cleared.", wildseed.CostItemId, wildseed.WildseedEntry);
+            wildseed.CostItemId = 0;
+            wildseed.CostItemCount = 0;
+        }
+
+        if (!wildseed.RewardGameObjectId)
+            wildseed.RewardGameObjectId = CONSERVATORY_DEFAULT_REWARD_GO;
+
+        if (!sObjectMgr->GetGameObjectTemplate(wildseed.RewardGameObjectId))
+        {
+            TC_LOG_ERROR("sql.sql", "Non-existing gameobject_template {} referenced as rewardGameObjectId in "
+                "`garrison_conservatory_wildseed` (wildseedEntry {}); row skipped.", wildseed.RewardGameObjectId, wildseed.WildseedEntry);
+            continue;
+        }
+
+        if (!wildseed.MaturationSeconds)
+            TC_LOG_ERROR("sql.sql", "Table `garrison_conservatory_wildseed` row {} has maturationSeconds 0; "
+                "it will be refused at plant time.", wildseed.WildseedEntry);
+
+        if (!wildseed.RequiredTier || wildseed.RequiredTier > CONSERVATORY_MAX_PLOTS)
+            wildseed.RequiredTier = 1;
+
+        _conservatoryWildseeds[wildseed.WildseedEntry] = wildseed;
+        ++count;
+    } while (result->NextRow());
+
+    TC_LOG_INFO("server.loading", ">> Loaded {} Queen's Conservatory wildseed kinds.", count);
+}
+
+ConservatoryWildseedTemplate const* GarrisonMgr::GetConservatoryWildseed(uint32 wildseedEntry) const
+{
+    auto itr = _conservatoryWildseeds.find(wildseedEntry);
+    return itr != _conservatoryWildseeds.end() ? &itr->second : nullptr;
 }
 
 void GarrisonMgr::LoadOrderHallStandards()
