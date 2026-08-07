@@ -78,7 +78,18 @@ enum CovenantChoiceData
     COVENANT_KYRIAN                             = 1,
     COVENANT_VENTHYR                            = 2,
     COVENANT_NIGHT_FAE                          = 3,
-    COVENANT_NECROLORD                          = 4
+    COVENANT_NECROLORD                          = 4,
+
+    // Quest 62000 "Choosing Your Purpose" (giver + ender Tal-Inara 159478, Ring of Fates)
+    QUEST_CHOOSING_YOUR_PURPOSE                 = 62000,
+
+    // Objective 407067 of quest 62000, "Choose your Covenant": QUEST_OBJECTIVE_MONSTER on creature 167383
+    // "Tal-Inara, Voice of the Arbiter". That entry has zero spawns anywhere in the world - it exists purely
+    // as a credit token, and none of the four covenant reward spells (299204-299207) carries a
+    // SPELL_EFFECT_KILL_CREDIT for it, so the choice itself is what has to hand the credit out. It is also the
+    // only non-optional objective of the quest: 407063-407066 ("Speak with the Kyrian/Venthyr/Night Fae/
+    // Necrolords") all carry QUEST_OBJECTIVE_FLAG_OPTIONAL, so this single credit completes the quest.
+    NPC_CREDIT_CHOOSE_YOUR_COVENANT             = 167383
 };
 
 // 644 - Playerchoice
@@ -123,9 +134,19 @@ public:
         if (uint32 activeCovenantId = player->GetActiveCovenant())
         {
             if (activeCovenantId != covenantId)
+            {
                 TC_LOG_DEBUG("scripts", "playerchoice_covenant_selection: {} answered PlayerChoice {} with covenant {} while already in covenant {}, ignored",
                     player->GetGUID().ToString(), uint32(PLAYER_CHOICE_COVENANT_SELECTION), covenantId, activeCovenantId);
 
+                return;
+            }
+
+            // Re-affirming the covenant already joined. There is no state to change, but the objective credit
+            // still has to be handed out - a character that joined before the credit below existed is otherwise
+            // stuck with "Choose your Covenant" outstanding for good, and the join responses can only be answered
+            // in that exact situation now (the conditions on PlayerChoice 644 hide the three foreign covenants
+            // unconditionally, and the own one as soon as objective 407067 is credited).
+            player->KilledMonsterCredit(NPC_CREDIT_CHOOSE_YOUR_COVENANT);
             return;
         }
 
@@ -141,6 +162,10 @@ public:
 
             player->SetActiveCovenant(covenantId);
         }
+
+        // "Choose your Covenant" (objective 407067 of quest 62000). No-op unless the quest is in the log with
+        // the objective still outstanding, so this is safe for anyone who joins outside the questline.
+        player->KilledMonsterCredit(NPC_CREDIT_CHOOSE_YOUR_COVENANT);
     }
 };
 

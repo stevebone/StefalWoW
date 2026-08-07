@@ -120,6 +120,7 @@ enum ConditionTypes
     CONDITION_STRING_ID                = 58,
     CONDITION_LABEL                    = 59,                   // Label                  0              0                  true if creature/gameobject has specified Label in CreatureLabel.db2/GameObjectLabel.db2
     CONDITION_GROUP_STATUS             = 60,                   // GroupStatus            0              0                  true if player group status is (0 = not in group, 1 = in group, 2 = in group but not in raid, 3 = in raid group, 4 = not in group or not in raid)
+    CONDITION_COVENANT                 = 61,                   // CovenantID             0              0                  true if player belongs to Covenant.db2 CovenantID (0 = belongs to any covenant)
     CONDITION_MAX
 };
 

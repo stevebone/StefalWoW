@@ -161,7 +161,8 @@ ConditionMgr::ConditionTypeInfo const ConditionMgr::StaticConditionTypeData[COND
     { .Name = "Private Object",            .HasConditionValue1 = false, .HasConditionValue2 = false, .HasConditionValue3 = false, .HasConditionStringValue1 = false },
     { .Name = "String ID",                 .HasConditionValue1 = false, .HasConditionValue2 = false, .HasConditionValue3 = false, .HasConditionStringValue1 =  true },
     { .Name = "Label",                     .HasConditionValue1 =  true, .HasConditionValue2 = false, .HasConditionValue3 = false, .HasConditionStringValue1 = false },
-    { .Name = "Group status",              .HasConditionValue1 =  true, .HasConditionValue2 = false, .HasConditionValue3 = false, .HasConditionStringValue1 = false }
+    { .Name = "Group status",              .HasConditionValue1 =  true, .HasConditionValue2 = false, .HasConditionValue3 = false, .HasConditionStringValue1 = false },
+    { .Name = "Covenant",                  .HasConditionValue1 =  true, .HasConditionValue2 = false, .HasConditionValue3 = false, .HasConditionStringValue1 = false }
 };
 
 static bool MeetsGroupStatusCondition(Player const* player, GroupStatusCondition status)
@@ -706,6 +707,13 @@ bool Condition::Meets(ConditionSourceInfo& sourceInfo) const
                 condMeets = MeetsGroupStatusCondition(player, GroupStatusCondition(ConditionValue1));
             break;
         }
+        case CONDITION_COVENANT:
+        {
+            // ConditionValue1 0 means "any covenant", so this doubles as the has-not-chosen-yet test when negated.
+            if (Player const* player = object->ToPlayer())
+                condMeets = ConditionValue1 ? player->GetActiveCovenant() == ConditionValue1 : player->GetActiveCovenant() != 0;
+            break;
+        }
         default:
             break;
     }
@@ -928,6 +936,9 @@ uint32 Condition::GetSearcherTypeMaskForCondition() const
             mask |= GRID_MAP_TYPE_MASK_CREATURE | GRID_MAP_TYPE_MASK_GAMEOBJECT;
             break;
         case CONDITION_GROUP_STATUS:
+            mask |= GRID_MAP_TYPE_MASK_PLAYER;
+            break;
+        case CONDITION_COVENANT:
             mask |= GRID_MAP_TYPE_MASK_PLAYER;
             break;
         default:
@@ -2688,6 +2699,14 @@ bool ConditionMgr::isConditionTypeValid(Condition* cond) const
             if (cond->ConditionValue1 > uint32(GroupStatusCondition::NotInGroupOrNotInRaid))
             {
                 TC_LOG_ERROR("sql.sql", "{} has non invalid group status condition value1 ({}), skipped.", *cond, cond->ConditionValue1);
+                return false;
+            }
+            break;
+        case CONDITION_COVENANT:
+            // 0 is the wildcard "in any covenant", every other value must name a real Covenant.db2 row
+            if (cond->ConditionValue1 && !sCovenantStore.LookupEntry(cond->ConditionValue1))
+            {
+                TC_LOG_ERROR("sql.sql", "{} has non existing covenant ({}), skipped.", *cond, cond->ConditionValue1);
                 return false;
             }
             break;
