@@ -119,8 +119,12 @@ enum ConditionTypes
     CONDITION_PRIVATE_OBJECT           = 57,                   // 0                      0              0                  true if entity is private object
     CONDITION_STRING_ID                = 58,
     CONDITION_LABEL                    = 59,                   // Label                  0              0                  true if creature/gameobject has specified Label in CreatureLabel.db2/GameObjectLabel.db2
-    CONDITION_GROUP_STATUS             = 60,                   // GroupStatus            0              0                  true if player group status is (0 = not in group, 1 = in group, 2 = in group but not in raid, 3 = in raid group, 4 = not in group or not in raid)
-    CONDITION_COVENANT                 = 61,                   // CovenantID             0              0                  true if player belongs to Covenant.db2 CovenantID (0 = belongs to any covenant)
+    // 60 is CONDITION_CHROMIE_TIME upstream (origin/integration carries it; this branch predates that merge).
+    // Reserved so the ConditionTypeInfo table below stays index-aligned with these values and so a merge
+    // into an assembly that has Chromie Time does not collide. Do NOT renumber 61/62 without also updating
+    // sql/updates/world/master/2026_08_07_30_covenant_choice_conditions.sql, which encodes CONDITION_COVENANT.
+    CONDITION_GROUP_STATUS             = 61,                   // GroupStatus            0              0                  true if player group status is (0 = not in group, 1 = in group, 2 = in group but not in raid, 3 = in raid group, 4 = not in group or not in raid)
+    CONDITION_COVENANT                 = 62,                   // CovenantID             0              0                  true if player belongs to Covenant.db2 CovenantID (0 = belongs to any covenant)
     CONDITION_MAX
 };
 

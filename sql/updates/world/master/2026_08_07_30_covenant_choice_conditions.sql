@@ -40,18 +40,18 @@
 DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 36 AND `SourceGroup` = 644 AND `SourceEntry` IN (2687, 2688, 2689, 2702);
 INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `NegativeCondition`, `ErrorType`, `ErrorTextId`, `ScriptName`, `Comment`) VALUES
 -- 2689 - Join Kyrian (covenant 1)
-(36, 644, 2689, 0, 0, 61, 0,      0, 0, 0, 1, 0, 0, '', 'PlayerChoice 644 - Join Kyrian only while the player has no covenant'),
-(36, 644, 2689, 0, 1, 61, 0,      1, 0, 0, 0, 0, 0, '', 'PlayerChoice 644 - Join Kyrian: already Kyrian ...'),
+(36, 644, 2689, 0, 0, 62, 0,      0, 0, 0, 1, 0, 0, '', 'PlayerChoice 644 - Join Kyrian only while the player has no covenant'),
+(36, 644, 2689, 0, 1, 62, 0,      1, 0, 0, 0, 0, 0, '', 'PlayerChoice 644 - Join Kyrian: already Kyrian ...'),
 (36, 644, 2689, 0, 1, 48, 0, 407067, 0, 0, 0, 0, 0, '', 'PlayerChoice 644 - Join Kyrian: ... and quest 62000 "Choose your Covenant" still uncredited'),
 -- 2702 - Join Venthyr (covenant 2)
-(36, 644, 2702, 0, 0, 61, 0,      0, 0, 0, 1, 0, 0, '', 'PlayerChoice 644 - Join Venthyr only while the player has no covenant'),
-(36, 644, 2702, 0, 1, 61, 0,      2, 0, 0, 0, 0, 0, '', 'PlayerChoice 644 - Join Venthyr: already Venthyr ...'),
+(36, 644, 2702, 0, 0, 62, 0,      0, 0, 0, 1, 0, 0, '', 'PlayerChoice 644 - Join Venthyr only while the player has no covenant'),
+(36, 644, 2702, 0, 1, 62, 0,      2, 0, 0, 0, 0, 0, '', 'PlayerChoice 644 - Join Venthyr: already Venthyr ...'),
 (36, 644, 2702, 0, 1, 48, 0, 407067, 0, 0, 0, 0, 0, '', 'PlayerChoice 644 - Join Venthyr: ... and quest 62000 "Choose your Covenant" still uncredited'),
 -- 2688 - Join Night Fae (covenant 3)
-(36, 644, 2688, 0, 0, 61, 0,      0, 0, 0, 1, 0, 0, '', 'PlayerChoice 644 - Join Night Fae only while the player has no covenant'),
-(36, 644, 2688, 0, 1, 61, 0,      3, 0, 0, 0, 0, 0, '', 'PlayerChoice 644 - Join Night Fae: already Night Fae ...'),
+(36, 644, 2688, 0, 0, 62, 0,      0, 0, 0, 1, 0, 0, '', 'PlayerChoice 644 - Join Night Fae only while the player has no covenant'),
+(36, 644, 2688, 0, 1, 62, 0,      3, 0, 0, 0, 0, 0, '', 'PlayerChoice 644 - Join Night Fae: already Night Fae ...'),
 (36, 644, 2688, 0, 1, 48, 0, 407067, 0, 0, 0, 0, 0, '', 'PlayerChoice 644 - Join Night Fae: ... and quest 62000 "Choose your Covenant" still uncredited'),
 -- 2687 - Join Necrolord (covenant 4)
-(36, 644, 2687, 0, 0, 61, 0,      0, 0, 0, 1, 0, 0, '', 'PlayerChoice 644 - Join Necrolord only while the player has no covenant'),
-(36, 644, 2687, 0, 1, 61, 0,      4, 0, 0, 0, 0, 0, '', 'PlayerChoice 644 - Join Necrolord: already Necrolord ...'),
+(36, 644, 2687, 0, 0, 62, 0,      0, 0, 0, 1, 0, 0, '', 'PlayerChoice 644 - Join Necrolord only while the player has no covenant'),
+(36, 644, 2687, 0, 1, 62, 0,      4, 0, 0, 0, 0, 0, '', 'PlayerChoice 644 - Join Necrolord: already Necrolord ...'),
 (36, 644, 2687, 0, 1, 48, 0, 407067, 0, 0, 0, 0, 0, '', 'PlayerChoice 644 - Join Necrolord: ... and quest 62000 "Choose your Covenant" still uncredited');
