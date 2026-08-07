@@ -18,6 +18,7 @@
 #ifndef Garrison_h__
 #define Garrison_h__
 
+#include "AbominationFactory.h"
 #include "Define.h"
 #include "DatabaseEnvFwd.h"
 #include "GarrisonPackets.h"
@@ -513,6 +514,11 @@ public:
     QueensConservatory& GetConservatory() { return _conservatory; }
     QueensConservatory const& GetConservatory() const { return _conservatory; }
 
+    // Abomination Factory - the Necrolord unique sanctum feature (GarrTalentTree 321). Only meaningful on a
+    // GARRISON_TYPE_COVENANT garrison owned by a Necrolord character; it reports rank 0 for anything else.
+    AbominationFactory& GetAbominationFactory() { return _abominationFactory; }
+    AbominationFactory const& GetAbominationFactory() const { return _abominationFactory; }
+
     void BuildInfoPacket(WorldPackets::Garrison::GarrisonInfo& garrison) const;
     void SendRemoteInfo() const;
     void SendInfo() const;
@@ -597,6 +603,9 @@ private:
 
     // Night Fae unique sanctum feature; inert for every other garrison type.
     QueensConservatory _conservatory;
+
+    // Necrolord unique sanctum feature; inert for every other garrison type.
+    AbominationFactory _abominationFactory;
 
     // Temporary storage for BuildInfoPacket (mission copies with cleared inline rewards)
     mutable std::vector<WorldPackets::Garrison::GarrisonMission> _infoMissions;

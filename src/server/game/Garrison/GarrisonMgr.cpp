@@ -24,6 +24,7 @@
 #include "Log.h"
 #include "ObjectMgr.h"
 #include "Random.h"
+#include "SharedDefines.h"
 #include "SpellInfo.h"
 #include "SpellMgr.h"
 #include "Timer.h"
@@ -180,6 +181,7 @@ void GarrisonMgr::Initialize()
     LoadConservatoryWildseeds();
     LoadConservatoryCatalysts();
     LoadConservatoryYields();
+    LoadAbominationRecipes();
 }
 
 // Class-hall / order-hall (and any non-plot garrison) troop recruiters aren't garrison plot buildings, so the
@@ -485,6 +487,101 @@ uint32 GarrisonMgr::GetConservatoryYieldLootId(uint32 spiritItemId, uint8 rootGr
 
     auto itr = _conservatoryYields.find({ 0, rootGrainCount, nightbloomCount });
     return itr != _conservatoryYields.end() ? itr->second : 0;
+}
+
+// Abomination Factory (Necrolord unique sanctum feature, GarrTalentTree 321). Two of the three things this needs
+// come straight out of the client:
+//   * the recipe set  - the 66 SkillLineAbility rows of SkillLine 2787 "Abominable Stitching";
+//   * which of them build a construct - exactly the ones whose spell carries SPELL_EFFECT_KILL_CREDIT (the
+//     "Construct Body: X" spells credit creature 167076 / 167581). That is 15 of the 66 and nothing else in the
+//     skill, so the stable roster never needs a hardcoded id list.
+// The third - which researched tier of tree 321 unlocks each recipe - is published nowhere: every one of the 66
+// rows has MinSkillLineRank 1, TradeSkillCategory groups them by kind rather than rank, and no PlayerCondition in
+// the build mentions talents 1096-1100. That mapping is therefore authored in `garrison_abomination_recipe`. An
+// empty table is a valid state: the skill line is still granted and ranked, but no recipe is taught.
+void GarrisonMgr::LoadAbominationRecipes()
+{
+    _abominationStitchingSpells.clear();
+    _abominationConstructSpells.clear();
+    _abominationRecipes.clear();
+
+    if (std::vector<SkillLineAbilityEntry const*> const* abilities = sDB2Manager.GetSkillLineAbilitiesBySkill(SKILL_ABOMINABLE_STITCHING))
+    {
+        for (SkillLineAbilityEntry const* ability : *abilities)
+        {
+            _abominationStitchingSpells.insert(ability->Spell);
+
+            SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(ability->Spell, DIFFICULTY_NONE);
+            if (!spellInfo)
+                continue;
+
+            for (SpellEffectInfo const& effect : spellInfo->GetEffects())
+            {
+                if (effect.IsEffect(SPELL_EFFECT_KILL_CREDIT))
+                {
+                    _abominationConstructSpells.insert(ability->Spell);
+                    break;
+                }
+            }
+        }
+    }
+
+    TC_LOG_INFO("server.loading", ">> Abominable Stitching (SkillLine {}): {} client recipe(s), {} of them construct bodies.",
+        uint32(SKILL_ABOMINABLE_STITCHING), uint32(_abominationStitchingSpells.size()), uint32(_abominationConstructSpells.size()));
+
+    QueryResult result = WorldDatabase.Query("SELECT spellId, requiredRank FROM garrison_abomination_recipe");
+    if (!result)
+    {
+        TC_LOG_INFO("server.loading", ">> Loaded 0 Abomination Factory recipe unlocks. DB table "
+            "`garrison_abomination_recipe` is empty - no stitching recipe is taught until it is authored.");
+        return;
+    }
+
+    uint32 count = 0;
+    do
+    {
+        Field* fields = result->Fetch();
+        AbominationRecipeTemplate recipe;
+        recipe.RecipeSpellId = fields[0].GetUInt32();
+        recipe.RequiredRank  = fields[1].GetUInt8();
+
+        // The recipe list is not authorable - a row may only gate a spell the client already publishes as an
+        // Abominable Stitching recipe. This keeps content from inventing a stitching recipe that does not exist.
+        if (!_abominationStitchingSpells.count(recipe.RecipeSpellId))
+        {
+            TC_LOG_ERROR("sql.sql", "Spell {} referenced in `garrison_abomination_recipe` is not a SkillLineAbility "
+                "of SkillLine {} (Abominable Stitching); row skipped.", recipe.RecipeSpellId, uint32(SKILL_ABOMINABLE_STITCHING));
+            continue;
+        }
+
+        if (!recipe.RequiredRank || recipe.RequiredRank > ABOMINATION_FACTORY_MAX_RANK)
+        {
+            TC_LOG_ERROR("sql.sql", "Table `garrison_abomination_recipe` row for spell {} has requiredRank {} "
+                "outside 1-{}; row skipped.", recipe.RecipeSpellId, uint32(recipe.RequiredRank), uint32(ABOMINATION_FACTORY_MAX_RANK));
+            continue;
+        }
+
+        _abominationRecipes[recipe.RecipeSpellId] = recipe;
+        ++count;
+    } while (result->NextRow());
+
+    TC_LOG_INFO("server.loading", ">> Loaded {} Abomination Factory recipe unlocks.", count);
+}
+
+bool GarrisonMgr::IsAbominationStitchingRecipe(uint32 spellId) const
+{
+    return _abominationStitchingSpells.count(spellId) != 0;
+}
+
+bool GarrisonMgr::IsAbominationConstructRecipe(uint32 spellId) const
+{
+    return _abominationConstructSpells.count(spellId) != 0;
+}
+
+uint8 GarrisonMgr::GetAbominationRecipeRank(uint32 spellId) const
+{
+    auto itr = _abominationRecipes.find(spellId);
+    return itr != _abominationRecipes.end() ? itr->second.RequiredRank : uint8(0);
 }
 
 void GarrisonMgr::LoadOrderHallStandards()

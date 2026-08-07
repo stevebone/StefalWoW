@@ -28,6 +28,7 @@
 #include "GameTime.h"
 #include "GarrisonAutoCombat.h"
 #include "GarrisonMgr.h"
+#include "AbominationFactory.h"
 #include "QueensConservatory.h"
 #include "Item.h"
 #include "Log.h"
@@ -47,7 +48,7 @@
 #include <limits>
 #include <vector>
 
-Garrison::Garrison(Player* owner) : _owner(owner), _garrType(GARRISON_TYPE_GARRISON), _siteLevel(nullptr), _followerActivationsRemainingToday(1), _conservatory(owner)
+Garrison::Garrison(Player* owner) : _owner(owner), _garrType(GARRISON_TYPE_GARRISON), _siteLevel(nullptr), _followerActivationsRemainingToday(1), _conservatory(owner), _abominationFactory(owner)
 {
     // Fire the first periodic pass on the very next tick after login (instead of waiting a full interval),
     // so finished-order crates activate, completed constructions/research resolve, etc. right away.
@@ -358,6 +359,11 @@ bool Garrison::LoadFromDB(PreparedQueryResult garrison, PreparedQueryResult blue
         CharacterDatabasePreparedStatement* conservatoryStmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_CHARACTER_GARRISON_CONSERVATORY);
         conservatoryStmt->setUInt64(0, _owner->GetGUID().GetCounter());
         _conservatory.LoadFromDB(CharacterDatabase.Query(conservatoryStmt));
+
+        // Abomination Factory stable (Necrolord unique sanctum feature) - same story, same synchronous load.
+        CharacterDatabasePreparedStatement* abominationStmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_CHARACTER_GARRISON_ABOMINATION);
+        abominationStmt->setUInt64(0, _owner->GetGUID().GetCounter());
+        _abominationFactory.LoadFromDB(CharacterDatabase.Query(abominationStmt));
     }
 
     return true;
@@ -381,7 +387,10 @@ void Garrison::SaveToDB(CharacterDatabaseTransaction trans)
     trans->Append(stmt);
 
     if (_garrType == GARRISON_TYPE_COVENANT)
+    {
         _conservatory.SaveToDB(trans);
+        _abominationFactory.SaveToDB(trans);
+    }
 
     for (uint32 building : _knownBuildings)
     {
@@ -548,6 +557,11 @@ void Garrison::DeleteFromDB(ObjectGuid::LowType ownerGuid, GarrisonType garrType
     if (garrType == GARRISON_TYPE_COVENANT)
     {
         CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CHARACTER_GARRISON_CONSERVATORY);
+        stmt->setUInt64(0, ownerGuid);
+        trans->Append(stmt);
+
+        // Same for the Abomination Factory stable.
+        stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CHARACTER_GARRISON_ABOMINATION);
         stmt->setUInt64(0, ownerGuid);
         trans->Append(stmt);
     }
@@ -821,7 +835,13 @@ void Garrison::Update(uint32 diff)
 
     // Flip Queen's Conservatory wildseeds that have finished maturing to "ready to harvest".
     if (_garrType == GARRISON_TYPE_COVENANT)
+    {
         _conservatory.Update();
+        // Re-sync SkillLine 2787 "Abominable Stitching" and its taught recipes to the researched tier count of
+        // GarrTalentTree 321, so a tier that finished while offline (or one just completed by the research pass
+        // above) grants its rank without a relog.
+        _abominationFactory.Update();
+    }
 
     // Remove expired unclaimed missions
     RemoveExpiredMissions();
