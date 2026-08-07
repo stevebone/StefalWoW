@@ -124,7 +124,11 @@ enum ConditionTypes
     // into an assembly that has Chromie Time does not collide. Do NOT renumber 61/62 without also updating
     // sql/updates/world/master/2026_08_07_30_covenant_choice_conditions.sql, which encodes CONDITION_COVENANT.
     CONDITION_GROUP_STATUS             = 61,                   // GroupStatus            0              0                  true if player group status is (0 = not in group, 1 = in group, 2 = in group but not in raid, 3 = in raid group, 4 = not in group or not in raid)
-    CONDITION_COVENANT                 = 62,                   // CovenantID             0              0                  true if player belongs to Covenant.db2 CovenantID (0 = belongs to any covenant)
+    // ConditionValue2 is a MINIMUM RENOWN LEVEL and is optional (0 = membership test only, the original meaning).
+    // With CovenantID set it means "is in that covenant AND its renown is at least ConditionValue2"; with
+    // CovenantID 0 it means "has reached at least ConditionValue2 renown on ANY covenant" - membership is not
+    // required there, which is what the 9.1.5 free-covenant-switch rule needs to express.
+    CONDITION_COVENANT                 = 62,                   // CovenantID             MinRenownLevel 0                  true if player belongs to Covenant.db2 CovenantID (0 = belongs to any covenant), optionally at MinRenownLevel renown
     CONDITION_MAX
 };
 

@@ -488,6 +488,18 @@ public:
     // (Re)apply GarrTalentRank.PerkSpellID for every rank this garrison has already completed. Called on login,
     // after the garrisons and the covenant/soulbind state are both loaded.
     void ApplyAllTalentPerks();
+    // Covenant switching. Every covenant-scoped tree of the sanctum publishes its owner as
+    // GarrTalentTree.FeatureSubtypeIndex (= Covenant.db2 id), so the researched talents of the four covenants are
+    // already stored as disjoint sets and NOTHING here ever deletes a talent row - only the perks a row grants are
+    // scoped to the covenant currently being served. Strips the PerkSpellID of every covenant-scoped tree that is
+    // not the player's active covenant and (re)applies the active one's. Idempotent; safe with no covenant at all
+    // (everything covenant-scoped is stripped). A no-op for every garrison type except the covenant sanctum.
+    void RefreshCovenantTalentPerks();
+    // Seat the 14 talents of a covenant's ability tree (GarrTalentTree.FeatureTypeIndex 0). All four ability trees
+    // are authored cost 0 / gold 0 / duration 0 with no prerequisites, so LearnTalent puts each straight at rank 1
+    // and the class filtering happens through GarrTalentRank.PerkPlayerConditionID - i.e. this is exactly what the
+    // retail class + signature grant spells do, without hardcoding their ids. Already-known talents are skipped.
+    void GrantCovenantAbilityTalents(uint32 covenantId);
 
     // Trophy system
     void AddTrophy(uint32 trophyID);

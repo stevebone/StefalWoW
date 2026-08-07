@@ -1037,6 +1037,7 @@ enum PlayerLoginQueryIndex
     PLAYER_LOGIN_QUERY_LOAD_SOULBIND_CONDUIT_SOCKETS,
     PLAYER_LOGIN_QUERY_LOAD_RENOWN_REWARDS,
     PLAYER_LOGIN_QUERY_LOAD_COVENANT_CALLINGS,
+    PLAYER_LOGIN_QUERY_LOAD_COVENANT_SOULBINDS,
     MAX_PLAYER_LOGIN_QUERY
 };
 
@@ -2914,8 +2915,30 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         // PlayerSoulbindConduitCountAtRankEqualOrGreaterThan (309), which counts conduits at a minimum rank.
         std::unordered_map<uint32 /*conduitId*/, uint32 /*rankIndex*/> const& GetSoulbindConduits() const { return m_soulbindConduits; }
         bool CollectConduit(uint32 conduitId, int32 rankIndex = -1);   // grant/upgrade; rankIndex < 0 => lowest defined rank
-        void SetActiveCovenant(uint32 covenantId);              // SPELL_EFFECT_SET_COVENANT: join covenant, persist (soulbind-independent)
+        // SPELL_EFFECT_SET_COVENANT. Joins, switches or (covenantId 0 - spell 338503 "Reset Covenant") leaves a
+        // covenant. Never destroys anything belonging to a covenant the character may return to; see the function.
+        void SetActiveCovenant(uint32 covenantId);
         void ApplyCovenantSkillLines();                         // grant the active covenant's SkillLine, strip the other three (idempotent)
+
+        // Covenant switching / reset (retail spell 338503 "Reset Covenant": SPELL_EFFECT_SET_COVENANT with
+        // MiscValue 0 + SPELL_EFFECT_QUEST_FAIL on all four covenant-choice quests 56066-56069).
+        //
+        // Highest renown level the character has reached on ANY covenant (0 when it has none anywhere).
+        uint32 GetHighestCovenantRenownLevel() const;
+        // Renown level at which a covenant's track is full: CurrencyTypes 1829-1832 MaxQty 79 + 1 = Renown 80.
+        static uint32 GetMaxCovenantRenownLevel();
+        // The 9.1.5 rule: once any covenant has reached max renown (80) switching is free and unpenalised.
+        bool IsCovenantSwitchUnlocked() const;
+        // True when the character may leave its current covenant for a different one right now. Trivially true for
+        // a character that has not pledged yet.
+        bool CanChangeCovenant() const;
+        // Soulbind the character last had active for a covenant (0 when it never picked one). Remembered per
+        // covenant so returning to a covenant restores the soulbind - and with it its conduits and traits.
+        uint32 GetRememberedCovenantSoulbind(uint32 covenantId) const;
+        // True when the character has pledged to this covenant at least once before.
+        bool HasEverJoinedCovenant(uint32 covenantId) const;
+        // True when the character has pledged to any covenant at least once before.
+        bool HasEverJoinedAnyCovenant() const { return !m_covenantSoulbinds.empty(); }
         void TryCollectConduitFromItem(Item* item);                    // auto-collect when a conduit item is acquired (SoulbindConduitItem)
         // Socketed conduits for a soulbind tree: GarrTalent node id -> conduitId
         bool SocketConduit(uint32 garrTalentTreeId, uint32 garrTalentId, uint32 conduitId);   // validates ownership + covenant, persists, applies spell
@@ -3242,6 +3265,9 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
             PreparedQueryResult azeriteItemMilestonePowersResult, PreparedQueryResult azeriteItemUnlockedEssencesResult, PreparedQueryResult azeriteEmpoweredItemResult);
         static Item* _LoadMailedItem(ObjectGuid const& playerGuid, Player* player, uint64 mailId, Mail* mail, Field* fields, ItemAdditionalLoadInfo* addionalData);
         void _LoadCovenant(PreparedQueryResult result);
+        void _LoadCovenantSoulbinds(PreparedQueryResult result);
+        // Record (and persist) the soulbind a covenant was last using, so a switch away from it can be undone.
+        void RememberCovenantSoulbind(uint32 covenantId, uint32 soulbindId);
         void _LoadSoulbindConduits(PreparedQueryResult result);
         void _LoadSoulbindConduitSockets(PreparedQueryResult result);
         void _LoadRenownRewards(PreparedQueryResult result);
@@ -3492,6 +3518,10 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         uint32 m_activeCovenantId = 0;
         uint32 m_activeSoulbindId = 0;
         std::unordered_map<uint32 /*covenantId*/, uint32 /*grantedRenownLevel*/> m_renownRewardsGranted;
+        // Last soulbind used per covenant (character_covenant_soulbind). A row exists for every covenant the
+        // character has ever pledged to, even with soulbindId 0, so this doubles as the "covenants ever joined"
+        // set that tells a switch apart from a first pledge.
+        std::unordered_map<uint32 /*covenantId*/, uint32 /*soulbindId*/> m_covenantSoulbinds;
         std::unordered_map<uint32 /*conduitId*/, uint32 /*rankIndex*/> m_soulbindConduits;
         // garrTalent node id -> (conduitId, garrTalentTreeID); tree id lets us apply only the active soulbind's sockets
         std::unordered_map<uint32 /*garrTalentId*/, std::pair<uint32 /*conduitId*/, uint32 /*treeId*/>> m_soulbindConduitSockets;

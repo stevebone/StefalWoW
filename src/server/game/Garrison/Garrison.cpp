@@ -4608,6 +4608,13 @@ void Garrison::ApplyTalentRankPerk(uint32 garrTalentID, int32 rankIndex)
                 return;
 
     GarrTalentTreeEntry const* treeEntry = sGarrTalentTreeStore.LookupEntry(talentEntry->GarrTalentTreeID);
+
+    // A covenant-scoped tree only grants while its own covenant is the active one. The talent row itself survives a
+    // covenant switch untouched (see RefreshCovenantTalentPerks); what a switch takes away is the effect, exactly as
+    // it already works for the soulbind trees below, where only the ACTIVE soulbind's traits may be running.
+    if (!IsTalentTreeOwnedByPlayerCovenant(treeEntry))
+        return;
+
     if (treeEntry && treeEntry->FeatureTypeIndex == GARR_TALENT_FEATURE_SOULBIND)
     {
         SoulbindEntry const* soulbind = sSoulbindStore.LookupEntry(_owner->GetActiveSoulbind());
@@ -4821,6 +4828,76 @@ void Garrison::ApplyAllTalentPerks()
     for (auto const& [talentId, talent] : _talents)
         for (int32 rankIndex = 0; rankIndex < talent.Rank; ++rankIndex)
             ApplyTalentRankPerk(talentId, rankIndex);
+}
+
+// Covenant switching, talent side.
+//
+// The DECISION this encodes (the P3.0 "sanctum talents are GarrType-scoped, not covenant-scoped" limitation):
+// researched sanctum talents are PER COVENANT and are KEPT across a switch; only the perks they grant follow the
+// active covenant. That is not a compromise, it is what the data says. Every covenant-scoped tree of GarrTypeID 111
+// names its owner in GarrTalentTree.FeatureSubtypeIndex (= Covenant.db2 id) and the four covenants never share a
+// tree: Anima Conductor 312/314/311/313, Transport Network 308/309/307/310, Command Table 316/317/315/318,
+// Reservoir 327/326/328/329, unique feature 320/324/319/321, Channel Anima 345/348/346/347, abilities 393/396/397/395
+// and the twelve soulbind trees are each owned by exactly one covenant. character_garrison_talents is keyed by
+// GarrTalentID, so a Kyrian Transport Network row and a Night Fae one are already different rows - the storage is
+// covenant-partitioned for free and there is nothing to delete or migrate. A returning member finds its sanctum
+// exactly as it left it.
+//
+// (The 24 FeatureSubtypeIndex 0 trees of GarrTypeID 111 are not covenant-scoped and are deliberately untouched.)
+void Garrison::RefreshCovenantTalentPerks()
+{
+    if (GetType() != GARRISON_TYPE_COVENANT)
+        return;
+
+    for (auto const& [talentId, talent] : _talents)
+    {
+        if (talent.Rank < 1)
+            continue;
+
+        GarrTalentEntry const* talentEntry = sGarrTalentStore.LookupEntry(talentId);
+        if (!talentEntry)
+            continue;
+
+        GarrTalentTreeEntry const* treeEntry = sGarrTalentTreeStore.LookupEntry(talentEntry->GarrTalentTreeID);
+        if (!treeEntry || !treeEntry->FeatureSubtypeIndex || treeEntry->GarrTypeID != static_cast<int8>(GARRISON_TYPE_COVENANT))
+            continue;   // not covenant-scoped - never touched by a switch
+
+        if (IsTalentTreeOwnedByPlayerCovenant(treeEntry))
+        {
+            for (int32 rankIndex = 0; rankIndex < talent.Rank; ++rankIndex)
+                ApplyTalentRankPerk(talentId, rankIndex);
+        }
+        else
+            RemoveTalentRankPerks(talentId, talent.Rank);
+    }
+}
+
+void Garrison::GrantCovenantAbilityTalents(uint32 covenantId)
+{
+    if (GetType() != GARRISON_TYPE_COVENANT || !covenantId)
+        return;
+
+    std::vector<GarrTalentTreeEntry const*> const* trees = sGarrisonMgr.GetTalentTreesForGarrType(static_cast<int8>(GARRISON_TYPE_COVENANT));
+    if (!trees)
+        return;
+
+    for (GarrTalentTreeEntry const* treeEntry : *trees)
+    {
+        if (treeEntry->FeatureTypeIndex != GARR_TALENT_FEATURE_ABILITIES || uint32(treeEntry->FeatureSubtypeIndex) != covenantId)
+            continue;
+
+        std::vector<GarrTalentEntry const*> const* talents = sGarrisonMgr.GetTalentsForTree(treeEntry->ID);
+        if (!talents)
+            continue;
+
+        for (GarrTalentEntry const* talentEntry : *talents)
+        {
+            if (_talents.count(talentEntry->ID))
+                continue;   // already seated - LearnTalent would only answer GARRISON_ERROR_INVALID_TALENT
+
+            LearnTalent(talentEntry->ID, false);
+        }
+    }
 }
 
 void Garrison::CompleteAllTalentResearch(bool sendUpdate /*= false*/)

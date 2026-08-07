@@ -127,25 +127,43 @@ public:
                 return;
         }
 
-        // Choice 644 is the initial covenant pledge only. Switching covenants is a separate sanctum
-        // flow (spell 338503 "Reset Covenant" first), and re-running a covenant spell here would
-        // fail the already-completed covenant-choice quests and desync the active soulbind, so a
-        // player who already belongs to a covenant is refused.
         if (uint32 activeCovenantId = player->GetActiveCovenant())
         {
-            if (activeCovenantId != covenantId)
+            if (activeCovenantId == covenantId)
             {
-                TC_LOG_DEBUG("scripts", "playerchoice_covenant_selection: {} answered PlayerChoice {} with covenant {} while already in covenant {}, ignored",
+                // Re-affirming the covenant already joined. There is no state to change, but the objective credit
+                // still has to be handed out - a character that joined before the credit below existed is otherwise
+                // stuck with "Choose your Covenant" outstanding for good.
+                player->KilledMonsterCredit(NPC_CREDIT_CHOOSE_YOUR_COVENANT);
+                return;
+            }
+
+            // A SWITCH. Gated by the 9.1.5 rule (free once any covenant has reached maximum renown, i.e. Renown 80)
+            // and by nothing else: the launch-era re-join quest chain, lockout and renown penalty are NOT
+            // implemented, because none of their numbers exist anywhere in the client data and inventing them would
+            // be worse than leaving them out. The conditions on PlayerChoice 644 already hide the three foreign
+            // covenants until the same rule passes, so reaching this branch means a client that ignored them or a
+            // rule that came true after the panel was built.
+            if (!player->CanChangeCovenant())
+            {
+                TC_LOG_DEBUG("scripts", "playerchoice_covenant_selection: {} answered PlayerChoice {} with covenant {} while in covenant {} without having unlocked free switching, ignored",
                     player->GetGUID().ToString(), uint32(PLAYER_CHOICE_COVENANT_SELECTION), covenantId, activeCovenantId);
 
                 return;
             }
 
-            // Re-affirming the covenant already joined. There is no state to change, but the objective credit
-            // still has to be handed out - a character that joined before the credit below existed is otherwise
-            // stuck with "Choose your Covenant" outstanding for good, and the join responses can only be answered
-            // in that exact situation now (the conditions on PlayerChoice 644 hide the three foreign covenants
-            // unconditionally, and the own one as soon as objective 407067 is credited).
+            // Deliberately NOT the covenant reward spell. 299204-299207 also carry SPELL_EFFECT_QUEST_COMPLETE for
+            // their own covenant-choice quest and SPELL_EFFECT_QUEST_FAIL for the other three, which is join-time
+            // bookkeeping: those four quests (56066-56069) were resolved by the original pledge, and pushing them
+            // back through the quest system on a switcher gains nothing. Player::SetActiveCovenant performs the
+            // whole leave/join transition - it strips the old covenant's SkillLine, soulbind, conduit and trait
+            // auras and talent perks, re-applies the new covenant's, and keeps every covenant's renown, anima,
+            // researched talents and companions - so the switch is this one call.
+            player->SetActiveCovenant(covenantId);
+
+            TC_LOG_DEBUG("scripts", "playerchoice_covenant_selection: {} switched from covenant {} to covenant {}",
+                player->GetGUID().ToString(), activeCovenantId, covenantId);
+
             player->KilledMonsterCredit(NPC_CREDIT_CHOOSE_YOUR_COVENANT);
             return;
         }

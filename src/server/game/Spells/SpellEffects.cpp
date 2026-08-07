@@ -6664,8 +6664,17 @@ void Spell::EffectSetCovenant()
 
     // MiscValue = Covenant.db2 id chosen by the covenant-choice quest's reward spell. Joining a covenant
     // is the Blizzlike entry point (soulbinds unlock afterwards) - there is no dedicated covenant opcode.
+    //
+    // MiscValue 0 is the RESET, and it is a published mechanism rather than an edge case: spell 338503 "Reset
+    // Covenant" is SPELL_EFFECT_SET_COVENANT with MiscValue 0 followed by SPELL_EFFECT_QUEST_FAIL on all four
+    // covenant-choice quests (56066/56069/56068/56067) and the two phase-refresh effects 170/167 - i.e. "leave
+    // the covenant and re-arm the choice". Player::SetActiveCovenant keeps every covenant's renown, anima,
+    // researched talents, companions and conduits; only the active pledge goes away.
     int32 covenantId = effectInfo->MiscValue;
-    if (covenantId < 0 || !sCovenantStore.LookupEntry(uint32(covenantId)))
+    if (covenantId < 0)
+        return;
+
+    if (covenantId && !sCovenantStore.LookupEntry(uint32(covenantId)))
         return;
 
     unitTarget->ToPlayer()->SetActiveCovenant(uint32(covenantId));

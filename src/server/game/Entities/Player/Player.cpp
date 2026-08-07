@@ -18823,6 +18823,7 @@ bool Player::LoadFromDB(ObjectGuid guid, CharacterDatabaseQueryHolder const& hol
 
     _LoadCharacterBankTabSettings(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_BANK_TAB_SETTINGS));
 
+    _LoadCovenantSoulbinds(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_COVENANT_SOULBINDS));
     _LoadCovenant(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_COVENANT));
     _LoadSoulbindConduits(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_SOULBIND_CONDUITS));
     _LoadSoulbindConduitSockets(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_SOULBIND_CONDUIT_SOCKETS));
@@ -19022,6 +19023,13 @@ bool Player::LoadFromDB(ObjectGuid guid, CharacterDatabaseQueryHolder const& hol
     // point where both the garrisons and the covenant/soulbind state (_LoadCovenant, above) are loaded.
     for (auto const& [garrType, garrison] : GetGarrisons())
         garrison->ApplyAllTalentPerks();
+
+    // ...and take back the ones belonging to a covenant this character is no longer serving. ApplyAllTalentPerks
+    // only ever adds, so without this a character that switched covenants would keep the abilities, sanctum perks
+    // and soulbind traits of the covenant it left for as long as it kept logging in. Repairs characters that
+    // switched before this existed, and is a no-op for everybody else.
+    if (Garrison* sanctum = GetGarrison(GARRISON_TYPE_COVENANT))
+        sanctum->RefreshCovenantTalentPerks();
 
     // Roll the calling board forward over every daily reset that passed while the character was offline. The
     // board is stored as timestamps, so this is pure catch-up arithmetic and produces the same result whether
@@ -20617,6 +20625,49 @@ void Player::_LoadCovenant(PreparedQueryResult result)
     ApplyCovenantSkillLines();
 }
 
+void Player::_LoadCovenantSoulbinds(PreparedQueryResult result)
+{
+    if (!result)
+        return;
+
+    do
+    {
+        Field* fields = result->Fetch();
+        m_covenantSoulbinds[fields[0].GetUInt32()] = fields[1].GetUInt32();
+    } while (result->NextRow());
+}
+
+void Player::RememberCovenantSoulbind(uint32 covenantId, uint32 soulbindId)
+{
+    if (!covenantId)
+        return;
+
+    auto [itr, inserted] = m_covenantSoulbinds.insert({ covenantId, soulbindId });
+    if (!inserted)
+    {
+        if (itr->second == soulbindId)
+            return;
+        itr->second = soulbindId;
+    }
+
+    CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_REP_CHARACTER_COVENANT_SOULBIND);
+    stmt->setUInt64(0, GetGUID().GetCounter());
+    stmt->setUInt32(1, covenantId);
+    stmt->setUInt32(2, soulbindId);
+    CharacterDatabase.Execute(stmt);
+}
+
+uint32 Player::GetRememberedCovenantSoulbind(uint32 covenantId) const
+{
+    auto itr = m_covenantSoulbinds.find(covenantId);
+    return itr != m_covenantSoulbinds.end() ? itr->second : 0;
+}
+
+bool Player::HasEverJoinedCovenant(uint32 covenantId) const
+{
+    return m_covenantSoulbinds.count(covenantId) != 0;
+}
+
 void Player::_LoadRenownRewards(PreparedQueryResult result)
 {
     if (!result)
@@ -20697,6 +20748,62 @@ uint32 Player::GetCovenantRenownLevel(uint32 covenantId /*= 0*/) const
         return 0;
 
     return GetCurrencyQuantity(currency->ID) + COVENANT_RENOWN_LEVEL_OFFSET;
+}
+
+uint32 Player::GetHighestCovenantRenownLevel() const
+{
+    uint32 highest = 0;
+    for (CovenantEntry const* covenant : sCovenantStore)
+    {
+        CurrencyTypesEntry const* currency = GetCovenantRenownCurrency(covenant->ID);
+        if (!currency)
+            continue;
+
+        // Same guard as UpdateCovenantRenownRewards: quantity 0 means Renown 1 for a covenant the character has
+        // actually joined, but it must not read as Renown 1 for the three it never touched.
+        uint32 quantity = GetCurrencyQuantity(currency->ID);
+        if (!quantity && covenant->ID != m_activeCovenantId)
+            continue;
+
+        highest = std::max(highest, quantity + COVENANT_RENOWN_LEVEL_OFFSET);
+    }
+
+    return highest;
+}
+
+uint32 Player::GetMaxCovenantRenownLevel()
+{
+    // Read the cap rather than hardcode it. Renown is stored as a currency quantity with level = quantity + 1, and
+    // CurrencyTypes 1829-1832 (and the 1822 display mirror) all publish MaxQty 79 through the shared
+    // MaxQtyWorldStateID 19735, i.e. Renown 80 - which is also exactly the highest level RenownRewards.db2 defines
+    // for covenants 1-4. Falls back to the RenownRewards ceiling if the currency ever stops publishing a cap.
+    if (CurrencyTypesEntry const* currency = GetCovenantRenownCurrency(1))
+        if (currency->MaxQty)
+            return currency->MaxQty + COVENANT_RENOWN_LEVEL_OFFSET;
+
+    return 0;
+}
+
+bool Player::IsCovenantSwitchUnlocked() const
+{
+    // The 9.1.5 rule, and only that rule: covenant switching becomes free and unpenalised once ANY covenant has
+    // been taken to maximum renown. The launch-era model (a re-join quest chain, a lockout and a renown penalty)
+    // is deliberately NOT implemented - none of its numbers are published anywhere in the 12.0.7.68275 client
+    // data, so building it would mean inventing them.
+    uint32 const required = GetMaxCovenantRenownLevel();
+    if (!required)
+        return false;
+
+    return GetHighestCovenantRenownLevel() >= required;
+}
+
+bool Player::CanChangeCovenant() const
+{
+    // A character that never pledged is not switching, it is joining.
+    if (!m_activeCovenantId)
+        return true;
+
+    return IsCovenantSwitchUnlocked();
 }
 
 void Player::SyncCovenantRenownDisplayCurrency()
@@ -21367,19 +21474,73 @@ void Player::ApplyCovenantSkillLines()
     }
 }
 
+// Join, switch or leave a covenant. SPELL_EFFECT_SET_COVENANT is the only way in:
+//
+//   299204/299205/299206/299207 "<Covenant> Covenant"  -> MiscValue 1/2/3/4, the pledge
+//   338503                      "Reset Covenant"        -> MiscValue 0, plus SPELL_EFFECT_QUEST_FAIL on all four
+//                                                          covenant-choice quests 56066-56069 and the two phase
+//                                                          refresh effects (167/170). That is the whole retail
+//                                                          reset mechanism, read straight off the client data.
+//
+// NOTHING HERE DESTROYS COVENANT-SCOPED STATE. A switch is a change of which covenant is being SERVED, not a
+// wipe of the one being left:
+//
+//   kept  - renown (per-covenant currencies 1829-1832) and the granted-reward high-water mark
+//           (character_covenant_renown), reservoir anima (1859-1862) and redeemed souls (1863-1866),
+//           every researched sanctum/ability/soulbind talent (character_garrison_talents; every covenant-scoped
+//           GarrTalentTree names its owner in FeatureSubtypeIndex, so the four covenants own disjoint rows),
+//           the sanctum garrison itself with all of its companions, missions and shipments, the conduit
+//           collection and its sockets, and each covenant's calling board.
+//   moved  - the 1822 renown and 1813 anima DISPLAY currencies, which are views of the active covenant's track.
+//   scoped - the covenant SkillLine, the GarrTalentRank.PerkSpellID perks of covenant-scoped trees, the active
+//            soulbind and the conduit/trait auras that hang off it. All of these come back on return.
 void Player::SetActiveCovenant(uint32 covenantId)
 {
-    // Blizzlike join order is: choose covenant (this) -> then its soulbinds unlock. Driven by
-    // SPELL_EFFECT_SET_COVENANT (the covenant-choice quest's reward spell); there is no covenant opcode.
-    // Unlike ActivateSoulbind (which does not imply the covenant), this sets the covenant WITHOUT touching the
-    // active soulbind, so a player can join before picking a soulbind.
-    bool const changed = m_activeCovenantId != covenantId;
+    uint32 const previousCovenantId = m_activeCovenantId;
+    bool const changed = previousCovenantId != covenantId;
+
+    if (changed && previousCovenantId)
+    {
+        // ---- leave the covenant being served -------------------------------------------------------------
+        // Remember which soulbind it was using so returning restores it (and with it the conduits socketed into
+        // that tree and its trait nodes, none of which are touched here).
+        RememberCovenantSoulbind(previousCovenantId, m_activeSoulbindId);
+
+        // Bank anything sitting unspent on the 1813 view onto the covenant that earned it BEFORE the view is
+        // repointed, then empty the view. This is the one ordering that matters in the whole function: the view is
+        // about to stop describing this covenant, and everything in the build that grants anima grants it on the
+        // view. Emptying it is what makes the banking safe rather than duplicating - the balance now lives only on
+        // 1859-1862, and without this step the next join would read the leftover view as anima the INCOMING
+        // covenant had not banked yet and hand it a free copy of the outgoing covenant's reservoir.
+        MigrateLegacyReservoirAnima();
+        if (int32 viewQuantity = int32(GetCurrencyQuantity(CURRENCY_TYPE_RESERVOIR_ANIMA)))
+        {
+            // Under the mirror latch, and that is not optional: this covenant is still the active one, so without
+            // it Player::CurrencyChanged would faithfully forward the emptying of the view onto 1859-1862 and wipe
+            // the very balance the line above just banked. The latch is exactly the "the caller owns this
+            // reconciliation" flag the anima mirror already uses internally.
+            m_covenantAnimaSyncing = true;
+            ModifyCurrency(CURRENCY_TYPE_RESERVOIR_ANIMA, -viewQuantity, CurrencyGainSource::Vendor,
+                CurrencyDestroyReason::FactionConversion);
+            m_covenantAnimaSyncing = false;
+        }
+
+        // Take down the auras of the soulbind that is stopping being active. Their sources (sockets, trait rows)
+        // stay in the database.
+        RemoveConduitSpells();
+        RemoveSoulbindTraitSpells();
+
+        m_activeSoulbindId = 0;
+        SetUpdateFieldValue(m_values.ModifyValue(&Player::m_playerData).ModifyValue(&UF::PlayerData::SoulbindID), int32(0));
+    }
+
     m_activeCovenantId = covenantId;
 
     // Replicate to the client (drives C_Covenants.GetActiveCovenantID, covenant PlayerConditions and criteria).
     SetUpdateFieldValue(m_values.ModifyValue(&Player::m_playerData).ModifyValue(&UF::PlayerData::CovenantID), int32(m_activeCovenantId));
 
-    // Grant the joined covenant's SkillLine and strip the other three (idempotent).
+    // Grant the joined covenant's SkillLine and strip the other three (idempotent). With covenantId 0 this strips
+    // all four, which is what closes the covenant-locked objects behind a character that left.
     ApplyCovenantSkillLines();
 
     if (changed)
@@ -21394,26 +21555,66 @@ void Player::SetActiveCovenant(uint32 covenantId)
     // Joining a covenant grants the covenant sanctum (GarrType 111, GarrSite 296). It backs the Sanctum UI,
     // sanctum research (GarrTalentTree rows with GarrTypeID 111) and Adventures, and SPELL_EFFECT_LEARN_GARR_TALENT
     // silently no-ops without it. Guarded so it is created once and re-running the covenant choice is harmless.
+    // Leaving a covenant deliberately does NOT delete it: it holds the researched talents, the companions and the
+    // running missions of every covenant this character has served.
     if (m_activeCovenantId && !GetGarrison(GARRISON_TYPE_COVENANT))
         CreateGarrison(GARR_SITE_COVENANT_SANCTUM);
 
-    if (changed)
+    if (!changed)
+        return;
+
+    if (Garrison* sanctum = GetGarrison(GARRISON_TYPE_COVENANT))
     {
-        // Renown is per-covenant and never resets, so the joined covenant's own track becomes current: repoint
-        // the 1822 display mirror at it and hand over anything already earned there (a returning member keeps
-        // the renown it had). A brand-new member sits at currency 0, which is Renown 1.
-        SyncCovenantRenownDisplayCurrency();
-        UpdateCovenantRenownRewards(m_activeCovenantId);
+        // A covenant that is being returned to already owns its ability talents. One that is being joined for the
+        // first time as a SWITCH does not, and it never will: the class + signature abilities are handed out by
+        // the covenant campaign (quest reward spells 337187/337059/337191/337190 and 328604/320846/336692/337388
+        // -> SPELL_EFFECT_LEARN_GARR_TALENT), and a switcher does not run a second campaign. Seating the ability
+        // tree here is exactly what those grant spells do - all 14 talents of trees 393/396/397/395 are authored
+        // cost 0 / gold 0 / duration 0 with no prerequisites, and GarrTalentRank.PerkPlayerConditionID does the
+        // per-class filtering - so no spell id or ability id is assumed anywhere.
+        // A FIRST pledge is left alone: there the campaign is still ahead of the character and grants them itself.
+        if (m_activeCovenantId && HasEverJoinedAnyCovenant())
+            sanctum->GrantCovenantAbilityTalents(m_activeCovenantId);
 
-        // Reservoir anima is per covenant for the same reason and repoints the same way. The outgoing covenant's
-        // balance is already banked on its own currency (CurrencyChanged keeps view and track equal while it is
-        // active), so this hands the character its new covenant's own reservoir, not a copy of the old one.
-        SyncCovenantAnimaDisplayCurrency();
-
-        // The calling board is per covenant too; seed/roll the new covenant's board and tell the client.
-        UpdateCovenantCallings();
-        SendCovenantCallingsUpdate();
+        // Strip the perks of every covenant-scoped tree that is no longer the active covenant's and (re)apply the
+        // active one's. The talent rows themselves are untouched, so this is fully reversible.
+        sanctum->RefreshCovenantTalentPerks();
     }
+
+    if (m_activeCovenantId)
+    {
+        // Record the pledge (and, on a return, keep the remembered soulbind). This is also what makes the NEXT
+        // change to this covenant read as a switch rather than a first pledge.
+        RememberCovenantSoulbind(m_activeCovenantId, GetRememberedCovenantSoulbind(m_activeCovenantId));
+
+        // Restore the soulbind this covenant was last using. ActivateSoulbind re-applies its conduits and traits
+        // and persists the pair, so a returning member gets its whole soulbind back in one step.
+        if (uint32 rememberedSoulbind = GetRememberedCovenantSoulbind(m_activeCovenantId))
+            if (SoulbindEntry const* soulbind = sSoulbindStore.LookupEntry(rememberedSoulbind))
+                if (uint32(soulbind->CovenantID) == m_activeCovenantId)
+                    ActivateSoulbind(soulbind);
+    }
+
+    // Renown is per-covenant and never resets, so the joined covenant's own track becomes current: repoint
+    // the 1822 display mirror at it and hand over anything already earned there (a returning member keeps
+    // the renown it had). A brand-new member sits at currency 0, which is Renown 1. With no covenant the view
+    // goes to zero, because the renown PlayerConditions read 1822 without also testing CovenantID.
+    SyncCovenantRenownDisplayCurrency();
+    UpdateCovenantRenownRewards(m_activeCovenantId);
+
+    // Reservoir anima repoints the same way. The outgoing covenant's balance was banked above, so this hands the
+    // character its new covenant's own reservoir rather than a copy of the old one; the Migrate call picks up
+    // anything gained while the character was covenantless and banks it onto the covenant now being served.
+    MigrateLegacyReservoirAnima();
+    SyncCovenantAnimaDisplayCurrency();
+
+    // The calling board is per covenant too; seed/roll the new covenant's board and tell the client.
+    UpdateCovenantCallings();
+    SendCovenantCallingsUpdate();
+
+    // Covenant membership drives phases and CONDITION_COVENANT, and spell 338503 carries SPELL_EFFECT_UPDATE_
+    // PLAYER_PHASE (167) + SPELL_EFFECT_UPDATE_ZONE_AURAS_AND_PHASES (170) for exactly that reason.
+    PhasingHandler::OnConditionChange(this);
 }
 
 void Player::_LoadSoulbindConduits(PreparedQueryResult result)
