@@ -18,6 +18,7 @@
 #ifndef GarrisonMgr_h__
 #define GarrisonMgr_h__
 
+#include "AbominationFactory.h"
 #include "Define.h"
 #include "Hash.h"
 #include "Position.h"
@@ -178,6 +179,20 @@ public:
     uint32 GetConservatoryYieldLootId(uint32 spiritItemId, uint8 rootGrainCount, uint8 nightbloomCount) const;
     std::map<ConservatoryYieldKey, uint32> const& GetConservatoryYields() const { return _conservatoryYields; }
 
+    // Abomination Factory (Necrolord unique sanctum feature, GarrTalentTree 321). The recipe SET is client data
+    // (the 66 SkillLineAbility rows of SkillLine 2787 "Abominable Stitching"); only the rank that unlocks each
+    // recipe is unpublished, so that lives in the world table `garrison_abomination_recipe`. See
+    // AbominationFactory.h for the full derivation.
+    void LoadAbominationRecipes();
+    // Any spell that SkillLine 2787 publishes as a recipe.
+    bool IsAbominationStitchingRecipe(uint32 spellId) const;
+    // The 15 "Construct Body: X" recipes - identified from data as the skill-2787 recipes whose spell carries
+    // SPELL_EFFECT_KILL_CREDIT, not from a hardcoded id list.
+    bool IsAbominationConstructRecipe(uint32 spellId) const;
+    // Researched tiers of tree 321 needed before the recipe is taught; 0 = no authored row (never taught).
+    uint8 GetAbominationRecipeRank(uint32 spellId) const;
+    std::unordered_map<uint32, AbominationRecipeTemplate> const& GetAbominationRecipes() const { return _abominationRecipes; }
+
     // Talent system accessors
     std::vector<GarrTalentTreeEntry const*> const* GetTalentTreesForGarrType(int8 garrTypeID) const;
     std::vector<GarrTalentEntry const*> const* GetTalentsForTree(uint32 garrTalentTreeID) const;
@@ -261,6 +276,11 @@ private:
     // catalyst combination rolls (`garrison_conservatory_yield`).
     std::unordered_map<uint32 /*catalystItemId*/, ConservatoryCatalystTemplate> _conservatoryCatalysts;
     std::map<ConservatoryYieldKey, uint32 /*lootId*/> _conservatoryYields;
+
+    // Abomination Factory. The two sets are derived from client data at startup; the map is authored content.
+    std::unordered_set<uint32 /*spellId*/> _abominationStitchingSpells;
+    std::unordered_set<uint32 /*spellId*/> _abominationConstructSpells;
+    std::unordered_map<uint32 /*spellId*/, AbominationRecipeTemplate> _abominationRecipes;
 
     uint64 _followerDbIdGenerator = UI64LIT(1);
     uint64 _shipmentDbIdGenerator = UI64LIT(1);

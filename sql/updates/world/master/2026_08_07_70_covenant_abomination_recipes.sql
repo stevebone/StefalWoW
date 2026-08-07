@@ -1,0 +1,69 @@
+--
+-- Abomination Factory - which Abominable Stitching rank unlocks which recipe
+-- (Necrolord unique sanctum feature, GarrTalentTree 321 / SkillLine 2787).
+--
+-- WHY THIS TABLE IS EMPTY
+-- -----------------------
+-- Almost everything about this feature IS published by the 12.0.7.68275 client, and the core consumes it
+-- directly - none of it is repeated here:
+--   * the unlock ladder     GarrTalentTree 321 "Abomination Factory" (GarrTypeID 111, MaxTiers 5, Flags 16,
+--                           FeatureTypeIndex 5 = SanctumUnique, FeatureSubtypeIndex 4 = Maldraxxus) and its
+--                           talents 1096 Build a Buddy / 1097 Crafting Limbs / 1098 Bring Them to Life /
+--                           1099 Forged Friends / 1100 Best Fiends Forever;
+--   * the research costs    GarrTalentRank 1399-1403 (1500/5000/10000/12500/15000 x currency 1813 Reservoir
+--                           Anima @3600/43200/86400/86400/86400s) cross-checked against GarrTalentCost
+--                           4424-4428 / 6553-6568 (+6/12/22/40/70 x currency 1810 Redeemed Soul). Charged by
+--                           the generic Garrison talent engine, not by this feature;
+--   * "rank" is literal     SkillLine 2787 "Abominable Stitching" (CategoryID 11, AlternateVerb "Stitcher").
+--                           CriteriaTree 87447/87448 "Abominable Stitching to Rank 1" resolves to Criteria
+--                           49374, Type 198 (learn garrison talent), Asset 1096 - i.e. the client itself says
+--                           rank N == N researched tiers of tree 321. The server grants and ranks the skill;
+--   * the recipe set        the 66 SkillLineAbility rows of SkillLine 2787, grouped by TradeSkillCategory
+--                           children of 1478: 1477 Basic Constructs (12), 1479 Specialized Constructs (3),
+--                           1480 Consumables (9), 1481 Components (2), 1524 Specialty Items (3),
+--                           1523/1534/1535/1533 Fashion Accessories (37). All 66 are AcquireMethod 3
+--                           (NeverLearned) bar spell 325453, so the server is expected to teach them;
+--   * the recipe costs      SpellReagents, e.g. 325284 Chordy <- 1 x 183743 Malleable Flesh;
+--                           325451 Roseboil <- 10 x 178061 Malleable Flesh + 1 x 183744 Superior Parts;
+--                           338037 Iron Phillip <- 20 x 178061 + 20 x 171828 Laestrite Ore + 10 x 183744
+--                           + 1 x 183475 Indomitable Hide. Taken by the ordinary Spell::TakeReagents path;
+--   * the stable            CriteriaTree 88195 "Abominable Stitching - Build Abom" (15 construct bodies);
+--   * the dailies           CriteriaTree 87819 "Abominable Stitching - Things To Do While You're Dead"
+--                           (31 quests). All of them already exist in `integ_world.quest_template` under
+--                           QuestSortID -593 with their construct questgivers already linked
+--                           (creature_queststarter: Chordy 161270, Mama Tomalin 161678, Flytrap 158300,
+--                           Marz 158301, Naxx 158298, The Professor 159198, Iron Phillip 159199,
+--                           Toothpick 159212, Guillotine 159214, Sabrina 159226, Atticus 159238,
+--                           Gas Bag 159240, Roseboil 159241, Miru Soulblossom 167877).
+--
+-- What NO 68275 client row anywhere states: WHICH recipes each of the five ranks unlocks.
+--   * SkillLineAbility.MinSkillLineRank is 1 on all 66 rows;
+--   * TradeSkillCategory groups them by kind (Head/Shoulders/Back/Consumables), never by rank;
+--   * GarrTalentRank.PerkSpellID is 0 for all five ranks, so research grants no teaching spell;
+--   * no PlayerCondition in the build references GarrTalent 1096-1100, and SpellCastingRequirements is empty
+--     for every recipe;
+--   * the talent descriptions say how MANY constructs arrive per tier, in prose, but never name them.
+--
+-- That mapping is therefore CONTENT, and it is authored here rather than invented in C++. Until a row exists
+-- the engine is deliberately half-inert: the derived half still runs (a Necrolord who researches tier N gets
+-- SkillLine 2787 at rank N, so the Abominable Stitching profession appears and ranks up), but no recipe is
+-- taught and AbominationFactory::BuildConstruct answers ABOMINATION_FACTORY_ERROR_NO_RECIPE_DATA.
+--
+-- Authoring a row is validated at load: `spellId` MUST be a SkillLineAbility.Spell of SkillLine 2787 (so a row
+-- cannot invent a recipe the client does not publish) and `requiredRank` must be 1-5.
+--
+-- Columns:
+--   spellId       SkillLineAbility.Spell of a SkillLine 2787 row
+--   requiredRank  researched tiers of GarrTalentTree 321 needed before the recipe is taught (1-5)
+--
+-- Idempotent.
+--
+CREATE TABLE IF NOT EXISTS `garrison_abomination_recipe` (
+  `spellId`      INT UNSIGNED NOT NULL DEFAULT 0,
+  `requiredRank` TINYINT UNSIGNED NOT NULL DEFAULT 1,
+  PRIMARY KEY (`spellId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Abominable Stitching rank -> recipe unlocks (unauthored by design - see file header)';
+
+-- No INSERTs. Adding them is a content decision that needs a Shadowlands-era sniff, a 9.x client build whose
+-- Blizzard_AbominableStitching addon still shipped, or a design ruling. The 66 spell ids that each need a rank
+-- are exactly `SELECT Spell FROM SkillLineAbility WHERE SkillLine = 2787` in the 68275 client data.

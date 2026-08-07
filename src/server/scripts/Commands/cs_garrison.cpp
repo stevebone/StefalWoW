@@ -27,16 +27,19 @@ EndScriptData */
 #include "ChatCommand.h"
 #include "DB2Stores.h"
 #include "DB2Structure.h"
+#include "AbominationFactory.h"
 #include "Garrison.h"
 #include "GarrisonMgr.h"
 #include "QueensConservatory.h"
 #include "Player.h"
 #include "RBAC.h"
+#include "SharedDefines.h"
 #include "WorldSession.h"
 
 #include <iterator>
 #include <sstream>
 #include <unordered_map>
+#include <vector>
 
 using namespace Trinity::ChatCommands;
 
@@ -80,6 +83,13 @@ public:
             { "harvest",  HandleConservatoryHarvestCommand,  rbac::RBAC_PERM_COMMAND_GM, Console::No },
         };
 
+        static ChatCommandTable abominationCommandTable =
+        {
+            { "status", HandleAbominationStatusCommand, rbac::RBAC_PERM_COMMAND_GM, Console::No },
+            { "sync",   HandleAbominationSyncCommand,   rbac::RBAC_PERM_COMMAND_GM, Console::No },
+            { "build",  HandleAbominationBuildCommand,  rbac::RBAC_PERM_COMMAND_GM, Console::No },
+        };
+
         static ChatCommandTable garrisonCommandTable =
         {
             { "upgrade",   HandleGarrisonUpgradeCommand,   rbac::RBAC_PERM_COMMAND_GM, Console::No },
@@ -89,6 +99,7 @@ public:
             { "exit",      HandleGarrisonExitCommand,      rbac::RBAC_PERM_COMMAND_GM, Console::No },
             { "resettalents", HandleGarrisonResetTalentsCommand, rbac::RBAC_PERM_COMMAND_GM, Console::No },
             { "conservatory", conservatoryCommandTable },
+            { "abomination",  abominationCommandTable },
         };
 
         static ChatCommandTable commandTable =
@@ -526,6 +537,121 @@ public:
 
         handler->PSendSysMessage("Harvested pod {} for {} (rolled gameobject_loot_template {}, chosen by the "
             "pod's catalyst set).", uint32(plotId), target->GetName(), lootId);
+        return true;
+    }
+
+    // Abomination Factory (Necrolord unique sanctum feature, GarrTalentTree 321). Like the Conservatory, the
+    // 12.0.7 client has no opcode of its own for it - the whole thing rides on the generic garrison talent wire
+    // plus SkillLine 2787 "Abominable Stitching" and its 66 SkillLineAbility recipes. These commands exist so the
+    // engine can be driven and inspected before the Stitchyard NPCs (Rathan 167150, the 15 construct
+    // questgivers) are spawned.
+    static AbominationFactory* GetAbominationFactoryFor(ChatHandler* handler, Player* target)
+    {
+        Garrison* garrison = target->GetGarrison(GARRISON_TYPE_COVENANT);
+        if (!garrison)
+        {
+            handler->PSendSysMessage("{} has no covenant sanctum (GarrType 111).", target->GetName());
+            handler->SetSentErrorMessage(true);
+            return nullptr;
+        }
+
+        return &garrison->GetAbominationFactory();
+    }
+
+    static char const* AbominationErrorText(AbominationFactoryError error)
+    {
+        switch (error)
+        {
+            case ABOMINATION_FACTORY_OK:                        return "ok";
+            case ABOMINATION_FACTORY_ERROR_NOT_NECROLORD:       return "the character is not pledged to the Necrolords";
+            case ABOMINATION_FACTORY_ERROR_NOT_UNLOCKED:        return "GarrTalentTree 321 tier 1 (talent 1096 'Build a Buddy') is not researched";
+            case ABOMINATION_FACTORY_ERROR_UNKNOWN_RECIPE:      return "that spell is not a SkillLineAbility of SkillLine 2787 (Abominable Stitching)";
+            case ABOMINATION_FACTORY_ERROR_NOT_A_CONSTRUCT:     return "that recipe is not a construct body (its spell has no SPELL_EFFECT_KILL_CREDIT)";
+            case ABOMINATION_FACTORY_ERROR_NO_RECIPE_DATA:      return "world table `garrison_abomination_recipe` has no row for that recipe - no 12.0.7 client data says which Abominable Stitching rank unlocks it, so the mapping must be authored";
+            case ABOMINATION_FACTORY_ERROR_RANK_TOO_LOW:        return "that recipe needs a higher Abominable Stitching rank than the character has";
+            case ABOMINATION_FACTORY_ERROR_ALREADY_BUILT:       return "that construct is already in the stable";
+            default:                                            return "unknown error";
+        }
+    }
+
+    // .garrison abomination status
+    static bool HandleAbominationStatusCommand(ChatHandler* handler)
+    {
+        Player* target = handler->getSelectedPlayerOrSelf();
+        if (!target)
+        {
+            handler->SendSysMessage(LANG_PLAYER_NOT_FOUND);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        AbominationFactory* factory = GetAbominationFactoryFor(handler, target);
+        if (!factory)
+            return false;
+
+        handler->PSendSysMessage("Abomination Factory for {}: accessible {}, Abominable Stitching rank {} (skill {} value {}).",
+            target->GetName(), factory->IsAccessible() ? "yes" : "no", factory->GetRank(),
+            uint32(SKILL_ABOMINABLE_STITCHING), target->GetPureSkillValue(SKILL_ABOMINABLE_STITCHING));
+
+        std::vector<AbominationConstruct const*> constructs = factory->GetConstructs();
+        handler->PSendSysMessage("  stable: {} construct(s).", uint32(constructs.size()));
+        for (AbominationConstruct const* construct : constructs)
+            handler->PSendSysMessage("    recipe {} built at {}.", construct->RecipeSpellId, int64(construct->BuiltTime));
+
+        if (sGarrisonMgr.GetAbominationRecipes().empty())
+            handler->SendSysMessage("  world table `garrison_abomination_recipe` is empty - no recipe is taught "
+                "at any rank until the rank->recipe mapping is authored.");
+        else
+            handler->PSendSysMessage("  {} authored recipe unlock(s) loaded.", uint32(sGarrisonMgr.GetAbominationRecipes().size()));
+
+        return true;
+    }
+
+    // .garrison abomination sync   - re-run the rank -> skill line -> recipe pass without waiting for the tick.
+    static bool HandleAbominationSyncCommand(ChatHandler* handler)
+    {
+        Player* target = handler->getSelectedPlayerOrSelf();
+        if (!target)
+        {
+            handler->SendSysMessage(LANG_PLAYER_NOT_FOUND);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        AbominationFactory* factory = GetAbominationFactoryFor(handler, target);
+        if (!factory)
+            return false;
+
+        factory->RefreshSkillAndRecipes();
+        handler->PSendSysMessage("Re-synced {}'s Abominable Stitching: rank {}, skill value {}.",
+            target->GetName(), factory->GetRank(), target->GetPureSkillValue(SKILL_ABOMINABLE_STITCHING));
+        return true;
+    }
+
+    // .garrison abomination build <recipeSpellId>   - records a construct without charging its reagents.
+    static bool HandleAbominationBuildCommand(ChatHandler* handler, uint32 recipeSpellId)
+    {
+        Player* target = handler->getSelectedPlayerOrSelf();
+        if (!target)
+        {
+            handler->SendSysMessage(LANG_PLAYER_NOT_FOUND);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        AbominationFactory* factory = GetAbominationFactoryFor(handler, target);
+        if (!factory)
+            return false;
+
+        AbominationFactoryError result = factory->BuildConstruct(recipeSpellId);
+        if (result != ABOMINATION_FACTORY_OK)
+        {
+            handler->PSendSysMessage("Could not build: {}.", AbominationErrorText(result));
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        handler->PSendSysMessage("Added construct {} to {}'s stable.", recipeSpellId, target->GetName());
         return true;
     }
 };

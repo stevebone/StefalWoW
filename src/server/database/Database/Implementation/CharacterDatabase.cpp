@@ -864,6 +864,11 @@ void CharacterDatabaseConnection::DoPrepareStatements()
     PrepareStatement(CHAR_INS_CHARACTER_GARRISON_CONSERVATORY, "INSERT INTO character_garrison_conservatory (guid, plotId, wildseedEntry, plantedTime, maturesAt, catalyst1, catalyst2, catalyst3, catalyst4, state) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC);
     PrepareStatement(CHAR_DEL_CHARACTER_GARRISON_CONSERVATORY, "DELETE FROM character_garrison_conservatory WHERE guid = ?", CONNECTION_ASYNC);
 
+    // Abomination Factory construct stable. Same synchronous covenant-sanctum load path as the Conservatory.
+    PrepareStatement(CHAR_SEL_CHARACTER_GARRISON_ABOMINATION, "SELECT recipeSpellId, builtTime FROM character_garrison_abomination_factory WHERE guid = ?", CONNECTION_SYNCH);
+    PrepareStatement(CHAR_INS_CHARACTER_GARRISON_ABOMINATION, "INSERT INTO character_garrison_abomination_factory (guid, recipeSpellId, builtTime) VALUES (?, ?, ?)", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_DEL_CHARACTER_GARRISON_ABOMINATION, "DELETE FROM character_garrison_abomination_factory WHERE guid = ?", CONNECTION_ASYNC);
+
     // Black Market
     PrepareStatement(CHAR_SEL_BLACKMARKET_AUCTIONS, "SELECT marketId, currentBid, time, numBids, bidder FROM blackmarket_auctions", CONNECTION_SYNCH);
     PrepareStatement(CHAR_DEL_BLACKMARKET_AUCTIONS, "DELETE FROM blackmarket_auctions WHERE marketId = ?", CONNECTION_ASYNC);
