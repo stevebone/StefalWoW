@@ -2922,6 +2922,10 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         void ApplyConduitSpells();      // (re)apply spells for all currently-socketed conduits of the active soulbind
         void RemoveConduitSpells();     // strip conduit spells (on soulbind switch)
         int32 GetConduitSpell(uint32 conduitId) const;   // owned rank -> SoulbindConduitRank.SpellID (0 if none)
+        // Non-conduit soulbind trait nodes (GarrTalentRank.PerkSpellID on the 12 soulbind GarrTalentTrees). All 12
+        // trees live in the same GarrType 111 garrison, so like conduits these are scoped to the ACTIVE soulbind.
+        void ApplySoulbindTraitSpells();
+        void RemoveSoulbindTraitSpells();
 
         // Covenant renown.
         //

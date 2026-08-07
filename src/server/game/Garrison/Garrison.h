@@ -50,6 +50,21 @@ enum GarrisonSiteId : uint32
     GARR_SITE_COVENANT_SANCTUM  = 296   // Shadowlands covenant sanctum (GarrSiteLevel 837/838/839 -> maps 2222/2162/2236)
 };
 
+// GarrTalentTree.FeatureTypeIndex. For the covenant sanctum (GarrTypeID 111) this says which sanctum feature a
+// tree belongs to, and FeatureSubtypeIndex is then the CovenantID. Every non-covenant garrison type publishes
+// index 0 only, so these are safe to test on any tree.
+enum GarrTalentTreeFeatureType : uint8
+{
+    GARR_TALENT_FEATURE_ABILITIES           = 0,    // covenant class + signature abilities (trees 393/396/397/395)
+    GARR_TALENT_FEATURE_ANIMA_CONDUCTOR     = 1,    // trees 312/314/311/313
+    GARR_TALENT_FEATURE_TRANSPORT_NETWORK   = 2,    // trees 308/309/307/310
+    GARR_TALENT_FEATURE_COMMAND_TABLE       = 3,    // trees 316/317/315/318
+    GARR_TALENT_FEATURE_RESERVOIR           = 4,    // trees 327/326/328/329
+    GARR_TALENT_FEATURE_UNIQUE              = 5,    // trees 320/324/319/321
+    GARR_TALENT_FEATURE_SOULBIND            = 6,    // the 12 soulbind trees
+    GARR_TALENT_FEATURE_CHANNEL_ANIMA       = 7     // trees 345/348/346/347
+};
+
 enum GarrisonFactionIndex
 {
     GARRISON_FACTION_INDEX_HORDE    = 0,
@@ -459,6 +474,9 @@ public:
     Talent const* GetTalent(uint32 garrTalentID) const;
     std::unordered_map<uint32, Talent> const& GetAllTalents() const { return _talents; }
     void CompleteAllTalentResearch(bool sendUpdate = false);
+    // (Re)apply GarrTalentRank.PerkSpellID for every rank this garrison has already completed. Called on login,
+    // after the garrisons and the covenant/soulbind state are both loaded.
+    void ApplyAllTalentPerks();
 
     // Trophy system
     void AddTrophy(uint32 trophyID);
@@ -478,6 +496,17 @@ public:
 
 private:
     Map* FindMap() const;
+
+    // GarrTalentRank.PerkSpellID plumbing. A rank index is the 0-based index into the talent's rank list; a talent
+    // sitting at Rank N has completed rank indices [0, N).
+    void ApplyTalentRankPerk(uint32 garrTalentID, int32 rankIndex);
+    void RemoveTalentRankPerks(uint32 garrTalentID, int32 completedRanks);
+    // Channel Anima destinations are gated by their GarrTalent.PlayerConditionID on the Anima Conductor tiers.
+    // Returns true for every talent that is not a Channel Anima destination.
+    bool IsChannelAnimaTalentAvailable(GarrTalentEntry const* talentEntry) const;
+    // Covenant-scoped sanctum trees (GarrTalentTree.FeatureSubtypeIndex = CovenantID) may only be touched by a
+    // member of that covenant. Returns true for every tree that is not covenant-scoped.
+    bool IsTalentTreeOwnedByPlayerCovenant(GarrTalentTreeEntry const* treeEntry) const;
     void InitializePlots();
     GarrisonError CheckBuildingPlacement(uint32 garrPlotInstanceId, uint32 garrBuildingId) const;
     GarrisonError CheckBuildingRemoval(uint32 garrPlotInstanceId) const;

@@ -16,6 +16,7 @@
  */
 
 #include "Garrison.h"
+#include "ConditionMgr.h"
 #include "Containers.h"
 #include "Creature.h"
 #include "MotionMaster.h"
@@ -4507,6 +4508,124 @@ Garrison::Talent const* Garrison::GetTalent(uint32 garrTalentID) const
     return nullptr;
 }
 
+// GarrTalentRank.PerkSpellID is what turns a researched talent from a stored row into a real effect: the covenant
+// ability trees (393/396/397/395) publish the class + signature abilities there, and the soulbind trees publish
+// their non-conduit trait nodes there. Nothing in the core read the column before this.
+//
+// Two routing rules, both taken from the data:
+//  * GarrTalentRank.PerkPlayerConditionID filters the perk. The covenant "class ability" grant spells each carry
+//    13 SPELL_EFFECT_LEARN_GARR_TALENT effects (one per class talent) and every class talent's perk condition is a
+//    ClassMask test - e.g. talent 1564 Divine Toll -> PlayerCondition 42792 (ClassMask 2 = Paladin). Applying the
+//    condition is what makes one grant spell hand every class exactly its own ability.
+//  * Soulbind trait perks are transient. All 12 soulbind trees live in the same garrison, but only the ACTIVE
+//    soulbind's traits may be running, so they are applied as auras (like socketed conduits) and re-applied on
+//    login / soulbind switch. Every other tree's perk is a permanently learned spell.
+void Garrison::ApplyTalentRankPerk(uint32 garrTalentID, int32 rankIndex)
+{
+    GarrTalentEntry const* talentEntry = sGarrTalentStore.LookupEntry(garrTalentID);
+    if (!talentEntry)
+        return;
+
+    std::vector<GarrTalentRankEntry const*> const* ranks = sGarrisonMgr.GetTalentRanksForTalent(garrTalentID);
+    if (!ranks || rankIndex < 0 || rankIndex >= static_cast<int32>(ranks->size()))
+        return;
+
+    GarrTalentRankEntry const* rankEntry = (*ranks)[rankIndex];
+    if (rankEntry->PerkSpellID <= 0)
+        return;
+
+    uint32 const perkSpellId = uint32(rankEntry->PerkSpellID);
+    if (!sSpellMgr->GetSpellInfo(perkSpellId, DIFFICULTY_NONE))
+        return;
+
+    if (rankEntry->PerkPlayerConditionID > 0)
+        if (PlayerConditionEntry const* perkCondition = sPlayerConditionStore.LookupEntry(uint32(rankEntry->PerkPlayerConditionID)))
+            if (!ConditionMgr::IsPlayerMeetingCondition(_owner, perkCondition))
+                return;
+
+    GarrTalentTreeEntry const* treeEntry = sGarrTalentTreeStore.LookupEntry(talentEntry->GarrTalentTreeID);
+    if (treeEntry && treeEntry->FeatureTypeIndex == GARR_TALENT_FEATURE_SOULBIND)
+    {
+        SoulbindEntry const* soulbind = sSoulbindStore.LookupEntry(_owner->GetActiveSoulbind());
+        if (!soulbind || uint32(soulbind->GarrTalentTreeID) != talentEntry->GarrTalentTreeID)
+            return;
+
+        if (!_owner->HasAura(perkSpellId))
+            _owner->CastSpell(_owner, perkSpellId, true);
+        return;
+    }
+
+    _owner->LearnSpell(perkSpellId, false);
+}
+
+// Strip every perk a talent had granted. `completedRanks` is the talent's Rank, i.e. rank indices [0, Rank).
+// Deliberately NOT gated on PerkPlayerConditionID - a condition that has since stopped passing must not leave a
+// perk stuck on the player.
+void Garrison::RemoveTalentRankPerks(uint32 garrTalentID, int32 completedRanks)
+{
+    GarrTalentEntry const* talentEntry = sGarrTalentStore.LookupEntry(garrTalentID);
+    if (!talentEntry)
+        return;
+
+    std::vector<GarrTalentRankEntry const*> const* ranks = sGarrisonMgr.GetTalentRanksForTalent(garrTalentID);
+    if (!ranks)
+        return;
+
+    GarrTalentTreeEntry const* treeEntry = sGarrTalentTreeStore.LookupEntry(talentEntry->GarrTalentTreeID);
+    bool const isSoulbindTrait = treeEntry && treeEntry->FeatureTypeIndex == GARR_TALENT_FEATURE_SOULBIND;
+
+    int32 const last = std::min<int32>(completedRanks, static_cast<int32>(ranks->size()));
+    for (int32 i = 0; i < last; ++i)
+    {
+        GarrTalentRankEntry const* rankEntry = (*ranks)[i];
+        if (rankEntry->PerkSpellID <= 0)
+            continue;
+
+        uint32 const perkSpellId = uint32(rankEntry->PerkSpellID);
+        if (isSoulbindTrait)
+            _owner->RemoveAurasDueToSpell(perkSpellId);
+        else
+            _owner->RemoveSpell(perkSpellId);
+    }
+}
+
+bool Garrison::IsChannelAnimaTalentAvailable(GarrTalentEntry const* talentEntry) const
+{
+    if (!talentEntry || !talentEntry->PlayerConditionID)
+        return true;
+
+    GarrTalentTreeEntry const* treeEntry = sGarrTalentTreeStore.LookupEntry(talentEntry->GarrTalentTreeID);
+    if (!treeEntry || treeEntry->FeatureTypeIndex != GARR_TALENT_FEATURE_CHANNEL_ANIMA)
+        return true;
+
+    PlayerConditionEntry const* condition = sPlayerConditionStore.LookupEntry(talentEntry->PlayerConditionID);
+    if (!condition)
+        return true;
+
+    return ConditionMgr::IsPlayerMeetingCondition(_owner, condition);
+}
+
+// Every covenant-scoped sanctum tree is keyed FeatureTypeIndex (the feature) x FeatureSubtypeIndex (the CovenantID):
+// e.g. Reservoir Upgrades 327/326/328/329 -> covenants 1/2/3/4, unique features 320/324/319/321, the four ability
+// trees and the 12 soulbind trees. The type-111 trees that are NOT covenant content (Box of Many Things, Cypher
+// Research, Dragonriding, ...) all publish FeatureSubtypeIndex 0, so a non-zero value is an exact covenant tag.
+// Without this check any client could research another covenant's sanctum or take a foreign soulbind's traits -
+// the same class of hole as the covenant-flip through HandleActivateSoulbind.
+bool Garrison::IsTalentTreeOwnedByPlayerCovenant(GarrTalentTreeEntry const* treeEntry) const
+{
+    if (!treeEntry || treeEntry->GarrTypeID != static_cast<int8>(GARRISON_TYPE_COVENANT) || !treeEntry->FeatureSubtypeIndex)
+        return true;
+
+    return uint32(treeEntry->FeatureSubtypeIndex) == _owner->GetActiveCovenant();
+}
+
+void Garrison::ApplyAllTalentPerks()
+{
+    for (auto const& [talentId, talent] : _talents)
+        for (int32 rankIndex = 0; rankIndex < talent.Rank; ++rankIndex)
+            ApplyTalentRankPerk(talentId, rankIndex);
+}
+
 void Garrison::CompleteAllTalentResearch(bool sendUpdate /*= false*/)
 {
     for (auto& [talentId, talent] : _talents)
@@ -4519,6 +4638,9 @@ void Garrison::CompleteAllTalentResearch(bool sendUpdate /*= false*/)
 
         talent.Rank++;
         talent.ResearchStartTime = 0;
+
+        // The rank that just finished is what grants its GarrTalentRank.PerkSpellID.
+        ApplyTalentRankPerk(talentId, talent.Rank - 1);
 
         // CriteriaType::CompleteResearchGarrisonTalent (198, Asset = GarrTalentID) and
         // CriteriaType::CompleteResearchAnyGarrisonTalent (197, no asset - gated by ModifierTree
@@ -4572,6 +4694,20 @@ uint32 Garrison::LearnTalent(uint32 garrTalentID, bool isTemporary)
             return GARRISON_ERROR_INVALID_TALENT;
     }
 
+    // Sanctum feature gate: the Channel Anima destinations (GarrTalentTree.FeatureTypeIndex 7) are the one sanctum
+    // chain whose GarrTalent.PlayerConditionID is a pure GarrisonTalentResearched (ModifierTree type 202) test on
+    // the covenant's Anima Conductor tiers - e.g. talent 1237 Purity's Pinnacle -> PlayerCondition 79227 ->
+    // ModifierTree 132493 -> "talent 1062 (Anima Conductor tier 1) researched". That is fully evaluable offline and
+    // is what gives the Anima Conductor an actual effect: tier 1 opens 2 destinations, tier 2 the next 2, tier 3 the
+    // last 2. Other sanctum/order-hall trees carry level/ContentTuning and campaign-quest conditions that TC cannot
+    // evaluate faithfully for a 12.0.7 character, so their PlayerConditionID is deliberately left unenforced.
+    if (!IsChannelAnimaTalentAvailable(talentEntry))
+        return GARRISON_ERROR_INVALID_TALENT;
+
+    // A covenant-scoped tree belongs to exactly one covenant.
+    if (!IsTalentTreeOwnedByPlayerCovenant(treeEntry))
+        return GARRISON_ERROR_INVALID_TALENT;
+
     // Learn the talent at rank 0 (researching to rank 1 happens via ResearchTalent)
     Talent& talent = _talents[garrTalentID];
     talent.GarrTalentID = garrTalentID;
@@ -4580,6 +4716,27 @@ uint32 Garrison::LearnTalent(uint32 garrTalentID, bool isTemporary)
     talent.Flags = isTemporary ? GARRISON_TALENT_FLAG_TEMPORARY : GARRISON_TALENT_FLAG_NONE;
     talent.SoulbindConduitID = 0;
     talent.SoulbindConduitRank = 0;
+
+    // A rank that costs nothing and takes no time has no research step at all - picking it IS having it. That is how
+    // the covenant ability trees (393/396/397/395) and the soulbind trait nodes are authored (cost 0 / gold 0 /
+    // duration 0), and it is the reason SPELL_EFFECT_LEARN_GARR_TALENT -> LearnTalent must land on rank 1: the quest
+    // reward spells 337187/337059/337190/337191 (class) and 328604/320846/336692/337388 (signature) would otherwise
+    // leave the talent parked at rank 0 forever and never grant their PerkSpellID.
+    // Outside the covenant sanctum this affects only 11 rows in unused scratch trees (151, 468).
+    if (std::vector<GarrTalentRankEntry const*> const* ranks = sGarrisonMgr.GetTalentRanksForTalent(garrTalentID))
+    {
+        if (!ranks->empty())
+        {
+            GarrTalentRankEntry const* firstRank = (*ranks)[0];
+            if (firstRank->ResearchCost <= 0 && firstRank->ResearchGoldCost <= 0 && firstRank->ResearchDurationSecs <= 0)
+            {
+                talent.Rank = 1;
+                ApplyTalentRankPerk(garrTalentID, 0);
+                _owner->UpdateCriteria(CriteriaType::CompleteResearchGarrisonTalent, garrTalentID, talent.Rank);
+                _owner->UpdateCriteria(CriteriaType::CompleteResearchAnyGarrisonTalent, garrTalentID, talent.Rank);
+            }
+        }
+    }
 
     // Send result
     WorldPackets::Garrison::GarrisonResearchTalentResult result;
@@ -4603,6 +4760,13 @@ uint32 Garrison::ResearchTalent(uint32 garrTalentID)
     // Verify the talent tree belongs to this garrison type
     GarrTalentTreeEntry const* treeEntry = sGarrTalentTreeStore.LookupEntry(talentEntry->GarrTalentTreeID);
     if (!treeEntry || treeEntry->GarrTypeID != static_cast<int8>(GetType()))
+        return GARRISON_ERROR_INVALID_TALENT;
+
+    // Anima Conductor gate for the Channel Anima destinations, and the covenant-ownership check (see LearnTalent).
+    if (!IsChannelAnimaTalentAvailable(talentEntry))
+        return GARRISON_ERROR_INVALID_TALENT;
+
+    if (!IsTalentTreeOwnedByPlayerCovenant(treeEntry))
         return GARRISON_ERROR_INVALID_TALENT;
 
     // Must already be learned (or learn it now if not)
@@ -4679,7 +4843,9 @@ uint32 Garrison::ResearchTalent(uint32 garrTalentID)
         talent.Rank++;
         talent.ResearchStartTime = 0;
 
-        // An instant research never passes through CompleteAllTalentResearch, so credit the completion here.
+        // An instant research never passes through CompleteAllTalentResearch, so grant the perk and credit the
+        // completion here.
+        ApplyTalentRankPerk(garrTalentID, talent.Rank - 1);
         _owner->UpdateCriteria(CriteriaType::CompleteResearchGarrisonTalent, garrTalentID, talent.Rank);
         _owner->UpdateCriteria(CriteriaType::CompleteResearchAnyGarrisonTalent, garrTalentID, talent.Rank);
     }
@@ -4813,6 +4979,9 @@ uint32 Garrison::ResetTalentTree(uint32 garrTalentTreeID)
         removedTalents.push_back(talentId);
         if (talent.SoulbindConduitID)
             hadSocketData = true;
+
+        // Take back everything the talent's completed ranks granted (GarrTalentRank.PerkSpellID).
+        RemoveTalentRankPerks(talentId, talent.Rank);
     }
 
     if (removedTalents.empty())

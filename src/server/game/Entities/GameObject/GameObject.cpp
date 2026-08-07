@@ -3470,6 +3470,29 @@ void GameObject::Use(Unit* user, bool ignoreCastInProgress /*= false*/)
             player->SendDirectMessage(gameObjectUILink.Write());
             return;
         }
+        case GAMEOBJECT_TYPE_GARR_TALENT_TREE:              //58
+        {
+            // A gameobject that opens a garrison talent tree directly instead of through a gossip option. The four
+            // covenant Anima Conductors are these: 328302 (Kyrian, tree 345), 350776 (Venthyr, 348),
+            // 350777 (Night Fae, 346), 348675 (Necrolord, 347) - each one's Data1 is its Channel Anima tree.
+            // The client resolves the tree from the gameobject's own GameObjects.db2 row, exactly as it resolves it
+            // from GossipNPCOption.db2 on the gossip path (Player::OnGossipSelect), so the server only has to open
+            // the GarrTalent interaction on this object. Without this the conductors were inert.
+            Player* player = user->ToPlayer();
+            if (!player)
+                return;
+
+            if (!GetGOInfo()->garrTalentTree.GarrTalentTreeID)
+                return;
+
+            player->PlayerTalkClass->GetInteractionData().StartInteraction(GetGUID(), PlayerInteractionType::GarrTalent);
+
+            WorldPackets::GameObject::GameObjectInteraction openTalentTree;
+            openTalentTree.ObjectGUID = GetGUID();
+            openTalentTree.InteractionType = PlayerInteractionType::GarrTalent;
+            player->SendDirectMessage(openTalentTree.Write());
+            return;
+        }
         case GAMEOBJECT_TYPE_GATHERING_NODE:                //50
         {
             Player* player = user->ToPlayer();

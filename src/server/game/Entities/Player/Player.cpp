@@ -18970,6 +18970,12 @@ bool Player::LoadFromDB(ObjectGuid guid, CharacterDatabaseQueryHolder const& hol
     if (m_activeCovenantId && !GetGarrison(GARRISON_TYPE_COVENANT))
         CreateGarrison(GARR_SITE_COVENANT_SANCTUM);
 
+    // Re-apply GarrTalentRank.PerkSpellID for every already-researched talent. Permanently learned perks are
+    // idempotent here; the soulbind trait perks are auras and genuinely need re-casting, and this is the first
+    // point where both the garrisons and the covenant/soulbind state (_LoadCovenant, above) are loaded.
+    for (auto const& [garrType, garrison] : GetGarrisons())
+        garrison->ApplyAllTalentPerks();
+
     _InitHonorLevelOnLoadFromDB(fields.honor, fields.honorLevel);
 
     _restMgr->LoadRestBonus(REST_TYPE_HONOR, fields.honorRestState, fields.honorRestBonus);
@@ -20822,8 +20828,10 @@ void Player::ActivateSoulbind(SoulbindEntry const* soulbind)
     if (!soulbind)
         return;
 
-    // Switching soulbinds changes the active tree, so strip the previously-applied conduit spells first.
+    // Switching soulbinds changes the active tree, so strip the previously-applied conduit spells and trait perks
+    // first - both are scoped to the tree that is about to stop being active.
     RemoveConduitSpells();
+    RemoveSoulbindTraitSpells();
 
     // The active covenant is NOT derived from the soulbind. It is set by the covenant-choice flow
     // (SPELL_EFFECT_SET_COVENANT -> SetActiveCovenant). Deriving it here let any client free-switch covenant by
@@ -20839,8 +20847,9 @@ void Player::ActivateSoulbind(SoulbindEntry const* soulbind)
     stmt->setUInt32(2, m_activeSoulbindId);
     CharacterDatabase.Execute(stmt);
 
-    // Re-apply the conduits socketed into the newly-active soulbind's tree.
+    // Re-apply the conduits socketed into, and the trait nodes taken in, the newly-active soulbind's tree.
     ApplyConduitSpells();
+    ApplySoulbindTraitSpells();
 }
 
 void Player::ApplyCovenantSkillLines()
@@ -21098,6 +21107,70 @@ void Player::RemoveConduitSpells()
         if (int32 spellId = GetConduitSpell(socket.first))
             RemoveAurasDueToSpell(uint32(spellId));
     }
+}
+
+// Walk the active soulbind's GarrTalentTree and apply/remove the PerkSpellID of every trait node the character has
+// already taken. Conduits are the sockets on that same tree (ApplyConduitSpells above); these are the non-socket
+// nodes, e.g. Pelagos (tree 357): 328266 Combat Meditation, 328261 Focusing Mantra, 329786 Road of Trials,
+// 329777 Phial of Patience, 328265, 328263, 328257, 351146, 351147, 351149.
+// Selecting one of these nodes is a free, instant GarrTalent (cost 0 / duration 0), so Garrison::LearnTalent puts it
+// straight at rank 1 - the point where its perk becomes live.
+template<typename Action>
+static void ForEachActiveSoulbindTraitPerk(Player* player, uint32 activeSoulbindId, Action action)
+{
+    SoulbindEntry const* soulbind = sSoulbindStore.LookupEntry(activeSoulbindId);
+    if (!soulbind)
+        return;
+
+    Garrison const* garrison = player->GetGarrison(GARRISON_TYPE_COVENANT);
+    if (!garrison)
+        return;
+
+    uint32 const treeId = uint32(soulbind->GarrTalentTreeID);
+    for (auto const& [garrTalentId, talent] : garrison->GetAllTalents())
+    {
+        if (talent.Rank < 1)
+            continue;
+
+        GarrTalentEntry const* talentEntry = sGarrTalentStore.LookupEntry(garrTalentId);
+        if (!talentEntry || talentEntry->GarrTalentTreeID != treeId)
+            continue;
+
+        std::vector<GarrTalentRankEntry const*> const* ranks = sGarrisonMgr.GetTalentRanksForTalent(garrTalentId);
+        if (!ranks)
+            continue;
+
+        int32 const last = std::min<int32>(talent.Rank, static_cast<int32>(ranks->size()));
+        for (int32 i = 0; i < last; ++i)
+            if ((*ranks)[i]->PerkSpellID > 0)
+                action(uint32((*ranks)[i]->PerkSpellID), (*ranks)[i]);
+    }
+}
+
+void Player::ApplySoulbindTraitSpells()
+{
+    ForEachActiveSoulbindTraitPerk(this, m_activeSoulbindId, [this](uint32 spellId, GarrTalentRankEntry const* rankEntry)
+    {
+        if (rankEntry->PerkPlayerConditionID > 0)
+            if (PlayerConditionEntry const* perkCondition = sPlayerConditionStore.LookupEntry(uint32(rankEntry->PerkPlayerConditionID)))
+                if (!ConditionMgr::IsPlayerMeetingCondition(this, perkCondition))
+                    return;
+
+        if (!sSpellMgr->GetSpellInfo(spellId, DIFFICULTY_NONE))
+            return;
+
+        if (!HasAura(spellId))
+            CastSpell(this, spellId, true);
+    });
+}
+
+void Player::RemoveSoulbindTraitSpells()
+{
+    // Unconditional: a perk condition that has stopped passing must not leave the aura stuck on the player.
+    ForEachActiveSoulbindTraitPerk(this, m_activeSoulbindId, [this](uint32 spellId, GarrTalentRankEntry const* /*rankEntry*/)
+    {
+        RemoveAurasDueToSpell(spellId);
+    });
 }
 
 /*********************************************************/
