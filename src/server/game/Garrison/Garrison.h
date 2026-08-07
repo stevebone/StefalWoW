@@ -21,6 +21,7 @@
 #include "AbominationFactory.h"
 #include "Define.h"
 #include "DatabaseEnvFwd.h"
+#include "EmberCourt.h"
 #include "GarrisonPackets.h"
 #include "Optional.h"
 #include "PathOfAscension.h"
@@ -525,6 +526,11 @@ public:
     PathOfAscension& GetPathOfAscension() { return _pathOfAscension; }
     PathOfAscension const& GetPathOfAscension() const { return _pathOfAscension; }
 
+    // The Ember Court - the Venthyr unique sanctum feature (GarrTalentTree 324). Only meaningful on a
+    // GARRISON_TYPE_COVENANT garrison owned by a Venthyr character; it reports zero guest slots otherwise.
+    EmberCourt& GetEmberCourt() { return _emberCourt; }
+    EmberCourt const& GetEmberCourt() const { return _emberCourt; }
+
     void BuildInfoPacket(WorldPackets::Garrison::GarrisonInfo& garrison) const;
     void SendRemoteInfo() const;
     void SendInfo() const;
@@ -615,6 +621,9 @@ private:
 
     // Kyrian unique sanctum feature; inert for every other garrison type.
     PathOfAscension _pathOfAscension;
+
+    // Venthyr unique sanctum feature; inert for every other garrison type.
+    EmberCourt _emberCourt;
 
     // Temporary storage for BuildInfoPacket (mission copies with cleared inline rewards)
     mutable std::vector<WorldPackets::Garrison::GarrisonMission> _infoMissions;

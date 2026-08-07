@@ -183,6 +183,7 @@ void GarrisonMgr::Initialize()
     LoadConservatoryYields();
     LoadAbominationRecipes();
     LoadAscensionMemories();
+    LoadEmberCourtGuests();
 }
 
 // Class-hall / order-hall (and any non-plot garrison) troop recruiters aren't garrison plot buildings, so the
@@ -700,6 +701,132 @@ AscensionMemoryTemplate const* GarrisonMgr::GetAscensionMemory(uint32 memoryId) 
 {
     auto itr = _ascensionMemories.find(memoryId);
     return itr != _ascensionMemories.end() ? &itr->second : nullptr;
+}
+
+// The Ember Court (Venthyr unique sanctum feature, GarrTalentTree 324).
+//
+// Almost the whole feature is published by the 12.0.7.68275 client and is read straight out of it - the five
+// talents 1111-1115 with their guest-slot wording, scenario 1791 and its four steps, AreaTable 13329
+// "SinfallScenario", the sixteen guests (CriteriaTree 87983 cross-checked against the sixteen "RSVP: <Guest>"
+// quests in `integ_world`), and the five attribute axes (CriteriaTree 88024-88033 + UiWidgetVisualization
+// 1435-1440), the five-rung mood ladder (SpellName 327199/327200/327201/327781/327202 + the "Mood: <Rung>"
+// strings in UiWidgetStringSource), and every guest's LIKES (that guest's ItemSparse mood-icon item, whose
+// Description_lang is a literal "Likes: <poles>" list). The single thing NO row in the build states is what
+// each guest DISLIKES - only "Likes:" strings exist - so that, and only that, is authored here. An empty
+// table is a perfectly normal state: a guest simply has no dislike, and nothing is inferred from its likes.
+void GarrisonMgr::LoadEmberCourtGuests()
+{
+    _emberCourtGuests.clear();
+    _emberCourtVenueAuthored = false;
+
+    // Does this world DB actually instantiate the Ember Court? A scenario only runs if `scenarios` names it
+    // for the map AND the venue has something in it. Both halves are checked so a half-authored Court cannot
+    // report itself as playable.
+    if (QueryResult venue = WorldDatabase.PQuery("SELECT "
+        "(SELECT COUNT(*) FROM scenarios WHERE map = {}), "
+        "(SELECT COUNT(*) FROM creature WHERE areaId = {})", uint32(EMBER_COURT_MAP_ID), uint32(EMBER_COURT_AREA_ID)))
+    {
+        Field* fields = venue->Fetch();
+        _emberCourtVenueAuthored = fields[0].GetUInt64() > 0 && fields[1].GetUInt64() > 0;
+    }
+
+    if (!_emberCourtVenueAuthored)
+        TC_LOG_INFO("server.loading", ">> The Ember Court: the venue (scenario {} in area {} on map {}) is not "
+            "authored in this world DB - no `scenarios` row and/or no spawns. Courts will be refused rather "
+            "than started.", uint32(EMBER_COURT_SCENARIO_ID), uint32(EMBER_COURT_AREA_ID), uint32(EMBER_COURT_MAP_ID));
+
+    QueryResult result = WorldDatabase.Query("SELECT guestIndex, dislikedAttribute, dislikedPole "
+        "FROM garrison_ember_court_guest");
+    if (!result)
+    {
+        TC_LOG_INFO("server.loading", ">> Loaded 0 Ember Court guest dislikes. DB table "
+            "`garrison_ember_court_guest` is empty - the 12.0.7 build publishes no dislikes, so this is the "
+            "expected state; every guest's LIKES are client data and are already loaded.");
+        return;
+    }
+
+    uint32 count = 0;
+    do
+    {
+        Field* fields = result->Fetch();
+        EmberCourtGuestTemplate guest;
+        guest.GuestIndex        = fields[0].GetUInt8();
+        guest.DislikedAttribute = fields[1].GetUInt8();
+        guest.DislikedPole      = fields[2].GetUInt8();
+
+        // The roster is fixed at sixteen by the client (CriteriaTree 87983 has exactly sixteen children); an
+        // index outside it names nobody.
+        if (!EmberCourt::GetGuestInfo(guest.GuestIndex))
+        {
+            TC_LOG_ERROR("sql.sql", "Table `garrison_ember_court_guest` has guestIndex {} but the client roster "
+                "(CriteriaTree 87983) only has {} guests, 0-{}; row skipped.", uint32(guest.GuestIndex),
+                uint32(EMBER_COURT_GUEST_COUNT), uint32(EMBER_COURT_GUEST_COUNT - 1));
+            continue;
+        }
+
+        struct { uint8 attribute; uint8 pole; char const* what; } const axes[1] =
+        {
+            { guest.DislikedAttribute, guest.DislikedPole, "disliked" }
+        };
+
+        bool badAttribute = false;
+        for (auto const& [attribute, pole, what] : axes)
+        {
+            if (attribute > EMBER_COURT_ATTRIBUTE_MAX)
+            {
+                TC_LOG_ERROR("sql.sql", "Table `garrison_ember_court_guest` row {} has {}Attribute {} outside "
+                    "0-{}; row skipped.", uint32(guest.GuestIndex), what, uint32(attribute),
+                    uint32(EMBER_COURT_ATTRIBUTE_MAX));
+                badAttribute = true;
+                break;
+            }
+
+            if (pole > EMBER_COURT_POLE_HIGH)
+            {
+                TC_LOG_ERROR("sql.sql", "Table `garrison_ember_court_guest` row {} has {}Pole {} outside 0-2 "
+                    "(0 none, 1 low, 2 high); row skipped.", uint32(guest.GuestIndex), what, uint32(pole));
+                badAttribute = true;
+                break;
+            }
+
+            // An axis without an end, or an end without an axis, cannot be evaluated either way.
+            if ((attribute == EMBER_COURT_ATTRIBUTE_NONE) != (pole == EMBER_COURT_POLE_NONE))
+            {
+                TC_LOG_ERROR("sql.sql", "Table `garrison_ember_court_guest` row {} sets {}Attribute {} with "
+                    "{}Pole {} - an attribute and a pole must both be set or both be 0; row skipped.",
+                    uint32(guest.GuestIndex), what, uint32(attribute), what, uint32(pole));
+                badAttribute = true;
+                break;
+            }
+        }
+
+        if (badAttribute)
+            continue;
+
+        // A guest cannot dislike the very pole its own client-published "Likes:" list names.
+        if (guest.DislikedAttribute != EMBER_COURT_ATTRIBUTE_NONE
+            && EmberCourt::IsAttributeLiked(guest.GuestIndex, EmberCourtAttribute(guest.DislikedAttribute),
+                EmberCourtAttributePole(guest.DislikedPole)))
+        {
+            TC_LOG_ERROR("sql.sql", "Table `garrison_ember_court_guest` row {} makes the guest dislike {} {}, "
+                "but the client's own 'Likes:' list for them says they like it; row skipped.",
+                uint32(guest.GuestIndex),
+                EmberCourt::GetAttributePoleName(EmberCourtAttribute(guest.DislikedAttribute), EmberCourtAttributePole(guest.DislikedPole)),
+                EmberCourt::GetAttributeName(EmberCourtAttribute(guest.DislikedAttribute)));
+            continue;
+        }
+
+        _emberCourtGuests[guest.GuestIndex] = guest;
+        ++count;
+    } while (result->NextRow());
+
+    TC_LOG_INFO("server.loading", ">> Loaded {} Ember Court guest dislikes.", count);
+}
+
+EmberCourtGuestTemplate const* GarrisonMgr::GetEmberCourtGuest(uint8 guestIndex) const
+{
+    auto itr = _emberCourtGuests.find(guestIndex);
+    return itr != _emberCourtGuests.end() ? &itr->second : nullptr;
 }
 
 void GarrisonMgr::LoadOrderHallStandards()

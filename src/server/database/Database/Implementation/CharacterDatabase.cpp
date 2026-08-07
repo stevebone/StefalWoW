@@ -874,6 +874,11 @@ void CharacterDatabaseConnection::DoPrepareStatements()
     PrepareStatement(CHAR_INS_CHARACTER_GARRISON_ASCENSION, "INSERT INTO character_garrison_path_of_ascension (guid, memoryId, capturedTime, highestTrialWon, lastCompletedTime) VALUES (?, ?, ?, ?, ?)", CONNECTION_ASYNC);
     PrepareStatement(CHAR_DEL_CHARACTER_GARRISON_ASCENSION, "DELETE FROM character_garrison_path_of_ascension WHERE guid = ?", CONNECTION_ASYNC);
 
+    // The Ember Court (Venthyr unique sanctum feature, GarrTalentTree 324)
+    PrepareStatement(CHAR_SEL_CHARACTER_GARRISON_EMBER_COURT, "SELECT guestIndex, timesHosted, highestMood, lastHostedTime, invited, courtsHeld, lastCourtTime FROM character_garrison_ember_court WHERE guid = ?", CONNECTION_SYNCH);
+    PrepareStatement(CHAR_INS_CHARACTER_GARRISON_EMBER_COURT, "INSERT INTO character_garrison_ember_court (guid, guestIndex, timesHosted, highestMood, lastHostedTime, invited, courtsHeld, lastCourtTime) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_DEL_CHARACTER_GARRISON_EMBER_COURT, "DELETE FROM character_garrison_ember_court WHERE guid = ?", CONNECTION_ASYNC);
+
     // Black Market
     PrepareStatement(CHAR_SEL_BLACKMARKET_AUCTIONS, "SELECT marketId, currentBid, time, numBids, bidder FROM blackmarket_auctions", CONNECTION_SYNCH);
     PrepareStatement(CHAR_DEL_BLACKMARKET_AUCTIONS, "DELETE FROM blackmarket_auctions WHERE marketId = ?", CONNECTION_ASYNC);

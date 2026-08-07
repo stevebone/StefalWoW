@@ -28,8 +28,10 @@ EndScriptData */
 #include "DB2Stores.h"
 #include "DB2Structure.h"
 #include "AbominationFactory.h"
+#include "EmberCourt.h"
 #include "Garrison.h"
 #include "GarrisonMgr.h"
+#include "Optional.h"
 #include "PathOfAscension.h"
 #include "QueensConservatory.h"
 #include "Player.h"
@@ -99,6 +101,16 @@ public:
             { "complete", HandleAscensionCompleteCommand, rbac::RBAC_PERM_COMMAND_GM, Console::No },
         };
 
+        static ChatCommandTable emberCourtCommandTable =
+        {
+            { "status",   HandleEmberCourtStatusCommand,   rbac::RBAC_PERM_COMMAND_GM, Console::No },
+            { "guests",   HandleEmberCourtGuestsCommand,   rbac::RBAC_PERM_COMMAND_GM, Console::No },
+            { "invite",   HandleEmberCourtInviteCommand,   rbac::RBAC_PERM_COMMAND_GM, Console::No },
+            { "uninvite", HandleEmberCourtUninviteCommand, rbac::RBAC_PERM_COMMAND_GM, Console::No },
+            { "start",    HandleEmberCourtStartCommand,    rbac::RBAC_PERM_COMMAND_GM, Console::No },
+            { "complete", HandleEmberCourtCompleteCommand, rbac::RBAC_PERM_COMMAND_GM, Console::No },
+        };
+
         static ChatCommandTable garrisonCommandTable =
         {
             { "upgrade",   HandleGarrisonUpgradeCommand,   rbac::RBAC_PERM_COMMAND_GM, Console::No },
@@ -110,6 +122,7 @@ public:
             { "conservatory", conservatoryCommandTable },
             { "abomination",  abominationCommandTable },
             { "ascension",    ascensionCommandTable },
+            { "embercourt",   emberCourtCommandTable },
         };
 
         static ChatCommandTable commandTable =
@@ -833,6 +846,251 @@ public:
         handler->PSendSysMessage("Recorded {} against memory {} for {} (kill credit awarded, total wins {}).",
             PathOfAscension::GetTrialName(AscensionTrial(trial)), memoryId, target->GetName(),
             ascension->GetTotalTrialWins());
+        return true;
+    }
+
+    // The Ember Court (Venthyr unique sanctum feature, GarrTalentTree 324). As with the other three unique
+    // features the 12.0.7 client has no opcode of its own for it: the upgrade tree rides the generic
+    // garrison-talent wire, and the party is scenario 1791 in AreaTable 13329 "The Ember Court" (map 2222)
+    // driven by UIWidget sets 459/461. These commands exist so the engine can be driven and inspected before
+    // the venue is spawned and the per-guest preferences authored.
+    static EmberCourt* GetEmberCourtFor(ChatHandler* handler, Player* target)
+    {
+        Garrison* garrison = target->GetGarrison(GARRISON_TYPE_COVENANT);
+        if (!garrison)
+        {
+            handler->PSendSysMessage("{} has no covenant sanctum (GarrType 111).", target->GetName());
+            handler->SetSentErrorMessage(true);
+            return nullptr;
+        }
+
+        return &garrison->GetEmberCourt();
+    }
+
+    static char const* EmberCourtErrorText(EmberCourtError error)
+    {
+        switch (error)
+        {
+            case EMBER_COURT_OK:                            return "ok";
+            case EMBER_COURT_ERROR_NOT_VENTHYR:             return "the character is not pledged to the Venthyr";
+            case EMBER_COURT_ERROR_NOT_UNLOCKED:            return "GarrTalentTree 324 tier 0 (talent 1111 'A New Court') is not researched";
+            case EMBER_COURT_ERROR_UNKNOWN_GUEST:           return "guest index must be 0-15 (CriteriaTree 87983 'Be Our Guest' has exactly sixteen children)";
+            case EMBER_COURT_ERROR_GUEST_NOT_UNLOCKED:      return "that guest's 'RSVP: <Guest>' quest has not been completed";
+            case EMBER_COURT_ERROR_GUEST_ALREADY_INVITED:   return "that guest is already on the guest list";
+            case EMBER_COURT_ERROR_GUEST_NOT_INVITED:       return "that guest is not on the guest list";
+            case EMBER_COURT_ERROR_GUEST_SLOTS_FULL:        return "the guest list is already as long as the researched talents allow (2 base, 3 with 'Court Influencer', 4 with 'Discerning Taste')";
+            case EMBER_COURT_ERROR_NO_GUESTS_INVITED:       return "nobody is on the guest list";
+            case EMBER_COURT_ERROR_INVALID_MOOD:            return "mood must be 0-5 (1 Miserable, 2 Uncomfortable, 3 Happy, 4 Very Happy, 5 Elated)";
+            case EMBER_COURT_ERROR_NO_VENUE_CONTENT:        return "the Ember Court venue (scenario 1791 in area 13329 on map 2222) is not authored in this world DB - no `scenarios` row and/or no spawns, so a court cannot be held and is refused rather than faked";
+            default:                                        return "unknown error";
+        }
+    }
+
+    // .garrison embercourt status
+    static bool HandleEmberCourtStatusCommand(ChatHandler* handler)
+    {
+        Player* target = handler->getSelectedPlayerOrSelf();
+        if (!target)
+        {
+            handler->SendSysMessage(LANG_PLAYER_NOT_FOUND);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        EmberCourt* court = GetEmberCourtFor(handler, target);
+        if (!court)
+            return false;
+
+        handler->PSendSysMessage("The Ember Court for {}: accessible {}, researched talents {}/{}.",
+            target->GetName(), court->IsAccessible() ? "yes" : "no",
+            court->GetResearchedTiers(), uint32(EMBER_COURT_MAX_TIERS));
+        handler->PSendSysMessage("  guest slots {}, dredger butler {}, specialist staff {}/{}.",
+            court->GetGuestSlots(), court->HasDredgerButler() ? "yes" : "no",
+            court->GetStaffSlots(), uint32(EMBER_COURT_STAFF_SLOTS));
+        handler->PSendSysMessage("  courts held {}, last court {}.",
+            court->GetCourtsHeld(), int64(court->GetLastCourtTime()));
+
+        std::vector<uint8> const invited = court->GetInvitedGuests();
+        if (invited.empty())
+            handler->SendSysMessage("  guest list: empty.");
+        else
+        {
+            for (uint8 guestIndex : invited)
+                if (EmberCourtGuest const* guest = EmberCourt::GetGuestInfo(guestIndex))
+                    handler->PSendSysMessage("  guest list: [{}] {} (creature {}).", guestIndex, guest->Name, guest->CreatureId);
+        }
+
+        if (sGarrisonMgr.GetEmberCourtGuests().empty())
+            handler->SendSysMessage("  world table `garrison_ember_court_guest` is empty - expected: the 12.0.7 "
+                "build publishes no guest dislikes. Every guest's LIKES are client data and are loaded.");
+        else
+            handler->PSendSysMessage("  {} authored guest dislike row(s) loaded.", uint32(sGarrisonMgr.GetEmberCourtGuests().size()));
+
+        handler->PSendSysMessage("  venue (scenario {} in area {} on map {}): {}.",
+            uint32(EMBER_COURT_SCENARIO_ID), uint32(EMBER_COURT_AREA_ID), uint32(EMBER_COURT_MAP_ID),
+            sGarrisonMgr.IsEmberCourtVenueAuthored() ? "authored" : "NOT authored - courts are refused");
+        return true;
+    }
+
+    // .garrison embercourt guests   - the sixteen-guest roster with this character's standing.
+    static bool HandleEmberCourtGuestsCommand(ChatHandler* handler)
+    {
+        Player* target = handler->getSelectedPlayerOrSelf();
+        if (!target)
+        {
+            handler->SendSysMessage(LANG_PLAYER_NOT_FOUND);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        EmberCourt* court = GetEmberCourtFor(handler, target);
+        if (!court)
+            return false;
+
+        for (EmberCourtGuest const& guest : EmberCourt::GetGuestRoster())
+        {
+            EmberCourtGuestState const* state = court->GetGuestState(guest.Index);
+
+            // The guest's client-published "Likes:" list (ItemSparse item guest.MoodItemId).
+            std::ostringstream likes;
+            for (uint8 attribute = EMBER_COURT_ATTRIBUTE_CLEANLINESS; attribute <= EMBER_COURT_ATTRIBUTE_MAX; ++attribute)
+            {
+                EmberCourtAttributePole const pole = EmberCourtAttributePole(guest.LikedPoles[attribute]);
+                if (pole == EMBER_COURT_POLE_NONE)
+                    continue;
+
+                if (likes.tellp() > 0)
+                    likes << ", ";
+                likes << EmberCourt::GetAttributePoleName(EmberCourtAttribute(attribute), pole);
+            }
+
+            handler->PSendSysMessage("  [{}] {} - RSVP quest {} {}, hosted {}x, best mood {}{}.",
+                guest.Index, guest.Name, guest.RsvpQuestId,
+                court->IsGuestUnlocked(guest.Index) ? "COMPLETED" : "not completed",
+                state ? state->TimesHosted : 0,
+                EmberCourt::GetMoodName(state ? EmberCourtMood(state->HighestMood) : EMBER_COURT_MOOD_NONE),
+                court->IsGuestInvited(guest.Index) ? ", INVITED" : "");
+            handler->PSendSysMessage("        likes: {} (item {}).", likes.str(), guest.MoodItemId);
+        }
+        return true;
+    }
+
+    // .garrison embercourt invite <guestIndex>
+    static bool HandleEmberCourtInviteCommand(ChatHandler* handler, uint8 guestIndex)
+    {
+        Player* target = handler->getSelectedPlayerOrSelf();
+        if (!target)
+        {
+            handler->SendSysMessage(LANG_PLAYER_NOT_FOUND);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        EmberCourt* court = GetEmberCourtFor(handler, target);
+        if (!court)
+            return false;
+
+        EmberCourtError result = court->InviteGuest(guestIndex);
+        if (result != EMBER_COURT_OK)
+        {
+            handler->PSendSysMessage("Could not invite: {}.", EmberCourtErrorText(result));
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        EmberCourtGuest const* guest = EmberCourt::GetGuestInfo(guestIndex);
+        handler->PSendSysMessage("Invited {} to {}'s Ember Court ({}/{} slots used).",
+            guest ? guest->Name : "?", target->GetName(),
+            uint32(court->GetInvitedGuests().size()), court->GetGuestSlots());
+        return true;
+    }
+
+    // .garrison embercourt uninvite <guestIndex>
+    static bool HandleEmberCourtUninviteCommand(ChatHandler* handler, uint8 guestIndex)
+    {
+        Player* target = handler->getSelectedPlayerOrSelf();
+        if (!target)
+        {
+            handler->SendSysMessage(LANG_PLAYER_NOT_FOUND);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        EmberCourt* court = GetEmberCourtFor(handler, target);
+        if (!court)
+            return false;
+
+        EmberCourtError result = court->UninviteGuest(guestIndex);
+        if (result != EMBER_COURT_OK)
+        {
+            handler->PSendSysMessage("Could not uninvite: {}.", EmberCourtErrorText(result));
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        handler->PSendSysMessage("Removed guest {} from {}'s guest list.", guestIndex, target->GetName());
+        return true;
+    }
+
+    // .garrison embercourt start   - checks every gate for actually holding the court. Changes no state.
+    static bool HandleEmberCourtStartCommand(ChatHandler* handler)
+    {
+        Player* target = handler->getSelectedPlayerOrSelf();
+        if (!target)
+        {
+            handler->SendSysMessage(LANG_PLAYER_NOT_FOUND);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        EmberCourt* court = GetEmberCourtFor(handler, target);
+        if (!court)
+            return false;
+
+        EmberCourtError result = court->StartCourt();
+        if (result != EMBER_COURT_OK)
+        {
+            handler->PSendSysMessage("Cannot hold the court: {}.", EmberCourtErrorText(result));
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        handler->PSendSysMessage("{} may hold the Ember Court (scenario {} in area {} on map {}) with {} guest(s).",
+            target->GetName(), uint32(EMBER_COURT_SCENARIO_ID), uint32(EMBER_COURT_AREA_ID),
+            uint32(EMBER_COURT_MAP_ID), uint32(court->GetInvitedGuests().size()));
+        return true;
+    }
+
+    // .garrison embercourt complete [mood]   - records a court that happened, every invited guest at `mood`
+    // on the (unpublished) mood scale. A GM tool, not a fallback: nothing else ever completes a court.
+    static bool HandleEmberCourtCompleteCommand(ChatHandler* handler, Optional<uint8> mood)
+    {
+        Player* target = handler->getSelectedPlayerOrSelf();
+        if (!target)
+        {
+            handler->SendSysMessage(LANG_PLAYER_NOT_FOUND);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        EmberCourt* court = GetEmberCourtFor(handler, target);
+        if (!court)
+            return false;
+
+        std::unordered_map<uint8, uint8> moods;
+        for (uint8 guestIndex : court->GetInvitedGuests())
+            moods[guestIndex] = mood.value_or(0);
+
+        EmberCourtError result = court->CompleteCourt(moods);
+        if (result != EMBER_COURT_OK)
+        {
+            handler->PSendSysMessage("Could not record the court: {}.", EmberCourtErrorText(result));
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        handler->PSendSysMessage("Recorded an Ember Court for {} ({} held in total).",
+            target->GetName(), court->GetCourtsHeld());
         return true;
     }
 };
