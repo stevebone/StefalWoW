@@ -1,0 +1,133 @@
+--
+-- The Ember Court - the authored per-guest preferences (Venthyr unique sanctum feature, GarrTalentTree 324).
+--
+-- WHY THIS TABLE IS EMPTY
+-- -----------------------
+-- Nearly everything about this feature IS published by the 12.0.7.68275 client, and the core consumes it
+-- directly - none of it is repeated here:
+--   * the unlock ladder     GarrTalentTree 324 "The Ember Court" (GarrTypeID 111, MaxTiers 5, Flags 0,
+--                           CurrencyID 0, FeatureTypeIndex 5 = SanctumUnique, FeatureSubtypeIndex 2 =
+--                           Revendreth/Venthyr). Unlike its three siblings it is GarrTalentTreeType 1
+--                           (Classic), not 0 (Tiers), which is why the core keys every unlock on its OWN
+--                           talent (found by GarrTalent.Tier) instead of on a researched count;
+--   * the ladder's meaning  the talents' own descriptions, read literally - 1111 "A New Court" (Tier 0,
+--                           PlayerConditionID 84025) establishes it, 1113 "Homegrown Help" (Tier 1) grants
+--                           "a DREDGER BUTLER", 1114 "Court Influencer" (Tier 2) "allowing you to invite a
+--                           THIRD guest", 1112 "Discerning Taste" (Tier 3) "a FOURTH guest", 1115 "The
+--                           Professionals" (Tier 4) "hire FIVE specialist staff". The base guest list is
+--                           therefore TWO - stated by "a third guest", not chosen - and the scenario agrees:
+--                           it ships four alternative Tribute steps, CriteriaTree 84848 "Step 3A (1 Guest)",
+--                           87110 "3B (2 Guests)", 87112 "3C (3 Guests)", 87114 "3D (4 Guests)";
+--   * the research costs    GarrTalentRank 1089/1094/1095/1093/1096: 1500/5000/10000/12500/15000 x currency
+--                           1813 Reservoir Anima @3600/43200/86400/86400/86400s. All five ranks carry
+--                           PerkSpellID 0 - confirmed by reading the rows, not assumed. Charged by the
+--                           generic Garrison talent engine, not by this feature;
+--   * the venue             AreaTable 13329, ZoneName "SinfallScenario" / AreaName "The Ember Court",
+--                           ContinentID 2222, ParentAreaID 10413 (Revendreth). UiMap 1644 "Ember Court"
+--                           (parent 1525). It is an AREA of map 2222, not a separate instance map;
+--   * the scenario          Scenario 1791 "The Ember Court" (Type 0, Flags 2, UiTextureKitID 5349;
+--                           LFGDungeons 2063), steps in OrderIndex order:
+--                             4463 "Last-Minute Preparations" CT 84766 WidgetSetID 459
+--                                  "Prepare the court and issue orders to your staff."
+--                             4483 "The Court"                CT 84846 WidgetSetID 461
+--                                  "Ensure that your guests enjoy the party!"
+--                             4484/4601/4602/4603 "Tribute"   CT 84848 / 87110 / 87112 / 87114
+--                                  "Collect the tribute left by your guests."  (one per 1/2/3/4 guests)
+--                             4527 "The After Party"          CT 85576
+--                           Tutorial twin Scenario 1820 "Ember Court Rehearsal" (LFGDungeons 2088), steps
+--                           4585-4593. WidgetSetID 461 is independently confirmed from the client side: the
+--                           UI hardcodes EMBER_COURT_TUTORIAL_WIDGET_SET_ID = 461;
+--   * the sixteen guests    CriteriaTree 87983 (Achievement 14723 "Be Our Guest"), children 87984-87999 in
+--                           OrderIndex 0-15, cross-checked name-for-name against the sixteen "RSVP: <Guest>"
+--                           quests already in this world DB. Completing a guest's RSVP quest is what unlocks
+--                           that guest for invitation - the core tests the quest rather than inventing a flag;
+--   * the five attributes   CriteriaTree 88024-88033 (Achievement 14726) name the ten poles - Messy, Clean,
+--                           Safe, Dangerous, Humble, Decadent, Relaxing, Exciting, Casual, Formal - and
+--                           UiWidgetVisualization pairs and numbers them: 1438 "1. Cleanliness (Messy>Clean)",
+--                           1440 "2. Danger (Safe>Dangerous)", 1437 "3. Decadence (Humble>Decadent)",
+--                           1439 "4. Excitement (Relaxing>Exciting)", 1435 "5. Formality (Casual>Formal)";
+--   * the achievements      14723 "Be Our Guest", 14724 "People Pleaser", 14725 "We Happy Few" (four Elated
+--                           guests), 14726 "It's Certainly Never Boring", 14727 "Master of Ceremonies",
+--                           14678-14683 and 14749, all CriteriaType 27 (CompleteQuest) over per-guest hidden
+--                           credit quests - so the core credits those quest ids and lets the existing criteria
+--                           system pay out, instead of building a parallel achievement path;
+--   * the reputation        Faction 2445 "The Ember Court", fed by currency 1837 via CurrencyContainer 160
+--                           "Ember Court Prestige"; PlayerCondition 84504-84507 are its Friendly/Honored/
+--                           Revered/Exalted gates. Currency 1820 "Infused Ruby" (MaxQty 100) is the supply
+--                           currency;
+--   * the quests            98 rows already in this world DB under QuestSortID -586, including the 16 RSVPs,
+--                           the "Ember Court: <theme>" set, 24 "Restock:" supply quests, the 16 "X's Best
+--                           Friend" quests 63685-63700, and the unlock 63065 "Sanctum Upgrade: The Ember
+--                           Court" (Foreman Flatfinger 172605 -> Theotar 161979, both already spawned).
+--
+-- What NO 68275 client row anywhere states:
+--   1. WHICH of the five attributes each of the sixteen guests LIKES, and which end of that axis. The
+--      rehearsal scenario states three preferences in passing - "Temel likes a CLEAN court", "Theotar likes a
+--      FORMAL court", "Watchmaster Boromod likes a CASUAL court" - but those three are the HOST and the
+--      tutorial cast, not the sixteen guests. No DB2 row and no world row maps any of the sixteen to any axis.
+--   2. WHICH attribute each guest DISLIKES. Same absence; the rehearsal only hints that one exists ("Not
+--      everyone prefers the court to be Formal").
+--   3. WHAT VALUE counts as the "Elated" mood. Achievement 14724 names the rung and nothing publishes the
+--      rungs below it, the thresholds, or how attribute levels move a guest between them. "Elated" does not
+--      occur in GlobalStrings.db2 at all (checked - control terms in the same table do hit).
+-- Those three are exactly the columns below, and they are CONTENT, so they are authored here rather than
+-- invented in C++. Until a row exists the engine is deliberately half-inert: a Venthyr who researches the
+-- tree gets the correct guest slots, butler and staff count, can RSVP and build a guest list, and
+-- `.garrison embercourt status` reports all of it - but StartCourt answers EMBER_COURT_ERROR_NO_GUEST_DATA.
+--
+-- ALSO NOT DERIVABLE, and NOT worked around anywhere in the core:
+--   * THE TRIBUTE CHEST AND ITS LOOT. `gameobject_template` has ZERO rows whose name contains "Ember Court";
+--     the only "Tribute Chest" rows in the DB are the Wrath-era Argent Crusade chests 195665-195672 and the
+--     unrelated Dragonflight 355936. With no chest there is no `gameobject_loot_template`, and no table
+--     anywhere maps a final court rating to a reward tier. The core therefore awards NO tribute.
+--   * THE COURT COOLDOWN. Spell 336617 is named "Ember Court Timer" but publishes no interval the server
+--     could enforce, so none is enforced.
+--   * THE SUPPLY COSTS. No `npc_vendor` row anywhere prices a Court supply in currency 1820 or 1837.
+--
+-- AND SEPARATELY: THE VENUE ITSELF IS NOT AUTHORED IN THIS WORLD DB. Method-validated, each with a control:
+--     SELECT COUNT(*) FROM scenarios  WHERE map = 2222;         -> 0    (control: 317 rows in the table)
+--     SELECT COUNT(*) FROM creature   WHERE id = 164966;        -> 0    (Temel, The Party Herald - the host)
+--     SELECT COUNT(*) FROM creature   WHERE id IN (165453,165490,165493,165494,165496); -> 0
+--                                                                      (all five staff: Lady Ilinca Concierge,
+--                                                                       Picky Stefan Refreshments, Boot the
+--                                                                       Beaut Themes, Hips Entertainment,
+--                                                                       Watchmaster Boromod Security)
+--     SELECT COUNT(*) FROM creature   WHERE areaId = 13329;     -> 0    (control: areaId 12917 Sinfall -> 130)
+--     SELECT COUNT(*) FROM gameobject WHERE areaId = 13329;     -> 0
+--     34 `creature_template` rows named "Ember Court Socialite"/"Ember Court Noble" exist and ALL have 0 spawns.
+-- Because of that EmberCourt::StartCourt refuses with EMBER_COURT_ERROR_NO_VENUE_CONTENT instead of starting
+-- a party that could never be attended, and a court is NEVER auto-completed - the only way attendance is
+-- recorded is a real completion or the explicit `.garrison embercourt complete` GM command. Authoring the
+-- `scenarios` row plus the Sinfall spawns flips GarrisonMgr::IsEmberCourtVenueAuthored() and turns the venue
+-- gate off with no code change.
+--
+-- Authoring a row is validated at load: `guestIndex` must be 0-15, each attribute must be 0-5 and each pole
+-- 0-2, an attribute and its pole must both be set or both be 0, and a guest may not both prefer and dislike
+-- the same end of the same axis.
+--
+-- Columns:
+--   guestIndex          0-15, the CriteriaTree 87983 child OrderIndex (see the roster in the characters-DB
+--                       migration 2026_08_08_10_covenant_ember_court.sql)
+--   preferredAttribute  1 Cleanliness, 2 Danger, 3 Decadence, 4 Excitement, 5 Formality; 0 = none authored
+--   preferredPole       1 = the LOW end (Messy/Safe/Humble/Relaxing/Casual),
+--                       2 = the HIGH end (Clean/Dangerous/Decadent/Exciting/Formal); 0 = none
+--   dislikedAttribute   same encoding as preferredAttribute
+--   dislikedPole        same encoding as preferredPole
+--   elatedMoodLevel     the mood value that earns this guest's Achievement 14724 credit. 0 = not authored,
+--                       so the credit can never fire by accident.
+--
+-- Idempotent.
+--
+CREATE TABLE IF NOT EXISTS `garrison_ember_court_guest` (
+  `guestIndex`         TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  `preferredAttribute` TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  `preferredPole`      TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  `dislikedAttribute`  TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  `dislikedPole`       TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  `elatedMoodLevel`    TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  PRIMARY KEY (`guestIndex`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Ember Court per-guest preferences (unauthored by design - see file header)';
+
+-- No INSERTs. Adding one is a content decision that needs a Shadowlands-era sniff or a design ruling on each
+-- guest's liked/disliked attribute and on the numeric mood scale; see the file header for exactly which
+-- values are missing and which query establishes each absence.

@@ -20,6 +20,7 @@
 
 #include "AbominationFactory.h"
 #include "Define.h"
+#include "EmberCourt.h"
 #include "PathOfAscension.h"
 #include "Hash.h"
 #include "Position.h"
@@ -206,6 +207,18 @@ public:
     // rather than started - PathOfAscension::StartTrial answers ASCENSION_ERROR_NO_ARENA_CONTENT.
     bool IsAscensionArenaAuthored() const { return _ascensionArenaAuthored; }
 
+    // The Ember Court (Venthyr unique sanctum feature, GarrTalentTree 324). The unlock ladder, the sixteen
+    // guests, the five attribute axes, the scenario (1791) and its area (13329 on map 2222) are all client
+    // data and are consumed directly. What no 68275 row states is which attributes each guest likes and what
+    // counts as the "Elated" mood, so that half is authored in `garrison_ember_court_guest`. See EmberCourt.h.
+    void LoadEmberCourtGuests();
+    EmberCourtGuestTemplate const* GetEmberCourtGuest(uint8 guestIndex) const;
+    std::unordered_map<uint8, EmberCourtGuestTemplate> const& GetEmberCourtGuests() const { return _emberCourtGuests; }
+    // True when this world DB actually instantiates the Ember Court (a `scenarios` row for map 2222 plus at
+    // least one spawn in area 13329). False means the venue is unauthored and a court must be refused rather
+    // than started - EmberCourt::StartCourt answers EMBER_COURT_ERROR_NO_VENUE_CONTENT.
+    bool IsEmberCourtVenueAuthored() const { return _emberCourtVenueAuthored; }
+
     // Talent system accessors
     std::vector<GarrTalentTreeEntry const*> const* GetTalentTreesForGarrType(int8 garrTypeID) const;
     std::vector<GarrTalentEntry const*> const* GetTalentsForTree(uint32 garrTalentTreeID) const;
@@ -298,6 +311,11 @@ private:
     // Path of Ascension. The memory roster is authored content; the arena flag is a fact about this world DB.
     std::unordered_map<uint32 /*memoryId*/, AscensionMemoryTemplate> _ascensionMemories;
     bool _ascensionArenaAuthored = false;
+
+    // The Ember Court. The per-guest preferences are authored content; the venue flag is a fact about this
+    // world DB.
+    std::unordered_map<uint8 /*guestIndex*/, EmberCourtGuestTemplate> _emberCourtGuests;
+    bool _emberCourtVenueAuthored = false;
 
     uint64 _followerDbIdGenerator = UI64LIT(1);
     uint64 _shipmentDbIdGenerator = UI64LIT(1);

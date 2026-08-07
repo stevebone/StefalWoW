@@ -183,6 +183,7 @@ void GarrisonMgr::Initialize()
     LoadConservatoryYields();
     LoadAbominationRecipes();
     LoadAscensionMemories();
+    LoadEmberCourtGuests();
 }
 
 // Class-hall / order-hall (and any non-plot garrison) troop recruiters aren't garrison plot buildings, so the
@@ -700,6 +701,133 @@ AscensionMemoryTemplate const* GarrisonMgr::GetAscensionMemory(uint32 memoryId) 
 {
     auto itr = _ascensionMemories.find(memoryId);
     return itr != _ascensionMemories.end() ? &itr->second : nullptr;
+}
+
+// The Ember Court (Venthyr unique sanctum feature, GarrTalentTree 324).
+//
+// Almost the whole feature is published by the 12.0.7.68275 client and is read straight out of it - the five
+// talents 1111-1115 with their guest-slot wording, scenario 1791 and its four steps, AreaTable 13329
+// "SinfallScenario", the sixteen guests (CriteriaTree 87983 cross-checked against the sixteen "RSVP: <Guest>"
+// quests in `integ_world`), and the five attribute axes (CriteriaTree 88024-88033 + UiWidgetVisualization
+// 1435-1440). What NO row in the build states is WHICH attributes each guest likes or dislikes, or what mood
+// value counts as "Elated". That is content, so it is authored here instead of being invented in C++; an
+// empty table is a valid state and simply leaves EmberCourt::StartCourt answering
+// EMBER_COURT_ERROR_NO_GUEST_DATA.
+void GarrisonMgr::LoadEmberCourtGuests()
+{
+    _emberCourtGuests.clear();
+    _emberCourtVenueAuthored = false;
+
+    // Does this world DB actually instantiate the Ember Court? A scenario only runs if `scenarios` names it
+    // for the map AND the venue has something in it. Both halves are checked so a half-authored Court cannot
+    // report itself as playable.
+    if (QueryResult venue = WorldDatabase.PQuery("SELECT "
+        "(SELECT COUNT(*) FROM scenarios WHERE map = {}), "
+        "(SELECT COUNT(*) FROM creature WHERE areaId = {})", uint32(EMBER_COURT_MAP_ID), uint32(EMBER_COURT_AREA_ID)))
+    {
+        Field* fields = venue->Fetch();
+        _emberCourtVenueAuthored = fields[0].GetUInt64() > 0 && fields[1].GetUInt64() > 0;
+    }
+
+    if (!_emberCourtVenueAuthored)
+        TC_LOG_INFO("server.loading", ">> The Ember Court: the venue (scenario {} in area {} on map {}) is not "
+            "authored in this world DB - no `scenarios` row and/or no spawns. Courts will be refused rather "
+            "than started.", uint32(EMBER_COURT_SCENARIO_ID), uint32(EMBER_COURT_AREA_ID), uint32(EMBER_COURT_MAP_ID));
+
+    QueryResult result = WorldDatabase.Query("SELECT guestIndex, preferredAttribute, preferredPole, "
+        "dislikedAttribute, dislikedPole, elatedMoodLevel FROM garrison_ember_court_guest");
+    if (!result)
+    {
+        TC_LOG_INFO("server.loading", ">> Loaded 0 Ember Court guests. DB table `garrison_ember_court_guest` is "
+            "empty - no court can be held until the per-guest preferences are authored.");
+        return;
+    }
+
+    uint32 count = 0;
+    do
+    {
+        Field* fields = result->Fetch();
+        EmberCourtGuestTemplate guest;
+        guest.GuestIndex         = fields[0].GetUInt8();
+        guest.PreferredAttribute = fields[1].GetUInt8();
+        guest.PreferredPole      = fields[2].GetUInt8();
+        guest.DislikedAttribute  = fields[3].GetUInt8();
+        guest.DislikedPole       = fields[4].GetUInt8();
+        guest.ElatedMoodLevel    = fields[5].GetUInt8();
+
+        // The roster is fixed at sixteen by the client (CriteriaTree 87983 has exactly sixteen children); an
+        // index outside it names nobody.
+        if (!EmberCourt::GetGuestInfo(guest.GuestIndex))
+        {
+            TC_LOG_ERROR("sql.sql", "Table `garrison_ember_court_guest` has guestIndex {} but the client roster "
+                "(CriteriaTree 87983) only has {} guests, 0-{}; row skipped.", uint32(guest.GuestIndex),
+                uint32(EMBER_COURT_GUEST_COUNT), uint32(EMBER_COURT_GUEST_COUNT - 1));
+            continue;
+        }
+
+        struct { uint8 attribute; uint8 pole; char const* what; } const axes[2] =
+        {
+            { guest.PreferredAttribute, guest.PreferredPole, "preferred" },
+            { guest.DislikedAttribute,  guest.DislikedPole,  "disliked"  }
+        };
+
+        bool badAttribute = false;
+        for (auto const& [attribute, pole, what] : axes)
+        {
+            if (attribute > EMBER_COURT_ATTRIBUTE_MAX)
+            {
+                TC_LOG_ERROR("sql.sql", "Table `garrison_ember_court_guest` row {} has {}Attribute {} outside "
+                    "0-{}; row skipped.", uint32(guest.GuestIndex), what, uint32(attribute),
+                    uint32(EMBER_COURT_ATTRIBUTE_MAX));
+                badAttribute = true;
+                break;
+            }
+
+            if (pole > EMBER_COURT_POLE_HIGH)
+            {
+                TC_LOG_ERROR("sql.sql", "Table `garrison_ember_court_guest` row {} has {}Pole {} outside 0-2 "
+                    "(0 none, 1 low, 2 high); row skipped.", uint32(guest.GuestIndex), what, uint32(pole));
+                badAttribute = true;
+                break;
+            }
+
+            // An axis without an end, or an end without an axis, cannot be evaluated either way.
+            if ((attribute == EMBER_COURT_ATTRIBUTE_NONE) != (pole == EMBER_COURT_POLE_NONE))
+            {
+                TC_LOG_ERROR("sql.sql", "Table `garrison_ember_court_guest` row {} sets {}Attribute {} with "
+                    "{}Pole {} - an attribute and a pole must both be set or both be 0; row skipped.",
+                    uint32(guest.GuestIndex), what, uint32(attribute), what, uint32(pole));
+                badAttribute = true;
+                break;
+            }
+        }
+
+        if (badAttribute)
+            continue;
+
+        // Liking and disliking the same end of the same axis is contradictory.
+        if (guest.PreferredAttribute != EMBER_COURT_ATTRIBUTE_NONE
+            && guest.PreferredAttribute == guest.DislikedAttribute
+            && guest.PreferredPole == guest.DislikedPole)
+        {
+            TC_LOG_ERROR("sql.sql", "Table `garrison_ember_court_guest` row {} both prefers and dislikes {} {}; "
+                "row skipped.", uint32(guest.GuestIndex),
+                EmberCourt::GetAttributePoleName(EmberCourtAttribute(guest.PreferredAttribute), EmberCourtAttributePole(guest.PreferredPole)),
+                EmberCourt::GetAttributeName(EmberCourtAttribute(guest.PreferredAttribute)));
+            continue;
+        }
+
+        _emberCourtGuests[guest.GuestIndex] = guest;
+        ++count;
+    } while (result->NextRow());
+
+    TC_LOG_INFO("server.loading", ">> Loaded {} Ember Court guests.", count);
+}
+
+EmberCourtGuestTemplate const* GarrisonMgr::GetEmberCourtGuest(uint8 guestIndex) const
+{
+    auto itr = _emberCourtGuests.find(guestIndex);
+    return itr != _emberCourtGuests.end() ? &itr->second : nullptr;
 }
 
 void GarrisonMgr::LoadOrderHallStandards()

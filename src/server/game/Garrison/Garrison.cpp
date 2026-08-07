@@ -49,7 +49,7 @@
 #include <limits>
 #include <vector>
 
-Garrison::Garrison(Player* owner) : _owner(owner), _garrType(GARRISON_TYPE_GARRISON), _siteLevel(nullptr), _followerActivationsRemainingToday(1), _conservatory(owner), _abominationFactory(owner), _pathOfAscension(owner)
+Garrison::Garrison(Player* owner) : _owner(owner), _garrType(GARRISON_TYPE_GARRISON), _siteLevel(nullptr), _followerActivationsRemainingToday(1), _conservatory(owner), _abominationFactory(owner), _pathOfAscension(owner), _emberCourt(owner)
 {
     // Fire the first periodic pass on the very next tick after login (instead of waiting a full interval),
     // so finished-order crates activate, completed constructions/research resolve, etc. right away.
@@ -370,6 +370,11 @@ bool Garrison::LoadFromDB(PreparedQueryResult garrison, PreparedQueryResult blue
         CharacterDatabasePreparedStatement* ascensionStmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_CHARACTER_GARRISON_ASCENSION);
         ascensionStmt->setUInt64(0, _owner->GetGUID().GetCounter());
         _pathOfAscension.LoadFromDB(CharacterDatabase.Query(ascensionStmt));
+
+        // Ember Court guest standing and the pending guest list (Venthyr unique sanctum feature) - same story.
+        CharacterDatabasePreparedStatement* emberCourtStmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_CHARACTER_GARRISON_EMBER_COURT);
+        emberCourtStmt->setUInt64(0, _owner->GetGUID().GetCounter());
+        _emberCourt.LoadFromDB(CharacterDatabase.Query(emberCourtStmt));
     }
 
     return true;
@@ -397,6 +402,7 @@ void Garrison::SaveToDB(CharacterDatabaseTransaction trans)
         _conservatory.SaveToDB(trans);
         _abominationFactory.SaveToDB(trans);
         _pathOfAscension.SaveToDB(trans);
+        _emberCourt.SaveToDB(trans);
     }
 
     for (uint32 building : _knownBuildings)
@@ -573,6 +579,11 @@ void Garrison::DeleteFromDB(ObjectGuid::LowType ownerGuid, GarrisonType garrType
         trans->Append(stmt);
 
         stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CHARACTER_GARRISON_ASCENSION);
+        stmt->setUInt64(0, ownerGuid);
+        trans->Append(stmt);
+
+        // And the Ember Court's guest standing / pending guest list.
+        stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CHARACTER_GARRISON_EMBER_COURT);
         stmt->setUInt64(0, ownerGuid);
         trans->Append(stmt);
     }
@@ -855,6 +866,10 @@ void Garrison::Update(uint32 diff)
         // Keep Path of Ascension trial progress inside the ceiling the researched tiers of GarrTalentTree 320
         // still support (a talent reset can lower it). Captures themselves are never dropped.
         _pathOfAscension.Update();
+        // Keep the Ember Court guest list inside the slots the researched talents of GarrTalentTree 324 still
+        // grant, and drop invitations for guests whose "RSVP: <Guest>" quest no longer stands. Hosting history
+        // is never dropped.
+        _emberCourt.Update();
     }
 
     // Remove expired unclaimed missions
