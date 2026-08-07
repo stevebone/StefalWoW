@@ -832,6 +832,11 @@ void CharacterDatabaseConnection::DoPrepareStatements()
     PrepareStatement(CHAR_INS_CHARACTER_GARRISON_TALENT, "INSERT INTO character_garrison_talents (guid, garrTalentId, `rank`, researchStartTime, flags, soulbindConduitId, soulbindConduitRank, garrType) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC);
     PrepareStatement(CHAR_DEL_CHARACTER_GARRISON_TALENTS, "DELETE FROM character_garrison_talents WHERE guid = ? AND garrType = ?", CONNECTION_ASYNC);
     PrepareStatement(CHAR_DEL_CHARACTER_GARRISON_TALENT, "DELETE FROM character_garrison_talents WHERE guid = ? AND garrTalentId = ?", CONNECTION_ASYNC);
+    // Daily-reset sweep for temporary talents of one garrison type, for characters that are offline when the
+    // reset happens. In the covenant sanctum (garrType 111) a temporary talent is by construction an Anima
+    // Conductor channel bought with reservoir anima - see Garrison::LearnTalent, which refuses to set the flag
+    // on anything else - so this expires exactly those and nothing else.
+    PrepareStatement(CHAR_DEL_CHARACTER_GARRISON_TEMPORARY_TALENTS_BY_TYPE, "DELETE FROM character_garrison_talents WHERE garrType = ? AND (flags & ?) <> 0", CONNECTION_ASYNC);
     PrepareStatement(CHAR_SEL_CHARACTER_GARRISON_TROPHIES, "SELECT trophyId FROM character_garrison_trophies WHERE guid = ?", CONNECTION_ASYNC);
     PrepareStatement(CHAR_INS_CHARACTER_GARRISON_TROPHY, "INSERT INTO character_garrison_trophies (guid, trophyId, garrType) VALUES (?, ?, ?)", CONNECTION_ASYNC);
     PrepareStatement(CHAR_DEL_CHARACTER_GARRISON_TROPHIES, "DELETE FROM character_garrison_trophies WHERE guid = ? AND garrType = ?", CONNECTION_ASYNC);
@@ -900,6 +905,9 @@ void CharacterDatabaseConnection::DoPrepareStatements()
     PrepareStatement(CHAR_DEL_CHARACTER_SOULBIND_CONDUIT_SOCKET, "DELETE FROM character_soulbind_conduit_sockets WHERE guid = ? AND garrTalentId = ?", CONNECTION_ASYNC);
     PrepareStatement(CHAR_SEL_CHARACTER_COVENANT_RENOWN, "SELECT covenantId, grantedLevel FROM character_covenant_renown WHERE guid = ?", CONNECTION_ASYNC);
     PrepareStatement(CHAR_REP_CHARACTER_COVENANT_RENOWN, "REPLACE INTO character_covenant_renown (guid, covenantId, grantedLevel) VALUES (?, ?, ?)", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_SEL_CHARACTER_COVENANT_CALLINGS, "SELECT covenantId, slot, bountyId, expireTime, refillTime FROM character_covenant_callings WHERE guid = ?", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_DEL_CHARACTER_COVENANT_CALLINGS, "DELETE FROM character_covenant_callings WHERE guid = ?", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_INS_CHARACTER_COVENANT_CALLINGS, "INSERT INTO character_covenant_callings (guid, covenantId, slot, bountyId, expireTime, refillTime) VALUES (?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC);
 }
 
 CharacterDatabaseConnection::CharacterDatabaseConnection(MySQLConnectionInfo& connInfo, ConnectionFlags connectionFlags) : MySQLConnection(connInfo, connectionFlags)

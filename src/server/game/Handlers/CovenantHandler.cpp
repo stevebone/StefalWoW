@@ -122,51 +122,16 @@ void WorldSession::HandleRequestCovenantCallings(WorldPackets::Covenant::Request
     if (!player)
         return;
 
-    // MaxCallings client constant (CovenantCallingsConstants.Callings.MaxCallings): at most 3 daily callings are offered.
-    constexpr uint32 MaxCallings = 3;
-
-    WorldPackets::Covenant::CovenantCallingsAvailabilityResponse response;
-
-    uint32 covenantId = player->GetActiveCovenant();
-    if (CovenantEntry const* covenant = covenantId ? sCovenantStore.LookupEntry(covenantId) : nullptr)
-    {
-        // A covenant with no bounty set offers no callings; otherwise callings unlock once the
-        // set's locking quest (if any) is completed.
-        response.CallingsUnlocked = covenant->BountySetID != 0;
-        if (BountySetEntry const* bountySet = sBountySetStore.LookupEntry(covenant->BountySetID))
-            if (bountySet->LockedQuestID > 0 && !player->IsQuestRewarded(bountySet->LockedQuestID))
-                response.CallingsUnlocked = false;
-
-        if (response.CallingsUnlocked)
-        {
-            if (std::vector<BountyEntry const*> const* bounties = sDB2Manager.GetBountiesForBountySet(covenant->BountySetID))
-            {
-                std::vector<BountyEntry const*> eligible;
-                eligible.reserve(bounties->size());
-                for (BountyEntry const* bounty : *bounties)
-                    if (bounty->QuestID > 0)
-                        eligible.push_back(bounty);
-
-                std::sort(eligible.begin(), eligible.end(), [](BountyEntry const* left, BountyEntry const* right)
-                {
-                    return left->ID < right->ID;
-                });
-
-                // Offer up to MaxCallings real callings from the covenant's bounty pool, rotating each day so the
-                // set is stable within a day and refreshes daily (Blizzlike daily callings behaviour).
-                if (!eligible.empty())
-                {
-                    uint32 const poolSize = uint32(eligible.size());
-                    uint32 const dayIndex = uint32(GameTime::GetGameTime() / DAY);
-                    uint32 const offerCount = std::min<uint32>(MaxCallings, poolSize);
-                    for (uint32 i = 0; i < offerCount; ++i)
-                        response.BountyIDs.push_back(eligible[(dayIndex + i) % poolSize]->ID);
-                }
-            }
-        }
-    }
-
-    SendPacket(response.Write());
+    // The board is persistent per-character state with a real lifecycle - three slots, one new calling per daily
+    // reset, three days of offer life - so it lives on the Player (Player::UpdateCovenantCallings) and is not
+    // recomputed per request. The old code here derived the three ids from GameTime/DAY, which meant every member
+    // of a covenant saw the same three callings, they changed at midnight UTC instead of at the realm's daily
+    // reset, completing one did not replace it, and nothing about the board survived a restart.
+    //
+    // Rolling the board here as well as at login and at the daily reset costs nothing (it is a no-op once nothing
+    // is due) and makes it impossible to answer with a board the reset has already moved past.
+    player->UpdateCovenantCallings();
+    player->SendCovenantCallingsUpdate();
 }
 
 void WorldSession::HandleCovenantRenownRequestCatchupState(WorldPackets::Covenant::CovenantRenownRequestCatchupState& /*packet*/)

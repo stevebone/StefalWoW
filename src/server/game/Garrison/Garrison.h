@@ -274,7 +274,11 @@ public:
     enum GarrisonTalentFlags : int32
     {
         GARRISON_TALENT_FLAG_NONE       = 0x0,
-        GARRISON_TALENT_FLAG_TEMPORARY  = 0x1,  // Legion class-hall one-shot/temporary talent
+        // Legion class-hall one-shot/temporary talent. In a covenant sanctum (GarrType 111) this bit means
+        // exactly one thing: an Anima Conductor channel bought with reservoir anima rather than permanently
+        // reinforced with Channeled Anima. Garrison::LearnTalent refuses to set it on any other type-111 talent,
+        // which is what lets World::DailyReset expire all of them with a single flag test.
+        GARRISON_TALENT_FLAG_TEMPORARY  = 0x1,
     };
 
     struct Talent
@@ -501,6 +505,10 @@ public:
 
     void ResetFollowerActivationLimit() { _followerActivationsRemainingToday = 1; }
 
+    // Anima Conductor channels bought with reservoir anima last until the daily reset; drop the lapsed ones and
+    // tell the client. A no-op for every garrison type except the covenant sanctum. Called from Player::DailyReset.
+    void ExpireTemporaryChannelAnima();
+
 private:
     Map* FindMap() const;
 
@@ -511,6 +519,13 @@ private:
     // Channel Anima destinations are gated by their GarrTalent.PlayerConditionID on the Anima Conductor tiers.
     // Returns true for every talent that is not a Channel Anima destination.
     bool IsChannelAnimaTalentAvailable(GarrTalentEntry const* talentEntry) const;
+    // True for the six Anima Conductor destinations of a covenant (GarrTalentTree.FeatureTypeIndex 7).
+    static bool IsChannelAnimaTalent(GarrTalentEntry const* talentEntry);
+    // Charge one Channel Anima selection and take the previous temporary channel down. Returns a GARRISON_*
+    // result; on success the caller may seat the talent.
+    uint32 TakeChannelAnimaCost(GarrTalentEntry const* talentEntry, bool permanent);
+    // Drop one channel, strip its perks, tell the client and delete its row.
+    void RemoveChannelAnimaTalent(uint32 garrTalentID);
     // Covenant-scoped sanctum trees (GarrTalentTree.FeatureSubtypeIndex = CovenantID) may only be touched by a
     // member of that covenant. Returns true for every tree that is not covenant-scoped.
     bool IsTalentTreeOwnedByPlayerCovenant(GarrTalentTreeEntry const* treeEntry) const;
