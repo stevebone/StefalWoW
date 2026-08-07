@@ -2868,7 +2868,7 @@ struct GarrMissionXEncounterLoadInfo
         { .IsSigned = false, .Type = FT_INT, .Name = "GarrEncounterSetID" },
         { .IsSigned = false, .Type = FT_BYTE, .Name = "OrderIndex" },
         { .IsSigned = true, .Type = FT_BYTE, .Name = "BoardIndex" },
-        { .IsSigned = true, .Type = FT_INT, .Name = "GarrMissionID" },
+        { .IsSigned = false, .Type = FT_INT, .Name = "GarrMissionID" },
     };
 
     static constexpr DB2LoadInfo Instance{ Fields, 6, &GarrMissionXEncounterMeta::Instance, HOTFIX_SEL_GARR_MISSION_X_ENCOUNTER };
