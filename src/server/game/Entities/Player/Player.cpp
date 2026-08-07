@@ -20776,7 +20776,14 @@ void Player::UpdateCovenantRenownRewards(uint32 covenantId)
     if (!IsInWorld())
         return;
 
-    if (!GetCovenantRenownCurrency(covenantId))
+    CurrencyTypesEntry const* currency = GetCovenantRenownCurrency(covenantId);
+    if (!currency)
+        return;
+
+    // A covenant the character never joined has no renown, and quantity 0 would otherwise read as Renown 1 and
+    // claim that level's rewards for all four covenants at once. The active covenant is always walked, because
+    // a fresh member legitimately sits at quantity 0 / Renown 1.
+    if (covenantId != m_activeCovenantId && !GetCurrencyQuantity(currency->ID))
         return;
 
     GrantRenownRewardsUpTo(covenantId, int32(GetCovenantRenownLevel(covenantId)));
