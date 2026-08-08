@@ -58,6 +58,17 @@ public:
     bool HasCatalog() const { return !_productListBlob.empty(); }
     std::vector<uint8> const& GetProductListBlob() const { return _productListBlob; }
 
+    // Bumped every time the catalog blob is (re)built. A session serves the 58 KB blob at most once per
+    // generation, so a client that polls GetProductList each shop open is not re-fed the blob until a
+    // `.reload shop_catalog` changes it (anti-amplification without breaking restart-free rotation).
+    uint32 GetCatalogGeneration() const { return _catalogGeneration; }
+
+    // Distribution list: the client's StoreFrame_IsLoading gate blocks the shop panel until
+    // HasDistributionList() is true, which only flips once it receives a
+    // SMSG_BATTLE_PAY_GET_DISTRIBUTION_LIST_RESPONSE. We replay a captured 68275 blob at session start.
+    bool HasDistributionList() const { return !_distributionListBlob.empty(); }
+    std::vector<uint8> const& GetDistributionListBlob() const { return _distributionListBlob; }
+
     BattlePayProduct const* GetProduct(uint32 productID) const;
     uint64 GeneratePurchaseID() { return ++_purchaseCounter; }
 
@@ -67,9 +78,14 @@ private:
     BattlePayMgr(BattlePayMgr const&) = delete;
     BattlePayMgr& operator=(BattlePayMgr const&) = delete;
 
+    // Reads a raw blob file from <DataDir>/battlepay/<fileName>; returns true and fills out on success.
+    bool LoadBlobFile(std::string const& fileName, std::vector<uint8>& out);
+
     std::vector<uint8> _productListBlob;
+    std::vector<uint8> _distributionListBlob;
     std::unordered_map<uint32, BattlePayProduct> _products;
     uint64 _purchaseCounter = 0;
+    uint32 _catalogGeneration = 0;
 };
 
 #define sBattlePayMgr BattlePayMgr::instance()

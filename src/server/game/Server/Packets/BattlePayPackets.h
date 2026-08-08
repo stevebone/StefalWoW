@@ -57,6 +57,20 @@ namespace WorldPackets
             std::vector<uint8> const* RawData = nullptr;
         };
 
+        // Sent unsolicited at session start (there is no matching CMSG). The client's shop panel gate
+        // StoreFrame_IsLoading blocks until HasDistributionList() is true, which this response flips.
+        // We replay a byte-exact 107 B blob captured from a real 68275 session (6 B header + 101 B
+        // JamBattlePayDistributionObject record). RawData is the message BODY (opcode header prepended).
+        class GetDistributionListResponse final : public ServerPacket
+        {
+        public:
+            explicit GetDistributionListResponse() : ServerPacket(SMSG_BATTLE_PAY_GET_DISTRIBUTION_LIST_RESPONSE) { }
+
+            WorldPacket const* Write() override;
+
+            std::vector<uint8> const* RawData = nullptr;
+        };
+
         // Client initiates an in-game purchase. Layout from the client Write method (0x5d9f90):
         // u32, u64, then a 1-bit bool. The u32 is the strong candidate for the productID (the setter is
         // Warden-obfuscated so the exact semantic is runtime-confirmed via the handler's diagnostic log).
@@ -81,6 +95,44 @@ namespace WorldPackets
             void Read() override;
 
             uint32 DistributionID = 0;
+        };
+
+        // Server-driven purchase confirmation prompt (retail interposes this between StartPurchase and
+        // completion; it clears the client's WaitingOnConfirmation and shows the confirm dialog, whose
+        // C_StoreSecure.GetConfirmationInfo() reads productID, walletName and the current price).
+        //
+        // INFERRED LAYOUT - NOT byte-verified: the 68275 client read struct (sub_7FF7290A91A0, opcode
+        // 0x420232) is an opaque nested reflection struct in the RE dump and this opcode never appears
+        // on-wire in any of the 8 captures (retail hands purchases to web checkout). The field set below
+        // is the classic JamBattlePayConfirmPurchase shape that GetConfirmationInfo consumes. Because a
+        // malformed packet could disconnect a live client, sending this is gated behind the
+        // Shop.PurchaseConfirmation config (default off) until a live client validates the layout; the
+        // proven direct-grant path (StartPurchase -> grant/charge -> PurchaseUpdate) stays the default.
+        class ConfirmPurchase final : public ServerPacket
+        {
+        public:
+            explicit ConfirmPurchase() : ServerPacket(SMSG_BATTLE_PAY_CONFIRM_PURCHASE, 8 + 4 + 8 + 4 + 1) { }
+
+            WorldPacket const* Write() override;
+
+            uint64 PurchaseID = 0;
+            uint32 ProductID = 0;
+            uint64 CurrentPriceFixedPoint = 0;  // wire fixed-point /100000 (same scale as the catalog)
+            uint32 ServerToken = 0;             // echoed back in the response so we can match the prompt
+        };
+
+        // Client's answer to the confirmation prompt. Layout byte-grounded from the 68275 client read of
+        // CMSG_BATTLE_PAY_CONFIRM_PURCHASE_RESPONSE (0x4000fb): a u32 then a 1-bit bool. The u32 echoes
+        // our ServerToken; the bool is confirm(true)/cancel(false).
+        class ConfirmPurchaseResponse final : public ClientPacket
+        {
+        public:
+            explicit ConfirmPurchaseResponse(WorldPacket&& packet) : ClientPacket(CMSG_BATTLE_PAY_CONFIRM_PURCHASE_RESPONSE, std::move(packet)) { }
+
+            void Read() override;
+
+            uint32 ServerToken = 0;
+            bool Confirmed = false;
         };
 
         // Server ack for StartPurchase. Layout from the client read ctor (0x608ec0): u32, u32, u64.
@@ -116,6 +168,22 @@ namespace WorldPackets
         {
         public:
             explicit PurchaseUpdate() : ServerPacket(SMSG_BATTLE_PAY_PURCHASE_UPDATE) { }
+
+            WorldPacket const* Write() override;
+
+            uint32 Result = 0;
+            std::vector<PurchaseRecord> Purchases;
+        };
+
+        // Reply to CMSG_BATTLE_PAY_GET_PURCHASE_LIST. Body layout is identical to
+        // SMSG_BATTLE_PAY_PURCHASE_UPDATE: { uint32 Result, uint32 Count, Count x PurchaseRecord }.
+        // Proven against a live sniff: a retail account with 9 purchases produced a 413-byte body, and
+        // 8 (header) + 9 * 45 (PurchaseRecord = u64+i32+i32+u32+u64+u64+i64+u8) == 413 exactly. The
+        // record layout (walletName length record-final) matches the fixed PurchaseUpdate serializer.
+        class GetPurchaseListResponse final : public ServerPacket
+        {
+        public:
+            explicit GetPurchaseListResponse() : ServerPacket(SMSG_BATTLE_PAY_GET_PURCHASE_LIST_RESPONSE, 4 + 4) { }
 
             WorldPacket const* Write() override;
 

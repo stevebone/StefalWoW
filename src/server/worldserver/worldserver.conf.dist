@@ -4404,3 +4404,32 @@ Load.Locales = 1
 
 #
 ###################################################################################################
+
+###################################################################################################
+# IN-GAME SHOP (BATTLEPAY)
+#
+#    Shop.Enabled
+#        Description: Master switch for the in-game Shop (BattlePay / StoreUI). When disabled the
+#                     store is advertised as unavailable in the feature-system status (glue and
+#                     in-world), the distribution list is not sent, and all shop CMSG handlers
+#                     (product list, purchase list, start purchase, open checkout) are refused.
+#        Default:     1 - (Enabled)
+#                     0 - (Disabled)
+
+Shop.Enabled = 1
+
+#
+#    Shop.PurchaseConfirmation
+#        Description: Route in-game Shop purchases through the retail two-step confirmation handshake
+#                     (server sends SMSG_BATTLE_PAY_CONFIRM_PURCHASE, completes on the client's
+#                     CMSG_BATTLE_PAY_CONFIRM_PURCHASE_RESPONSE). The confirm packet layout is INFERRED
+#                     (uncracked client struct, absent from all sniffs) and may disconnect a live
+#                     client, so this is OFF by default; the proven direct-grant path is used instead.
+#                     Enable only to validate the confirm round-trip against a live client.
+#        Default:     0 - (Disabled, direct grant)
+#                     1 - (Enabled, two-step confirmation)
+
+Shop.PurchaseConfirmation = 0
+
+#
+###################################################################################################

@@ -28,38 +28,54 @@ BattlePayMgr* BattlePayMgr::instance()
     return &instance;
 }
 
-void BattlePayMgr::Load()
+bool BattlePayMgr::LoadBlobFile(std::string const& fileName, std::vector<uint8>& out)
 {
-    uint32 const oldMSTime = getMSTime();
+    out.clear();
 
-    _productListBlob.clear();
-
-    std::string const path = sWorld->GetDataPath() + "battlepay/product_list_68275.bin";
+    std::string const path = sWorld->GetDataPath() + "battlepay/" + fileName;
     std::ifstream in(path, std::ios::binary | std::ios::ate);
     if (!in)
     {
-        TC_LOG_INFO("server.loading", "BattlePay: no catalog blob at '{}' - the in-game Shop will open empty.", path);
-        return;
+        TC_LOG_INFO("server.loading", "BattlePay: no blob at '{}'.", path);
+        return false;
     }
 
     std::streamsize const size = in.tellg();
     if (size <= 0)
     {
-        TC_LOG_ERROR("server.loading", "BattlePay: catalog blob '{}' is empty.", path);
-        return;
+        TC_LOG_ERROR("server.loading", "BattlePay: blob '{}' is empty.", path);
+        return false;
     }
 
     in.seekg(0, std::ios::beg);
-    _productListBlob.resize(static_cast<size_t>(size));
-    if (!in.read(reinterpret_cast<char*>(_productListBlob.data()), size))
+    out.resize(static_cast<size_t>(size));
+    if (!in.read(reinterpret_cast<char*>(out.data()), size))
     {
-        TC_LOG_ERROR("server.loading", "BattlePay: failed reading catalog blob '{}'.", path);
-        _productListBlob.clear();
-        return;
+        TC_LOG_ERROR("server.loading", "BattlePay: failed reading blob '{}'.", path);
+        out.clear();
+        return false;
     }
 
-    TC_LOG_INFO("server.loading", "BattlePay: loaded {}-byte in-game Shop catalog in {} ms.",
-        _productListBlob.size(), GetMSTimeDiffToNow(oldMSTime));
+    return true;
+}
+
+void BattlePayMgr::Load()
+{
+    uint32 const oldMSTime = getMSTime();
+
+    if (LoadBlobFile("product_list_68275.bin", _productListBlob))
+    {
+        ++_catalogGeneration;
+        TC_LOG_INFO("server.loading", "BattlePay: loaded {}-byte in-game Shop catalog in {} ms.",
+            _productListBlob.size(), GetMSTimeDiffToNow(oldMSTime));
+    }
+    else
+        TC_LOG_INFO("server.loading", "BattlePay: no catalog blob - the in-game Shop will open empty.");
+
+    // The distribution list unblocks the client's shop panel (StoreFrame_IsLoading). Replay the
+    // captured 68275 blob; absence is non-fatal (the panel just keeps waiting on HasDistributionList).
+    if (LoadBlobFile("distribution_list_68275.bin", _distributionListBlob))
+        TC_LOG_INFO("server.loading", "BattlePay: loaded {}-byte distribution list.", _distributionListBlob.size());
 }
 
 void BattlePayMgr::LoadProducts()
