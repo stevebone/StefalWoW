@@ -16,6 +16,7 @@
  */
 
 #include "PlayerTaxi.h"
+#include "ConditionMgr.h"
 #include "DB2Stores.h"
 #include "ObjectMgr.h"
 #include "Player.h"
@@ -135,8 +136,76 @@ void PlayerTaxi::AppendTaximaskTo(WorldPackets::Taxi::ShowTaxiNodes& data, bool 
     }
     else
     {
-        data.CanLandNodes = m_taximask;                  // known nodes
-        data.CanUseNodes = m_taximask;
+        data.CanLandNodes = m_taximask;                  // known nodes - where the player may land (incl. early landing)
+        data.CanUseNodes = m_taximask;                   // widened by AppendConditionUnlockedNodesTo, see PlayerTaxi.h
+    }
+}
+
+bool PlayerTaxi::IsNodeUnlockedByCondition(uint32 nodeidx, Player const* player)
+{
+    if (!player)
+        return false;
+
+    TaxiNodesEntry const* node = sTaxiNodesStore.LookupEntry(nodeidx);
+    if (!node)
+        return false;
+
+    // Only nodes that actually publish an availability condition can be unlocked without discovery. Every other
+    // node keeps its existing behaviour exactly - this must not widen anything Blizzard did not gate.
+    if (node->ConditionID <= 0)
+        return false;
+
+    // ConditionMgr::IsPlayerMeetingCondition answers "true" for a PlayerCondition it cannot find, which is the
+    // right default when a condition merely decorates something but is exactly wrong here - an unresolvable
+    // condition would hand the node to everyone. Refuse to unlock what cannot be evaluated.
+    if (!sPlayerConditionStore.LookupEntry(node->ConditionID))
+        return false;
+
+    if (!ConditionMgr::IsPlayerMeetingCondition(player, node->ConditionID))
+        return false;
+
+    // VisibilityConditionID hides the node on the flight map even when ConditionID would allow it, so a node that
+    // fails it must not be offered either. Same fail-closed rule for an unresolvable condition.
+    if (node->VisibilityConditionID)
+    {
+        if (!sPlayerConditionStore.LookupEntry(node->VisibilityConditionID))
+            return false;
+
+        if (!ConditionMgr::IsPlayerMeetingCondition(player, node->VisibilityConditionID))
+            return false;
+    }
+
+    // A node the player's faction cannot see on the flight map must not be offered either - the discovery mask
+    // implies this today (you cannot learn a node of the other faction), the condition path has to state it.
+    switch (player->GetTeam())
+    {
+        case HORDE:    return node->GetFlags().HasFlag(TaxiNodeFlags::ShowOnHordeMap);
+        case ALLIANCE: return node->GetFlags().HasFlag(TaxiNodeFlags::ShowOnAllianceMap);
+        default:       return false;
+    }
+}
+
+void PlayerTaxi::AppendConditionUnlockedNodesTo(TaxiMask& useNodes, TaxiMask const& reachableNodes, Player const* player)
+{
+    for (TaxiNodesEntry const* node : sTaxiNodesStore)
+    {
+        if (!node || !node->ConditionID)
+            continue;
+
+        uint32 field = uint32((node->ID - 1) / (sizeof(TaxiMask::value_type) * 8));
+        TaxiMask::value_type submask = TaxiMask::value_type(1 << ((node->ID - 1) % (sizeof(TaxiMask::value_type) * 8)));
+
+        if (field >= reachableNodes.size())
+            continue;
+
+        // Skip anything the flight master cannot route to anyway (this also keeps the number of condition
+        // evaluations down to the handful of gated nodes that share a network with the current node) and
+        // anything already offered through the discovery mask.
+        if (!(reachableNodes[field] & submask) || (useNodes[field] & submask))
+            continue;
+
+        if (IsNodeUnlockedByCondition(node->ID, player))
+            useNodes[field] |= submask;
     }
 }
 
@@ -180,9 +249,15 @@ bool PlayerTaxi::LoadTaxiDestinationsFromString(const std::string& values, uint3
             return false;
     }
 
-    // can't load taxi path without mount set (quest taxi path?)
+    // can't load taxi path without mount set (quest taxi path?) - unless the source node publishes no mount at
+    // all for either team (teleport-style nodes such as the covenant sanctum transport network), which is a
+    // legitimately mountless path rather than broken data.
     if (!sObjectMgr->GetTaxiMountDisplayId(GetTaxiSource(), team, true))
-        return false;
+    {
+        TaxiNodesEntry const* sourceNode = sTaxiNodesStore.LookupEntry(GetTaxiSource());
+        if (!sourceNode || sourceNode->MountCreatureID[0] || sourceNode->MountCreatureID[1])
+            return false;
+    }
 
     return true;
 }

@@ -6696,6 +6696,80 @@ void ObjectMgr::LoadAreaTriggerScripts()
     TC_LOG_INFO("server.loading", ">> Loaded {} areatrigger scripts in {} ms", _areaTriggerScriptStore.size(), GetMSTimeDiffToNow(oldMSTime));
 }
 
+// Flight masters are normally resolved to a TaxiNodes row by proximity (GetNearestTaxiNode). That cannot work
+// for the covenant sanctum transport networks: every node in them carries TaxiNodeFlags::IgnoreForFindNearest,
+// which is precisely the flag Blizzard can afford to set because their flight master is bound to its node
+// explicitly instead of being found by distance. `creature_taxi_node` restores that explicit binding.
+void ObjectMgr::LoadCreatureTaxiNodes()
+{
+    uint32 oldMSTime = getMSTime();
+
+    _creatureTaxiNodeStore.clear();                             // need for reload case
+
+    QueryResult result = WorldDatabase.Query("SELECT CreatureID, TaxiNodeID FROM creature_taxi_node");
+    if (!result)
+    {
+        TC_LOG_INFO("server.loading", ">> Loaded 0 creature taxi node bindings. DB table `creature_taxi_node` is empty.");
+        return;
+    }
+
+    do
+    {
+        Field* fields = result->Fetch();
+
+        uint32 creatureId = fields[0].GetUInt32();
+        uint32 taxiNodeId = fields[1].GetUInt32();
+
+        CreatureTemplate const* creatureTemplate = GetCreatureTemplate(creatureId);
+        if (!creatureTemplate)
+        {
+            TC_LOG_ERROR("sql.sql", "Table `creature_taxi_node` references non-existing creature {} (TaxiNodeID {}), skipped.", creatureId, taxiNodeId);
+            continue;
+        }
+
+        if (!(creatureTemplate->npcflag & UNIT_NPC_FLAG_FLIGHTMASTER))
+        {
+            TC_LOG_ERROR("sql.sql", "Table `creature_taxi_node` binds creature {} to TaxiNodeID {}, but that creature is not a flight master "
+                "(missing UNIT_NPC_FLAG_FLIGHTMASTER); the binding would never be used, skipped.", creatureId, taxiNodeId);
+            continue;
+        }
+
+        TaxiNodesEntry const* node = sTaxiNodesStore.LookupEntry(taxiNodeId);
+        if (!node)
+        {
+            TC_LOG_ERROR("sql.sql", "Table `creature_taxi_node` references non-existing TaxiNodes.db2 entry {} (CreatureID {}), skipped.", taxiNodeId, creatureId);
+            continue;
+        }
+
+        // A node outside the taxi network has no edges in TaxiPathGraph, so binding to it would open an empty
+        // flight map. Refuse it rather than silently offering a dead flight master.
+        if (!node->IsPartOfTaxiNetwork())
+        {
+            TC_LOG_ERROR("sql.sql", "Table `creature_taxi_node` binds creature {} to TaxiNodeID {}, which is not part of the taxi network, skipped.", creatureId, taxiNodeId);
+            continue;
+        }
+
+        _creatureTaxiNodeStore[creatureId] = taxiNodeId;
+    }
+    while (result->NextRow());
+
+    TC_LOG_INFO("server.loading", ">> Loaded {} creature taxi node bindings in {} ms", _creatureTaxiNodeStore.size(), GetMSTimeDiffToNow(oldMSTime));
+}
+
+uint32 ObjectMgr::GetCreatureTaxiNode(uint32 creatureId) const
+{
+    auto itr = _creatureTaxiNodeStore.find(creatureId);
+    return itr != _creatureTaxiNodeStore.end() ? itr->second : 0;
+}
+
+uint32 ObjectMgr::GetTaxiNodeForFlightMaster(uint32 creatureId, float x, float y, float z, uint32 mapid, uint32 team)
+{
+    if (uint32 boundNode = GetCreatureTaxiNode(creatureId))
+        return boundNode;
+
+    return GetNearestTaxiNode(x, y, z, mapid, team);
+}
+
 uint32 ObjectMgr::GetNearestTaxiNode(float x, float y, float z, uint32 mapid, uint32 team)
 {
     bool found = false;
