@@ -44,9 +44,9 @@ void WorldSession::HandleCommerceTokenGetMarketPrice(WorldPackets::Token::Commer
         response.Result = TOKEN_RESULT_SUCCESS;
         response.Price = lowestPrice;
 
-        // Left at 0: how long a token takes to sell is a statistic retail derives from its own sales
-        // history, and we have none to derive it from. 0 is honest here rather than an invented estimate.
-        response.ExpectedSecondsUntilSold = 0;
+        // Retail always sends 14400 (4 hours) here - it is a constant in all 9 captured responses, not a
+        // statistic derived from sales history. Match it. See COMMERCE_AUDIT C-19.
+        response.ExpectedSecondsUntilSold = 14400;
     }
     else
         response.Result = TOKEN_RESULT_ERROR_NONE_FOR_SALE;
