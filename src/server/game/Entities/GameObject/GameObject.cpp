@@ -45,6 +45,7 @@
 #include "MapManager.h"
 #include "MapUtils.h"
 #include "MiscPackets.h"
+#include "NPCPackets.h"
 #include "ObjectAccessor.h"
 #include "ObjectMgr.h"
 #include "OutdoorPvPMgr.h"
@@ -3503,22 +3504,57 @@ void GameObject::Use(Unit* user, bool ignoreCastInProgress /*= false*/)
             // A gameobject that opens a garrison talent tree directly instead of through a gossip option. The four
             // covenant Anima Conductors are these: 328302 (Kyrian, tree 345), 350776 (Venthyr, 348),
             // 350777 (Night Fae, 346), 348675 (Necrolord, 347) - each one's Data1 is its Channel Anima tree.
-            // The client resolves the tree from the gameobject's own GameObjects.db2 row, exactly as it resolves it
-            // from GossipNPCOption.db2 on the gossip path (Player::OnGossipSelect), so the server only has to open
-            // the GarrTalent interaction on this object. Without this the conductors were inert.
+            //
+            // SMSG_GAME_OBJECT_INTERACTION is NOT usable here, and that is why this was still inert after the case
+            // was added. Both SMSG_GAME_OBJECT_INTERACTION and SMSG_NPC_INTERACTION_OPEN_RESULT feed the client's
+            // PlayerInteractionManager, and Blizzard_UIPanels_Game/Shared/PlayerInteractionFrameManager.lua's
+            // InteractionManagerFrameInfo table has NO entry for PlayerInteractionType::GarrTalent (35) - its
+            // ShowFrame() does `if not frameInfo then return end`, i.e. a silent no-op. The talent/anima UIs are
+            // raised by dedicated events instead (Blizzard_UIParent/Mainline/UIParent.lua):
+            //   GARRISON_TALENT_NPC_OPENED(garrTypeID, garrTalentTreeID) -> OrderHallTalentFrame:SetGarrisonType()
+            //   ANIMA_DIVERSION_OPEN(AnimaDiversionFrameInfo)            -> AnimaDiversionFrame:TryShow()
+            // and the ONLY server->client trigger for either is SMSG_GOSSIP_OPTION_NPC_INTERACTION carrying a
+            // GossipNpcOptionID, from which the client reads GossipNPCOption.db2 (GossipNpcOption = 32
+            // GarrisonTalent, plus GarrTalentTreeID) - there is no dedicated open-talent/open-anima opcode
+            // anywhere in the 12.0.7 client (whole-binary opcode catalogue: 2408 named opcodes, zero matches for
+            // ANIMA/DIVERSION/TALENT_NPC/GARRISON_OPEN_MISSION).
+            //
+            // So resolve the gameobject's tree to its own GossipNPCOption row and send exactly what the gossip
+            // path sends. No id is hardcoded: the four conductors resolve to rows 31032/31290/31291/31292 purely
+            // through GarrTalentTreeID.
             Player* player = user->ToPlayer();
             if (!player)
                 return;
 
-            if (!GetGOInfo()->garrTalentTree.GarrTalentTreeID)
+            uint32 garrTalentTreeId = GetGOInfo()->garrTalentTree.GarrTalentTreeID;
+            if (!garrTalentTreeId)
                 return;
+
+            GossipNPCOptionEntry const* npcOption = nullptr;
+            for (GossipNPCOptionEntry const* option : sGossipNPCOptionStore)
+            {
+                if (option->GarrTalentTreeID == int32(garrTalentTreeId))
+                {
+                    npcOption = option;
+                    break;
+                }
+            }
+
+            if (!npcOption)
+            {
+                // Nothing to open with - refuse rather than send an interaction the client has no frame for.
+                TC_LOG_DEBUG("misc", "GameObject::Use: GARR_TALENT_TREE gameobject {} (entry {}) has GarrTalentTreeID {} "
+                    "with no GossipNPCOption.db2 row referencing it; cannot open the talent UI.",
+                    GetGUID().ToString(), GetEntry(), garrTalentTreeId);
+                return;
+            }
 
             player->PlayerTalkClass->GetInteractionData().StartInteraction(GetGUID(), PlayerInteractionType::GarrTalent);
 
-            WorldPackets::GameObject::GameObjectInteraction openTalentTree;
-            openTalentTree.ObjectGUID = GetGUID();
-            openTalentTree.InteractionType = PlayerInteractionType::GarrTalent;
-            player->SendDirectMessage(openTalentTree.Write());
+            WorldPackets::NPC::GossipOptionNPCInteraction npcInteraction;
+            npcInteraction.GossipGUID = GetGUID();
+            npcInteraction.GossipNpcOptionID = npcOption->ID;
+            player->SendDirectMessage(npcInteraction.Write());
             return;
         }
         case GAMEOBJECT_TYPE_GATHERING_NODE:                //50
