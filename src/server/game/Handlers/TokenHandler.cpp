@@ -68,28 +68,20 @@ void WorldSession::HandleCommerceTokenGetCount(WorldPackets::Token::CommerceToke
 
 void WorldSession::HandleConsumableTokenCanVeteranBuy(WorldPackets::Token::ConsumableTokenCanVeteranBuy& consumableTokenCanVeteranBuy)
 {
-    // The trailing uint64 is the account's remaining gold: the client's handler stores it straight into
-    // the global that C_WowTokenGlue.GetAccountRemainingGoldAmount() returns, and AccountReactivate.lua
-    // renders it as ACCOUNT_REACTIVATE_GOLD_REMAINING. This is answered at character select, so no
-    // Player is loaded and the total has to come from the database.
-    CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_ACCOUNT_TOTAL_MONEY);
-    stmt->setUInt32(0, GetAccountId());
-
-    _queryProcessor.AddCallback(CharacterDatabase.AsyncQuery(stmt)
-        .WithPreparedCallback([this, clientToken = consumableTokenCanVeteranBuy.ClientToken](PreparedQueryResult result)
-    {
-        WorldPackets::Token::ConsumableTokenCanVeteranBuyResponse response;
-
-        response.ClientToken = clientToken;
-
-        // Buying a token for gold is only possible while somebody has one listed on the market, so
-        // the answer is read out of the market rather than assumed. The client reads result == 0 as
-        // "can buy" and treats ERROR_NONE_FOR_SALE as the other meaningful outcome.
-        response.Result = sWowTokenMgr->GetListedTokenCount() ? TOKEN_RESULT_SUCCESS : TOKEN_RESULT_ERROR_NONE_FOR_SALE;
-        response.RemainingGoldAmount = result ? (*result)[0].GetUInt64() : UI64LIT(0);
-
-        SendPacket(response.Write());
-    }));
+    // "Veteran buy" is the retail flow where a lapsed-subscription account buys a token with gold to
+    // reactivate game time (AccountReactivate.lua). TrinityCore has no subscriptions, so no account is
+    // ever eligible - which is exactly what retail reports here as well: all 22 captured responses are
+    // {Result = ERROR_DISABLED, RemainingGold = 0}. Answer that verbatim as the default ineligible reply.
+    //
+    // The success path an eligible account would receive is {Result = SUCCESS (or SUCCESS_NO), gold},
+    // where the trailing u64 feeds C_WowTokenGlue.GetAccountRemainingGoldAmount(); it has no server-side
+    // counterpart here (no veteran/subscription concept) so it is deliberately not produced. See
+    // COMMERCE_AUDIT C-21 / WOW_TOKEN_RE_68275.md.
+    WorldPackets::Token::ConsumableTokenCanVeteranBuyResponse response;
+    response.ClientToken = consumableTokenCanVeteranBuy.ClientToken;
+    response.Result = TOKEN_RESULT_ERROR_DISABLED;
+    response.RemainingGoldAmount = 0;
+    SendPacket(response.Write());
 }
 
 void WorldSession::HandleCanRedeemTokenForBalance(WorldPackets::Token::CanRedeemTokenForBalance& /*canRedeemTokenForBalance*/)
