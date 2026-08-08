@@ -404,6 +404,12 @@ public:
 
     void AddMission(uint32 garrMissionId);
     void SendOfferedMissions() const;
+    // Covenant Adventures gate: the command table only operates once the tier-0 'Tactical Insight' talent of the
+    // covenant's Command Table tree (1074 Night Fae / 1077 Kyrian / 1080 Venthyr / 1083 Necrolord, trees
+    // 315/316/317/318) is researched. Always true for every non-covenant garrison type - their tables have no
+    // such talent. Enforced at mission generation, board re-send and mission start; the client UI gates itself
+    // with the same talent, so an un-researched table simply shows an empty board.
+    bool IsMissionBoardUnlocked() const;
     // Whether the offered-mission board is already at MAX_AVAILABLE_MISSIONS (GenerateAvailableMissions
     // would add nothing, so no ADD_MISSION packets would otherwise reach the client on open).
     bool IsOfferPoolFull() const;

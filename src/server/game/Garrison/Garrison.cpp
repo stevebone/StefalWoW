@@ -2005,6 +2005,10 @@ void Garrison::AddMission(uint32 garrMissionId)
 // on every open (sniff: GET_GARRISON_INFO_RESULT + per-mission ADD_MISSION_RESULT).
 void Garrison::SendOfferedMissions() const
 {
+    // An un-unlocked covenant command table has no board to re-send (see IsMissionBoardUnlocked).
+    if (!IsMissionBoardUnlocked())
+        return;
+
     for (auto const& [dbId, mission] : _missions)
     {
         if (mission.PacketInfo.MissionState != 0) // 0 = offered; skip in-progress/completed
@@ -2020,6 +2024,50 @@ void Garrison::SendOfferedMissions() const
         addMissionResult.CanStartMission = true;
         _owner->SendDirectMessage(addMissionResult.Write());
     }
+}
+
+// Finally a consumer for GARR_TALENT_FEATURE_COMMAND_TABLE: the audit (COVENANT_SANCTUM_AUDIT.md par.1.4) found
+// the covenant mission board served unconditionally while the tier-0 'Tactical Insight' talents gated nothing.
+// The gate is resolved from data, not talent ids: the Command Table tree of the player's ACTIVE covenant
+// (FeatureTypeIndex 3, FeatureSubtypeIndex = CovenantID), its Tier-0 talent, researched to rank >= 1. With no
+// active covenant there is no command table to serve at all.
+bool Garrison::IsMissionBoardUnlocked() const
+{
+    if (GetType() != GARRISON_TYPE_COVENANT)
+        return true;
+
+    std::vector<GarrTalentTreeEntry const*> const* trees = sGarrisonMgr.GetTalentTreesForGarrType(static_cast<int8>(GARRISON_TYPE_COVENANT));
+    if (!trees)
+        return true;
+
+    for (GarrTalentTreeEntry const* treeEntry : *trees)
+    {
+        if (treeEntry->FeatureTypeIndex != GARR_TALENT_FEATURE_COMMAND_TABLE)
+            continue;
+
+        if (uint32(treeEntry->FeatureSubtypeIndex) != _owner->GetActiveCovenant())
+            continue;
+
+        std::vector<GarrTalentEntry const*> const* talents = sGarrisonMgr.GetTalentsForTree(treeEntry->ID);
+        if (!talents)
+            continue;
+
+        for (GarrTalentEntry const* talentEntry : *talents)
+        {
+            if (talentEntry->Tier != 0)
+                continue;
+
+            Talent const* talent = GetTalent(talentEntry->ID);
+            if (talent && talent->Rank >= 1)
+                return true;
+        }
+
+        // The covenant's Command Table tree exists and its unlock tier is not researched.
+        return false;
+    }
+
+    // No Command Table tree matches (e.g. no active covenant yet) - there is no table to operate.
+    return false;
 }
 
 bool Garrison::IsOfferPoolFull() const
@@ -2199,6 +2247,11 @@ int32 Garrison::CalculateSuccessChance(uint32 missionRecID, std::vector<uint64> 
 
 GarrisonError Garrison::StartMission(uint32 missionRecID, std::vector<uint64> const& followerDBIDs)
 {
+    // A locked covenant command table can hold stale offers generated before the gate existed (they persist);
+    // refuse to start them rather than let a client bypass the Tactical Insight unlock.
+    if (!IsMissionBoardUnlocked())
+        return GARRISON_ERROR_MISSION_START_CONDITION_FAILED;
+
     GarrMissionEntry const* missionEntry = sGarrMissionStore.LookupEntry(missionRecID);
     if (!missionEntry)
         return GARRISON_ERROR_INVALID_MISSION;
@@ -2746,6 +2799,11 @@ void Garrison::RemoveExpiredMissions()
 void Garrison::GenerateAvailableMissions()
 {
     if (!_siteLevel)
+        return;
+
+    // Adventures are gated on the covenant's tier-0 Command Table talent - generate no offers before it is
+    // researched, so the board a locked table would show (and could start from) simply does not exist.
+    if (!IsMissionBoardUnlocked())
         return;
 
     // Use the garrison's own type for mission lookups
