@@ -254,6 +254,24 @@ void QueensConservatory::RefreshClientState()
 
 void QueensConservatory::Update()
 {
+    if (!_owner)
+        return;
+
+    // Every action method is gated on Night Fae; the tick has to be too. The plots of a character who planted and
+    // then switched covenant still load, so without this guard RefreshClientState() would keep stamping the garden
+    // auras 344292/344304 - the exact two C_ArdenwealdGardening.GetGardenData() reads - onto, say, a Necrolord,
+    // who would see a live wildseed countdown for a garden they can neither plant in nor harvest from. Take the
+    // auras down on the way out rather than merely stopping the refresh, so a switch clears the panel instead of
+    // freezing yesterday's numbers on it. The plot rows themselves are untouched and return with the covenant.
+    if (_owner->GetActiveCovenant() != COVENANT_ID_NIGHT_FAE)
+    {
+        if (_owner->HasAura(SPELL_CONSERVATORY_GARDEN_COUNTS))
+            _owner->RemoveAurasDueToSpell(SPELL_CONSERVATORY_GARDEN_COUNTS);
+        if (_owner->HasAura(SPELL_CONSERVATORY_GARDEN_TIMER))
+            _owner->RemoveAurasDueToSpell(SPELL_CONSERVATORY_GARDEN_TIMER);
+        return;
+    }
+
     time_t const now = GameTime::GetGameTime();
     bool matured = false;
 

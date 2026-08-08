@@ -319,6 +319,13 @@ void PathOfAscension::Update()
     if (!_owner)
         return;
 
+    // Clamp only while the player still owns this tree. GetResearchedTiers() collapses to 0 for anyone who is not
+    // Kyrian, and the ceiling with it, so without this guard a Kyrian who switches covenant - a supported and
+    // explicitly reversible operation - would have every high-water mark rewritten to 0 on the next tick and then
+    // persisted. Switching must cost access to the trials, never the record of which ones were won.
+    if (!GetResearchedTiers())
+        return;
+
     // A talent reset can lower the researched tier under a memory that is already held. Nothing is deleted -
     // the capture stands and re-researching restores access - but a trial won above the new ceiling must not
     // keep reading as available, so clamp the high-water mark to what the tier still supports.

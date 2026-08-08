@@ -931,6 +931,14 @@ void CharacterDatabaseConnection::DoPrepareStatements()
     PrepareStatement(CHAR_SEL_CHARACTER_COVENANT_CALLINGS, "SELECT covenantId, slot, bountyId, expireTime, refillTime FROM character_covenant_callings WHERE guid = ?", CONNECTION_ASYNC);
     PrepareStatement(CHAR_DEL_CHARACTER_COVENANT_CALLINGS, "DELETE FROM character_covenant_callings WHERE guid = ?", CONNECTION_ASYNC);
     PrepareStatement(CHAR_INS_CHARACTER_COVENANT_CALLINGS, "INSERT INTO character_covenant_callings (guid, covenantId, slot, bountyId, expireTime, refillTime) VALUES (?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC);
+
+    // Character deletion. TC recycles character GUIDs, so every guid-keyed covenant table needs a purge here or
+    // a new character can inherit the deleted one's covenant history (see Player::DeleteFromDB).
+    PrepareStatement(CHAR_DEL_CHARACTER_COVENANT, "DELETE FROM character_covenant WHERE guid = ?", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_DEL_CHARACTER_COVENANT_RENOWN, "DELETE FROM character_covenant_renown WHERE guid = ?", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_DEL_CHARACTER_COVENANT_SOULBIND, "DELETE FROM character_covenant_soulbind WHERE guid = ?", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_DEL_CHARACTER_SOULBIND_CONDUITS, "DELETE FROM character_soulbind_conduits WHERE guid = ?", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_DEL_CHARACTER_SOULBIND_CONDUIT_SOCKETS, "DELETE FROM character_soulbind_conduit_sockets WHERE guid = ?", CONNECTION_ASYNC);
 }
 
 CharacterDatabaseConnection::CharacterDatabaseConnection(MySQLConnectionInfo& connInfo, ConnectionFlags connectionFlags) : MySQLConnection(connInfo, connectionFlags)
