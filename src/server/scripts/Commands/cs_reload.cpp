@@ -28,6 +28,7 @@ EndScriptData */
 #include "AreaTriggerDataStore.h"
 #include "AuctionHouseMgr.h"
 #include "BattlegroundMgr.h"
+#include "BattlePayMgr.h"
 #include "CharacterTemplateDataStore.h"
 #include "Chat.h"
 #include "ChatCommand.h"
@@ -143,6 +144,7 @@ public:
             { "reserved_name",                 rbac::RBAC_PERM_COMMAND_RELOAD_RESERVED_NAME,                    true,  &HandleReloadReservedNameCommand,               "" },
             { "reputation_reward_rate",        rbac::RBAC_PERM_COMMAND_RELOAD_REPUTATION_REWARD_RATE,           true,  &HandleReloadReputationRewardRateCommand,       "" },
             { "reputation_spillover_template", rbac::RBAC_PERM_COMMAND_RELOAD_SPILLOVER_TEMPLATE,               true,  &HandleReloadReputationRewardRateCommand,       "" },
+            { "shop_catalog",                  rbac::RBAC_PERM_COMMAND_RELOAD_SHOP_CATALOG,                     true,  &HandleReloadShopCatalogCommand,                "" },
             { "skill_discovery_template",      rbac::RBAC_PERM_COMMAND_RELOAD_SKILL_DISCOVERY_TEMPLATE,         true,  &HandleReloadSkillDiscoveryTemplateCommand,     "" },
             { "scene_template",                rbac::RBAC_PERM_COMMAND_RELOAD_SCENE_TEMPLATE,                   true,  &HandleReloadSceneTemplateCommand,              "" },
             { "skill_extra_item_template",     rbac::RBAC_PERM_COMMAND_RELOAD_SKILL_EXTRA_ITEM_TEMPLATE,        true,  &HandleReloadSkillExtraItemTemplateCommand,     "" },
@@ -533,6 +535,14 @@ public:
         TC_LOG_INFO("misc", "Re-Loading Quest Greeting ... ");
         sObjectMgr->LoadQuestGreetings();
         handler->SendGlobalGMSysMessage("DB table `quest_greeting` reloaded.");
+        return true;
+    }
+
+    static bool HandleReloadShopCatalogCommand(ChatHandler* handler, char const* /*args*/)
+    {
+        TC_LOG_INFO("misc", "Re-Loading in-game Shop catalog...");
+        sBattlePayMgr->Reload();    // re-reads shop_product/_deliverable/_slot_override, rebuilds + atomically swaps the blob
+        handler->SendGlobalGMSysMessage("In-game Shop catalog reloaded (clients receive it on next shop open).");
         return true;
     }
 

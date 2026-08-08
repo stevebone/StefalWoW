@@ -1622,7 +1622,7 @@ bool World::SetInitialWorldSettings()
 
     TC_LOG_INFO("server.loading", "Loading in-game Shop (BattlePay) catalog...");
     sBattlePayMgr->Load();
-    sBattlePayMgr->LoadProducts();
+    sBattlePayMgr->LoadCatalog();
 
     TC_LOG_INFO("server.loading", "Loading creature summoned data...");
     sObjectMgr->LoadCreatureSummonedData();                     // must be after LoadCreatureTemplates() and LoadQuests()
@@ -2156,6 +2156,9 @@ void World::Update(uint32 diff)
         m_timers[WUPDATE_WHO_LIST].Reset();
         sWhoListStorageMgr->Update();
     }
+
+    ///- Rebuild the in-game Shop catalog when an availability-window boundary passes (restart-free rotation).
+    sBattlePayMgr->RebuildIfDue(currentGameTime);
 
     if (IsStopped() || m_timers[WUPDATE_CHANNEL_SAVE].Passed())
     {

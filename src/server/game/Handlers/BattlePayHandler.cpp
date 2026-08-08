@@ -20,6 +20,7 @@
 #include "BattlePayPackets.h"
 #include "DatabaseEnv.h"
 #include "DBCEnums.h"
+#include "GameTime.h"
 #include "Item.h"
 #include "ItemTemplate.h"
 #include "ItemEnchantmentMgr.h"
@@ -153,48 +154,75 @@ void WorldSession::BattlePayProcessPurchase(uint32 productID)
         SendPacket(update.Write());
     };
 
-    BattlePayProduct const* product = player ? sBattlePayMgr->GetProduct(productID) : nullptr;
+    // Resolve the advertised (slot) productID to its admin product via the catalog routing map.
+    // Placeholder / unrouted slots have no product -> not purchasable.
+    ShopProduct const* product = player ? sBattlePayMgr->GetProductByAdvertisedId(productID) : nullptr;
     if (!product)
     {
-        TC_LOG_DEBUG("network", "BattlePay: purchase of unknown product {} by {}.", productID, GetPlayerInfo());
+        TC_LOG_DEBUG("network", "BattlePay: purchase of unrouted product {} by {}.", productID, GetPlayerInfo());
         respond(STATUS_FAILED, RESULT_PRODUCT_NOT_PURCHASABLE, 0);
         return;
     }
 
-    // Already-known spell (mount / toy / appearance) is not purchasable: block BEFORE charging so a
-    // repeat purchase never takes gold for nothing (audit C-05). The wire flag 256 HideWhenOwned hides
-    // it client-side, but the server gate is authoritative.
-    if (product->GrantType == 2 && player->HasSpell(product->GrantId))
+    // Authoritative server-side gate for everything the wire cannot express (enabled/window/level/
+    // faction/hideIfOwned/condition). Also refuse a spell-only product the player already fully owns
+    // so a repeat purchase never takes gold for nothing (audit C-05), regardless of the HideIfOwned flag.
+    // A product with no deliverables is display-only (e.g. the template's showcase mounts/pets): visible
+    // in the catalog but not for sale, so it must never report a successful purchase (audit parity - these
+    // had no battlepay_product row before and returned 57).
+    time_t const now = GameTime::GetGameTime();
+    if (product->Deliverables.empty()
+        || !sBattlePayMgr->IsPurchasable(*product, player, now)
+        || BattlePayMgr::IsAlreadyFullyOwned(*product, player))
     {
         respond(STATUS_FAILED, RESULT_PRODUCT_NOT_PURCHASABLE, 0);
         return;
     }
 
-    // Cost check (gold and/or a token item).
-    if (product->CostMoney && !player->HasEnoughMoney(product->CostMoney))
+    // Reserved / unavailable deliverable types abort the whole purchase BEFORE charging: type 3 (WoW
+    // Token) needs WowTokenMgr which lives on the wow-token branch; types 4 (game time) / 5 (service)
+    // are schema-reserved with no delivery impl yet. Purchase result 57 until they land.
+    for (ShopDeliverable const& d : product->Deliverables)
     {
-        respond(STATUS_FAILED, RESULT_NOT_ENOUGH_BALANCE, product->CostMoney);
+        if (d.Type < 1 || d.Type > 2)
+        {
+            TC_LOG_DEBUG("network", "BattlePay: product {} has unsupported deliverable type {} - refused.", productID, d.Type);
+            respond(STATUS_FAILED, RESULT_PRODUCT_NOT_PURCHASABLE, 0);
+            return;
+        }
+    }
+
+    // Cost check by currency (1 = gold copper, 2 = item token).
+    if (product->Currency == 1 && product->Price && !player->HasEnoughMoney(product->Price))
+    {
+        respond(STATUS_FAILED, RESULT_NOT_ENOUGH_BALANCE, product->Price);
         return;
     }
-    if (product->CostItemId && !player->HasItemCount(product->CostItemId, product->CostItemCount))
+    if (product->Currency == 2 && product->PriceItemId && !player->HasItemCount(product->PriceItemId, product->PriceItemCount))
     {
-        respond(STATUS_FAILED, RESULT_NOT_ENOUGH_BALANCE, product->CostMoney);
+        respond(STATUS_FAILED, RESULT_NOT_ENOUGH_BALANCE, product->Price);
         return;
     }
 
-    // Grant first; only charge if the grant succeeds so we never take payment without delivering.
-    bool granted = false;
-    switch (product->GrantType)
+    // Grant first; only charge if every deliverable succeeds so we never take payment without delivering.
+    bool granted = true;
+    for (ShopDeliverable const& d : product->Deliverables)
     {
-        case 1: // item - full delivery to bags, overflow to mail (no partial-stack-at-full-price)
-            granted = BattlePayDeliverItem(player, product->GrantId, product->GrantCount);
-            break;
-        case 2: // spell (mount / toy / appearance) - LearnSpell routes it into the account-wide
-                // collection via CollectionMgr, so the mount/toy/appearance is available account-wide
-            player->LearnSpell(product->GrantId, false);
-            granted = true;
-            break;
-        default:
+        switch (d.Type)
+        {
+            case 1: // item - full delivery to bags, overflow to mail (no partial-stack-at-full-price)
+                if (!BattlePayDeliverItem(player, d.Id, d.Count))
+                    granted = false;
+                break;
+            case 2: // spell (mount / toy / appearance) - LearnSpell routes it into the account-wide
+                    // collection via CollectionMgr; LearnSpell no-ops if a bundled spell is already known
+                if (!player->HasSpell(d.Id))
+                    player->LearnSpell(d.Id, false);
+                break;
+            default:
+                break;
+        }
+        if (!granted)
             break;
     }
 
@@ -202,19 +230,19 @@ void WorldSession::BattlePayProcessPurchase(uint32 productID)
     {
         TC_LOG_DEBUG("network", "BattlePay: grant failed for product {} ({}), {} not charged.",
             productID, product->Name, GetPlayerInfo());
-        respond(STATUS_FAILED, RESULT_PRODUCT_NOT_PURCHASABLE, product->CostMoney);
+        respond(STATUS_FAILED, RESULT_PRODUCT_NOT_PURCHASABLE, product->Price);
         return;
     }
 
-    if (product->CostMoney)
-        player->ModifyMoney(-int64(product->CostMoney));
-    if (product->CostItemId)
-        player->DestroyItemCount(product->CostItemId, product->CostItemCount, true);
+    if (product->Currency == 1 && product->Price)
+        player->ModifyMoney(-int64(product->Price));
+    if (product->Currency == 2 && product->PriceItemId)
+        player->DestroyItemCount(product->PriceItemId, product->PriceItemCount, true);
 
-    TC_LOG_INFO("network", "BattlePay: {} purchased product {} ({}) for {} copper / {}x item {}.",
-        GetPlayerInfo(), productID, product->Name, product->CostMoney, product->CostItemCount, product->CostItemId);
+    TC_LOG_INFO("network", "BattlePay: {} purchased product {} ({}) for {} (currency {}).",
+        GetPlayerInfo(), productID, product->Name, product->Price, product->Currency);
 
-    respond(STATUS_DONE, RESULT_OK, product->CostMoney);
+    respond(STATUS_DONE, RESULT_OK, product->Price);
 }
 
 void WorldSession::HandleBattlePayStartPurchase(WorldPackets::BattlePay::StartPurchase& startPurchase)
@@ -234,7 +262,7 @@ void WorldSession::HandleBattlePayStartPurchase(WorldPackets::BattlePay::StartPu
     if (sWorld->getBoolConfig(CONFIG_SHOP_PURCHASE_CONFIRMATION))
     {
         Player* player = GetPlayer();
-        BattlePayProduct const* product = player ? sBattlePayMgr->GetProduct(startPurchase.ProductID) : nullptr;
+        ShopProduct const* product = player ? sBattlePayMgr->GetProductByAdvertisedId(startPurchase.ProductID) : nullptr;
         if (!product)
         {
             WorldPackets::BattlePay::StartPurchaseResponse ack;
@@ -251,7 +279,7 @@ void WorldSession::HandleBattlePayStartPurchase(WorldPackets::BattlePay::StartPu
         WorldPackets::BattlePay::ConfirmPurchase confirm;
         confirm.PurchaseID = purchaseID;
         confirm.ProductID = startPurchase.ProductID;
-        confirm.CurrentPriceFixedPoint = (product->CostMoney / 10000) * 100000;  // copper -> shop fixed-point
+        confirm.CurrentPriceFixedPoint = product->Currency == 1 ? (product->Price / 10000) * 100000 : 0;  // copper -> shop fixed-point
         confirm.ServerToken = _battlePayConfirmToken;
         SendPacket(confirm.Write());
         return;
