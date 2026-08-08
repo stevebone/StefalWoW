@@ -24748,8 +24748,13 @@ bool Player::ActivateTaxiPathTo(std::vector<uint32> const& nodes, Creature* npc 
     else
         mount_display_id = sObjectMgr->GetTaxiMountDisplayId(sourcenode, GetTeam(), npc == nullptr || (sourcenode == 315 && GetClass() == CLASS_DEATH_KNIGHT));
 
+    // Some nodes publish no MountCreatureID for either team - the covenant sanctum transport network nodes are
+    // the case in point: their TaxiPath rows are 4-node TAXI_PATH_NODE_FLAG_TELEPORT stubs at a single position,
+    // so there is nothing to be mounted on. A missing display is only an error when the node claims a mount.
+    bool const sourceNodeHasMount = node->MountCreatureID[0] != 0 || node->MountCreatureID[1] != 0;
+
     // in spell case allow 0 model
-    if ((mount_display_id == 0 && spellid == 0) || sourcepath == 0)
+    if ((mount_display_id == 0 && spellid == 0 && sourceNodeHasMount) || sourcepath == 0)
     {
         GetSession()->SendActivateTaxiReply(ERR_TAXIUNSPECIFIEDSERVERERROR);
         m_taxi.ClearTaxiDestinations();

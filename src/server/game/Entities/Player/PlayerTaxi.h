@@ -24,6 +24,7 @@
 #include <iosfwd>
 #include <string>
 
+class Player;
 struct FactionTemplateEntry;
 namespace WorldPackets
 {
@@ -67,6 +68,14 @@ class TC_GAME_API PlayerTaxi
         }
         void AppendTaximaskTo(WorldPackets::Taxi::ShowTaxiNodes& data, bool all);
         TaxiMask const& GetTaxiMask() const { return m_taximask; }
+
+        // TaxiNodes.ConditionID gates a node's *availability* independently of the discovery mask: the covenant
+        // sanctum transport network nodes are offered the moment the matching GarrTalent is researched, without
+        // ever having been visited. This is what makes retail's CanUseNodes a strict superset of CanLandNodes.
+        // Purely additive - a node without a ConditionID is never unlocked this way, and no node is ever removed.
+        static bool IsNodeUnlockedByCondition(uint32 nodeidx, Player const* player);
+        // Sets, in `useNodes`, every condition-unlocked node that is also set in `reachableNodes`.
+        static void AppendConditionUnlockedNodesTo(TaxiMask& useNodes, TaxiMask const& reachableNodes, Player const* player);
 
         // Destinations
         [[nodiscard]] bool LoadTaxiDestinationsFromString(std::string const& values, uint32 team);
