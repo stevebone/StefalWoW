@@ -16,9 +16,11 @@
  */
 
 #include "WorldSession.h"
+#include "ConditionMgr.h"
 #include "Creature.h"
 #include "DB2Stores.h"
 #include "DB2Structure.h"
+#include "GameObject.h"
 #include "GameTime.h"
 #include "Garrison.h"
 #include "GarrisonMgr.h"
@@ -92,13 +94,15 @@ void WorldSession::HandleGarrisonGetMapData(WorldPackets::Garrison::GarrisonGetM
     {
         garrison->SendMapData(_player);
 
-        // Send monument/trophy selections after map data (sniff-confirmed zone-in sequence)
+        // Send monument/trophy selections after map data (sniff-confirmed zone-in sequence). This is what puts
+        // the statues on the plinths when the player zones into the garrison, before touching any monument.
         WorldPackets::Garrison::GarrisonUpdateGarrisonMonumentSelections selections;
-        for (uint32 trophyId : garrison->GetTrophies())
+        for (auto const& [trophyInstanceId, trophyId] : garrison->GetTrophies())
         {
-            WorldPackets::Garrison::GarrisonTrophyData data;
-            data.TrophyID = trophyId;
-            selections.Trophies.push_back(data);
+            WorldPackets::Garrison::GarrisonMonumentSelection selection;
+            selection.TrophyInstanceID = trophyInstanceId;
+            selection.TrophyID = trophyId;
+            selections.Selections.push_back(selection);
         }
         SendPacket(selections.Write());
     }
@@ -769,55 +773,171 @@ void WorldSession::HandleRequestGarrisonTalentWorldQuestUnlocks(WorldPackets::Ga
     }
 }
 
-void WorldSession::HandleGetTrophyList(WorldPackets::Garrison::GetTrophyList& /*getTrophyList*/)
+// ============================================================
+// Garrison monument trophies
+// ============================================================
+//
+// How the 68275 client drives this, from Blizzard_GarrisonMonumentUI.lua + the C_Trophy namespace (9 functions,
+// registered at client data RVA 0x420ED30, implemented in Source\Ui\TrophyInfo.cpp):
+//
+//   interact with a Monument Base  -> PlayerInteractionType::Trophy (36) opens GarrisonMonumentFrame
+//   C_Trophy.MonumentLoadList()    -> CMSG_GET_TROPHY_LIST     -> the CATALOGUE for this monument
+//   MonumentLoadSelectedTrophyID() -> CMSG_LOAD_SELECTED_TROPHY-> the player's CURRENT selection
+//   arrow keys / MonumentChangeAppearanceToTrophyID(id)        -> CMSG_CHANGE_MONUMENT_APPEARANCE (preview only)
+//   MonumentRevertAppearanceToSaved()                          -> CMSG_REVERT_MONUMENT_APPEARANCE (preview only)
+//   MonumentSaveSelection(id)      -> CMSG_REPLACE_TROPHY      -> the ONLY call that persists anything
+//
+// The list and the selection are deliberately two round trips - the Lua calls MonumentLoadList() and then, on
+// GARRISON_MONUMENT_LIST_LOADED, MonumentLoadSelectedTrophyID(), and compares the returned id against the list
+// entries to find which one to highlight. Answering CMSG_GET_TROPHY_LIST with the player's own trophies (what
+// this used to do) gave the browse UI nothing to browse.
+//
+// Which monument is being edited is on the wire for three of the five: CMSG_REPLACE_TROPHY,
+// CMSG_CHANGE_MONUMENT_APPEARANCE and CMSG_REVERT_MONUMENT_APPEARANCE each open with the monument's PackedGuid
+// (client serializers at RVA 0x6A9E90 / 0x6A9EF0 / 0x6A9F50), which TrinityCore was not reading at all - so
+// CMSG_REPLACE_TROPHY was parsing its TrophyID out of the guid's mask bytes. CMSG_GET_TROPHY_LIST sends the
+// monument's TrophyTypeID and CMSG_LOAD_SELECTED_TROPHY its TrophyInstanceID instead. Every handler below
+// still checks the guid against the interaction GameObject::Use opened, because a guid off the wire is a
+// claim rather than a fact.
+
+namespace
+{
+// Resolve the monument gameobject a monument packet names. The three monument CMSGs all carry the monument's
+// PackedGuid, but a guid off the wire is a claim, not a fact - it is only accepted if the player actually has
+// an open Trophy interaction with that exact object, which GameObject::Use established.
+GameObject* GetMonument(Player* player, ObjectGuid const& monumentGuid)
+{
+    if (!player->PlayerTalkClass->GetInteractionData().IsInteractingWith(monumentGuid, PlayerInteractionType::Trophy))
+        return nullptr;
+
+    GameObject* monument = ObjectAccessor::GetGameObject(*player, monumentGuid);
+    if (!monument || monument->GetGoType() != GAMEOBJECT_TYPE_GARRISON_MONUMENT)
+        return nullptr;
+
+    return monument;
+}
+
+// The monument the player currently has open, for the packets that do not name one.
+GameObject* GetInteractedMonument(Player* player)
+{
+    InteractionData const& interaction = player->PlayerTalkClass->GetInteractionData();
+    if (interaction.Type != PlayerInteractionType::Trophy)
+        return nullptr;
+
+    return GetMonument(player, interaction.SourceGuid);
+}
+
+// Trophies live on the WoD garrison. This is a data fact rather than the usual "someone forgot the argument"
+// default: the only GAMEOBJECT_TYPE_GARRISON_MONUMENT objects in the world are the six Monument Bases on maps
+// 1159 (Lunarfall) and 1153 (Frostwall), and every displayable Trophy.db2 row is TrophyTypeID 3 or 4, which are
+// exactly those two garrisons. A character with no WoD garrison therefore genuinely has nowhere to put a trophy.
+Garrison* GetMonumentGarrison(Player* player)
+{
+    return player->GetGarrison(GARRISON_TYPE_GARRISON);
+}
+
+// Push the garrison's saved monument selections to the client. This is what actually makes a trophy appear:
+// the client keeps this array and its monument tooltip/display resolves a monument by matching its own
+// TrophyInstanceID against it, then reads Trophy.db2 for the statue.
+void SendMonumentSelections(WorldSession* session, Garrison const* garrison)
+{
+    WorldPackets::Garrison::GarrisonUpdateGarrisonMonumentSelections selections;
+    if (garrison)
+    {
+        for (auto const& [trophyInstanceId, trophyId] : garrison->GetTrophies())
+        {
+            WorldPackets::Garrison::GarrisonMonumentSelection selection;
+            selection.TrophyInstanceID = trophyInstanceId;
+            selection.TrophyID = trophyId;
+            selections.Selections.push_back(selection);
+        }
+    }
+
+    session->SendPacket(selections.Write());
+}
+}
+
+void WorldSession::HandleGetTrophyList(WorldPackets::Garrison::GetTrophyList& getTrophyList)
 {
     WorldPackets::Garrison::GetTrophyListResponse response;
 
-    // The response has no GarrTypeID field, and the request's TrophyTypeID is NOT a garrison type - it
-    // references TrophyType (the same id the trophy-display GameObject carries, see GameObjectData.h
-    // "Trophy Type ID, References: TrophyType"). So there is nothing in this exchange to key a single
-    // garrison off, and the honest answer is the union across every garrison the character owns.
+    // TrophyTypeID DOES partition the reply, and it is not a garrison type. Trophy.db2 carries a TrophyTypeID and
+    // so does the monument gameobject (GAMEOBJECT_TYPE_GARRISON_MONUMENT Data0). In the 68275 client Trophy.db2
+    // has 16 rows: 7 of TrophyTypeID 3, 7 of TrophyTypeID 4 and 2 of TrophyTypeID 0 (NoValue, displayable
+    // nowhere); the six spawned monuments are Data0 = 3 in Frostwall and Data0 = 4 in Lunarfall. The pairs mirror
+    // each other - "Master of Apexis" is row 1 at type 3 and row 14 at type 4, same unlock, different statue - so
+    // replying with the union would offer a Horde player the Alliance statues.
     //
-    // The bug being fixed: the no-arg GetGarrison() resolves ONLY the WoD garrison (type 2), so a
-    // character without one - an order-hall, war-campaign or covenant character - got nullptr and we
-    // replied Success = false, i.e. "the trophy list could not be retrieved" rather than "you have no
-    // trophies". Trophies themselves are stored per garrison type (character_garrison_trophies.garrType).
-    //
-    // Note this is currently latent either way: Garrison::AddTrophy has no caller anywhere in the core
-    // outside CMSG_REPLACE_TROPHY, so no trophy is ever granted and the list is empty for everyone. The
-    // point of the fix is that the failure flag stops lying; wiring up trophy acquisition is separate.
-    response.Success = !_player->GetGarrisons().empty();
-    for (auto const& [type, garrison] : _player->GetGarrisons())
-    {
-        for (uint32 trophyId : garrison->GetTrophies())
+    // The reply is the full catalogue for the requested type, INCLUDING trophies the player has not unlocked.
+    // That is not laziness: the Lua walks 1..MonumentGetCount() and draws a lock overlay plus
+    // GARRISON_TROPHY_LOCKED_SUBTEXT and the blocking achievement's name on each entry it cannot use, and it
+    // refuses to call MonumentSaveSelection for one. If the server pre-filtered, that entire path would be dead
+    // code. The client decides lock state itself from Trophy.PlayerConditionID; the server's job is to enforce it
+    // on save, which HandleReplaceTrophy does.
+    // Confirmed against the client: its response handler (RVA 0x24A09A0) copies the list verbatim into a global
+    // and never compares anything to the TrophyTypeID it asked for - it does not even keep the requested value.
+    // So the filtering has to happen here or not at all.
+    for (TrophyEntry const* trophy : sTrophyStore)
+        if (trophy->TrophyTypeID == getTrophyList.TrophyTypeID)
         {
-            WorldPackets::Garrison::GarrisonTrophyData data;
-            data.TrophyID = trophyId;
-            response.Trophies.push_back(data);
+            WorldPackets::Garrison::TrophyInfo info;
+            info.TrophyID = trophy->ID;
+            // Unk1/Unk2 are the Lua's lock_code and lock_reason. Which is which, and what value means
+            // "unlocked", is not derivable offline: MATCH_CONDITION_SUCCESS (57) and
+            // MATCH_CONDITION_WRONG_ACHIEVEMENT (34) are client constants that no server code in this build
+            // is known to produce, and no JAM descriptor names these fields. Sending 0 rather than guessing
+            // 57 - a wrong guess would silently mislabel every trophy's lock state.
+            response.Trophies.push_back(info);
         }
-    }
+
+    // We answered the question that was asked. An empty list for a TrophyTypeID with no rows is a real answer,
+    // not a failure - Success = false means "the list could not be retrieved".
+    response.Success = true;
 
     SendPacket(response.Write());
 }
 
 void WorldSession::HandleReplaceTrophy(WorldPackets::Garrison::ReplaceTrophy& replaceTrophy)
 {
+    // C_Trophy.MonumentSaveSelection(trophyID) - the only trophy opcode that changes persisted state, and so the
+    // only one that has to revalidate. The Lua checks the lock before calling this, but it will happily PREVIEW a
+    // locked trophy through MonumentChangeAppearanceToTrophyID first, so the check cannot live in the client.
+    // This previously stored whatever uint32 arrived, unvalidated, straight into character_garrison_trophies.
     WorldPackets::Garrison::ReplaceTrophyResponse response;
+    response.Success = false;
 
-    Garrison* garrison = _player->GetGarrison();
-    if (garrison)
+    GameObject* monument = GetMonument(_player, replaceTrophy.MonumentGUID);
+    TrophyEntry const* trophy = sTrophyStore.LookupEntry(replaceTrophy.TrophyID);
+    Garrison* garrison = GetMonumentGarrison(_player);
+
+    if (monument && trophy && garrison
+        // the trophy has to belong to the monument being edited, not merely exist
+        && trophy->TrophyTypeID == monument->GetGOInfo()->garrisonMonument.TrophyTypeID
+        // and the player has to have unlocked it.
+        //
+        // READ THIS BEFORE ASSUMING THE GATE BITES. Trophy.PlayerConditionID is the unlock, and it is real
+        // client data - all 16 rows carry a non-zero one, and the mirrored faction pairs share it (rows 1 and
+        // 14, both "Master of Apexis", are both PlayerCondition 28227). But of the 9 distinct conditions the
+        // table references, only 24827 still EXISTS in the 68275 PlayerCondition.db2; the other 8 - every one
+        // used by a displayable TrophyTypeID 3 or 4 row - are dangling ids Blizzard deleted while leaving
+        // Trophy.db2 behind. Verified by parsing the client file directly: its unencrypted section 0 ends
+        // byte-exactly at section 1's offset, and neighbouring ids (27767, 27798, 28231, 28232 ...) resolve
+        // fine while the trophy ones do not; none of them is hiding in the 8 encrypted sections either.
+        //
+        // IsPlayerMeetingCondition returns true for a missing condition (ConditionMgr.cpp), so today this
+        // gate passes for every trophy. That is deliberately NOT a special case here: the client evaluates
+        // the same PlayerConditionID out of the same file to decide whether to draw the lock, so it also
+        // sees "no condition" and shows the trophy as unlocked. Denying server-side would mean refusing a
+        // selection the client just told the player was available. If the 8 rows are ever restored - a TDB
+        // update, or authoring them in `integ_hotfixes.player_condition` - this gate starts biting with no
+        // code change, and so does the client's lock overlay.
+        && ConditionMgr::IsPlayerMeetingCondition(_player, trophy->PlayerConditionID))
     {
-        garrison->AddTrophy(replaceTrophy.TrophyID);
+        // Keyed by the monument's own TrophyInstanceID, so the three plinths in a garrison hold three
+        // independent selections and re-selecting on one replaces only that one.
+        garrison->SetSelectedTrophy(monument->GetGOInfo()->garrisonMonument.TrophyInstanceID, trophy->ID);
         response.Success = true;
-
-        WorldPackets::Garrison::GarrisonUpdateGarrisonMonumentSelections selections;
-        for (uint32 trophyId : garrison->GetTrophies())
-        {
-            WorldPackets::Garrison::GarrisonTrophyData data;
-            data.TrophyID = trophyId;
-            selections.Trophies.push_back(data);
-        }
-        SendPacket(selections.Write());
+        SendMonumentSelections(this, garrison);
     }
 
     SendPacket(response.Write());
@@ -825,39 +945,54 @@ void WorldSession::HandleReplaceTrophy(WorldPackets::Garrison::ReplaceTrophy& re
 
 void WorldSession::HandleLoadSelectedTrophy(WorldPackets::Garrison::LoadSelectedTrophy& loadSelectedTrophy)
 {
+    // C_Trophy.MonumentLoadSelectedTrophyID() takes no argument in Lua - the client is asking us what is on a
+    // monument, so the uint32 it sends cannot be a trophy it is nominating. It is the monument's
+    // TrophyInstanceID, which the client reads out of the gameobject's Data1. The old code treated it as a
+    // Trophy.db2 id and echoed it straight back if the player "had" it, which answered a different question.
     WorldPackets::Garrison::GetSelectedTrophyIDResponse response;
 
-    Garrison* garrison = _player->GetGarrison();
-    if (garrison && garrison->HasTrophy(loadSelectedTrophy.TrophyID))
+    // Still require an open interaction: this reveals what a character has configured, and the instance id
+    // alone is guessable (1, 2, 6).
+    if (GetInteractedMonument(_player))
     {
-        response.TrophyID = loadSelectedTrophy.TrophyID;
+        if (Garrison* garrison = GetMonumentGarrison(_player))
+            response.TrophyID = garrison->GetSelectedTrophy(loadSelectedTrophy.TrophyInstanceID);
+
+        // We knew which monument was asked about and answered for it. TrophyID 0 is the honest "nothing is
+        // selected here" - the client has a GARRISON_TROPHY_NOT_SELECTED_TOOLTIP for exactly that case.
         response.Success = true;
     }
 
     SendPacket(response.Write());
 }
 
-void WorldSession::HandleChangeMonumentAppearance(WorldPackets::Garrison::ChangeMonumentAppearance& changeMonumentAppearance)
+void WorldSession::HandleChangeMonumentAppearance(WorldPackets::Garrison::ChangeMonumentAppearance& /*changeMonumentAppearance*/)
 {
-    Garrison* garrison = _player->GetGarrison();
-    if (garrison)
-        garrison->AddTrophy(changeMonumentAppearance.TrophyID);
+    // C_Trophy.MonumentChangeAppearanceToTrophyID(trophyID) is the arrow-key PREVIEW: the Lua calls it for every
+    // trophy the player scrolls past, including locked ones, and then either commits with MonumentSaveSelection
+    // or throws the preview away with MonumentRevertAppearanceToSaved.
+    //
+    // It must therefore not persist anything. It used to call Garrison::AddTrophy, so merely browsing the list
+    // permanently added every trophy scrolled past - locked ones included - to character_garrison_trophies.
+    //
+    // What the server should do instead is unresolved: whether the previewed statue is meant to be visible to
+    // other players (which would need the monument gameobject's display to be swapped and reverted) is not
+    // derivable from the client, and the packet has no response. Doing nothing keeps the preview client-local,
+    // which is correct for the player previewing it and cannot corrupt saved state.
 }
 
-void WorldSession::HandleRevertMonumentAppearance(WorldPackets::Garrison::RevertMonumentAppearance& /*revertMonumentAppearance*/)
+void WorldSession::HandleRevertMonumentAppearance(WorldPackets::Garrison::RevertMonumentAppearance& revertMonumentAppearance)
 {
-    Garrison* garrison = _player->GetGarrison();
-    if (!garrison)
+    // C_Trophy.MonumentRevertAppearanceToSaved() - "throw away the preview and go back to what is saved". The Lua
+    // calls it on frame close and whenever the player backs out of a locked selection.
+    //
+    // It used to delete every trophy the character had and reply with an empty selection list, i.e. closing the
+    // monument window wiped the saved selection it was supposed to be restoring. Re-sending what is saved is the
+    // whole job.
+    if (!GetMonument(_player, revertMonumentAppearance.MonumentGUID))
         return;
 
-    // Clear all trophies from the garrison (revert to default monument appearance)
-    std::vector<uint32> trophiesToRemove(garrison->GetTrophies().begin(), garrison->GetTrophies().end());
-    for (uint32 trophyId : trophiesToRemove)
-        garrison->RemoveTrophy(trophyId);
-
-    // Send updated (empty) monument selections to the client
-    WorldPackets::Garrison::GarrisonUpdateGarrisonMonumentSelections selections;
-    SendPacket(selections.Write());
+    SendMonumentSelections(this, GetMonumentGarrison(_player));
 }
 
 void WorldSession::HandleGarrisonSocketTalent(WorldPackets::Garrison::GarrisonSocketTalent& packet)

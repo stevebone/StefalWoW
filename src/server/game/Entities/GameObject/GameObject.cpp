@@ -3470,6 +3470,34 @@ void GameObject::Use(Unit* user, bool ignoreCastInProgress /*= false*/)
             player->SendDirectMessage(gameObjectUILink.Write());
             return;
         }
+        case GAMEOBJECT_TYPE_GARRISON_MONUMENT:             //44
+        {
+            // The WoD garrison trophy monuments ("Monument Base"): 232379/232380/233177 in Lunarfall and
+            // 233827/233828/233829 in Frostwall, all six spawned. Data0 is the TrophyTypeID (4 = Alliance,
+            // 3 = Horde) and Data1 the TrophyInstanceID, which is which of the three plinths this is.
+            //
+            // The client drives the whole UI from an interaction of PlayerInteractionType::Trophy (36):
+            // PlayerInteractionFrameManager maps that type to GarrisonMonumentFrame and its showFunc calls
+            // C_Trophy.MonumentLoadList(), which is what emits CMSG_GET_TROPHY_LIST. Until now nothing here
+            // opened that interaction, so clicking a monument did nothing at all and none of the trophy
+            // opcodes were ever reachable - the same defect the Anima Conductors had below.
+            Player* player = user->ToPlayer();
+            if (!player)
+                return;
+
+            // TrophyTypeID 0 is NoValue: no Trophy.db2 row is displayable on such a monument, so there is
+            // nothing to show. Refusing here keeps the client from opening an unavoidably empty frame.
+            if (!GetGOInfo()->garrisonMonument.TrophyTypeID)
+                return;
+
+            player->PlayerTalkClass->GetInteractionData().StartInteraction(GetGUID(), PlayerInteractionType::Trophy);
+
+            WorldPackets::GameObject::GameObjectInteraction openMonument;
+            openMonument.ObjectGUID = GetGUID();
+            openMonument.InteractionType = PlayerInteractionType::Trophy;
+            player->SendDirectMessage(openMonument.Write());
+            return;
+        }
         case GAMEOBJECT_TYPE_GARR_TALENT_TREE:              //58
         {
             // A gameobject that opens a garrison talent tree directly instead of through a gossip option. The four

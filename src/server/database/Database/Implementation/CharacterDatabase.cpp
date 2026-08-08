@@ -837,8 +837,8 @@ void CharacterDatabaseConnection::DoPrepareStatements()
     // Conductor channel bought with reservoir anima - see Garrison::LearnTalent, which refuses to set the flag
     // on anything else - so this expires exactly those and nothing else.
     PrepareStatement(CHAR_DEL_CHARACTER_GARRISON_TEMPORARY_TALENTS_BY_TYPE, "DELETE FROM character_garrison_talents WHERE garrType = ? AND (flags & ?) <> 0", CONNECTION_ASYNC);
-    PrepareStatement(CHAR_SEL_CHARACTER_GARRISON_TROPHIES, "SELECT trophyId FROM character_garrison_trophies WHERE guid = ?", CONNECTION_ASYNC);
-    PrepareStatement(CHAR_INS_CHARACTER_GARRISON_TROPHY, "INSERT INTO character_garrison_trophies (guid, trophyId, garrType) VALUES (?, ?, ?)", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_SEL_CHARACTER_GARRISON_TROPHIES, "SELECT trophyInstanceId, trophyId FROM character_garrison_trophies WHERE guid = ?", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_INS_CHARACTER_GARRISON_TROPHY, "INSERT INTO character_garrison_trophies (guid, trophyInstanceId, trophyId, garrType) VALUES (?, ?, ?, ?)", CONNECTION_ASYNC);
     PrepareStatement(CHAR_DEL_CHARACTER_GARRISON_TROPHIES, "DELETE FROM character_garrison_trophies WHERE guid = ? AND garrType = ?", CONNECTION_ASYNC);
     PrepareStatement(CHAR_SEL_CHARACTER_GARRISON_ARCHIVED_MISSIONS, "SELECT garrType, missionRecID FROM character_garrison_archived_missions WHERE guid = ?", CONNECTION_ASYNC);
     PrepareStatement(CHAR_INS_CHARACTER_GARRISON_ARCHIVED_MISSION, "INSERT INTO character_garrison_archived_missions (guid, garrType, missionRecID) VALUES (?, ?, ?)", CONNECTION_ASYNC);
@@ -854,7 +854,7 @@ void CharacterDatabaseConnection::DoPrepareStatements()
     PrepareStatement(CHAR_SEL_CHARACTER_GARRISON_MISSIONS_BY_TYPE, "SELECT dbId, guid, missionRecID, offerTime, offerDuration, startTime, travelDuration, missionDuration, missionState, successChance FROM character_garrison_missions WHERE guid = ? AND garrType = ?", CONNECTION_SYNCH);
     PrepareStatement(CHAR_SEL_CHARACTER_GARRISON_SHIPMENTS_BY_TYPE, "SELECT dbId, shipmentId, plotInstanceId, creationTime, duration, assignedFollowerDbId FROM character_garrison_shipments WHERE guid = ? AND garrType = ?", CONNECTION_SYNCH);
     PrepareStatement(CHAR_SEL_CHARACTER_GARRISON_TALENTS_BY_TYPE, "SELECT garrTalentId, `rank`, researchStartTime, flags, soulbindConduitId, soulbindConduitRank FROM character_garrison_talents WHERE guid = ? AND garrType = ?", CONNECTION_SYNCH);
-    PrepareStatement(CHAR_SEL_CHARACTER_GARRISON_TROPHIES_BY_TYPE, "SELECT trophyId FROM character_garrison_trophies WHERE guid = ? AND garrType = ?", CONNECTION_SYNCH);
+    PrepareStatement(CHAR_SEL_CHARACTER_GARRISON_TROPHIES_BY_TYPE, "SELECT trophyInstanceId, trophyId FROM character_garrison_trophies WHERE guid = ? AND garrType = ?", CONNECTION_SYNCH);
     PrepareStatement(CHAR_SEL_CHARACTER_GARRISON_ARCHIVED_MISSIONS_BY_TYPE, "SELECT garrType, missionRecID FROM character_garrison_archived_missions WHERE guid = ? AND garrType = ?", CONNECTION_SYNCH);
     PrepareStatement(CHAR_DEL_CHARACTER_GARRISON_ARCHIVED_MISSIONS, "DELETE FROM character_garrison_archived_missions WHERE guid = ? AND garrType = ?", CONNECTION_ASYNC);
 
