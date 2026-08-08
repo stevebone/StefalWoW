@@ -24,7 +24,10 @@
 namespace
 {
     // BattlepayPurchaseStatus / PurchaseResult (extracted from the client enum registrar).
-    constexpr int32 STATUS_DONE   = 3;
+    // STATUS_DONE = 6 per the live 68974 purchase list (TESTER_SNIFF2_LINDORMI_MINE,
+    // dump_12.0.7.68974_2026-08-08_02-54-06): all completed purchases carry Status=6, not the
+    // enum-registrar Done=3 we previously assumed; a failed VAS flow showed status=12/result=63.
+    constexpr int32 STATUS_DONE   = 6;
     constexpr int32 STATUS_FAILED = 4;
     constexpr int32 RESULT_OK                       = 0;
     constexpr int32 RESULT_NOT_ENOUGH_BALANCE       = 29;

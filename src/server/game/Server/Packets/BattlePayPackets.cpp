@@ -48,6 +48,11 @@ WorldPacket const* StartPurchaseResponse::Write()
     return &_worldPacket;
 }
 
+// Record order proven against the live 68974 purchase list (TESTER_SNIFF2_LINDORMI_MINE, 458 B =
+// 8 + 10x45): { u64 PurchaseID, i32 Status, i32 ResultCode, u32 ProductID, u64 BasePrice,
+// u64 UserPrice, i64 TimeCreated, u8 walletNameLen }. walletName sits at the END of the record -
+// in all 10 live records the unix purchase time aligns at record offset 36 and byte 44 is the
+// empty-wallet 0; with the u8 after ProductID the time would start at 37, one byte late.
 WorldPacket const* PurchaseUpdate::Write()
 {
     _worldPacket << Result;
@@ -58,10 +63,10 @@ WorldPacket const* PurchaseUpdate::Write()
         _worldPacket << p.Status;
         _worldPacket << p.ResultCode;
         _worldPacket << p.ProductID;
-        _worldPacket << uint8(0);       // walletName: empty (8-bit length primitive, value 0)
         _worldPacket << p.BasePrice;
         _worldPacket << p.UserPrice;
         _worldPacket << p.TimeCreated;
+        _worldPacket << uint8(0);       // walletName: empty (8-bit length primitive, value 0), record-final
     }
 
     return &_worldPacket;

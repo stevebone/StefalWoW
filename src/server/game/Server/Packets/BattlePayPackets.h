@@ -96,11 +96,12 @@ namespace WorldPackets
             uint64 PurchaseID = 0;
         };
 
-        // One JamBattlePayPurchase record (descriptor field order). walletName is sent empty (see .cpp).
+        // One JamBattlePayPurchase record. Wire order (68974 capture, TESTER_SNIFF2_LINDORMI_MINE):
+        // fields below in declaration order, then a record-final u8 walletName length (sent empty, see .cpp).
         struct PurchaseRecord
         {
             uint64 PurchaseID = 0;
-            int32 Status = 0;       // BattlepayPurchaseStatus: Done=3, Failed=4
+            int32 Status = 0;       // BattlepayPurchaseStatus: live 68974 completed purchases carry 6 (failed VAS: 12)
             int32 ResultCode = 0;   // PurchaseResult: Ok=0
             uint32 ProductID = 0;
             uint64 BasePrice = 0;
@@ -109,8 +110,8 @@ namespace WorldPackets
         };
 
         // Server drives purchase progress/completion. Layout from client read ctor (0x6090d0):
-        // u32 result, then a u32-counted vector of JamBattlePayPurchase. status=Done(3) signals completion
-        // and the record echoes the productID delivered.
+        // u32 result, then a u32-counted vector of JamBattlePayPurchase. status=6 signals completion
+        // (live 68974 value; see PurchaseRecord) and the record echoes the productID delivered.
         class PurchaseUpdate final : public ServerPacket
         {
         public:
