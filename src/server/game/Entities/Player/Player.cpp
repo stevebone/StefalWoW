@@ -31622,6 +31622,15 @@ Garrison* Player::GetGarrisonWithMission(uint32 missionRecID) const
     return nullptr;
 }
 
+Garrison* Player::GetGarrisonWithFollower(uint64 followerDbID) const
+{
+    for (auto const& [type, garrison] : _garrisons)
+        if (garrison->GetFollower(followerDbID))
+            return garrison.get();
+
+    return nullptr;
+}
+
 void Player::SendMovementSetCollisionHeight(float height, WorldPackets::Movement::UpdateCollisionHeightReason reason)
 {
     WorldPackets::Movement::MoveSetCollisionHeight setCollisionHeight;

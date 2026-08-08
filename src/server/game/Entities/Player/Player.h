@@ -2904,6 +2904,11 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         // mission opcode handlers act on the right garrison (WoD / class order hall / covenant) instead of always
         // defaulting to the WoD garrison.
         Garrison* GetGarrisonWithMission(uint32 missionRecID) const;
+        // Same idea for followers. Follower DbIDs come from a single generator (GarrisonMgr) and are therefore
+        // unique across every garrison a character owns, so a DbID alone identifies exactly one garrison. Handlers
+        // that receive only a FollowerDBID must use this instead of the no-arg GetGarrison(), which resolves the
+        // WoD garrison and silently no-ops for order hall / covenant followers.
+        Garrison* GetGarrisonWithFollower(uint64 followerDbID) const;
         std::unordered_map<int32, std::unique_ptr<Garrison>> const& GetGarrisons() const { return _garrisons; }
 
         // Covenant / Soulbind

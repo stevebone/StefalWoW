@@ -299,7 +299,11 @@ void WorldSession::HandleMoveWorldportAck()
     else
     {
         player->UpdateVisibilityForPlayer();
-        if (Garrison* garrison = player->GetGarrison())
+        // The non-seamless path (Player::SendInitialPacketsAfterAddToMap) loops every garrison; this branch only
+        // ever announced the WoD one, so an order-hall / covenant owner arriving by a seamless transfer never got
+        // its GarrisonRemoteInfo. Garrison::SendRemoteInfo self-guards on the site's ParentMapID, so looping is
+        // behaviour-identical for a WoD-only owner.
+        for (auto const& [garrType, garrison] : player->GetGarrisons())
             garrison->SendRemoteInfo();
     }
 

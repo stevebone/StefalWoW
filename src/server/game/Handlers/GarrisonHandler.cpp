@@ -286,7 +286,9 @@ void WorldSession::HandleGarrisonRemoveFollowerFromBuilding(WorldPackets::Garris
 
 void WorldSession::HandleGarrisonRemoveFollower(WorldPackets::Garrison::GarrisonRemoveFollower& garrisonRemoveFollower)
 {
-    Garrison* garrison = _player->GetGarrison();
+    // Resolve by follower, not by garrison type: order hall and covenant followers live in a different
+    // garrison than the WoD one the no-arg GetGarrison() returns, and dismissing one of them silently no-opped.
+    Garrison* garrison = _player->GetGarrisonWithFollower(garrisonRemoveFollower.FollowerDBID);
     if (!garrison)
         return;
 
@@ -295,7 +297,7 @@ void WorldSession::HandleGarrisonRemoveFollower(WorldPackets::Garrison::Garrison
 
 void WorldSession::HandleGarrisonRenameFollower(WorldPackets::Garrison::GarrisonRenameFollower& garrisonRenameFollower)
 {
-    Garrison* garrison = _player->GetGarrison();
+    Garrison* garrison = _player->GetGarrisonWithFollower(garrisonRenameFollower.FollowerDBID);
     if (!garrison)
         return;
 
@@ -304,7 +306,7 @@ void WorldSession::HandleGarrisonRenameFollower(WorldPackets::Garrison::Garrison
 
 void WorldSession::HandleGarrisonSetFollowerFavorite(WorldPackets::Garrison::GarrisonSetFollowerFavorite& garrisonSetFollowerFavorite)
 {
-    Garrison* garrison = _player->GetGarrison();
+    Garrison* garrison = _player->GetGarrisonWithFollower(garrisonSetFollowerFavorite.FollowerDBID);
     if (!garrison)
         return;
 
@@ -313,7 +315,7 @@ void WorldSession::HandleGarrisonSetFollowerFavorite(WorldPackets::Garrison::Gar
 
 void WorldSession::HandleGarrisonSetFollowerInactive(WorldPackets::Garrison::GarrisonSetFollowerInactive& garrisonSetFollowerInactive)
 {
-    Garrison* garrison = _player->GetGarrison();
+    Garrison* garrison = _player->GetGarrisonWithFollower(garrisonSetFollowerInactive.FollowerDBID);
     if (!garrison)
         return;
 
@@ -371,15 +373,17 @@ void WorldSession::HandleGarrisonGenerateRecruits(WorldPackets::Garrison::Garris
 
 void WorldSession::HandleGarrisonFullyHealAllFollowers(WorldPackets::Garrison::GarrisonFullyHealAllFollowers& /*garrisonFullyHealAllFollowers*/)
 {
-    Garrison* garrison = _player->GetGarrison();
-    if (!garrison)
-        return;
+    // "Heal all" carries no discriminator on the wire, and healing followers is not WoD-only - it is the
+    // Adventures (GarrType 111) and order-hall mechanic too (see HandleGarrisonAddFollowerHealth below, which
+    // already loops). Resolving only the WoD garrison meant a covenant/order-hall owner got a silent no-op.
+    for (auto const& [garrType, garrison] : _player->GetGarrisons())
+    {
+        garrison->HealAllFollowers();
 
-    garrison->HealAllFollowers();
-
-    // Send individual GarrisonUpdateFollower packets for each follower
-    // instead of a full GetGarrisonInfoResult to reduce bandwidth
-    garrison->SendAllFollowerUpdates();
+        // Send individual GarrisonUpdateFollower packets for each follower
+        // instead of a full GetGarrisonInfoResult to reduce bandwidth
+        garrison->SendAllFollowerUpdates();
+    }
 }
 
 void WorldSession::HandleGarrisonAddFollowerHealth(WorldPackets::Garrison::GarrisonAddFollowerHealth& garrisonAddFollowerHealth)
@@ -719,8 +723,11 @@ void WorldSession::HandleSetUsingPartyGarrison(WorldPackets::Garrison::SetUsingP
     }
     else
     {
-        // Player wants to leave the party garrison — teleport back to Draenor
-        if (Garrison* ownGarrison = _player->GetGarrison())
+        // Player wants to leave the party garrison — teleport back out.
+        // CMSG carries GarrTypeID (GarrisonPackets.h SetUsingPartyGarrison::GarrTypeID, parsed in its Read()),
+        // and the enter branch above already resolves the leader's garrison with it; the leave branch resolved
+        // only the WoD garrison, so leaving a non-WoD party garrison was a silent no-op.
+        if (Garrison* ownGarrison = _player->GetGarrison(static_cast<GarrisonType>(setUsingPartyGarrison.GarrTypeID)))
             ownGarrison->Leave();
     }
 }
