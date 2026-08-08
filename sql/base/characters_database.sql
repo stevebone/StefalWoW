@@ -621,6 +621,77 @@ CREATE TABLE `character_covenant_soulbind` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `character_garrison_conservatory`
+--
+
+DROP TABLE IF EXISTS `character_garrison_conservatory`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `character_garrison_conservatory` (
+  `guid`          BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'Character GUID',
+  `plotId`        TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '0-based wildseed plot index',
+  `wildseedEntry` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'garrison_conservatory_wildseed.wildseedEntry',
+  `plantedTime`   BIGINT NOT NULL DEFAULT 0,
+  `maturesAt`     BIGINT NOT NULL DEFAULT 0 COMMENT 'unix time the wildseed becomes harvestable',
+  `catalyst1`     INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'gameobject_template.entry of the attached catalyst',
+  `catalyst2`     INT UNSIGNED NOT NULL DEFAULT 0,
+  `catalyst3`     INT UNSIGNED NOT NULL DEFAULT 0,
+  `catalyst4`     INT UNSIGNED NOT NULL DEFAULT 0,
+  `state`         TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '0 empty, 1 growing, 2 ready',
+  PRIMARY KEY (`guid`, `plotId`),
+  KEY `idx_guid` (`guid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Queen''s Conservatory wildseed plots';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `character_garrison_abomination_factory`
+--
+
+DROP TABLE IF EXISTS `character_garrison_abomination_factory`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `character_garrison_abomination_factory` (
+  `guid`          BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'Character GUID',
+  `recipeSpellId` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'SkillLineAbility.Spell of the construct-body recipe',
+  `builtTime`     BIGINT NOT NULL DEFAULT 0 COMMENT 'unix time the construct was stitched',
+  PRIMARY KEY (`guid`, `recipeSpellId`),
+  KEY `idx_guid` (`guid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Abomination Factory construct stable';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `character_garrison_path_of_ascension`
+--
+
+DROP TABLE IF EXISTS `character_garrison_path_of_ascension`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `character_garrison_path_of_ascension` (
+  `guid`              BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'Character GUID',
+  `memoryId`          INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'garrison_ascension_memory.memoryId',
+  `capturedTime`      BIGINT NOT NULL DEFAULT 0 COMMENT 'unix time the memory was captured',
+  `highestTrialWon`   TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '0 none, 1 Courage, 2 Loyalty, 3 Wisdom, 4 Humility',
+  `lastCompletedTime` BIGINT NOT NULL DEFAULT 0 COMMENT 'unix time of the most recent trial win',
+  PRIMARY KEY (`guid`, `memoryId`),
+  KEY `idx_guid` (`guid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Path of Ascension captured memories and trial progress';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `character_garrison_ember_court`
+--
+
+DROP TABLE IF EXISTS `character_garrison_ember_court`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `character_garrison_ember_court` (
+  `guid`           BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'Character GUID',
+  `guestIndex`     TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '0-15, CriteriaTree 87983 child OrderIndex',
+  `timesHosted`    INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'courts this guest has attended',
+  `highestMood`    TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'high-water mark on the unpublished mood scale;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `character_soulbind_conduits`
 --
 

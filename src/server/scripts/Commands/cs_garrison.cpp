@@ -347,6 +347,12 @@ public:
 
     static QueensConservatory* GetConservatoryFor(ChatHandler* handler, Player* target)
     {
+        // Same protection the older .garrison subcommands already apply: these resolvers front commands
+        // that spend the TARGET's currency and items, roll loot into their bags and rewrite their
+        // spellbook, so a lower-ranked GM must not be able to run them against a higher-ranked one.
+        if (handler->HasLowerSecurity(target, ObjectGuid::Empty))
+            return nullptr;
+
         Garrison* garrison = target->GetGarrison(GARRISON_TYPE_COVENANT);
         if (!garrison)
         {
@@ -570,6 +576,12 @@ public:
     // questgivers) are spawned.
     static AbominationFactory* GetAbominationFactoryFor(ChatHandler* handler, Player* target)
     {
+        // Same protection the older .garrison subcommands already apply: these resolvers front commands
+        // that spend the TARGET's currency and items, roll loot into their bags and rewrite their
+        // spellbook, so a lower-ranked GM must not be able to run them against a higher-ranked one.
+        if (handler->HasLowerSecurity(target, ObjectGuid::Empty))
+            return nullptr;
+
         Garrison* garrison = target->GetGarrison(GARRISON_TYPE_COVENANT);
         if (!garrison)
         {
@@ -686,6 +698,12 @@ public:
     // Coliseum is spawned and the memory roster authored.
     static PathOfAscension* GetPathOfAscensionFor(ChatHandler* handler, Player* target)
     {
+        // Same protection the older .garrison subcommands already apply: these resolvers front commands
+        // that spend the TARGET's currency and items, roll loot into their bags and rewrite their
+        // spellbook, so a lower-ranked GM must not be able to run them against a higher-ranked one.
+        if (handler->HasLowerSecurity(target, ObjectGuid::Empty))
+            return nullptr;
+
         Garrison* garrison = target->GetGarrison(GARRISON_TYPE_COVENANT);
         if (!garrison)
         {
@@ -856,6 +874,12 @@ public:
     // the venue is spawned and the per-guest preferences authored.
     static EmberCourt* GetEmberCourtFor(ChatHandler* handler, Player* target)
     {
+        // Same protection the older .garrison subcommands already apply: these resolvers front commands
+        // that spend the TARGET's currency and items, roll loot into their bags and rewrite their
+        // spellbook, so a lower-ranked GM must not be able to run them against a higher-ranked one.
+        if (handler->HasLowerSecurity(target, ObjectGuid::Empty))
+            return nullptr;
+
         Garrison* garrison = target->GetGarrison(GARRISON_TYPE_COVENANT);
         if (!garrison)
         {

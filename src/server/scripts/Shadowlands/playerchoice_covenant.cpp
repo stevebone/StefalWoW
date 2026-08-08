@@ -127,6 +127,18 @@ public:
                 return;
         }
 
+        // A character that has pledged before but currently has no covenant - spell 338503 "Reset Covenant" is the
+        // only way in - is re-joining, not joining, so the same 9.1.5 gate applies. Without this, reset-then-rejoin
+        // would be a free switch: GetActiveCovenant() reads 0, the branch below is skipped, and the ElseGroup 0
+        // condition ("has no covenant") re-shows all four responses at any renown.
+        if (!player->GetActiveCovenant() && player->HasEverJoinedAnyCovenant() && !player->CanChangeCovenant())
+        {
+            TC_LOG_DEBUG("scripts", "playerchoice_covenant_selection: {} answered PlayerChoice {} with covenant {} after resetting its covenant, without having unlocked free switching, ignored",
+                player->GetGUID().ToString(), uint32(PLAYER_CHOICE_COVENANT_SELECTION), covenantId);
+
+            return;
+        }
+
         if (uint32 activeCovenantId = player->GetActiveCovenant())
         {
             if (activeCovenantId == covenantId)

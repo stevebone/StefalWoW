@@ -4163,6 +4163,20 @@ void Player::DeleteFromDB(ObjectGuid playerguid, uint32 accountId, bool updateRe
 
             Garrison::DeleteFromDB(guid, trans);
 
+            // Covenant state is guid-keyed and TC recycles character GUIDs, so leaving these behind is not merely
+            // untidy: a new character created on a deleted character's guid would load the old m_covenantSoulbinds,
+            // read as HasEverJoinedAnyCovenant(), and be treated as a SWITCHER on its very first pledge - receiving
+            // the ability-talent grant reserved for switchers, and inheriting a renown and soulbind history that
+            // was never its own.
+            for (CharacterDatabaseStatements delCovenantStmt : { CHAR_DEL_CHARACTER_COVENANT, CHAR_DEL_CHARACTER_COVENANT_RENOWN,
+                CHAR_DEL_CHARACTER_COVENANT_SOULBIND, CHAR_DEL_CHARACTER_COVENANT_CALLINGS,
+                CHAR_DEL_CHARACTER_SOULBIND_CONDUITS, CHAR_DEL_CHARACTER_SOULBIND_CONDUIT_SOCKETS })
+            {
+                stmt = CharacterDatabase.GetPreparedStatement(delCovenantStmt);
+                stmt->setUInt64(0, guid);
+                trans->Append(stmt);
+            }
+
             stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CHAR_TRAIT_ENTRIES_BY_CHAR);
             stmt->setUInt64(0, guid);
             trans->Append(stmt);
@@ -20799,9 +20813,12 @@ bool Player::IsCovenantSwitchUnlocked() const
 
 bool Player::CanChangeCovenant() const
 {
-    // A character that never pledged is not switching, it is joining.
+    // A character that never pledged is not switching, it is joining. "Never pledged" has to mean never, not
+    // merely "has none right now": spell 338503 "Reset Covenant" sets the covenant to 0, and treating the result
+    // as a first-time joiner would turn reset-then-rejoin into a free switch that skips the renown gate entirely.
+    // HasEverJoinedAnyCovenant() is remembered per covenant on the way out, so it survives the reset.
     if (!m_activeCovenantId)
-        return true;
+        return !HasEverJoinedAnyCovenant() || IsCovenantSwitchUnlocked();
 
     return IsCovenantSwitchUnlocked();
 }
