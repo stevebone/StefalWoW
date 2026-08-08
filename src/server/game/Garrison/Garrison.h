@@ -585,9 +585,11 @@ private:
     // sitting at Rank N has completed rank indices [0, N).
     void ApplyTalentRankPerk(uint32 garrTalentID, int32 rankIndex);
     void RemoveTalentRankPerks(uint32 garrTalentID, int32 completedRanks);
-    // Channel Anima destinations are gated by their GarrTalent.PlayerConditionID on the Anima Conductor tiers.
-    // Returns true for every talent that is not a Channel Anima destination.
-    bool IsChannelAnimaTalentAvailable(GarrTalentEntry const* talentEntry) const;
+    // Evaluates the talent's published GarrTalent.PlayerConditionID for the covenant sanctum research trees
+    // (Channel Anima tiers, tier-0 level+covenant gates, Reservoir renown/covenant gates). Returns true for
+    // talents without a condition, for non-covenant garrison types, and for the documented exemptions
+    // (ability + soulbind trees) - see the implementation for the full rationale.
+    bool IsTalentAvailableForPlayer(GarrTalentEntry const* talentEntry) const;
     // True for the six Anima Conductor destinations of a covenant (GarrTalentTree.FeatureTypeIndex 7).
     static bool IsChannelAnimaTalent(GarrTalentEntry const* talentEntry);
     // Charge one Channel Anima selection and take the previous temporary channel down. Returns a GARRISON_*

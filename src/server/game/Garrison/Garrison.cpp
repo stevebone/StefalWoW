@@ -4980,13 +4980,34 @@ void Garrison::ExpireTemporaryChannelAnima()
         RemoveChannelAnimaTalent(talentId);
 }
 
-bool Garrison::IsChannelAnimaTalentAvailable(GarrTalentEntry const* talentEntry) const
+// GarrTalent.PlayerConditionID enforcement. Originally only the Channel Anima destinations (FeatureTypeIndex 7)
+// evaluated their condition; every other sanctum tree's published gate was ignored, which let any covenant member
+// research Reservoir tier 2/3 with no renown and no tier 1 (the audit's ungated-tier-2 hole - PrerequisiteTalentID
+// is 0 on all 12 Reservoir talents, so the renown PlayerConditions ARE the tier ladder). Every condition the 24
+// sanctum trees publish is faithfully evaluable here (verified against wago @68887 + this core):
+//   84025 (tier-0 gates)     -> MT 156100: level >= 60 (type 69) AND covenant-choice quest 62000/57878 rewarded
+//                               (type 110); both types implemented, both quests shipped in the world DB
+//   82863 / 82871 (Reservoir) -> "Requires Renown 11/19": MT 145848/145864, type 119 on currency 1822 (synced)
+//   70102 / 70104 (Reservoir) -> plain PlayerCondition.CovenantID membership tests
+// Deliberately still unenforced, each for a stated reason:
+//   * non-covenant garrison types: the legacy order-hall/war-campaign trees carry level/ContentTuning and
+//     campaign-quest conditions that cannot be evaluated faithfully for a 12.0.7 character;
+//   * GARR_TALENT_FEATURE_ABILITIES: tree 396 (alone of the four) publishes per-class masks at TALENT level; the
+//     grant design seats all 14 rows and filters by class at the PerkPlayerConditionID layer (see
+//     GrantCovenantAbilityTalents), so enforcing here would asymmetrically break the Venthyr grant;
+//   * GARR_TALENT_FEATURE_SOULBIND: the soulbind rows mix evaluable renown gates with per-soulbind campaign
+//     ModifierTrees ("Continue the campaign to unlock X", e.g. PC 84478 -> MT 146013) whose quest chains are not
+//     audited on this core - enforcing unverified campaign state could brick trait selection entirely.
+bool Garrison::IsTalentAvailableForPlayer(GarrTalentEntry const* talentEntry) const
 {
     if (!talentEntry || !talentEntry->PlayerConditionID)
         return true;
 
     GarrTalentTreeEntry const* treeEntry = sGarrTalentTreeStore.LookupEntry(talentEntry->GarrTalentTreeID);
-    if (!treeEntry || treeEntry->FeatureTypeIndex != GARR_TALENT_FEATURE_CHANNEL_ANIMA)
+    if (!treeEntry || treeEntry->GarrTypeID != static_cast<int8>(GARRISON_TYPE_COVENANT))
+        return true;
+
+    if (treeEntry->FeatureTypeIndex == GARR_TALENT_FEATURE_ABILITIES || treeEntry->FeatureTypeIndex == GARR_TALENT_FEATURE_SOULBIND)
         return true;
 
     PlayerConditionEntry const* condition = sPlayerConditionStore.LookupEntry(talentEntry->PlayerConditionID);
@@ -5165,15 +5186,13 @@ uint32 Garrison::LearnTalent(uint32 garrTalentID, bool isTemporary)
             return GARRISON_ERROR_INVALID_TALENT;
     }
 
-    // Sanctum feature gate: the Channel Anima destinations (GarrTalentTree.FeatureTypeIndex 7) are the one sanctum
-    // chain whose GarrTalent.PlayerConditionID is a pure GarrisonTalentResearched (ModifierTree type 202) test on
-    // the covenant's Anima Conductor tiers - e.g. talent 1237 Purity's Pinnacle -> PlayerCondition 79227 ->
-    // ModifierTree 132493 -> "talent 1062 (Anima Conductor tier 1) researched". That is fully evaluable offline and
-    // is what gives the Anima Conductor an actual effect: tier 1 opens 2 destinations, tier 2 the next 2, tier 3 the
-    // last 2. Other sanctum/order-hall trees carry level/ContentTuning and campaign-quest conditions that TC cannot
-    // evaluate faithfully for a 12.0.7 character, so their PlayerConditionID is deliberately left unenforced.
-    if (!IsChannelAnimaTalentAvailable(talentEntry))
-        return GARRISON_ERROR_INVALID_TALENT;
+    // Published sanctum gate: GarrTalent.PlayerConditionID. For the Channel Anima destinations this is the
+    // Anima Conductor tier test (talent 1237 Purity's Pinnacle -> PC 79227 -> ModifierTree 132493 -> "talent 1062
+    // researched": tier 1 opens 2 destinations, tier 2 the next 2, tier 3 the last 2); for the other sanctum
+    // research trees it is the tier-0 covenant gate and the Reservoir renown/covenant gates. See
+    // IsTalentAvailableForPlayer for exactly what is enforced and what is deliberately exempt.
+    if (!IsTalentAvailableForPlayer(talentEntry))
+        return GARRISON_ERROR_FAILED_CONDITION;
 
     // A covenant-scoped tree belongs to exactly one covenant.
     if (!IsTalentTreeOwnedByPlayerCovenant(treeEntry))
@@ -5264,9 +5283,10 @@ uint32 Garrison::ResearchTalent(uint32 garrTalentID)
     if (!treeEntry || treeEntry->GarrTypeID != static_cast<int8>(GetType()))
         return GARRISON_ERROR_INVALID_TALENT;
 
-    // Anima Conductor gate for the Channel Anima destinations, and the covenant-ownership check (see LearnTalent).
-    if (!IsChannelAnimaTalentAvailable(talentEntry))
-        return GARRISON_ERROR_INVALID_TALENT;
+    // Published PlayerConditionID gate (Channel Anima tiers, tier-0 covenant gates, Reservoir renown gates - see
+    // IsTalentAvailableForPlayer), then the covenant-ownership check (see LearnTalent).
+    if (!IsTalentAvailableForPlayer(talentEntry))
+        return GARRISON_ERROR_FAILED_CONDITION;
 
     if (!IsTalentTreeOwnedByPlayerCovenant(treeEntry))
         return GARRISON_ERROR_INVALID_TALENT;
