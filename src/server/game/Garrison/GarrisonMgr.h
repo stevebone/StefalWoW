@@ -35,6 +35,7 @@
 struct CharShipmentEntry;
 struct CharShipmentContainerEntry;
 struct GameObjectsEntry;
+struct GarrAbilityEffectEntry;
 struct GarrAbilityEntry;
 struct GarrAutoCombatantEntry;
 struct GarrAutoSpellEntry;
@@ -224,6 +225,9 @@ public:
     std::vector<GarrTalentEntry const*> const* GetTalentsForTree(uint32 garrTalentTreeID) const;
     std::vector<GarrTalentRankEntry const*> const* GetTalentRanksForTalent(uint32 garrTalentID) const;
     GarrTalentResearchEntry const* GetTalentResearchForTree(uint32 garrTalentTreeID) const;
+    // Every GarrAbilityEffect row published for one GarrAbility (GarrTalent.GarrAbilityID carriers included -
+    // that is how the Command Table talent modifiers reach the mission engine). nullptr = none published.
+    std::vector<GarrAbilityEffectEntry const*> const* GetGarrAbilityEffects(uint32 garrAbilityID) const;
 
     // Mission system accessors
     std::vector<GarrMissionEntry const*> const* GetMissionsByGarrType(int8 garrTypeID) const;
@@ -281,6 +285,7 @@ private:
     std::unordered_map<uint32 /*garrTalentTreeID*/, std::vector<GarrTalentEntry const*>> _talentsByTree;
     std::unordered_map<uint32 /*garrTalentID*/, std::vector<GarrTalentRankEntry const*>> _talentRanksByTalent;
     std::unordered_map<uint32 /*garrTalentTreeID*/, GarrTalentResearchEntry const*> _talentResearchByTree;
+    std::unordered_map<uint32 /*garrAbilityID*/, std::vector<GarrAbilityEffectEntry const*>> _abilityEffectsByAbility;
 
     // Auto-combat indices
     std::unordered_map<uint32 /*garrAutoSpellID*/, std::vector<GarrAutoSpellEffectEntry const*>> _autoSpellEffects;

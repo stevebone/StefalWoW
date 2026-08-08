@@ -150,6 +150,13 @@ void GarrisonMgr::Initialize()
     for (auto& [talentId, ranks] : _talentRanksByTalent)
         std::sort(ranks.begin(), ranks.end(), [](GarrTalentRankEntry const* a, GarrTalentRankEntry const* b) { return a->Rank < b->Rank; });
 
+    // Index GarrAbilityEffect by its owning GarrAbility (same shape as _talentsByTree above). This is what lets
+    // a GarrTalent.GarrAbilityID-carrying talent (e.g. the Command Table tiers: GarrAbility 1274 'Forward
+    // Planning' effect 1844 AbilityAction 14 / GarrAbility 1273 'Strategic Genius' effect 1843 AbilityAction 17)
+    // be dispatched data-driven instead of the store being loaded but never read.
+    for (GarrAbilityEffectEntry const* effect : sGarrAbilityEffectStore)
+        _abilityEffectsByAbility[effect->GarrAbilityID].push_back(effect);
+
     // Build talent research index (talent tree -> research entry via crossref)
     for (GarrTalTreeXGarrTalResearchEntry const* xref : sGarrTalTreeXGarrTalResearchStore)
     {
@@ -1309,6 +1316,15 @@ GarrTalentResearchEntry const* GarrisonMgr::GetTalentResearchForTree(uint32 garr
     auto itr = _talentResearchByTree.find(garrTalentTreeID);
     if (itr != _talentResearchByTree.end())
         return itr->second;
+
+    return nullptr;
+}
+
+std::vector<GarrAbilityEffectEntry const*> const* GarrisonMgr::GetGarrAbilityEffects(uint32 garrAbilityID) const
+{
+    auto itr = _abilityEffectsByAbility.find(garrAbilityID);
+    if (itr != _abilityEffectsByAbility.end())
+        return &itr->second;
 
     return nullptr;
 }

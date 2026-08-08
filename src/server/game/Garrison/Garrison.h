@@ -69,6 +69,16 @@ enum GarrTalentTreeFeatureType : uint8
     GARR_TALENT_FEATURE_CHANNEL_ANIMA       = 7     // trees 345/348/346/347
 };
 
+// GarrAbilityEffect.AbilityAction values the covenant sanctum talent layer consumes. A GarrTalent that carries a
+// GarrAbilityID publishes its effect through GarrAbilityEffect rows (12.0.7.68887: effect 1844 = ability 1274
+// 'Forward Planning' action 14 ActionValueFlat 1.25; effect 1843 = ability 1273 'Strategic Genius' action 17
+// ActionValueFlat 0.75). The names below describe what the published ActionValueFlat multiplies.
+enum GarrAbilityActionType : uint8
+{
+    GARR_ABILITY_ACTION_COMPANION_HEAL_RATE = 14,   // multiplies companion (follower type 123) health recovery rate
+    GARR_ABILITY_ACTION_MISSION_TRAVEL_TIME = 17    // multiplies adventure travel duration
+};
+
 enum GarrisonFactionIndex
 {
     GARRISON_FACTION_INDEX_HORDE    = 0,
@@ -504,6 +514,14 @@ public:
     // and the class filtering happens through GarrTalentRank.PerkPlayerConditionID - i.e. this is exactly what the
     // retail class + signature grant spells do, without hardcoding their ids. Already-known talents are skipped.
     void GrantCovenantAbilityTalents(uint32 covenantId);
+
+    // Product of GarrAbilityEffect.ActionValueFlat over every effect with the given AbilityAction reachable from
+    // a researched (rank >= 1) talent of this garrison that carries a GarrTalent.GarrAbilityID - the generic
+    // dispatch for talent-published ability modifiers (the Command Table tiers 'Forward Planning' / 'Strategic
+    // Genius' today; any future GarrAbility-carrying talent for free). Covenant-scoped trees only count while
+    // their covenant is the player's active one, mirroring the PerkSpellID layer. Returns 1.0 when nothing
+    // applies.
+    float GetTalentAbilityActionMultiplier(uint8 abilityAction) const;
 
     // Trophy system. This is a SELECTION, not an inventory: which trophies a character may pick from is never
     // stored, it is computed from Trophy.db2 filtered by the monument's TrophyTypeID and gated on each row's

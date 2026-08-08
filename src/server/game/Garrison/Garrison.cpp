@@ -1971,7 +1971,13 @@ void Garrison::AddMission(uint32 garrMissionId)
     mission.PacketInfo.OfferTime = GameTime::GetGameTime();
     mission.PacketInfo.OfferDuration = Seconds(missionEntry->OfferDuration);
     mission.PacketInfo.StartTime = time_t(2288912640);
-    mission.PacketInfo.TravelDuration = Seconds(missionEntry->TravelDuration);
+    // Command Table tier 2 (GarrAbility 1273 'Strategic Genius', GarrAbilityEffect 1843: AbilityAction 17,
+    // ActionValueFlat 0.75) multiplies the travel duration of a Shadowlands adventure. Applied at offer time so
+    // the discounted value is what persists and round-trips (character_garrison_missions.travelDuration).
+    // AMBIGUITY (sniff needed): the talent tooltip says total COMPLETION time while the ability text and
+    // AbilityAction 17 say TRAVEL time - this applies the published action (travel only). One retail
+    // SMSG_GARRISON_ADD_MISSION_RESULT capture with the tier-2 talent researched settles which duration shrinks.
+    mission.PacketInfo.TravelDuration = Seconds(int64(missionEntry->TravelDuration * GetTalentAbilityActionMultiplier(GARR_ABILITY_ACTION_MISSION_TRAVEL_TIME)));
     mission.PacketInfo.MissionDuration = Seconds(missionEntry->MissionDuration);
     mission.PacketInfo.MissionState = 0; // Offered
     mission.PacketInfo.SuccessChance = 0;
@@ -3144,6 +3150,15 @@ GarrisonError Garrison::BuildShip(uint32 garrFollowerId)
     return GARRISON_SUCCESS;
 }
 
+// TODO(GarrAbility 1274 'Forward Planning'): the Command Table tier-1 talents publish a companion heal-RATE
+// multiplier (GarrAbilityEffect 1844: AbilityAction 14, ActionValueFlat 1.25), readable via
+// GetTalentAbilityActionMultiplier(GARR_ABILITY_ACTION_COMPANION_HEAL_RATE). The core has NO base heal-over-time
+// mechanic for it to scale: companion health only moves through this full-heal and through the client-driven
+// CMSG_GARRISON_ADD_FOLLOWER_HEALTH flat amount (WorldSession::HandleGarrisonAddFollowerHealth) - multiplying a
+// full heal is meaningless and multiplying the client's own amount would double-apply whatever the client already
+// computed. When a base regen tick exists (needs retail GarrisonFollowerChanged health-delta sniffs over time, or
+// a deliberately authored base rate labeled as such), multiply its per-tick amount by that accessor - the data
+// side is done, only the base mechanic is missing.
 void Garrison::HealAllFollowers()
 {
     for (auto& p : _followers)
@@ -4647,6 +4662,43 @@ Garrison::Talent const* Garrison::GetTalent(uint32 garrTalentID) const
         return &itr->second;
 
     return nullptr;
+}
+
+// Generic GarrAbilityEffect dispatch for talent-carried abilities. GarrTalent.GarrAbilityID was loaded but never
+// read, and sGarrAbilityEffectStore was loaded but never iterated - so the Command Table tier 1/2 talents (shared
+// GarrAbility 1274 'Forward Planning' and 1273 'Strategic Genius' across trees 316/317/315/318) published real
+// multipliers that nothing consumed. This accumulates the ActionValueFlat of every published effect matching
+// `abilityAction` across the researched talents of THIS garrison, so a caller multiplies exactly what the data
+// says and nothing more.
+float Garrison::GetTalentAbilityActionMultiplier(uint8 abilityAction) const
+{
+    float multiplier = 1.0f;
+    for (auto const& [talentId, talent] : _talents)
+    {
+        if (talent.Rank < 1)
+            continue;
+
+        GarrTalentEntry const* talentEntry = sGarrTalentStore.LookupEntry(talentId);
+        if (!talentEntry || !talentEntry->GarrAbilityID)
+            continue;
+
+        // A covenant-scoped tree's modifiers follow the active covenant, exactly like its PerkSpellID grants
+        // (see ApplyTalentRankPerk / RefreshCovenantTalentPerks): a researched Kyrian 'Wings of Light' must not
+        // keep discounting travel time after the player defects to the Venthyr.
+        GarrTalentTreeEntry const* treeEntry = sGarrTalentTreeStore.LookupEntry(talentEntry->GarrTalentTreeID);
+        if (!IsTalentTreeOwnedByPlayerCovenant(treeEntry))
+            continue;
+
+        std::vector<GarrAbilityEffectEntry const*> const* effects = sGarrisonMgr.GetGarrAbilityEffects(talentEntry->GarrAbilityID);
+        if (!effects)
+            continue;
+
+        for (GarrAbilityEffectEntry const* effect : *effects)
+            if (effect->AbilityAction == abilityAction && effect->ActionValueFlat > 0.0f)
+                multiplier *= effect->ActionValueFlat;
+    }
+
+    return multiplier;
 }
 
 // GarrTalentRank.PerkSpellID is what turns a researched talent from a stored row into a real effect: the covenant
