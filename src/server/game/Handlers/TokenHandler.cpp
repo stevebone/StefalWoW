@@ -18,15 +18,36 @@
 #include "TokenPackets.h"
 #include "DatabaseEnv.h"
 #include "GameTime.h"
+#include "World.h"
 #include "WorldSession.h"
 #include "WowTokenMgr.h"
+
+// --- Token TRADE (sell / buy / redeem): deliberate, config-gated deferral (TK-7 / audit C-16) --------
+//
+// The two-step sell/buy/redeem handshakes are fully wire-derived (WOW_TOKEN_RE_68275.md) but remain
+// STATUS_IGNORED / Handle_NULL (see Opcodes.cpp) for a capability reason, not a research gap: a token
+// redeems into game time or a Battle.net-balance equivalent, and this core has neither. The retail-parity
+// doc (COMMERCE_RETAIL_PARITY.md §2.3) leaves the redeem SINK an explicit operator choice (30d game time
+// OR a virtual shop balance), so per the workstream rule we do NOT invent a currency here. Shipping the
+// buy half without a redeem sink would take a player's gold for a permanently inert object, which is worse
+// than shipping neither (the sell half alone is not a market either).
+//
+// `WowToken.Market.Enabled` (worldserver.conf, default 0) is the master gate for that future work: when an
+// operator has decided the redeem target and wired the derived handshakes, flipping it on activates them.
+// Until then the trade opcodes stay stubs and the market advertises itself disabled (GET_LOG below).
+// What IS shipped and defined on our economy is the gold acquisition of a token (buy from the Shop for
+// gold -> auctionable holding), delivered by the GrantType-3 BattlePay path (TK-1). See the final report.
 
 void WorldSession::HandleCommerceTokenGetLog(WorldPackets::Token::CommerceTokenGetLog& commerceTokenGetLog)
 {
     WorldPackets::Token::CommerceTokenGetLogResponse response;
 
     response.ClientToken = commerceTokenGetLog.ClientToken;
-    response.Result = TOKEN_RESULT_ERROR_DISABLED;
+
+    // The market transaction log only means something once the token market is wired (deferred, above).
+    // Until WowToken.Market.Enabled is turned on, answer ERROR_DISABLED - the honest "market off" state -
+    // rather than an empty SUCCESS log that would imply a working-but-empty market.
+    response.Result = sWorld->getBoolConfig(CONFIG_WOW_TOKEN_MARKET_ENABLED) ? TOKEN_RESULT_SUCCESS : TOKEN_RESULT_ERROR_DISABLED;
 
     SendPacket(response.Write());
 }
