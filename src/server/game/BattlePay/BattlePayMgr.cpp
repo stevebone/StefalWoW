@@ -23,6 +23,8 @@
 #include "GameTime.h"
 #include "Log.h"
 #include "Player.h"
+#include "Realm.h"
+#include "RealmList.h"
 #include "StringFormat.h"
 #include "Timer.h"
 #include "World.h"
@@ -98,6 +100,35 @@ void BattlePayMgr::Load()
     // captured 68275 blob; absence is non-fatal (the panel just keeps waiting on HasDistributionList).
     if (LoadBlobFile("distribution_list_68275.bin", _distributionListBlob))
         TC_LOG_INFO("server.loading", "BattlePay: loaded {}-byte distribution list.", _distributionListBlob.size());
+
+    // Seed the persistent PurchaseID counter from the ledger so ids survive restarts and never repeat
+    // (C-13). Namespace this realm's ids in the high 32 bits so multiple realms sharing one auth DB never
+    // collide (C-22): this realm allocates only within [realmBase, realmBase + 0xFFFFFFFF].
+    uint64 const realmBase = uint64(sRealmList->GetCurrentRealmId().Realm) << 32;
+    LoginDatabasePreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_SEL_BATTLEPAY_PURCHASE_MAXID);
+    stmt->setUInt64(0, realmBase);
+    stmt->setUInt64(1, realmBase | UI64LIT(0xFFFFFFFF));
+    PreparedQueryResult maxIdResult = LoginDatabase.Query(stmt);
+    if (maxIdResult && !(*maxIdResult)[0].IsNull())
+        _purchaseCounter = (*maxIdResult)[0].GetUInt64();
+    else
+        _purchaseCounter = realmBase;
+}
+
+void BattlePayMgr::RecordPurchase(uint32 accountId, uint64 purchaseID, int32 status, int32 resultCode,
+    uint32 productID, uint64 basePrice, uint64 userPrice)
+{
+    LoginDatabasePreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_INS_BATTLEPAY_PURCHASE);
+    stmt->setUInt64(0, purchaseID);
+    stmt->setUInt32(1, accountId);
+    stmt->setUInt32(2, productID);
+    stmt->setInt32(3, status);
+    stmt->setInt32(4, resultCode);
+    stmt->setUInt64(5, basePrice);
+    stmt->setUInt64(6, userPrice);
+    stmt->setInt64(7, GameTime::GetGameTime());
+    stmt->setString(8, std::string());     // walletName: empty on this core (sent record-final on the wire)
+    LoginDatabase.Execute(stmt);
 }
 
 void BattlePayMgr::LoadProducts()

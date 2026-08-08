@@ -114,7 +114,15 @@ public:
     // Dry-run assembly summary for `.shop preview` / `.shop list`.
     std::string BuildStatusReport() const;
 
+    // Allocates the next PurchaseID. The counter is seeded from the ledger at startup (survives restart)
+    // and namespaced by realm id in its high 32 bits, so PurchaseIDs never collide across realms sharing
+    // one auth DB (C-13/C-22). One worldserver per realm means the in-memory increment is race-free.
     uint64 GeneratePurchaseID() { return ++_purchaseCounter; }
+
+    // Persists a completed purchase to the shared account_battlepay_purchase ledger (auth DB), the home
+    // that answers CMSG_BATTLE_PAY_GET_PURCHASE_LIST. ProductID may legitimately be 0 (C-32).
+    void RecordPurchase(uint32 accountId, uint64 purchaseID, int32 status, int32 resultCode,
+        uint32 productID, uint64 basePrice, uint64 userPrice);
 
 private:
     BattlePayMgr() = default;

@@ -1960,6 +1960,11 @@ class TC_GAME_API WorldSession
         AsyncCallbackProcessor<TransactionCallback> _transactionCallbacks;
         AsyncCallbackProcessor<SQLQueryHolderCallback> _queryHolderProcessor;
 
+        // In-game Shop (BattlePay) purchase anti-abuse: throttle + in-flight guard so a replayed or
+        // double-clicked CMSG_BATTLE_PAY_START_PURCHASE is charged exactly once (C-13).
+        bool _battlePayPurchaseInFlight = false;
+        uint32 _lastBattlePayPurchaseMSTime = 0;
+
     friend class World;
     protected:
         class DosProtection

@@ -30,6 +30,7 @@
 #include "Player.h"
 #include "World.h"
 #include <algorithm>
+#include "Timer.h"
 
 namespace
 {
@@ -152,6 +153,11 @@ void WorldSession::BattlePayProcessPurchase(uint32 productID)
         rec.BasePrice = price;
         rec.UserPrice = price;
         SendPacket(update.Write());
+
+        // Persist completed purchases to the shared ledger so GetPurchaseList answers from real history
+        // and the PurchaseID is durable across restarts (C-13/C-32). Failed attempts are not recorded.
+        if (status == STATUS_DONE)
+            sBattlePayMgr->RecordPurchase(GetAccountId(), purchaseID, status, resultCode, productID, price, price);
     };
 
     // Resolve the advertised (slot) productID to its admin product via the catalog routing map.
@@ -255,6 +261,25 @@ void WorldSession::HandleBattlePayStartPurchase(WorldPackets::BattlePay::StartPu
     TC_LOG_INFO("network", "BattlePay: StartPurchase from {}: u32={} u64={} flag={}",
         GetPlayerInfo(), startPurchase.ProductID, startPurchase.ScalarU64, uint32(startPurchase.Flag));
 
+    // ANTI-ABUSE (C-13): collapse replayed / double-clicked purchases to a single charge. CMSG_START_PURCHASE
+    // is craftable by any logged-in client and there is no client-supplied idempotency key. A lagged
+    // double-click sends two CMSGs which the world thread runs back-to-back, so the first has already
+    // completed (and charged) before the second begins - an in-flight flag alone cannot see it. A short
+    // per-session throttle does: reject a second StartPurchase within BATTLEPAY_PURCHASE_THROTTLE_MS.
+    // The duplicate is dropped silently (no charge, no ack) so the first purchase's response still drives
+    // the UI; the in-flight flag additionally guards against any future re-entrancy. Applied to both the
+    // direct and the two-step confirmation path (the timestamp is stamped before either runs).
+    static constexpr uint32 BATTLEPAY_PURCHASE_THROTTLE_MS = 2000;
+    uint32 const now = getMSTime();
+    if (_battlePayPurchaseInFlight ||
+        (_lastBattlePayPurchaseMSTime && getMSTimeDiff(_lastBattlePayPurchaseMSTime, now) < BATTLEPAY_PURCHASE_THROTTLE_MS))
+    {
+        TC_LOG_DEBUG("network", "BattlePay: throttled duplicate StartPurchase from {} (product {}).",
+            GetPlayerInfo(), startPurchase.ProductID);
+        return;
+    }
+    _lastBattlePayPurchaseMSTime = now;
+
     // Two-step retail confirmation flow (opt-in): stash the pending product, prompt the client, and
     // complete the purchase only when it answers CMSG_BATTLE_PAY_CONFIRM_PURCHASE_RESPONSE. Off by
     // default because the confirm packet layout is inferred (see ConfirmPurchase in BattlePayPackets.h);
@@ -285,7 +310,9 @@ void WorldSession::HandleBattlePayStartPurchase(WorldPackets::BattlePay::StartPu
         return;
     }
 
+    _battlePayPurchaseInFlight = true;
     BattlePayProcessPurchase(startPurchase.ProductID);
+    _battlePayPurchaseInFlight = false;
 }
 
 void WorldSession::HandleBattlePayConfirmPurchaseResponse(WorldPackets::BattlePay::ConfirmPurchaseResponse& confirmPurchaseResponse)
@@ -344,14 +371,38 @@ void WorldSession::SendBattlePayDistributionList()
 
 void WorldSession::HandleBattlePayGetPurchaseList(WorldPackets::BattlePay::GetPurchaseList& /*getPurchaseList*/)
 {
-    // The client polls this whenever the Shop is opened (390 requests across our sniffs) and blocks its
-    // purchase UI (HasPurchaseList) until it gets a reply. Answer with this account's real purchase
-    // history: the Shop only grants products through BattlePayProcessPurchase, which does not persist a
-    // purchase ledger, so the honest answer today is an empty list rather than fabricated entries.
+    // The client polls this whenever the Shop is opened and blocks its purchase UI until it gets a reply.
+    // Answer with this account's real purchase history from the shared ledger (C-13). ProductID may be 0
+    // (a valid value, C-32) so it is never filtered. walletName is always sent empty/record-final.
     if (!sWorld->getBoolConfig(CONFIG_SHOP_ENABLED))
         return;
 
-    WorldPackets::BattlePay::GetPurchaseListResponse response;
-    response.Result = 0;    // PurchaseResult::Ok
-    SendPacket(response.Write());
+    LoginDatabasePreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_SEL_BATTLEPAY_PURCHASE_ACCOUNT);
+    stmt->setUInt32(0, GetAccountId());
+
+    _queryProcessor.AddCallback(LoginDatabase.AsyncQuery(stmt)
+        .WithPreparedCallback([this](PreparedQueryResult result)
+    {
+        WorldPackets::BattlePay::GetPurchaseListResponse response;
+        response.Result = 0;    // PurchaseResult::Ok
+
+        if (result)
+        {
+            do
+            {
+                Field* fields = result->Fetch();
+                WorldPackets::BattlePay::PurchaseRecord& rec = response.Purchases.emplace_back();
+                rec.PurchaseID  = fields[0].GetUInt64();
+                rec.Status      = fields[1].GetInt32();
+                rec.ResultCode  = fields[2].GetInt32();
+                rec.ProductID   = fields[3].GetUInt32();
+                rec.BasePrice   = fields[4].GetUInt64();
+                rec.UserPrice   = fields[5].GetUInt64();
+                rec.TimeCreated = fields[6].GetInt64();
+            }
+            while (result->NextRow());
+        }
+
+        SendPacket(response.Write());
+    }));
 }
