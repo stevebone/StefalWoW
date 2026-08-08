@@ -4777,6 +4777,21 @@ void Garrison::ApplyTalentRankPerk(uint32 garrTalentID, int32 rankIndex)
     if (!talentEntry)
         return;
 
+    GarrTalentTreeEntry const* treeEntry = sGarrTalentTreeStore.LookupEntry(talentEntry->GarrTalentTreeID);
+
+    // A covenant-scoped tree only grants while its own covenant is the active one. The talent row itself survives a
+    // covenant switch untouched (see RefreshCovenantTalentPerks); what a switch takes away is the effect, exactly as
+    // it already works for the soulbind trees below, where only the ACTIVE soulbind's traits may be running.
+    if (!IsTalentTreeOwnedByPlayerCovenant(treeEntry))
+        return;
+
+    // Transport Network tiers publish no PerkSpellID at all (all 12 rank rows are zero - audit-verified), so
+    // their effect is the authored spell set of `garrison_transport_network` instead of the rank perk below.
+    // The talents are single-rank; the covenant/soulbind refresh paths re-call this with rankIndex 0 too, so
+    // the grants follow covenant switches exactly like PerkSpellID grants do.
+    if (treeEntry && treeEntry->FeatureTypeIndex == GARR_TALENT_FEATURE_TRANSPORT_NETWORK && rankIndex == 0)
+        ApplyTransportNetworkPerks(garrTalentID);
+
     std::vector<GarrTalentRankEntry const*> const* ranks = sGarrisonMgr.GetTalentRanksForTalent(garrTalentID);
     if (!ranks || rankIndex < 0 || rankIndex >= static_cast<int32>(ranks->size()))
         return;
@@ -4793,14 +4808,6 @@ void Garrison::ApplyTalentRankPerk(uint32 garrTalentID, int32 rankIndex)
         if (PlayerConditionEntry const* perkCondition = sPlayerConditionStore.LookupEntry(uint32(rankEntry->PerkPlayerConditionID)))
             if (!ConditionMgr::IsPlayerMeetingCondition(_owner, perkCondition))
                 return;
-
-    GarrTalentTreeEntry const* treeEntry = sGarrTalentTreeStore.LookupEntry(talentEntry->GarrTalentTreeID);
-
-    // A covenant-scoped tree only grants while its own covenant is the active one. The talent row itself survives a
-    // covenant switch untouched (see RefreshCovenantTalentPerks); what a switch takes away is the effect, exactly as
-    // it already works for the soulbind trees below, where only the ACTIVE soulbind's traits may be running.
-    if (!IsTalentTreeOwnedByPlayerCovenant(treeEntry))
-        return;
 
     if (treeEntry && treeEntry->FeatureTypeIndex == GARR_TALENT_FEATURE_SOULBIND)
     {
@@ -4832,6 +4839,10 @@ void Garrison::RemoveTalentRankPerks(uint32 garrTalentID, int32 completedRanks)
     GarrTalentTreeEntry const* treeEntry = sGarrTalentTreeStore.LookupEntry(talentEntry->GarrTalentTreeID);
     bool const isSoulbindTrait = treeEntry && treeEntry->FeatureTypeIndex == GARR_TALENT_FEATURE_SOULBIND;
 
+    // Strip the authored Transport Network grants symmetrically with how ApplyTalentRankPerk seats them.
+    if (treeEntry && treeEntry->FeatureTypeIndex == GARR_TALENT_FEATURE_TRANSPORT_NETWORK && completedRanks > 0)
+        RemoveTransportNetworkPerks(garrTalentID);
+
     int32 const last = std::min<int32>(completedRanks, static_cast<int32>(ranks->size()));
     for (int32 i = 0; i < last; ++i)
     {
@@ -4844,6 +4855,59 @@ void Garrison::RemoveTalentRankPerks(uint32 garrTalentID, int32 completedRanks)
             _owner->RemoveAurasDueToSpell(perkSpellId);
         else
             _owner->RemoveSpell(perkSpellId);
+    }
+}
+
+// Transport Network research payoff. The client publishes zero effect fields for these talents, so the spell
+// set per tier is authored in `garrison_transport_network` (validated at load; see GarrisonMgr). Two grant
+// modes, decided by the spell's own published effects rather than an authored flag:
+//   * SPELL_EFFECT_DISCOVER_TAXI carriers (the Kyrian/Venthyr "Teach Taxi Node: ..." spells) are one-shot
+//     casts - the taught TaxiNodes row is the persistent capability, the spell itself is not learnable.
+//     Re-casting on login/covenant re-activation is a no-op for an already-known node.
+//   * Everything else (the verified "Traverse to ..." / "Mirror Teleport: ..." / "Teleport: Seat of the
+//     Primus" teleports) is learned as a castable spell - the honest scale of this implementation: retail
+//     drives these from world objects (mushroom rings, mirrors, ziggurat portals) that are not spawned or
+//     scripted yet, so the capability is granted directly until that world content exists.
+void Garrison::ApplyTransportNetworkPerks(uint32 garrTalentID)
+{
+    std::vector<uint32> const* spells = sGarrisonMgr.GetTransportNetworkSpells(garrTalentID);
+    if (!spells)
+        return;
+
+    for (uint32 spellId : *spells)
+    {
+        SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(spellId, DIFFICULTY_NONE);
+        if (!spellInfo)
+            continue;   // validated at load; belt and braces against reloads
+
+        if (spellInfo->HasEffect(SPELL_EFFECT_DISCOVER_TAXI))
+        {
+            _owner->CastSpell(_owner, spellId, true);
+            continue;
+        }
+
+        _owner->LearnSpell(spellId, false);
+    }
+}
+
+void Garrison::RemoveTransportNetworkPerks(uint32 garrTalentID)
+{
+    std::vector<uint32> const* spells = sGarrisonMgr.GetTransportNetworkSpells(garrTalentID);
+    if (!spells)
+        return;
+
+    for (uint32 spellId : *spells)
+    {
+        SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(spellId, DIFFICULTY_NONE);
+        if (!spellInfo)
+            continue;
+
+        // Discovered taxi nodes are deliberately kept: there is no retail precedent for stripping a known
+        // flight point on a covenant switch, and the taxi mask is not a spell to unlearn.
+        if (spellInfo->HasEffect(SPELL_EFFECT_DISCOVER_TAXI))
+            continue;
+
+        _owner->RemoveSpell(spellId);
     }
 }
 

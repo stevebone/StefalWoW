@@ -585,6 +585,11 @@ private:
     // sitting at Rank N has completed rank indices [0, N).
     void ApplyTalentRankPerk(uint32 garrTalentID, int32 rankIndex);
     void RemoveTalentRankPerks(uint32 garrTalentID, int32 completedRanks);
+    // Transport Network (FeatureTypeIndex 2): the researched tier's authored teleport/taxi capability
+    // (world table `garrison_transport_network` - the client publishes no effect fields for these talents).
+    // Taxi-teach spells are cast once; verified teleport spells are learned/unlearned like rank perks.
+    void ApplyTransportNetworkPerks(uint32 garrTalentID);
+    void RemoveTransportNetworkPerks(uint32 garrTalentID);
     // Evaluates the talent's published GarrTalent.PlayerConditionID for the covenant sanctum research trees
     // (Channel Anima tiers, tier-0 level+covenant gates, Reservoir renown/covenant gates). Returns true for
     // talents without a condition, for non-covenant garrison types, and for the documented exemptions
