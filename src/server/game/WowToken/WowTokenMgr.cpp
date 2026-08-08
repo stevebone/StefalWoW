@@ -166,11 +166,12 @@ bool WowTokenMgr::SetTokenState(uint64 tokenId, WowTokenState state, uint32 owne
     return true;
 }
 
-std::string WowTokenMgr::GenerateSsoToken()
+std::string WowTokenMgr::GenerateSsoToken(uint32 bnetAccountId)
 {
-    // Retail's token is "<REGION>-" followed by 42 lowercase hex characters (observed body length 45).
-    // The hex half is 21 random bytes; the prefix is the Battle.net region code of this realm.
-    std::array<uint8, 21> randomBytes = Trinity::Crypto::GetRandomBytes<21>();
+    // Retail's token is "<REGION>-<32 lowercase hex>-<battlenet account id>" (observed body length 45,
+    // e.g. "US-" + 32 hex + "-" + a 9-digit account id). The hex half is 16 random bytes; the prefix is
+    // the Battle.net region code of this realm; the account-id suffix is stable per account (C-20).
+    std::array<uint8, 16> randomBytes = Trinity::Crypto::GetRandomBytes<16>();
 
     std::string region;
     switch (sRealmList->GetCurrentRealmId().Region)
@@ -186,5 +187,5 @@ std::string WowTokenMgr::GenerateSsoToken()
     std::string token = ByteArrayToHexStr(randomBytes);
     std::transform(token.begin(), token.end(), token.begin(), [](char c) { return char(std::tolower(c)); });
 
-    return region + "-" + token;
+    return region + "-" + token + "-" + std::to_string(bnetAccountId);
 }

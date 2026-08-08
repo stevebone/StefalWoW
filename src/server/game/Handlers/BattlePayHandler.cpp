@@ -319,11 +319,11 @@ void WorldSession::HandleBattlePayOpenCheckout(WorldPackets::BattlePay::OpenChec
     if (!sWorld->getBoolConfig(CONFIG_SHOP_ENABLED))
         return;
 
-    // Retail routes purchases here (-> Battle.net web-checkout) using a distributionID rather than a
-    // productID. We cannot map that to a product without the distribution setup, so log it for diagnosis;
-    // server-defined products are purchased via StartPurchase above.
-    TC_LOG_INFO("network", "BattlePay: OpenCheckout from {} distributionID={} (web-checkout path, not handled).",
-        GetPlayerInfo(), openCheckout.DistributionID);
+    // Retail answers CMSG_BATTLE_PAY_OPEN_CHECKOUT with SMSG_GENERATE_SSO_TOKEN_RESPONSE as a strict
+    // 1:1 echo of the request's ClientToken (proven in all 8 captures: checkout #N -> response #N with
+    // the same u32). Answering from here - rather than pushing the token unsolicited at login - is what
+    // lets checkouts #2+ get a reply. See COMMERCE_AUDIT C-09 / WOW_TOKEN_RE_68275.md.
+    SendGenerateSsoToken(openCheckout.ClientToken);
 }
 
 // Replays the captured distribution-list blob unsolicited at session start. There is no CMSG that

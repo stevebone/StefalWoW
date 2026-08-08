@@ -110,15 +110,16 @@ void WorldSession::SendCommerceTokenUpdate()
     SendPacket(tokenUpdate.Write());
 }
 
-void WorldSession::SendGenerateSsoToken()
+void WorldSession::SendGenerateSsoToken(uint32 clientToken)
 {
     WorldPackets::Token::GenerateSsoTokenResponse ssoToken;
 
-    ssoToken.Success = 1;
+    // Echo the ClientToken from the CMSG_BATTLE_PAY_OPEN_CHECKOUT that triggered this (1:1 answer).
+    ssoToken.ClientToken = clientToken;
     ssoToken.Result = TOKEN_RESULT_SUCCESS;
     ssoToken.Issued = GameTime::GetGameTime();
     ssoToken.Expires = GameTime::GetGameTime() + WowTokenMgr::SSO_TOKEN_DURATION;
-    ssoToken.Token = WowTokenMgr::GenerateSsoToken();
+    ssoToken.Token = WowTokenMgr::GenerateSsoToken(GetBattlenetAccountId());
 
     SendPacket(ssoToken.Write());
 }

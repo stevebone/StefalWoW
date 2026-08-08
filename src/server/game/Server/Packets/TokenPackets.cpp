@@ -96,7 +96,7 @@ void CanRedeemTokenForBalance::Read()
 
 WorldPacket const* GenerateSsoTokenResponse::Write()
 {
-    _worldPacket << Success;
+    _worldPacket << ClientToken;
     _worldPacket << Result;
     _worldPacket << Issued;
     _worldPacket << Expires;

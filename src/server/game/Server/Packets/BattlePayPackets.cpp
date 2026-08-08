@@ -44,7 +44,7 @@ void StartPurchase::Read()
 
 void OpenCheckout::Read()
 {
-    _worldPacket >> DistributionID;
+    _worldPacket >> ClientToken;
 }
 
 WorldPacket const* StartPurchaseResponse::Write()

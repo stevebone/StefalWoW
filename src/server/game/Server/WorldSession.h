@@ -1863,7 +1863,7 @@ class TC_GAME_API WorldSession
         void HandleConsumableTokenCanVeteranBuy(WorldPackets::Token::ConsumableTokenCanVeteranBuy& consumableTokenCanVeteranBuy);
         void HandleCanRedeemTokenForBalance(WorldPackets::Token::CanRedeemTokenForBalance& canRedeemTokenForBalance);
         void SendCommerceTokenUpdate();
-        void SendGenerateSsoToken();
+        void SendGenerateSsoToken(uint32 clientToken);
 
         // Compact Unit Frames (4.x)
         void HandleSaveCUFProfiles(WorldPackets::Misc::SaveCUFProfiles& packet);

@@ -86,7 +86,9 @@ namespace WorldPackets
             bool Flag = false;
         };
 
-        // Client opens the checkout for a previously-created distribution (sniff-confirmed: u32 distributionID).
+        // Client opens the checkout. The u32 is the ClientToken the server must echo back verbatim in
+        // SMSG_GENERATE_SSO_TOKEN_RESPONSE (proven 1:1 in all 8 captures - checkout #N -> response #N
+        // with the same u32). It is not a distributionID. See COMMERCE_AUDIT C-09.
         class OpenCheckout final : public ClientPacket
         {
         public:
@@ -94,7 +96,7 @@ namespace WorldPackets
 
             void Read() override;
 
-            uint32 DistributionID = 0;
+            uint32 ClientToken = 0;
         };
 
         // Server-driven purchase confirmation prompt (retail interposes this between StartPurchase and

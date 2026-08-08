@@ -1212,9 +1212,9 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder const& holder)
 
     SendSetTimeZoneInformation();
 
-    // Retail pushes the single sign-on token once, unprompted, in this post-login burst - there is no
-    // client request opcode for it in 12.0.7. See WOW_TOKEN_RE_68275.md.
-    SendGenerateSsoToken();
+    // Note: SMSG_GENERATE_SSO_TOKEN_RESPONSE is NOT pushed here. It is the strict 1:1 answer to
+    // CMSG_BATTLE_PAY_OPEN_CHECKOUT (proven in all 8 captures: checkout #N -> response #N echoing the
+    // request u32); it is sent from WorldSession::HandleBattlePayOpenCheckout. See COMMERCE_AUDIT C-09.
 
     // Send PVPSeason
     {

@@ -72,10 +72,10 @@ public:
     // Moves a token between states (and optionally owners), persisting the change.
     bool SetTokenState(uint64 tokenId, WowTokenState state, uint32 ownerAccount, uint64 price = 0);
 
-    // Generates a fresh single sign-on token for a session, of the form "<REGION>-<42 hex chars>",
-    // matching the shape observed on retail. The value is random per call; it is not derived from
-    // anything guessable.
-    static std::string GenerateSsoToken();
+    // Generates a fresh single sign-on token, of the form "<REGION>-<32 lowercase hex>-<bnet account id>"
+    // (observed retail body length 45, e.g. "US-" + 32 hex + "-" + a 9-digit account id). The hex half is
+    // 16 random bytes; the account-id suffix is stable per account. See COMMERCE_AUDIT C-20.
+    static std::string GenerateSsoToken(uint32 bnetAccountId);
 
     // Retail issues the SSO token with a four hour lifetime (observed expiry - issued == 14400s).
     static constexpr uint32 SSO_TOKEN_DURATION = 4 * 60 * 60;

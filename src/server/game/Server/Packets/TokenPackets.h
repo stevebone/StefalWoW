@@ -128,7 +128,9 @@ namespace WorldPackets
             bool Refresh = false;
         };
 
-        // Server push at session setup; this build has no matching client request opcode.
+        // The strict 1:1 answer to CMSG_BATTLE_PAY_OPEN_CHECKOUT: the leading u32 is the request's
+        // ClientToken echoed verbatim (proven in all 8 captures). This build has no CMSG_GENERATE_SSO_TOKEN
+        // opcode; the token is only ever produced in response to a checkout. See COMMERCE_AUDIT C-09.
         class GenerateSsoTokenResponse final : public ServerPacket
         {
         public:
@@ -136,7 +138,7 @@ namespace WorldPackets
 
             WorldPacket const* Write() override;
 
-            uint32 Success = 0;
+            uint32 ClientToken = 0;
             uint32 Result  = 0;
             Timestamp<> Issued;
             Timestamp<> Expires;
