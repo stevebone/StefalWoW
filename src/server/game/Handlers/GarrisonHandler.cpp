@@ -745,10 +745,17 @@ void WorldSession::HandleRequestGarrisonTalentWorldQuestUnlocks(WorldPackets::Ga
     // map POIs. IDA dispatcher uses opaque helper so exact field shape is unconfirmed; the
     // best conservative match is a size-prefixed list of unlocked talent tree IDs (the
     // server's view of which trees the player has unlocked talents in for world-quest UI).
-    WorldPackets::Garrison::GarrisonTalentWorldQuestUnlocksResponse response;
-    if (Garrison* garrison = _player->GetGarrison())
+    //
+    // The CMSG carries no garrison type and the response carries exactly one (GarrTypeID), so this is
+    // the same shape as CMSG_GET_LANDING_PAGE_SHIPMENTS: answer once per owned garrison. The previous
+    // no-arg GetGarrison() resolves ONLY the WoD garrison (type 2), so an order-hall / war-campaign /
+    // covenant character got nullptr and we replied with GarrTypeID 0 and an empty tree list - which
+    // reads as "no talent trees unlocked" for every non-WoD garrison the character owns.
+    for (auto const& [type, garrison] : _player->GetGarrisons())
     {
+        WorldPackets::Garrison::GarrisonTalentWorldQuestUnlocksResponse response;
         response.GarrTypeID = static_cast<uint8>(garrison->GetType());
+
         // Build the list of unique talent tree IDs from the player's known talents.
         std::set<int32> trees;
         for (auto const& [talentID, talent] : garrison->GetAllTalents())
@@ -757,18 +764,31 @@ void WorldSession::HandleRequestGarrisonTalentWorldQuestUnlocks(WorldPackets::Ga
                 trees.insert(entry->GarrTalentTreeID);
         }
         response.UnlockedTalentTreeIDs.assign(trees.begin(), trees.end());
+
+        SendPacket(response.Write());
     }
-    SendPacket(response.Write());
 }
 
 void WorldSession::HandleGetTrophyList(WorldPackets::Garrison::GetTrophyList& /*getTrophyList*/)
 {
     WorldPackets::Garrison::GetTrophyListResponse response;
 
-    Garrison* garrison = _player->GetGarrison();
-    if (garrison)
+    // The response has no GarrTypeID field, and the request's TrophyTypeID is NOT a garrison type - it
+    // references TrophyType (the same id the trophy-display GameObject carries, see GameObjectData.h
+    // "Trophy Type ID, References: TrophyType"). So there is nothing in this exchange to key a single
+    // garrison off, and the honest answer is the union across every garrison the character owns.
+    //
+    // The bug being fixed: the no-arg GetGarrison() resolves ONLY the WoD garrison (type 2), so a
+    // character without one - an order-hall, war-campaign or covenant character - got nullptr and we
+    // replied Success = false, i.e. "the trophy list could not be retrieved" rather than "you have no
+    // trophies". Trophies themselves are stored per garrison type (character_garrison_trophies.garrType).
+    //
+    // Note this is currently latent either way: Garrison::AddTrophy has no caller anywhere in the core
+    // outside CMSG_REPLACE_TROPHY, so no trophy is ever granted and the list is empty for everyone. The
+    // point of the fix is that the failure flag stops lying; wiring up trophy acquisition is separate.
+    response.Success = !_player->GetGarrisons().empty();
+    for (auto const& [type, garrison] : _player->GetGarrisons())
     {
-        response.Success = true;
         for (uint32 trophyId : garrison->GetTrophies())
         {
             WorldPackets::Garrison::GarrisonTrophyData data;
