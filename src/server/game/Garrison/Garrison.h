@@ -505,11 +505,20 @@ public:
     // retail class + signature grant spells do, without hardcoding their ids. Already-known talents are skipped.
     void GrantCovenantAbilityTalents(uint32 covenantId);
 
-    // Trophy system
-    void AddTrophy(uint32 trophyID);
-    void RemoveTrophy(uint32 trophyID);
-    bool HasTrophy(uint32 trophyID) const { return _trophies.count(trophyID) > 0; }
-    std::unordered_set<uint32> const& GetTrophies() const { return _trophies; }
+    // Trophy system. This is a SELECTION, not an inventory: which trophies a character may pick from is never
+    // stored, it is computed from Trophy.db2 filtered by the monument's TrophyTypeID and gated on each row's
+    // PlayerConditionID (see WorldSession::HandleGetTrophyList). What persists is only "which statue is on
+    // which monument".
+    //
+    // Keyed by TrophyInstanceID - the identity of one physical monument (its gameobject Data1; the six spawned
+    // Monument Bases use 1, 2 and 6 on each side). This is the key the client itself uses: the monument tooltip
+    // builder scans SMSG_GARRISON_UPDATE_GARRISON_MONUMENT_SELECTIONS for the entry matching the monument's own
+    // TrophyInstanceID. Keying by TrophyTypeID instead would make all three monuments in a garrison show the
+    // same statue.
+    void SetSelectedTrophy(uint32 trophyInstanceID, uint32 trophyID);
+    void ClearSelectedTrophy(uint32 trophyInstanceID);
+    uint32 GetSelectedTrophy(uint32 trophyInstanceID) const;
+    std::unordered_map<uint32, uint32> const& GetTrophies() const { return _trophies; }
 
     // Queen's Conservatory - the Night Fae unique sanctum feature (GarrTalentTree 319). Only meaningful on a
     // GARRISON_TYPE_COVENANT garrison owned by a Night Fae character; it reports zero plots for anything else.
@@ -611,7 +620,7 @@ private:
     std::unordered_map<uint32 /*garrTalentID*/, Talent> _talents;
 
     // Trophies
-    std::unordered_set<uint32 /*trophyID*/> _trophies;
+    std::unordered_map<uint32 /*trophyInstanceID*/, uint32 /*trophyID*/> _trophies;
 
     // Night Fae unique sanctum feature; inert for every other garrison type.
     QueensConservatory _conservatory;

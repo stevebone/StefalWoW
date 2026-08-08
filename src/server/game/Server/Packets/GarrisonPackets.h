@@ -1767,10 +1767,33 @@ namespace WorldPackets
         // Trophy / Monument packets
         // ============================================================
 
-        struct GarrisonTrophyData
+        // One entry of SMSG_GET_TROPHY_LIST_RESPONSE - the client's JamTrophyInfo, a 12-byte struct (its
+        // vector grow/copy helpers step in 0xC, and the deserializer at client RVA 0x60BEC0 does three
+        // ReadUInt32 per entry). Field 0 is the Trophy.db2 row id: C_Trophy.MonumentGetTrophyInfoByIndex
+        // (RVA 0x24A0C20) feeds it to a Trophy.db2 row lookup to get the name it shows.
+        //
+        // Unk1/Unk2 are genuinely unnamed. The client's only consumers are that Lua getter, which returns
+        // them raw as return values #2 and #3 - the UI calls them lock_code and lock_reason, and compares
+        // lock_code against MATCH_CONDITION_SUCCESS (57) / MATCH_CONDITION_WRONG_ACHIEVEMENT (34) - and the
+        // vector copy. No C++ code interprets them, and no JAM reflection descriptor exists for this type,
+        // so the mapping of those two constants onto these two fields is not derivable offline. They are
+        // written as 0 until a sniff names them; see WorldSession::HandleGetTrophyList.
+        struct TrophyInfo
         {
             uint32 TrophyID = 0;
             uint32 Unk1 = 0;
+            uint32 Unk2 = 0;
+        };
+
+        // One entry of SMSG_GARRISON_UPDATE_GARRISON_MONUMENT_SELECTIONS - the client's JamGarrisonTrophy,
+        // 8 bytes. This is a per-monument selection map keyed by TrophyInstanceID, NOT by TrophyTypeID: the
+        // monument tooltip builder (client RVA 0x1CAED30) walks this array comparing entry field 0 against
+        // the monument gameobject's own TrophyInstanceID (its Data1), then looks entry field 1 up in
+        // Trophy.db2 to render the name. So one row per physical monument, not per monument category.
+        struct GarrisonMonumentSelection
+        {
+            uint32 TrophyInstanceID = 0;
+            uint32 TrophyID = 0;
         };
 
         class GetTrophyList final : public ClientPacket
@@ -1791,7 +1814,7 @@ namespace WorldPackets
             WorldPacket const* Write() override;
 
             bool Success = false;
-            std::vector<GarrisonTrophyData> Trophies;
+            std::vector<TrophyInfo> Trophies;
         };
 
         class ReplaceTrophy final : public ClientPacket
@@ -1801,6 +1824,7 @@ namespace WorldPackets
 
             void Read() override;
 
+            ObjectGuid MonumentGUID;
             uint32 TrophyID = 0;
         };
 
@@ -1821,7 +1845,10 @@ namespace WorldPackets
 
             void Read() override;
 
-            uint32 TrophyID = 0;
+            // Not a Trophy.db2 id - C_Trophy.MonumentLoadSelectedTrophyID() takes no argument and the client
+            // fills this from the monument gameobject's named-slot 0, which the client's GO field-index table
+            // maps to Data1 = TrophyInstanceID for type 44. It is asking "what is selected on THIS monument".
+            uint32 TrophyInstanceID = 0;
         };
 
         class GetSelectedTrophyIDResponse final : public ServerPacket
@@ -1842,6 +1869,7 @@ namespace WorldPackets
 
             void Read() override;
 
+            ObjectGuid MonumentGUID;
             uint32 TrophyID = 0;
         };
 
@@ -1850,7 +1878,9 @@ namespace WorldPackets
         public:
             explicit RevertMonumentAppearance(WorldPacket&& packet) : ClientPacket(CMSG_REVERT_MONUMENT_APPEARANCE, std::move(packet)) { }
 
-            void Read() override { }
+            void Read() override;
+
+            ObjectGuid MonumentGUID;
         };
 
         class GarrisonUpdateGarrisonMonumentSelections final : public ServerPacket
@@ -1860,7 +1890,7 @@ namespace WorldPackets
 
             WorldPacket const* Write() override;
 
-            std::vector<GarrisonTrophyData> Trophies;
+            std::vector<GarrisonMonumentSelection> Selections;
         };
 
         // Incremental push of the "missions started today" counter, mirroring the

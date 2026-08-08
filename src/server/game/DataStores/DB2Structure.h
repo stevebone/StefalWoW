@@ -5474,6 +5474,20 @@ struct TransportRotationEntry
     uint32 GameObjectsID;
 };
 
+// Trophy.db2 (FileDataId 975024, layout 0xA17123C5). The catalogue of garrison monument trophies: the statue
+// appearances a WoD garrison Monument Base (GAMEOBJECT_TYPE_GARRISON_MONUMENT) can be set to display.
+// TrophyTypeID is the same id the monument gameobject carries in its Data0, so it partitions the catalogue by
+// monument - in the 68275 client 3 = Horde/Frostwall, 4 = Alliance/Lunarfall, 0 = NoValue (not displayable).
+// PlayerConditionID is the unlock gate; see WorldSession::HandleGetTrophyList for what it resolves to today.
+struct TrophyEntry
+{
+    uint32 ID;
+    LocalizedString Name;
+    uint8 TrophyTypeID;
+    int32 GameObjectDisplayInfoID;
+    uint32 PlayerConditionID;
+};
+
 struct UiMapEntry
 {
     LocalizedString Name;

@@ -7692,6 +7692,20 @@ struct TransportRotationLoadInfo
     static constexpr DB2LoadInfo Instance{ Fields, 7, &TransportRotationMeta::Instance, HOTFIX_SEL_TRANSPORT_ROTATION };
 };
 
+struct TrophyLoadInfo
+{
+    static constexpr DB2FieldMeta Fields[5] =
+    {
+        { .IsSigned = false, .Type = FT_INT, .Name = "ID" },
+        { .IsSigned = false, .Type = FT_STRING, .Name = "Name" },
+        { .IsSigned = false, .Type = FT_BYTE, .Name = "TrophyTypeID" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "GameObjectDisplayInfoID" },
+        { .IsSigned = false, .Type = FT_INT, .Name = "PlayerConditionID" },
+    };
+
+    static constexpr DB2LoadInfo Instance{ Fields, 5, &TrophyMeta::Instance, HOTFIX_SEL_TROPHY };
+};
+
 struct UiMapLoadInfo
 {
     static constexpr DB2FieldMeta Fields[15] =

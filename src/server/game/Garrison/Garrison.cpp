@@ -179,14 +179,14 @@ bool Garrison::LoadFromDB(PreparedQueryResult garrison, PreparedQueryResult blue
         } while (talents->NextRow());
     }
 
-    //           0
-    // SELECT trophyId FROM character_garrison_trophies WHERE guid = ?
+    //           0                 1
+    // SELECT trophyInstanceId, trophyId FROM character_garrison_trophies WHERE guid = ?
     if (trophies)
     {
         do
         {
             fields = trophies->Fetch();
-            _trophies.insert(fields[0].GetUInt32());
+            _trophies[fields[0].GetUInt32()] = fields[1].GetUInt32();
         } while (trophies->NextRow());
     }
 
@@ -523,12 +523,13 @@ void Garrison::SaveToDB(CharacterDatabaseTransaction trans)
         trans->Append(stmt);
     }
 
-    for (uint32 trophyId : _trophies)
+    for (auto const& [trophyInstanceId, trophyId] : _trophies)
     {
         stmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_CHARACTER_GARRISON_TROPHY);
         stmt->setUInt64(0, _owner->GetGUID().GetCounter());
-        stmt->setUInt32(1, trophyId);
-        stmt->setUInt8(2, static_cast<uint8>(_garrType));
+        stmt->setUInt32(1, trophyInstanceId);
+        stmt->setUInt32(2, trophyId);
+        stmt->setUInt8(3, static_cast<uint8>(_garrType));
         trans->Append(stmt);
     }
 
@@ -5417,12 +5418,20 @@ uint32 Garrison::ResetTalentTree(uint32 garrTalentTreeID)
 // Trophy system
 // ============================================================
 
-void Garrison::AddTrophy(uint32 trophyID)
+// A monument shows exactly one statue, so this is an assignment, not an accumulation. The previous code
+// inserted into a set and never replaced, so every trophy a player so much as scrolled past stayed forever.
+void Garrison::SetSelectedTrophy(uint32 trophyInstanceID, uint32 trophyID)
 {
-    _trophies.insert(trophyID);
+    _trophies[trophyInstanceID] = trophyID;
 }
 
-void Garrison::RemoveTrophy(uint32 trophyID)
+void Garrison::ClearSelectedTrophy(uint32 trophyInstanceID)
 {
-    _trophies.erase(trophyID);
+    _trophies.erase(trophyInstanceID);
+}
+
+uint32 Garrison::GetSelectedTrophy(uint32 trophyInstanceID) const
+{
+    auto itr = _trophies.find(trophyInstanceID);
+    return itr != _trophies.end() ? itr->second : 0;
 }

@@ -1511,13 +1511,17 @@ void GetTrophyList::Read()
 
 WorldPacket const* GetTrophyListResponse::Write()
 {
+    // THREE uint32 per entry, not two. The client deserializer (RVA 0x60BEC0) does exactly three ReadUInt32
+    // per element into a 12-byte JamTrophyInfo, so writing two desynchronises its read cursor for the rest of
+    // the payload - it consumes 3n words from a 2n-word list. This was a hard break, not a cosmetic omission.
     _worldPacket << Bits<1>(Success);
     _worldPacket.FlushBits();
     _worldPacket << uint32(Trophies.size());
-    for (GarrisonTrophyData const& trophy : Trophies)
+    for (TrophyInfo const& trophy : Trophies)
     {
         _worldPacket << uint32(trophy.TrophyID);
         _worldPacket << uint32(trophy.Unk1);
+        _worldPacket << uint32(trophy.Unk2);
     }
 
     return &_worldPacket;
@@ -1525,6 +1529,9 @@ WorldPacket const* GetTrophyListResponse::Write()
 
 void ReplaceTrophy::Read()
 {
+    // The client serializer (RVA 0x6A9E90) writes a PackedGuid - the monument gameobject being edited -
+    // before the trophy id. Not reading it meant TrophyID was parsed out of the guid's mask bytes.
+    _worldPacket >> MonumentGUID;
     _worldPacket >> TrophyID;
 }
 
@@ -1538,7 +1545,7 @@ WorldPacket const* ReplaceTrophyResponse::Write()
 
 void LoadSelectedTrophy::Read()
 {
-    _worldPacket >> TrophyID;
+    _worldPacket >> TrophyInstanceID;
 }
 
 WorldPacket const* GetSelectedTrophyIDResponse::Write()
@@ -1552,16 +1559,27 @@ WorldPacket const* GetSelectedTrophyIDResponse::Write()
 
 void ChangeMonumentAppearance::Read()
 {
+    _worldPacket >> MonumentGUID;
     _worldPacket >> TrophyID;
+}
+
+void RevertMonumentAppearance::Read()
+{
+    // Client serializer RVA 0x6A9F50: a PackedGuid and nothing else. This used to read nothing at all, so the
+    // payload was left unconsumed.
+    _worldPacket >> MonumentGUID;
 }
 
 WorldPacket const* GarrisonUpdateGarrisonMonumentSelections::Write()
 {
-    _worldPacket << uint32(Trophies.size());
-    for (GarrisonTrophyData const& trophy : Trophies)
+    // TrophyInstanceID FIRST, then the trophy. The names were the other way round: the client's tooltip
+    // builder (RVA 0x1CAED30) scans this array for the entry whose FIRST field equals the monument's own
+    // TrophyInstanceID, and looks the SECOND field up in Trophy.db2 to get the statue's name.
+    _worldPacket << uint32(Selections.size());
+    for (GarrisonMonumentSelection const& selection : Selections)
     {
-        _worldPacket << uint32(trophy.TrophyID);
-        _worldPacket << uint32(trophy.Unk1);
+        _worldPacket << uint32(selection.TrophyInstanceID);
+        _worldPacket << uint32(selection.TrophyID);
     }
 
     return &_worldPacket;
