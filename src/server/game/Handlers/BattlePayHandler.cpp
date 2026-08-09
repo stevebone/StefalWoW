@@ -29,6 +29,7 @@
 #include "ObjectMgr.h"
 #include "Player.h"
 #include "World.h"
+#include "WowTokenMgr.h"
 #include <algorithm>
 #include "Timer.h"
 
@@ -185,12 +186,13 @@ void WorldSession::BattlePayProcessPurchase(uint32 productID)
         return;
     }
 
-    // Reserved / unavailable deliverable types abort the whole purchase BEFORE charging: type 3 (WoW
-    // Token) needs WowTokenMgr which lives on the wow-token branch; types 4 (game time) / 5 (service)
-    // are schema-reserved with no delivery impl yet. Purchase result 57 until they land.
+    // Reserved / unavailable deliverable types abort the whole purchase BEFORE charging: types 4 (game
+    // time) / 5 (service) are schema-reserved with no delivery impl yet. Type 3 (WoW Token) is delivered
+    // through WowTokenMgr in the grant loop below (seam A - the shop base previously refused it with 57
+    // because no WowTokenMgr existed; the token layer now provides it). Purchase result 57 until 4/5 land.
     for (ShopDeliverable const& d : product->Deliverables)
     {
-        if (d.Type < 1 || d.Type > 2)
+        if (d.Type < 1 || d.Type > 3)
         {
             TC_LOG_DEBUG("network", "BattlePay: product {} has unsupported deliverable type {} - refused.", productID, d.Type);
             respond(STATUS_FAILED, RESULT_PRODUCT_NOT_PURCHASABLE, 0);
@@ -211,7 +213,10 @@ void WorldSession::BattlePayProcessPurchase(uint32 productID)
     }
 
     // Grant first; only charge if every deliverable succeeds so we never take payment without delivering.
+    // Exception: a WoW Token (type 3) is charged *before* creation and committed synchronously - see the
+    // anti-abuse note in that case; chargeSettled records that so the generic post-grant charge is skipped.
     bool granted = true;
+    bool chargeSettled = false;
     for (ShopDeliverable const& d : product->Deliverables)
     {
         switch (d.Type)
@@ -224,6 +229,33 @@ void WorldSession::BattlePayProcessPurchase(uint32 productID)
                     // collection via CollectionMgr; LearnSpell no-ops if a bundled spell is already known
                 if (!player->HasSpell(d.Id))
                     player->LearnSpell(d.Id, false);
+                break;
+            case 3: // WoW Token - the retail acquisition path: bought from the Shop, then account-sellable.
+                    // This is THE shop<->token synergy: the catalog-admin deliverable drives WowTokenMgr.
+                    // ANTI-ABUSE (C-07, TK-5, the audit's #1 finding): a token is persisted to the AUTH DB
+                    // the instant it is created, while the buyer's gold otherwise stays in Player memory
+                    // until the next periodic character save. A crash in that (minutes-long) window would
+                    // leave the account holding the token with the gold never taken - a free token / free
+                    // gold duplication. Close the window: charge the cost and commit it to the character DB
+                    // *synchronously first*, then create the token. The only surviving crash outcome is
+                    // "gold taken, token not created" - a refundable player loss, never "keep gold AND
+                    // token" (the server never loses value).
+                if (product->Currency == 1 && product->Price)
+                    player->ModifyMoney(-int64(product->Price));
+                if (product->Currency == 2 && product->PriceItemId)
+                    player->DestroyItemCount(product->PriceItemId, product->PriceItemCount, true);
+                {
+                    CharacterDatabaseTransaction trans = CharacterDatabase.BeginTransaction();
+                    player->SaveInventoryAndGoldToDB(trans);
+                    CharacterDatabase.DirectCommitTransaction(trans);
+                }
+                chargeSettled = true;
+
+                for (uint32 i = 0; i < std::max<uint32>(d.Count, 1u); ++i)
+                    sWowTokenMgr->CreateToken(GetAccountId(), WOW_TOKEN_STATE_AUCTIONABLE);
+
+                // Confirmed trigger for this push: the account's token holdings changed.
+                SendCommerceTokenUpdate();
                 break;
             default:
                 break;
@@ -240,10 +272,15 @@ void WorldSession::BattlePayProcessPurchase(uint32 productID)
         return;
     }
 
-    if (product->Currency == 1 && product->Price)
-        player->ModifyMoney(-int64(product->Price));
-    if (product->Currency == 2 && product->PriceItemId)
-        player->DestroyItemCount(product->PriceItemId, product->PriceItemCount, true);
+    // Types 1/2 are charged here after a successful grant; a type-3 token already settled its charge
+    // synchronously above (chargeSettled), so it must not be charged again.
+    if (!chargeSettled)
+    {
+        if (product->Currency == 1 && product->Price)
+            player->ModifyMoney(-int64(product->Price));
+        if (product->Currency == 2 && product->PriceItemId)
+            player->DestroyItemCount(product->PriceItemId, product->PriceItemCount, true);
+    }
 
     TC_LOG_INFO("network", "BattlePay: {} purchased product {} ({}) for {} (currency {}).",
         GetPlayerInfo(), productID, product->Name, product->Price, product->Currency);
