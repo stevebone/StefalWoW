@@ -99,6 +99,13 @@ class TC_GAME_API PlayerTaxi
             TaxiMask const& reachableNodes, Player const* player,
             std::vector<TaxiConditionUnlockReport>* report = nullptr);
 
+        // Diagnostics: render one 64-bit block of an outgoing taxi mask exactly as it goes on the wire -
+        // the raw qword plus the TaxiNodes IDs whose bits are set in it. The client reads these masks in
+        // uint64 blocks, so a qword index is the unit an argument about "did the bit actually ship" is
+        // conducted in. Node ID N lives at bit (N-1), i.e. qword (N-1)/64, bit (N-1)%64.
+        static std::string DescribeMaskQword(TaxiMask const& mask, uint32 qwordIndex);
+        static uint32 QwordIndexForNode(uint32 nodeidx) { return (nodeidx - 1) / 64; }
+
         // Destinations
         [[nodiscard]] bool LoadTaxiDestinationsFromString(std::string const& values, uint32 team);
         std::string SaveTaxiDestinationsToString();

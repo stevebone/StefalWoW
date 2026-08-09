@@ -1787,10 +1787,17 @@ public:
             if (data.CanUseNodes[field] & submask)
                 use += Trinity::StringFormat("{} ", node->ID);
         }
-        handler->PSendSysMessage("mask bytes=%u (qwords=%u), TaxiNodes rows=%u",
+        handler->PSendSysMessage("mask bytes=%u (qwords=%u), TaxiNodes index size=%u",
             uint32(data.CanLandNodes.size()), uint32(data.CanLandNodes.size() / 8), sTaxiNodesStore.GetNumRows());
-        handler->PSendSysMessage("CanLandNodes: %s", land.c_str());
-        handler->PSendSysMessage("CanUseNodes : %s", use.c_str());
+
+        // The wire-level view: the uint64 block the current node lives in, for both masks. This is the one
+        // line that separates "the server never set the bit" from "the client dropped a bit that shipped".
+        uint32 const qword = PlayerTaxi::QwordIndexForNode(curloc);
+        handler->PSendSysMessage("CanLandNodes %s", PlayerTaxi::DescribeMaskQword(data.CanLandNodes, qword).c_str());
+        handler->PSendSysMessage("CanUseNodes  %s", PlayerTaxi::DescribeMaskQword(data.CanUseNodes, qword).c_str());
+
+        handler->PSendSysMessage("CanLandNodes (all): %s", land.c_str());
+        handler->PSendSysMessage("CanUseNodes  (all): %s", use.c_str());
         return true;
     }
 

@@ -136,6 +136,19 @@ void WorldSession::SendTaxiMenu(Creature* unit)
     if (!lastTaxiCheaterState)
         PlayerTaxi::AppendConditionUnlockedNodesTo(data.CanLandNodes, data.CanUseNodes, reachableNodes, GetPlayer());
 
+    // Dump the block of both masks that the current node lives in, as the bytes about to be appended to
+    // SMSG_SHOW_TAXI_NODES. The client consumes these masks in uint64 blocks, so this is the wire-level
+    // answer to "did the bit actually ship" - which no amount of reading the unlock code can settle. For a
+    // covenant sanctum node (2625..2634 all sit in qword 41) this prints every transport-network sibling.
+    if (sLog->ShouldLog("taxi.condition", LOG_LEVEL_DEBUG))
+    {
+        uint32 const qword = PlayerTaxi::QwordIndexForNode(curloc);
+        TC_LOG_DEBUG("taxi.condition", "SendTaxiMenu: CanLandNodes {}", PlayerTaxi::DescribeMaskQword(data.CanLandNodes, qword));
+        TC_LOG_DEBUG("taxi.condition", "SendTaxiMenu: CanUseNodes  {}", PlayerTaxi::DescribeMaskQword(data.CanUseNodes, qword));
+        TC_LOG_DEBUG("taxi.condition", "SendTaxiMenu: sending {} qwords per mask ({} bytes), TaxiNodes index size {}",
+            uint32(data.CanLandNodes.size() / 8), uint32(data.CanLandNodes.size()), sTaxiNodesStore.GetNumRows());
+    }
+
     SendPacket(data.Write());
 
     GetPlayer()->SetTaxiCheater(lastTaxiCheaterState);

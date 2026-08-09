@@ -23,6 +23,7 @@
 #include "Player.h"
 #include "StringConvert.h"
 #include "TaxiPackets.h"
+#include <iomanip>
 #include <sstream>
 
 PlayerTaxi::PlayerTaxi() = default;
@@ -237,6 +238,32 @@ void PlayerTaxi::AppendConditionUnlockedNodesTo(TaxiMask& landNodes, TaxiMask& u
         if (report)
             report->push_back(entry);
     }
+}
+
+std::string PlayerTaxi::DescribeMaskQword(TaxiMask const& mask, uint32 qwordIndex)
+{
+    static_assert(sizeof(TaxiMask::value_type) == 1, "the qword reassembly below assumes a byte-wide mask element");
+
+    uint64 value = 0;
+    for (uint32 i = 0; i < 8; ++i)
+    {
+        std::size_t byteIndex = std::size_t(qwordIndex) * 8 + i;
+        if (byteIndex < mask.size())
+            value |= uint64(mask[byteIndex]) << (i * 8);
+    }
+
+    std::ostringstream ss;
+    ss << "qword " << qwordIndex << " (nodes " << (qwordIndex * 64 + 1) << ".." << (qwordIndex * 64 + 64) << ") = 0x"
+       << std::hex << std::setw(16) << std::setfill('0') << value << std::dec << " ->";
+
+    if (!value)
+        ss << " <none>";
+    else
+        for (uint32 bit = 0; bit < 64; ++bit)
+            if (value & (UI64LIT(1) << bit))
+                ss << ' ' << (qwordIndex * 64 + bit + 1);
+
+    return ss.str();
 }
 
 bool PlayerTaxi::LoadTaxiDestinationsFromString(const std::string& values, uint32 team)
