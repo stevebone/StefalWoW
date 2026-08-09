@@ -131,7 +131,6 @@ public:
             { "wsexpression",       HandleDebugWSExpressionCommand,        rbac::RBAC_PERM_COMMAND_DEBUG,   Console::No },
             { "playercondition",    HandleDebugPlayerConditionCommand,     rbac::RBAC_PERM_COMMAND_DEBUG,   Console::No },
             { "taxinodes",          HandleDebugTaxiNodesCommand,           rbac::RBAC_PERM_COMMAND_DEBUG,   Console::No },
-            { "taxinodesoffline",   HandleDebugTaxiNodesOfflineCommand,    rbac::RBAC_PERM_COMMAND_DEBUG,   Console::Yes },
             { "pvp warmode",        HandleDebugWarModeBalanceCommand,      rbac::RBAC_PERM_COMMAND_DEBUG,   Console::Yes },
             { "dummy",              HandleDebugDummyCommand,               rbac::RBAC_PERM_COMMAND_DEBUG,   Console::No },
             { "asan memoryleak",    HandleDebugMemoryLeak,                 rbac::RBAC_PERM_COMMAND_DEBUG,   Console::Yes },
@@ -1675,35 +1674,6 @@ public:
         }
 
         return PrintTaxiDiagnostics(handler, target, taxiNodeId);
-    }
-
-    // TEMPORARY DIAGNOSTICS: same report for a character that is not logged in, so the decision can be
-    // observed at runtime on real player state without needing a client session. Console-capable.
-    static bool HandleDebugTaxiNodesOfflineCommand(ChatHandler* handler, std::string_view characterName, Optional<uint32> taxiNodeId)
-    {
-        std::string name(characterName);
-        if (!normalizePlayerName(name))
-        {
-            handler->SendSysMessage(LANG_PLAYER_NOT_FOUND);
-            handler->SetSentErrorMessage(true);
-            return false;
-        }
-
-        CharacterCacheEntry const* cacheEntry = sCharacterCache->GetCharacterCacheByName(name);
-        if (!cacheEntry)
-        {
-            handler->SendSysMessage(LANG_PLAYER_NOT_FOUND);
-            handler->SetSentErrorMessage(true);
-            return false;
-        }
-
-        if (Player* online = ObjectAccessor::FindConnectedPlayer(cacheEntry->Guid))
-            return PrintTaxiDiagnostics(handler, online, taxiNodeId);
-
-        return WorldSession::RunWithOfflinePlayer(cacheEntry->Guid, [handler, taxiNodeId](Player* loaded)
-        {
-            PrintTaxiDiagnostics(handler, loaded, taxiNodeId);
-        });
     }
 
     static bool PrintTaxiDiagnostics(ChatHandler* handler, Player* target, Optional<uint32> taxiNodeId)

@@ -1204,47 +1204,6 @@ void WorldSession::HandleLoadScreenOpcode(WorldPackets::Character::LoadingScreen
     // TODO: Do something with this packet
 }
 
-// TEMPORARY DIAGNOSTICS - see WorldSession.h. Loads an offline character with the very same
-// LoginQueryHolder + Player::LoadFromDB the real login path uses, so a probe sees real state
-// (garrisons, talents, auras, taxi mask) rather than a reconstruction of it. Read-only: the player
-// is never added to the world and never saved, and the throwaway session is destroyed afterwards.
-bool WorldSession::RunWithOfflinePlayer(ObjectGuid guid, std::function<void(Player*)> const& callback)
-{
-    CharacterCacheEntry const* cacheEntry = sCharacterCache->GetCharacterCacheByGuid(guid);
-    if (!cacheEntry)
-    {
-        TC_LOG_ERROR("misc", "RunWithOfflinePlayer: no character cache entry for {}", guid.ToString());
-        return false;
-    }
-
-    std::shared_ptr<LoginQueryHolder> holder = std::make_shared<LoginQueryHolder>(cacheEntry->AccountId, guid);
-    if (!holder->Initialize())
-        return false;
-
-    SQLQueryHolderCallback holderCallback = CharacterDatabase.DelayQueryHolder(holder);
-    holderCallback.m_future.wait();
-
-    std::unique_ptr<WorldSession> session = std::make_unique<WorldSession>(cacheEntry->AccountId,
-        std::string(cacheEntry->Name), 0, std::string(), nullptr, SEC_PLAYER,
-        uint8(sWorld->getIntConfig(CONFIG_EXPANSION)), 0, std::string("Win"), Minutes(0), 0,
-        ClientBuild::VariantId{}, LOCALE_enUS, 0, false);
-
-    bool ok = false;
-    Player* player = new Player(session.get());
-    if (player->LoadFromDB(guid, *holder))
-    {
-        callback(player);
-        ok = true;
-    }
-    else
-        TC_LOG_ERROR("misc", "RunWithOfflinePlayer: Player::LoadFromDB failed for {}", guid.ToString());
-
-    player->CleanupsBeforeDelete();
-    delete player;
-    session->SetPlayer(nullptr);
-    return ok;
-}
-
 void WorldSession::HandlePlayerLogin(LoginQueryHolder const& holder)
 {
     ObjectGuid playerGuid = holder.GetGuid();
