@@ -3530,6 +3530,40 @@ void GameObject::Use(Unit* user, bool ignoreCastInProgress /*= false*/)
             if (!garrTalentTreeId)
                 return;
 
+            // ...with one exception, and it is the only kind of tree these gameobjects actually carry. A
+            // Channel Anima tree (GarrTalentTree.FeatureTypeIndex 7) is not a talent grid at all - it is the
+            // Anima Diversion map, and its "talents" are map pins: all six rows of the Kyrian tree 345
+            // publish IconFileDataID 0 and carry normalised map coordinates in GarrTalentMapPOI.db2 instead.
+            // Sent through the gossip path below, the client raises OrderHallTalentFrame, which draws every
+            // row as an icon button - so the frame came up with the right title, the right anima total and
+            // research cost, and six blank buttons. That is exactly what the tester saw.
+            //
+            // The map frame is a different client system. AnimaDiversionFrame is raised by the
+            // ANIMA_DIVERSION_OPEN event (UIParent.lua:2227-2229) fired from the client's own AnimaDiversion
+            // code, and that whole system is keyed on an active PlayerInteraction of type AnimaDiversion (47):
+            // C_AnimaDiversion.GetOriginPosition (client RVA 0x9FAAD0, in AnimaDiversionUI.cpp) reads the
+            // current interaction and tests it against 47, and C_AnimaDiversion.CloseUI (RVA 0x9F9720) clears
+            // interaction 47. No ANIMA opcode exists in the 12.0.7 client to carry it, so starting that
+            // interaction is the only lever there is, and SMSG_GAME_OBJECT_INTERACTION is how a gameobject
+            // starts one - the Trophy case a few lines above does exactly this.
+            //
+            // No extra payload is needed: the client takes the map from this gameobject's own Data0 (UiMapID
+            // 1813 Bastion / 1814 Maldraxxus / 1738 Revendreth / 1739 Ardenweald, one per conductor) and the
+            // texture kit from GarrTalentTree.UiTextureKitID, and it already has both.
+            if (GarrTalentTreeEntry const* talentTree = sGarrTalentTreeStore.LookupEntry(garrTalentTreeId))
+            {
+                if (talentTree->FeatureTypeIndex == GARR_TALENT_FEATURE_CHANNEL_ANIMA)
+                {
+                    player->PlayerTalkClass->GetInteractionData().StartInteraction(GetGUID(), PlayerInteractionType::AnimaDiversion);
+
+                    WorldPackets::GameObject::GameObjectInteraction openAnimaDiversion;
+                    openAnimaDiversion.ObjectGUID = GetGUID();
+                    openAnimaDiversion.InteractionType = PlayerInteractionType::AnimaDiversion;
+                    player->SendDirectMessage(openAnimaDiversion.Write());
+                    return;
+                }
+            }
+
             GossipNPCOptionEntry const* npcOption = nullptr;
             for (GossipNPCOptionEntry const* option : sGossipNPCOptionStore)
             {

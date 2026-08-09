@@ -118,7 +118,8 @@ void WorldSession::HandleGarrisonStartMission(WorldPackets::Garrison::GarrisonSt
     if (!garrison)
         return;
 
-    GarrisonError result = garrison->StartMission(garrisonStartMission.MissionRecID, garrisonStartMission.FollowerDBIDs);
+    GarrisonError result = garrison->StartMission(garrisonStartMission.MissionRecID,
+        garrisonStartMission.FollowerDBIDs, garrisonStartMission.FollowerBoardIndexes);
 
     WorldPackets::Garrison::GarrisonStartMissionResult startResult;
     startResult.Result = result;
@@ -127,14 +128,25 @@ void WorldSession::HandleGarrisonStartMission(WorldPackets::Garrison::GarrisonSt
     if (Garrison::Mission const* mission = garrison->GetMissionByRecID(garrisonStartMission.MissionRecID))
         startResult.Mission = mission->PacketInfo;
 
+    // This array is how the client learns where each companion ended up standing and how much health it
+    // brings into the fight: it copies BoardIndex and Health straight onto its own follower record, which
+    // is what C_Garrison.GetFollowerMissionCompleteInfo later returns
+    // (FollowerMissionCompleteInfo.boardIndex/.health, GarrisonInfoDocumentation.lua:1316-1345).
+    // These used to be sent as the struct defaults (-1 and 0), so the mission-complete screen looked up a
+    // board frame for slot -1, found none, and threw at Blizzard_AdventuresCompleteScreen.lua:140. The
+    // server owns both values now - it does not simply mirror what the client asked for.
     startResult.FollowerInfos.reserve(garrisonStartMission.FollowerDBIDs.size());
     for (uint64 dbId : garrisonStartMission.FollowerDBIDs)
     {
         WorldPackets::Garrison::GarrisonMissionFollowerEntry entry;
         entry.DbID = dbId;
-        // BoardIndex/Health/HasFollowerEntry mirror the CMSG values; defaults match the
-        // shape of what the client sends in CMSG. The full GarrisonFollower trailer
-        // (Followers vector) stays empty in the standard "mission accepted" response.
+        if (Garrison::Follower const* follower = garrison->GetFollower(dbId))
+        {
+            entry.BoardIndex = follower->PacketInfo.BoardIndex;
+            entry.Health = follower->PacketInfo.Health;
+        }
+        // The full GarrisonFollower trailer (Followers vector) stays empty in the standard
+        // "mission accepted" response.
         startResult.FollowerInfos.push_back(entry);
     }
     SendPacket(startResult.Write());
@@ -167,12 +179,12 @@ void WorldSession::HandleGarrisonCompleteMission(WorldPackets::Garrison::Garriso
         // banner the player sees could disagree with the rewards granted at finalize.
         completeResult.Succeeded = mission->Succeeded;
         succeeded = mission->Succeeded;
-    }
 
-    // FollowerInfos / Rounds left empty: no auto-combat replay generated for non-auto
-    // missions. The auto-combat simulator (GarrisonAutoCombat::ProcessTurn) populates
-    // these for Legion+ class hall and Shadowlands covenant missions. WoD-era classic
-    // missions don't drive the replay UI so they ship empty arrays here.
+        // Where each companion ended up, plus the round-by-round auto-combat log. For an Adventures
+        // mission this is what the complete screen replays; for a WoD/Legion mission the simulation
+        // never ran, so the log is legitimately empty and only the follower rows are sent.
+        garrison->BuildMissionCompleteResult(*mission, completeResult);
+    }
 
     SendPacket(completeResult.Write());
 

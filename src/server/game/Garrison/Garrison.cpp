@@ -46,6 +46,7 @@
 #include "VehicleDefines.h"
 #include "advstd.h"
 #include <algorithm>
+#include <array>
 #include <limits>
 #include <vector>
 
@@ -203,8 +204,8 @@ bool Garrison::LoadFromDB(PreparedQueryResult garrison, PreparedQueryResult blue
         } while (archivedMissions->NextRow());
     }
 
-    //           0           1        2      3                4               5   6                7               8       9          10         11
-    // SELECT dbId, followerId, quality, level, itemLevelWeapon, itemLevelArmor, xp, currentBuilding, currentMission, status, durability, customName FROM character_garrison_followers WHERE guid = ?
+    //           0           1        2      3                4               5   6                7               8       9          10         11          12      13
+    // SELECT dbId, followerId, quality, level, itemLevelWeapon, itemLevelArmor, xp, currentBuilding, currentMission, status, durability, customName, health, boardIndex FROM character_garrison_followers WHERE guid = ?
     if (followers)
     {
         do
@@ -230,6 +231,13 @@ bool Garrison::LoadFromDB(PreparedQueryResult garrison, PreparedQueryResult blue
             follower.PacketInfo.FollowerStatus = fields[9].GetUInt32();
             follower.PacketInfo.Durability = fields[10].GetUInt32();
             follower.PacketInfo.CustomName = fields[11].GetString();
+            follower.PacketInfo.Health = fields[12].GetInt32();
+            follower.PacketInfo.BoardIndex = fields[13].GetInt8();
+            // Rows written before health was persisted come back as 0. A companion with a statline is
+            // never legitimately at 0 outside a fight it just lost, and it would show as a dead puck,
+            // so restore those to full rather than leaving the roster looking wiped.
+            if (follower.PacketInfo.Health <= 0)
+                follower.PacketInfo.Health = GetFollowerMaxHealth(sGarrFollowerStore.LookupEntry(followerId), follower.PacketInfo.FollowerLevel);
             follower.PacketInfo.ZoneSupportSpellID = sGarrisonMgr.GetFollowerZoneSupportSpell(followerId, GetFaction());
             if (!sGarrBuildingStore.LookupEntry(follower.PacketInfo.CurrentBuildingID))
                 follower.PacketInfo.CurrentBuildingID = 0;
@@ -349,6 +357,26 @@ bool Garrison::LoadFromDB(PreparedQueryResult garrison, PreparedQueryResult blue
             follower.PacketInfo.CurrentMissionID = 0; // orphaned link — the mission is gone, free the follower
     }
 
+    // Back-fill board slots for missions that were already running before slots were stored: those rows
+    // reload with every companion at None, and the Adventures complete screen cannot resolve a puck
+    // frame for None. AssignMissionBoardIndexes keeps any valid slot it finds, so this is a no-op for
+    // missions started since.
+    for (auto& missionPair : _missions)
+    {
+        Mission& mission = missionPair.second;
+        if (mission.CurrentFollowerDBIDs.empty())
+            continue;
+
+        bool anyUnplaced = false;
+        for (uint64 followerDbId : mission.CurrentFollowerDBIDs)
+            if (Follower const* follower = GetFollower(followerDbId))
+                if (!IsAllyBoardIndex(follower->PacketInfo.BoardIndex))
+                    anyUnplaced = true;
+
+        if (anyUnplaced)
+            AssignMissionBoardIndexes(mission, { });
+    }
+
     // Complete any talent research that finished while offline
     CompleteAllTalentResearch();
 
@@ -460,6 +488,11 @@ void Garrison::SaveToDB(CharacterDatabaseTransaction trans)
         stmt->setUInt32(index++, follower.PacketInfo.Durability);
         stmt->setString(index++, follower.PacketInfo.CustomName);
         stmt->setUInt8(index++, static_cast<uint8>(_garrType));
+        // Adventures companions carry health and a board slot across sessions. Neither used to be
+        // saved, so every relog reset a companion to health 0 and slot 0 - and an in-progress mission
+        // came back with no board at all, which is what the client choked on.
+        stmt->setInt32(index++, follower.PacketInfo.Health);
+        stmt->setInt8(index++, follower.PacketInfo.BoardIndex);
         trans->Append(stmt);
 
         uint8 slot = 0;
@@ -2245,7 +2278,232 @@ int32 Garrison::CalculateSuccessChance(uint32 missionRecID, std::vector<uint64> 
     return int32(std::clamp(chance, 0.0f, cap));
 }
 
-GarrisonError Garrison::StartMission(uint32 missionRecID, std::vector<uint64> const& followerDBIDs)
+// Fills PacketInfo.BoardIndex for every companion assigned to one mission.
+//
+// The Adventures client places each companion in a named slot of the board and sends that slot with
+// CMSG_GARRISON_START_MISSION; it then expects the same slot back so its own follower record - the one
+// C_Garrison.GetFollowerMissionCompleteInfo reads and the complete screen resolves puck frames from -
+// carries a real value. Slots are the client's GarrAutoBoardIndex enum: allies occupy 0..4.
+//
+// Client input is not trusted: a slot outside the ally range, or one already taken by another companion
+// on the same mission, is dropped and refilled. Anything left unplaced (that is every WoD and Legion
+// mission, whose UIs have no board at all, plus missions that were already in progress before board
+// indexes were stored) is filled in retail's own auto-assignment order - AllyLeftFront, AllyCenterFront,
+// AllyRightFront, AllyLeftBack, AllyRightBack (AutoAssignmentFollowerOrder,
+// Blizzard_CovenantMissionUI.lua:612). No companion is ever left at None, because a None slot is exactly
+// what made the complete screen index a nil frame.
+void Garrison::AssignMissionBoardIndexes(Mission const& mission, std::vector<int32> const& boardIndexes)
+{
+    static constexpr std::array<int8, 5> autoAssignmentOrder =
+    {
+        GARR_AUTO_BOARD_ALLY_LEFT_FRONT,
+        GARR_AUTO_BOARD_ALLY_CENTER_FRONT,
+        GARR_AUTO_BOARD_ALLY_RIGHT_FRONT,
+        GARR_AUTO_BOARD_ALLY_LEFT_BACK,
+        GARR_AUTO_BOARD_ALLY_RIGHT_BACK
+    };
+
+    std::array<bool, autoAssignmentOrder.size()> slotTaken = { };
+    std::vector<Follower*> unplaced;
+    unplaced.reserve(mission.CurrentFollowerDBIDs.size());
+
+    for (std::size_t i = 0; i < mission.CurrentFollowerDBIDs.size(); ++i)
+    {
+        Follower* follower = GetFollower(mission.CurrentFollowerDBIDs[i]);
+        if (!follower)
+            continue;
+
+        int32 requested = i < boardIndexes.size() ? boardIndexes[i] : int32(GARR_AUTO_BOARD_NONE);
+        if (IsAllyBoardIndex(requested) && !slotTaken[requested])
+        {
+            slotTaken[requested] = true;
+            follower->PacketInfo.BoardIndex = int8(requested);
+        }
+        else
+        {
+            follower->PacketInfo.BoardIndex = GARR_AUTO_BOARD_NONE;
+            unplaced.push_back(follower);
+        }
+    }
+
+    auto nextFree = autoAssignmentOrder.begin();
+    for (Follower* follower : unplaced)
+    {
+        while (nextFree != autoAssignmentOrder.end() && slotTaken[*nextFree])
+            ++nextFree;
+
+        // More companions than the board has slots cannot happen through StartMission (MaxFollowers is
+        // validated against GarrMission), but a hand-edited character DB could produce it. Leaving the
+        // extras at None is still better than handing out a duplicate slot.
+        if (nextFree == autoAssignmentOrder.end())
+            break;
+
+        slotTaken[*nextFree] = true;
+        follower->PacketInfo.BoardIndex = *nextFree;
+    }
+}
+
+namespace
+{
+// Translates one simulated event into the client's GarrAutoMissionEventType. The simulator's own
+// AutoCombatEffectType says what happened mechanically; the client's enum additionally distinguishes
+// melee from ranged (by the caster's GarrAutoCombatant.Role) and an ability cast from a plain
+// auto-attack, which is why the event carries both.
+uint32 ToClientEventType(AutoCombatEvent const& event)
+{
+    bool const casterIsMelee = event.CasterRole == AUTO_COMBAT_ROLE_MELEE
+        || event.CasterRole == AUTO_COMBAT_ROLE_TANK;
+
+    switch (event.EffectType)
+    {
+        case AUTO_COMBAT_EFFECT_DAMAGE:
+        case AUTO_COMBAT_EFFECT_AOE_DAMAGE:
+            if (event.IsAutoAttack)
+                return casterIsMelee ? GARR_AUTO_MISSION_EVENT_MELEE_DAMAGE : GARR_AUTO_MISSION_EVENT_RANGE_DAMAGE;
+            return casterIsMelee ? GARR_AUTO_MISSION_EVENT_SPELL_MELEE_DAMAGE : GARR_AUTO_MISSION_EVENT_SPELL_RANGE_DAMAGE;
+        case AUTO_COMBAT_EFFECT_HEAL:
+            return GARR_AUTO_MISSION_EVENT_HEAL;
+        // A DoT/HoT row produces two different events: the cast that applies it, and each later tick.
+        // The client draws them differently (a tick is PeriodicDamage/PeriodicHeal and carries points,
+        // the application is an aura), so IsPeriodicTick is what separates them.
+        case AUTO_COMBAT_EFFECT_DOT:
+            return event.IsPeriodicTick ? GARR_AUTO_MISSION_EVENT_PERIODIC_DAMAGE : GARR_AUTO_MISSION_EVENT_APPLY_AURA;
+        case AUTO_COMBAT_EFFECT_HOT:
+            return event.IsPeriodicTick ? GARR_AUTO_MISSION_EVENT_PERIODIC_HEAL : GARR_AUTO_MISSION_EVENT_APPLY_AURA;
+        case AUTO_COMBAT_EFFECT_BUFF_ATTACK:
+        case AUTO_COMBAT_EFFECT_DEBUFF_ATTACK:
+        case AUTO_COMBAT_EFFECT_SHIELD:
+        default:
+            return GARR_AUTO_MISSION_EVENT_APPLY_AURA;
+    }
+}
+
+// Which coloured bucket the board socket files an aura under. Only read for ApplyAura/RemoveAura.
+uint32 ToClientAuraType(AutoCombatEvent const& event)
+{
+    switch (event.EffectType)
+    {
+        case AUTO_COMBAT_EFFECT_HEAL:
+        case AUTO_COMBAT_EFFECT_HOT:
+            return GARR_AUTO_PREVIEW_TARGET_HEAL;
+        case AUTO_COMBAT_EFFECT_BUFF_ATTACK:
+        case AUTO_COMBAT_EFFECT_SHIELD:
+            return GARR_AUTO_PREVIEW_TARGET_BUFF;
+        case AUTO_COMBAT_EFFECT_DEBUFF_ATTACK:
+        case AUTO_COMBAT_EFFECT_DOT:
+            return GARR_AUTO_PREVIEW_TARGET_DEBUFF;
+        case AUTO_COMBAT_EFFECT_DAMAGE:
+        case AUTO_COMBAT_EFFECT_AOE_DAMAGE:
+            return GARR_AUTO_PREVIEW_TARGET_DAMAGE;
+        default:
+            return GARR_AUTO_PREVIEW_TARGET_NONE;
+    }
+}
+
+// The client shows a number next to the target for exactly these event types (EventHasPoints,
+// Blizzard_AdventuresCombatLog.lua:22-30); for the rest it must be absent, and the wire has a
+// presence byte for that.
+bool ClientEventHasPoints(uint32 clientEventType)
+{
+    switch (clientEventType)
+    {
+        case GARR_AUTO_MISSION_EVENT_MELEE_DAMAGE:
+        case GARR_AUTO_MISSION_EVENT_RANGE_DAMAGE:
+        case GARR_AUTO_MISSION_EVENT_SPELL_MELEE_DAMAGE:
+        case GARR_AUTO_MISSION_EVENT_SPELL_RANGE_DAMAGE:
+        case GARR_AUTO_MISSION_EVENT_PERIODIC_DAMAGE:
+        case GARR_AUTO_MISSION_EVENT_HEAL:
+        case GARR_AUTO_MISSION_EVENT_PERIODIC_HEAL:
+            return true;
+        default:
+            return false;
+    }
+}
+}
+
+// Fills the two arrays SMSG_GARRISON_COMPLETE_MISSION_RESULT carries beyond the mission itself: where
+// every companion ended up, and the blow-by-blow the Adventures complete screen replays. Both used to
+// be sent empty, which left the screen with a mission it could not play back.
+void Garrison::BuildMissionCompleteResult(Mission const& mission,
+    WorldPackets::Garrison::GarrisonCompleteMissionResult& result) const
+{
+    result.FollowerInfos.reserve(mission.CurrentFollowerDBIDs.size());
+    for (uint64 followerDbId : mission.CurrentFollowerDBIDs)
+    {
+        Follower const* follower = GetFollower(followerDbId);
+        if (!follower)
+            continue;
+
+        WorldPackets::Garrison::GarrisonCompleteMissionFollowerInfo info;
+        info.DbID = followerDbId;
+        info.Health = uint32(std::max<int32>(follower->PacketInfo.Health, 0));
+        info.HealingTimestamp = uint64(follower->PacketInfo.HealingTimestamp);
+        // Shadowlands companions are never removed by a lost adventure: they come back on whatever
+        // health the fight left them and are healed with anima afterwards. Nothing in the simulation
+        // kills a follower, so reporting anything but Alive would be a claim the reward path does not
+        // back up.
+        info.State = GARR_FOLLOWER_MISSION_COMPLETE_ALIVE;
+        result.FollowerInfos.push_back(info);
+    }
+
+    result.Rounds.reserve(mission.CombatResult.CombatLog.size());
+    for (AutoCombatRound const& simulatedRound : mission.CombatResult.CombatLog)
+    {
+        WorldPackets::Garrison::GarrisonAutoMissionRound round;
+        round.Events.reserve(simulatedRound.Events.size());
+
+        for (AutoCombatEvent const& simulatedEvent : simulatedRound.Events)
+        {
+            uint32 const clientEventType = ToClientEventType(simulatedEvent);
+
+            WorldPackets::Garrison::GarrisonAutoMissionEvent packetEvent;
+            packetEvent.Type = clientEventType;
+            packetEvent.SpellID = simulatedEvent.SpellID;
+            // The damage school is published per auto-combat spell, and the replay colours its combat-log
+            // line from it (GetTypeFromSchoolMask, Blizzard_AdventuresCompleteScreen.lua:300). A plain
+            // auto-attack has no GarrAutoSpell row and correctly leaves the mask at 0.
+            if (GarrAutoSpellEntry const* autoSpell = sGarrAutoSpellStore.LookupEntry(simulatedEvent.SpellID))
+                packetEvent.SchoolMask = uint32(std::max<int32>(autoSpell->SchoolMask, 0));
+            packetEvent.EffectIndex = simulatedEvent.EffectIndex;
+            packetEvent.CasterBoardIndex = uint32(simulatedEvent.CasterBoardIndex);
+            packetEvent.AuraType = ToClientAuraType(simulatedEvent);
+
+            WorldPackets::Garrison::GarrisonAutoMissionTargetInfo target;
+            target.BoardIndex = uint32(simulatedEvent.TargetBoardIndex);
+            target.OldHealth = uint32(std::max<int32>(simulatedEvent.TargetOldHealth, 0));
+            target.NewHealth = uint32(std::max<int32>(simulatedEvent.TargetNewHealth, 0));
+            target.MaxHealth = uint32(std::max<int32>(simulatedEvent.TargetMaxHealth, 0));
+            if (ClientEventHasPoints(clientEventType))
+                target.Points = uint32(simulatedEvent.Amount < 0 ? -simulatedEvent.Amount : simulatedEvent.Amount);
+            packetEvent.TargetInfo.push_back(std::move(target));
+
+            round.Events.push_back(std::move(packetEvent));
+
+            // A killing blow is two events on the wire: the hit, then the death the board animates
+            // (Blizzard_AdventuresBoard.lua:435 switches on the Died type).
+            if (simulatedEvent.TargetDied)
+            {
+                WorldPackets::Garrison::GarrisonAutoMissionEvent deathEvent;
+                deathEvent.Type = GARR_AUTO_MISSION_EVENT_DIED;
+                deathEvent.CasterBoardIndex = uint32(simulatedEvent.CasterBoardIndex);
+
+                WorldPackets::Garrison::GarrisonAutoMissionTargetInfo deathTarget;
+                deathTarget.BoardIndex = uint32(simulatedEvent.TargetBoardIndex);
+                deathTarget.OldHealth = uint32(std::max<int32>(simulatedEvent.TargetOldHealth, 0));
+                deathTarget.NewHealth = 0;
+                deathTarget.MaxHealth = uint32(std::max<int32>(simulatedEvent.TargetMaxHealth, 0));
+                deathEvent.TargetInfo.push_back(std::move(deathTarget));
+
+                round.Events.push_back(std::move(deathEvent));
+            }
+        }
+
+        result.Rounds.push_back(std::move(round));
+    }
+}
+
+GarrisonError Garrison::StartMission(uint32 missionRecID, std::vector<uint64> const& followerDBIDs,
+    std::vector<int32> const& boardIndexes)
 {
     // A locked covenant command table can hold stale offers generated before the gate existed (they persist);
     // refuse to start them rather than let a client bypass the Tactical Insight unlock.
@@ -2337,6 +2595,12 @@ GarrisonError Garrison::StartMission(uint32 missionRecID, std::vector<uint64> co
             follower->PacketInfo.CurrentMissionID = missionRecID;
     }
 
+    // Record where on the Adventures board each companion stands. Everything downstream reads this:
+    // the auto-combat simulation's turn order and targeting, the board slot echoed in
+    // SMSG_GARRISON_START_MISSION_RESULT, and the follower record the mission-complete screen resolves
+    // its puck frames from.
+    AssignMissionBoardIndexes(*mission, boardIndexes);
+
     // Calculate success chance using encounter-based mechanic system
     int32 successChance = CalculateSuccessChance(missionRecID, followerDBIDs);
 
@@ -2401,8 +2665,10 @@ GarrisonError Garrison::CompleteMission(uint32 missionRecID)
 }
 
 // Rolls a mission's success outcome: auto-combat simulation for adventure missions, otherwise a
-// straight roll against the pre-computed SuccessChance. Pure computation — no state change, no grants.
-bool Garrison::RollMissionOutcome(Mission const& mission, uint32 missionRecID) const
+// straight roll against the pre-computed SuccessChance. No grants and no persisted state change; the
+// one thing it does record is mission.CombatResult, the round-by-round replay the Adventures complete
+// screen plays back and the source of each companion's post-battle health.
+bool Garrison::RollMissionOutcome(Mission& mission, uint32 missionRecID)
 {
     bool isAutoCombatMission = false;
     for (auto const& encounter : mission.PacketInfo.Encounters)
@@ -2416,8 +2682,10 @@ bool Garrison::RollMissionOutcome(Mission const& mission, uint32 missionRecID) c
 
     if (isAutoCombatMission)
     {
+        // Board slots are assigned once, at StartMission, from what the client sent. Reading them back
+        // here (instead of renumbering 0,1,2... as before) is what makes the simulated fight happen on
+        // the same board the player laid out and the replay he is shown.
         std::vector<AutoCombatCombatant> playerUnits;
-        int8 boardIdx = 0;
         for (uint64 followerDbId : mission.CurrentFollowerDBIDs)
         {
             if (Follower const* follower = GetFollower(followerDbId))
@@ -2426,10 +2694,12 @@ bool Garrison::RollMissionOutcome(Mission const& mission, uint32 missionRecID) c
                     sGarrFollowerStore.LookupEntry(follower->PacketInfo.GarrFollowerID),
                     follower->PacketInfo.FollowerLevel, follower->PacketInfo.Quality,
                     follower->PacketInfo.ItemLevelWeapon, follower->PacketInfo.ItemLevelArmor,
-                    follower->PacketInfo.BoardIndex >= 0 ? follower->PacketInfo.BoardIndex : boardIdx,
-                    followerDbId);
+                    follower->PacketInfo.BoardIndex, followerDbId);
+                // Companions carry damage between missions: they enter the fight on the health they
+                // ended the last one with, not at full.
+                if (follower->PacketInfo.Health > 0 && follower->PacketInfo.Health < unit.MaxHealth)
+                    unit.CurrentHealth = follower->PacketInfo.Health;
                 playerUnits.push_back(std::move(unit));
-                ++boardIdx;
             }
         }
 
@@ -2451,12 +2721,20 @@ bool Garrison::RollMissionOutcome(Mission const& mission, uint32 missionRecID) c
             enemyUnits.push_back(GarrisonAutoCombat::BuildEnemyCombatant(combatant, encounterLevel, encounter.BoardIndex));
         }
 
-        AutoCombatResult combatResult = GarrisonAutoCombat::SimulateCombat(playerUnits, enemyUnits);
+        mission.CombatResult = GarrisonAutoCombat::SimulateCombat(playerUnits, enemyUnits);
         TC_LOG_DEBUG("garrison", "Auto-combat for mission {}: {} in {} rounds",
-            missionRecID, combatResult.PlayerWon ? "WON" : "LOST", combatResult.TotalRounds);
-        return combatResult.PlayerWon;
+            missionRecID, mission.CombatResult.PlayerWon ? "WON" : "LOST", mission.CombatResult.TotalRounds);
+
+        // Damage taken sticks to the companion. That value is what the complete screen shows, what the
+        // next mission starts from, and what the healing UI charges anima to undo.
+        for (AutoCombatCombatant const& unit : playerUnits)
+            if (Follower* follower = GetFollower(unit.FollowerDbID))
+                follower->PacketInfo.Health = unit.CurrentHealth;
+
+        return mission.CombatResult.PlayerWon;
     }
 
+    mission.CombatResult = { };
     return static_cast<int32>(urand(0, 99)) < mission.PacketInfo.SuccessChance;
 }
 
@@ -2492,6 +2770,8 @@ GarrisonError Garrison::FinalizeMission(uint32 missionRecID, bool grantOvermax)
         if (Follower* follower = GetFollower(followerDbId))
         {
             follower->PacketInfo.CurrentMissionID = 0;
+            // The slot only means something while the companion is deployed; free it with the mission.
+            follower->PacketInfo.BoardIndex = GARR_AUTO_BOARD_NONE;
 
             // Troops lose 1 durability per mission
             if (follower->PacketInfo.FollowerStatus & FOLLOWER_STATUS_TROOP)
@@ -2747,8 +3027,13 @@ void Garrison::RemoveMission(uint32 missionRecID)
         {
             // Unassign followers
             for (uint64 followerDbId : itr->second.CurrentFollowerDBIDs)
+            {
                 if (Follower* follower = GetFollower(followerDbId))
+                {
                     follower->PacketInfo.CurrentMissionID = 0;
+                    follower->PacketInfo.BoardIndex = GARR_AUTO_BOARD_NONE;
+                }
+            }
 
             _activeMissionRecIDs.erase(missionRecID);
             _missions.erase(itr);

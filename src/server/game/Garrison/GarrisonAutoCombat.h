@@ -27,6 +27,75 @@ struct GarrAutoSpellEntry;
 struct GarrAutoSpellEffectEntry;
 struct GarrFollowerEntry;
 
+// Slots on the Shadowlands Adventures board. These are the client's own GarrAutoBoardIndex values,
+// recovered from the 12.0.7.68275 binary's enum-reflection registrars
+// (c:/dumps/GARRISON_ENUMS_68275.md, "GarrAutoBoardIndex"): five ally slots 0..4, eight enemy slots
+// 5..12, -1 = None. GarrMissionXEncounter.BoardIndex publishes the enemy slots directly (mission 2174's
+// two encounters sit at 5 and 6); the ally slots come from the player's placement in the mission UI.
+enum GarrAutoBoardIndex : int8
+{
+    GARR_AUTO_BOARD_NONE                        = -1,
+    GARR_AUTO_BOARD_ALLY_LEFT_BACK              = 0,
+    GARR_AUTO_BOARD_ALLY_RIGHT_BACK             = 1,
+    GARR_AUTO_BOARD_ALLY_LEFT_FRONT             = 2,
+    GARR_AUTO_BOARD_ALLY_CENTER_FRONT           = 3,
+    GARR_AUTO_BOARD_ALLY_RIGHT_FRONT            = 4,
+    GARR_AUTO_BOARD_ENEMY_LEFT_FRONT            = 5,
+    GARR_AUTO_BOARD_ENEMY_CENTER_LEFT_FRONT     = 6,
+    GARR_AUTO_BOARD_ENEMY_CENTER_RIGHT_FRONT    = 7,
+    GARR_AUTO_BOARD_ENEMY_RIGHT_FRONT           = 8,
+    GARR_AUTO_BOARD_ENEMY_LEFT_BACK             = 9,
+    GARR_AUTO_BOARD_ENEMY_CENTER_LEFT_BACK      = 10,
+    GARR_AUTO_BOARD_ENEMY_CENTER_RIGHT_BACK     = 11,
+    GARR_AUTO_BOARD_ENEMY_RIGHT_BACK            = 12
+};
+
+// True for the five slots a companion may occupy.
+inline constexpr bool IsAllyBoardIndex(int32 boardIndex)
+{
+    return boardIndex >= GARR_AUTO_BOARD_ALLY_LEFT_BACK && boardIndex <= GARR_AUTO_BOARD_ALLY_RIGHT_FRONT;
+}
+
+// What the replay calls each event. Client enum GarrAutoMissionEventType, from the 12.0.7.68275
+// enum-reflection registrars (c:/dumps/GARRISON_ENUMS_68275.md) and cross-checked against
+// GarrisonConstantsDocumentation.lua:176-192. The wire carries these values; AutoCombatEffectType
+// below is our internal simulator vocabulary and is NOT interchangeable with them.
+enum GarrAutoMissionEventType : uint32
+{
+    GARR_AUTO_MISSION_EVENT_MELEE_DAMAGE        = 0,
+    GARR_AUTO_MISSION_EVENT_RANGE_DAMAGE        = 1,
+    GARR_AUTO_MISSION_EVENT_SPELL_MELEE_DAMAGE  = 2,
+    GARR_AUTO_MISSION_EVENT_SPELL_RANGE_DAMAGE  = 3,
+    GARR_AUTO_MISSION_EVENT_HEAL                = 4,
+    GARR_AUTO_MISSION_EVENT_PERIODIC_DAMAGE     = 5,
+    GARR_AUTO_MISSION_EVENT_PERIODIC_HEAL       = 6,
+    GARR_AUTO_MISSION_EVENT_APPLY_AURA          = 7,
+    GARR_AUTO_MISSION_EVENT_REMOVE_AURA         = 8,
+    GARR_AUTO_MISSION_EVENT_DIED                = 9
+};
+
+// Which aura bucket the board socket files an ApplyAura/RemoveAura event under. Client enum
+// GarrAutoPreviewTargetType (GARRISON_ENUMS_68275.md); it is a mask, and the socket switches on it in
+// AdventuresSocketMixin:GetCollectionByAuraType (Blizzard_AdventuresBoard.lua:603-612).
+enum GarrAutoPreviewTargetType : uint32
+{
+    GARR_AUTO_PREVIEW_TARGET_NONE   = 0,
+    GARR_AUTO_PREVIEW_TARGET_DAMAGE = 1,
+    GARR_AUTO_PREVIEW_TARGET_HEAL   = 2,
+    GARR_AUTO_PREVIEW_TARGET_BUFF   = 4,
+    GARR_AUTO_PREVIEW_TARGET_DEBUFF = 8
+};
+
+// GarrFollowerMissionCompleteState, per-companion outcome in SMSG_GARRISON_COMPLETE_MISSION_RESULT
+// (GARRISON_ENUMS_68275.md).
+enum GarrFollowerMissionCompleteState : uint32
+{
+    GARR_FOLLOWER_MISSION_COMPLETE_ALIVE                = 0,
+    GARR_FOLLOWER_MISSION_COMPLETE_KILLED_BY_FAILURE    = 1,
+    GARR_FOLLOWER_MISSION_COMPLETE_SAVED_BY_PREVENT     = 2,
+    GARR_FOLLOWER_MISSION_COMPLETE_OUT_OF_DURABILITY    = 3
+};
+
 enum AutoCombatEffectType : uint8
 {
     AUTO_COMBAT_EFFECT_DAMAGE           = 0,
@@ -114,6 +183,26 @@ struct AutoCombatEvent
     uint32 SpellID = 0;
     int32 Amount = 0;
     uint8 EffectType = 0;
+    // The target's health either side of this event. The replay UI draws the health bars from these
+    // (FollowerMissionCompleteInfo / GarrisonAutoMissionTargetInfo carry oldHealth/newHealth/maxHealth,
+    // GarrisonInfoDocumentation.lua), so they must be captured where the damage/heal is applied - they
+    // cannot be reconstructed afterwards.
+    int32 TargetOldHealth = 0;
+    int32 TargetNewHealth = 0;
+    int32 TargetMaxHealth = 0;
+    // Context the replay needs to pick the right GarrAutoMissionEventType, captured here because it is
+    // only knowable while the event is being produced: the caster's GarrAutoCombatant.Role separates
+    // Melee from Range damage, IsAutoAttack separates plain attacks from ability casts, and
+    // IsPeriodicTick separates a DoT/HoT *tick* from the cast that applied it (both use EffectType
+    // AUTO_COMBAT_EFFECT_DOT/_HOT).
+    int32 CasterRole = AUTO_COMBAT_ROLE_NONE;
+    // Position of the producing row inside GarrAutoSpellEffect for this spell. The client keys its
+    // per-socket aura bookkeeping on (spellID, effectIndex) - AdventuresSocketMixin:AddAura/RemoveAura,
+    // Blizzard_AdventuresBoard.lua:570-590 - so two effects of the same spell must not collide.
+    uint8 EffectIndex = 0;
+    bool IsAutoAttack = false;
+    bool IsPeriodicTick = false;
+    bool TargetDied = false;
 };
 
 struct AutoCombatRound
@@ -169,7 +258,7 @@ private:
 
     static void ResolveEffect(
         AutoCombatCombatant& caster, GarrAutoSpellEffectEntry const* effect,
-        AutoCombatCombatant& target, uint32 spellID,
+        AutoCombatCombatant& target, uint32 spellID, uint8 effectIndex,
         AutoCombatRound& round);
 
     static std::vector<AutoCombatCombatant*> SelectTargets(
@@ -177,14 +266,16 @@ private:
         std::vector<AutoCombatCombatant>& allies,
         std::vector<AutoCombatCombatant>& enemies);
 
+    // These take the caster itself rather than only its board index: the replay event has to record the
+    // caster's role and whether the hit was an auto-attack, and neither is recoverable later.
     static void ApplyDamage(
         AutoCombatCombatant& target, int32 amount,
-        int8 casterBoardIndex, uint32 spellID, uint8 effectType,
+        AutoCombatCombatant const& caster, uint32 spellID, uint8 effectType,
         AutoCombatRound& round);
 
     static void ApplyHealing(
         AutoCombatCombatant& target, int32 amount,
-        int8 casterBoardIndex, uint32 spellID,
+        AutoCombatCombatant const& caster, uint32 spellID,
         AutoCombatRound& round);
 
     static bool IsTeamAlive(std::vector<AutoCombatCombatant> const& team);
