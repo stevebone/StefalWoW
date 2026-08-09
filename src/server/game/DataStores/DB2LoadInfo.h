@@ -2395,9 +2395,9 @@ struct GarrAutoSpellLoadInfo
         { .IsSigned = false, .Type = FT_STRING, .Name = "Description" },
         { .IsSigned = true, .Type = FT_INT, .Name = "Cooldown" },
         { .IsSigned = true, .Type = FT_INT, .Name = "Duration" },
-        { .IsSigned = true, .Type = FT_INT, .Name = "SchoolMask" },
-        { .IsSigned = true, .Type = FT_INT, .Name = "SpellVisualID" },
         { .IsSigned = true, .Type = FT_INT, .Name = "Flags" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "SchoolMask" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "IconFileDataID" },
     };
 
     static constexpr DB2LoadInfo Instance{ Fields, 8, &GarrAutoSpellMeta::Instance, HOTFIX_SEL_GARR_AUTO_SPELL };
@@ -2409,11 +2409,11 @@ struct GarrAutoSpellEffectLoadInfo
     {
         { .IsSigned = false, .Type = FT_INT, .Name = "ID" },
         { .IsSigned = false, .Type = FT_INT, .Name = "GarrAutoSpellID" },
-        { .IsSigned = false, .Type = FT_BYTE, .Name = "EffectType" },
-        { .IsSigned = false, .Type = FT_BYTE, .Name = "Targets" },
-        { .IsSigned = false, .Type = FT_FLOAT, .Name = "Amount" },
-        { .IsSigned = false, .Type = FT_BYTE, .Name = "MiscType" },
-        { .IsSigned = true, .Type = FT_INT, .Name = "MiscValue" },
+        { .IsSigned = false, .Type = FT_BYTE, .Name = "EffectIndex" },
+        { .IsSigned = false, .Type = FT_BYTE, .Name = "Effect" },
+        { .IsSigned = false, .Type = FT_FLOAT, .Name = "Points" },
+        { .IsSigned = false, .Type = FT_BYTE, .Name = "TargetType" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "Flags" },
         { .IsSigned = true, .Type = FT_INT, .Name = "Period" },
     };
 
