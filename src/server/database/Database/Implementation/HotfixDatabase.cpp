@@ -1866,7 +1866,10 @@ void HotfixDatabaseConnection::DoPrepareStatements()
     PREPARE_MAX_ID_STMT(HOTFIX_SEL_SOULBIND_CONDUIT_ITEM, "SELECT MAX(ID) + 1 FROM soulbind_conduit_item", CONNECTION_SYNCH);
 
     // SoulbindConduitRankProperties.db2
-    PrepareStatement(HOTFIX_SEL_SOULBIND_CONDUIT_RANK_PROPERTIES, "SELECT ID, Rank, ItemLevel, QualityID FROM soulbind_conduit_rank_properties"
+    // `Rank` has been a reserved word since MySQL 8.0.2 (the RANK() window function), so it has to be
+    // quoted or the whole statement is a syntax error - and one unpreparable hotfix statement aborts
+    // worldserver startup with "Could not prepare statements of the Hotfix database".
+    PrepareStatement(HOTFIX_SEL_SOULBIND_CONDUIT_RANK_PROPERTIES, "SELECT ID, `Rank`, ItemLevel, QualityID FROM soulbind_conduit_rank_properties"
         " WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
     PREPARE_MAX_ID_STMT(HOTFIX_SEL_SOULBIND_CONDUIT_RANK_PROPERTIES, "SELECT MAX(ID) + 1 FROM soulbind_conduit_rank_properties", CONNECTION_SYNCH);
 
