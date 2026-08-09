@@ -565,6 +565,14 @@ namespace WorldPackets
 
             ObjectGuid NpcGUID;
             std::vector<uint64> FollowerDBIDs;
+            // Parallel to FollowerDBIDs: the ally board slot the player dropped each companion into.
+            // Enum GarrAutoBoardIndex (client 12.0.7.68275 reflection, GARRISON_ENUMS_68275.md):
+            // None = -1, AllyLeftBack 0, AllyRightBack 1, AllyLeftFront 2, AllyCenterFront 3,
+            // AllyRightFront 4 (5..12 are the enemy slots). The WoD/Legion mission UIs have no board
+            // and send None; the Shadowlands Adventures UI sends a real slot per follower — it is the
+            // optional third argument of C_Garrison.AddFollowerToMission(missionID, followerID, boardIndex)
+            // (GarrisonInfoDocumentation.lua:11-25, Blizzard_CovenantMissionUI.lua:729).
+            std::vector<int32> FollowerBoardIndexes;
             uint32 MissionRecID = 0;
         };
 

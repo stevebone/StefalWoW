@@ -628,11 +628,19 @@ void GarrisonStartMission::Read()
     // opcode dispatcher does NOT catch (only ByteBufferException) -> an uncapped count crashes the world thread.
     followerCount = std::min<uint32>(followerCount, _worldPacket.size());
     FollowerDBIDs.resize(followerCount);
+    FollowerBoardIndexes.resize(followerCount);
     for (uint32 i = 0; i < followerCount; ++i)
     {
         _worldPacket >> FollowerDBIDs[i];
-        _worldPacket.read_skip<int32>();  // BoardIndex (unused, always -1)
-        _worldPacket.read_skip<int32>();  // Health (unused, always 0)
+        // BoardIndex: the ally board slot the player dropped this companion into. This used to be
+        // skipped as "unused, always -1" — true for the boardless WoD/Legion mission UIs, but the
+        // Shadowlands Adventures UI sends a real GarrAutoBoardIndex here (optional third argument of
+        // C_Garrison.AddFollowerToMission) and then expects it echoed back in
+        // SMSG_GARRISON_START_MISSION_RESULT to fill its own follower record. Discarding it is what
+        // left FollowerMissionCompleteInfo.boardIndex at -1 and made the complete screen resolve a
+        // nil follower frame.
+        _worldPacket >> FollowerBoardIndexes[i];
+        _worldPacket.read_skip<int32>();  // Health (client sends 0; the server owns follower health)
         _worldPacket.read_skip<uint8>();  // HasFollowerEntry (unused, always false)
     }
 }

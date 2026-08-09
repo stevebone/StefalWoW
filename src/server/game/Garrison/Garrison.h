@@ -22,6 +22,7 @@
 #include "Define.h"
 #include "DatabaseEnvFwd.h"
 #include "EmberCourt.h"
+#include "GarrisonAutoCombat.h"
 #include "GarrisonPackets.h"
 #include "Optional.h"
 #include "PathOfAscension.h"
@@ -269,6 +270,11 @@ public:
         // caught mid-completion by a restart is re-rolled once at finalize (see FinalizeMission).
         bool ResultDetermined = false;
         bool Succeeded = false;
+        // Auto-combat replay produced when the outcome was rolled. The Adventures complete screen walks
+        // this round by round (Blizzard_AdventuresCompleteScreen.lua GetReplayRound/GetNumReplayRounds),
+        // so an empty log leaves the screen with nothing to play. Runtime-only like ResultDetermined:
+        // a mission caught mid-completion by a restart re-simulates at finalize.
+        AutoCombatResult CombatResult;
     };
 
     struct Shipment
@@ -417,7 +423,12 @@ public:
     Mission* GetMission(uint64 dbId);
     Mission const* GetMissionByRecID(uint32 missionRecID) const;
     Mission* GetMissionByRecID(uint32 missionRecID);
-    GarrisonError StartMission(uint32 missionRecID, std::vector<uint64> const& followerDBIDs);
+    // boardIndexes is parallel to followerDBIDs and carries the ally board slot the Adventures client
+    // placed each companion in (GarrAutoBoardIndex; -1/None from the boardless WoD & Legion UIs, which
+    // then get the retail auto-assignment order). May be shorter/empty - missing entries are treated as
+    // None. See AssignMissionBoardIndexes.
+    GarrisonError StartMission(uint32 missionRecID, std::vector<uint64> const& followerDBIDs,
+        std::vector<int32> const& boardIndexes = {});
     GarrisonError CompleteMission(uint32 missionRecID);
     GarrisonError ClaimMissionReward(uint32 missionRecID);
     GarrisonError MissionBonusRoll(uint32 missionRecID);
@@ -425,7 +436,16 @@ public:
     // the mission. Called from the opcodes the WoD client actually sends: BONUS_ROLL on success, and
     // COMPLETE on failure (the client sends no bonus roll for a failed mission).
     GarrisonError FinalizeMission(uint32 missionRecID, bool grantOvermax);
-    bool RollMissionOutcome(Mission const& mission, uint32 missionRecID) const;
+    // Takes the mission by reference because an auto-combat mission also stores its full round-by-round
+    // replay (mission.CombatResult) - the client needs that log, not just the win/lose bit.
+    bool RollMissionOutcome(Mission& mission, uint32 missionRecID);
+    // Fills every assigned follower's PacketInfo.BoardIndex for one mission. Client-supplied ally slots
+    // (GarrAutoBoardIndex 0..4) are honoured when they are valid and unique; anything else falls back to
+    // retail's own auto-assignment order.
+    void AssignMissionBoardIndexes(Mission const& mission, std::vector<int32> const& boardIndexes);
+    // Writes the per-companion outcome and the auto-combat replay into a mission-complete response.
+    void BuildMissionCompleteResult(Mission const& mission,
+        WorldPackets::Garrison::GarrisonCompleteMissionResult& result) const;
     void RemoveMission(uint32 missionRecID);
     void GenerateAvailableMissions();
     uint64 GenerateMissionDbId();

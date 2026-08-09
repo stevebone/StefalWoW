@@ -121,11 +121,17 @@ void WorldSession::SendTaxiMenu(Creature* unit)
         data.CanUseNodes[i] &= reachableNodes[i];
     }
 
-    // Retail offers nodes the player never discovered whenever TaxiNodes.ConditionID passes, which is why
-    // SMSG_SHOW_TAXI_NODES carries CanUseNodes as a strict superset of CanLandNodes. CanLandNodes stays the
-    // pure discovery mask (it is what early landing is checked against); only CanUseNodes is widened.
+    // Retail offers nodes the player never discovered whenever TaxiNodes.ConditionID passes. Both masks are
+    // widened: CanLandNodes is the list the flight map turns into pins, CanUseNodes only says whether a pin
+    // that already exists may be clicked. An earlier version widened CanUseNodes alone, on the belief that
+    // CanLandNodes had to stay a pure discovery mask because early landing is checked against it - it is not.
+    // PlayerTaxi::RequestEarlyLanding tests IsTaximaskNodeKnown against the live m_taximask member, which
+    // this outgoing packet copy cannot touch. The visible effect of the old version was that a Kyrian with
+    // Transport Network researched opened the Eternal Gateway map and saw only the node he had physically
+    // stood on. Still fails closed: HandleActivateTaxiOpcode accepts exactly IsTaximaskNodeKnown ||
+    // IsNodeUnlockedByCondition, the same predicate that sets the bit here, so nothing offered is unflyable.
     if (!lastTaxiCheaterState)
-        PlayerTaxi::AppendConditionUnlockedNodesTo(data.CanUseNodes, reachableNodes, GetPlayer());
+        PlayerTaxi::AppendConditionUnlockedNodesTo(data.CanLandNodes, data.CanUseNodes, reachableNodes, GetPlayer());
 
     SendPacket(data.Write());
 

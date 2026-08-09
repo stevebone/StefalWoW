@@ -45,6 +45,8 @@ void AutoCombatCombatant::TickPeriodicEffects(AutoCombatRound& round)
         event.TargetBoardIndex = BoardIndex;
         event.SpellID = it->SpellID;
         event.Amount = it->Amount;
+        event.TargetOldHealth = CurrentHealth;
+        event.TargetMaxHealth = MaxHealth;
 
         if (it->IsDamage)
         {
@@ -66,6 +68,9 @@ void AutoCombatCombatant::TickPeriodicEffects(AutoCombatRound& round)
             CurrentHealth = std::min(CurrentHealth + it->Amount, MaxHealth);
         }
 
+        event.TargetNewHealth = CurrentHealth;
+        event.IsPeriodicTick = true;
+        event.TargetDied = event.TargetOldHealth > 0 && CurrentHealth == 0;
         round.Events.push_back(event);
         --it->RemainingTicks;
 
@@ -329,7 +334,7 @@ void GarrisonAutoCombat::ProcessTurn(
     if (target)
     {
         int32 damage = combatant.GetEffectiveAttack();
-        ApplyDamage(*target, damage, combatant.BoardIndex, 0,
+        ApplyDamage(*target, damage, combatant, 0,
             AUTO_COMBAT_EFFECT_DAMAGE, round);
     }
 }
@@ -349,7 +354,7 @@ void GarrisonAutoCombat::ResolveSpell(
             if (enemy.IsAlive())
             {
                 ApplyDamage(enemy, caster.GetEffectiveAttack(),
-                    caster.BoardIndex, 0, AUTO_COMBAT_EFFECT_DAMAGE, round);
+                    caster, 0, AUTO_COMBAT_EFFECT_DAMAGE, round);
                 break;
             }
         }
@@ -368,23 +373,25 @@ void GarrisonAutoCombat::ResolveSpell(
             if (enemy.IsAlive())
             {
                 ApplyDamage(enemy, caster.GetEffectiveAttack(),
-                    caster.BoardIndex, spellID, AUTO_COMBAT_EFFECT_DAMAGE, round);
+                    caster, spellID, AUTO_COMBAT_EFFECT_DAMAGE, round);
                 break;
             }
         }
     }
     else
     {
-        // Resolve each effect
-        for (GarrAutoSpellEffectEntry const* effect : *effects)
+        // Resolve each effect. The row's position in the spell's effect list is the effectIndex the
+        // client uses to key auras per socket, so it travels with every event the effect produces.
+        for (std::size_t effectIndex = 0; effectIndex < effects->size(); ++effectIndex)
         {
+            GarrAutoSpellEffectEntry const* effect = (*effects)[effectIndex];
             std::vector<AutoCombatCombatant*> targets =
                 SelectTargets(caster, effect->Targets, allies, enemies);
 
             for (AutoCombatCombatant* target : targets)
             {
                 if (target && target->IsAlive())
-                    ResolveEffect(caster, effect, *target, spellID, round);
+                    ResolveEffect(caster, effect, *target, spellID, uint8(effectIndex), round);
             }
         }
     }
@@ -396,7 +403,7 @@ void GarrisonAutoCombat::ResolveSpell(
 
 void GarrisonAutoCombat::ResolveEffect(
     AutoCombatCombatant& caster, GarrAutoSpellEffectEntry const* effect,
-    AutoCombatCombatant& target, uint32 spellID,
+    AutoCombatCombatant& target, uint32 spellID, uint8 effectIndex,
     AutoCombatRound& round)
 {
     // Scale effect amount by caster attack
@@ -407,12 +414,12 @@ void GarrisonAutoCombat::ResolveEffect(
     switch (effect->EffectType)
     {
         case AUTO_COMBAT_EFFECT_DAMAGE:
-            ApplyDamage(target, amount, caster.BoardIndex, spellID,
+            ApplyDamage(target, amount, caster, spellID,
                 AUTO_COMBAT_EFFECT_DAMAGE, round);
             break;
 
         case AUTO_COMBAT_EFFECT_HEAL:
-            ApplyHealing(target, amount, caster.BoardIndex, spellID, round);
+            ApplyHealing(target, amount, caster, spellID, round);
             break;
 
         case AUTO_COMBAT_EFFECT_BUFF_ATTACK:
@@ -428,6 +435,12 @@ void GarrisonAutoCombat::ResolveEffect(
             event.SpellID = spellID;
             event.Amount = amount;
             event.EffectType = AUTO_COMBAT_EFFECT_BUFF_ATTACK;
+            // Health is untouched by this effect, but the replay still needs the bar values.
+            event.TargetOldHealth = target.CurrentHealth;
+            event.TargetNewHealth = target.CurrentHealth;
+            event.TargetMaxHealth = target.MaxHealth;
+            event.CasterRole = caster.Role;
+            event.EffectIndex = effectIndex;
             round.Events.push_back(event);
             break;
         }
@@ -445,6 +458,12 @@ void GarrisonAutoCombat::ResolveEffect(
             event.SpellID = spellID;
             event.Amount = -amount;
             event.EffectType = AUTO_COMBAT_EFFECT_DEBUFF_ATTACK;
+            // Health is untouched by this effect, but the replay still needs the bar values.
+            event.TargetOldHealth = target.CurrentHealth;
+            event.TargetNewHealth = target.CurrentHealth;
+            event.TargetMaxHealth = target.MaxHealth;
+            event.CasterRole = caster.Role;
+            event.EffectIndex = effectIndex;
             round.Events.push_back(event);
             break;
         }
@@ -459,13 +478,19 @@ void GarrisonAutoCombat::ResolveEffect(
             event.SpellID = spellID;
             event.Amount = amount;
             event.EffectType = AUTO_COMBAT_EFFECT_SHIELD;
+            // Health is untouched by this effect, but the replay still needs the bar values.
+            event.TargetOldHealth = target.CurrentHealth;
+            event.TargetNewHealth = target.CurrentHealth;
+            event.TargetMaxHealth = target.MaxHealth;
+            event.CasterRole = caster.Role;
+            event.EffectIndex = effectIndex;
             round.Events.push_back(event);
             break;
         }
 
         case AUTO_COMBAT_EFFECT_AOE_DAMAGE:
             // Already handled by target selection returning all enemies
-            ApplyDamage(target, amount, caster.BoardIndex, spellID,
+            ApplyDamage(target, amount, caster, spellID,
                 AUTO_COMBAT_EFFECT_AOE_DAMAGE, round);
             break;
 
@@ -485,6 +510,12 @@ void GarrisonAutoCombat::ResolveEffect(
             event.SpellID = spellID;
             event.Amount = amount;
             event.EffectType = AUTO_COMBAT_EFFECT_HOT;
+            // Health is untouched by this effect, but the replay still needs the bar values.
+            event.TargetOldHealth = target.CurrentHealth;
+            event.TargetNewHealth = target.CurrentHealth;
+            event.TargetMaxHealth = target.MaxHealth;
+            event.CasterRole = caster.Role;
+            event.EffectIndex = effectIndex;
             round.Events.push_back(event);
             break;
         }
@@ -505,6 +536,12 @@ void GarrisonAutoCombat::ResolveEffect(
             event.SpellID = spellID;
             event.Amount = amount;
             event.EffectType = AUTO_COMBAT_EFFECT_DOT;
+            // Health is untouched by this effect, but the replay still needs the bar values.
+            event.TargetOldHealth = target.CurrentHealth;
+            event.TargetNewHealth = target.CurrentHealth;
+            event.TargetMaxHealth = target.MaxHealth;
+            event.CasterRole = caster.Role;
+            event.EffectIndex = effectIndex;
             round.Events.push_back(event);
             break;
         }
@@ -609,10 +646,11 @@ std::vector<AutoCombatCombatant*> GarrisonAutoCombat::SelectTargets(
 
 void GarrisonAutoCombat::ApplyDamage(
     AutoCombatCombatant& target, int32 amount,
-    int8 casterBoardIndex, uint32 spellID, uint8 effectType,
+    AutoCombatCombatant const& caster, uint32 spellID, uint8 effectType,
     AutoCombatRound& round)
 {
     int32 damage = amount;
+    int32 const oldHealth = target.CurrentHealth;
 
     // Absorb shields first
     if (target.ShieldAmount > 0)
@@ -627,27 +665,38 @@ void GarrisonAutoCombat::ApplyDamage(
         target.CurrentHealth = 0;
 
     AutoCombatEvent event;
-    event.CasterBoardIndex = casterBoardIndex;
+    event.CasterBoardIndex = caster.BoardIndex;
     event.TargetBoardIndex = target.BoardIndex;
     event.SpellID = spellID;
     event.Amount = amount;
     event.EffectType = effectType;
+    event.TargetOldHealth = oldHealth;
+    event.TargetNewHealth = target.CurrentHealth;
+    event.TargetMaxHealth = target.MaxHealth;
+    event.CasterRole = caster.Role;
+    event.IsAutoAttack = spellID == 0 || int32(spellID) == caster.AutoAttackSpellID;
+    event.TargetDied = oldHealth > 0 && target.CurrentHealth == 0;
     round.Events.push_back(event);
 }
 
 void GarrisonAutoCombat::ApplyHealing(
     AutoCombatCombatant& target, int32 amount,
-    int8 casterBoardIndex, uint32 spellID,
+    AutoCombatCombatant const& caster, uint32 spellID,
     AutoCombatRound& round)
 {
+    int32 const oldHealth = target.CurrentHealth;
     target.CurrentHealth = std::min(target.CurrentHealth + amount, target.MaxHealth);
 
     AutoCombatEvent event;
-    event.CasterBoardIndex = casterBoardIndex;
+    event.CasterBoardIndex = caster.BoardIndex;
     event.TargetBoardIndex = target.BoardIndex;
     event.SpellID = spellID;
     event.Amount = amount;
     event.EffectType = AUTO_COMBAT_EFFECT_HEAL;
+    event.CasterRole = caster.Role;
+    event.TargetOldHealth = oldHealth;
+    event.TargetNewHealth = target.CurrentHealth;
+    event.TargetMaxHealth = target.MaxHealth;
     round.Events.push_back(event);
 }
 

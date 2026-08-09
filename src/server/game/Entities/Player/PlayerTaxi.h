@@ -74,8 +74,12 @@ class TC_GAME_API PlayerTaxi
         // ever having been visited. This is what makes retail's CanUseNodes a strict superset of CanLandNodes.
         // Purely additive - a node without a ConditionID is never unlocked this way, and no node is ever removed.
         static bool IsNodeUnlockedByCondition(uint32 nodeidx, Player const* player);
-        // Sets, in `useNodes`, every condition-unlocked node that is also set in `reachableNodes`.
-        static void AppendConditionUnlockedNodesTo(TaxiMask& useNodes, TaxiMask const& reachableNodes, Player const* player);
+        // Sets, in BOTH masks, every condition-unlocked node that is also set in `reachableNodes`.
+        // Both, because the client draws its flight-map pins from CanLandNodes and only ever uses
+        // CanUseNodes to grey out a pin it already has: a node present in CanUseNodes alone is drawn
+        // nowhere, so widening that mask on its own is invisible in game.
+        static void AppendConditionUnlockedNodesTo(TaxiMask& landNodes, TaxiMask& useNodes,
+            TaxiMask const& reachableNodes, Player const* player);
 
         // Destinations
         [[nodiscard]] bool LoadTaxiDestinationsFromString(std::string const& values, uint32 team);

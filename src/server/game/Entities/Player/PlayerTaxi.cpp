@@ -185,7 +185,8 @@ bool PlayerTaxi::IsNodeUnlockedByCondition(uint32 nodeidx, Player const* player)
     }
 }
 
-void PlayerTaxi::AppendConditionUnlockedNodesTo(TaxiMask& useNodes, TaxiMask const& reachableNodes, Player const* player)
+void PlayerTaxi::AppendConditionUnlockedNodesTo(TaxiMask& landNodes, TaxiMask& useNodes,
+    TaxiMask const& reachableNodes, Player const* player)
 {
     for (TaxiNodesEntry const* node : sTaxiNodesStore)
     {
@@ -205,7 +206,14 @@ void PlayerTaxi::AppendConditionUnlockedNodesTo(TaxiMask& useNodes, TaxiMask con
             continue;
 
         if (IsNodeUnlockedByCondition(node->ID, player))
+        {
+            // CanLandNodes is what the flight map iterates to place pins; CanUseNodes only decides
+            // whether an already-placed pin is selectable. Setting just the latter left the node
+            // undrawn, which is why a Kyrian at the Eternal Gateway saw Elysian Hold and nothing else
+            // even though the server had already worked out that three more were open to him.
+            landNodes[field] |= submask;
             useNodes[field] |= submask;
+        }
     }
 }
 
