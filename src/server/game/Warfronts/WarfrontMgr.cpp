@@ -392,13 +392,17 @@ Warfront const* WarfrontMgr::GetWarfrontByContributionMWS(uint32 managedWorldSta
 
 void WarfrontMgr::SendWarfrontComplete(Warfront const& wf, TeamId winner) const
 {
-    // The SMSG_WARFRONT_COMPLETE body is INFERRED (needs sniff validation) - see WARFRONT_OPCODE_SPEC.md §C / §E.
-    // Never put it on the wire unless the operator has deliberately opted in.
+    // The SMSG_WARFRONT_COMPLETE body is byte-recovered now (see WarfrontPackets.h), but the flag stays the
+    // operator's call - it also gates the contribution round-trip.
     if (!IsNativeUiEnabled())
         return;
 
     WorldPackets::Warfront::WarfrontComplete complete;
-    complete.BattlefieldId = wf.Id;     // INFERRED (needs sniff validation) - see WARFRONT_OPCODE_SPEC.md §C
+    // The client looks this up with C_PartyPose.GetPartyPoseInfoByMapID, so it must be the battle map the
+    // winners just finished, not the warfront id.
+    complete.MapID = int32(wf.GetChallengerBattleMap());
+    // Faction group, which is the inverse of TeamId: PLAYER_FACTION_GROUP = { Horde = 0, Alliance = 1 }.
+    complete.Winner = winner == TEAM_ALLIANCE ? 1 : 0;
     complete.Write();
 
     for (auto const& [accountId, session] : sWorld->GetAllSessions())
@@ -413,8 +417,8 @@ void WarfrontMgr::SendWarfrontComplete(Warfront const& wf, TeamId winner) const
         session->SendPacket(complete.GetRawPacket());
     }
 
-    TC_LOG_INFO("warfront", "Warfront '{}': sent SMSG_WARFRONT_COMPLETE (BattlefieldId {}) to team {}.",
-        wf.Name, wf.Id, uint32(winner));
+    TC_LOG_INFO("warfront", "Warfront '{}': sent SMSG_WARFRONT_COMPLETE (mapID {}, winner factionGroup {}) to team {}.",
+        wf.Name, complete.MapID, complete.Winner, uint32(winner));
 }
 
 void WarfrontMgr::OnContributionTargetReached(uint32 managedWorldStateId)
