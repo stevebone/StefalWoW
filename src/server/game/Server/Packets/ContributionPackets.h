@@ -60,19 +60,29 @@ namespace Contribution
         uint32 ContributionGUID = 0;
     };
 
-    // SMSG_CONTRIBUTION_LAST_UPDATE_RESPONSE (0x4202C4): exactly twelve bytes -
-    // { uint32 Data /*unix timestamp of the last update*/, uint32 ContributionID, uint32 ContributionGUID }.
-    // It is a timestamp acknowledgement only - no state, no percentage, no array.
+    // SMSG_CONTRIBUTION_LAST_UPDATE_RESPONSE (0x4202C4): BYTE-RECOVERED from the 12.0.7 (68275) client as
+    // exactly SIXTEEN bytes - { uint64 Data, int32 ContributionID, int32 ContributionGUID }. The old
+    // "exactly twelve bytes" claim was wrong: the timestamp is 8 bytes wide, not 4.
+    // Like SMSG_WARFRONT_COMPLETE this is not reflection-serialized; the handler casts the raw payload to a POD:
+    //   - vtable slot 3 (RVA 0x611D20) returns 0x4202C4; ctor RVA 0x611D30 puts the buffer at obj+0x28
+    //   - vtable slot 0 (RVA 0x5C45F0) allocates 0x38 = 56 bytes, so the body is 56 - 40 = 16
+    //   - handler RVA 0x2230860 reads qword[p], then movsxd dword[p+8] and movsxd dword[p+0xC], and stores the
+    //     qword as the VALUE of a ContributionCollector::StateChange* map keyed by the two dwords, then clears
+    //     the "request pending" byte
+    //   - the two dwords are exactly what the client sent: the CMSG_CONTRIBUTION_LAST_UPDATE_REQUEST serializer
+    //     (RVA 0x6B4070) writes opcode 0x3B00FE followed by the same pair, sourced in C_ContributionCollector
+    //     .GetState (RVA 0x222F600) from (contributionID, the record's second key)
+    // It remains a timestamp acknowledgement only - no state, no percentage, no array.
     class ContributionLastUpdateResponse final : public ServerPacket
     {
     public:
-        explicit ContributionLastUpdateResponse() : ServerPacket(SMSG_CONTRIBUTION_LAST_UPDATE_RESPONSE, 12) { }
+        explicit ContributionLastUpdateResponse() : ServerPacket(SMSG_CONTRIBUTION_LAST_UPDATE_RESPONSE, 16) { }
 
         WorldPacket const* Write() override;
 
-        uint32 Data = 0;                // time of the contribution's last update (unix time)
+        uint64 Data = 0;                // time of the contribution's last update (unix time); 8 bytes on the wire
         uint32 ContributionID = 0;
-        uint32 ContributionGUID = 0;    // echoed back from the request
+        uint32 ContributionGUID = 0;    // echoed back from the request (the request's second key dword)
     };
 }
 }

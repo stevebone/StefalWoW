@@ -21,8 +21,10 @@ namespace WorldPackets::Warfront
 {
 WorldPacket const* WarfrontComplete::Write()
 {
-    // INFERRED (needs sniff validation) - see WARFRONT_OPCODE_SPEC.md §C.
-    _worldPacket << uint32(BattlefieldId);
+    // Byte-recovered layout, exactly 8 bytes - see the class comment for the derivation. The client reads both
+    // dwords unconditionally, so a short body makes it read past the payload.
+    _worldPacket << int32(MapID);
+    _worldPacket << int32(Winner);
 
     return &_worldPacket;
 }
