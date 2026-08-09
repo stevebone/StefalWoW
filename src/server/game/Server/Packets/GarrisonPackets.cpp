@@ -206,9 +206,23 @@ ByteBuffer& operator<<(ByteBuffer& data, GarrisonTalent const& talent)
     //       memory (proven by a server-side diag log + a sentinel injection) but drew the talent idle; setting 0x4
     //       makes C_Garrison.GetTalentInfo(id).isBeingResearched=true with the real DB2 researchDuration.
     //   client bit 0x2 = a duration override that forces researchDuration to a fixed 24h; MUST NEVER be set.
+    //   client bit 0x1 = "researched / talent taken". Recovered by static RE of the 12.0.7 client, which also
+    //       proves it is PURELY server-supplied: the complete set of writers to the client-side talent record's
+    //       flags word (+0x40) is three sites - RVA 0x22992A5 and 0x2299395, both verbatim copies of the wire
+    //       struct inside Garrison::SetTalent (RVA 0x2298FF0), and RVA 0x2299448 in Garrison::RemoveTalent,
+    //       which only zeroes it. There is no or/bts against that field anywhere in the image and no
+    //       research-timer expiry that recomputes it, so the client can never derive "researched" on its own.
+    //       Readers gated on the bit: ModifierTree 201/202/317 (evaluator RVA 0x20664B0 - the covenant/taxi
+    //       PlayerCondition path), C_Garrison.GetTalentInfo's `researched` (builder RVA 0x22B95F0 via
+    //       0x228E2F0), GetTalentAvailability (RVA 0x2171390, bit set => availability 2) and
+    //       CanResearchAtThisTier (RVA 0x2298DF0, which early-outs "already taken" only when the bit is set).
+    //       Leaving it clear is why a fully researched sanctum/order-hall talent rendered as un-researched and
+    //       why talent-gated unlocks (e.g. the covenant transport-network taxi nodes) never opened.
     // TC's internal flags (only GARRISON_TALENT_FLAG_TEMPORARY=0x1 today, an unrelated meaning) are not
     // wire-compatible, so derive the wire value purely from research state.
     int32 wireFlags = 0;
+    if (talent.Rank >= 1)
+        wireFlags |= 0x1; // client "researched / taken" bit; every client test pairs it with a rank check
     if (talent.ResearchStartTime != 0)
         wireFlags |= 0x4; // client "being researched" bit (never 0x2 = duration override)
     data << int32(talent.GarrTalentID);

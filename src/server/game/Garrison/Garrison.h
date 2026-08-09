@@ -469,6 +469,8 @@ public:
     void GenerateRecruits(uint32 faction);
     GarrisonError RecruitFollower(uint32 garrFollowerID);
     std::vector<WorldPackets::Garrison::GarrisonFollower> const& GetAvailableRecruits() const { return _availableRecruits; }
+    uint32 GetRecruitmentPreferenceAbilityId() const { return _recruitmentPreferenceAbilityId; }
+    uint32 GetRecruitmentPreferenceTraitId() const { return _recruitmentPreferenceTraitId; }
 
     // Follower healing
     void HealAllFollowers();

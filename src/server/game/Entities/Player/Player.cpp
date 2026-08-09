@@ -14181,8 +14181,39 @@ void Player::OnGossipSelect(WorldObject* source, int32 gossipOptionId, uint32 me
             break;
         case GossipOptionNpc::GarrisonTradeskillNpc: // NYI
             break;
-        case GossipOptionNpc::GarrisonRecruitment: // NYI
+        case GossipOptionNpc::GarrisonRecruitment:
+        {
+            // WoD garrison recruiter (e.g. Lysa Serion, 84947, in the Lunarfall/Frostwall inn). Selecting the
+            // option opens the recruitment frame via SMSG_GARRISON_OPEN_RECRUITMENT_NPC, which seeds the three
+            // recruit slots and tells the client whether it may roll a fresh set
+            // (CMSG_GARRISON_GENERATE_RECRUITS) and whether it may pick a counter/trait preference
+            // (CMSG_GARRISON_SET_RECRUITMENT_PREFERENCES). Both of those handlers, and the packet itself, have
+            // been here all along - only the opener was missing, so the option was a dead click.
+            //
+            // Deliberately resolved through the no-arg GetGarrison() (WoD, type 2): HandleGarrisonGenerateRecruits
+            // and HandleGarrisonRecruitFollower both resolve the same way, and seeding the frame from a different
+            // garrison than the one those handlers act on would let a player recruit against the wrong roster.
+            // If the recruiter is ever reused for another garrison type, all three sites must move together.
+            Garrison* garrison = GetGarrison();
+            if (!garrison)
+                break;
+
+            WorldPackets::Garrison::GarrisonOpenRecruitmentNpc openRecruitment;
+            openRecruitment.NpcGUID = guid;
+            openRecruitment.MechanicTypeID = garrison->GetRecruitmentPreferenceAbilityId();
+            openRecruitment.TraitID = garrison->GetRecruitmentPreferenceTraitId();
+
+            // Exactly 3 inline follower records, no count prefix (see GarrisonOpenRecruitmentNpc::Write). Slots
+            // past the rolled count stay default-constructed, matching HandleGarrisonGenerateRecruits.
+            std::vector<WorldPackets::Garrison::GarrisonFollower> const& recruits = garrison->GetAvailableRecruits();
+            for (std::size_t i = 0; i < openRecruitment.Followers.size() && i < recruits.size(); ++i)
+                openRecruitment.Followers[i] = recruits[i];
+
+            openRecruitment.CanGenerateRecruits = true;
+            openRecruitment.CanSetRecruitmentPreference = true;
+            SendDirectMessage(openRecruitment.Write());
             break;
+        }
         // GossipOptionNpc::GarrisonTalent (Order Advancement) intentionally has NO case: it falls through to
         // `default` (handled = false), so the generic immersive-interaction path below runs. The client resolves
         // the option's GossipNpcOptionID (GossipNPCOption.db2) to PlayerInteractionType::GarrTalent and fires
