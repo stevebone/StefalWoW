@@ -551,6 +551,8 @@ void HotfixDatabaseConnection::DoPrepareStatements()
         "Field_9_0_2_36165_006, Field_9_0_2_36165_007, FactionID, CurrencyTypesID, RequiredPlayerConditionID FROM covenant"
         " WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
     PREPARE_MAX_ID_STMT(HOTFIX_SEL_COVENANT, "SELECT MAX(ID) + 1 FROM covenant", CONNECTION_SYNCH);
+    PREPARE_LOCALE_STMT(HOTFIX_SEL_COVENANT, "SELECT ID, Name_lang, Description_lang FROM covenant_locale"
+        " WHERE (`VerifiedBuild` > 0) = ? AND locale = ?", CONNECTION_SYNCH);
 
     // CraftingQuality.db2
     PrepareStatement(HOTFIX_SEL_CRAFTING_QUALITY, "SELECT ID, QualityTier, CraftingQualityAtlasSetID FROM crafting_quality"
