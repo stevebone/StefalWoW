@@ -18,6 +18,7 @@
 #include "PlayerTaxi.h"
 #include "ConditionMgr.h"
 #include "DB2Stores.h"
+#include "Log.h"
 #include "ObjectMgr.h"
 #include "Player.h"
 #include "StringConvert.h"
@@ -186,7 +187,7 @@ bool PlayerTaxi::IsNodeUnlockedByCondition(uint32 nodeidx, Player const* player)
 }
 
 void PlayerTaxi::AppendConditionUnlockedNodesTo(TaxiMask& landNodes, TaxiMask& useNodes,
-    TaxiMask const& reachableNodes, Player const* player)
+    TaxiMask const& reachableNodes, Player const* player, std::vector<TaxiConditionUnlockReport>* report)
 {
     for (TaxiNodesEntry const* node : sTaxiNodesStore)
     {
@@ -199,13 +200,26 @@ void PlayerTaxi::AppendConditionUnlockedNodesTo(TaxiMask& landNodes, TaxiMask& u
         if (field >= reachableNodes.size())
             continue;
 
+        TaxiConditionUnlockReport entry;
+        entry.NodeID = node->ID;
+        entry.ConditionID = node->ConditionID;
+        entry.VisibilityConditionID = node->VisibilityConditionID;
+        entry.Flags = node->Flags;
+        entry.InReachableMask = (reachableNodes[field] & submask) != 0;
+        entry.AlreadyOffered = (useNodes[field] & submask) != 0;
+
         // Skip anything the flight master cannot route to anyway (this also keeps the number of condition
         // evaluations down to the handful of gated nodes that share a network with the current node) and
         // anything already offered through the discovery mask.
-        if (!(reachableNodes[field] & submask) || (useNodes[field] & submask))
+        if (!entry.InReachableMask || entry.AlreadyOffered)
+        {
+            if (report && entry.InReachableMask)
+                report->push_back(entry);
             continue;
+        }
 
-        if (IsNodeUnlockedByCondition(node->ID, player))
+        entry.ConditionPassed = IsNodeUnlockedByCondition(node->ID, player);
+        if (entry.ConditionPassed)
         {
             // CanLandNodes is what the flight map iterates to place pins; CanUseNodes only decides
             // whether an already-placed pin is selectable. Setting just the latter left the node
@@ -213,7 +227,15 @@ void PlayerTaxi::AppendConditionUnlockedNodesTo(TaxiMask& landNodes, TaxiMask& u
             // even though the server had already worked out that three more were open to him.
             landNodes[field] |= submask;
             useNodes[field] |= submask;
+            entry.BitSet = (landNodes[field] & submask) != 0 && (useNodes[field] & submask) != 0;
         }
+
+        TC_LOG_DEBUG("taxi.condition", "taxi node {} cond={} viscond={} flags=0x{:X} reachable={} known={} passed={} bitSet={}",
+            entry.NodeID, entry.ConditionID, entry.VisibilityConditionID, uint32(entry.Flags),
+            entry.InReachableMask, entry.AlreadyOffered, entry.ConditionPassed, entry.BitSet);
+
+        if (report)
+            report->push_back(entry);
     }
 }
 

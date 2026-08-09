@@ -1030,6 +1030,11 @@ class TC_GAME_API WorldSession
             uint32 build, ClientBuild::VariantId clientBuildVariant, LocaleConstant locale, uint32 recruiter, bool isARecruiter);
         ~WorldSession();
 
+        // TEMPORARY DIAGNOSTICS (.debug taxinodesoffline) - loads a character that is not logged in into a
+        // socket-less throwaway session so a read-only probe can run against real, fully loaded player state.
+        // Never saves the character. Blocks the calling thread while the login query holder runs.
+        static bool RunWithOfflinePlayer(ObjectGuid guid, std::function<void(Player*)> const& callback);
+
         bool PlayerLoading() const { return !m_playerLoading.IsEmpty(); }
         bool PlayerLogout() const { return m_playerLogout; }
         bool PlayerLogoutWithSave() const { return m_playerLogout && m_playerSave; }

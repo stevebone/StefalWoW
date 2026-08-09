@@ -130,6 +130,9 @@ void WorldSession::SendTaxiMenu(Creature* unit)
     // Transport Network researched opened the Eternal Gateway map and saw only the node he had physically
     // stood on. Still fails closed: HandleActivateTaxiOpcode accepts exactly IsTaximaskNodeKnown ||
     // IsNodeUnlockedByCondition, the same predicate that sets the bit here, so nothing offered is unflyable.
+    TC_LOG_DEBUG("taxi.condition", "SendTaxiMenu: player {} creature {} curloc {} taxiCheater {}",
+        GetPlayer()->GetName(), unit->GetEntry(), curloc, lastTaxiCheaterState);
+
     if (!lastTaxiCheaterState)
         PlayerTaxi::AppendConditionUnlockedNodesTo(data.CanLandNodes, data.CanUseNodes, reachableNodes, GetPlayer());
 
