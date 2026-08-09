@@ -23,6 +23,7 @@
 #include <deque>
 #include <iosfwd>
 #include <string>
+#include <vector>
 
 class Player;
 struct FactionTemplateEntry;
@@ -33,6 +34,22 @@ namespace WorldPackets
         class ShowTaxiNodes;
     }
 }
+
+// One line of "why is (or isn't) this node on the flight map", filled in by
+// PlayerTaxi::AppendConditionUnlockedNodesTo when a caller asks for it. Diagnostics only - the
+// unlock decision itself does not read this back. `.debug taxinodes` prints it, and the same
+// values are written to the (off by default) "taxi.condition" logger on every SendTaxiMenu.
+struct TaxiConditionUnlockReport
+{
+    uint32 NodeID = 0;
+    int32 ConditionID = 0;
+    uint32 VisibilityConditionID = 0;
+    int32 Flags = 0;
+    bool InReachableMask = false;   // TaxiPathGraph could route to it from the current node
+    bool AlreadyOffered = false;    // the discovery mask already had it, so it was left alone
+    bool ConditionPassed = false;   // IsNodeUnlockedByCondition
+    bool BitSet = false;            // the bit ended up set in BOTH outgoing masks
+};
 
 class TC_GAME_API PlayerTaxi
 {
@@ -79,7 +96,15 @@ class TC_GAME_API PlayerTaxi
         // CanUseNodes to grey out a pin it already has: a node present in CanUseNodes alone is drawn
         // nowhere, so widening that mask on its own is invisible in game.
         static void AppendConditionUnlockedNodesTo(TaxiMask& landNodes, TaxiMask& useNodes,
-            TaxiMask const& reachableNodes, Player const* player);
+            TaxiMask const& reachableNodes, Player const* player,
+            std::vector<TaxiConditionUnlockReport>* report = nullptr);
+
+        // Diagnostics: render one 64-bit block of an outgoing taxi mask exactly as it goes on the wire -
+        // the raw qword plus the TaxiNodes IDs whose bits are set in it. The client reads these masks in
+        // uint64 blocks, so a qword index is the unit an argument about "did the bit actually ship" is
+        // conducted in. Node ID N lives at bit (N-1), i.e. qword (N-1)/64, bit (N-1)%64.
+        static std::string DescribeMaskQword(TaxiMask const& mask, uint32 qwordIndex);
+        static uint32 QwordIndexForNode(uint32 nodeidx) { return (nodeidx - 1) / 64; }
 
         // Destinations
         [[nodiscard]] bool LoadTaxiDestinationsFromString(std::string const& values, uint32 team);

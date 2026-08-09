@@ -28,6 +28,7 @@ EndScriptData */
 #include "BattlegroundMgr.h"
 #include "CellImpl.h"
 #include "Channel.h"
+#include "CharacterCache.h"
 #include "ChannelPackets.h"
 #include "Chat.h"
 #include "ChatCommand.h"
@@ -47,8 +48,13 @@ EndScriptData */
 #include "ObjectAccessor.h"
 #include "ObjectMgr.h"
 #include "PhasingHandler.h"
+#include "Player.h"
+#include "PlayerTaxi.h"
 #include "PoolMgr.h"
 #include "RBAC.h"
+#include "StringFormat.h"
+#include "TaxiPackets.h"
+#include "TaxiPathGraph.h"
 #include "SpellMgr.h"
 #include "SpellPackets.h"
 #include "Transport.h"
@@ -124,6 +130,8 @@ public:
             { "modifiertree",       HandleDebugModifierTreeCommand,        rbac::RBAC_PERM_COMMAND_DEBUG,   Console::No },
             { "wsexpression",       HandleDebugWSExpressionCommand,        rbac::RBAC_PERM_COMMAND_DEBUG,   Console::No },
             { "playercondition",    HandleDebugPlayerConditionCommand,     rbac::RBAC_PERM_COMMAND_DEBUG,   Console::No },
+            { "taxinodes",          HandleDebugTaxiNodesCommand,           rbac::RBAC_PERM_COMMAND_DEBUG,   Console::No },
+            { "taxinodesoffline",   HandleDebugTaxiNodesOfflineCommand,    rbac::RBAC_PERM_COMMAND_DEBUG,   Console::Yes },
             { "pvp warmode",        HandleDebugWarModeBalanceCommand,      rbac::RBAC_PERM_COMMAND_DEBUG,   Console::Yes },
             { "dummy",              HandleDebugDummyCommand,               rbac::RBAC_PERM_COMMAND_DEBUG,   Console::No },
             { "asan memoryleak",    HandleDebugMemoryLeak,                 rbac::RBAC_PERM_COMMAND_DEBUG,   Console::Yes },
@@ -1648,6 +1656,148 @@ public:
         else
             handler->PSendSysMessage("PlayerCondition %u not met", playerConditionId);
 
+        return true;
+    }
+
+    // .debug taxinodes [taxiNodeId]
+    // Replays exactly what WorldSession::SendTaxiMenu would compute for the selected player at the given
+    // node (default: the flight master / taxi node the player is standing at), and reports, per gated node,
+    // whether TaxiPathGraph could route to it, whether the discovery mask already had it, what
+    // PlayerTaxi::IsNodeUnlockedByCondition decided, and whether the bit ended up set in the outgoing masks.
+    static bool HandleDebugTaxiNodesCommand(ChatHandler* handler, Optional<uint32> taxiNodeId)
+    {
+        Player* target = handler->getSelectedPlayerOrSelf();
+        if (!target)
+        {
+            handler->SendSysMessage(LANG_PLAYER_NOT_FOUND);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        return PrintTaxiDiagnostics(handler, target, taxiNodeId);
+    }
+
+    // TEMPORARY DIAGNOSTICS: same report for a character that is not logged in, so the decision can be
+    // observed at runtime on real player state without needing a client session. Console-capable.
+    static bool HandleDebugTaxiNodesOfflineCommand(ChatHandler* handler, std::string_view characterName, Optional<uint32> taxiNodeId)
+    {
+        std::string name(characterName);
+        if (!normalizePlayerName(name))
+        {
+            handler->SendSysMessage(LANG_PLAYER_NOT_FOUND);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        CharacterCacheEntry const* cacheEntry = sCharacterCache->GetCharacterCacheByName(name);
+        if (!cacheEntry)
+        {
+            handler->SendSysMessage(LANG_PLAYER_NOT_FOUND);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        if (Player* online = ObjectAccessor::FindConnectedPlayer(cacheEntry->Guid))
+            return PrintTaxiDiagnostics(handler, online, taxiNodeId);
+
+        return WorldSession::RunWithOfflinePlayer(cacheEntry->Guid, [handler, taxiNodeId](Player* loaded)
+        {
+            PrintTaxiDiagnostics(handler, loaded, taxiNodeId);
+        });
+    }
+
+    static bool PrintTaxiDiagnostics(ChatHandler* handler, Player* target, Optional<uint32> taxiNodeId)
+    {
+        uint32 curloc = taxiNodeId.value_or(0);
+        if (!curloc)
+        {
+            if (Creature* flightMaster = handler->getSelectedCreature())
+                curloc = sObjectMgr->GetTaxiNodeForFlightMaster(flightMaster->GetEntry(), flightMaster->GetPositionX(),
+                    flightMaster->GetPositionY(), flightMaster->GetPositionZ(), flightMaster->GetMapId(), target->GetTeam());
+
+            if (!curloc)
+                curloc = sObjectMgr->GetNearestTaxiNode(target->GetPositionX(), target->GetPositionY(),
+                    target->GetPositionZ(), target->GetMapId(), target->GetTeam());
+        }
+
+        TaxiNodesEntry const* current = sTaxiNodesStore.LookupEntry(curloc);
+        if (!current)
+        {
+            handler->PSendSysMessage("No taxi node %u (and none could be resolved from the current position).", curloc);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        bool taxiCheater = target->isTaxiCheater();
+        handler->PSendSysMessage("Taxi diagnostics for %s at node %u (%s), taxiCheater=%u, team=%u",
+            target->GetName().c_str(), curloc, current->Name[handler->GetSessionDbcLocale()], uint32(taxiCheater), target->GetTeam());
+
+        WorldPackets::Taxi::ShowTaxiNodes data;
+        target->m_taxi.AppendTaximaskTo(data, taxiCheater);
+
+        TaxiMask reachableNodes;
+        TaxiPathGraph::GetReachableNodesMask(current, &reachableNodes);
+        for (std::size_t i = 0; i < reachableNodes.size(); ++i)
+        {
+            data.CanLandNodes[i] &= reachableNodes[i];
+            data.CanUseNodes[i] &= reachableNodes[i];
+        }
+
+        std::vector<TaxiConditionUnlockReport> report;
+        if (!taxiCheater)
+            PlayerTaxi::AppendConditionUnlockedNodesTo(data.CanLandNodes, data.CanUseNodes, reachableNodes, target, &report);
+        else
+            handler->SendSysMessage("Player is a taxi cheater - the condition-unlock pass is skipped entirely.");
+
+        // The client keeps a node's pin only while the node's UiMap can be related to the UiMap of the node
+        // the window was opened at, so the resolved UiMap is part of "why is this pin missing".
+        auto resolveUiMap = [](TaxiNodesEntry const* node)
+        {
+            uint32 uiMapId = uint32(-1);
+            if (!DB2Manager::GetUiMapPosition(node->Pos.X, node->Pos.Y, node->Pos.Z, node->ContinentID, 0, 0, 0,
+                UI_MAP_SYSTEM_ADVENTURE, false, &uiMapId))
+                DB2Manager::GetUiMapPosition(node->Pos.X, node->Pos.Y, node->Pos.Z, node->ContinentID, 0, 0, 0,
+                    UI_MAP_SYSTEM_TAXI, false, &uiMapId);
+            return uiMapId;
+        };
+
+        handler->PSendSysMessage("current node %u uiMap=%d", curloc, int32(resolveUiMap(current)));
+
+        for (TaxiConditionUnlockReport const& entry : report)
+        {
+            TaxiNodesEntry const* node = sTaxiNodesStore.LookupEntry(entry.NodeID);
+            handler->PSendSysMessage("node %u %s: cond=%d viscond=%u flags=0x%X uiMap=%d reachable=%u known=%u passed=%u bitSet=%u",
+                entry.NodeID, node ? node->Name[handler->GetSessionDbcLocale()] : "?", entry.ConditionID,
+                entry.VisibilityConditionID, uint32(entry.Flags), node ? int32(resolveUiMap(node)) : -1,
+                uint32(entry.InReachableMask), uint32(entry.AlreadyOffered), uint32(entry.ConditionPassed),
+                uint32(entry.BitSet));
+        }
+
+        // The masks the client would actually receive, so a "the server did set it" claim can be checked
+        // against the wire rather than inferred.
+        std::string land, use;
+        for (TaxiNodesEntry const* node : sTaxiNodesStore)
+        {
+            uint32 field = uint32((node->ID - 1) / (sizeof(TaxiMask::value_type) * 8));
+            TaxiMask::value_type submask = TaxiMask::value_type(1 << ((node->ID - 1) % (sizeof(TaxiMask::value_type) * 8)));
+            if (field >= data.CanLandNodes.size())
+                continue;
+            if (data.CanLandNodes[field] & submask)
+                land += Trinity::StringFormat("{} ", node->ID);
+            if (data.CanUseNodes[field] & submask)
+                use += Trinity::StringFormat("{} ", node->ID);
+        }
+        handler->PSendSysMessage("mask bytes=%u (qwords=%u), TaxiNodes index size=%u",
+            uint32(data.CanLandNodes.size()), uint32(data.CanLandNodes.size() / 8), sTaxiNodesStore.GetNumRows());
+
+        // The wire-level view: the uint64 block the current node lives in, for both masks. This is the one
+        // line that separates "the server never set the bit" from "the client dropped a bit that shipped".
+        uint32 const qword = PlayerTaxi::QwordIndexForNode(curloc);
+        handler->PSendSysMessage("CanLandNodes %s", PlayerTaxi::DescribeMaskQword(data.CanLandNodes, qword).c_str());
+        handler->PSendSysMessage("CanUseNodes  %s", PlayerTaxi::DescribeMaskQword(data.CanUseNodes, qword).c_str());
+
+        handler->PSendSysMessage("CanLandNodes (all): %s", land.c_str());
+        handler->PSendSysMessage("CanUseNodes  (all): %s", use.c_str());
         return true;
     }
 

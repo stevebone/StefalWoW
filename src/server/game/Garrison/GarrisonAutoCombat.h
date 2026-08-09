@@ -96,30 +96,64 @@ enum GarrFollowerMissionCompleteState : uint32
     GARR_FOLLOWER_MISSION_COMPLETE_OUT_OF_DURABILITY    = 3
 };
 
+// GarrAutoSpellEffect.Effect - what one effect row of an auto-combat spell does. Labels from WoWDBDefs
+// GarrAutoSpellEffect.dbd (layout ACEA7666 = 12.0.7.68275). Only the values whose meaning the client's
+// own GarrAutoSpell.db2 description text corroborates are named here and simulated; every other Effect
+// value is deliberately left unhandled (see TranslateSpellEffect in the .cpp), because emitting a
+// replay event for a mechanic the simulation never applied would be a lie on the combat log:
+//   0, 5, 6, 9, 11, 13, 15, 16, 17  undocumented or DNT/test-only rows
+//   10  taunt / become untargetable      12  damage-dealt multiplier
+//   14  damage-taken multiplier          18  increase max health
+//   19, 20                               present in the 68275 data with no DBD entry at all
+enum GarrAutoSpellEffectType : uint8
+{
+    // "Auto Attack - Deal attack damage to the closest enemy" (GarrAutoSpell 11), "Deal damage to an
+    // enemy at range" (15). All 355 GarrAutoCombatant.AttackSpellID references in 68275 resolve to a
+    // spell whose effect rows carry this value - this, not a missing spell id, is what marks a hit as
+    // an auto-attack.
+    GARR_AUTO_SPELL_EFFECT_DEAL_AUTO_DAMAGE = 1,
+    // The DBD labels both 2 and 4 "Heal" and does not say what separates them; both are simulated as a
+    // heal, which is what their spells say they do ("healing himself for $s2" on GarrAutoSpell 17 is a
+    // 2, "Heal all allies for $s1% of their maximum health" on 9 is a 4).
+    GARR_AUTO_SPELL_EFFECT_HEAL             = 2,
+    GARR_AUTO_SPELL_EFFECT_DEAL_DAMAGE      = 3,
+    GARR_AUTO_SPELL_EFFECT_HEAL_ALT         = 4,
+    GARR_AUTO_SPELL_EFFECT_DOT              = 7,
+    GARR_AUTO_SPELL_EFFECT_HOT              = 8
+};
+
+// GarrAutoSpellEffect.TargetType is a bit mask. The bit meanings below are the ones WoWDBDefs
+// documents, and every documented combination agrees with the shipped spell descriptions:
+//   1        the caster itself     (GarrAutoSpell 17 effect 1, "healing himself")
+//   1|2 =  3 the closest enemy     (4 "strikes the closest enemy", also 7, 8, 11)
+//   1|4 =  5 the farthest enemy    (16 "the farthest enemy", 15 "an enemy at range")
+//   1|2|4 = 7 all enemies          (5 "all enemies", 17 "all enemies")
+//   1|2|4|8 = 15 all enemies in melee range
+//   1|16 = 17 all enemies at range (6 "all enemies at range")
+//   2   =  2 the closest ally      (71 "Heals the closest ally")
+//   2|4 =  6 all allies            (9, 12, 14 "all allies")
+//   16  = 16 all ranged allies
+// So bit 0 picks the enemy team (on its own it means the caster), bits 1/2 are near/far and having
+// both means the whole team, and bits 3/4 restrict the pick to a board row. The simulation does not
+// model board rows, so a row restriction resolves to "the whole team" - stated here rather than
+// silently approximated.
+enum GarrAutoSpellTargetMask : uint8
+{
+    GARR_AUTO_TARGET_ENEMY_TEAM     = 0x01,
+    GARR_AUTO_TARGET_NEAR           = 0x02,
+    GARR_AUTO_TARGET_FAR            = 0x04,
+    GARR_AUTO_TARGET_MELEE_ROW      = 0x08,
+    GARR_AUTO_TARGET_RANGED_ROW     = 0x10
+};
+
+// The simulator's own vocabulary for what an effect row did to a combatant. NOT a DB2 column, and not
+// interchangeable with GarrAutoSpellEffectType above or with GarrAutoMissionEventType on the wire.
 enum AutoCombatEffectType : uint8
 {
     AUTO_COMBAT_EFFECT_DAMAGE           = 0,
     AUTO_COMBAT_EFFECT_HEAL             = 1,
-    AUTO_COMBAT_EFFECT_BUFF_ATTACK      = 2,
-    AUTO_COMBAT_EFFECT_DEBUFF_ATTACK    = 3,
-    AUTO_COMBAT_EFFECT_SHIELD           = 4,
-    AUTO_COMBAT_EFFECT_AOE_DAMAGE       = 5,
     AUTO_COMBAT_EFFECT_HOT              = 6,
-    AUTO_COMBAT_EFFECT_DOT              = 7,
-    AUTO_COMBAT_EFFECT_MAX
-};
-
-enum AutoCombatTargetType : uint8
-{
-    AUTO_COMBAT_TARGET_SELF                 = 0,
-    AUTO_COMBAT_TARGET_SINGLE_ENEMY         = 1,
-    AUTO_COMBAT_TARGET_ALL_ENEMIES          = 2,
-    AUTO_COMBAT_TARGET_SINGLE_ALLY          = 3,
-    AUTO_COMBAT_TARGET_ALL_ALLIES           = 4,
-    AUTO_COMBAT_TARGET_LOWEST_HP_ALLY       = 5,
-    AUTO_COMBAT_TARGET_HIGHEST_HP_ENEMY     = 6,
-    AUTO_COMBAT_TARGET_RANDOM_ENEMY         = 7,
-    AUTO_COMBAT_TARGET_MAX
+    AUTO_COMBAT_EFFECT_DOT              = 7
 };
 
 // GarrAutoCombatant.Role, values documented in the GarrAutoCombatant.dbd definition
@@ -141,8 +175,16 @@ struct AutoCombatPeriodicEffect
     int32 RemainingTicks = 0;
     bool IsDamage = true;
     int8 SourceBoardIndex = -1;
+    // Carried so that every tick reports the same (spellID, effectIndex) pair the applying cast did;
+    // the client keys its per-socket aura bookkeeping on that pair.
+    uint8 EffectIndex = 0;
+    int32 SourceCasterRole = 0;
 };
 
+// Nothing produces these today: the GarrAutoSpellEffect rows that would (Effect 12 damage-dealt
+// multiplier, 14 damage-taken multiplier, 18 increase max health) are multiplicative and their Points
+// scaling is not published, so they are not simulated. The machinery is kept because the shield and
+// attack-modifier bookkeeping is already correct for the day those are decoded.
 struct AutoCombatAttackModifier
 {
     int32 Amount = 0;
@@ -196,9 +238,10 @@ struct AutoCombatEvent
     // IsPeriodicTick separates a DoT/HoT *tick* from the cast that applied it (both use EffectType
     // AUTO_COMBAT_EFFECT_DOT/_HOT).
     int32 CasterRole = AUTO_COMBAT_ROLE_NONE;
-    // Position of the producing row inside GarrAutoSpellEffect for this spell. The client keys its
-    // per-socket aura bookkeeping on (spellID, effectIndex) - AdventuresSocketMixin:AddAura/RemoveAura,
-    // Blizzard_AdventuresBoard.lua:570-590 - so two effects of the same spell must not collide.
+    // GarrAutoSpellEffect.EffectIndex of the row that produced this event - the DB2 column, not the
+    // row's position in our lookup vector. The client keys its per-socket aura bookkeeping on
+    // (spellID, effectIndex) - AdventuresSocketMixin:AddAura/RemoveAura, Blizzard_AdventuresBoard.lua:
+    // 570-590 - so it has to be the same number the client's own copy of the table carries.
     uint8 EffectIndex = 0;
     bool IsAutoAttack = false;
     bool IsPeriodicTick = false;
@@ -250,32 +293,42 @@ private:
         std::vector<AutoCombatCombatant>& enemies,
         AutoCombatRound& round);
 
-    static void ResolveSpell(
+    // Returns true when the spell actually produced at least one replay event. A companion whose
+    // ability is one of the effect kinds the simulation cannot model must not lose its turn to it, and
+    // must not put it on cooldown either, so the caller falls through to the next option.
+    static bool ResolveSpell(
         AutoCombatCombatant& caster, int32 spellID,
         std::vector<AutoCombatCombatant>& allies,
         std::vector<AutoCombatCombatant>& enemies,
         AutoCombatRound& round);
 
+    // Maps a GarrAutoSpellEffect.Effect value onto the simulator's vocabulary. False means the value is
+    // one this build does not know how to simulate; the row is then skipped entirely.
+    static bool TranslateSpellEffect(uint8 dbEffect, uint8& simulatedEffect);
+
     static void ResolveEffect(
         AutoCombatCombatant& caster, GarrAutoSpellEffectEntry const* effect,
-        AutoCombatCombatant& target, uint32 spellID, uint8 effectIndex,
+        AutoCombatCombatant& target, uint32 spellID, uint8 simulatedEffect,
         AutoCombatRound& round);
 
     static std::vector<AutoCombatCombatant*> SelectTargets(
-        AutoCombatCombatant& caster, uint8 targetType,
+        AutoCombatCombatant& caster, uint8 targetMask,
         std::vector<AutoCombatCombatant>& allies,
         std::vector<AutoCombatCombatant>& enemies);
 
     // These take the caster itself rather than only its board index: the replay event has to record the
-    // caster's role and whether the hit was an auto-attack, and neither is recoverable later.
+    // caster's role and whether the hit was an auto-attack, and neither is recoverable later. spellID
+    // is the GarrAutoSpell the hit came from and must be non-zero - the client resolves it through
+    // C_Garrison.GetCombatLogSpellInfo and indexes the result unconditionally, so an event without one
+    // faults its combat log.
     static void ApplyDamage(
         AutoCombatCombatant& target, int32 amount,
         AutoCombatCombatant const& caster, uint32 spellID, uint8 effectType,
-        AutoCombatRound& round);
+        uint8 effectIndex, bool isAutoAttack, AutoCombatRound& round);
 
     static void ApplyHealing(
         AutoCombatCombatant& target, int32 amount,
-        AutoCombatCombatant const& caster, uint32 spellID,
+        AutoCombatCombatant const& caster, uint32 spellID, uint8 effectIndex,
         AutoCombatRound& round);
 
     static bool IsTeamAlive(std::vector<AutoCombatCombatant> const& team);

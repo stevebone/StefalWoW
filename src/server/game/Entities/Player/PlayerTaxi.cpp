@@ -18,10 +18,12 @@
 #include "PlayerTaxi.h"
 #include "ConditionMgr.h"
 #include "DB2Stores.h"
+#include "Log.h"
 #include "ObjectMgr.h"
 #include "Player.h"
 #include "StringConvert.h"
 #include "TaxiPackets.h"
+#include <iomanip>
 #include <sstream>
 
 PlayerTaxi::PlayerTaxi() = default;
@@ -186,7 +188,7 @@ bool PlayerTaxi::IsNodeUnlockedByCondition(uint32 nodeidx, Player const* player)
 }
 
 void PlayerTaxi::AppendConditionUnlockedNodesTo(TaxiMask& landNodes, TaxiMask& useNodes,
-    TaxiMask const& reachableNodes, Player const* player)
+    TaxiMask const& reachableNodes, Player const* player, std::vector<TaxiConditionUnlockReport>* report)
 {
     for (TaxiNodesEntry const* node : sTaxiNodesStore)
     {
@@ -199,13 +201,26 @@ void PlayerTaxi::AppendConditionUnlockedNodesTo(TaxiMask& landNodes, TaxiMask& u
         if (field >= reachableNodes.size())
             continue;
 
+        TaxiConditionUnlockReport entry;
+        entry.NodeID = node->ID;
+        entry.ConditionID = node->ConditionID;
+        entry.VisibilityConditionID = node->VisibilityConditionID;
+        entry.Flags = node->Flags;
+        entry.InReachableMask = (reachableNodes[field] & submask) != 0;
+        entry.AlreadyOffered = (useNodes[field] & submask) != 0;
+
         // Skip anything the flight master cannot route to anyway (this also keeps the number of condition
         // evaluations down to the handful of gated nodes that share a network with the current node) and
         // anything already offered through the discovery mask.
-        if (!(reachableNodes[field] & submask) || (useNodes[field] & submask))
+        if (!entry.InReachableMask || entry.AlreadyOffered)
+        {
+            if (report && entry.InReachableMask)
+                report->push_back(entry);
             continue;
+        }
 
-        if (IsNodeUnlockedByCondition(node->ID, player))
+        entry.ConditionPassed = IsNodeUnlockedByCondition(node->ID, player);
+        if (entry.ConditionPassed)
         {
             // CanLandNodes is what the flight map iterates to place pins; CanUseNodes only decides
             // whether an already-placed pin is selectable. Setting just the latter left the node
@@ -213,8 +228,42 @@ void PlayerTaxi::AppendConditionUnlockedNodesTo(TaxiMask& landNodes, TaxiMask& u
             // even though the server had already worked out that three more were open to him.
             landNodes[field] |= submask;
             useNodes[field] |= submask;
+            entry.BitSet = (landNodes[field] & submask) != 0 && (useNodes[field] & submask) != 0;
         }
+
+        TC_LOG_DEBUG("taxi.condition", "taxi node {} cond={} viscond={} flags=0x{:X} reachable={} known={} passed={} bitSet={}",
+            entry.NodeID, entry.ConditionID, entry.VisibilityConditionID, uint32(entry.Flags),
+            entry.InReachableMask, entry.AlreadyOffered, entry.ConditionPassed, entry.BitSet);
+
+        if (report)
+            report->push_back(entry);
     }
+}
+
+std::string PlayerTaxi::DescribeMaskQword(TaxiMask const& mask, uint32 qwordIndex)
+{
+    static_assert(sizeof(TaxiMask::value_type) == 1, "the qword reassembly below assumes a byte-wide mask element");
+
+    uint64 value = 0;
+    for (uint32 i = 0; i < 8; ++i)
+    {
+        std::size_t byteIndex = std::size_t(qwordIndex) * 8 + i;
+        if (byteIndex < mask.size())
+            value |= uint64(mask[byteIndex]) << (i * 8);
+    }
+
+    std::ostringstream ss;
+    ss << "qword " << qwordIndex << " (nodes " << (qwordIndex * 64 + 1) << ".." << (qwordIndex * 64 + 64) << ") = 0x"
+       << std::hex << std::setw(16) << std::setfill('0') << value << std::dec << " ->";
+
+    if (!value)
+        ss << " <none>";
+    else
+        for (uint32 bit = 0; bit < 64; ++bit)
+            if (value & (UI64LIT(1) << bit))
+                ss << ' ' << (qwordIndex * 64 + bit + 1);
+
+    return ss.str();
 }
 
 bool PlayerTaxi::LoadTaxiDestinationsFromString(const std::string& values, uint32 team)

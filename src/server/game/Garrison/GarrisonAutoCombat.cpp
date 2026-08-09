@@ -19,7 +19,6 @@
 #include "DB2Stores.h"
 #include "GarrisonMgr.h"
 #include "Log.h"
-#include "Random.h"
 #include <algorithm>
 
 int32 AutoCombatCombatant::GetEffectiveAttack() const
@@ -40,11 +39,15 @@ void AutoCombatCombatant::TickPeriodicEffects(AutoCombatRound& round)
             continue;
         }
 
+        // Every periodic was created from a resolved GarrAutoSpell effect row, so SpellID/EffectIndex
+        // are the ones the applying cast reported and the tick can be replayed against the same aura.
         AutoCombatEvent event;
         event.CasterBoardIndex = it->SourceBoardIndex;
         event.TargetBoardIndex = BoardIndex;
         event.SpellID = it->SpellID;
         event.Amount = it->Amount;
+        event.EffectIndex = it->EffectIndex;
+        event.CasterRole = it->SourceCasterRole;
         event.TargetOldHealth = CurrentHealth;
         event.TargetMaxHealth = MaxHealth;
 
@@ -280,366 +283,251 @@ void GarrisonAutoCombat::ProcessTurn(
     if (!combatant.IsAlive())
         return;
 
+    // Each option is only spent if it actually produced replay events, so an ability built entirely
+    // out of effect kinds this build cannot simulate falls through to the next slot instead of
+    // silently costing the combatant its turn.
+    auto tryCast = [&](int32 spellID)
+    {
+        if (spellID == 0)
+            return false;
+        if (combatant.SpellCooldowns.find(spellID) != combatant.SpellCooldowns.end())
+            return false;
+        return ResolveSpell(combatant, spellID, allies, enemies, round);
+    };
+
     // Healers prioritize healing wounded allies
     if (combatant.Role == AUTO_COMBAT_ROLE_HEAL_SUPPORT)
     {
         AutoCombatCombatant* woundedAlly = FindLowestHPAlive(allies);
         if (woundedAlly && woundedAlly->CurrentHealth < woundedAlly->MaxHealth)
-        {
-            // Try primary heal spell if available and not on cooldown
-            if (combatant.PrimarySpellID != 0
-                && combatant.SpellCooldowns.find(combatant.PrimarySpellID) == combatant.SpellCooldowns.end())
-            {
-                ResolveSpell(combatant, combatant.PrimarySpellID, allies, enemies, round);
+            if (tryCast(combatant.PrimarySpellID))
                 return;
-            }
-        }
     }
 
-    // Try primary spell if available and not on cooldown
-    if (combatant.PrimarySpellID != 0
-        && combatant.SpellCooldowns.find(combatant.PrimarySpellID) == combatant.SpellCooldowns.end())
-    {
-        ResolveSpell(combatant, combatant.PrimarySpellID, allies, enemies, round);
+    if (tryCast(combatant.PrimarySpellID))
         return;
-    }
 
     // GarrAutoCombatant publishes a second ability slot; use it while the first is on cooldown
     // rather than dropping straight to the auto-attack.
-    if (combatant.SecondarySpellID != 0
-        && combatant.SpellCooldowns.find(combatant.SecondarySpellID) == combatant.SpellCooldowns.end())
-    {
-        ResolveSpell(combatant, combatant.SecondarySpellID, allies, enemies, round);
+    if (tryCast(combatant.SecondarySpellID))
         return;
-    }
 
-    // Fall back to auto-attack
-    if (combatant.AutoAttackSpellID != 0)
-    {
-        ResolveSpell(combatant, combatant.AutoAttackSpellID, allies, enemies, round);
+    // Fall back to the combatant's own auto-attack. GarrAutoCombatant.AttackSpellID is a real
+    // GarrAutoSpell (all 355 references in 68275 resolve, and every one of them is built out of
+    // Effect 1 DealAutoDamage rows), so this is where an auto-attack's spell id comes from.
+    if (tryCast(combatant.AutoAttackSpellID))
         return;
-    }
 
-    // Last resort: basic attack on first alive enemy
-    AutoCombatCombatant* target = nullptr;
-    for (auto& enemy : enemies)
-    {
-        if (enemy.IsAlive())
-        {
-            target = &enemy;
-            break;
-        }
-    }
+    // Eight GarrAutoCombatant rows in 68275 publish AttackSpellID 0 (1, 212, 216-219, 292, 293; row 1
+    // is the JasonTest statline the five DNT companions 1203-1207 and encounter 2546 point at). There
+    // is no spell to attribute a swing to, and an event without a GarrAutoSpell faults the client's
+    // combat log, so the combatant simply does nothing this round.
+    TC_LOG_DEBUG("garrison", "GarrisonAutoCombat: combatant {} (board {}) had no usable auto-combat "
+        "spell this round; no event emitted", combatant.AutoCombatantID, combatant.BoardIndex);
+}
 
-    if (target)
+bool GarrisonAutoCombat::TranslateSpellEffect(uint8 dbEffect, uint8& simulatedEffect)
+{
+    switch (dbEffect)
     {
-        int32 damage = combatant.GetEffectiveAttack();
-        ApplyDamage(*target, damage, combatant, 0,
-            AUTO_COMBAT_EFFECT_DAMAGE, round);
+        case GARR_AUTO_SPELL_EFFECT_DEAL_AUTO_DAMAGE:
+        case GARR_AUTO_SPELL_EFFECT_DEAL_DAMAGE:
+            simulatedEffect = AUTO_COMBAT_EFFECT_DAMAGE;
+            return true;
+        case GARR_AUTO_SPELL_EFFECT_HEAL:
+        case GARR_AUTO_SPELL_EFFECT_HEAL_ALT:
+            simulatedEffect = AUTO_COMBAT_EFFECT_HEAL;
+            return true;
+        case GARR_AUTO_SPELL_EFFECT_DOT:
+            simulatedEffect = AUTO_COMBAT_EFFECT_DOT;
+            return true;
+        case GARR_AUTO_SPELL_EFFECT_HOT:
+            simulatedEffect = AUTO_COMBAT_EFFECT_HOT;
+            return true;
+        default:
+            return false;
     }
 }
 
-void GarrisonAutoCombat::ResolveSpell(
+bool GarrisonAutoCombat::ResolveSpell(
     AutoCombatCombatant& caster, int32 spellID,
     std::vector<AutoCombatCombatant>& allies,
     std::vector<AutoCombatCombatant>& enemies,
     AutoCombatRound& round)
 {
+    if (spellID == 0)
+        return false;
+
+    // No fallback swing here any more. The only thing a caster could be credited with when the spell
+    // does not resolve is a hit with no GarrAutoSpell behind it, and the replay cannot render that:
+    // AdventuresCombatLogMixin:AddCombatEvent feeds combatLogEvent.spellID straight into
+    // C_Garrison.GetCombatLogSpellInfo and indexes the result, so a zero id faults the combat log.
     GarrAutoSpellEntry const* spell = sGarrAutoSpellStore.LookupEntry(spellID);
     if (!spell)
     {
-        // Unknown spell — fall back to basic attack
-        for (auto& enemy : enemies)
-        {
-            if (enemy.IsAlive())
-            {
-                ApplyDamage(enemy, caster.GetEffectiveAttack(),
-                    caster, 0, AUTO_COMBAT_EFFECT_DAMAGE, round);
-                break;
-            }
-        }
-        return;
+        TC_LOG_DEBUG("garrison", "GarrisonAutoCombat: combatant {} references GarrAutoSpell {} which "
+            "does not exist; skipping", caster.AutoCombatantID, spellID);
+        return false;
     }
 
-    // Get spell effects
     std::vector<GarrAutoSpellEffectEntry const*> const* effects =
         sGarrisonMgr.GetAutoSpellEffects(spellID);
 
     if (!effects || effects->empty())
     {
-        // Spell with no effects — treat as single-target damage using caster attack
-        for (auto& enemy : enemies)
-        {
-            if (enemy.IsAlive())
-            {
-                ApplyDamage(enemy, caster.GetEffectiveAttack(),
-                    caster, spellID, AUTO_COMBAT_EFFECT_DAMAGE, round);
-                break;
-            }
-        }
+        TC_LOG_DEBUG("garrison", "GarrisonAutoCombat: GarrAutoSpell {} has no GarrAutoSpellEffect rows; "
+            "skipping", spellID);
+        return false;
     }
-    else
+
+    std::size_t const eventsBefore = round.Events.size();
+
+    for (GarrAutoSpellEffectEntry const* effect : *effects)
     {
-        // Resolve each effect. The row's position in the spell's effect list is the effectIndex the
-        // client uses to key auras per socket, so it travels with every event the effect produces.
-        for (std::size_t effectIndex = 0; effectIndex < effects->size(); ++effectIndex)
+        uint8 simulatedEffect = 0;
+        if (!TranslateSpellEffect(effect->Effect, simulatedEffect))
         {
-            GarrAutoSpellEffectEntry const* effect = (*effects)[effectIndex];
-            std::vector<AutoCombatCombatant*> targets =
-                SelectTargets(caster, effect->Targets, allies, enemies);
-
-            for (AutoCombatCombatant* target : targets)
-            {
-                if (target && target->IsAlive())
-                    ResolveEffect(caster, effect, *target, spellID, uint8(effectIndex), round);
-            }
+            TC_LOG_DEBUG("garrison", "GarrisonAutoCombat: GarrAutoSpell {} effect index {} uses "
+                "GarrAutoSpellEffect.Effect {}, which this build does not simulate; no event emitted "
+                "for it", spellID, effect->EffectIndex, effect->Effect);
+            continue;
         }
+
+        std::vector<AutoCombatCombatant*> targets =
+            SelectTargets(caster, effect->TargetType, allies, enemies);
+
+        for (AutoCombatCombatant* target : targets)
+            if (target && target->IsAlive())
+                ResolveEffect(caster, effect, *target, spellID, simulatedEffect, round);
     }
 
-    // Apply cooldown
+    if (round.Events.size() == eventsBefore)
+        return false;
+
+    // Only a cast that actually happened goes on cooldown.
     if (spell->Cooldown > 0)
         caster.SpellCooldowns[spellID] = spell->Cooldown;
+
+    return true;
 }
 
 void GarrisonAutoCombat::ResolveEffect(
     AutoCombatCombatant& caster, GarrAutoSpellEffectEntry const* effect,
-    AutoCombatCombatant& target, uint32 spellID, uint8 effectIndex,
+    AutoCombatCombatant& target, uint32 spellID, uint8 simulatedEffect,
     AutoCombatRound& round)
 {
-    // Scale effect amount by caster attack
-    int32 amount = static_cast<int32>(effect->Amount);
+    // GarrAutoSpellEffect.Points is a coefficient, not a flat amount - "Double Strike ... dealing a
+    // $s1 and then $s2 Physical damage" (GarrAutoSpell 4) carries 0.75 and 0.5 - but what it is a
+    // coefficient *of* is not published consistently across the effect kinds (GarrAutoSpell 8
+    // "Hawk Punch" carries 10 on the same kind that GarrAutoSpell 11 "Auto Attack" carries 1). The
+    // pre-existing approximation is kept unchanged rather than replaced by a guessed formula; the
+    // magnitudes are a separate open item from the event layout this change fixes.
+    int32 amount = static_cast<int32>(effect->Points);
     if (amount == 0)
         amount = caster.GetEffectiveAttack();
 
-    switch (effect->EffectType)
+    bool const isAutoAttack = effect->Effect == GARR_AUTO_SPELL_EFFECT_DEAL_AUTO_DAMAGE;
+
+    switch (simulatedEffect)
     {
         case AUTO_COMBAT_EFFECT_DAMAGE:
-            ApplyDamage(target, amount, caster, spellID,
-                AUTO_COMBAT_EFFECT_DAMAGE, round);
+            ApplyDamage(target, amount, caster, spellID, AUTO_COMBAT_EFFECT_DAMAGE,
+                effect->EffectIndex, isAutoAttack, round);
             break;
 
         case AUTO_COMBAT_EFFECT_HEAL:
-            ApplyHealing(target, amount, caster, spellID, round);
-            break;
-
-        case AUTO_COMBAT_EFFECT_BUFF_ATTACK:
-        {
-            AutoCombatAttackModifier mod;
-            mod.Amount = amount;
-            mod.RemainingRounds = effect->Period > 0 ? effect->Period : 3;
-            target.AttackModifiers.push_back(mod);
-
-            AutoCombatEvent event;
-            event.CasterBoardIndex = caster.BoardIndex;
-            event.TargetBoardIndex = target.BoardIndex;
-            event.SpellID = spellID;
-            event.Amount = amount;
-            event.EffectType = AUTO_COMBAT_EFFECT_BUFF_ATTACK;
-            // Health is untouched by this effect, but the replay still needs the bar values.
-            event.TargetOldHealth = target.CurrentHealth;
-            event.TargetNewHealth = target.CurrentHealth;
-            event.TargetMaxHealth = target.MaxHealth;
-            event.CasterRole = caster.Role;
-            event.EffectIndex = effectIndex;
-            round.Events.push_back(event);
-            break;
-        }
-
-        case AUTO_COMBAT_EFFECT_DEBUFF_ATTACK:
-        {
-            AutoCombatAttackModifier mod;
-            mod.Amount = -amount;
-            mod.RemainingRounds = effect->Period > 0 ? effect->Period : 3;
-            target.AttackModifiers.push_back(mod);
-
-            AutoCombatEvent event;
-            event.CasterBoardIndex = caster.BoardIndex;
-            event.TargetBoardIndex = target.BoardIndex;
-            event.SpellID = spellID;
-            event.Amount = -amount;
-            event.EffectType = AUTO_COMBAT_EFFECT_DEBUFF_ATTACK;
-            // Health is untouched by this effect, but the replay still needs the bar values.
-            event.TargetOldHealth = target.CurrentHealth;
-            event.TargetNewHealth = target.CurrentHealth;
-            event.TargetMaxHealth = target.MaxHealth;
-            event.CasterRole = caster.Role;
-            event.EffectIndex = effectIndex;
-            round.Events.push_back(event);
-            break;
-        }
-
-        case AUTO_COMBAT_EFFECT_SHIELD:
-        {
-            target.ShieldAmount += amount;
-
-            AutoCombatEvent event;
-            event.CasterBoardIndex = caster.BoardIndex;
-            event.TargetBoardIndex = target.BoardIndex;
-            event.SpellID = spellID;
-            event.Amount = amount;
-            event.EffectType = AUTO_COMBAT_EFFECT_SHIELD;
-            // Health is untouched by this effect, but the replay still needs the bar values.
-            event.TargetOldHealth = target.CurrentHealth;
-            event.TargetNewHealth = target.CurrentHealth;
-            event.TargetMaxHealth = target.MaxHealth;
-            event.CasterRole = caster.Role;
-            event.EffectIndex = effectIndex;
-            round.Events.push_back(event);
-            break;
-        }
-
-        case AUTO_COMBAT_EFFECT_AOE_DAMAGE:
-            // Already handled by target selection returning all enemies
-            ApplyDamage(target, amount, caster, spellID,
-                AUTO_COMBAT_EFFECT_AOE_DAMAGE, round);
+            ApplyHealing(target, amount, caster, spellID, effect->EffectIndex, round);
             break;
 
         case AUTO_COMBAT_EFFECT_HOT:
-        {
-            AutoCombatPeriodicEffect periodic;
-            periodic.SpellID = spellID;
-            periodic.Amount = amount;
-            periodic.RemainingTicks = effect->Period > 0 ? effect->Period : 3;
-            periodic.IsDamage = false;
-            periodic.SourceBoardIndex = caster.BoardIndex;
-            target.PeriodicEffects.push_back(periodic);
-
-            AutoCombatEvent event;
-            event.CasterBoardIndex = caster.BoardIndex;
-            event.TargetBoardIndex = target.BoardIndex;
-            event.SpellID = spellID;
-            event.Amount = amount;
-            event.EffectType = AUTO_COMBAT_EFFECT_HOT;
-            // Health is untouched by this effect, but the replay still needs the bar values.
-            event.TargetOldHealth = target.CurrentHealth;
-            event.TargetNewHealth = target.CurrentHealth;
-            event.TargetMaxHealth = target.MaxHealth;
-            event.CasterRole = caster.Role;
-            event.EffectIndex = effectIndex;
-            round.Events.push_back(event);
-            break;
-        }
-
         case AUTO_COMBAT_EFFECT_DOT:
         {
+            bool const isDamage = simulatedEffect == AUTO_COMBAT_EFFECT_DOT;
+
             AutoCombatPeriodicEffect periodic;
             periodic.SpellID = spellID;
             periodic.Amount = amount;
             periodic.RemainingTicks = effect->Period > 0 ? effect->Period : 3;
-            periodic.IsDamage = true;
+            periodic.IsDamage = isDamage;
             periodic.SourceBoardIndex = caster.BoardIndex;
+            periodic.EffectIndex = effect->EffectIndex;
+            periodic.SourceCasterRole = caster.Role;
             target.PeriodicEffects.push_back(periodic);
 
+            // The application itself is an aura on the client, not a hit; the ticks that follow are the
+            // PeriodicDamage/PeriodicHeal events, produced by TickPeriodicEffects.
             AutoCombatEvent event;
             event.CasterBoardIndex = caster.BoardIndex;
             event.TargetBoardIndex = target.BoardIndex;
             event.SpellID = spellID;
             event.Amount = amount;
-            event.EffectType = AUTO_COMBAT_EFFECT_DOT;
+            event.EffectType = isDamage ? AUTO_COMBAT_EFFECT_DOT : AUTO_COMBAT_EFFECT_HOT;
             // Health is untouched by this effect, but the replay still needs the bar values.
             event.TargetOldHealth = target.CurrentHealth;
             event.TargetNewHealth = target.CurrentHealth;
             event.TargetMaxHealth = target.MaxHealth;
             event.CasterRole = caster.Role;
-            event.EffectIndex = effectIndex;
+            event.EffectIndex = effect->EffectIndex;
             round.Events.push_back(event);
             break;
         }
 
         default:
-            TC_LOG_DEBUG("garrison", "GarrisonAutoCombat: Unknown effect type {} for spell {}",
-                effect->EffectType, spellID);
+            // Unreachable: TranslateSpellEffect only produces the four cases above.
             break;
     }
 }
 
 std::vector<AutoCombatCombatant*> GarrisonAutoCombat::SelectTargets(
-    AutoCombatCombatant& caster, uint8 targetType,
+    AutoCombatCombatant& caster, uint8 targetMask,
     std::vector<AutoCombatCombatant>& allies,
     std::vector<AutoCombatCombatant>& enemies)
 {
     std::vector<AutoCombatCombatant*> targets;
 
-    switch (targetType)
+    // Bit 0 on its own is the caster (GarrAutoSpell 17 effect 1, "healing himself", carries mask 1).
+    if (targetMask == GARR_AUTO_TARGET_ENEMY_TEAM)
     {
-        case AUTO_COMBAT_TARGET_SELF:
-            targets.push_back(&caster);
-            break;
-
-        case AUTO_COMBAT_TARGET_SINGLE_ENEMY:
-        {
-            // Target first alive enemy (by board index)
-            for (auto& enemy : enemies)
-            {
-                if (enemy.IsAlive())
-                {
-                    targets.push_back(&enemy);
-                    break;
-                }
-            }
-            break;
-        }
-
-        case AUTO_COMBAT_TARGET_ALL_ENEMIES:
-            for (auto& enemy : enemies)
-                if (enemy.IsAlive())
-                    targets.push_back(&enemy);
-            break;
-
-        case AUTO_COMBAT_TARGET_SINGLE_ALLY:
-        {
-            // Prefer wounded ally
-            AutoCombatCombatant* wounded = FindLowestHPAlive(allies);
-            if (wounded)
-                targets.push_back(wounded);
-            break;
-        }
-
-        case AUTO_COMBAT_TARGET_ALL_ALLIES:
-            for (auto& ally : allies)
-                if (ally.IsAlive())
-                    targets.push_back(&ally);
-            break;
-
-        case AUTO_COMBAT_TARGET_LOWEST_HP_ALLY:
-        {
-            AutoCombatCombatant* lowest = FindLowestHPAlive(allies);
-            if (lowest)
-                targets.push_back(lowest);
-            break;
-        }
-
-        case AUTO_COMBAT_TARGET_HIGHEST_HP_ENEMY:
-        {
-            AutoCombatCombatant* highest = FindHighestHPAlive(enemies);
-            if (highest)
-                targets.push_back(highest);
-            break;
-        }
-
-        case AUTO_COMBAT_TARGET_RANDOM_ENEMY:
-        {
-            std::vector<AutoCombatCombatant*> alive;
-            for (auto& enemy : enemies)
-                if (enemy.IsAlive())
-                    alive.push_back(&enemy);
-            if (!alive.empty())
-                targets.push_back(alive[urand(0, static_cast<uint32>(alive.size()) - 1)]);
-            break;
-        }
-
-        default:
-            // Fall back to single enemy
-            for (auto& enemy : enemies)
-            {
-                if (enemy.IsAlive())
-                {
-                    targets.push_back(&enemy);
-                    break;
-                }
-            }
-            break;
+        targets.push_back(&caster);
+        return targets;
     }
+
+    bool const hitsEnemies = (targetMask & GARR_AUTO_TARGET_ENEMY_TEAM) != 0;
+    std::vector<AutoCombatCombatant>& team = hitsEnemies ? enemies : allies;
+
+    // Near and far together is the whole team ("all enemies" = 1|2|4). A row restriction (8 melee row,
+    // 16 ranged row) also names a group rather than one combatant - "all enemies in melee range",
+    // "all enemies at range", "all ranged allies" - and since the simulation does not model board rows
+    // it resolves to the whole team rather than to an invented subset.
+    bool const wholeTeam = ((targetMask & GARR_AUTO_TARGET_NEAR) && (targetMask & GARR_AUTO_TARGET_FAR))
+        || (targetMask & GARR_AUTO_TARGET_MELEE_ROW) != 0
+        || (targetMask & GARR_AUTO_TARGET_RANGED_ROW) != 0;
+
+    if (wholeTeam)
+    {
+        for (AutoCombatCombatant& combatant : team)
+            if (combatant.IsAlive())
+                targets.push_back(&combatant);
+
+        return targets;
+    }
+
+    // A single pick. Which one - closest or farthest - is a board-position question the simulation
+    // cannot answer, so it takes the first living member in board order for an enemy and the most
+    // wounded for an ally, which is what the previous code did and keeps healers useful.
+    if (hitsEnemies)
+    {
+        for (AutoCombatCombatant& enemy : team)
+        {
+            if (enemy.IsAlive())
+            {
+                targets.push_back(&enemy);
+                break;
+            }
+        }
+    }
+    else if (AutoCombatCombatant* wounded = FindLowestHPAlive(team))
+        targets.push_back(wounded);
 
     return targets;
 }
@@ -647,8 +535,17 @@ std::vector<AutoCombatCombatant*> GarrisonAutoCombat::SelectTargets(
 void GarrisonAutoCombat::ApplyDamage(
     AutoCombatCombatant& target, int32 amount,
     AutoCombatCombatant const& caster, uint32 spellID, uint8 effectType,
-    AutoCombatRound& round)
+    uint8 effectIndex, bool isAutoAttack, AutoCombatRound& round)
 {
+    // Guard rather than assert: an event whose spellID is 0 makes the client's combat log index a nil
+    // AutoCombatSpellInfo and error out mid-replay, so the hit is dropped instead.
+    if (spellID == 0)
+    {
+        TC_LOG_ERROR("garrison", "GarrisonAutoCombat: refused to log damage from combatant {} onto "
+            "board index {} with no GarrAutoSpell behind it", caster.AutoCombatantID, target.BoardIndex);
+        return;
+    }
+
     int32 damage = amount;
     int32 const oldHealth = target.CurrentHealth;
 
@@ -670,20 +567,30 @@ void GarrisonAutoCombat::ApplyDamage(
     event.SpellID = spellID;
     event.Amount = amount;
     event.EffectType = effectType;
+    event.EffectIndex = effectIndex;
     event.TargetOldHealth = oldHealth;
     event.TargetNewHealth = target.CurrentHealth;
     event.TargetMaxHealth = target.MaxHealth;
     event.CasterRole = caster.Role;
-    event.IsAutoAttack = spellID == 0 || int32(spellID) == caster.AutoAttackSpellID;
+    // Sourced from the effect row (GarrAutoSpellEffect.Effect 1 DealAutoDamage), not from a missing
+    // spell id. The combatant's own AttackSpellID agreeing is a second, weaker signal.
+    event.IsAutoAttack = isAutoAttack || int32(spellID) == caster.AutoAttackSpellID;
     event.TargetDied = oldHealth > 0 && target.CurrentHealth == 0;
     round.Events.push_back(event);
 }
 
 void GarrisonAutoCombat::ApplyHealing(
     AutoCombatCombatant& target, int32 amount,
-    AutoCombatCombatant const& caster, uint32 spellID,
+    AutoCombatCombatant const& caster, uint32 spellID, uint8 effectIndex,
     AutoCombatRound& round)
 {
+    if (spellID == 0)
+    {
+        TC_LOG_ERROR("garrison", "GarrisonAutoCombat: refused to log healing from combatant {} onto "
+            "board index {} with no GarrAutoSpell behind it", caster.AutoCombatantID, target.BoardIndex);
+        return;
+    }
+
     int32 const oldHealth = target.CurrentHealth;
     target.CurrentHealth = std::min(target.CurrentHealth + amount, target.MaxHealth);
 
@@ -693,6 +600,7 @@ void GarrisonAutoCombat::ApplyHealing(
     event.SpellID = spellID;
     event.Amount = amount;
     event.EffectType = AUTO_COMBAT_EFFECT_HEAL;
+    event.EffectIndex = effectIndex;
     event.CasterRole = caster.Role;
     event.TargetOldHealth = oldHealth;
     event.TargetNewHealth = target.CurrentHealth;

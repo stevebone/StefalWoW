@@ -2357,7 +2357,6 @@ uint32 ToClientEventType(AutoCombatEvent const& event)
     switch (event.EffectType)
     {
         case AUTO_COMBAT_EFFECT_DAMAGE:
-        case AUTO_COMBAT_EFFECT_AOE_DAMAGE:
             if (event.IsAutoAttack)
                 return casterIsMelee ? GARR_AUTO_MISSION_EVENT_MELEE_DAMAGE : GARR_AUTO_MISSION_EVENT_RANGE_DAMAGE;
             return casterIsMelee ? GARR_AUTO_MISSION_EVENT_SPELL_MELEE_DAMAGE : GARR_AUTO_MISSION_EVENT_SPELL_RANGE_DAMAGE;
@@ -2370,9 +2369,6 @@ uint32 ToClientEventType(AutoCombatEvent const& event)
             return event.IsPeriodicTick ? GARR_AUTO_MISSION_EVENT_PERIODIC_DAMAGE : GARR_AUTO_MISSION_EVENT_APPLY_AURA;
         case AUTO_COMBAT_EFFECT_HOT:
             return event.IsPeriodicTick ? GARR_AUTO_MISSION_EVENT_PERIODIC_HEAL : GARR_AUTO_MISSION_EVENT_APPLY_AURA;
-        case AUTO_COMBAT_EFFECT_BUFF_ATTACK:
-        case AUTO_COMBAT_EFFECT_DEBUFF_ATTACK:
-        case AUTO_COMBAT_EFFECT_SHIELD:
         default:
             return GARR_AUTO_MISSION_EVENT_APPLY_AURA;
     }
@@ -2386,14 +2382,9 @@ uint32 ToClientAuraType(AutoCombatEvent const& event)
         case AUTO_COMBAT_EFFECT_HEAL:
         case AUTO_COMBAT_EFFECT_HOT:
             return GARR_AUTO_PREVIEW_TARGET_HEAL;
-        case AUTO_COMBAT_EFFECT_BUFF_ATTACK:
-        case AUTO_COMBAT_EFFECT_SHIELD:
-            return GARR_AUTO_PREVIEW_TARGET_BUFF;
-        case AUTO_COMBAT_EFFECT_DEBUFF_ATTACK:
         case AUTO_COMBAT_EFFECT_DOT:
             return GARR_AUTO_PREVIEW_TARGET_DEBUFF;
         case AUTO_COMBAT_EFFECT_DAMAGE:
-        case AUTO_COMBAT_EFFECT_AOE_DAMAGE:
             return GARR_AUTO_PREVIEW_TARGET_DAMAGE;
         default:
             return GARR_AUTO_PREVIEW_TARGET_NONE;
@@ -2454,16 +2445,30 @@ void Garrison::BuildMissionCompleteResult(Mission const& mission,
 
         for (AutoCombatEvent const& simulatedEvent : simulatedRound.Events)
         {
+            // Every event the replay receives has to name a GarrAutoSpell. AdventuresCombatLogMixin::
+            // AddCombatEvent (Blizzard_AdventuresCombatLog.lua:117-119) calls
+            // C_Garrison.GetCombatLogSpellInfo(event.spellID) and immediately indexes the result, which
+            // is nil for an id that is not in GarrAutoSpell.db2 - so a zero id is a Lua error in the
+            // middle of the replay, and dropping the event is the only degradation that is not one. The
+            // simulator is not supposed to produce these any more; this is the backstop.
+            GarrAutoSpellEntry const* autoSpell = sGarrAutoSpellStore.LookupEntry(simulatedEvent.SpellID);
+            if (!autoSpell)
+            {
+                TC_LOG_ERROR("garrison", "Garrison::BuildMissionCompleteResult: dropped an auto-combat "
+                    "event from board index {} with GarrAutoSpell {}, which the client cannot resolve",
+                    simulatedEvent.CasterBoardIndex, simulatedEvent.SpellID);
+                continue;
+            }
+
             uint32 const clientEventType = ToClientEventType(simulatedEvent);
+            // The damage school is published per auto-combat spell, and the replay picks the spell
+            // visual off it (GetTypeFromSchoolMask, Blizzard_AdventuresCompleteScreen.lua:300).
+            uint32 const schoolMask = uint32(std::max<int32>(autoSpell->SchoolMask, 0));
 
             WorldPackets::Garrison::GarrisonAutoMissionEvent packetEvent;
             packetEvent.Type = clientEventType;
             packetEvent.SpellID = simulatedEvent.SpellID;
-            // The damage school is published per auto-combat spell, and the replay colours its combat-log
-            // line from it (GetTypeFromSchoolMask, Blizzard_AdventuresCompleteScreen.lua:300). A plain
-            // auto-attack has no GarrAutoSpell row and correctly leaves the mask at 0.
-            if (GarrAutoSpellEntry const* autoSpell = sGarrAutoSpellStore.LookupEntry(simulatedEvent.SpellID))
-                packetEvent.SchoolMask = uint32(std::max<int32>(autoSpell->SchoolMask, 0));
+            packetEvent.SchoolMask = schoolMask;
             packetEvent.EffectIndex = simulatedEvent.EffectIndex;
             packetEvent.CasterBoardIndex = uint32(simulatedEvent.CasterBoardIndex);
             packetEvent.AuraType = ToClientAuraType(simulatedEvent);
@@ -2480,11 +2485,18 @@ void Garrison::BuildMissionCompleteResult(Mission const& mission,
             round.Events.push_back(std::move(packetEvent));
 
             // A killing blow is two events on the wire: the hit, then the death the board animates
-            // (Blizzard_AdventuresBoard.lua:435 switches on the Died type).
+            // (Blizzard_AdventuresBoard.lua:435 switches on the Died type). The death is attributed to
+            // the same spell as the blow that caused it - the client runs a Died event through the same
+            // AddCombatEvent path as every other one, so it needs a resolvable spellID even though
+            // COVENANT_MISSIONS_COMBAT_LOG_DIED only formats the caster and target names. Leaving these
+            // three fields at their defaults is what put spellID 0 on the wire and faulted the replay.
             if (simulatedEvent.TargetDied)
             {
                 WorldPackets::Garrison::GarrisonAutoMissionEvent deathEvent;
                 deathEvent.Type = GARR_AUTO_MISSION_EVENT_DIED;
+                deathEvent.SpellID = simulatedEvent.SpellID;
+                deathEvent.SchoolMask = schoolMask;
+                deathEvent.EffectIndex = simulatedEvent.EffectIndex;
                 deathEvent.CasterBoardIndex = uint32(simulatedEvent.CasterBoardIndex);
 
                 WorldPackets::Garrison::GarrisonAutoMissionTargetInfo deathTarget;

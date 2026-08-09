@@ -2023,6 +2023,11 @@ struct GarrAutoCombatantEntry
     int32 Role;
 };
 
+// GarrAutoSpell.db2, layout 0x8067D16A (12.0.7.68275, WoWDBDefs). The three trailing columns used to
+// be declared SchoolMask/SpellVisualID/Flags, which is the order of no build: the file order is
+// Flags, SchoolMask, IconFileDataID, so SchoolMask was being read out of Flags. Confirmed against the
+// shipped rows - GarrAutoSpell 4 "Double Strike ... Physical damage" carries 1 in this column,
+// 6 "Blood Explosion ... Shadow damage" carries 32, 10 "Starbranch Crush ... Frost damage" carries 16.
 struct GarrAutoSpellEntry
 {
     uint32 ID;
@@ -2030,20 +2035,27 @@ struct GarrAutoSpellEntry
     LocalizedString Description;
     int32 Cooldown;
     int32 Duration;
-    int32 SchoolMask;
-    int32 SpellVisualID;
     int32 Flags;
+    int32 SchoolMask;
+    int32 IconFileDataID;
 };
 
+// GarrAutoSpellEffect.db2, layout 0xACEA7666 (12.0.7.68275, WoWDBDefs). The middle columns used to be
+// declared EffectType/Targets/Amount/MiscType/MiscValue, one position off the real file order: what
+// was read as "EffectType" is the row's EffectIndex, what was read as "Targets" is the Effect kind,
+// and what was read as "MiscType" is the TargetType mask. Effect values per the DBD: 1 DealAutoDamage,
+// 2 Heal, 3 DealDamage, 4 Heal, 7 Dot, 8 Hot, 10 taunt, 12 damage-dealt multiplier,
+// 14 damage-taken multiplier, 18 increase max health (0/5/6/9/11/13/15..17 undocumented or test-only,
+// and 19/20 occur in the data without a DBD entry at all).
 struct GarrAutoSpellEffectEntry
 {
     uint32 ID;
     int32 GarrAutoSpellID;
-    uint8 EffectType;
-    uint8 Targets;
-    float Amount;
-    uint8 MiscType;
-    int32 MiscValue;
+    uint8 EffectIndex;
+    uint8 Effect;
+    float Points;
+    uint8 TargetType;
+    int32 Flags;
     int32 Period;
 };
 
