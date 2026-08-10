@@ -4449,4 +4449,14 @@ Shop.Enabled = 1
 Shop.PurchaseConfirmation = 0
 
 #
+#    Shop.PlaceholderName
+#        Description: Card title used for a catalog slot that has no shop_product row routed to it.
+#                     The 68275 catalog template ships nine fixed "simple shape" slots; any slot the
+#                     admin has not filled still has to carry a name, or the client renders an empty
+#                     card. Read by BattlePayCatalogWriter when assembling the product list.
+#        Default:     "Currently unavailable"
+
+Shop.PlaceholderName = "Currently unavailable"
+
+#
 ###################################################################################################
