@@ -238,6 +238,49 @@ void PlayerTaxi::AppendConditionUnlockedNodesTo(TaxiMask& landNodes, TaxiMask& u
         if (report)
             report->push_back(entry);
     }
+
+    // Hidden routing hubs.
+    //
+    // Some networks are not point-to-point: Bastion's covenant teleporters all run through two invisible hub
+    // nodes (2627 "Ground Points Hub", 2628 "Ground Hub"), so TaxiPath carries 2625->2628, 2628->2630,
+    // 2630->2627, 2627->2625 and so on, but NO 2625->2630. Argus (1985-1987), the 9.2 Resonant Peaks network
+    // (2732) and the 10.0 travel network (2835/2843) are built the same way - which is exactly the set
+    // TaxiNodesEntry::IsPartOfTaxiNetwork() has to whitelist by id, because they carry no
+    // ShowOnAllianceMap/ShowOnHordeMap flag of their own.
+    //
+    // The client resolves the route itself and only sends CMSG_ACTIVATE_TAXI once it has one. With the hubs
+    // absent from both masks it cannot get from the gateway to any destination, so it refuses locally with
+    // "There is no direct path to that destination!" and the server never hears about the click - which is why
+    // this read as a server routing bug while the server-side masks were provably correct for every
+    // *destination* (qword 41 = 0x3E3: 2625/2626/2630-2634 all set, hubs 2627/2628 clear).
+    //
+    // Identified structurally rather than by another hardcoded id list: a node the taxi network accepts but
+    // which publishes no faction map flag is by definition infrastructure, never a destination. That also means
+    // setting CanLandNodes for it cannot draw a stray pin - the client places pins from those same flags.
+    for (TaxiNodesEntry const* node : sTaxiNodesStore)
+    {
+        if (!node || !node->IsPartOfTaxiNetwork())
+            continue;
+
+        if (node->GetFlags().HasFlag(TaxiNodeFlags::ShowOnAllianceMap) || node->GetFlags().HasFlag(TaxiNodeFlags::ShowOnHordeMap))
+            continue;   // a real, displayable destination - covered by the discovery mask and the pass above
+
+        uint32 field = uint32((node->ID - 1) / (sizeof(TaxiMask::value_type) * 8));
+        TaxiMask::value_type submask = TaxiMask::value_type(1 << ((node->ID - 1) % (sizeof(TaxiMask::value_type) * 8)));
+        if (field >= reachableNodes.size())
+            continue;
+
+        // Only hubs on the current node's own network, so this never widens anything the flight master could
+        // not route through anyway.
+        if (!(reachableNodes[field] & submask))
+            continue;
+
+        landNodes[field] |= submask;
+        useNodes[field] |= submask;
+
+        TC_LOG_DEBUG("taxi.condition", "taxi hub {} flags=0x{:X} added to both masks (hidden routing infrastructure)",
+            node->ID, uint32(node->Flags));
+    }
 }
 
 std::string PlayerTaxi::DescribeMaskQword(TaxiMask const& mask, uint32 qwordIndex)
