@@ -60,8 +60,23 @@ ByteBuffer& operator<<(ByteBuffer& data, GarrisonBuildingInfo const& buildingInf
     return data;
 }
 
-// Sniff-verified for 12.0.1.66102 (148-byte and 156-byte FOLLOWER_CHANGED_QUALITY bodies
-// match this writer byte-for-byte — see SNIFF_AUDIT_12.0.1.66102.md §3.1).
+// Field order recovered from the 12.0.7 client's own JamGarrisonFollower reflection descriptor
+// (container @ RVA 0x36C34A0, count=17, names @ 0x36C3390, types @ 0x36C3300, offsets @ 0x36C32D8;
+// resolve pointers against the memory dump's RUNTIME base 0x7FF7B3140000, not the PE preferred base).
+// The wire order is ascending struct-offset order - the same rule that reproduces the independently
+// verified JamGarrisonTalent wire (offsets 0x00/0x04/0x08/0x10/0x14 -> id, rank, startTime, flags, socket):
+//    0 dbID(i64)  8 garrFollowerID  12 quality  16 followerLevel  20 itemLevelWeapon  24 itemLevelArmor
+//   28 xp  32 durability  36 currentBuildingID  40 currentMissionID  48 abilityID[]  72 zoneSupportSpellID
+//   76 flags  80 customName  180 health  184 boardIndex  192 healingTimestamp
+//
+// This SUPERSEDES an earlier annotation claiming the previous order was byte-verified against a
+// 12.0.1.66102 sniff. That order wrote customName last and the abilityID elements after
+// healingTimestamp, so on 12.0.7 everything from offset 48 on was misaligned. currentMissionID sits at
+// 40 - before the divergence - which is why followers correctly showed as "on a mission" while
+// boardIndex (184) decoded to garbage, so the Adventures board could not place a single companion:
+// the mission rendered with no assigned followers and could never be completed. health (180) landed in
+// the same garbage, which is why a successful server-side heal never repainted.
+//
 // Note: AGENT_BRIEF_GARRISON.md's Deserialize_JamGarrisonFollower @ 0x7FF75C1752A0 decodes
 // the JAM-mirror wire format (account-data field-mask packet, 16 VarUInt32 reads ending in
 // HealCost/HealStartTime/HealDuration). That is a SEPARATE code path from the dedicated
@@ -79,19 +94,23 @@ ByteBuffer& operator<<(ByteBuffer& data, GarrisonFollower const& follower)
     data << uint32(follower.Durability);
     data << uint32(follower.CurrentBuildingID);
     data << uint32(follower.CurrentMissionID);
+    // abilityID is a vector living at struct offset 48; its elements follow the count inline, they do not
+    // migrate to the end of the record.
     data << Size<uint32>(follower.AbilityID);
-    data << uint32(follower.ZoneSupportSpellID);
-    data << uint32(follower.FollowerStatus);
-    data << int32(follower.Health);
-    data << int8(follower.BoardIndex);
-    data << follower.HealingTimestamp;
     for (GarrAbilityEntry const* ability : follower.AbilityID)
         data << uint32(ability->ID);
 
+    data << uint32(follower.ZoneSupportSpellID);
+    data << uint32(follower.FollowerStatus);
+    // customName sits at struct offset 80, i.e. BEFORE health/boardIndex/healingTimestamp - not last.
     data << SizedString::BitsSize<7>(follower.CustomName);
     data.FlushBits();
 
     data << SizedString::Data(follower.CustomName);
+
+    data << int32(follower.Health);
+    data << int8(follower.BoardIndex);
+    data << follower.HealingTimestamp;
 
     return data;
 }
