@@ -323,6 +323,15 @@ bool Garrison::LoadFromDB(PreparedQueryResult garrison, PreparedQueryResult blue
             mission.PacketInfo.MissionState = fields[8].GetInt32();
             mission.PacketInfo.SuccessChance = fields[9].GetInt32();
 
+            // Register the rec id in the duplicate guard. AddMission consults _activeMissionRecIDs to refuse
+            // re-offering a mission the character already holds, but the set was only ever filled by AddMission
+            // itself - never here. So every restart started with an empty guard, and the next offer roll happily
+            // handed out a rec id that was already IN PROGRESS, producing two rows with the same missionRecID.
+            // GetMissionByRecID then walks an unordered_map and non-deterministically returned the freshly
+            // offered state-0 row instead of the running one, so CompleteMission answered
+            // GARRISON_ERROR_NOT_ON_MISSION and the mission could never be finished nor its followers released.
+            _activeMissionRecIDs.insert(missionRecID);
+
             GarrMissionEntry const* missionEntry = sGarrMissionStore.LookupEntry(missionRecID);
             if (missionEntry)
             {
@@ -2142,11 +2151,25 @@ Garrison::Mission const* Garrison::GetMissionByRecID(uint32 missionRecID) const
 
 Garrison::Mission* Garrison::GetMissionByRecID(uint32 missionRecID)
 {
+    // A rec id is supposed to be unique per garrison, but rows written before the load-time duplicate guard
+    // existed can still hold two: one in progress and one merely offered. _missions is an unordered_map, so
+    // "first match" was whatever the hash happened to yield - and picking the offered row made the running
+    // mission uncompletable. Prefer a mission that has actually been started; fall back to the first match so a
+    // pure offer still resolves.
+    Mission* offered = nullptr;
     for (auto& p : _missions)
-        if (static_cast<uint32>(p.second.PacketInfo.MissionRecID) == missionRecID)
+    {
+        if (static_cast<uint32>(p.second.PacketInfo.MissionRecID) != missionRecID)
+            continue;
+
+        if (p.second.PacketInfo.MissionState != 0)
             return &p.second;
 
-    return nullptr;
+        if (!offered)
+            offered = &p.second;
+    }
+
+    return offered;
 }
 
 int32 Garrison::CalculateSuccessChance(uint32 missionRecID, std::vector<uint64> const& followerDBIDs) const
