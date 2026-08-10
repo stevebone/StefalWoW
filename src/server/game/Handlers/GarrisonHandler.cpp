@@ -383,19 +383,37 @@ void WorldSession::HandleGarrisonGenerateRecruits(WorldPackets::Garrison::Garris
     SendPacket(result.Write());
 }
 
-void WorldSession::HandleGarrisonFullyHealAllFollowers(WorldPackets::Garrison::GarrisonFullyHealAllFollowers& /*garrisonFullyHealAllFollowers*/)
+void WorldSession::HandleGarrisonFullyHealAllFollowers(WorldPackets::Garrison::GarrisonFullyHealAllFollowers& garrisonFullyHealAllFollowers)
 {
-    // "Heal all" carries no discriminator on the wire, and healing followers is not WoD-only - it is the
-    // Adventures (GarrType 111) and order-hall mechanic too (see HandleGarrisonAddFollowerHealth below, which
-    // already loops). Resolving only the WoD garrison meant a covenant/order-hall owner got a silent no-op.
+    // The wire DOES carry a discriminator - one uint8, the follower type (C_Garrison.RushHealAllFollowers).
+    // The comment that used to sit here claimed it carried none; that was inferred from a Read() which
+    // mis-declared the body as an ObjectGuid and therefore threw on every single press, so this handler had
+    // never once run and nobody had ever seen a decoded packet. Match the requested roster, and accept the
+    // garrison type too: both encodings are single bytes and the id spaces do not collide for any type we
+    // implement (WoD garr 2 / follower 1-2, order hall 3 / 4, war campaign 9 / 22, covenant 111 / 123).
+    uint8 const requested = garrisonFullyHealAllFollowers.FollowerTypeID;
+    bool healedAny = false;
+
     for (auto const& [garrType, garrison] : _player->GetGarrisons())
     {
+        if (requested
+            && uint8(sGarrisonMgr.GetPrimaryFollowerType(static_cast<int8>(garrType))) != requested
+            && uint8(garrType) != requested)
+            continue;
+
         garrison->HealAllFollowers();
 
         // Send individual GarrisonUpdateFollower packets for each follower
         // instead of a full GetGarrisonInfoResult to reduce bandwidth
         garrison->SendAllFollowerUpdates();
+        healedAny = true;
     }
+
+    // Never fail silently: if the byte matched no garrison then the assumption above is wrong for some type and
+    // the player just sees a dead button again. Say so, with the value actually received.
+    if (!healedAny)
+        TC_LOG_WARN("garrison", "HandleGarrisonFullyHealAllFollowers: player {} sent follower/garrison type {} matching none of their {} garrisons; nothing healed.",
+            _player->GetGUID().ToString(), requested, _player->GetGarrisons().size());
 }
 
 void WorldSession::HandleGarrisonAddFollowerHealth(WorldPackets::Garrison::GarrisonAddFollowerHealth& garrisonAddFollowerHealth)
@@ -414,14 +432,17 @@ void WorldSession::HandleGarrisonAddFollowerHealth(WorldPackets::Garrison::Garri
     if (!follower)
         return;
 
-    // Cap at the follower's own maximum: the GarrAutoCombatant statline for Adventures companions,
-    // the durability charge count for the older follower model that publishes no statline.
+    // Restore to the follower's own maximum: the GarrAutoCombatant statline for Adventures companions, the
+    // durability charge count for the older follower model that publishes no statline. The wire carries only
+    // the follower id (client serializer @ RVA 0x6A9B84 writes the DbID's two halves and nothing else) - this
+    // is C_Garrison.RushHealFollower, i.e. "heal this one to full", so the amount is the server's to decide.
+    // The old code added a wire-supplied HealthToAdd that the client never sends.
     GarrFollowerEntry const* followerEntry = sGarrFollowerStore.LookupEntry(follower->PacketInfo.GarrFollowerID);
     int32 maxHealth = Garrison::GetFollowerMaxHealth(followerEntry, follower->PacketInfo.FollowerLevel);
     if (!maxHealth)
         maxHealth = static_cast<int32>(follower->PacketInfo.Durability);
 
-    follower->PacketInfo.Health = std::min(follower->PacketInfo.Health + garrisonAddFollowerHealth.HealthToAdd, maxHealth);
+    follower->PacketInfo.Health = maxHealth;
 
     WorldPackets::Garrison::GarrisonUpdateFollower updateFollower;
     updateFollower.Result = GARRISON_SUCCESS;

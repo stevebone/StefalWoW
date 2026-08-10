@@ -959,14 +959,15 @@ void GarrisonGenerateRecruits::Read()
 
 void GarrisonFullyHealAllFollowers::Read()
 {
-    _worldPacket >> NpcGUID;
+    _worldPacket >> FollowerTypeID;
 }
 
 void GarrisonAddFollowerHealth::Read()
 {
-    _worldPacket >> NpcGUID;
-    _worldPacket >> FollowerDBID;
-    _worldPacket >> HealthToAdd;
+    uint32 dbIdLow, dbIdHigh;
+    _worldPacket >> dbIdLow;
+    _worldPacket >> dbIdHigh;
+    FollowerDBID = (uint64(dbIdHigh) << 32) | dbIdLow;
 }
 
 void GarrisonGetClassSpecCategoryInfo::Read()

@@ -985,7 +985,12 @@ namespace WorldPackets
 
             void Read() override;
 
-            ObjectGuid NpcGUID;
+            // Wire (client 12.0.7 serializer @ RVA 0x6A9BCC): opcode then a single write_uint8 sourced from
+            // request+0x20 - and nothing else. The Lua entry point is C_Garrison.RushHealAllFollowers(followerType),
+            // so the byte is the follower type whose roster to heal. It is emphatically NOT an ObjectGuid: a packed
+            // guid's mask alone is 2 bytes, which is why the old ObjectGuid read threw a ByteBufferException on
+            // every press ("size: 2 ... pos: 4 size: 5") and the packet was skipped before the handler ever ran.
+            uint8 FollowerTypeID = 0;
         };
 
         class GarrisonAddFollowerHealth final : public ClientPacket
@@ -995,9 +1000,11 @@ namespace WorldPackets
 
             void Read() override;
 
-            ObjectGuid NpcGUID;
+            // Wire (client 12.0.7 serializer @ RVA 0x6A9B84): opcode then exactly two write_uint32 calls, sourced
+            // from *(request+0x20) and *(request+0x20)+4 - the low and high halves of the 64-bit follower DbID that
+            // C_Garrison.RushHealFollower(followerID) is handed. No guid and no amount on the wire; the heal is
+            // "rush this follower to full", so the server supplies the amount.
             uint64 FollowerDBID = 0;
-            int32 HealthToAdd = 0;
         };
 
         class GarrisonGetClassSpecCategoryInfo final : public ClientPacket
