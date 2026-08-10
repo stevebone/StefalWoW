@@ -2533,6 +2533,22 @@ void Garrison::BuildMissionCompleteResult(Mission const& mission,
             }
         }
 
+        // Never publish a round with no events. AdventuresCompleteScreenMixin::StartReplayRound
+        // (Blizzard_AdventuresCompleteScreen.lua:276) walks straight into StartReplayEvent(roundIndex, 1)
+        // for every round it is handed, and that indexes round.events[1] unconditionally - so an empty
+        // round is a nil deref inside AddCombatEvent and the whole replay dies with
+        //   Blizzard_AdventuresCombatLog.lua:117: attempt to index local 'combatLogEvent' (a nil value)
+        // taking the completion UI with it, which leaves the mission stuck at state 2 and its companions
+        // still bound. A round can end up empty either because the simulator produced no events for it or
+        // because every event it did produce named a GarrAutoSpell the client cannot resolve and was
+        // dropped above. Skipping it loses one round of replay animation; emitting it loses the mission.
+        if (round.Events.empty())
+        {
+            TC_LOG_DEBUG("garrison", "Garrison::BuildMissionCompleteResult: skipped an auto-combat round with no "
+                "publishable events (mission rec {})", mission.PacketInfo.MissionRecID);
+            continue;
+        }
+
         result.Rounds.push_back(std::move(round));
     }
 }
