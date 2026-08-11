@@ -4436,6 +4436,20 @@ Load.Locales = 1
 Shop.Enabled = 1
 
 #
+#    Shop.Shop2Enabled
+#        Description: Announce the MODERN client store ("shop2") as available.
+#                     shop2 is NOT a game-opcode flow: the client talks HTTPS to web services whose
+#                     endpoints are pushed in SMSG_MIRROR_VARS (shop2HostUrlRequests / shop2HostUrlAuth
+#                     / shop2ClientIdStr). We ship no such endpoint, and announcing the store while
+#                     providing nowhere to reach leaves the client's modern shop switched on and idle.
+#                     Leave disabled unless you actually run an endpoint that answers it; the legacy
+#                     BattlePay path (Shop.Enabled) is the one this core implements.
+#        Default:     0 - (Disabled)
+#                     1 - (Enabled)
+
+Shop.Shop2Enabled = 0
+
+#
 #    Shop.PurchaseConfirmation
 #        Description: Route in-game Shop purchases through the retail two-step confirmation handshake
 #                     (server sends SMSG_BATTLE_PAY_CONFIRM_PURCHASE, completes on the client's

@@ -152,12 +152,18 @@ void WorldSession::SendFeatureSystemStatusGlueScreen()
         { "raidLockoutExtendEnabled"sv, "1"sv },
         { "sellAllJunkEnabled"sv, "1"sv },
         { "bypassItemLevelScalingCode"sv, "0"sv },
-        // In-game Shop: enable both the modern (shop2) and legacy (bpay) client store gates.
-        // Retail 12.0.7 sends both "1" (verified against the in-game-shop sniff). The core product
-        // list rides C_StoreSecure.GetProductList -> CMSG_BATTLE_PAY_GET_PRODUCT_LIST, which our
-        // BattlePayMgr answers with the captured catalog; shop2's web-checkout extras stay inert
-        // (we don't ship Blizzard service URLs) but do not block that path. Follows Shop.Enabled.
-        { "shop2Enabled"sv, shopEnabled ? "1"sv : "0"sv },
+        // In-game Shop. Two independent client store gates:
+        //   bpayStoreEnable - the legacy BattlePay opcode path (CMSG_BATTLE_PAY_GET_PRODUCT_LIST ->
+        //     our BattlePayMgr catalog). This is the one we actually implement, so it follows Shop.Enabled.
+        //   shop2Enabled    - the MODERN path, which is NOT a game-opcode flow at all: the client talks
+        //     HTTPS to Blizzard web services whose endpoints arrive in these very MirrorVars
+        //     (shop2HostUrlRequests = https://us.api.blizzard.com, shop2HostUrlAuth =
+        //     https://oauth.battle.net, plus shop2ClientIdStr and the VC/POP GUIDs - all captured in
+        //     ingame-shop_ordersCrafting_professions.pkt). Announcing shop2Enabled=1 while shipping no
+        //     endpoints leaves the client with the modern store switched on and nowhere to reach, so it
+        //     is OFF by default and gated behind its own config. Turn Shop.Shop2Enabled on only when a
+        //     real endpoint exists to answer it.
+        { "shop2Enabled"sv, (shopEnabled && sWorld->getBoolConfig(CONFIG_SHOP_SHOP2_ENABLED)) ? "1"sv : "0"sv },
         { "bpayStoreEnable"sv, shopEnabled ? "1"sv : "0"sv },
         // Recent Allies is implemented server-side (RecentAlliesMgr + the 5 opcodes); retail sends 1.
         { "recentAlliesEnabledClient"sv, "1"sv },
