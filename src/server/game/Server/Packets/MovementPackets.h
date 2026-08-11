@@ -938,6 +938,8 @@ namespace WorldPackets
             float MaxSpeed;
         };
         // StefalWoW
+
+        ByteBuffer& operator>>(ByteBuffer& data, MovementAck& ack);
     }
 }
 
