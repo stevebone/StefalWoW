@@ -4440,10 +4440,12 @@ Shop.Enabled = 1
 #        Description: Announce the MODERN client store ("shop2") as available.
 #                     shop2 is NOT a game-opcode flow: the client talks HTTPS to web services whose
 #                     endpoints are pushed in SMSG_MIRROR_VARS (shop2HostUrlRequests / shop2HostUrlAuth
-#                     / shop2ClientIdStr). We ship no such endpoint, and announcing the store while
-#                     providing nowhere to reach leaves the client's modern shop switched on and idle.
-#                     Leave disabled unless you actually run an endpoint that answers it; the legacy
-#                     BattlePay path (Shop.Enabled) is the one this core implements.
+#                     / shop2ClientIdStr). Turning this on ALSO starts our own shop2 web service
+#                     (see Shop.Shop2BindIP / Shop.Shop2Port below), which answers those routes from
+#                     the same `shop_product` catalog the legacy BattlePay path serves.
+#                     Announcing the store while providing nowhere to reach leaves the client's modern
+#                     shop switched on and idle, so keep this off unless the listener is configured
+#                     (certificate + key) and the two host URLs point at it.
 #        Default:     0 - (Disabled)
 #                     1 - (Enabled)
 
@@ -4472,6 +4474,55 @@ Shop.Shop2Enabled = 0
 Shop.Shop2HostUrlRequests = ""
 Shop.Shop2HostUrlAuth = ""
 Shop.Shop2ClientId = ""
+
+#
+#    Shop.Shop2BindIP
+#    Shop.Shop2Port
+#        Description: Where the worldserver's own shop2 web service listens. This is the service the
+#                     two URLs above should point at; it answers the seven routes listed there with
+#                     the JSON contract the client's parsers require (recovered in
+#                     SHOP2_API_SCHEMA_68275.md). Started only when Shop.Shop2Enabled is 1.
+#        Default:     "0.0.0.0" - (all interfaces)
+#                     8082
+
+Shop.Shop2BindIP = "0.0.0.0"
+Shop.Shop2Port = 8082
+
+#
+#    Shop.Shop2CertificatesFile
+#    Shop.Shop2PrivateKeyFile
+#    Shop.Shop2PrivateKeyPassword
+#        Description: TLS material for the shop2 listener. The client pins its shop2 transport to
+#                     https:// (CURLOPT_PROTOCOLS_STR), so there is no plaintext mode: if these are
+#                     empty or unreadable the service logs an error and the worldserver refuses to
+#                     start rather than opening a port the client could never use.
+#                     A self-signed certificate is fine for a private realm as long as the client
+#                     machine trusts it. PEM format, same as the bnetserver certificates.
+#                     Leave Shop.Shop2PrivateKeyPassword empty for an unencrypted key.
+#        Default:     "" - (unset; must be set when Shop.Shop2Enabled is 1)
+
+Shop.Shop2CertificatesFile = ""
+Shop.Shop2PrivateKeyFile = ""
+Shop.Shop2PrivateKeyPassword = ""
+
+#
+#    Shop.Shop2NetworkThreads
+#        Description: Number of network threads serving the shop2 web service. The storefront is
+#                     answered from a pre-rendered in-memory snapshot, so one thread is plenty.
+#        Default:     1
+
+Shop.Shop2NetworkThreads = 1
+
+#
+#    Shop.Shop2CurrencyCode
+#        Description: Currency code reported to the client (GetAccountDefaultCurrency's
+#                     currencyAlphaCode, and prices[].currencyCode in the catalog). It is a label
+#                     only - product prices are published in the units of the currency the product
+#                     is actually sold for in `shop_product`, with the localized price text spelling
+#                     that out. There is no exchange rate.
+#        Default:     "USD"
+
+Shop.Shop2CurrencyCode = "USD"
 
 #
 #    Shop.PurchaseConfirmation

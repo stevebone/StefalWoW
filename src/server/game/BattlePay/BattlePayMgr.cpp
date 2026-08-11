@@ -25,6 +25,7 @@
 #include "Player.h"
 #include "Realm.h"
 #include "RealmList.h"
+#include "Shop2Service.h"
 #include "StringFormat.h"
 #include "Timer.h"
 #include "World.h"
@@ -360,6 +361,10 @@ void BattlePayMgr::LoadCatalog()
             if (boundary > now && (_nextRebuildTime == 0 || boundary < _nextRebuildTime))
                 _nextRebuildTime = boundary;
     }
+
+    // The modern ("shop2") storefront serves the same product set over HTTPS. Re-render its snapshot
+    // here, on the world thread, so its HTTP workers never read _products while we are rewriting it.
+    sShop2Service.RebuildCatalog();
 }
 
 void BattlePayMgr::Reload()

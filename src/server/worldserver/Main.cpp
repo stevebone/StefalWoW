@@ -45,6 +45,7 @@
 #include "ScriptMgr.h"
 #include "ScriptReloadMgr.h"
 #include "SecretMgr.h"
+#include "Shop2Service.h"
 #include "TCSoap.h"
 #include "TerrainMgr.h"
 #include "ThreadPool.h"
@@ -400,6 +401,18 @@ int main(int argc, char** argv)
         World::StopNow(ERROR_EXIT_CODE);
         return 1;
     }
+
+    // Start the shop2 web service (the MODERN in-game Shop talks HTTPS, not game opcodes). Only comes
+    // up when Shop.Shop2Enabled is on; a configuration error here is fatal rather than silent, because
+    // an advertised-but-absent store leaves the client's shop switched on with nowhere to reach.
+    if (!sShop2Service.Start(*ioContext))
+    {
+        TC_LOG_ERROR("server.worldserver", "Failed to start the shop2 web service");
+        World::StopNow(ERROR_EXIT_CODE);
+        return 1;
+    }
+
+    auto shop2ServiceHandle = Trinity::make_unique_ptr_with_deleter<&Shop2::Shop2Service::Stop>(&sShop2Service);
 
     auto sWorldSocketMgrHandle = Trinity::make_unique_ptr_with_deleter(&sWorldSocketMgr, [realmId](WorldSocketMgr* mgr)
     {
