@@ -3652,14 +3652,31 @@ GarrisonError Garrison::HealFollower(uint64 followerDbId)
     return GARRISON_SUCCESS;
 }
 
-void Garrison::HealAllFollowers()
+void Garrison::RushHealAllFollowers()
 {
-    // Charge per wounded follower. HealFollower skips those already full (no charge) and returns
-    // NOT_ENOUGH_CURRENCY once the owner can no longer pay; stop there so the rest stay wounded rather
-    // than being healed for free.
+    // PAID heal-all (UI button). Charge per wounded follower. HealFollower skips those already full (no
+    // charge) and returns NOT_ENOUGH_CURRENCY once the owner can no longer pay; stop there so the rest stay
+    // wounded rather than being healed for free.
     for (auto& p : _followers)
         if (HealFollower(p.second.PacketInfo.DbID) == GARRISON_ERROR_NOT_ENOUGH_CURRENCY)
             break;
+}
+
+void Garrison::HealAllFollowers()
+{
+    // FREE full restore - used only by the script/spell-driven vitality restore, where the spell is the
+    // cost. The UI rush-heal button must NOT reach this; it goes through RushHealAllFollowers (paid).
+    for (auto& p : _followers)
+    {
+        GarrFollowerEntry const* followerEntry = sGarrFollowerStore.LookupEntry(p.second.PacketInfo.GarrFollowerID);
+        // Adventures companions heal back to their statline maximum; everyone else keeps the
+        // durability-driven value this function has always restored.
+        if (int32 maxHealth = GetFollowerMaxHealth(followerEntry, p.second.PacketInfo.FollowerLevel))
+            p.second.PacketInfo.Health = maxHealth;
+        else
+            p.second.PacketInfo.Health = static_cast<int32>(p.second.PacketInfo.Durability);
+        p.second.PacketInfo.FollowerStatus &= ~FOLLOWER_STATUS_EXHAUSTED;
+    }
 }
 
 void Garrison::SendAllFollowerUpdates()

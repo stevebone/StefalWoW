@@ -401,7 +401,9 @@ void WorldSession::HandleGarrisonFullyHealAllFollowers(WorldPackets::Garrison::G
             && uint8(garrType) != requested)
             continue;
 
-        garrison->HealAllFollowers();
+        // UI rush-heal button: charge per wounded follower (SRV-G2). RushHealAllFollowers heals as many as
+        // the owner can afford and leaves the rest wounded rather than healing for free.
+        garrison->RushHealAllFollowers();
 
         // Send individual GarrisonUpdateFollower packets for each follower
         // instead of a full GetGarrisonInfoResult to reduce bandwidth
