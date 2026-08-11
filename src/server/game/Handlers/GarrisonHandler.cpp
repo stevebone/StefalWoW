@@ -421,31 +421,30 @@ void WorldSession::HandleGarrisonAddFollowerHealth(WorldPackets::Garrison::Garri
     // Follower DbIDs are unique across all of the character's garrisons, and healing a follower is an
     // Adventures (GarrType 111) mechanic - the no-arg GetGarrison() only ever searched the WoD
     // garrison, so a covenant companion could never be found here.
+    Garrison* ownerGarrison = nullptr;
     Garrison::Follower* follower = nullptr;
     for (auto const& [garrType, garrison] : _player->GetGarrisons())
     {
         follower = garrison->GetFollower(garrisonAddFollowerHealth.FollowerDBID);
         if (follower)
+        {
+            ownerGarrison = garrison.get();
             break;
+        }
     }
 
-    if (!follower)
+    if (!follower || !ownerGarrison)
         return;
 
-    // Restore to the follower's own maximum: the GarrAutoCombatant statline for Adventures companions, the
-    // durability charge count for the older follower model that publishes no statline. The wire carries only
-    // the follower id (client serializer @ RVA 0x6A9B84 writes the DbID's two halves and nothing else) - this
-    // is C_Garrison.RushHealFollower, i.e. "heal this one to full", so the amount is the server's to decide.
-    // The old code added a wire-supplied HealthToAdd that the client never sends.
-    GarrFollowerEntry const* followerEntry = sGarrFollowerStore.LookupEntry(follower->PacketInfo.GarrFollowerID);
-    int32 maxHealth = Garrison::GetFollowerMaxHealth(followerEntry, follower->PacketInfo.FollowerLevel);
-    if (!maxHealth)
-        maxHealth = static_cast<int32>(follower->PacketInfo.Durability);
-
-    follower->PacketInfo.Health = maxHealth;
+    // This is C_Garrison.RushHealFollower ("heal this one to full", RVA 0x6A9B84 writes only the DbID) -
+    // the amount is the server's to decide, so it restores to the follower's own maximum. Garrison::HealFollower
+    // now charges the appropriate currency before applying and refuses when the owner cannot pay, so the
+    // heal is no longer free/unlimited (SRV-G2). Echo the result to the client: on a currency failure the
+    // Follower record is sent unchanged with the error, so the UI does not show a phantom heal.
+    GarrisonError result = ownerGarrison->HealFollower(garrisonAddFollowerHealth.FollowerDBID);
 
     WorldPackets::Garrison::GarrisonUpdateFollower updateFollower;
-    updateFollower.Result = GARRISON_SUCCESS;
+    updateFollower.Result = result;
     updateFollower.Follower = follower->PacketInfo;
     SendPacket(updateFollower.Write());
 }

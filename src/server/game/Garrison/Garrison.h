@@ -473,6 +473,12 @@ public:
     uint32 GetRecruitmentPreferenceTraitId() const { return _recruitmentPreferenceTraitId; }
 
     // Follower healing
+    // Rush-heal one follower to full for a currency cost (SRV-G2). Returns GARRISON_SUCCESS when healed
+    // (or already full - no charge), GARRISON_ERROR_NOT_ENOUGH_CURRENCY when the owner cannot pay (no
+    // health change, no deduction), or GARRISON_ERROR_INVALID_FOLLOWER for an unknown dbId.
+    GarrisonError HealFollower(uint64 followerDbId);
+    // Rush-heal every wounded follower this garrison owns, charging per follower; stops paying once the
+    // owner runs out of currency (leaves the remainder wounded rather than healing for free).
     void HealAllFollowers();
     void SendAllFollowerUpdates();
 

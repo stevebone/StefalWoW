@@ -3589,19 +3589,60 @@ GarrisonError Garrison::BuildShip(uint32 garrFollowerId)
 // computed. When a base regen tick exists (needs retail GarrisonFollowerChanged health-delta sniffs over time, or
 // a deliberately authored base rate labeled as such), multiply its per-tick amount by that accessor - the data
 // side is done, only the base mechanic is missing.
+GarrisonError Garrison::HealFollower(uint64 followerDbId)
+{
+    Follower* follower = GetFollower(followerDbId);
+    if (!follower)
+        return GARRISON_ERROR_INVALID_FOLLOWER;
+
+    GarrFollowerEntry const* followerEntry = sGarrFollowerStore.LookupEntry(follower->PacketInfo.GarrFollowerID);
+    // Adventures companions heal back to their statline maximum; everyone else keeps the durability-driven
+    // value this path has always restored.
+    int32 maxHealth = GetFollowerMaxHealth(followerEntry, follower->PacketInfo.FollowerLevel);
+    if (!maxHealth)
+        maxHealth = static_cast<int32>(follower->PacketInfo.Durability);
+
+    // Nothing to undo: a follower already at full and not exhausted is a no-op, and must not be charged.
+    if (follower->PacketInfo.Health >= maxHealth && !(follower->PacketInfo.FollowerStatus & FOLLOWER_STATUS_EXHAUSTED))
+        return GARRISON_SUCCESS;
+
+    // --- Rush-heal cost (SRV-G2) --------------------------------------------------------------------
+    // Retail RushHealFollower / RushHealAllFollowers charge a currency to undo companion attrition
+    // (Legion order halls: Order Resources 1220; Shadowlands Adventures: Reservoir Anima 1813; WoD
+    // garrison falls back to Garrison Resources 824). Currency ids are from GARRISON_CONSTANTS_68275.
+    // The per-follower AMOUNT is a DATA value we have no sniff/DB2 source for yet, so it is a documented
+    // PLACEHOLDER: the mechanic (charge-before-heal, refuse when unaffordable, no free heal) is the
+    // correct fix; only the magnitude still needs the real number from a heal-interaction sniff (audit
+    // gap SNF-G-D) or a constants source before it can be called balanced. Do NOT treat this as final.
+    uint32 healCurrencyId;
+    switch (_garrType)
+    {
+        case GARRISON_TYPE_COVENANT:    healCurrencyId = 1813; break; // Reservoir Anima
+        case GARRISON_TYPE_CLASS_ORDER: healCurrencyId = 1220; break; // Order Resources
+        default:                        healCurrencyId = 824;  break; // Garrison Resources
+    }
+    constexpr uint32 GARRISON_FOLLOWER_RUSH_HEAL_COST_PLACEHOLDER = 100; // per follower - PLACEHOLDER, needs sniff/constants source
+
+    if (GARRISON_FOLLOWER_RUSH_HEAL_COST_PLACEHOLDER > 0)
+    {
+        if (!_owner->HasCurrency(healCurrencyId, GARRISON_FOLLOWER_RUSH_HEAL_COST_PLACEHOLDER))
+            return GARRISON_ERROR_NOT_ENOUGH_CURRENCY;
+        _owner->RemoveCurrency(healCurrencyId, GARRISON_FOLLOWER_RUSH_HEAL_COST_PLACEHOLDER, CurrencyDestroyReason::Garrison);
+    }
+
+    follower->PacketInfo.Health = maxHealth;
+    follower->PacketInfo.FollowerStatus &= ~FOLLOWER_STATUS_EXHAUSTED;
+    return GARRISON_SUCCESS;
+}
+
 void Garrison::HealAllFollowers()
 {
+    // Charge per wounded follower. HealFollower skips those already full (no charge) and returns
+    // NOT_ENOUGH_CURRENCY once the owner can no longer pay; stop there so the rest stay wounded rather
+    // than being healed for free.
     for (auto& p : _followers)
-    {
-        GarrFollowerEntry const* followerEntry = sGarrFollowerStore.LookupEntry(p.second.PacketInfo.GarrFollowerID);
-        // Adventures companions heal back to their statline maximum; everyone else keeps the
-        // durability-driven value this function has always restored.
-        if (int32 maxHealth = GetFollowerMaxHealth(followerEntry, p.second.PacketInfo.FollowerLevel))
-            p.second.PacketInfo.Health = maxHealth;
-        else
-            p.second.PacketInfo.Health = static_cast<int32>(p.second.PacketInfo.Durability);
-        p.second.PacketInfo.FollowerStatus &= ~FOLLOWER_STATUS_EXHAUSTED;
-    }
+        if (HealFollower(p.second.PacketInfo.DbID) == GARRISON_ERROR_NOT_ENOUGH_CURRENCY)
+            break;
 }
 
 void Garrison::SendAllFollowerUpdates()
