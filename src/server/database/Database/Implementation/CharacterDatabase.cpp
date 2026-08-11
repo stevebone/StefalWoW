@@ -823,6 +823,7 @@ void CharacterDatabaseConnection::DoPrepareStatements()
     PrepareStatement(CHAR_SEL_CHARACTER_GARRISON_MISSIONS, "SELECT dbId, guid, missionRecID, offerTime, offerDuration, startTime, travelDuration, missionDuration, missionState, successChance FROM character_garrison_missions WHERE guid = ?", CONNECTION_ASYNC);
     PrepareStatement(CHAR_INS_CHARACTER_GARRISON_MISSIONS, "INSERT INTO character_garrison_missions (dbId, guid, missionRecID, offerTime, offerDuration, startTime, travelDuration, missionDuration, missionState, successChance, garrType) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC);
     PrepareStatement(CHAR_DEL_CHARACTER_GARRISON_MISSIONS, "DELETE FROM character_garrison_missions WHERE guid = ? AND garrType = ?", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_DEL_CHARACTER_GARRISON_MISSION, "DELETE FROM character_garrison_missions WHERE guid = ? AND dbId = ?", CONNECTION_ASYNC);
     PrepareStatement(CHAR_SEL_CHARACTER_GARRISON_SHIPMENTS, "SELECT dbId, shipmentId, plotInstanceId, creationTime, duration, assignedFollowerDbId FROM character_garrison_shipments WHERE guid = ?", CONNECTION_ASYNC);
     PrepareStatement(CHAR_INS_CHARACTER_GARRISON_SHIPMENTS, "INSERT INTO character_garrison_shipments (dbId, guid, shipmentId, plotInstanceId, creationTime, duration, assignedFollowerDbId, garrType) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC);
     PrepareStatement(CHAR_DEL_CHARACTER_GARRISON_SHIPMENTS, "DELETE FROM character_garrison_shipments WHERE guid = ? AND garrType = ?", CONNECTION_ASYNC);

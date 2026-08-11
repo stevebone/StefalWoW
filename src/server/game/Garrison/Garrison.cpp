@@ -2853,6 +2853,19 @@ GarrisonError Garrison::FinalizeMission(uint32 missionRecID, bool grantOvermax)
     }
     bool succeeded = mission->Succeeded;
 
+    // Idempotent grant (SRV-G4): persist the mission's removal NOW, before granting anything, rather than
+    // relying on the next character SaveToDB to wipe+reinsert the mission rows. Some rewards below commit to
+    // the DB on their own (mail overflow, currency), so without this a crash after such a commit but before
+    // the next SaveToDB would reload the still-present MissionState==2 row and let BONUS_ROLL/GET_REWARD
+    // re-grant it. Deleting the row up front closes that window: a reload can no longer find the mission, so
+    // it cannot be finalized twice. If we crash between this delete and the grant the player simply loses the
+    // reward (rare) - never a double grant, which is the property we must guarantee. In-memory removal still
+    // happens at the end of this function for the live session.
+    CharacterDatabasePreparedStatement* delMissionStmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CHARACTER_GARRISON_MISSION);
+    delMissionStmt->setUInt64(0, _owner->GetGUID().GetCounter());
+    delMissionStmt->setUInt64(1, mission->PacketInfo.DbID);
+    CharacterDatabase.Execute(delMissionStmt);
+
     // Award follower XP (awarded regardless of success) and handle troop durability
     std::vector<uint64> troopsToRemove;
     uint32 followerXP = missionEntry->BaseFollowerXP;
