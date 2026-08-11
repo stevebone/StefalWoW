@@ -2022,7 +2022,11 @@ void Garrison::AddMission(uint32 garrMissionId)
     mission.PacketInfo.MissionRecID = garrMissionId;
     mission.PacketInfo.OfferTime = GameTime::GetGameTime();
     mission.PacketInfo.OfferDuration = Seconds(missionEntry->OfferDuration);
-    mission.PacketInfo.StartTime = time_t(2288912640);
+    // Sentinel StartTime for an offered (not-yet-started) mission. The client keys "offered" off
+    // MissionState == 0 and does not render a start timer for it, but the value should still match
+    // retail's far-PAST sentinel (~year 0) rather than the old far-FUTURE ~2042 value (2288912640),
+    // which could render as a bogus future start if a client ever read it.
+    mission.PacketInfo.StartTime = time_t(-62169984000);
     // Command Table tier 2 (GarrAbility 1273 'Strategic Genius', GarrAbilityEffect 1843: AbilityAction 17,
     // ActionValueFlat 0.75) multiplies the travel duration of a Shadowlands adventure. Applied at offer time so
     // the discounted value is what persists and round-trips (character_garrison_missions.travelDuration).
