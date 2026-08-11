@@ -28,6 +28,7 @@
 #include "SystemPackets.h"
 #include "Timezone.h"
 #include "Util.h"
+#include "Config.h"
 #include "World.h"
 
 void WorldSession::SendAuthResponse(uint32 code, bool queued, uint32 queuePos)
@@ -180,7 +181,28 @@ void WorldSession::SendFeatureSystemStatusGlueScreen()
         { "housingMarketEnabled"sv, "0"sv },
     };
 
+    // shop2 endpoint advertisement. The client reaches the modern store over HTTPS at whatever host
+    // these vars name - they are the ONLY thing that points it anywhere, so serving our own endpoint
+    // is a matter of naming it here (no hosts file, no hostname impersonation). The client's built-in
+    // defaults are Blizzard's dev hosts (https://us.apidev.blizzard.net, https://oauth.web.blizzard.net),
+    // which is why an arbitrary host is acceptable to it. Only advertised when Shop.Shop2Enabled is on
+    // AND a URL is actually configured, so we never announce a store with nowhere to reach.
+    std::vector<WorldPackets::System::MirrorVarSingle> varList(std::begin(vars), std::end(vars));
+    if (shopEnabled && sWorld->getBoolConfig(CONFIG_SHOP_SHOP2_ENABLED))
+    {
+        auto addIfConfigured = [&varList](std::string_view name, char const* configKey)
+        {
+            std::string value = sConfigMgr->GetStringDefault(configKey, "");
+            if (!value.empty())
+                varList.emplace_back(name, value);
+        };
+
+        addIfConfigured("shop2HostUrlRequests"sv, "Shop.Shop2HostUrlRequests");
+        addIfConfigured("shop2HostUrlAuth"sv,     "Shop.Shop2HostUrlAuth");
+        addIfConfigured("shop2ClientIdStr"sv,     "Shop.Shop2ClientId");
+    }
+
     WorldPackets::System::MirrorVars variables;
-    variables.Variables = vars;
+    variables.Variables = varList;
     SendPacket(variables.Write());
 }

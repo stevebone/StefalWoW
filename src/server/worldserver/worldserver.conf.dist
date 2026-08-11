@@ -4450,6 +4450,30 @@ Shop.Enabled = 1
 Shop.Shop2Enabled = 0
 
 #
+#    Shop.Shop2HostUrlRequests
+#    Shop.Shop2HostUrlAuth
+#    Shop.Shop2ClientId
+#        Description: Where the client should reach the modern store, and the OAuth client id it should
+#                     present. These are pushed to the client in SMSG_MIRROR_VARS and are the ONLY thing
+#                     that points it at an endpoint, so any reachable https:// host works - no hosts-file
+#                     edits and no impersonation of Blizzard hostnames are required. The client's own
+#                     built-in defaults are Blizzard dev hosts, which is why an arbitrary host is accepted.
+#                     Routes the client will call:
+#                       /sso
+#                       /StorefrontService/v1/GetCurrentPages
+#                       /ProductCatalogService/v1/GetProductsByStoreId
+#                       /PurchaseService/v1/GetAccountDefaultCurrency
+#                       /PurchaseService/v1/QuoteDynamicBundle
+#                       /VirtualCurrencyLedgerService/v1/GetBalance
+#                       /PublicOrderService/v1/GetOrderStatusByExternalTransactionId
+#                     Only advertised when Shop.Shop2Enabled is 1 AND the value is non-empty.
+#        Default:     "" - (not advertised)
+
+Shop.Shop2HostUrlRequests = ""
+Shop.Shop2HostUrlAuth = ""
+Shop.Shop2ClientId = ""
+
+#
 #    Shop.PurchaseConfirmation
 #        Description: Route in-game Shop purchases through the retail two-step confirmation handshake
 #                     (server sends SMSG_BATTLE_PAY_CONFIRM_PURCHASE, completes on the client's
