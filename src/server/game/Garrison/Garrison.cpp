@@ -234,11 +234,20 @@ bool Garrison::LoadFromDB(PreparedQueryResult garrison, PreparedQueryResult blue
             follower.PacketInfo.CustomName = fields[11].GetString();
             follower.PacketInfo.Health = fields[12].GetInt32();
             follower.PacketInfo.BoardIndex = fields[13].GetInt8();
-            // Rows written before health was persisted come back as 0. A companion with a statline is
-            // never legitimately at 0 outside a fight it just lost, and it would show as a dead puck,
-            // so restore those to full rather than leaving the roster looking wiped.
+            // A statline (Adventures) companion that ended a fight at 0 health is DEAD and must stay dead
+            // across relog - the previous unconditional "Health <= 0 -> max" reset was a free auto-revive
+            // that nullified the whole death penalty. It must now be healed (paid, see RushHealFollower).
+            // Durability-model followers have no GarrAutoCombatant statline (GetFollowerMaxHealth == 0) and
+            // are governed by durability, not health; for them a persisted 0 is just "never initialised"
+            // (their Health mirrors Durability), so restore that - and it also repairs legacy rows written
+            // before the health column existed, which only ever affected durability-model followers.
             if (follower.PacketInfo.Health <= 0)
-                follower.PacketInfo.Health = GetFollowerMaxHealth(sGarrFollowerStore.LookupEntry(followerId), follower.PacketInfo.FollowerLevel);
+            {
+                int32 statlineMaxHealth = GetFollowerMaxHealth(sGarrFollowerStore.LookupEntry(followerId), follower.PacketInfo.FollowerLevel);
+                if (statlineMaxHealth == 0)
+                    follower.PacketInfo.Health = static_cast<int32>(follower.PacketInfo.Durability);
+                // else: statline companion at 0 HP stays dead until paid-healed - no free relog revive.
+            }
             follower.PacketInfo.ZoneSupportSpellID = sGarrisonMgr.GetFollowerZoneSupportSpell(followerId, GetFaction());
             if (!sGarrBuildingStore.LookupEntry(follower.PacketInfo.CurrentBuildingID))
                 follower.PacketInfo.CurrentBuildingID = 0;
@@ -2606,9 +2615,20 @@ GarrisonError Garrison::StartMission(uint32 missionRecID, std::vector<uint64> co
         // The follower must match the mission's follower type: garrison followers crew garrison missions,
         // ships (GarrFollowerType 2) crew naval missions. Without this a ship could be slotted on a land
         // mission (or vice versa) - the client filters by type, but validate server-side too.
-        if (GarrFollowerEntry const* followerEntry = sGarrFollowerStore.LookupEntry(follower->PacketInfo.GarrFollowerID))
-            if (followerEntry->GarrFollowerTypeID != missionEntry->GarrFollowerTypeID)
-                return GARRISON_ERROR_INVALID_FOLLOWER;
+        GarrFollowerEntry const* followerEntry = sGarrFollowerStore.LookupEntry(follower->PacketInfo.GarrFollowerID);
+        if (followerEntry && followerEntry->GarrFollowerTypeID != missionEntry->GarrFollowerTypeID)
+            return GARRISON_ERROR_INVALID_FOLLOWER;
+
+        // Health / exhaustion deploy gate. A statline (Adventures) companion at 0 health is DEAD and an
+        // EXHAUSTED follower is spent - neither may be sent on a mission; they must be healed first (paid,
+        // RushHealFollower). GetFollowerMaxHealth is > 0 only for followers that publish a GarrAutoCombatant
+        // statline, so durability-model followers (WoD garrison / order hall, max 0) are governed by
+        // durability rather than health and are never blocked here for a 0 Health.
+        if (GetFollowerMaxHealth(followerEntry, follower->PacketInfo.FollowerLevel) > 0 && follower->PacketInfo.Health <= 0)
+            return GARRISON_ERROR_INVALID_FOLLOWER;
+
+        if (follower->PacketInfo.FollowerStatus & FOLLOWER_STATUS_EXHAUSTED)
+            return GARRISON_ERROR_INVALID_FOLLOWER;
     }
 
     // Check required followers (GarrMissionXFollower.db2)
@@ -2759,8 +2779,12 @@ bool Garrison::RollMissionOutcome(Mission& mission, uint32 missionRecID)
                     follower->PacketInfo.ItemLevelWeapon, follower->PacketInfo.ItemLevelArmor,
                     follower->PacketInfo.BoardIndex, followerDbId);
                 // Companions carry damage between missions: they enter the fight on the health they
-                // ended the last one with, not at full.
-                if (follower->PacketInfo.Health > 0 && follower->PacketInfo.Health < unit.MaxHealth)
+                // ended the last one with, not at full. This includes 0 = dead: a statline companion that
+                // was killed does NOT silently come back at full (unit.MaxHealth is the statline max, > 0
+                // only for Adventures companions, so durability-model followers are untouched and fight at
+                // the combatant default). The StartMission health gate normally stops a dead follower being
+                // deployed at all; carrying 0 here is defence-in-depth for any already-in-flight mission.
+                if (unit.MaxHealth > 0 && follower->PacketInfo.Health >= 0 && follower->PacketInfo.Health < unit.MaxHealth)
                     unit.CurrentHealth = follower->PacketInfo.Health;
                 playerUnits.push_back(std::move(unit));
             }
