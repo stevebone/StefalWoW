@@ -1101,6 +1101,15 @@ void WorldSession::HandlePlayerLoginOpcode(WorldPackets::Character::PlayerLogin&
 
     m_playerLoading = playerLogin.Guid;
 
+    // The Shop catalog is served at most once per catalog generation per session, but the client
+    // throws its store state away when it leaves character select, so the copy it fetched there is
+    // gone by the time the in-game Shop opens. Without this reset the in-world
+    // CMSG_BATTLE_PAY_GET_PRODUCT_LIST is silently swallowed by that throttle and the Shop shows an
+    // empty frame ("bad argument #1 to GetProducts" in Blizzard_StoreUI, because it has no product
+    // groups). Clearing the marker on login gives each context exactly one copy, which is what the
+    // throttle was actually meant to do.
+    _battlePayCatalogGeneration = 0;
+
     TC_LOG_DEBUG("network", "Character {} logging in", playerLogin.Guid.ToString());
 
     if (!IsLegitCharacterForAccount(playerLogin.Guid))
