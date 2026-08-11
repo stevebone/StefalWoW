@@ -81,8 +81,20 @@ namespace WorldPackets
 
             void Read() override;
 
-            uint32 ProductID = 0;   // candidate (scalar_u32)
-            uint64 ScalarU64 = 0;   // candidate: target character GUID
+            // Layout settled from live 505-byte packets (three clicks, two products):
+            //   @0  u32 ClientToken - a per-session click counter (observed 1, 2, 3)
+            //   @4  u32 ProductID   - the entry productID the client buys by; stable across two
+            //                         attempts at the same pet (1448, 1448) and different for
+            //                         another card (1061). This is entryInfo.productID, which
+            //                         Blizzard_StoreUI passes to C_StoreSecure.PurchaseProduct().
+            //   @8  u32 (always 0 so far)
+            //   then bit-packed lengths + "win" (platform) + a ~480 char client attestation blob
+            //   { "RGKY" : ..., "CPGE" : ... } which we do not need and do not parse.
+            // The old reader took the FIRST scalar as the product, i.e. the click counter, so no
+            // purchase ever resolved.
+            uint32 ClientToken = 0;
+            uint32 ProductID = 0;
+            uint32 Unused = 0;
             bool Flag = false;
         };
 

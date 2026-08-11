@@ -39,25 +39,17 @@ WorldPacket const* GetDistributionListResponse::Write()
 
 void StartPurchase::Read()
 {
-    // DIAGNOSTIC: the live client sends ~505 bytes here while this reader consumes 17
-    // ("Unprocessed tail data (read stop at 17 from 505)"), and the leading u32 arrives as 1 - so it
-    // is not the productID. The real layout was never captured: retail routes purchases through
-    // CMSG_BATTLE_PAY_OPEN_CHECKOUT (web checkout), so no sniff in this workspace contains a
-    // START_PURCHASE body. Dump the whole payload once per request so the layout can be derived from
-    // a real one instead of guessed. Remove when the structure is settled.
-    std::size_t const size = _worldPacket.size();
-    std::string hex;
-    hex.reserve(size * 3);
-    for (std::size_t i = 0; i < size; ++i)
-        hex += Trinity::StringFormat("{:02X} ", _worldPacket.data()[i]);
-
-    TC_LOG_INFO("network", "BattlePay: StartPurchase RAW ({} bytes): {}", size, hex);
-
+    _worldPacket >> ClientToken;
     _worldPacket >> ProductID;
-    _worldPacket >> ScalarU64;
+    _worldPacket >> Unused;
     Flag = _worldPacket.ReadBit();
-    _worldPacket.rfinish();     // consume the rest so the tail-data warning does not mask the dump
+
+    // Remainder is the platform string and the client's attestation blob; nothing here needs them,
+    // and consuming the buffer keeps the "Unprocessed tail data" warning from firing every purchase.
+    _worldPacket.rfinish();
 }
+
+
 
 void OpenCheckout::Read()
 {

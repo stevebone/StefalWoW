@@ -166,7 +166,11 @@ void WorldSession::BattlePayProcessPurchase(uint32 productID)
     ShopProduct const* product = player ? sBattlePayMgr->GetProductByAdvertisedId(productID) : nullptr;
     if (!product)
     {
-        TC_LOG_DEBUG("network", "BattlePay: purchase of unrouted product {} by {}.", productID, GetPlayerInfo());
+        // Most cards in the shipped catalog are UNTOUCHED retail records - only the slots we reskin
+        // are routed to a real ShopProduct. Buying any other card lands here. Logged at INFO because
+        // it is the difference between "the wire is broken" and "that item is not one of ours".
+        TC_LOG_INFO("network", "BattlePay: {} tried to buy product {}, which is not routed to a shop_product "
+            "(catalog card is an un-reskinned retail entry).", GetPlayerInfo(), productID);
         respond(STATUS_FAILED, RESULT_PRODUCT_NOT_PURCHASABLE, 0);
         return;
     }
@@ -295,8 +299,8 @@ void WorldSession::HandleBattlePayStartPurchase(WorldPackets::BattlePay::StartPu
 
     // The productID scalar is a strong candidate (setter is Warden-obfuscated). Log all three fields so a
     // live purchase confirms which scalar is the productID; GetProduct() also guards against a wrong guess.
-    TC_LOG_INFO("network", "BattlePay: StartPurchase from {}: u32={} u64={} flag={}",
-        GetPlayerInfo(), startPurchase.ProductID, startPurchase.ScalarU64, uint32(startPurchase.Flag));
+    TC_LOG_INFO("network", "BattlePay: StartPurchase from {}: clientToken={} productID={} flag={}",
+        GetPlayerInfo(), startPurchase.ClientToken, startPurchase.ProductID, uint32(startPurchase.Flag));
 
     // ANTI-ABUSE (C-13): collapse replayed / double-clicked purchases to a single charge. CMSG_START_PURCHASE
     // is craftable by any logged-in client and there is no client-supplied idempotency key. A lagged
