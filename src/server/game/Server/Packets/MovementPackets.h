@@ -61,18 +61,18 @@ namespace WorldPackets
 
         struct MonsterSplineFilterKey
         {
-            int16 Idx    = 0;
+            int16 Idx = 0;
             uint16 Speed = 0;
         };
 
         struct MonsterSplineFilter
         {
             std::vector<MonsterSplineFilterKey> FilterKeys;
-            uint8 FilterFlags           = 0;
-            float BaseSpeed             = 0.0f;
-            int16 StartOffset           = 0;
-            float DistToPrevFilterKey   = 0.0f;
-            int16 AddedToStart          = 0;
+            uint8 FilterFlags = 0;
+            float BaseSpeed = 0.0f;
+            int16 StartOffset = 0;
+            float DistToPrevFilterKey = 0.0f;
+            int16 AddedToStart = 0;
         };
 
         struct MonsterSplineSpellEffectExtraData
@@ -120,17 +120,17 @@ namespace WorldPackets
 
         struct MovementSpline
         {
-            uint32 Flags                = 0;    // Spline flags
-            uint8 Face                  = 0;    // Movement direction (see MonsterMoveType enum)
-            int32 Elapsed               = 0;
-            uint32 MoveTime             = 0;
-            uint32 FadeObjectTime       = 0;
+            uint32 Flags = 0;    // Spline flags
+            uint8 Face = 0;    // Movement direction (see MonsterMoveType enum)
+            int32 Elapsed = 0;
+            uint32 MoveTime = 0;
+            uint32 FadeObjectTime = 0;
             std::vector<TaggedPosition<Position::XYZ>> Points;   // Spline path
-            uint8 Mode                  = 0;    // Spline mode - actually always 0 in this packet - Catmullrom mode appears only in SMSG_UPDATE_OBJECT. In this packet it is determined by flags
-            bool VehicleExitVoluntary   = false;
-            bool TaxiSmoothing          = false;
+            uint8 Mode = 0;    // Spline mode - actually always 0 in this packet - Catmullrom mode appears only in SMSG_UPDATE_OBJECT. In this packet it is determined by flags
+            bool VehicleExitVoluntary = false;
+            bool TaxiSmoothing = false;
             ObjectGuid TransportGUID;
-            int8 VehicleSeat            = -1;
+            int8 VehicleSeat = -1;
             std::vector<TaggedPosition<Position::PackedXYZ>> PackedDeltas;
             Optional<MonsterSplineFilter> SplineFilter;
             Optional<MonsterSplineSpellEffectExtraData> SpellEffectExtraData;
@@ -138,7 +138,7 @@ namespace WorldPackets
             Optional<MonsterSplineTurnData> TurnData;
             Optional<MonsterSplineAnimTierTransition> AnimTierTransition;
             Optional<MonsterSplineClientSpellVisualData> SpellVisualData;
-            float FaceDirection         = 0.0f;
+            float FaceDirection = 0.0f;
             ObjectGuid FaceGUID;
             TaggedPosition<Position::XYZ> FaceSpot;
         };
@@ -330,15 +330,15 @@ namespace WorldPackets
 
         struct VehicleTeleport
         {
-            uint8 VehicleSeatIndex      = 0;
-            bool VehicleExitVoluntary   = false;
-            bool VehicleExitTeleport    = false;
+            uint8 VehicleSeatIndex = 0;
+            bool VehicleExitVoluntary = false;
+            bool VehicleExitTeleport = false;
         };
 
         class MoveTeleport final : public ServerPacket
         {
         public:
-            explicit MoveTeleport() : ServerPacket(SMSG_MOVE_TELEPORT, 12+4+16+16+4) { }
+            explicit MoveTeleport() : ServerPacket(SMSG_MOVE_TELEPORT, 12 + 4 + 16 + 16 + 4) { }
 
             WorldPacket const* Write() override;
 
@@ -546,9 +546,9 @@ namespace WorldPackets
 
         enum class UpdateCollisionHeightReason : uint8
         {
-            Scale   = 0,
-            Mount   = 1,
-            Force   = 2
+            Scale = 0,
+            Mount = 1,
+            Force = 2
         };
 
         class MoveSetCollisionHeight final : public ServerPacket
@@ -757,7 +757,7 @@ namespace WorldPackets
 
             uint32 Ticks = 0;
         };
-		
+
         class MoveApplyInertia final : public ServerPacket
         {
         public:
@@ -938,6 +938,7 @@ namespace WorldPackets
             float MaxSpeed;
         };
         // StefalWoW
+    }
 }
 
 ByteBuffer& operator>>(ByteBuffer& data, MovementInfo& movementInfo);

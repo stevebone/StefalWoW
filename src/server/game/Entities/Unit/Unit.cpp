@@ -14842,7 +14842,6 @@ bool Unit::IsPlayerOrBot() const
 }
 
 // StefalWoW
-
 void Unit::SetDriveCapabilityID(int32 driveCapabilityId, bool clientUpdate)
 {
     if (driveCapabilityId && !sDriveCapabilityStore.HasRecord(driveCapabilityId))
@@ -14882,31 +14881,6 @@ void Unit::SetDriveCapabilityID(int32 driveCapabilityId, bool clientUpdate)
         WorldPackets::Movement::MoveUpdate moveUpdate;
         moveUpdate.Status = &m_movementInfo;
         SendMessageToSet(moveUpdate.Write(), playerMover);
-    }
-}
-
-void Unit::SendApplyInertia(int32 movementInertiaID, uint32 lifetimeMs)
-{
-    if (Player* playerMover = GetPlayerMovingMe())
-    {
-        WorldPackets::Movement::MoveApplyInertia applyInertia;
-        applyInertia.MoverGUID = GetGUID();
-        applyInertia.SequenceIndex = m_movementCounter++;
-        applyInertia.MovementInertiaID = movementInertiaID;
-        applyInertia.LifetimeMs = lifetimeMs;
-        playerMover->SendDirectMessage(applyInertia.Write());
-    }
-}
-
-void Unit::SendRemoveInertia(int32 movementInertiaID)
-{
-    if (Player* playerMover = GetPlayerMovingMe())
-    {
-        WorldPackets::Movement::MoveRemoveInertia removeInertia;
-        removeInertia.MoverGUID = GetGUID();
-        removeInertia.SequenceIndex = m_movementCounter++;
-        removeInertia.MovementInertiaID = movementInertiaID;
-        playerMover->SendDirectMessage(removeInertia.Write());
     }
 }
 

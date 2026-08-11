@@ -1316,4 +1316,5 @@ WorldPacket const* WorldPackets::Movement::SetAdvFlyingMinMaxSpeeds::Write()
     return &_worldPacket;
 }
 // StefalWoW
+}
 

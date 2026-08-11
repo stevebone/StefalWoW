@@ -1049,49 +1049,6 @@ void WorldSession::ComputeNewClockDelta()
 }
 
 // StefalWoW
-void WorldSession::HandleMoveApplyInertiaAck(WorldPackets::Movement::MoveApplyInertiaAck& moveApplyInertiaAck)
-{
-    Unit* mover = _player->m_unitMovedByMe;
-    ASSERT(mover != nullptr);
-    ValidateMovementInfo(mover, &moveApplyInertiaAck.Ack.Status);
-
-    if (moveApplyInertiaAck.Ack.Status.guid != mover->GetGUID())
-    {
-        TC_LOG_ERROR("network", "HandleMoveApplyInertiaAck: guid error, expected {}, got {}",
-            mover->GetGUID().ToString(), moveApplyInertiaAck.Ack.Status.guid.ToString());
-        return;
-    }
-
-    moveApplyInertiaAck.Ack.Status.time = AdjustClientMovementTime(moveApplyInertiaAck.Ack.Status.time);
-
-    WorldPackets::Movement::MoveUpdateApplyInertia updateApplyInertia;
-    updateApplyInertia.Status = &moveApplyInertiaAck.Ack.Status;
-    updateApplyInertia.MovementInertiaID = moveApplyInertiaAck.MovementInertiaID;
-    updateApplyInertia.LifetimeMs = moveApplyInertiaAck.LifetimeMs;
-    mover->SendMessageToSet(updateApplyInertia.Write(), false);
-}
-
-void WorldSession::HandleMoveRemoveInertiaAck(WorldPackets::Movement::MoveRemoveInertiaAck& moveRemoveInertiaAck)
-{
-    Unit* mover = _player->m_unitMovedByMe;
-    ASSERT(mover != nullptr);
-    ValidateMovementInfo(mover, &moveRemoveInertiaAck.Ack.Status);
-
-    if (moveRemoveInertiaAck.Ack.Status.guid != mover->GetGUID())
-    {
-        TC_LOG_ERROR("network", "HandleMoveRemoveInertiaAck: guid error, expected {}, got {}",
-            mover->GetGUID().ToString(), moveRemoveInertiaAck.Ack.Status.guid.ToString());
-        return;
-    }
-
-    moveRemoveInertiaAck.Ack.Status.time = AdjustClientMovementTime(moveRemoveInertiaAck.Ack.Status.time);
-
-    WorldPackets::Movement::MoveUpdateRemoveInertia updateRemoveInertia;
-    updateRemoveInertia.Status = &moveRemoveInertiaAck.Ack.Status;
-    updateRemoveInertia.MovementInertiaID = moveRemoveInertiaAck.MovementInertiaID;
-    mover->SendMessageToSet(updateRemoveInertia.Write(), false);
-}
-
 void WorldSession::HandleMoveAddImpulseAck(WorldPackets::Movement::MoveAddImpulseAck& moveAddImpulseAck)
 {
     Unit* mover = _player->m_unitMovedByMe;
