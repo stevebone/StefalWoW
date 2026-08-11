@@ -37,11 +37,6 @@ UPDATE `creature` SET `spawntimesecs` = 3600 WHERE `guid` = 224148;
 -- Fix positions
 UPDATE creature SET position_x = -10774.98, position_y = 1243.1929, position_z = 39.13716, orientation = 0.22730106 WHERE guid = 274874;
 
--- Script for Lou's Parting Thoughts Quest
-UPDATE `creature_template` SET `ScriptName` = 'npc_custom_lous_parting_thoughts_trigger' WHERE (`entry` = '42562');
-UPDATE `creature_template` SET `ScriptName` = 'npc_custom_lous_parting_thoughts_thug' WHERE (`entry` = '42387');
-DELETE FROM `creature` WHERE `ID` = 42387; -- thugs are spawned by script now
-
 -- Script for Salma's Westfall Stew
 UPDATE `creature_template` SET `ScriptName` = 'npc_custom_salma_saldean_235' WHERE `entry` = 235;
 
