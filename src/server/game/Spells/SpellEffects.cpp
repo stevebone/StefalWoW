@@ -6609,6 +6609,12 @@ void Spell::EffectLearnFollowerAbility()
 
 void Spell::EffectFinishGarrisonMission()
 {
+    // SPELL_EFFECT_FINISH_GARRISON_MISSION (246) force-completes a mission with a GUARANTEED success
+    // (Garrison::FinishMission now pins ResultDetermined + Succeeded) and hands it straight to the reward
+    // path. That is an instant free mission reward, so this effect is intended for GM / script use ONLY -
+    // it must NEVER be attached to a player-castable or lootable spell/item. If you author a spell with
+    // this effect, keep it flagged GM-only (or fire it exclusively from server scripts); a data audit of
+    // the spell/item tables for effect 246 should confirm nothing player-reachable carries it.
     if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT_TARGET)
         return;
 

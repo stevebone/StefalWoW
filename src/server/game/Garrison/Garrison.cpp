@@ -3668,6 +3668,13 @@ void Garrison::FinishMission(uint32 garrMissionRecID)
 
     mission->PacketInfo.MissionState = 2; // Completed
     mission->PacketInfo.SuccessChance = 100; // Instant complete = guaranteed success
+
+    // Lock in the win. Setting SuccessChance alone is NOT enough for an auto-combat (Adventures) mission:
+    // FinalizeMission re-rolls the outcome via RollMissionOutcome whenever ResultDetermined is false, and
+    // that simulation can still LOSE regardless of SuccessChance. Nail the result here so a force-completed
+    // mission is genuinely guaranteed to succeed, matching the "instant complete" intent.
+    mission->ResultDetermined = true;
+    mission->Succeeded = true;
 }
 
 void Garrison::FinishShipment(uint32 plotInstanceId)
