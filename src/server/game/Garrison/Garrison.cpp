@@ -48,6 +48,7 @@
 #include <algorithm>
 #include <array>
 #include <limits>
+#include <unordered_set>
 #include <vector>
 
 Garrison::Garrison(Player* owner) : _owner(owner), _garrType(GARRISON_TYPE_GARRISON), _siteLevel(nullptr), _followerActivationsRemainingToday(1), _conservatory(owner), _abominationFactory(owner), _pathOfAscension(owner), _emberCourt(owner)
@@ -2579,8 +2580,19 @@ GarrisonError Garrison::StartMission(uint32 missionRecID, std::vector<uint64> co
         return GARRISON_ERROR_MISSION_SIZE_INVALID;
 
     // Validate all followers
+    // Reject duplicate follower dbIDs up front. The not-already-on-mission check below only reads
+    // CurrentMissionID, which is still 0 for every entry here (it is set AFTER this loop, at the
+    // "Assign followers to mission" step), so it cannot catch the same follower listed twice. Without
+    // this guard one companion could fill every slot: CalculateSuccessChance would count its bias N
+    // times (success ~100%), RollMissionOutcome would build N combatants from it, and FinalizeMission
+    // would award its follower XP / decrement its troop durability N times — a guaranteed-win XP farm
+    // from a single follower. De-dup before any other check.
+    std::unordered_set<uint64> seenFollowerDbIds;
     for (uint64 followerDbId : followerDBIDs)
     {
+        if (!seenFollowerDbIds.insert(followerDbId).second)
+            return GARRISON_ERROR_INVALID_FOLLOWER;
+
         Follower const* follower = GetFollower(followerDbId);
         if (!follower)
             return GARRISON_ERROR_INVALID_FOLLOWER;
