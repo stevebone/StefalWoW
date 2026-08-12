@@ -699,6 +699,7 @@ void World::LoadConfigSettings(bool reload)
         { .Name = "Load.Locales"sv, .DefaultValue = true, .Index = CONFIG_LOAD_LOCALES },
         { .Name = "LogUnhandledOpcodes"sv, .DefaultValue = true, .Index = CONFIG_LOG_UNHANDLED_OPCODES },
         { .Name = "Shop.Enabled"sv, .DefaultValue = true, .Index = CONFIG_SHOP_ENABLED },
+        { .Name = "Shop.Shop2Enabled"sv, .DefaultValue = false, .Index = CONFIG_SHOP_SHOP2_ENABLED },
         { .Name = "Shop.PurchaseConfirmation"sv, .DefaultValue = false, .Index = CONFIG_SHOP_PURCHASE_CONFIRMATION },
         { .Name = "WowToken.Market.Enabled"sv, .DefaultValue = false, .Index = CONFIG_WOW_TOKEN_MARKET_ENABLED },
     } };

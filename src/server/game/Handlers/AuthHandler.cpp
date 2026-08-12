@@ -22,12 +22,14 @@
 #include "ClientConfigPackets.h"
 #include "DisableMgr.h"
 #include "GameTime.h"
+#include "Log.h"
 #include "ObjectMgr.h"
 #include "RBAC.h"
 #include "RealmList.h"
 #include "SystemPackets.h"
 #include "Timezone.h"
 #include "Util.h"
+#include "Config.h"
 #include "World.h"
 
 void WorldSession::SendAuthResponse(uint32 code, bool queued, uint32 queuePos)
@@ -152,12 +154,18 @@ void WorldSession::SendFeatureSystemStatusGlueScreen()
         { "raidLockoutExtendEnabled"sv, "1"sv },
         { "sellAllJunkEnabled"sv, "1"sv },
         { "bypassItemLevelScalingCode"sv, "0"sv },
-        // In-game Shop: enable both the modern (shop2) and legacy (bpay) client store gates.
-        // Retail 12.0.7 sends both "1" (verified against the in-game-shop sniff). The core product
-        // list rides C_StoreSecure.GetProductList -> CMSG_BATTLE_PAY_GET_PRODUCT_LIST, which our
-        // BattlePayMgr answers with the captured catalog; shop2's web-checkout extras stay inert
-        // (we don't ship Blizzard service URLs) but do not block that path. Follows Shop.Enabled.
-        { "shop2Enabled"sv, shopEnabled ? "1"sv : "0"sv },
+        // In-game Shop. Two independent client store gates:
+        //   bpayStoreEnable - the legacy BattlePay opcode path (CMSG_BATTLE_PAY_GET_PRODUCT_LIST ->
+        //     our BattlePayMgr catalog). This is the one we actually implement, so it follows Shop.Enabled.
+        //   shop2Enabled    - the MODERN path, which is NOT a game-opcode flow at all: the client talks
+        //     HTTPS to Blizzard web services whose endpoints arrive in these very MirrorVars
+        //     (shop2HostUrlRequests = https://us.api.blizzard.com, shop2HostUrlAuth =
+        //     https://oauth.battle.net, plus shop2ClientIdStr and the VC/POP GUIDs - all captured in
+        //     ingame-shop_ordersCrafting_professions.pkt). Announcing shop2Enabled=1 while shipping no
+        //     endpoints leaves the client with the modern store switched on and nowhere to reach, so it
+        //     is OFF by default and gated behind its own config. Turn Shop.Shop2Enabled on only when a
+        //     real endpoint exists to answer it.
+        { "shop2Enabled"sv, (shopEnabled && sWorld->getBoolConfig(CONFIG_SHOP_SHOP2_ENABLED)) ? "1"sv : "0"sv },
         { "bpayStoreEnable"sv, shopEnabled ? "1"sv : "0"sv },
         // Recent Allies is implemented server-side (RecentAlliesMgr + the 5 opcodes); retail sends 1.
         { "recentAlliesEnabledClient"sv, "1"sv },
@@ -174,7 +182,28 @@ void WorldSession::SendFeatureSystemStatusGlueScreen()
         { "housingMarketEnabled"sv, "0"sv },
     };
 
+    // shop2 endpoint advertisement. The client reaches the modern store over HTTPS at whatever host
+    // these vars name - they are the ONLY thing that points it anywhere, so serving our own endpoint
+    // is a matter of naming it here (no hosts file, no hostname impersonation). The client's built-in
+    // defaults are Blizzard's dev hosts (https://us.apidev.blizzard.net, https://oauth.web.blizzard.net),
+    // which is why an arbitrary host is acceptable to it. Only advertised when Shop.Shop2Enabled is on
+    // AND a URL is actually configured, so we never announce a store with nowhere to reach.
+    std::vector<WorldPackets::System::MirrorVarSingle> varList(std::begin(vars), std::end(vars));
+    if (shopEnabled && sWorld->getBoolConfig(CONFIG_SHOP_SHOP2_ENABLED))
+    {
+        auto addIfConfigured = [&varList](std::string_view name, char const* configKey)
+            {
+                std::string value = sConfigMgr->GetStringDefault(configKey, "");
+                if (!value.empty())
+                    varList.emplace_back(name, value);
+            };
+
+        addIfConfigured("shop2HostUrlRequests"sv, "Shop.Shop2HostUrlRequests");
+        addIfConfigured("shop2HostUrlAuth"sv, "Shop.Shop2HostUrlAuth");
+        addIfConfigured("shop2ClientIdStr"sv, "Shop.Shop2ClientId");
+    }
+
     WorldPackets::System::MirrorVars variables;
-    variables.Variables = vars;
+    variables.Variables = varList;
     SendPacket(variables.Write());
 }
