@@ -564,6 +564,23 @@ Auction.SearchDelay = 300
 Auction.TaintedSearchDelay = 3000
 
 #
+#    WowToken.Market.Enabled
+#        Description: Master switch for the WoW Token MARKET (the Auction House token exchange:
+#                     sell / buy / redeem). Default off (0). While off, the token trade opcodes stay
+#                     deliberate stubs and the market advertises itself disabled - this is intentional:
+#                     a token redeems into game time or a balance-equivalent, which this core has no
+#                     concept of, so the redeem sink is an operator decision (see the WoW Token section
+#                     of COMMERCE_RETAIL_PARITY.md). Do NOT enable this until the redeem target has been
+#                     chosen and the derived sell/buy/redeem handshakes wired, or buying a token would
+#                     take gold for an inert object.
+#                     NOTE: buying a WoW Token from the in-game Shop for GOLD (GrantType 3) is a separate,
+#                     already-working path and is NOT gated by this switch.
+#        Default:     0 - (token market disabled)
+#                     1 - (token market enabled; requires the trade handshakes to be implemented)
+
+WowToken.Market.Enabled = 0
+
+#
 ###################################################################################################
 
 ###################################################################################################
@@ -4414,7 +4431,6 @@ Load.Locales = 1
 
 #
 ###################################################################################################
-
 #
 # Followship NPCs Bot System
 #
@@ -4808,3 +4824,32 @@ Season.PvpSeasonID = 39
 #                     0 - (Disabled)
 
 Season.WeeklyRewardChestsEnabled = 1
+
+###################################################################################################
+# IN-GAME SHOP (BATTLEPAY)
+#
+#    Shop.Enabled
+#        Description: Master switch for the in-game Shop (BattlePay / StoreUI). When disabled the
+#                     store is advertised as unavailable in the feature-system status (glue and
+#                     in-world), the distribution list is not sent, and all shop CMSG handlers
+#                     (product list, purchase list, start purchase, open checkout) are refused.
+#        Default:     1 - (Enabled)
+#                     0 - (Disabled)
+
+Shop.Enabled = 1
+
+#
+#    Shop.PurchaseConfirmation
+#        Description: Route in-game Shop purchases through the retail two-step confirmation handshake
+#                     (server sends SMSG_BATTLE_PAY_CONFIRM_PURCHASE, completes on the client's
+#                     CMSG_BATTLE_PAY_CONFIRM_PURCHASE_RESPONSE). The confirm packet layout is INFERRED
+#                     (uncracked client struct, absent from all sniffs) and may disconnect a live
+#                     client, so this is OFF by default; the proven direct-grant path is used instead.
+#                     Enable only to validate the confirm round-trip against a live client.
+#        Default:     0 - (Disabled, direct grant)
+#                     1 - (Enabled, two-step confirmation)
+
+Shop.PurchaseConfirmation = 0
+
+#
+###################################################################################################

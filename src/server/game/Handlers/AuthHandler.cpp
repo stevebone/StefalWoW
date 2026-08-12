@@ -108,7 +108,12 @@ void WorldSession::SendSetTimeZoneInformation()
 void WorldSession::SendFeatureSystemStatusGlueScreen()
 {
     WorldPackets::System::FeatureSystemStatusGlueScreen features;
-    features.BpayStoreAvailable = false;
+    // Advertise the in-game Shop as available on the character-select/glue screen too (retail sends
+    // this true in 12.0.7). Gates the glue-screen Shop button; the in-world flag is set in
+    // WorldSession::SendFeatureSystemStatus. Both follow the Shop.Enabled worldserver.conf toggle.
+    bool const shopEnabled = sWorld->getBoolConfig(CONFIG_SHOP_ENABLED);
+    features.BpayStoreAvailable = shopEnabled;
+    features.CommerceServerEnabled = shopEnabled;
     features.BpayStoreDisabledByParentalControls = false;
     features.CharUndeleteEnabled = sWorld->getBoolConfig(CONFIG_FEATURE_SYSTEM_CHARACTER_UNDELETE_ENABLED);
     features.MaxCharactersOnThisRealm = sWorld->getIntConfig(CONFIG_CHARACTERS_PER_REALM);
@@ -147,10 +152,19 @@ void WorldSession::SendFeatureSystemStatusGlueScreen()
         { "raidLockoutExtendEnabled"sv, "1"sv },
         { "sellAllJunkEnabled"sv, "1"sv },
         { "bypassItemLevelScalingCode"sv, "0"sv },
-        { "shop2Enabled"sv, "0"sv },
-        { "bpayStoreEnable"sv, "0"sv },
-        { "recentAlliesEnabledClient"sv, "0"sv },
-        { "browserEnabled"sv, "0"sv },
+        // In-game Shop: enable both the modern (shop2) and legacy (bpay) client store gates.
+        // Retail 12.0.7 sends both "1" (verified against the in-game-shop sniff). The core product
+        // list rides C_StoreSecure.GetProductList -> CMSG_BATTLE_PAY_GET_PRODUCT_LIST, which our
+        // BattlePayMgr answers with the captured catalog; shop2's web-checkout extras stay inert
+        // (we don't ship Blizzard service URLs) but do not block that path. Follows Shop.Enabled.
+        { "shop2Enabled"sv, shopEnabled ? "1"sv : "0"sv },
+        { "bpayStoreEnable"sv, shopEnabled ? "1"sv : "0"sv },
+        // Recent Allies is implemented server-side (RecentAlliesMgr + the 5 opcodes); retail sends 1.
+        { "recentAlliesEnabledClient"sv, "1"sv },
+        // In-game browser widget (retail sends 1); the Shop uses it to render richer content.
+        { "browserEnabled"sv, "1"sv },
+        // Master looter is a fully supported loot method (LOOT_METHOD_MASTER); retail sends 1.
+        { "masterLooterEnabled"sv, "1"sv },
         { "housingEnableCreateGuildNeighborhood"sv, "0"sv },
         { "housingEnableDeleteHouse"sv, "0"sv },
         { "housingServiceEnabled"sv, "0"sv },

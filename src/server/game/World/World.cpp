@@ -26,6 +26,7 @@
 #include "ArenaTeamMgr.h"
 #include "AuctionHouseBot.h"
 #include "AuctionHouseMgr.h"
+#include "BattlePayMgr.h"
 #include "AuthenticationPackets.h"
 #include "BattlePetMgr.h"
 #include "BattlefieldMgr.h"
@@ -109,6 +110,7 @@
 #include "WhoListStorage.h"
 #include "WorldSession.h"
 #include "WorldStateMgr.h"
+#include "WowTokenMgr.h"
 #include <zlib.h>
 
 TC_GAME_API std::atomic<bool> World::m_stopEvent(false);
@@ -696,6 +698,9 @@ void World::LoadConfigSettings(bool reload)
         { .Name = "Loot.EnableAELoot"sv, .DefaultValue = true, .Index = CONFIG_ENABLE_AE_LOOT },
         { .Name = "Load.Locales"sv, .DefaultValue = true, .Index = CONFIG_LOAD_LOCALES },
         { .Name = "LogUnhandledOpcodes"sv, .DefaultValue = true, .Index = CONFIG_LOG_UNHANDLED_OPCODES },
+        { .Name = "Shop.Enabled"sv, .DefaultValue = true, .Index = CONFIG_SHOP_ENABLED },
+        { .Name = "Shop.PurchaseConfirmation"sv, .DefaultValue = false, .Index = CONFIG_SHOP_PURCHASE_CONFIRMATION },
+        { .Name = "WowToken.Market.Enabled"sv, .DefaultValue = false, .Index = CONFIG_WOW_TOKEN_MARKET_ENABLED },
     } };
 
     static constexpr ConfigOptionLoadDefinitionArray<uint32, INT_CONFIG_VALUE_COUNT> ints =
@@ -1625,6 +1630,13 @@ bool World::SetInitialWorldSettings()
     TC_LOG_INFO("server.loading", "Loading Game Event Data...");               // must be after loading pools fully
     sGameEventMgr->LoadFromDB();
 
+    TC_LOG_INFO("server.loading", "Loading in-game Shop (BattlePay) catalog...");
+    sBattlePayMgr->Load();
+    sBattlePayMgr->LoadCatalog();
+
+    TC_LOG_INFO("server.loading", "Loading WoW Token holdings...");
+    sWowTokenMgr->Load();
+
     TC_LOG_INFO("server.loading", "Loading creature summoned data...");
     sObjectMgr->LoadCreatureSummonedData();                     // must be after LoadCreatureTemplates() and LoadQuests()
 
@@ -2173,6 +2185,9 @@ void World::Update(uint32 diff)
         m_timers[WUPDATE_WHO_LIST].Reset();
         sWhoListStorageMgr->Update();
     }
+
+    ///- Rebuild the in-game Shop catalog when an availability-window boundary passes (restart-free rotation).
+    sBattlePayMgr->RebuildIfDue(currentGameTime);
 
     if (IsStopped() || m_timers[WUPDATE_CHANNEL_SAVE].Passed())
     {

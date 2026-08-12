@@ -43,3 +43,4 @@ UPDATE `creature_template_difficulty` SET `ContentTuningID`=53, `StaticFlags1`=0
 DELETE FROM `creature_template_gossip` WHERE (`CreatureID`=40664 AND `MenuID`=11421);
 INSERT INTO `creature_template_gossip` (`CreatureID`, `MenuID`, `VerifiedBuild`) VALUES
 (40664, 11421, 68453); -- Recovering Soldier
+

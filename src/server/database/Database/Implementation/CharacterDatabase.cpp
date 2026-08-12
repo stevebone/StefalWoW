@@ -895,6 +895,8 @@ void CharacterDatabaseConnection::DoPrepareStatements()
     PrepareStatement(CHAR_UPD_CLUB_FINDER_APPLICANT_STATUS, "UPDATE club_finder_applicant SET status = ? WHERE id = ?", CONNECTION_ASYNC);
     PrepareStatement(CHAR_DEL_CLUB_FINDER_APPLICANT, "DELETE FROM club_finder_applicant WHERE id = ?", CONNECTION_ASYNC);
     PrepareStatement(CHAR_DEL_CLUB_FINDER_APPLICANTS_BY_POSTING, "DELETE FROM club_finder_applicant WHERE postingID = ?", CONNECTION_ASYNC);
+
+    PrepareStatement(CHAR_SEL_ACCOUNT_TOTAL_MONEY, "SELECT SUM(money) FROM characters WHERE account = ? AND deleteDate IS NULL", CONNECTION_ASYNC);
 }
 
 CharacterDatabaseConnection::CharacterDatabaseConnection(MySQLConnectionInfo& connInfo, ConnectionFlags connectionFlags) : MySQLConnection(connInfo, connectionFlags)
