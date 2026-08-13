@@ -40,6 +40,31 @@ void WorldSession::HandleGetGarrisonInfo(WorldPackets::Garrison::GetGarrisonInfo
     for (auto const& [type, garrison] : _player->GetGarrisons())
         garrison->SendTroopQualityRefresh();
 
+    // Sniff-confirmed login prologue: on the FIRST GetGarrisonInfo of a session only, every owned garrison
+    // emits FOLLOWER_FATIGUE_CLEARED then FOLLOWER_ACTIVATIONS_SET immediately before the info result, in
+    // the same tick. Later GetGarrisonInfo calls in the same session carry no prologue (captures show bare
+    // 0x4C0000 at the later ticks), so this is gated rather than sent every time.
+    if (!_sentGarrisonLoginPrologue)
+    {
+        _sentGarrisonLoginPrologue = true;
+
+        for (auto const& [type, garrison] : _player->GetGarrisons())
+        {
+            WorldPackets::Garrison::GarrisonFollowerFatigueCleared fatigueCleared;
+            fatigueCleared.GarrTypeID = uint8(type);
+            fatigueCleared.Result = 0;      // 0 in every capture
+            SendPacket(fatigueCleared.Write());
+
+            if (GarrSiteLevelEntry const* siteLevel = garrison->GetSiteLevel())
+            {
+                WorldPackets::Garrison::GarrisonFollowerActivationsSet activationsSet;
+                activationsSet.GarrSiteID = siteLevel->GarrSiteID;
+                activationsSet.NumActivationsRemaining = garrison->GetFollowerActivationsRemaining();
+                SendPacket(activationsSet.Write());
+            }
+        }
+    }
+
     WorldPackets::Garrison::GetGarrisonInfoResult garrisonInfo;
     garrisonInfo.FactionIndex = Garrison::GetFaction(_player->GetTeam());
 

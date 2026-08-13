@@ -607,6 +607,7 @@ public:
     void SendTroopQualityRefresh() const;
 
     void ResetFollowerActivationLimit() { _followerActivationsRemainingToday = 1; }
+    uint32 GetFollowerActivationsRemaining() const { return _followerActivationsRemainingToday; }
 
     // Anima Conductor channels bought with reservoir anima last until the daily reset; drop the lapsed ones and
     // tell the client. A no-op for every garrison type except the covenant sanctum. Called from Player::DailyReset.

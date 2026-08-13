@@ -475,9 +475,10 @@ namespace WorldPackets
 
             WorldPacket const* Write() override;
 
+            // Two u32 only. The client case body is exactly two reads; TC wrote a third
+            // (GarrPlotInstanceID) that the client never consumes.
             uint32 Result = 0;
             uint32 GarrSpecID = 0;
-            uint32 GarrPlotInstanceID = 0;
         };
 
         // Conservative shape: {u32 Result, u32 GarrPlotInstanceID, u32 GarrSpecID}.
@@ -492,6 +493,10 @@ namespace WorldPackets
             uint32 Result = 0;
             uint32 GarrPlotInstanceID = 0;
             uint32 GarrSpecID = 0;
+            // The client reads a trailing u64 after the three u32s; TC was 8 bytes short. The u64 read
+            // is CONFIRMED, the name is a hypothesis - the server's only u64 in this state is
+            // plot->BuildingInfo.PacketInfo->TimeSpecCooldown, the 1-day cooldown set on spec change.
+            uint64 TimeSpecCooldown = 0;
         };
 
         // IDA case 4980797 (§8.47): u32 Result, u64 BuildingDbID, u32 GarrPlotInstanceID.
@@ -547,9 +552,14 @@ namespace WorldPackets
 
             WorldPacket const* Write() override;
 
+            // 13 bytes: u8 GarrTypeID, u64 StartTime, u32 GarrMssnBonusAbilityID.
+            // There is NO MissionRecID in this packet - the nested reader (RVA 0x72BA90) does
+            // read64 -> +0 then read32 -> +8, matching JamGarrisonMissionBonusAbility
+            // { startTime int64 @0, garrMssnBonusAbilityID int32 @8 }. TC previously wrote
+            // u8 + u32 + u32 = 9 bytes where the client reads 13.
             uint8 GarrTypeID = 0;
-            uint32 MissionRecID = 0;
-            uint32 BonusAbilityID = 0;
+            uint64 StartTime = 0;
+            uint32 GarrMssnBonusAbilityID = 0;
         };
 
         // ============================================================
@@ -1239,8 +1249,10 @@ namespace WorldPackets
         // IDA cases 0x4C0045 - 0x4C004C, see SNIFF_AUDIT §8.54-8.61.
         // ============================================================
 
-        // IDA case 4980805 (§8.54): wrapper + 1 byte + varU32 GarrTalentID + JamGarrisonTalentSocket.
-        // Conservative: {u8 GarrTypeID, u8 CollectionEntryFlags, u32 GarrTalentID, GarrisonTalentSocketData}.
+        // SUPERSEDED: this used to be described as "Conservative: {u8 GarrTypeID, u8 CollectionEntryFlags,
+        // u32 GarrTalentID, GarrisonTalentSocketData}" - an admitted guess, and a wrong one (14 bytes
+        // written where the client reads 13). The real shape was read off the client and is documented on
+        // the fields below.
         class GarrisonCollectionUpdateEntry final : public ServerPacket
         {
         public:
@@ -1248,10 +1260,14 @@ namespace WorldPackets
 
             WorldPacket const* Write() override;
 
+            // 13 bytes: u8 GarrTypeID, u32 CollectionType, u32 EntryID, u32 Rank.
+            // The reader at RVA 0x71ABB8 does read8, read32, then a two-u32 helper. There is no
+            // CollectionEntryFlags field - TC's own header called its shape "Conservative", i.e. a guess,
+            // and it was wrong (14 bytes written vs 13 read).
             uint8 GarrTypeID = 0;
-            uint8 CollectionEntryFlags = 0;
-            uint32 GarrTalentID = 0;
-            GarrisonTalentSocketData Socket;
+            uint32 CollectionType = 0;
+            uint32 EntryID = 0;
+            uint32 Rank = 0;
         };
 
         // IDA case 4980806 (§8.55): u8 GarrTypeID, u32 CollectionType, u32 GarrTalentID.
@@ -1371,7 +1387,12 @@ namespace WorldPackets
 
             WorldPacket const* Write() override;
 
-            uint32 GarrSiteLevelID = 0;
+            // This is the GarrSite id, NOT the GarrSiteLevel id, despite what the field was previously
+            // called. Four captures carry 2, 161, 299 and 168 - and TC's own GetGarrisonTypeFromSiteId
+            // map (Garrison.cpp) lists 2 = WoD garrison, 161 = Legion order hall, 168 = BfA war campaign.
+            // The war campaign's GarrSiteLevel ids are 599/600/601, so a site-level id could not produce
+            // 168. Sending _siteLevel->ID here would have put the wrong number on the wire.
+            uint32 GarrSiteID = 0;
             uint32 NumActivationsRemaining = 0;
         };
 
@@ -1585,15 +1606,28 @@ namespace WorldPackets
             std::vector<int32> UnlockedTalentTreeIDs;
         };
 
-        // IDA case 4980815: opaque generic-byte-block helper. TC sends u8 GarrTypeID +
-        // size-prefixed array of {u32 GarrTalentID, GarrisonTalentSocketData} pairs. See SNIFF_AUDIT §8.64.
+        // SMSG_GARRISON_APPLY_TALENT_SOCKET_DATA_CHANGES (0x4C004F). Reader RVA 0x717CE0, read in full.
+        //
+        //   u8  GarrTypeID
+        //   u32 changeCount            <- sizes the change vector, but its ELEMENTS come last
+        //   u32 removedCount
+        //   removedCount x u32 GarrTalentID
+        //   changeCount  x { u32 GarrTalentID; bit7 HasSocket + FlushBits;
+        //                    if HasSocket -> u32 SoulbindConduitID, u32 SoulbindConduitRank }
+        //
+        // Note the size-then-other-array-then-elements shape: the client sizes the change vector at
+        // field 2 and does not read its elements until the end.
+        //
+        // TC previously wrote u8, u32 count, count x {u32, Socket} - two independent desyncs: the
+        // removed-list was missing entirely, and the socket was written unconditionally with no
+        // presence bit. The optional socket pair is read by RVA 0x6BE2E0 (two u32 reads).
         class GarrisonApplyTalentSocketDataChanges final : public ServerPacket
         {
         public:
             struct TalentSocketChange
             {
                 uint32 GarrTalentID = 0;
-                GarrisonTalentSocketData Socket;
+                Optional<GarrisonTalentSocketData> Socket;
             };
 
             explicit GarrisonApplyTalentSocketDataChanges() : ServerPacket(SMSG_GARRISON_APPLY_TALENT_SOCKET_DATA_CHANGES) { }
@@ -1602,6 +1636,7 @@ namespace WorldPackets
 
             uint8 GarrTypeID = 0;
             std::vector<TalentSocketChange> Changes;
+            std::vector<uint32> RemovedTalentIDs;
         };
 
         // ============================================================

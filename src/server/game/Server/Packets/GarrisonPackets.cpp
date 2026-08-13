@@ -570,7 +570,6 @@ WorldPacket const* GarrisonLearnSpecializationResult::Write()
 {
     _worldPacket << uint32(Result);
     _worldPacket << uint32(GarrSpecID);
-    _worldPacket << uint32(GarrPlotInstanceID);
 
     return &_worldPacket;
 }
@@ -581,6 +580,7 @@ WorldPacket const* GarrisonBuildingSetActiveSpecializationResult::Write()
     _worldPacket << uint32(Result);
     _worldPacket << uint32(GarrPlotInstanceID);
     _worldPacket << uint32(GarrSpecID);
+    _worldPacket << uint64(TimeSpecCooldown);
 
     return &_worldPacket;
 }
@@ -620,8 +620,8 @@ WorldPacket const* GarrisonAutoTroopMinLevelUpdateResult::Write()
 WorldPacket const* GarrisonActivateMissionBonusAbility::Write()
 {
     _worldPacket << uint8(GarrTypeID);
-    _worldPacket << uint32(MissionRecID);
-    _worldPacket << uint32(BonusAbilityID);
+    _worldPacket << uint64(StartTime);
+    _worldPacket << uint32(GarrMssnBonusAbilityID);
 
     return &_worldPacket;
 }
@@ -1145,9 +1145,9 @@ WorldPacket const* GarrisonUpdateMissionCheatResult::Write()
 WorldPacket const* GarrisonCollectionUpdateEntry::Write()
 {
     _worldPacket << uint8(GarrTypeID);
-    _worldPacket << uint8(CollectionEntryFlags);
-    _worldPacket << uint32(GarrTalentID);
-    _worldPacket << Socket;
+    _worldPacket << uint32(CollectionType);
+    _worldPacket << uint32(EntryID);
+    _worldPacket << uint32(Rank);
 
     return &_worldPacket;
 }
@@ -1231,7 +1231,7 @@ WorldPacket const* GarrisonGetClassSpecCategoryInfoResult::Write()
 
 WorldPacket const* GarrisonFollowerActivationsSet::Write()
 {
-    _worldPacket << uint32(GarrSiteLevelID);
+    _worldPacket << uint32(GarrSiteID);
     _worldPacket << uint32(NumActivationsRemaining);
 
     return &_worldPacket;
@@ -1393,10 +1393,22 @@ WorldPacket const* GarrisonApplyTalentSocketDataChanges::Write()
 {
     _worldPacket << uint8(GarrTypeID);
     _worldPacket << uint32(Changes.size());
+    _worldPacket << uint32(RemovedTalentIDs.size());
+
+    for (uint32 removedTalentId : RemovedTalentIDs)
+        _worldPacket << uint32(removedTalentId);
+
     for (TalentSocketChange const& change : Changes)
     {
         _worldPacket << uint32(change.GarrTalentID);
-        _worldPacket << change.Socket;
+        _worldPacket << Bits<1>(change.Socket.has_value());
+        _worldPacket.FlushBits();
+
+        if (change.Socket)
+        {
+            _worldPacket << int32(change.Socket->SoulbindConduitID);
+            _worldPacket << int32(change.Socket->SoulbindConduitRank);
+        }
     }
 
     return &_worldPacket;
