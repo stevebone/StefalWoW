@@ -54,10 +54,10 @@ void WowTokenMgr::Load()
         Field* fields = result->Fetch();
 
         WowToken token;
-        token.Id           = fields[0].GetUInt64();
+        token.Id = fields[0].GetUInt64();
         token.OwnerAccount = fields[1].GetUInt32();
-        token.Price        = fields[3].GetUInt64();
-        token.CreateTime   = fields[4].GetInt64();
+        token.Price = fields[3].GetUInt64();
+        token.CreateTime = fields[4].GetInt64();
 
         uint8 state = fields[2].GetUInt8();
         if (state > WOW_TOKEN_STATE_LISTED)
@@ -70,8 +70,7 @@ void WowTokenMgr::Load()
 
         _maxTokenId = std::max(_maxTokenId, token.Id);
         _tokens[token.Id] = token;
-    }
-    while (result->NextRow());
+    } while (result->NextRow());
 
     TC_LOG_INFO("server.loading", ">> Loaded {} WoW tokens in {} ms", _tokens.size(), GetMSTimeDiffToNow(oldMSTime));
 }
@@ -127,10 +126,10 @@ WowToken const* WowTokenMgr::GetToken(uint64 tokenId) const
 uint64 WowTokenMgr::CreateToken(uint32 accountId, WowTokenState state)
 {
     WowToken token;
-    token.Id           = ++_maxTokenId;
+    token.Id = ++_maxTokenId;
     token.OwnerAccount = accountId;
-    token.State        = state;
-    token.CreateTime   = GameTime::GetGameTime();
+    token.State = state;
+    token.CreateTime = GameTime::GetGameTime();
 
     _tokens[token.Id] = token;
 
@@ -152,9 +151,9 @@ bool WowTokenMgr::SetTokenState(uint64 tokenId, WowTokenState state, uint32 owne
         return false;
 
     WowToken& token = itr->second;
-    token.State        = state;
+    token.State = state;
     token.OwnerAccount = ownerAccount;
-    token.Price        = price;
+    token.Price = price;
 
     LoginDatabasePreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_UPD_ACCOUNT_WOW_TOKEN);
     stmt->setUInt32(0, token.OwnerAccount);
@@ -176,12 +175,12 @@ std::string WowTokenMgr::GenerateSsoToken(uint32 bnetAccountId)
     std::string region;
     switch (sRealmList->GetCurrentRealmId().Region)
     {
-        case 1:  region = "US"; break;
-        case 2:  region = "KR"; break;
-        case 3:  region = "EU"; break;
-        case 4:  region = "TW"; break;
-        case 5:  region = "CN"; break;
-        default: region = "US"; break;
+    case 1:  region = "US"; break;
+    case 2:  region = "KR"; break;
+    case 3:  region = "EU"; break;
+    case 4:  region = "TW"; break;
+    case 5:  region = "CN"; break;
+    default: region = "US"; break;
     }
 
     std::string token = ByteArrayToHexStr(randomBytes);

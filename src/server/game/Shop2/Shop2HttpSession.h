@@ -22,30 +22,30 @@
 
 namespace Shop2
 {
-// One accepted TLS connection from the game client's shop2 (CatalogUtilities.cpp) HTTP layer.
-//
-// Modelled on Battlenet::LoginHttpSession, minus the cookie/session plumbing (shop2 authenticates
-// with a bearer token issued by our own /sso, not with JSESSIONID) and minus the DB query processor
-// (every route is answered from a pre-rendered in-memory snapshot).
-class TC_GAME_API Shop2HttpSession final : public Trinity::Net::Http::AbstractSocket, public std::enable_shared_from_this<Shop2HttpSession>
-{
-public:
-    explicit Shop2HttpSession(Trinity::Net::IoContextTcpSocket&& socket);
-    ~Shop2HttpSession();
+    // One accepted TLS connection from the game client's shop2 (CatalogUtilities.cpp) HTTP layer.
+    //
+    // Modelled on Battlenet::LoginHttpSession, minus the cookie/session plumbing (shop2 authenticates
+    // with a bearer token issued by our own /sso, not with JSESSIONID) and minus the DB query processor
+    // (every route is answered from a pre-rendered in-memory snapshot).
+    class TC_GAME_API Shop2HttpSession final : public Trinity::Net::Http::AbstractSocket, public std::enable_shared_from_this<Shop2HttpSession>
+    {
+    public:
+        explicit Shop2HttpSession(Trinity::Net::IoContextTcpSocket&& socket);
+        ~Shop2HttpSession();
 
-    void Start() override;
-    bool Update() override;
-    boost::asio::ip::address const& GetRemoteIpAddress() const override { return _socket->GetRemoteIpAddress(); }
-    bool IsOpen() const override { return _socket->IsOpen(); }
-    void CloseSocket() override { return _socket->CloseSocket(); }
+        void Start() override;
+        bool Update() override;
+        boost::asio::ip::address const& GetRemoteIpAddress() const override { return _socket->GetRemoteIpAddress(); }
+        bool IsOpen() const override { return _socket->IsOpen(); }
+        void CloseSocket() override { return _socket->CloseSocket(); }
 
-    void SendResponse(Trinity::Net::Http::RequestContext& context) override { return _socket->SendResponse(context); }
-    std::string GetClientInfo() const override { return _socket->GetClientInfo(); }
-    Trinity::Net::Http::SessionState* GetSessionState() const override { return _socket->GetSessionState(); }
+        void SendResponse(Trinity::Net::Http::RequestContext& context) override { return _socket->SendResponse(context); }
+        std::string GetClientInfo() const override { return _socket->GetClientInfo(); }
+        Trinity::Net::Http::SessionState* GetSessionState() const override { return _socket->GetSessionState(); }
 
-private:
-    std::shared_ptr<Trinity::Net::Http::AbstractSocket> _socket;
-};
+    private:
+        std::shared_ptr<Trinity::Net::Http::AbstractSocket> _socket;
+    };
 }
 
 #endif // TRINITYCORE_SHOP2_HTTP_SESSION_H

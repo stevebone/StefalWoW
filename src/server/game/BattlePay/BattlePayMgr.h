@@ -29,9 +29,34 @@ class Player;
 // A single deliverable payload of a shop product (>1 per product = a bundle).
 struct ShopDeliverable
 {
-    uint8  Type  = 0;   // 1 item | 2 spell | 3 WoW Token | 4 game-time (reserved) | 5 service (reserved)
-    uint32 Id    = 0;   // itemId / spellId / 0 (token) / days / serviceType
+    uint8  Type = 0;   // 1 item | 2 spell | 3 WoW Token | 4 game-time (reserved) | 5 service
+    uint32 Id = 0;   // itemId / spellId / 0 (token) / days / serviceType
     uint32 Count = 1;
+};
+
+// Entitlement ("distribution") lifecycle. Only AVAILABLE is ever put on the wire: it is the sole status
+// byte observed in a real capture (the 68275 distribution record carries 1 at record offset 8). The rest
+// are server-side bookkeeping; their numeric values follow the client's own DistributionStatus ordering
+// so that emitting them later needs no renumbering, but nothing here depends on that.
+enum ShopEntitlementStatus : uint8
+{
+    SHOP_ENTITLEMENT_NONE = 0,
+    SHOP_ENTITLEMENT_AVAILABLE = 1,     // owned, unassigned - the only status sent to the client
+    SHOP_ENTITLEMENT_CLAIMED = 2,     // transient: an assign holds the compare-and-swap token
+    SHOP_ENTITLEMENT_BOUND = 3,     // assigned to a character; delivered at that character's next login
+    SHOP_ENTITLEMENT_FINISHED = 4,     // delivered; terminal
+    SHOP_ENTITLEMENT_REVOKED = 5      // withdrawn / refunded; terminal
+};
+
+// One row of `account_battlepay_entitlement`: a purchased-but-unapplied product.
+struct ShopEntitlement
+{
+    uint64 DistributionID = 0;      // wire id; high 32 bits = realm id (same discipline as PurchaseID)
+    uint32 ProductID = 0;
+    uint8  ServiceType = 0;      // 0 = deferred delivery of the product payload; else a VAS service type
+    uint8  Status = SHOP_ENTITLEMENT_NONE;
+    uint64 PurchaseID = 0;
+    time_t CreateTime = 0;
 };
 
 // An admin-defined shop product (row of `shop_product` + its `shop_product_deliverable` rows).
@@ -40,22 +65,22 @@ struct ShopDeliverable
 struct ShopProduct
 {
     uint32 ProductID = 0;           // admin id (routing frees it from the blob's fixed slot ids)
-    bool   Enabled   = true;
+    bool   Enabled = true;
     std::string Name;
     std::string Description;
-    uint8  Currency  = 1;           // 0 free | 1 gold(copper) | 2 item-token | 3 custom-currency
-    uint64 Price     = 0;           // copper (currency 1) or currency amount (3)
+    uint8  Currency = 1;           // 0 free | 1 gold(copper) | 2 item-token | 3 custom-currency
+    uint64 Price = 0;           // copper (currency 1) or currency amount (3)
     uint32 PriceItemId = 0;         // currency 2: token item
     uint32 PriceItemCount = 0;
     bool   HasDisplayPrice = false; // wire fixed-point /100000 override (NULL in DB => derived)
     uint64 DisplayPrice = 0;
     uint32 DisplayFlags = 0;        // BattlepayDisplayFlags (8 HiddenPrice, 256 HideWhenOwned)
-    uint32 GroupId   = 0;           // stored; rendered only once the ShopEntry region is cracked (SH-7)
-    int32  Ordering  = 0;           // slot-assignment priority (lower = earlier slot)
-    bool   Featured  = false;
-    time_t AvailableFrom  = 0;      // 0 = always
+    uint32 GroupId = 0;           // stored; rendered only once the ShopEntry region is cracked (SH-7)
+    int32  Ordering = 0;           // slot-assignment priority (lower = earlier slot)
+    bool   Featured = false;
+    time_t AvailableFrom = 0;      // 0 = always
     time_t AvailableUntil = 0;      // 0 = always
-    uint8  ReqLevel  = 0;
+    uint8  ReqLevel = 0;
     int8   ReqFaction = -1;         // -1 any, else TeamId (0 alliance, 1 horde)
     bool   HideIfOwned = false;
     uint32 PlayerConditionId = 0;
@@ -124,6 +149,33 @@ public:
     void RecordPurchase(uint32 accountId, uint64 purchaseID, int32 status, int32 resultCode,
         uint32 productID, uint64 basePrice, uint64 userPrice);
 
+    // ---- Entitlements ("distributions") -------------------------------------------------------------
+    // True if `product` cannot be delivered on the spot and must become an entitlement instead: it
+    // carries a service deliverable (type 5), or `player` is null because we are at character select.
+    static bool NeedsEntitlement(ShopProduct const& product, Player* player);
+    // The VAS service type a product's type-5 deliverable names, or 0 if it has none.
+    static uint8 GetServiceType(ShopProduct const& product);
+
+    // Allocates the next DistributionID (realm-namespaced, seeded from the store at startup).
+    uint64 GenerateDistributionID() { return ++_distributionCounter; }
+
+    // Synchronously inserts an AVAILABLE entitlement. Returns 0 on failure. Synchronous because the
+    // caller charges for it immediately afterwards and must not charge for a row that does not exist.
+    uint64 CreateEntitlement(uint32 accountId, uint32 productId, uint8 serviceType, uint64 purchaseId);
+
+    // Compare-and-swap claim of an AVAILABLE entitlement for `accountId`, binding it to a character.
+    // Writes a random token under a `status = 1` guard, then reads the row back and succeeds only if OUR
+    // token survived - so two racing assigns (replay, or a second realm on the shared auth DB) can never
+    // both win. On success `outToken` holds the token the caller must quote to commit or roll back.
+    // On failure `outResult` carries the client PurchaseResult code explaining why.
+    bool ClaimEntitlement(uint32 accountId, uint64 distributionId, uint32 realmId, uint64 targetCharacter,
+        uint64& outToken, ShopEntitlement& outEntitlement, int32& outResult);
+
+    // Moves an entitlement between statuses under a (status, claimToken) guard. Used to commit a claim
+    // (2 -> 3), roll one back (2 -> 1) and consume a bound one at delivery (3 -> 4).
+    bool TransitionEntitlement(uint64 distributionId, uint8 fromStatus, uint64 fromToken,
+        uint8 toStatus, uint64 toToken);
+
 private:
     BattlePayMgr() = default;
     ~BattlePayMgr() = default;
@@ -140,6 +192,7 @@ private:
     std::vector<uint8> _templateBlob;
     std::vector<uint8> _productListBlob;
     std::vector<uint8> _distributionListBlob;
+    uint64 _distributionCounter = 0;
     std::unordered_map<uint32, ShopProduct> _products;         // admin productId -> product
     std::unordered_map<uint32, uint32> _slotRouting;           // advertised (slot) productId -> admin id
     std::unordered_map<uint8, uint32> _slotOverrides;          // slotIndex -> admin id (0 = placeholder)

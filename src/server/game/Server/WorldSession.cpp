@@ -1463,6 +1463,12 @@ void WorldSession::InitializeSessionCallback(LoginDatabaseQueryHolder const& hol
 
     SendSetTimeZoneInformation();
     SendFeatureSystemStatusGlueScreen();
+
+    // The Shop opens at character select too, and its panel stays on "Loading, please wait" until the
+    // client has a distribution list (C_StoreSecure.HasDistributionList). Sending it here is what lets a
+    // player see - and buy - anything before entering the world.
+    SendBattlePayDistributionList();
+
     SendClientCacheVersion(sWorld->getIntConfig(CONFIG_CLIENTCACHE_VERSION));
     SendAvailableHotfixes();
     SendAccountDataTimes(ObjectGuid::Empty, GLOBAL_CACHE_MASK);

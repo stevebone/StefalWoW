@@ -212,6 +212,18 @@ void LoginDatabaseConnection::DoPrepareStatements()
     PrepareStatement(LOGIN_INS_BATTLEPAY_PURCHASE, "INSERT INTO account_battlepay_purchase (id, account, productId, status, resultCode, basePrice, userPrice, timeCreated, walletName) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC);
     PrepareStatement(LOGIN_SEL_BATTLEPAY_PURCHASE_ACCOUNT, "SELECT id, status, resultCode, productId, basePrice, userPrice, timeCreated FROM account_battlepay_purchase WHERE account = ? ORDER BY id ASC", CONNECTION_ASYNC);
     PrepareStatement(LOGIN_SEL_BATTLEPAY_PURCHASE_MAXID, "SELECT MAX(id) FROM account_battlepay_purchase WHERE id BETWEEN ? AND ?", CONNECTION_SYNCH);
+
+    // In-game Shop entitlements ("distributions"). The claim / verify / commit trio is SYNCH on purpose:
+    // assigning an entitlement is a compare-and-swap whose outcome decides whether we grant, so it cannot
+    // be fire-and-forget. Assignments are rare (a handful per account, ever), so the world-thread stall is
+    // bounded and correctness wins. The two list queries are ASYNC, like the purchase list.
+    PrepareStatement(LOGIN_INS_BATTLEPAY_ENTITLEMENT, "INSERT INTO account_battlepay_entitlement (id, account, productId, serviceType, status, purchaseId, claimToken, realmId, targetCharacter, createTime, updateTime) VALUES (?, ?, ?, ?, ?, ?, 0, 0, 0, ?, ?)", CONNECTION_SYNCH);
+    PrepareStatement(LOGIN_SEL_BATTLEPAY_ENTITLEMENT_ACCOUNT, "SELECT id, productId, serviceType, status, purchaseId, createTime FROM account_battlepay_entitlement WHERE account = ? AND status = 1 ORDER BY id ASC", CONNECTION_ASYNC);
+    PrepareStatement(LOGIN_SEL_BATTLEPAY_ENTITLEMENT_MAXID, "SELECT MAX(id) FROM account_battlepay_entitlement WHERE id BETWEEN ? AND ?", CONNECTION_SYNCH);
+    PrepareStatement(LOGIN_SEL_BATTLEPAY_ENTITLEMENT_BY_ID, "SELECT account, productId, serviceType, status, claimToken, realmId, targetCharacter FROM account_battlepay_entitlement WHERE id = ?", CONNECTION_SYNCH);
+    PrepareStatement(LOGIN_SEL_BATTLEPAY_ENTITLEMENT_PENDING_CHAR, "SELECT id, productId, serviceType FROM account_battlepay_entitlement WHERE realmId = ? AND targetCharacter = ? AND status = 3 ORDER BY id ASC", CONNECTION_ASYNC);
+    PrepareStatement(LOGIN_UPD_BATTLEPAY_ENTITLEMENT_CLAIM, "UPDATE account_battlepay_entitlement SET status = 2, claimToken = ?, realmId = ?, targetCharacter = ?, updateTime = ? WHERE id = ? AND account = ? AND status = 1", CONNECTION_SYNCH);
+    PrepareStatement(LOGIN_UPD_BATTLEPAY_ENTITLEMENT_STATUS, "UPDATE account_battlepay_entitlement SET status = ?, claimToken = ?, updateTime = ? WHERE id = ? AND status = ? AND claimToken = ?", CONNECTION_SYNCH);
 }
 
 LoginDatabaseConnection::LoginDatabaseConnection(MySQLConnectionInfo& connInfo, ConnectionFlags connectionFlags) : MySQLConnection(connInfo, connectionFlags)

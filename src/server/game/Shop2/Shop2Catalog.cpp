@@ -22,40 +22,40 @@
 
 namespace Shop2
 {
-// The only place the shop2 service reads world state. Kept in its own translation unit so the wire
-// rendering (Shop2Service.cpp) stays free of game dependencies and can be exercised standalone.
-//
-// Called from BattlePayMgr::LoadCatalog on the world thread, i.e. at startup, on `.reload
-// shop_catalog` and when an availability window boundary passes.
-void Shop2Service::RebuildCatalog()
-{
-    if (!IsRunning())
-        return;
-
-    time_t const now = GameTime::GetGameTime();
-
-    // Same eligibility rule the legacy BattlePay catalog uses: enabled and inside its window.
-    std::vector<ShopProduct const*> products;
-    for (auto const& [id, product] : sBattlePayMgr->GetProducts())
+    // The only place the shop2 service reads world state. Kept in its own translation unit so the wire
+    // rendering (Shop2Service.cpp) stays free of game dependencies and can be exercised standalone.
+    //
+    // Called from BattlePayMgr::LoadCatalog on the world thread, i.e. at startup, on `.reload
+    // shop_catalog` and when an availability window boundary passes.
+    void Shop2Service::RebuildCatalog()
     {
-        if (!product.Enabled)
-            continue;
-        if (product.AvailableFrom && now < product.AvailableFrom)
-            continue;
-        if (product.AvailableUntil && now > product.AvailableUntil)
-            continue;
+        if (!IsRunning())
+            return;
 
-        products.push_back(&product);
+        time_t const now = GameTime::GetGameTime();
+
+        // Same eligibility rule the legacy BattlePay catalog uses: enabled and inside its window.
+        std::vector<ShopProduct const*> products;
+        for (auto const& [id, product] : sBattlePayMgr->GetProducts())
+        {
+            if (!product.Enabled)
+                continue;
+            if (product.AvailableFrom && now < product.AvailableFrom)
+                continue;
+            if (product.AvailableUntil && now > product.AvailableUntil)
+                continue;
+
+            products.push_back(&product);
+        }
+
+        // Same display order as the legacy catalog: featured first, then Ordering, then product id.
+        std::sort(products.begin(), products.end(), [](ShopProduct const* a, ShopProduct const* b)
+            {
+                if (a->Featured != b->Featured) return a->Featured > b->Featured;
+                if (a->Ordering != b->Ordering) return a->Ordering < b->Ordering;
+                return a->ProductID < b->ProductID;
+            });
+
+        BuildSnapshot(products, now);
     }
-
-    // Same display order as the legacy catalog: featured first, then Ordering, then product id.
-    std::sort(products.begin(), products.end(), [](ShopProduct const* a, ShopProduct const* b)
-    {
-        if (a->Featured != b->Featured) return a->Featured > b->Featured;
-        if (a->Ordering != b->Ordering) return a->Ordering < b->Ordering;
-        return a->ProductID < b->ProductID;
-    });
-
-    BuildSnapshot(products, now);
-}
 }

@@ -24,25 +24,25 @@
 
 namespace Shop2
 {
-// TLS material for the shop2 listener.
-//
-// The client only ever talks https:// to the shop2 host (CURLOPT_PROTOCOLS_STR is pinned to "https"
-// in the client, see SHOP2_API_SCHEMA_68275.md section 0), so this listener is TLS-only: if the
-// certificate or the private key cannot be loaded we refuse to start rather than silently falling
-// back to plaintext, which the client could never reach anyway.
-//
-// This is deliberately separate from Battlenet::SslContext (bnetserver-only, and keyed off the
-// bnetserver config) so the world server can use its own certificate on its own port.
-class TC_GAME_API SslContext
-{
-public:
-    // Loads the certificate chain + private key. Returns false (and logs) if anything is missing or
-    // unreadable. Safe to call once per process; a second successful call reloads nothing.
-    static bool Initialize(std::string const& certificateChainFile, std::string const& privateKeyFile,
-        std::string const& privateKeyPassword);
+    // TLS material for the shop2 listener.
+    //
+    // The client only ever talks https:// to the shop2 host (CURLOPT_PROTOCOLS_STR is pinned to "https"
+    // in the client, see SHOP2_API_SCHEMA_68275.md section 0), so this listener is TLS-only: if the
+    // certificate or the private key cannot be loaded we refuse to start rather than silently falling
+    // back to plaintext, which the client could never reach anyway.
+    //
+    // This is deliberately separate from Battlenet::SslContext (bnetserver-only, and keyed off the
+    // bnetserver config) so the world server can use its own certificate on its own port.
+    class TC_GAME_API SslContext
+    {
+    public:
+        // Loads the certificate chain + private key. Returns false (and logs) if anything is missing or
+        // unreadable. Safe to call once per process; a second successful call reloads nothing.
+        static bool Initialize(std::string const& certificateChainFile, std::string const& privateKeyFile,
+            std::string const& privateKeyPassword);
 
-    static boost::asio::ssl::context& instance();
-};
+        static boost::asio::ssl::context& instance();
+    };
 }
 
 #endif // TRINITYCORE_SHOP2_SSL_CONTEXT_H

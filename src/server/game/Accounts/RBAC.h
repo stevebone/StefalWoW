@@ -753,12 +753,12 @@ enum RBACPermissions
     RBAC_PERM_COMMAND_QUEST_OBJECTIVE_COMPLETE               = 883,
     RBAC_PERM_COMMAND_BG_START                               = 884,
     RBAC_PERM_COMMAND_BG_STOP                                = 885,
-    RBAC_PERM_COMMAND_RELOAD_SHOP_CATALOG                    = 886,
-    RBAC_PERM_COMMAND_SHOP                                   = 887,
     //
     // IF YOU ADD NEW PERMISSIONS, ADD THEM IN 3.3.5 BRANCH AS WELL!
     //
     // custom permissions 1000+
+    RBAC_PERM_COMMAND_RELOAD_SHOP_CATALOG = 1001,
+    RBAC_PERM_COMMAND_SHOP = 1002,
     // CreatureCodex
     //RBAC_PERM_COMMAND_CREATURE_CODEX = 3012,
 

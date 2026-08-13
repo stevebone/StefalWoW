@@ -29,18 +29,18 @@ enum WowTokenState : uint8
     // Owned by an account and sellable on the token market.
     WOW_TOKEN_STATE_AUCTIONABLE = 0,
     // Owned by an account and redeemable.
-    WOW_TOKEN_STATE_CONSUMABLE  = 1,
+    WOW_TOKEN_STATE_CONSUMABLE = 1,
     // Currently listed on the token market, so owned by nobody for display purposes.
-    WOW_TOKEN_STATE_LISTED      = 2
+    WOW_TOKEN_STATE_LISTED = 2
 };
 
 struct WowToken
 {
-    uint64 Id            = 0;
-    uint32 OwnerAccount  = 0;
-    WowTokenState State  = WOW_TOKEN_STATE_AUCTIONABLE;
-    uint64 Price         = 0;   // copper; only meaningful while WOW_TOKEN_STATE_LISTED
-    time_t CreateTime    = 0;
+    uint64 Id = 0;
+    uint32 OwnerAccount = 0;
+    WowTokenState State = WOW_TOKEN_STATE_AUCTIONABLE;
+    uint64 Price = 0;   // copper; only meaningful while WOW_TOKEN_STATE_LISTED
+    time_t CreateTime = 0;
 };
 
 // Account-level WoW Token holdings and the token market.

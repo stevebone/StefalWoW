@@ -32,7 +32,7 @@ namespace WorldPackets
 
             void Read() override;
 
-            uint32 ClientToken   = 0;
+            uint32 ClientToken = 0;
         };
 
         class CommerceTokenGetLogResponse final : public ServerPacket
@@ -44,15 +44,15 @@ namespace WorldPackets
 
             struct AuctionableTokenInfo
             {
-                uint64 Id           = 0;
+                uint64 Id = 0;
                 Timestamp<> LastUpdate;
-                int32 Status        = 0;
-                uint64 Price        = 0;
+                int32 Status = 0;
+                uint64 Price = 0;
                 uint32 DurationLeft = 0;
             };
 
-            uint32 ClientToken      = 0;
-            uint32 Result           = 0;
+            uint32 ClientToken = 0;
+            uint32 Result = 0;
             std::vector<AuctionableTokenInfo> AuctionableTokens;
         };
 
@@ -77,7 +77,7 @@ namespace WorldPackets
             WorldPacket const* Write() override;
 
             uint32 ClientToken = 0;
-            uint32 Result      = 0;
+            uint32 Result = 0;
             std::vector<uint64> AuctionableTokenIDs;
             std::vector<uint64> ConsumableTokenIDs;
         };
@@ -112,7 +112,7 @@ namespace WorldPackets
             WorldPacket const* Write() override;
 
             uint32 ClientToken = 0;
-            uint32 Result      = 0;
+            uint32 Result = 0;
             uint64 RemainingGoldAmount = 0;
         };
 
@@ -139,7 +139,7 @@ namespace WorldPackets
             WorldPacket const* Write() override;
 
             uint32 ClientToken = 0;
-            uint32 Result  = 0;
+            uint32 Result = 0;
             Timestamp<> Issued;
             Timestamp<> Expires;
             std::string Token;
@@ -162,9 +162,9 @@ namespace WorldPackets
 
             WorldPacket const* Write() override;
 
-            uint32 ClientToken              = 0;
-            int32 Result                    = 0;
-            uint64 Price                    = 0;
+            uint32 ClientToken = 0;
+            int32 Result = 0;
+            uint64 Price = 0;
             uint32 ExpectedSecondsUntilSold = 0;
         };
     }

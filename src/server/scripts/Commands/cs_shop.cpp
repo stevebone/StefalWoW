@@ -15,12 +15,12 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* ScriptData
-Name: shop_commandscript
-%Complete: 100
-Comment: In-game Shop (BattlePay) catalog administration commands
-Category: commandscripts
-EndScriptData */
+ /* ScriptData
+ Name: shop_commandscript
+ %Complete: 100
+ Comment: In-game Shop (BattlePay) catalog administration commands
+ Category: commandscripts
+ EndScriptData */
 
 #include "ScriptMgr.h"
 #include "BattlePayMgr.h"
@@ -112,11 +112,11 @@ public:
     static bool HandleShopWindowCommand(ChatHandler* handler, uint32 productId, std::string from, std::string until)
     {
         auto boundary = [](std::string const& token) -> std::string
-        {
-            if (token == "-")
-                return "NULL";
-            return Trinity::StringFormat("FROM_UNIXTIME({})", strtoull(token.c_str(), nullptr, 10));
-        };
+            {
+                if (token == "-")
+                    return "NULL";
+                return Trinity::StringFormat("FROM_UNIXTIME({})", strtoull(token.c_str(), nullptr, 10));
+            };
         std::string const setClause = Trinity::StringFormat("`availableFrom`={}, `availableUntil`={}",
             boundary(from), boundary(until));
         return MutateAndReload(handler, productId, setClause);

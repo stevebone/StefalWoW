@@ -25,69 +25,69 @@
 
 namespace
 {
-class Shop2HttpSocketImpl final : public Trinity::Net::Http::SslSocket
-{
-public:
-    using BaseSocket = Trinity::Net::Http::SslSocket;
-
-    explicit Shop2HttpSocketImpl(Trinity::Net::IoContextTcpSocket&& socket, Shop2::Shop2HttpSession& owner)
-        : BaseSocket(std::move(socket), Shop2::SslContext::instance()), _owner(owner)
+    class Shop2HttpSocketImpl final : public Trinity::Net::Http::SslSocket
     {
-    }
+    public:
+        using BaseSocket = Trinity::Net::Http::SslSocket;
 
-    Shop2HttpSocketImpl(Shop2HttpSocketImpl const&) = delete;
-    Shop2HttpSocketImpl(Shop2HttpSocketImpl&&) = delete;
-    Shop2HttpSocketImpl& operator=(Shop2HttpSocketImpl const&) = delete;
-    Shop2HttpSocketImpl& operator=(Shop2HttpSocketImpl&&) = delete;
+        explicit Shop2HttpSocketImpl(Trinity::Net::IoContextTcpSocket&& socket, Shop2::Shop2HttpSession& owner)
+            : BaseSocket(std::move(socket), Shop2::SslContext::instance()), _owner(owner)
+        {
+        }
 
-    ~Shop2HttpSocketImpl() = default;
+        Shop2HttpSocketImpl(Shop2HttpSocketImpl const&) = delete;
+        Shop2HttpSocketImpl(Shop2HttpSocketImpl&&) = delete;
+        Shop2HttpSocketImpl& operator=(Shop2HttpSocketImpl const&) = delete;
+        Shop2HttpSocketImpl& operator=(Shop2HttpSocketImpl&&) = delete;
 
-    void Start() override
-    {
-        boost::container::static_vector<std::shared_ptr<Trinity::Net::SocketConnectionInitializer>, 3> initializers;
+        ~Shop2HttpSocketImpl() = default;
 
-        initializers.stable_emplace_back(std::make_shared<Trinity::Net::SslHandshakeConnectionInitializer<BaseSocket>>(this));
-        initializers.stable_emplace_back(std::make_shared<Trinity::Net::Http::HttpConnectionInitializer<BaseSocket>>(this));
-        initializers.stable_emplace_back(std::make_shared<Trinity::Net::ReadConnectionInitializer<BaseSocket>>(this));
+        void Start() override
+        {
+            boost::container::static_vector<std::shared_ptr<Trinity::Net::SocketConnectionInitializer>, 3> initializers;
 
-        Trinity::Net::SocketConnectionInitializer::SetupChain(std::span(initializers.data(), initializers.size()))->Start();
-    }
+            initializers.stable_emplace_back(std::make_shared<Trinity::Net::SslHandshakeConnectionInitializer<BaseSocket>>(this));
+            initializers.stable_emplace_back(std::make_shared<Trinity::Net::Http::HttpConnectionInitializer<BaseSocket>>(this));
+            initializers.stable_emplace_back(std::make_shared<Trinity::Net::ReadConnectionInitializer<BaseSocket>>(this));
 
-    Trinity::Net::Http::RequestHandlerResult RequestHandler(Trinity::Net::Http::RequestContext& context) override
-    {
-        return sShop2Service.HandleRequest(_owner.shared_from_this(), context);
-    }
+            Trinity::Net::SocketConnectionInitializer::SetupChain(std::span(initializers.data(), initializers.size()))->Start();
+        }
 
-protected:
-    std::shared_ptr<Trinity::Net::Http::SessionState> ObtainSessionState(Trinity::Net::Http::RequestContext& /*context*/) const override
-    {
-        // shop2 does not use cookies - the client carries "Authorization: Bearer <token>" on every
-        // API call instead. One state per connection is all the framework needs.
-        return sShop2Service.CreateNewSessionState(this->GetRemoteIpAddress());
-    }
+        Trinity::Net::Http::RequestHandlerResult RequestHandler(Trinity::Net::Http::RequestContext& context) override
+        {
+            return sShop2Service.HandleRequest(_owner.shared_from_this(), context);
+        }
 
-    Shop2::Shop2HttpSession& _owner;
-};
+    protected:
+        std::shared_ptr<Trinity::Net::Http::SessionState> ObtainSessionState(Trinity::Net::Http::RequestContext& /*context*/) const override
+        {
+            // shop2 does not use cookies - the client carries "Authorization: Bearer <token>" on every
+            // API call instead. One state per connection is all the framework needs.
+            return sShop2Service.CreateNewSessionState(this->GetRemoteIpAddress());
+        }
+
+        Shop2::Shop2HttpSession& _owner;
+    };
 }
 
 namespace Shop2
 {
-Shop2HttpSession::Shop2HttpSession(Trinity::Net::IoContextTcpSocket&& socket)
-    : _socket(std::make_shared<Shop2HttpSocketImpl>(std::move(socket), *this))
-{
-}
+    Shop2HttpSession::Shop2HttpSession(Trinity::Net::IoContextTcpSocket&& socket)
+        : _socket(std::make_shared<Shop2HttpSocketImpl>(std::move(socket), *this))
+    {
+    }
 
-Shop2HttpSession::~Shop2HttpSession() = default;
+    Shop2HttpSession::~Shop2HttpSession() = default;
 
-void Shop2HttpSession::Start()
-{
-    TC_LOG_TRACE("server.http.session.shop2", "{} Accepted connection", GetClientInfo());
+    void Shop2HttpSession::Start()
+    {
+        TC_LOG_TRACE("server.http.session.shop2", "{} Accepted connection", GetClientInfo());
 
-    return _socket->Start();
-}
+        return _socket->Start();
+    }
 
-bool Shop2HttpSession::Update()
-{
-    return _socket->Update();
-}
+    bool Shop2HttpSession::Update()
+    {
+        return _socket->Update();
+    }
 }

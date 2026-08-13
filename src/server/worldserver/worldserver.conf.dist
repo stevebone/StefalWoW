@@ -4858,29 +4858,6 @@ WowToken.Market.Enabled = 0
 Shop.Enabled = 1
 
 #
-#    Shop.PurchaseConfirmation
-#        Description: Route in-game Shop purchases through the retail two-step confirmation handshake
-#                     (server sends SMSG_BATTLE_PAY_CONFIRM_PURCHASE, completes on the client's
-#                     CMSG_BATTLE_PAY_CONFIRM_PURCHASE_RESPONSE). The confirm packet layout is INFERRED
-#                     (uncracked client struct, absent from all sniffs) and may disconnect a live
-#                     client, so this is OFF by default; the proven direct-grant path is used instead.
-#                     Enable only to validate the confirm round-trip against a live client.
-#        Default:     0 - (Disabled, direct grant)
-#                     1 - (Enabled, two-step confirmation)
-
-Shop.PurchaseConfirmation = 0
-
-#
-#    Shop.PlaceholderName
-#        Description: Card title used for a catalog slot that has no shop_product row routed to it.
-#                     The 68275 catalog template ships nine fixed "simple shape" slots; any slot the
-#                     admin has not filled still has to carry a name, or the client renders an empty
-#                     card. Read by BattlePayCatalogWriter when assembling the product list.
-#        Default:     "Currently unavailable"
-
-Shop.PlaceholderName = "Currently unavailable"
-
-#
 #    Shop.Shop2Enabled
 #        Description: Announce the MODERN client store ("shop2") as available.
 #                     shop2 is NOT a game-opcode flow: the client talks HTTPS to web services whose
@@ -4915,6 +4892,19 @@ Shop.Shop2Enabled = 0
 #                       /PublicOrderService/v1/GetOrderStatusByExternalTransactionId
 #                     Only advertised when Shop.Shop2Enabled is 1 AND the value is non-empty.
 #        Default:     "" - (not advertised)
+
+#
+#    Shop.Shop2CertificatesFile
+#    Shop.Shop2PrivateKeyFile
+#        Description: TLS material for the shop2 listener. You do NOT need a new certificate:
+#                     point these at the SAME pair your bnetserver already uses for its login REST
+#                     service (bnetserver.conf -> CertificatesFile / PrivateKeyFile, typically
+#                     bnetserver.cert.pem / bnetserver.key.pem). The client completes a TLS
+#                     handshake against that certificate on every login, so a second listener
+#                     presenting it is trusted on exactly the same basis. A separate port is enough;
+#                     a separate identity is not.
+#        Example:     Shop.Shop2CertificatesFile = "M:/PlayerbotServer/bnetserver.cert.pem"
+#                     Shop.Shop2PrivateKeyFile   = "M:/PlayerbotServer/bnetserver.key.pem"
 
 Shop.Shop2HostUrlRequests = ""
 Shop.Shop2HostUrlAuth = ""
@@ -4968,6 +4958,73 @@ Shop.Shop2NetworkThreads = 1
 #        Default:     "USD"
 
 Shop.Shop2CurrencyCode = "USD"
+
+#
+#    Shop.PurchaseConfirmation
+#        Description: Route in-game Shop purchases through the retail two-step confirmation handshake
+#                     (server sends SMSG_BATTLE_PAY_CONFIRM_PURCHASE, completes on the client's
+#                     CMSG_BATTLE_PAY_CONFIRM_PURCHASE_RESPONSE). The confirm packet layout is INFERRED
+#                     (uncracked client struct, absent from all sniffs) and may disconnect a live
+#                     client, so this is OFF by default; the proven direct-grant path is used instead.
+#                     Enable only to validate the confirm round-trip against a live client.
+#        Default:     0 - (Disabled, direct grant)
+#                     1 - (Enabled, two-step confirmation)
+
+Shop.PurchaseConfirmation = 0
+
+#
+#    Shop.Entitlements.Enabled
+#        Description: Enable the entitlement ("distribution") model: a purchase that cannot be delivered
+#                     on the spot becomes an owned-but-unapplied entry the player assigns to a character
+#                     later. This is what makes two things possible at all - buying from the Shop at
+#                     CHARACTER SELECT (where there is no player to deliver to), and selling service
+#                     products (deliverable type 5), whose target is a character chosen after the sale.
+#
+#                     Entitlements live in the auth database (account_battlepay_entitlement), like the
+#                     purchase ledger, because the Shop opens before any character database context
+#                     exists and an entitlement belongs to the account.
+#
+#                     Requires the 2026_08_12_00_auth.sql migration. While OFF, the distribution list is
+#                     the captured blob replay it has always been and nothing else changes.
+#
+#                     Note: at character select only FREE products (currency 0) can be bought. A price
+#                     is denominated in a character's gold and there is no character there to charge;
+#                     priced products are refused with the client's own
+#                     ErrorBuyingProductNotAllowedInGlueScreen.
+#        Default:     0 - (Disabled)
+#                     1 - (Enabled)
+
+Shop.Entitlements.Enabled = 0
+
+#
+#    Shop.Entitlements.AssignEnabled
+#        Description: Act on CMSG_BATTLE_PAY_DISTRIBUTION_ASSIGN_TO_TARGET, i.e. let a player actually
+#                     apply an owned entitlement to a character. The packet's four fields are proven
+#                     structurally from the client's own serializer, but the message has never been
+#                     observed on the wire, so the FIELD MEANINGS are inferred and this is gated
+#                     separately from the rest of the model.
+#
+#                     While OFF, an incoming assign is logged with all four decoded fields and otherwise
+#                     ignored - which is how you confirm the reading against a real client before
+#                     trusting it. Turning it ON is safe regardless: the handler refuses any
+#                     DistributionID that is not an available entitlement of that account, and any
+#                     target that is not one of that session's own enumerated characters.
+#
+#                     Has no effect unless Shop.Entitlements.Enabled is 1.
+#        Default:     0 - (Log only)
+#                     1 - (Assignments are applied)
+
+Shop.Entitlements.AssignEnabled = 0
+
+#
+#    Shop.PlaceholderName
+#        Description: Card title used for a catalog slot that has no shop_product row routed to it.
+#                     The 68275 catalog template ships nine fixed "simple shape" slots; any slot the
+#                     admin has not filled still has to carry a name, or the client renders an empty
+#                     card. Read by BattlePayCatalogWriter when assembling the product list.
+#        Default:     "Currently unavailable"
+
+Shop.PlaceholderName = "Currently unavailable"
 
 #
 ###################################################################################################

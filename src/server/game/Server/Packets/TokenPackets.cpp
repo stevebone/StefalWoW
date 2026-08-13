@@ -20,105 +20,105 @@
 
 namespace WorldPackets::Token
 {
-void CommerceTokenGetLog::Read()
-{
-    _worldPacket >> ClientToken;
-}
-
-WorldPacket const* CommerceTokenGetLogResponse::Write()
-{
-    _worldPacket << ClientToken;
-    _worldPacket << Result;
-    _worldPacket << Size<uint32>(AuctionableTokens);
-    for (AuctionableTokenInfo const& auctionableTokenAuctionable : AuctionableTokens)
+    void CommerceTokenGetLog::Read()
     {
-        _worldPacket << auctionableTokenAuctionable.Id;
-        _worldPacket << auctionableTokenAuctionable.LastUpdate;
-        _worldPacket << auctionableTokenAuctionable.Status;
-        _worldPacket << auctionableTokenAuctionable.Price;
-        _worldPacket << auctionableTokenAuctionable.DurationLeft;
+        _worldPacket >> ClientToken;
     }
 
-    return &_worldPacket;
-}
+    WorldPacket const* CommerceTokenGetLogResponse::Write()
+    {
+        _worldPacket << ClientToken;
+        _worldPacket << Result;
+        _worldPacket << Size<uint32>(AuctionableTokens);
+        for (AuctionableTokenInfo const& auctionableTokenAuctionable : AuctionableTokens)
+        {
+            _worldPacket << auctionableTokenAuctionable.Id;
+            _worldPacket << auctionableTokenAuctionable.LastUpdate;
+            _worldPacket << auctionableTokenAuctionable.Status;
+            _worldPacket << auctionableTokenAuctionable.Price;
+            _worldPacket << auctionableTokenAuctionable.DurationLeft;
+        }
 
-void CommerceTokenGetCount::Read()
-{
-    _worldPacket >> ClientToken;
-}
+        return &_worldPacket;
+    }
 
-WorldPacket const* CommerceTokenGetCountResponse::Write()
-{
-    _worldPacket << ClientToken;
-    _worldPacket << Result;
-    _worldPacket << Size<uint32>(AuctionableTokenIDs);
-    _worldPacket << Size<uint32>(ConsumableTokenIDs);
-    for (uint64 tokenId : AuctionableTokenIDs)
-        _worldPacket << tokenId;
+    void CommerceTokenGetCount::Read()
+    {
+        _worldPacket >> ClientToken;
+    }
 
-    for (uint64 tokenId : ConsumableTokenIDs)
-        _worldPacket << tokenId;
+    WorldPacket const* CommerceTokenGetCountResponse::Write()
+    {
+        _worldPacket << ClientToken;
+        _worldPacket << Result;
+        _worldPacket << Size<uint32>(AuctionableTokenIDs);
+        _worldPacket << Size<uint32>(ConsumableTokenIDs);
+        for (uint64 tokenId : AuctionableTokenIDs)
+            _worldPacket << tokenId;
 
-    return &_worldPacket;
-}
+        for (uint64 tokenId : ConsumableTokenIDs)
+            _worldPacket << tokenId;
 
-WorldPacket const* CommerceTokenUpdate::Write()
-{
-    _worldPacket << Size<uint32>(AuctionableTokenIDs);
-    _worldPacket << Size<uint32>(ConsumableTokenIDs);
-    for (uint64 tokenId : AuctionableTokenIDs)
-        _worldPacket << tokenId;
+        return &_worldPacket;
+    }
 
-    for (uint64 tokenId : ConsumableTokenIDs)
-        _worldPacket << tokenId;
+    WorldPacket const* CommerceTokenUpdate::Write()
+    {
+        _worldPacket << Size<uint32>(AuctionableTokenIDs);
+        _worldPacket << Size<uint32>(ConsumableTokenIDs);
+        for (uint64 tokenId : AuctionableTokenIDs)
+            _worldPacket << tokenId;
 
-    return &_worldPacket;
-}
+        for (uint64 tokenId : ConsumableTokenIDs)
+            _worldPacket << tokenId;
 
-void ConsumableTokenCanVeteranBuy::Read()
-{
-    _worldPacket >> ClientToken;
-}
+        return &_worldPacket;
+    }
 
-WorldPacket const* ConsumableTokenCanVeteranBuyResponse::Write()
-{
-    _worldPacket << ClientToken;
-    _worldPacket << Result;
-    _worldPacket << RemainingGoldAmount;
+    void ConsumableTokenCanVeteranBuy::Read()
+    {
+        _worldPacket >> ClientToken;
+    }
 
-    return &_worldPacket;
-}
+    WorldPacket const* ConsumableTokenCanVeteranBuyResponse::Write()
+    {
+        _worldPacket << ClientToken;
+        _worldPacket << Result;
+        _worldPacket << RemainingGoldAmount;
 
-void CanRedeemTokenForBalance::Read()
-{
-    _worldPacket >> Bits<1>(Refresh);
-}
+        return &_worldPacket;
+    }
 
-WorldPacket const* GenerateSsoTokenResponse::Write()
-{
-    _worldPacket << ClientToken;
-    _worldPacket << Result;
-    _worldPacket << Issued;
-    _worldPacket << Expires;
-    _worldPacket << SizedString::BitsSize<7>(Token);
-    _worldPacket.FlushBits();
-    _worldPacket << SizedString::Data(Token);
+    void CanRedeemTokenForBalance::Read()
+    {
+        _worldPacket >> Bits<1>(Refresh);
+    }
 
-    return &_worldPacket;
-}
+    WorldPacket const* GenerateSsoTokenResponse::Write()
+    {
+        _worldPacket << ClientToken;
+        _worldPacket << Result;
+        _worldPacket << Issued;
+        _worldPacket << Expires;
+        _worldPacket << SizedString::BitsSize<7>(Token);
+        _worldPacket.FlushBits();
+        _worldPacket << SizedString::Data(Token);
 
-void CommerceTokenGetMarketPrice::Read()
-{
-    _worldPacket >> ClientToken;
-}
+        return &_worldPacket;
+    }
 
-WorldPacket const* CommerceTokenGetMarketPriceResponse::Write()
-{
-    _worldPacket << ClientToken;
-    _worldPacket << Result;
-    _worldPacket << Price;
-    _worldPacket << ExpectedSecondsUntilSold;
+    void CommerceTokenGetMarketPrice::Read()
+    {
+        _worldPacket >> ClientToken;
+    }
 
-    return &_worldPacket;
-}
+    WorldPacket const* CommerceTokenGetMarketPriceResponse::Write()
+    {
+        _worldPacket << ClientToken;
+        _worldPacket << Result;
+        _worldPacket << Price;
+        _worldPacket << ExpectedSecondsUntilSold;
+
+        return &_worldPacket;
+    }
 }

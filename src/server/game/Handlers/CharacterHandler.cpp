@@ -1469,6 +1469,9 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder const& holder)
     // list (HasDistributionList). Retail sends it right after the feature status; we replay the blob.
     SendBattlePayDistributionList();
 
+    // Hand over anything bought earlier and assigned to this character (see RedeemBattlePayEntitlements).
+    RedeemBattlePayEntitlements();
+
     // Send MOTD
     {
         WorldPackets::System::MOTD motd;
