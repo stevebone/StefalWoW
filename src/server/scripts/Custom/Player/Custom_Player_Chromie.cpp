@@ -23,6 +23,7 @@
 #include "ScriptMgr.h"
 #include "Player.h"
 #include "Creature.h"
+#include "CreatureAI.h"
 
 #include "Custom_Player_Defines.h"
 
