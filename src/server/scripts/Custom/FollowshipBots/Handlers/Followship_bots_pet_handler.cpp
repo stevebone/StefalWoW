@@ -31,6 +31,7 @@
 #include "PhasingHandler.h"
 #include "SpellHistory.h"
 #include "SpellInfo.h"
+#include "SpellMgr.h"
 
 #include "Followship_bots_mgr.h"
 
@@ -207,31 +208,6 @@ namespace FSBPet
         return CREATURE_FAMILY_NONE;
     }
 
-    const std::vector<uint32>& GetFamilySpells(CreatureFamily family)
-    {
-        static const std::vector<uint32> empty;
-
-        auto it = CreatureFamilySpells.find(family);
-        if (it != CreatureFamilySpells.end())
-            return it->second;
-
-        return empty;
-    }
-
-    bool IsSelfCast(uint32 entry)
-    {
-        static const std::unordered_set<uint32> selfCastEntries = {
-            SPELL_HUNTER_PET_PRIMAL_RAGE,
-            SPELL_HUNTER_PET_PREDATOR_THIRST,
-            SPELL_HUNTER_PET_AGILE_REFLEXES,
-            SPELL_HUNTER_PET_MASTER_CALL,
-            SPELL_HUNTER_PET_BRISTLE,
-        };
-
-        return selfCastEntries.contains(entry);
-    }
-
-
     bool DoAttackSpell(Creature* owner)
     {
         if (!owner)
@@ -259,8 +235,13 @@ namespace FSBPet
         if (now < petCastTimer)
             return false;
 
-        auto family = GetPetFamily(pet->GetEntry());
-        auto spells = GetFamilySpells(family);
+        CreatureFamily family = GetPetFamily(pet->GetEntry());
+        if (family == CREATURE_FAMILY_NONE)
+            return false;
+
+        PetLevelupSpellSet const* levelupSpells = sSpellMgr->GetPetLevelupSpellList(family);
+        if (!levelupSpells || levelupSpells->empty())
+            return false;
 
         Unit* target = pet->GetVictim();
         if (!target || !target->IsAlive())
@@ -269,34 +250,53 @@ namespace FSBPet
         if (!pet->IsWithinMeleeRange(target))
             return false;
 
-        spells.erase(
-            std::remove_if(spells.begin(), spells.end(),
-                [&](uint32 spellId)
-                {
-                    SpellInfo const* info = sSpellMgr->GetSpellInfo(spellId, DIFFICULTY_NONE);
-                    auto costs = info->CalcPowerCost(pet, info->GetSchoolMask());
-                    uint32 amount = 0;
-                    if (!costs.empty())
-                    {
-                        amount = costs[0].Amount;   // usually the primary cost
-                    }
+        uint8 petLevel = pet->GetLevel();
+        std::vector<uint32> spells;
 
-                    uint32 petPower = pet->GetPower(pet->GetPowerType());
+        for (auto const& [level, spellId] : *levelupSpells)
+        {
+            if (level > petLevel)
+                continue;
 
-                    return pet->GetSpellHistory()->HasCooldown(spellId)
-                        || pet->HasAura(spellId)
-                        || target->HasAura(spellId)
-                        || petPower < amount;
-                }),
-            spells.end());
+            SpellInfo const* info = sSpellMgr->GetSpellInfo(spellId, DIFFICULTY_NONE);
+            if (!info || info->IsPassive())
+                continue;
+
+            auto costs = info->CalcPowerCost(pet, info->GetSchoolMask());
+            uint32 amount = 0;
+            if (!costs.empty())
+                amount = costs[0].Amount;
+
+            uint32 petPower = pet->GetPower(pet->GetPowerType());
+
+            if (pet->GetSpellHistory()->HasCooldown(spellId)
+                || pet->HasAura(spellId)
+                || target->HasAura(spellId)
+                || petPower < amount)
+                continue;
+
+            spells.push_back(spellId);
+        }
 
         if (spells.empty())
             return false;
 
         uint32 randomSpell = Trinity::Containers::SelectRandomContainerElement(spells);
 
-        if (IsSelfCast(randomSpell))
-            target = pet;
+        // Determine self-cast dynamically from spell effect targets
+        SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(randomSpell, DIFFICULTY_NONE);
+        if (spellInfo)
+        {
+            for (SpellEffectInfo const& effect : spellInfo->GetEffects())
+            {
+                if (effect.TargetA.GetTarget() == TARGET_UNIT_CASTER
+                    || effect.TargetB.GetTarget() == TARGET_UNIT_CASTER)
+                {
+                    target = pet;
+                    break;
+                }
+            }
+        }
 
         if (FSBSpells::BotCastSpell(pet->ToCreature(), randomSpell, target))
         {
@@ -305,7 +305,6 @@ namespace FSBPet
         }
 
         return false;
-
     }
 
 }
