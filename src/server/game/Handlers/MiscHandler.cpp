@@ -1462,6 +1462,7 @@ void WorldSession::HandleChromieTimeSelectExpansion(WorldPackets::Misc::ChromieT
         {  8, 60125, 60126 }, // Mists of Pandaria      ("To Pandaria!"; H 60126 is Chromie-started)
         {  9, 60969, 60968 }, // Warlords of Draenor    (Draenor)
         { 10, 60971, 60970 }, // Legion                 (Broken Isles)
+        { 14, 60545, 61874 }, // Shadowlands
         { 15, 53370, 53372 }, // Battle for Azeroth     (Hour of Reckoning)
         { 16, 65436, 65435 }, // Dragonflight           (Dragon Isles)
     };

@@ -129,3 +129,17 @@ INSERT INTO `creature` (`guid`,`id`,`map`,`zoneId`,`areaId`,`spawnDifficulties`,
 -- capture A rec 4675) to Chromie 167032. The option row itself ships with
 -- 2026_08_08_07_world.sql.
 UPDATE `creature_template` SET `ScriptName`='npc_chromie_timewalking' WHERE `entry`=167032;
+
+-- Chromie Creature Texts
+DELETE FROM `creature_text` WHERE `creatureID` IN (167032);
+INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `BroadcastTextId`, `TextRange`, `comment`) VALUES
+('167032', '0', '0', 'You look quite prepared!', '12', '0', '100', '3', '0', '155633', '195193', '0', 'Chromie to Player - Burning Crusade'),
+('167032', '1', '0', 'Do not exercise restraint when showing your great power to the Scourge!', '12', '0', '100', '3', '0', '155634', '194977', '0', 'Chromie to Player - Wrath of the Lich King'),
+('167032', '2', '0', 'Who would have thought someone named Deathwing would bring about so much destruction?', '12', '0', '100', '3', '0', '155639', '195758', '0', 'Chromie to Player - Cataclysm'),
+('167032', '3', '0', 'Whatever you do, do not get between a pandaren and their brew. It''ll be unbearably painful if you do!', '12', '0', '100', '3', '0', '155632', '195172', '0', 'Chromie to Player - Pandaria'),
+('167032', '4', '0', 'If a scary orc offers you something to drink, you probably want to say no.', '12', '0', '100', '3', '0', '155635', '195151', '0', 'Chromie to Player - Warlords of Draenor'),
+('167032', '5', '0', 'If you find a powerful weapon, just make sure it isn''t corrupted by the Burning Legion or Old Gods, okay?', '12', '0', '100', '3', '0', '155638', '195757', '0', 'Chromie to Player - Legion'),
+('167032', '6', '0', 'This might be the most important battle of them all. For our world, worth fighting for!', '12', '0', '100', '3', '0', '0', '266403', '0', 'Chromie to Player - Battle For Azeroth'),
+('167032', '7', '0', 'Death it is! And you know what they say... what doesn''t kill you makes you stronger.', '12', '0', '100', '3', '0', '0', '232941', '0', 'Chromie to Player - Shadowlands'),
+('167032', '8', '0', 'Dragons, dragons, dragons! I''m definitely not biased...', '12', '0', '100', '3', '0', '0', '266404', '0', 'Chromie to Player - Dragonflight');
+

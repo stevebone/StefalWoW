@@ -47,3 +47,42 @@ enum Custom_Player_Riding_NPCs
     NPC_VELMA_WARNAM = 4773,
     NPC_PERASCAMIN = 16280,
 };
+
+enum Custom_Player_Chromie
+{
+    NPC_CHROMIE = 167032,
+};
+
+enum ChromieTalkGroup
+{
+    CHROMIE_TALK_BC           = 0,
+    CHROMIE_TALK_WOTLK        = 1,
+    CHROMIE_TALK_CATA         = 2,
+    CHROMIE_TALK_MOP          = 3,
+    CHROMIE_TALK_WOD          = 4,
+    CHROMIE_TALK_LEGION       = 5,
+    CHROMIE_TALK_BFA          = 6,
+    CHROMIE_TALK_SHADOWLANDS  = 7,
+    CHROMIE_TALK_DRAGONFLIGHT = 8,
+};
+
+struct ChromieIntroQuest
+{
+    int32 ExpansionId;
+    uint32 AllianceQuest;
+    uint32 HordeQuest;
+    uint8 TalkGroupId;
+};
+
+static constexpr ChromieIntroQuest ChromieIntroQuests[] =
+{
+    {  5, 60891, 60887, CHROMIE_TALK_CATA         },
+    {  6, 60959, 60961, CHROMIE_TALK_BC           },
+    {  7, 60962, 60963, CHROMIE_TALK_WOTLK        },
+    {  8, 60125, 60126, CHROMIE_TALK_MOP          },
+    {  9, 60969, 60968, CHROMIE_TALK_WOD          },
+    { 10, 60971, 60970, CHROMIE_TALK_LEGION       },
+    { 14, 60545, 61874, CHROMIE_TALK_SHADOWLANDS  },
+    { 15, 53370, 53372, CHROMIE_TALK_BFA          },
+    { 16, 65436, 65435, CHROMIE_TALK_DRAGONFLIGHT },
+};
