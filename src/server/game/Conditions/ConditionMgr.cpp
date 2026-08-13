@@ -161,7 +161,8 @@ ConditionMgr::ConditionTypeInfo const ConditionMgr::StaticConditionTypeData[COND
     { .Name = "Private Object",            .HasConditionValue1 = false, .HasConditionValue2 = false, .HasConditionValue3 = false, .HasConditionStringValue1 = false },
     { .Name = "String ID",                 .HasConditionValue1 = false, .HasConditionValue2 = false, .HasConditionValue3 = false, .HasConditionStringValue1 =  true },
     { .Name = "Label",                     .HasConditionValue1 =  true, .HasConditionValue2 = false, .HasConditionValue3 = false, .HasConditionStringValue1 = false },
-    { .Name = "Group status",              .HasConditionValue1 =  true, .HasConditionValue2 = false, .HasConditionValue3 = false, .HasConditionStringValue1 = false }
+    { .Name = "Group status",              .HasConditionValue1 =  true, .HasConditionValue2 = false, .HasConditionValue3 = false, .HasConditionStringValue1 = false },
+    { .Name = "Chromie Time",              .HasConditionValue1 =  true, .HasConditionValue2 = false, .HasConditionValue3 = false, .HasConditionStringValue1 = false },
 };
 
 static bool MeetsGroupStatusCondition(Player const* player, GroupStatusCondition status)
@@ -706,6 +707,18 @@ bool Condition::Meets(ConditionSourceInfo& sourceInfo) const
                 condMeets = MeetsGroupStatusCondition(player, GroupStatusCondition(ConditionValue1));
             break;
         }
+        case CONDITION_CHROMIE_TIME:
+        {
+            if (Player const* player = object->ToPlayer())
+            {
+                int32 currentExpansion = player->m_activePlayerData->UiChromieTimeExpansionID;
+                if (ConditionValue1 == 0)
+                    condMeets = currentExpansion != 0; // any Chromie Time
+                else
+                    condMeets = currentExpansion == int32(ConditionValue1); // specific expansion
+            }
+            break;
+        }
         default:
             break;
     }
@@ -928,6 +941,9 @@ uint32 Condition::GetSearcherTypeMaskForCondition() const
             mask |= GRID_MAP_TYPE_MASK_CREATURE | GRID_MAP_TYPE_MASK_GAMEOBJECT;
             break;
         case CONDITION_GROUP_STATUS:
+            mask |= GRID_MAP_TYPE_MASK_PLAYER;
+            break;
+        case CONDITION_CHROMIE_TIME:
             mask |= GRID_MAP_TYPE_MASK_PLAYER;
             break;
         default:
@@ -2691,6 +2707,16 @@ bool ConditionMgr::isConditionTypeValid(Condition* cond) const
                 return false;
             }
             break;
+        case CONDITION_CHROMIE_TIME:
+        {
+            // ConditionValue1 is a UiChromieTimeExpansionInfo record id (5-16 at 12.0.7), not an Expansions enum value; 0 = "any Chromie Time"
+            if (cond->ConditionValue1 && !sUIChromieTimeExpansionInfoStore.LookupEntry(cond->ConditionValue1))
+            {
+                TC_LOG_ERROR("sql.sql", "{} has non existing UiChromieTimeExpansionInfo id in value1 ({}), skipped.", *cond, cond->ConditionValue1);
+                return false;
+            }
+            break;
+        }
         case CONDITION_AREAID:
         case CONDITION_ALIVE:
         case CONDITION_IN_WATER:

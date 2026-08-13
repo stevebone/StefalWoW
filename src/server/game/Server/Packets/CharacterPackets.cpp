@@ -129,7 +129,7 @@ EnumCharactersResult::CharacterInfoBasic::CharacterInfoBasic(Field const* fields
     if (fields[17].GetUInt64())
         Flags |= CHARACTER_FLAG_LOCKED_BY_BILLING;
 
-    if (sWorld->getBoolConfig(CONFIG_DECLINED_NAMES_USED) && !fields[180].GetStringView().empty())
+    if (sWorld->getBoolConfig(CONFIG_DECLINED_NAMES_USED) && !fields[182].GetStringView().empty())
         Flags |= CHARACTER_FLAG_DECLINED;
 
     if (atLoginFlags & AT_LOGIN_CUSTOMIZE)
@@ -183,12 +183,14 @@ EnumCharactersResult::CharacterInfoBasic::CharacterInfoBasic(Field const* fields
     PersonalTabard.BorderStyle = fields[25].GetInt32();
     PersonalTabard.BorderColor = fields[26].GetInt32();
     PersonalTabard.BackgroundColor = fields[27].GetInt32();
+    TimerunningSeasonID = int32(fields[28].GetUInt32());
+    Flags4 = fields[29].GetUInt32();
 
     for (std::size_t slot = 0; slot < VisualItems.size(); ++slot)
     {
         constexpr std::size_t equipmentFieldsPerSlot = 8;
 
-        std::size_t visualBase = 28 + slot * equipmentFieldsPerSlot;
+        std::size_t visualBase = 30 + slot * equipmentFieldsPerSlot;
         VisualItems[slot].ItemID = fields[visualBase + 0].GetUInt32();
         VisualItems[slot].TransmogrifiedItemID = fields[visualBase + 1].GetUInt32();
         VisualItems[slot].Subclass = fields[visualBase + 2].GetUInt8();
@@ -892,6 +894,12 @@ WorldPacket const* PlayerSavePersonalEmblem::Write()
     _worldPacket << int32(Error);
 
     return &_worldPacket;
+}
+
+void ConvertTimerunningCharacter::Read()
+{
+    _worldPacket >> CharacterGuid;
+    _worldPacket >> RaceAndFaction;
 }
 
 void SetupWarbandGroups::Read()

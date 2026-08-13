@@ -1095,6 +1095,59 @@ namespace WorldPackets
             bool   Flag1 = true;
             bool   Flag2 = true;
         };
+
+        class ChromieTimeSelectExpansion final : public ClientPacket
+        {
+        public:
+            explicit ChromieTimeSelectExpansion(WorldPacket&& packet) : ClientPacket(CMSG_CHROMIE_TIME_SELECT_EXPANSION, std::move(packet)) { }
+
+            void Read() override;
+
+            ObjectGuid Vendor;     // packed GUID of the Chromie NPC the player is interacting with
+            int32 ExpansionID = 0; // UIChromieTimeExpansionInfo.ID (NOT the Expansions enum)
+        };
+
+        class ChromieTimeSelectExpansionSuccess final : public ServerPacket
+        {
+        public:
+            ChromieTimeSelectExpansionSuccess() : ServerPacket(SMSG_CHROMIE_TIME_SELECT_EXPANSION_SUCCESS, 0) { }
+
+            WorldPacket const* Write() override { return &_worldPacket; }
+        };
+
+        class TimerunningSeasonEnded final : public ServerPacket
+        {
+        public:
+            TimerunningSeasonEnded() : ServerPacket(SMSG_TIMERUNNING_SEASON_ENDED, 4) { }
+
+            WorldPacket const* Write() override;
+
+            uint32 SeasonID = 0;
+        };
+
+        // Wire layout (12.0.5, confirmed via sniff):
+        //   block { uint32 ConditionalFlagsCount; uint8 FactionGroup; uint32 ChromieTimeExpansionMask;
+        //           uint32 ConditionalFlags[ConditionalFlagsCount]; }
+        //   Two consecutive blocks: [Previous, Current].
+        //   The first send of a session carries a default-empty Previous block (capture A rec 721);
+        //   later no-transition pulses send [current, current]; state changes send [pre, post].
+        struct CTROptionsBlock
+        {
+            std::vector<uint32> ConditionalFlags;
+            uint8 FactionGroup = 0;
+            uint32 ChromieTimeExpansionMask = 0;
+        };
+
+        class SetCtrOptions final : public ServerPacket
+        {
+        public:
+            SetCtrOptions() : ServerPacket(SMSG_SET_CTR_OPTIONS, 26) { }
+
+            WorldPacket const* Write() override;
+
+            CTROptionsBlock Previous;
+            CTROptionsBlock Current;
+        };
     }
 }
 
