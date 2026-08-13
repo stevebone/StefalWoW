@@ -260,7 +260,38 @@ INSERT INTO `bot_templates` (`entry`, `bot_class`, `bot_race`, `companion_spell`
 (164952,6,5,0,5,0,0);
 
 INSERT INTO `bot_templates` (`entry`, `bot_class`, `bot_race`, `companion_spell`, `chatter_type`, `gender`, `pet_source`) VALUES
-(62913,6,1,0,2,0,0);
+(62913,6,1,0,2,0,0),
+(4146,7,3,0,10,1,1999),
+(50714,3,3,0,11,1,0),
+(50715,3,3,0,1,0,0),
+(50690,3,3,0,2,0,0),
+(48615, 4, 10, 0, 0, 7, 0),      -- undead / rogue / male
+(48618, 7, 10, 0, 1, 14, 1553),   -- undead / hunter / female / pet 1553
+(48616, 1, 10, 0, 1, 3, 0),       -- undead / warrior / female
+(48613, 3, 10, 0, 1, 18, 0),      -- undead / mage / female
+(48614, 2, 10, 0, 1, 11, 0),      -- undead / priest / female
+(48612, 8, 10, 0, 1, 5, 0),       -- undead / warlock / female
+(38911, 7, 10, 0, 0, 20, 39014),  -- undead / hunter / male / pet 39014
+(2123, 2, 10, 0, 0, 9, 0),        -- undead / priest / male
+(2121, 3, 10, 0, 1, 16, 0),       -- undead / mage / female
+(2126, 8, 10, 0, 0, 4, 0),        -- undead / warlock / male
+(63272, 10, 7, 0, 1, 12, 0),      -- pandaren / monk / female
+(2122, 4, 10, 0, 0, 8, 0),        -- undead / rogue / male
+(2119, 1, 10, 0, 0, 15, 0),       -- undead / warrior / male
+(49958, 7, 10, 0, 0, 2, 49960),   -- undead / hunter / male / pet 49960
+(49715, 2, 10, 0, 0, 19, 0),      -- undead / priest / male
+(49720, 1, 10, 0, 0, 6, 0),       -- undead / warrior / male
+(49870, 4, 10, 0, 1, 13, 0),      -- undead / rogue / female
+(49718, 8, 10, 0, 1, 1, 0),       -- undead / warlock / female
+(49716, 3, 10, 0, 0, 17, 0),      -- undead / mage / male
+(49791, 3, 4, 0, 0, 10, 0),       -- gnome / mage / male
+(49808, 9, 2, 0, 1, 3, 0),        -- dwarf / shaman / female
+(49781, 1, 2, 0, 0, 8, 0),        -- dwarf / warrior / male
+(49806, 7, 2, 0, 1, 15, 1553),    -- dwarf / hunter / female
+(49793, 6, 2, 0, 0, 5, 0),        -- dwarf / paladin / male
+(49786, 3, 4, 0, 0, 12, 0),       -- gnome / mage / male
+(49782, 4, 2, 0, 1, 20, 0),       -- dwarf / rogue / female
+(49785, 2, 2, 0, 1, 7, 0);        -- dwarf / priest / female
 
 
 -- Bot chatter lines: emote_kiss (category = 30)
