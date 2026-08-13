@@ -198,16 +198,16 @@ namespace FSBPet
         return false;
     }
 
-    FSB_PetFamily GetPetFamily(uint32 entry)
+    CreatureFamily GetPetFamily(uint32 entry)
     {
-        auto it = CreatureFamilyMap.find(entry);
-        if (it != CreatureFamilyMap.end())
-            return it->second;
+        CreatureTemplate const* tpl = sObjectMgr->GetCreatureTemplate(entry);
+        if (tpl)
+            return tpl->family;
 
-        return FSB_PetFamily::Unknown;
+        return CREATURE_FAMILY_NONE;
     }
 
-    const std::vector<uint32>& GetFamilySpells(FSB_PetFamily family)
+    const std::vector<uint32>& GetFamilySpells(CreatureFamily family)
     {
         static const std::vector<uint32> empty;
 

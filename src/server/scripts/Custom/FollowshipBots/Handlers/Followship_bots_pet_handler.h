@@ -20,6 +20,8 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "SharedDefines.h"
+
 enum FSB_PET_SPELLS
 {
     //Combat
@@ -48,48 +50,13 @@ enum FSB_PET_SPELLS
     SPELL_HUNTER_PET_INFECTED_BITE = 263853, //target
 };
 
-enum class FSB_PetFamily
+static const std::unordered_map<CreatureFamily, std::vector<uint32>> CreatureFamilySpells =
 {
-    Unknown = 0,
-    Wolf,
-    Cat,
-    Bear,
-    Boar,
-    Fox,
-    Hyena,
-    BirdOfPrey,
-};
-
-static const std::unordered_map<uint32, FSB_PetFamily> CreatureFamilyMap =
-{
-    { 43292,    FSB_PetFamily::Wolf },
-    //{ 705,  FSB_PetFamily::Wolf },
-    //{ 1132, FSB_PetFamily::Wolf },
-    //{ 1922, FSB_PetFamily::Wolf },
-    //{ 42717,FSB_PetFamily::Wolf },
-
-    //{ 6368, FSB_PetFamily::Cat },
-    //{ 682,  FSB_PetFamily::Cat },
-    //{ 736,  FSB_PetFamily::Cat },
-
-    { 46982,  FSB_PetFamily::Fox },
-
-    { 1125,  FSB_PetFamily::Boar },
-
-    { 14228, FSB_PetFamily::Hyena },
-
-    { 44628,  FSB_PetFamily::BirdOfPrey },
-};
-
-static const std::unordered_map<FSB_PetFamily, std::vector<uint32>> CreatureFamilySpells =
-{
-    { FSB_PetFamily::Wolf, { SPELL_HUNTER_PET_FURIOUS_BITE, SPELL_HUNTER_PET_BITE, SPELL_HUNTER_PET_PRIMAL_RAGE, SPELL_HUNTER_PET_PREDATOR_THIRST } },   
-    { FSB_PetFamily::Fox,  { SPELL_HUNTER_PET_SCRATCH, SPELL_HUNTER_PET_BITE, SPELL_HUNTER_PET_AGILE_REFLEXES, SPELL_HUNTER_PET_MASTER_CALL } },
-    //{ FSB_PetFamily::Cat,  { 16827, 16828, 16829 } },   // example cat spells
-    //{ FSB_PetFamily::Bear, { 16810, 16811 } },
-    { FSB_PetFamily::Boar, { SPELL_HUNTER_PET_BITE, SPELL_HUNTER_PET_GORE, SPELL_HUNTER_PET_BRISTLE, SPELL_HUNTER_PET_MASTER_CALL } },
-    { FSB_PetFamily::Hyena, { SPELL_HUNTER_PET_BITE, SPELL_HUNTER_PET_INFECTED_BITE, SPELL_HUNTER_PET_RABIES, SPELL_HUNTER_PET_MASTER_CALL } },
-    { FSB_PetFamily::BirdOfPrey, { SPELL_HUNTER_PET_CLAW, SPELL_HUNTER_PET_TALON_REND, SPELL_HUNTER_PET_GROWL, SPELL_HUNTER_PET_MASTER_CALL} },
+    { CREATURE_FAMILY_WOLF,        { SPELL_HUNTER_PET_FURIOUS_BITE, SPELL_HUNTER_PET_BITE, SPELL_HUNTER_PET_PRIMAL_RAGE, SPELL_HUNTER_PET_PREDATOR_THIRST } },
+    { CREATURE_FAMILY_FOX,         { SPELL_HUNTER_PET_SCRATCH, SPELL_HUNTER_PET_BITE, SPELL_HUNTER_PET_AGILE_REFLEXES, SPELL_HUNTER_PET_MASTER_CALL } },
+    { CREATURE_FAMILY_BOAR,        { SPELL_HUNTER_PET_BITE, SPELL_HUNTER_PET_GORE, SPELL_HUNTER_PET_BRISTLE, SPELL_HUNTER_PET_MASTER_CALL } },
+    { CREATURE_FAMILY_HYENA,       { SPELL_HUNTER_PET_BITE, SPELL_HUNTER_PET_INFECTED_BITE, SPELL_HUNTER_PET_RABIES, SPELL_HUNTER_PET_MASTER_CALL } },
+    { CREATURE_FAMILY_BIRD_OF_PREY,{ SPELL_HUNTER_PET_CLAW, SPELL_HUNTER_PET_TALON_REND, SPELL_HUNTER_PET_GROWL, SPELL_HUNTER_PET_MASTER_CALL } },
 };
 
 namespace FSBPet
@@ -99,8 +66,8 @@ namespace FSBPet
     Unit* GetBotPet(Creature* owner);
     bool BotHasPet(Creature* owner);
 
-    FSB_PetFamily GetPetFamily(uint32 entry);
-    const std::vector<uint32>& GetFamilySpells(FSB_PetFamily family);
+    CreatureFamily GetPetFamily(uint32 entry);
+    const std::vector<uint32>& GetFamilySpells(CreatureFamily family);
 
     bool DoAttackSpell(Creature* owner);
 
