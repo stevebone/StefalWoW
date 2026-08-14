@@ -677,12 +677,15 @@ void GarrisonMissionBonusRoll::Read()
 void OpenMissionNpc::Read()
 {
     _worldPacket >> NpcGUID;
-    // Trailing uint8 (GarrFollowerTypeID) is intentionally left unread — see GarrisonPackets.h.
+    // Trailing uint8 (GarrFollowerTypeID). Consumed but deliberately not stored — see GarrisonPackets.h for
+    // why this class must not grow a member. Skipping it keeps the object layout byte-identical and stops the
+    // "read stop at 14 from 15" tail warning the client's extra byte produced on every open.
+    _worldPacket.read_skip<uint8>();
 }
 
 void GarrisonGetMissionReward::Read()
 {
-    _worldPacket >> NpcGUID;
+    _worldPacket >> DbID;           // RAW uint64, not a PackedGuid — see GarrisonPackets.h
     _worldPacket >> MissionRecID;
 }
 
@@ -1283,7 +1286,7 @@ WorldPacket const* GarrisonSwapBuildingsResponse::Write()
 void GarrisonLearnTalent::Read()
 {
     _worldPacket >> GarrTalentID;
-    _worldPacket >> Bits<1>(IsTemporary);
+    _worldPacket >> IsTemporary;        // whole uint32, not a bit — see GarrisonPackets.h
 }
 
 void GarrisonResearchTalent::Read()
@@ -1524,6 +1527,9 @@ void SetUsingPartyGarrison::Read()
 
 void QueryGarrisonPetName::Read()
 {
+    // Leading raw uint64 the reader used to swallow as the guid's mask bytes — see GarrisonPackets.h.
+    // Consumed rather than stored so the packet object's layout does not change; the handler needs only the guid.
+    _worldPacket.read_skip<uint64>();
     _worldPacket >> NpcGUID;
 }
 

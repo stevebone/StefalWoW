@@ -659,7 +659,7 @@ void WorldSession::HandleGarrisonLearnTalent(WorldPackets::Garrison::GarrisonLea
         return;
     }
 
-    garrison->LearnTalent(garrisonLearnTalent.GarrTalentID, garrisonLearnTalent.IsTemporary);
+    garrison->LearnTalent(garrisonLearnTalent.GarrTalentID, garrisonLearnTalent.IsTemporary != 0);
 }
 
 void WorldSession::HandleGarrisonResearchTalent(WorldPackets::Garrison::GarrisonResearchTalent& garrisonResearchTalent)
