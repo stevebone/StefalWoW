@@ -376,7 +376,12 @@ public:
     // Specializations
     void LearnSpecialization(uint32 garrSpecId);
     bool HasSpecialization(uint32 garrSpecId) const { return _knownSpecializations.find(garrSpecId) != _knownSpecializations.end(); }
-    void SetBuildingSpecialization(uint32 garrPlotInstanceId, uint32 garrSpecId);
+    // Sets (or clears, with garrSpecId 0) a building's active specialization. Answers the client on every
+    // path with SMSG_GARRISON_BUILDING_SET_ACTIVE_SPECIALIZATION_RESULT and returns the same code, so a
+    // caller (today: the .garrison building spec GM command) can report it too. NOTE: the 12.0.7 client has
+    // no request opcode for this - C_Garrison.SetBuildingSpecialization is a legacy Lua stub and
+    // CMSG_GARRISON_SET_BUILDING_ACTIVE carries only a plot id - so this is a pure server push.
+    GarrisonError SetBuildingSpecialization(uint32 garrPlotInstanceId, uint32 garrSpecId);
 
     // Followers
     void AddFollower(uint32 garrFollowerId);
@@ -495,8 +500,18 @@ public:
     void SetFollowerLevel(uint64 dbId, uint32 level);
     void AddFollowerXP(uint64 dbId, uint32 xp);
     void LearnFollowerAbility(uint64 dbId, uint32 abilityId);
+    // Mirror of LearnFollowerAbility. Refuses abilities the data marks GARRISON_ABILITY_FLAG_CANNOT_REMOVE
+    // (GarrAbility.Flags 0x10) so a caller cannot strip a follower's authored innate trait. Answers with
+    // SMSG_GARRISON_REMOVE_FOLLOWER_ABILITY_RESULT (which carries the whole follower) on success.
+    GarrisonError RemoveFollowerAbility(uint64 dbId, uint32 abilityId);
     void RandomizeFollowerAbilities(uint64 dbId);
-    void EndBuildingConstruction(uint32 garrPlotInstanceId);
+    // Finishes an in-progress construction immediately (SPELL_EFFECT_END_GARRISON_BUILDING_CONSTRUCTION and
+    // the .garrison building complete dev command). Answers on every path with
+    // SMSG_GARRISON_COMPLETE_BUILDING_CONSTRUCTION_RESULT and returns the same code.
+    GarrisonError EndBuildingConstruction(uint32 garrPlotInstanceId);
+    // GM/dev only: force a mission's wire state (0 offered / 1 in progress / 2 completed) and answer with
+    // SMSG_GARRISON_UPDATE_MISSION_CHEAT_RESULT. Backs the .garrison mission update command.
+    GarrisonError SetMissionStateCheat(uint32 garrMissionRecID, uint32 newState);
     void SetGarrisonCacheSize(uint32 size);
 
     // Garrison resource cache: the WoD cache GameObject accrues Garrison Resources (currency 824) over

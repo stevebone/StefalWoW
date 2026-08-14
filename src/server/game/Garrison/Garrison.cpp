@@ -1290,18 +1290,41 @@ uint32 Garrison::GetBonusFollowerSlots() const
 
 void Garrison::LearnSpecialization(uint32 garrSpecId)
 {
+    // Every exit answers. This is reached from SPELL_EFFECT_LEARN_GARRISON_SPECIALIZATION, i.e. the player
+    // used an item/ability and previously got nothing back on any path - success only pushed a full blueprint
+    // resend, and all three rejections were silent.
+    auto sendResult = [this, garrSpecId](uint32 result)
+    {
+        WorldPackets::Garrison::GarrisonLearnSpecializationResult learnResult;
+        learnResult.Result = result;
+        learnResult.GarrSpecID = garrSpecId;
+        _owner->SendDirectMessage(learnResult.Write());
+    };
+
     GarrSpecializationEntry const* specEntry = sGarrSpecializationStore.LookupEntry(garrSpecId);
     if (!specEntry)
+    {
+        sendResult(GARRISON_ERROR_INVALID_SPECIALIZATION);
         return;
+    }
 
     if (specEntry->GarrTypeID != static_cast<uint8>(GetType()))
+    {
+        sendResult(GARRISON_ERROR_INVALID_GARRISON_TYPE);
         return;
+    }
 
     if (_knownSpecializations.count(garrSpecId))
+    {
+        sendResult(GARRISON_ERROR_SPECIALIZATION_EXISTS);
         return;
+    }
 
     _knownSpecializations.insert(garrSpecId);
+    // Data first, then the ack: the client resolves the specialization out of its known list when it
+    // handles the result, so the list has to already contain it.
     SendBlueprintAndSpecializationData();
+    sendResult(GARRISON_SUCCESS);
 
     // CriteriaType::LearnGarrisonSpecialization (181, Asset = GarrSpecializationID) and
     // CriteriaType::LearnAnyGarrisonSpecialization (180, no asset).
@@ -1309,25 +1332,45 @@ void Garrison::LearnSpecialization(uint32 garrSpecId)
     _owner->UpdateCriteria(CriteriaType::LearnAnyGarrisonSpecialization, garrSpecId);
 }
 
-void Garrison::SetBuildingSpecialization(uint32 garrPlotInstanceId, uint32 garrSpecId)
+GarrisonError Garrison::SetBuildingSpecialization(uint32 garrPlotInstanceId, uint32 garrSpecId)
 {
+    // Every exit answers, and the answer carries the cooldown the client needs to grey the control out.
+    // The cooldown reported on a rejection is the one already running (that is what the player wants to see);
+    // on success it is the freshly armed one.
+    auto sendResult = [this, garrPlotInstanceId, garrSpecId](uint32 result, time_t cooldown) -> GarrisonError
+    {
+        WorldPackets::Garrison::GarrisonBuildingSetActiveSpecializationResult specResult;
+        specResult.Result = result;
+        specResult.GarrPlotInstanceID = garrPlotInstanceId;
+        specResult.GarrSpecID = garrSpecId;
+        specResult.TimeSpecCooldown = uint64(cooldown);
+        _owner->SendDirectMessage(specResult.Write());
+        return GarrisonError(result);
+    };
+
     Plot* plot = GetPlot(garrPlotInstanceId);
-    if (!plot || !plot->BuildingInfo.PacketInfo || !plot->BuildingInfo.PacketInfo->Active)
-        return;
+    if (!plot)
+        return sendResult(GARRISON_ERROR_INVALID_PLOT_INSTANCEID, 0);
+
+    if (!plot->BuildingInfo.PacketInfo)
+        return sendResult(GARRISON_ERROR_NO_BUILDING, 0);
+
+    if (!plot->BuildingInfo.PacketInfo->Active)
+        return sendResult(GARRISON_ERROR_BUILDING_NOT_ACTIVE, time_t(plot->BuildingInfo.PacketInfo->TimeSpecCooldown));
 
     if (garrSpecId != 0)
     {
         GarrSpecializationEntry const* specEntry = sGarrSpecializationStore.LookupEntry(garrSpecId);
         if (!specEntry)
-            return;
+            return sendResult(GARRISON_ERROR_INVALID_SPECIALIZATION, time_t(plot->BuildingInfo.PacketInfo->TimeSpecCooldown));
 
         if (!HasSpecialization(garrSpecId))
-            return;
+            return sendResult(GARRISON_ERROR_INVALID_SPECIALIZATION, time_t(plot->BuildingInfo.PacketInfo->TimeSpecCooldown));
 
         // Check cooldown
         if (plot->BuildingInfo.PacketInfo->CurrentGarSpecID != 0 &&
             plot->BuildingInfo.PacketInfo->TimeSpecCooldown > GameTime::GetGameTime())
-            return;
+            return sendResult(GARRISON_ERROR_SPECIALIZATION_ON_COOLDOWN, time_t(plot->BuildingInfo.PacketInfo->TimeSpecCooldown));
     }
 
     plot->BuildingInfo.PacketInfo->CurrentGarSpecID = garrSpecId;
@@ -1335,6 +1378,8 @@ void Garrison::SetBuildingSpecialization(uint32 garrPlotInstanceId, uint32 garrS
     // Set cooldown for changing specialization (1 day)
     if (garrSpecId != 0)
         plot->BuildingInfo.PacketInfo->TimeSpecCooldown = GameTime::GetGameTime() + DAY;
+
+    return sendResult(GARRISON_SUCCESS, time_t(plot->BuildingInfo.PacketInfo->TimeSpecCooldown));
 }
 
 void Garrison::AddFollower(uint32 garrFollowerId)
@@ -3709,6 +3754,22 @@ void Garrison::FinishMission(uint32 garrMissionRecID)
     // mission is genuinely guaranteed to succeed, matching the "instant complete" intent.
     mission->ResultDetermined = true;
     mission->Succeeded = true;
+
+    // The client's mission timer is a purely local computation over StartTime + TravelDuration +
+    // MissionDuration - MissionState alone is not enough. Leaving StartTime where it was made an
+    // instant-completed mission keep counting down in the UI until the next full garrison info, so the
+    // "instantly complete" spell (SPELL_EFFECT_FINISH_GARRISON_MISSION) appeared to do nothing.
+    // Backdate the start so the timer reads as elapsed, and announce the move with the opcode that exists
+    // for exactly this - SMSG_GARRISON_CHANGE_MISSION_START_TIME_RESULT.
+    mission->PacketInfo.StartTime = GameTime::GetGameTime()
+        - Seconds(mission->PacketInfo.TravelDuration).count()
+        - Seconds(mission->PacketInfo.MissionDuration).count();
+
+    WorldPackets::Garrison::GarrisonChangeMissionStartTimeResult startTimeResult;
+    startTimeResult.Result = GARRISON_SUCCESS;
+    startTimeResult.MissionRecID = garrMissionRecID;
+    startTimeResult.Mission = mission->PacketInfo;
+    _owner->SendDirectMessage(startTimeResult.Write());
 }
 
 void Garrison::FinishShipment(uint32 plotInstanceId)
@@ -3864,6 +3925,37 @@ void Garrison::LearnFollowerAbility(uint64 dbId, uint32 abilityId)
     _owner->SendDirectMessage(updateFollower.Write());
 }
 
+GarrisonError Garrison::RemoveFollowerAbility(uint64 dbId, uint32 abilityId)
+{
+    Follower* follower = GetFollower(dbId);
+    if (!follower)
+        return GARRISON_ERROR_INVALID_FOLLOWER;
+
+    GarrAbilityEntry const* ability = sGarrAbilityStore.LookupEntry(abilityId);
+    if (!ability)
+        return GARRISON_ERROR_INVALID_FOLLOWER_ABILITY;
+
+    std::list<GarrAbilityEntry const*>& abilities = follower->PacketInfo.AbilityID;
+    auto itr = std::find(abilities.begin(), abilities.end(), ability);
+    if (itr == abilities.end())
+        return GARRISON_ERROR_INVALID_FOLLOWER_ABILITY;
+
+    // GarrAbility.Flags 0x10 marks an ability the follower may never lose (its authored innate trait).
+    // Honouring it here is what keeps this primitive from being a way to strip a unique follower bare.
+    if (ability->Flags & GARRISON_ABILITY_FLAG_CANNOT_REMOVE)
+        return GARRISON_ERROR_INVALID_FOLLOWER_ABILITY;
+
+    abilities.erase(itr);
+
+    // The dedicated result carries the whole follower, so the client rebuilds the ability row from it
+    // without a second round trip.
+    WorldPackets::Garrison::GarrisonRemoveFollowerAbilityResult abilityResult;
+    abilityResult.Follower = follower->PacketInfo;
+    _owner->SendDirectMessage(abilityResult.Write());
+
+    return GARRISON_SUCCESS;
+}
+
 void Garrison::RandomizeFollowerAbilities(uint64 dbId)
 {
     Follower* follower = GetFollower(dbId);
@@ -3884,18 +3976,63 @@ void Garrison::RandomizeFollowerAbilities(uint64 dbId)
     _owner->SendDirectMessage(updateFollower.Write());
 }
 
-void Garrison::EndBuildingConstruction(uint32 garrPlotInstanceId)
+GarrisonError Garrison::EndBuildingConstruction(uint32 garrPlotInstanceId)
 {
+    // Every exit answers. This runs from SPELL_EFFECT_END_GARRISON_BUILDING_CONSTRUCTION (239) - a live,
+    // player-facing "finish this building now" effect that until now confirmed nothing.
+    auto sendResult = [this, garrPlotInstanceId](uint32 result, time_t timeBuilt) -> GarrisonError
+    {
+        WorldPackets::Garrison::GarrisonCompleteBuildingConstructionResult constructionResult;
+        constructionResult.Result = result;
+        constructionResult.GarrPlotInstanceID = garrPlotInstanceId;
+        constructionResult.BuildingDbID = uint64(timeBuilt);
+        _owner->SendDirectMessage(constructionResult.Write());
+        return GarrisonError(result);
+    };
+
     Plot* plot = GetPlot(garrPlotInstanceId);
-    if (!plot || !plot->BuildingInfo.PacketInfo)
-        return;
+    if (!plot)
+        return sendResult(GARRISON_ERROR_INVALID_PLOT_INSTANCEID, 0);
+
+    if (!plot->BuildingInfo.PacketInfo)
+        return sendResult(GARRISON_ERROR_NO_BUILDING, 0);
 
     if (plot->BuildingInfo.PacketInfo->Active)
-        return;
+        return sendResult(GARRISON_ERROR_CONSTRUCTION_COMPLETE, time_t(plot->BuildingInfo.PacketInfo->TimeBuilt));
 
     // Set time built to the past so CanActivate() returns true
     plot->BuildingInfo.PacketInfo->TimeBuilt = GameTime::GetGameTime() - DAY;
     ActivateBuilding(garrPlotInstanceId);
+
+    return sendResult(GARRISON_SUCCESS, time_t(plot->BuildingInfo.PacketInfo->TimeBuilt));
+}
+
+GarrisonError Garrison::SetMissionStateCheat(uint32 garrMissionRecID, uint32 newState)
+{
+    // GM/dev only. Wire mission states are 0 offered / 1 in progress / 2 completed; anything else would put
+    // the client's mission frame into a state its own Lua cannot describe, so it is refused rather than sent.
+    if (newState > 2)
+        return GARRISON_ERROR_INVALID_MISSION;
+
+    Mission* mission = GetMissionByRecID(garrMissionRecID);
+    if (!mission)
+        return GARRISON_ERROR_INVALID_MISSION;
+
+    mission->PacketInfo.MissionState = int32(newState);
+
+    // Moving a mission INTO "in progress" without a start time leaves the client counting from the 1906
+    // sentinel, so anchor it here - the same reason FinishMission backdates.
+    if (newState == 1 && time_t(mission->PacketInfo.StartTime) > GameTime::GetGameTime())
+        mission->PacketInfo.StartTime = GameTime::GetGameTime();
+
+    WorldPackets::Garrison::GarrisonUpdateMissionCheatResult cheatResult;
+    cheatResult.Result = GARRISON_SUCCESS;
+    cheatResult.MissionRecID = garrMissionRecID;
+    cheatResult.NewState = newState;
+    cheatResult.Mission = mission->PacketInfo;
+    _owner->SendDirectMessage(cheatResult.Write());
+
+    return GARRISON_SUCCESS;
 }
 
 void Garrison::SetGarrisonCacheSize(uint32 size)
@@ -6009,7 +6146,9 @@ uint32 Garrison::ResetTalentTree(uint32 garrTalentTreeID)
 
     // Collect first: the client tracks individual talents, so each one is announced separately.
     std::vector<uint32> removedTalents;
-    bool hadSocketData = false;
+    // Talents in this tree that actually held a conduit. These are the ones whose socket disappears, and
+    // they are announced as one batch below instead of N singular remove-socket packets.
+    std::vector<uint32> clearedSocketTalents;
     for (auto const& [talentId, talent] : _talents)
     {
         GarrTalentEntry const* talentEntry = sGarrTalentStore.LookupEntry(talentId);
@@ -6018,7 +6157,7 @@ uint32 Garrison::ResetTalentTree(uint32 garrTalentTreeID)
 
         removedTalents.push_back(talentId);
         if (talent.SoulbindConduitID)
-            hadSocketData = true;
+            clearedSocketTalents.push_back(talentId);
 
         // Take back everything the talent's completed ranks granted (GarrTalentRank.PerkSpellID).
         RemoveTalentRankPerks(talentId, talent.Rank);
@@ -6046,8 +6185,16 @@ uint32 Garrison::ResetTalentTree(uint32 garrTalentTreeID)
 
     // Tree-level notifications. The socket-data reset is only meaningful when the tree actually
     // held conduit data, so it is not sent unconditionally.
-    if (hadSocketData)
+    if (!clearedSocketTalents.empty())
     {
+        // Batch form first: one message listing every talent that lost its conduit, so the conduit UI
+        // clears in a single frame instead of reacting to N singular removals. Changes is deliberately
+        // empty - a tree reset only removes sockets, it never seats one.
+        WorldPackets::Garrison::GarrisonApplyTalentSocketDataChanges socketChanges;
+        socketChanges.GarrTypeID = static_cast<uint8>(GetType());
+        socketChanges.RemovedTalentIDs = clearedSocketTalents;
+        _owner->SendDirectMessage(socketChanges.Write());
+
         WorldPackets::Garrison::GarrisonResetTalentTreeSocketData socketReset;
         socketReset.GarrTypeID = static_cast<uint8>(GetType());
         socketReset.GarrTalentTreeID = garrTalentTreeID;

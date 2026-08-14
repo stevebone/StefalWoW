@@ -111,6 +111,22 @@ public:
             { "complete", HandleEmberCourtCompleteCommand, rbac::RBAC_PERM_COMMAND_GM, Console::No },
         };
 
+        static ChatCommandTable buildingCommandTable =
+        {
+            { "spec",     HandleGarrisonBuildingSpecCommand,     rbac::RBAC_PERM_COMMAND_GM, Console::No },
+            { "complete", HandleGarrisonBuildingCompleteCommand, rbac::RBAC_PERM_COMMAND_GM, Console::No },
+        };
+
+        static ChatCommandTable followerCommandTable =
+        {
+            { "removeability", HandleGarrisonFollowerRemoveAbilityCommand, rbac::RBAC_PERM_COMMAND_GM, Console::No },
+        };
+
+        static ChatCommandTable missionCommandTable =
+        {
+            { "update", HandleGarrisonMissionUpdateCommand, rbac::RBAC_PERM_COMMAND_GM, Console::No },
+        };
+
         static ChatCommandTable garrisonCommandTable =
         {
             { "upgrade",   HandleGarrisonUpgradeCommand,   rbac::RBAC_PERM_COMMAND_GM, Console::No },
@@ -119,6 +135,11 @@ public:
             { "enter",     HandleGarrisonEnterCommand,     rbac::RBAC_PERM_COMMAND_GM, Console::No },
             { "exit",      HandleGarrisonExitCommand,      rbac::RBAC_PERM_COMMAND_GM, Console::No },
             { "resettalents", HandleGarrisonResetTalentsCommand, rbac::RBAC_PERM_COMMAND_GM, Console::No },
+            { "listfollowers", HandleGarrisonListFollowersCommand, rbac::RBAC_PERM_COMMAND_GM, Console::No },
+            { "listcompleted", HandleGarrisonListCompletedCommand, rbac::RBAC_PERM_COMMAND_GM, Console::No },
+            { "building",     buildingCommandTable },
+            { "follower",     followerCommandTable },
+            { "mission",      missionCommandTable },
             { "conservatory", conservatoryCommandTable },
             { "abomination",  abominationCommandTable },
             { "ascension",    ascensionCommandTable },
@@ -313,6 +334,211 @@ public:
 
         handler->PSendSysMessage("Reset GarrTalentTree {} for {} (garrison type {}).",
             garrTalentTreeID, target->GetName(), uint32(treeEntry->GarrTypeID));
+        return true;
+    }
+
+    // Resolves the garrison a cheat/dev subcommand should act on. Defaults to the WoD garrison (type 2),
+    // which is what every other .garrison subcommand without an explicit type already assumes.
+    static Garrison* ResolveGarrison(ChatHandler* handler, Player* target, Optional<uint32> garrTypeId)
+    {
+        GarrisonType const type = garrTypeId ? GarrisonType(*garrTypeId) : GARRISON_TYPE_GARRISON;
+        Garrison* garrison = target->GetGarrison(type);
+        if (!garrison)
+        {
+            handler->PSendSysMessage("{} has no garrison of type {}.", target->GetName(), uint32(type));
+            handler->SetSentErrorMessage(true);
+        }
+        return garrison;
+    }
+
+    // .garrison building spec $plotInstanceID $garrSpecID [$garrTypeID]
+    // Sets a building's active specialization. The 12.0.7 client has no request opcode for this
+    // (C_Garrison.SetBuildingSpecialization is a legacy Lua stub), so this command is the only trigger for
+    // SMSG_GARRISON_BUILDING_SET_ACTIVE_SPECIALIZATION_RESULT. Pass spec 0 to clear.
+    static bool HandleGarrisonBuildingSpecCommand(ChatHandler* handler, uint32 plotInstanceId, uint32 garrSpecId, Optional<uint32> garrTypeId)
+    {
+        Player* target = handler->getSelectedPlayerOrSelf();
+        if (!target)
+        {
+            handler->SendSysMessage(LANG_PLAYER_NOT_FOUND);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+        if (handler->HasLowerSecurity(target, ObjectGuid::Empty))
+            return false;
+
+        Garrison* garrison = ResolveGarrison(handler, target, garrTypeId);
+        if (!garrison)
+            return false;
+
+        GarrisonError const result = garrison->SetBuildingSpecialization(plotInstanceId, garrSpecId);
+        if (result != GARRISON_SUCCESS)
+        {
+            handler->PSendSysMessage("Set specialization {} on plot {} failed for {}: GarrisonError {}.",
+                garrSpecId, plotInstanceId, target->GetName(), uint32(result));
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        handler->PSendSysMessage("Set specialization {} on plot {} for {}.", garrSpecId, plotInstanceId, target->GetName());
+        return true;
+    }
+
+    // .garrison building complete $plotInstanceID [$garrTypeID]
+    // Finishes an in-progress construction immediately - the same server path as
+    // SPELL_EFFECT_END_GARRISON_BUILDING_CONSTRUCTION, exposed for testing.
+    static bool HandleGarrisonBuildingCompleteCommand(ChatHandler* handler, uint32 plotInstanceId, Optional<uint32> garrTypeId)
+    {
+        Player* target = handler->getSelectedPlayerOrSelf();
+        if (!target)
+        {
+            handler->SendSysMessage(LANG_PLAYER_NOT_FOUND);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+        if (handler->HasLowerSecurity(target, ObjectGuid::Empty))
+            return false;
+
+        Garrison* garrison = ResolveGarrison(handler, target, garrTypeId);
+        if (!garrison)
+            return false;
+
+        GarrisonError const result = garrison->EndBuildingConstruction(plotInstanceId);
+        if (result != GARRISON_SUCCESS)
+        {
+            handler->PSendSysMessage("Complete construction on plot {} failed for {}: GarrisonError {}.",
+                plotInstanceId, target->GetName(), uint32(result));
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        handler->PSendSysMessage("Completed construction on plot {} for {}.", plotInstanceId, target->GetName());
+        return true;
+    }
+
+    // .garrison follower removeability $followerDbID $garrAbilityID [$garrTypeID]
+    // Strips one ability from a follower. Abilities flagged GARRISON_ABILITY_FLAG_CANNOT_REMOVE are refused.
+    static bool HandleGarrisonFollowerRemoveAbilityCommand(ChatHandler* handler, uint64 followerDbId, uint32 abilityId, Optional<uint32> garrTypeId)
+    {
+        Player* target = handler->getSelectedPlayerOrSelf();
+        if (!target)
+        {
+            handler->SendSysMessage(LANG_PLAYER_NOT_FOUND);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+        if (handler->HasLowerSecurity(target, ObjectGuid::Empty))
+            return false;
+
+        Garrison* garrison = ResolveGarrison(handler, target, garrTypeId);
+        if (!garrison)
+            return false;
+
+        GarrisonError const result = garrison->RemoveFollowerAbility(followerDbId, abilityId);
+        if (result != GARRISON_SUCCESS)
+        {
+            handler->PSendSysMessage("Remove ability {} from follower {} failed: GarrisonError {}.",
+                abilityId, followerDbId, uint32(result));
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        handler->PSendSysMessage("Removed ability {} from follower {} of {}.", abilityId, followerDbId, target->GetName());
+        return true;
+    }
+
+    // .garrison listfollowers [$garrTypeID]
+    // Retail's follower-list cheat. The packet goes to the garrison's OWNER (it describes that client's own
+    // followers); the GM also gets a chat summary so a remotely-targeted inspection is still readable.
+    static bool HandleGarrisonListFollowersCommand(ChatHandler* handler, Optional<uint32> garrTypeId)
+    {
+        Player* target = handler->getSelectedPlayerOrSelf();
+        if (!target)
+        {
+            handler->SendSysMessage(LANG_PLAYER_NOT_FOUND);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+        if (handler->HasLowerSecurity(target, ObjectGuid::Empty))
+            return false;
+
+        Garrison* garrison = ResolveGarrison(handler, target, garrTypeId);
+        if (!garrison)
+            return false;
+
+        WorldPackets::Garrison::GarrisonListFollowersCheatResult followerList;
+        for (auto const& [dbId, follower] : garrison->GetFollowerMap())
+            followerList.Followers.push_back(follower.PacketInfo);
+
+        target->SendDirectMessage(followerList.Write());
+
+        handler->PSendSysMessage("{} follower(s) sent for {}'s garrison type {}.",
+            uint32(followerList.Followers.size()), target->GetName(),
+            uint32(garrTypeId ? *garrTypeId : uint32(GARRISON_TYPE_GARRISON)));
+        for (auto const& [dbId, follower] : garrison->GetFollowerMap())
+            handler->PSendSysMessage("  dbID {} GarrFollowerID {} level {} quality {} status {}.",
+                dbId, follower.PacketInfo.GarrFollowerID, follower.PacketInfo.FollowerLevel,
+                follower.PacketInfo.Quality, follower.PacketInfo.FollowerStatus);
+        return true;
+    }
+
+    // .garrison listcompleted [$garrTypeID]
+    // Retail's completed-mission-list cheat, answered from the archived-mission list the garrison already keeps.
+    static bool HandleGarrisonListCompletedCommand(ChatHandler* handler, Optional<uint32> garrTypeId)
+    {
+        Player* target = handler->getSelectedPlayerOrSelf();
+        if (!target)
+        {
+            handler->SendSysMessage(LANG_PLAYER_NOT_FOUND);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+        if (handler->HasLowerSecurity(target, ObjectGuid::Empty))
+            return false;
+
+        Garrison* garrison = ResolveGarrison(handler, target, garrTypeId);
+        if (!garrison)
+            return false;
+
+        WorldPackets::Garrison::GarrisonListCompletedMissionsCheatResult completedList;
+        for (int32 missionRecId : garrison->GetArchivedMissions())
+            completedList.MissionRecIDs.push_back(uint32(missionRecId));
+
+        target->SendDirectMessage(completedList.Write());
+
+        handler->PSendSysMessage("{} completed mission(s) sent for {}.",
+            uint32(completedList.MissionRecIDs.size()), target->GetName());
+        return true;
+    }
+
+    // .garrison mission update $missionRecID $newState [$garrTypeID]
+    // Retail's mission-state cheat. States are the ones the wire uses: 0 offered, 1 in progress, 2 completed.
+    static bool HandleGarrisonMissionUpdateCommand(ChatHandler* handler, uint32 missionRecId, uint32 newState, Optional<uint32> garrTypeId)
+    {
+        Player* target = handler->getSelectedPlayerOrSelf();
+        if (!target)
+        {
+            handler->SendSysMessage(LANG_PLAYER_NOT_FOUND);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+        if (handler->HasLowerSecurity(target, ObjectGuid::Empty))
+            return false;
+
+        Garrison* garrison = ResolveGarrison(handler, target, garrTypeId);
+        if (!garrison)
+            return false;
+
+        GarrisonError const result = garrison->SetMissionStateCheat(missionRecId, newState);
+        if (result != GARRISON_SUCCESS)
+        {
+            handler->PSendSysMessage("Mission {} state change to {} failed: GarrisonError {}.",
+                missionRecId, newState, uint32(result));
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        handler->PSendSysMessage("Mission {} of {} set to state {}.", missionRecId, target->GetName(), newState);
         return true;
     }
 
