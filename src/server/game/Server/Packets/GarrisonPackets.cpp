@@ -585,12 +585,13 @@ WorldPacket const* GarrisonBuildingSetActiveSpecializationResult::Write()
     return &_worldPacket;
 }
 
-// IDA case 4980797 (§8.47): u32 Result, u64 BuildingDbID, u32 GarrPlotInstanceID.
+// u32 GarrPlotInstanceID, u64 TimeBuilt, u32 Result - see the header for the disassembly that inverts the
+// order the old comment claimed. Result LAST is the field the client's `cmp [rcx+0x30], 0` gate reads.
 WorldPacket const* GarrisonCompleteBuildingConstructionResult::Write()
 {
-    _worldPacket << uint32(Result);
-    _worldPacket << uint64(BuildingDbID);
     _worldPacket << uint32(GarrPlotInstanceID);
+    _worldPacket << uint64(TimeBuilt);
+    _worldPacket << uint32(Result);
 
     return &_worldPacket;
 }
@@ -608,8 +609,10 @@ WorldPacket const* GarrisonOpenCrafter::Write()
 }
 
 // IDA case 4980817 (§8.51): generic byte-block helper. Conservative: u32 NewMinLevel.
+// 8 bytes, not 4 - the client's handler (0x22A0BA0) reads two u32s out of the opaque tail. See the header.
 WorldPacket const* GarrisonAutoTroopMinLevelUpdateResult::Write()
 {
+    _worldPacket << uint32(UnkLookupKey);
     _worldPacket << uint32(NewMinLevel);
 
     return &_worldPacket;
@@ -1156,7 +1159,7 @@ WorldPacket const* GarrisonCollectionRemoveEntry::Write()
 {
     _worldPacket << uint8(GarrTypeID);
     _worldPacket << uint32(CollectionType);
-    _worldPacket << uint32(GarrTalentID);
+    _worldPacket << uint32(EntryID);
 
     return &_worldPacket;
 }
@@ -1202,8 +1205,8 @@ WorldPacket const* GarrisonAddSpecGroups::Write()
     _worldPacket << uint32(SpecGroups.size());
     for (GarrisonSpecGroup const& specGroup : SpecGroups)
     {
-        _worldPacket << uint32(specGroup.GarrSpecGroupID);
-        _worldPacket << uint32(specGroup.SelectedTalentTreeID);
+        _worldPacket << uint32(specGroup.ChrSpecializationID);
+        _worldPacket << uint32(specGroup.SoulbindID);
     }
 
     return &_worldPacket;

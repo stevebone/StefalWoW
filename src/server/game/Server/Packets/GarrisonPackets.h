@@ -466,8 +466,11 @@ namespace WorldPackets
             uint32 GarrPlotInstanceID = 0;
         };
 
-        // Conservative shape (no IDA byte detail in audit): {u32 Result, u32 GarrSpecID,
-        // u32 GarrPlotInstanceID}. Sent when a specialization is learned for a building.
+        // 8 bytes, 2 x u32 - CONFIRMED.
+        // NOTE FOR ANYONE COUNTING THIS AS A FEATURE: the client's registered handler for this opcode is
+        // RVA 0x1D80E0, a bare `ret`. The client parses the packet and throws it away. Sending it is correct
+        // and harmless (retail sends it, and Garrison::LearnSpecialization now answers on every path), but it
+        // produces NO observable client behaviour. Do not report it as a player-visible win.
         class GarrisonLearnSpecializationResult final : public ServerPacket
         {
         public:
@@ -499,8 +502,26 @@ namespace WorldPackets
             uint64 TimeSpecCooldown = 0;
         };
 
-        // IDA case 4980797 (§8.47): u32 Result, u64 BuildingDbID, u32 GarrPlotInstanceID.
-        // Sent when a building finishes construction (timer expires, becomes activatable).
+        // SUPERSEDED: this used to read "u32 Result, u64 BuildingDbID, u32 GarrPlotInstanceID", and an earlier
+        // audit passed it as matching the client. That audit compared the FIELD LIST - and this packet is 16
+        // bytes in either arrangement, so a symmetric reordering is exactly what a size/shape check cannot
+        // see. Reading the consumer settles it: THE ORDER IS INVERTED.
+        //
+        //   u32 GarrPlotInstanceID
+        //   u64 TimeBuilt
+        //   u32 Result
+        //
+        // Proof (group dispatcher RVA 0x717F70, jump table 0x71B330, index = opcode - 0x4C0000):
+        //   * handler 0x229FBC0 does `cmp dword [rcx+0x30], 0 ; jne bail` on the LAST u32 - that is Result;
+        //   * it passes the FIRST u32 to the building lookup 0x2290DF0, and the 0x4C0006 handler (0x2296E90)
+        //     calls that same lookup with the field we already name GarrPlotInstanceID.
+        // The u64 lands at building+0x30, whose siblings +0x40 / +0x48 are GarrSpecID / spec cooldown,
+        // matching JamGarrisonBuildingInfo{... timeBuilt, currentGarSpecID, timeActivated ...} - so +0x30 is
+        // timeBuilt. That last step is structural analogy rather than a typename proof, but "BuildingDbID" is
+        // the weaker reading precisely because a db id would not occupy the timestamp slot.
+        //
+        // Writing the old order does NOT desync the stream (same 16 bytes) - it silently inverts meaning: the
+        // client reads the non-zero plot id as Result and so treats every success as a failure.
         class GarrisonCompleteBuildingConstructionResult final : public ServerPacket
         {
         public:
@@ -508,9 +529,9 @@ namespace WorldPackets
 
             WorldPacket const* Write() override;
 
-            uint32 Result = 0;
-            uint64 BuildingDbID = 0;
             uint32 GarrPlotInstanceID = 0;
+            uint64 TimeBuilt = 0;
+            uint32 Result = 0;
         };
 
         // IDA case 4980791 (§8.45): PackedGuid NpcGUID, sub-call (likely a small descriptor),
@@ -532,14 +553,31 @@ namespace WorldPackets
         // GossipNpcOptionID -> PlayerInteractionType::GarrTalent -> GARRISON_TALENT_NPC_OPENED. No dedicated
         // open-talent packet is needed; see Player::OnGossipSelect.)
 
-        // IDA case 4980817 (§8.51): generic byte-block helper. Conservative shape: {u32 NewMinLevel}.
+        // SUPERSEDED: the old shape was a single u32 NewMinLevel, admitted as "conservative" (a guess) because
+        // the generated deserializer for this opcode is the raw-remainder fallback (0x33CC980) and encodes no
+        // field list. Reading the CONSUMER instead recovers it - the payload is 8 bytes, not 4:
+        //
+        //   u32 <lookup key>        - handler 0x22A0BA0 feeds it to 0x22909A0, a DIFFERENT garrison lookup
+        //                             from the GarrTypeID one. Most likely GarrFollowerTypeID. NOT DETERMINED.
+        //   u32 NewMinLevel         - stored at object+0x48, after which GARRISON_FOLLOWER_LIST_UPDATE fires.
+        //
+        // The old single-u32 class would have made the client read the min level out of whatever followed the
+        // packet in the buffer. Corrected here so the class cannot desync if a sender is ever added.
+        //
+        // STILL DO NOT SEND THIS. Two independent blockers remain:
+        //   1. the first field's identity is unknown, so it cannot be populated truthfully; and
+        //   2. the server never populates MinAutoTroopLevel at all (GarrisonInfo carries a constant 0), so
+        //      there is no state change to announce.
+        // Note the opcode is already STATUS_NEVER in Opcodes.cpp, against the RE pass's explicit instruction
+        // to leave it STATUS_UNHANDLED - harmless while nothing sends it, but it is an armed trap.
         class GarrisonAutoTroopMinLevelUpdateResult final : public ServerPacket
         {
         public:
-            explicit GarrisonAutoTroopMinLevelUpdateResult() : ServerPacket(SMSG_GARRISON_AUTO_TROOP_MIN_LEVEL_UPDATE_RESULT, 4) { }
+            explicit GarrisonAutoTroopMinLevelUpdateResult() : ServerPacket(SMSG_GARRISON_AUTO_TROOP_MIN_LEVEL_UPDATE_RESULT, 4 + 4) { }
 
             WorldPacket const* Write() override;
 
+            uint32 UnkLookupKey = 0;    // HYPOTHESIS: GarrFollowerTypeID. Unproven - do not rely on the name.
             uint32 NewMinLevel = 0;
         };
 
@@ -1245,8 +1283,33 @@ namespace WorldPackets
         };
 
         // ============================================================
-        // Collection / event-list / spec-group SMSG packets (BfA / Shadowlands campaign tracking)
-        // IDA cases 0x4C0045 - 0x4C004C, see SNIFF_AUDIT §8.54-8.61.
+        // Collection / event-list / spec-group SMSG packets (opcodes 0x4C0045 - 0x4C004C)
+        //
+        // SEMANTICS, recovered from the client's handlers rather than guessed. The event names below were
+        // PROVEN by recovering the client's Lua-event-name -> 64-bit-hash table and matching the immediates,
+        // not inferred from spelling:
+        //
+        //  * A "collection" is the SOULBIND CONDUIT collection. All three collection handlers gate their Lua
+        //    notify on `CollectionType == 1`, firing SOULBIND_CONDUIT_COLLECTION_UPDATED / _REMOVED /
+        //    _CLEARED; consumers are C_Soulbinds.GetConduitCollection / GetConduitCollectionData /
+        //    GetConduitCollectionCount / GetConduitRank. An entry is {conduitID, rank}.
+        //    CollectionType 1 is THE ONLY VALUE WITH A CLIENT CONSUMER - every other value is stored into a
+        //    generic map and is inert. The rest of the CollectionType integer set could not be enumerated
+        //    (no such enum exists in the client's data or as a binary string). DO NOT INVENT ONE.
+        //    The server side needed to populate type 1 already exists: Player::m_soulbindConduits
+        //    (conduitId -> rankIndex, persisted). What does NOT exist is any removal or clear path, since
+        //    conduits are never taken away - so REMOVE/CLEAR have a live consumer but no game event to fire
+        //    on, and GarrisonInfo.Collections is currently never populated at all.
+        //
+        //  * An "event list" is the garrison/class-hall TALENT event list (research-completion timestamps).
+        //    ADD_EVENT fires GARRISON_TALENT_EVENT_UPDATE; REMOVE_EVENT and CLEAR_EVENT_LIST fire no Lua
+        //    event at all. Entries are {timestamp, entryID} and EventValue is very likely GarrTalentID.
+        //    The notify is NOT gated on a specific type, so these are not hard-blocked the way collections
+        //    are - but no enum of EventListID values could be found, and the server has no event store.
+        //
+        //  * A "spec group" is the per-ChrSpecialization soulbind memory - see GarrisonAddSpecGroups.
+        //    TC models the active soulbind per COVENANT (Player::m_covenantSoulbinds), not per spec, so
+        //    there is no state to publish here.
         // ============================================================
 
         // SUPERSEDED: this used to be described as "Conservative: {u8 GarrTypeID, u8 CollectionEntryFlags,
@@ -1270,7 +1333,9 @@ namespace WorldPackets
             uint32 Rank = 0;
         };
 
-        // IDA case 4980806 (§8.55): u8 GarrTypeID, u32 CollectionType, u32 GarrTalentID.
+        // u8 GarrTypeID, u32 CollectionType, u32 EntryID (9 bytes, CONFIRMED).
+        // The third field was named GarrTalentID, which is misleading: it is the same wire field as
+        // GarrisonCollectionUpdateEntry::EntryID, i.e. a SoulbindConduitID. Renamed.
         class GarrisonCollectionRemoveEntry final : public ServerPacket
         {
         public:
@@ -1280,7 +1345,7 @@ namespace WorldPackets
 
             uint8 GarrTypeID = 0;
             uint32 CollectionType = 0;
-            uint32 GarrTalentID = 0;
+            uint32 EntryID = 0;
         };
 
         // IDA case 4980807 (§8.56): u8 GarrTypeID, u32 CollectionType.
@@ -1334,15 +1399,19 @@ namespace WorldPackets
             uint32 EventListID = 0;
         };
 
-        // IDA case 4980811 (§8.60): u8 GarrTypeID, u32 size, SpecGroup[size].
-        // Conservative SpecGroup shape: {u32 GarrSpecGroupID, u32 SelectedTalentTreeID}.
+        // u8 GarrTypeID, u32 count, count x {u32, u32} stride 8. Wire shape CONFIRMED.
+        // The pair was named {GarrSpecGroupID, SelectedTalentTreeID} - a guess, and the wrong one. The client
+        // keys its map on the first u32 and the consumers are C_Soulbinds.GetSpecsAssignedToSoulbind /
+        // GetActiveSoulbindID, so a "spec group" is the per-ChrSpecialization soulbind memory. Naming is
+        // MEDIUM-HIGH confidence; the wire is byte-identical either way, so renaming is free and stops the
+        // next reader building a talent-tree feature that does not exist.
         class GarrisonAddSpecGroups final : public ServerPacket
         {
         public:
             struct GarrisonSpecGroup
             {
-                uint32 GarrSpecGroupID = 0;
-                uint32 SelectedTalentTreeID = 0;
+                uint32 ChrSpecializationID = 0;
+                uint32 SoulbindID = 0;
             };
 
             explicit GarrisonAddSpecGroups() : ServerPacket(SMSG_GARRISON_ADD_SPEC_GROUPS) { }

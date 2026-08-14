@@ -3983,9 +3983,9 @@ GarrisonError Garrison::EndBuildingConstruction(uint32 garrPlotInstanceId)
     auto sendResult = [this, garrPlotInstanceId](uint32 result, time_t timeBuilt) -> GarrisonError
     {
         WorldPackets::Garrison::GarrisonCompleteBuildingConstructionResult constructionResult;
-        constructionResult.Result = result;
         constructionResult.GarrPlotInstanceID = garrPlotInstanceId;
-        constructionResult.BuildingDbID = uint64(timeBuilt);
+        constructionResult.TimeBuilt = uint64(timeBuilt);
+        constructionResult.Result = result;
         _owner->SendDirectMessage(constructionResult.Write());
         return GarrisonError(result);
     };
