@@ -1,7 +1,8 @@
 SET @OGUID := 900000;
 DELETE FROM `gameobject` WHERE `guid` = @OGUID+107;
-INSERT INTO `gameobject` VALUES
-(@OGUID+107, 553793, 2694, 15355, 0, 0, 0, 26622, 0, -1, 1255.01, 807.479, 1330.89, 1.68607, 0, 0, -0.746665, -0.6652, 300, 255, 1, 0, '', '', 0);
+INSERT INTO `gameobject` (`guid`, `id`, `map`, `zoneId`, `areaId`, `spawnDifficulties`, `PhaseId`, `PhaseGroup`, 
+`position_x`, `position_y`, `position_z`, `orientation`, `rotation0`, `rotation1`, `rotation2`, `rotation3`, `spawntimesecs`, `animprogress`, `state`, `VerifiedBuild`) VALUES
+(@OGUID+107, 553793, 2694, 15355, 0, 0, 26622, 0, 1255.01, 807.479, 1330.89, 1.68607, 0, 0, -0.746665, -0.6652, 300, 255, 1, 0);
 
 
 DELETE FROM `gameobject_loot_template` WHERE `Entry` = 553793;
@@ -242,8 +243,8 @@ INSERT INTO `gossip_menu_option` (`MenuID`, `GossipOptionID`, `OptionID`, `Optio
 (41495, 137257, 0, 0, 'What does it do?', 0, 0, 0, 0, 0, NULL, 0, 0, NULL, 0, NULL, NULL, 66709);
 
 
-SET @CGUID = 677000;
-SET @OGUID = 220000;
+SET @CGUID = 901248;
+SET @OGUID = 900108;
 
 DELETE FROM `creature` WHERE `guid` BETWEEN @CGUID+0 AND @CGUID+1893;
 INSERT INTO `creature` (`guid`, `id`, `map`, `zoneId`, `areaId`, `spawnDifficulties`, `PhaseId`, `PhaseGroup`, `modelid`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `wander_distance`, `currentwaypoint`, `MovementType`, `npcflag`, `unit_flags`, `unit_flags2`, `unit_flags3`, `VerifiedBuild`) VALUES
