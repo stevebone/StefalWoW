@@ -854,13 +854,46 @@ bool WorldSession::ValidateAppearance(Races race, Classes playerClass, Gender ge
 
         previousOption = playerChoice.ChrCustomizationOptionID;
 
-        // check if we can use this option
+        uint8 chrModel = sDB2Manager.GetZeroIfOptionUsedForPlayerModel(playerChoice.ChrCustomizationOptionID);
+        if (chrModel)
+        {
+            // non-player model (shapeshift form or other model) — validate via conditional chr model
+            if (ConditionalChrModelEntry const* conditionalChrModel = DB2Manager::GetConditionalChrModel(chrModel))
+            {
+                if (ChrCustomizationReqEntry const* req = sChrCustomizationReqStore.LookupEntry(conditionalChrModel->ChrCustomizationReqID))
+                    if (!MeetsChrCustomizationReq(req, race, playerClass, false, customizations))
+                        return false;
+
+                if (_player && !ConditionMgr::IsPlayerMeetingCondition(_player, conditionalChrModel->PlayerConditionID))
+                    return false;
+            }
+
+            // validate the choice exists in the choices for this option
+            std::vector<ChrCustomizationChoiceEntry const*> const* choicesForOption = sDB2Manager.GetCustomiztionChoices(playerChoice.ChrCustomizationOptionID);
+            if (!choicesForOption)
+                return false;
+
+            auto customizationChoiceDataItr = std::find_if(choicesForOption->begin(), choicesForOption->end(), [&](ChrCustomizationChoiceEntry const* choice)
+            {
+                return choice->ID == playerChoice.ChrCustomizationChoiceID;
+            });
+
+            if (customizationChoiceDataItr == choicesForOption->end())
+                return false;
+
+            if (ChrCustomizationReqEntry const* req = sChrCustomizationReqStore.LookupEntry((*customizationChoiceDataItr)->ChrCustomizationReqID))
+                if (!MeetsChrCustomizationReq(req, race, playerClass, true, customizations))
+                    return false;
+
+            continue;
+        }
+
+        // player model — validate via race/gender option list
         auto customizationOptionDataItr = std::find_if(options->begin(), options->end(), [&](ChrCustomizationOptionEntry const* option)
         {
             return option->ID == playerChoice.ChrCustomizationOptionID;
         });
 
-        // option not found for race/gender combination
         if (customizationOptionDataItr == options->end())
             return false;
 
@@ -877,7 +910,6 @@ bool WorldSession::ValidateAppearance(Races race, Classes playerClass, Gender ge
             return choice->ID == playerChoice.ChrCustomizationChoiceID;
         });
 
-        // choice not found for option
         if (customizationChoiceDataItr == choicesForOption->end())
             return false;
 
@@ -2081,6 +2113,10 @@ void WorldSession::HandleSetPlayerDeclinedNames(WorldPackets::Character::SetPlay
 void WorldSession::HandleAlterAppearance(WorldPackets::Character::AlterApperance& packet)
 {
     Trinity::IteratorPair<UF::ChrCustomizationChoice const*> customizations = MakeChrCustomizationChoiceRange(packet.Customizations);
+
+    // effective target gender (form packets send NewSex=3 which is invalid -> keep current)
+    uint8 sex = packet.NewSex < GENDER_NONE ? packet.NewSex : uint8(_player->GetNativeGender());
+
     if (packet.CustomizedChrModelID)
     {
         ConditionalChrModelEntry const* conditionalChrModel = DB2Manager::GetConditionalChrModel(packet.CustomizedChrModelID);
@@ -2094,9 +2130,34 @@ void WorldSession::HandleAlterAppearance(WorldPackets::Character::AlterApperance
         if (!ConditionMgr::IsPlayerMeetingCondition(_player, conditionalChrModel->PlayerConditionID))
             return;
     }
+    else
+    {
+        if (!ValidateAppearance(Races(_player->GetRace()), Classes(_player->GetClass()), Gender(sex), customizations))
+            return;
+    }
 
-    if (!ValidateAppearance(Races(_player->GetRace()), Classes(_player->GetClass()), Gender(packet.NewSex), customizations))
-        return;
+    // Merge submitted choices onto the current set so a partial packet (e.g. a single druid
+    // form colour option) does not wipe hair/skin/face. Existing options are overwritten,
+    // new ones appended.
+    std::vector<UF::ChrCustomizationChoice> merged;
+    for (UF::ChrCustomizationChoice const& cur : _player->m_playerData->Customizations)
+        merged.push_back(cur);
+    for (UF::ChrCustomizationChoice const& incoming : customizations)
+    {
+        auto itr = std::find_if(merged.begin(), merged.end(), [&](UF::ChrCustomizationChoice const& c)
+        {
+            return c.ChrCustomizationOptionID == incoming.ChrCustomizationOptionID;
+        });
+        if (itr != merged.end())
+            itr->ChrCustomizationChoiceID = incoming.ChrCustomizationChoiceID;
+        else
+            merged.push_back(incoming);
+    }
+
+    UF::ChrCustomizationChoice const* mergedBegin = merged.data();
+    UF::ChrCustomizationChoice const* mergedEnd   = merged.data() + merged.size();
+    Trinity::IteratorPair<UF::ChrCustomizationChoice const*> mergedRange =
+        Trinity::Containers::MakeIteratorPair(mergedBegin, mergedEnd);
 
     GameObject* go = _player->FindNearestGameObjectOfType(GAMEOBJECT_TYPE_BARBER_CHAIR, 5.0f);
     if (!go)
@@ -2105,17 +2166,14 @@ void WorldSession::HandleAlterAppearance(WorldPackets::Character::AlterApperance
         return;
     }
 
-    if (_player->GetStandState() != UnitStandStateType(UNIT_STAND_STATE_SIT_LOW_CHAIR + go->GetGOInfo()->barberChair.chairheight))
-    {
-        SendPacket(WorldPackets::Character::BarberShopResult(WorldPackets::Character::BarberShopResult::ResultEnum::NotOnChair).Write());
-        return;
-    }
+    // FORCE-SIT: previewing a druid form colour/skin shapeshifts the character client-side, which
+    // drops them out of the chair sit-state. A barber chair is already confirmed within range, so
+    // re-seat the player instead of rejecting with NotOnChair.
+    UnitStandStateType requiredStandState = UnitStandStateType(UNIT_STAND_STATE_SIT_LOW_CHAIR + go->GetGOInfo()->barberChair.chairheight);
+    if (_player->GetStandState() != requiredStandState)
+        _player->SetStandState(requiredStandState);
 
-    int64 cost = _player->GetBarberShopCost(customizations);
-
-    // 0 - ok
-    // 1, 3 - not enough money
-    // 2 - you have to sit on barber chair
+    int64 cost = _player->GetBarberShopCost(mergedRange);
     if (!_player->HasEnoughMoney(cost))
     {
         SendPacket(WorldPackets::Character::BarberShopResult(WorldPackets::Character::BarberShopResult::ResultEnum::NoMoney).Write());
@@ -2124,23 +2182,63 @@ void WorldSession::HandleAlterAppearance(WorldPackets::Character::AlterApperance
 
     SendPacket(WorldPackets::Character::BarberShopResult(WorldPackets::Character::BarberShopResult::ResultEnum::Success).Write());
 
-    _player->ModifyMoney(-cost);                     // it isn't free
+    _player->ModifyMoney(-cost);
     _player->UpdateCriteria(CriteriaType::MoneySpentAtBarberShop, cost);
 
-    if (_player->GetNativeGender() != packet.NewSex)
+    if (packet.NewSex < GENDER_NONE && _player->GetNativeGender() != packet.NewSex)
     {
         _player->SetNativeGender(Gender(packet.NewSex));
         _player->InitDisplayIds();
         _player->RestoreDisplayId(false);
     }
 
-    _player->SetCustomizations(Trinity::Containers::MakeIteratorPair(packet.Customizations.begin(), packet.Customizations.end()));
+    // Apply merged customizations in-place: update existing entries, add new ones.
+    auto customizationsSetter = _player->m_values.ModifyValue(&Player::m_playerData).ModifyValue(&UF::PlayerData::Customizations);
+    for (UF::ChrCustomizationChoice const& mergedChoice : merged)
+    {
+        int32 index = _player->m_playerData->Customizations.FindIndexIf([&mergedChoice](UF::ChrCustomizationChoice const& choice)
+        {
+            return choice.ChrCustomizationOptionID == mergedChoice.ChrCustomizationOptionID;
+        });
+
+        if (index >= 0)
+        {
+            if (_player->m_playerData->Customizations[index].ChrCustomizationChoiceID != mergedChoice.ChrCustomizationChoiceID)
+            {
+                RemoveDynamicUpdateFieldValue(customizationsSetter, uint32(index));
+                UF::ChrCustomizationChoice& newChoice = AddDynamicUpdateFieldValue(customizationsSetter);
+                newChoice.ChrCustomizationOptionID = mergedChoice.ChrCustomizationOptionID;
+                newChoice.ChrCustomizationChoiceID = mergedChoice.ChrCustomizationChoiceID;
+                _player->m_customizationsChanged = true;
+            }
+        }
+        else
+        {
+            UF::ChrCustomizationChoice& newChoice = AddDynamicUpdateFieldValue(customizationsSetter);
+            newChoice.ChrCustomizationOptionID = mergedChoice.ChrCustomizationOptionID;
+            newChoice.ChrCustomizationChoiceID = mergedChoice.ChrCustomizationChoiceID;
+            _player->m_customizationsChanged = true;
+        }
+    }
+
+    // IMMEDIATE FORM REFRESH: if the player is already shapeshifted when they accept a form
+    // colour/skin change, the stored choice is updated but the currently-displayed model is
+    // computed from the OLD choice until they shift out/in. Recompute the model for the current
+    // form from the active shapeshift aura and reapply it so the new colour shows instantly.
+    if (ShapeshiftForm currentForm = _player->GetShapeshiftForm(); currentForm != FORM_NONE)
+    {
+        uint32 shapeshiftSpellId = 0;
+        Unit::AuraEffectList const& shapeshiftAuras = _player->GetAuraEffectsByType(SPELL_AURA_MOD_SHAPESHIFT);
+        if (!shapeshiftAuras.empty())
+            shapeshiftSpellId = shapeshiftAuras.front()->GetId();
+
+        if (uint32 modelId = _player->GetModelForForm(currentForm, shapeshiftSpellId))
+            _player->SetDisplayId(modelId);
+    }
 
     _player->UpdateCriteria(CriteriaType::GotHaircut, 1);
-
     _player->SetStandState(UNIT_STAND_STATE_STAND);
-
-    sCharacterCache->UpdateCharacterGender(_player->GetGUID(), packet.NewSex);
+    sCharacterCache->UpdateCharacterGender(_player->GetGUID(), sex);
 }
 
 void WorldSession::HandleCharCustomizeOpcode(WorldPackets::Character::CharCustomize& packet)
@@ -2176,10 +2274,10 @@ void WorldSession::HandleCharCustomizeCallback(std::shared_ptr<WorldPackets::Cha
     std::string oldName = fields[0].GetString();
     Races plrRace = Races(fields[1].GetUInt8());
     Classes plrClass = Classes(fields[2].GetUInt8());
-    Gender plrGender = Gender(fields[3].GetUInt8());
+    Gender oldGender = Gender(fields[3].GetUInt8());
     uint16 atLoginFlags = fields[4].GetUInt16();
 
-    if (!ValidateAppearance(plrRace, plrClass, plrGender, MakeChrCustomizationChoiceRange(customizeInfo->Customizations)))
+    if (!ValidateAppearance(plrRace, plrClass, Gender(customizeInfo->SexID), MakeChrCustomizationChoiceRange(customizeInfo->Customizations)))
     {
         SendCharCustomize(CHAR_CREATE_ERROR, customizeInfo.get());
         return;
@@ -2239,6 +2337,7 @@ void WorldSession::HandleCharCustomizeCallback(std::shared_ptr<WorldPackets::Cha
     ObjectGuid::LowType lowGuid = customizeInfo->CharGUID.GetCounter();
 
     /// Customize
+    Player::RemoveRaceGenderModelCustomizations(trans, lowGuid, plrRace, oldGender);
     Player::SaveCustomizations(trans, lowGuid, MakeChrCustomizationChoiceRange(customizeInfo->Customizations));
 
     /// Name Change and update atLogin flags
@@ -2253,6 +2352,11 @@ void WorldSession::HandleCharCustomizeCallback(std::shared_ptr<WorldPackets::Cha
         stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CHAR_DECLINED_NAME);
         stmt->setUInt64(0, lowGuid);
 
+        trans->Append(stmt);
+
+        stmt = CharacterDatabase.GetPreparedStatement(CHAR_UPD_CHAR_GENDER);
+        stmt->setUInt8(0, customizeInfo->SexID);
+        stmt->setUInt64(1, lowGuid);
         trans->Append(stmt);
     }
 
@@ -2454,6 +2558,7 @@ void WorldSession::HandleCharRaceOrFactionChangeCallback(std::shared_ptr<WorldPa
 
     std::string oldName = characterInfo->Name;
     uint8 oldRace     = characterInfo->Race;
+    uint8 oldGender   = characterInfo->Sex;
     uint8 playerClass = characterInfo->Class;
     uint8 level       = characterInfo->Level;
 
@@ -2589,6 +2694,8 @@ void WorldSession::HandleCharRaceOrFactionChangeCallback(std::shared_ptr<WorldPa
     }
 
     // Customize
+    Player::RemoveRaceGenderModelCustomizations(trans, lowGuid, oldRace, oldGender);
+    Player::RemoveShapehiftRaceCustomizations(trans, lowGuid, oldRace, factionChangeInfo->RaceID);
     Player::SaveCustomizations(trans, lowGuid, MakeChrCustomizationChoiceRange(factionChangeInfo->Customizations));
 
     // Race Change
@@ -2598,6 +2705,11 @@ void WorldSession::HandleCharRaceOrFactionChangeCallback(std::shared_ptr<WorldPa
         stmt->setUInt16(1, PLAYER_EXTRA_HAS_RACE_CHANGED);
         stmt->setUInt64(2, lowGuid);
 
+        trans->Append(stmt);
+
+        stmt = CharacterDatabase.GetPreparedStatement(CHAR_UPD_CHAR_GENDER);
+        stmt->setUInt8(0, factionChangeInfo->SexID);
+        stmt->setUInt64(1, lowGuid);
         trans->Append(stmt);
     }
 

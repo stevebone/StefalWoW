@@ -12717,10 +12717,6 @@ uint32 Unit::GetModelForForm(ShapeshiftForm form, uint32 spellId) const
     // Hardcoded cases
     switch (spellId)
     {
-        case 7090: // Bear Form
-            return 29414;
-        case 35200: // Roc Form
-            return 4877;
         case 24858: // Moonkin Form
         {
             if (HasAura(114301)) // Glyph of Stars
@@ -12739,7 +12735,7 @@ uint32 Unit::GetModelForForm(ShapeshiftForm form, uint32 spellId) const
                     if (ShapeshiftForm(artifactAppearance->OverrideShapeshiftFormID) == form)
                         return artifactAppearance->OverrideShapeshiftDisplayID;
 
-        ShapeshiftFormModelData const* formModelData = sDB2Manager.GetShapeshiftFormModelData(form);
+        ShapeshiftFormModelData const* formModelData = sDB2Manager.GetShapeshiftFormModelData(GetRace(), form);
         if (formModelData)
         {
             bool useRandom = false;
@@ -12778,7 +12774,6 @@ uint32 Unit::GetModelForForm(ShapeshiftForm form, uint32 spellId) const
             else
             {
                 uint32 formChoice = player->GetCustomizationChoice(formModelData->OptionID);
-
                 if (formChoice)
                 {
                     auto choiceItr = std::find_if(formModelData->Choices->begin(), formModelData->Choices->end(), [formChoice](ChrCustomizationChoiceEntry const* choice)

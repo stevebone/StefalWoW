@@ -513,7 +513,9 @@ public:
     static ClassPowerTypes GetPowerTypesByClass(uint32 classId);
     static uint32 GetPowerIndexByClass(Powers power, uint32 classId);
     std::vector<ChrCustomizationChoiceEntry const*> const* GetCustomiztionChoices(uint32 chrCustomizationOptionId) const;
+    std::vector<ChrCustomizationOptionEntry const*> const* GetCustomiztionOptions(uint32 chrModel) const;
     std::vector<ChrCustomizationOptionEntry const*> const* GetCustomiztionOptions(uint8 race, uint8 gender) const;
+    uint8 GetZeroIfOptionUsedForPlayerModel(uint32 option) const;
     std::vector<std::pair<uint32, std::vector<uint32>>> const* GetRequiredCustomizationChoices(uint32 chrCustomizationReqId) const;
     ChrModelEntry const* GetChrModel(uint8 race, uint8 gender) const;
     static ConditionalChrModelEntry const* GetConditionalChrModel(int32 chrModelId);
@@ -574,7 +576,8 @@ public:
     uint32 GetQuestUniqueBitFlag(uint32 questId);
     std::vector<RewardPackXCurrencyTypeEntry const*> const* GetRewardPackCurrencyTypesByRewardID(uint32 rewardPackID) const;
     std::vector<RewardPackXItemEntry const*> const* GetRewardPackItemsByRewardID(uint32 rewardPackID) const;
-    ShapeshiftFormModelData const* GetShapeshiftFormModelData(uint8 form) const;
+    ShapeshiftFormModelData const* GetShapeshiftFormModelData(uint8 race, uint8 form) const;
+    ChrCustomizationChoiceEntry const* GetShapeshiftRaceDefaultOptions(uint8 race, uint8 form) const;
     std::vector<SkillLineEntry const*> const* GetSkillLinesForParentSkill(uint32 parentSkillId) const;
     std::vector<SkillLineAbilityEntry const*> const* GetSkillLineAbilitiesBySkill(uint32 skillId) const;
     SkillRaceClassInfoEntry const* GetSkillRaceClassInfo(uint32 skill, uint8 race, uint8 class_) const;

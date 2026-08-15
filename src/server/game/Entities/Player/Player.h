@@ -49,6 +49,7 @@ struct BattlegroundTemplate;
 struct BonusData;
 struct CharTitlesEntry;
 struct ChatChannelsEntry;
+struct ChrCustomizationOptionEntry;
 struct ChrSpecializationEntry;
 struct CreatureTemplate;
 struct CurrencyTypesEntry;
@@ -1936,6 +1937,8 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         void SaveToDB(LoginDatabaseTransaction loginTransaction, CharacterDatabaseTransaction trans, bool create = false);
         void SaveInventoryAndGoldToDB(CharacterDatabaseTransaction trans);                    // fast save function for item/money cheating preventing
 
+        static void RemoveRaceGenderModelCustomizations(CharacterDatabaseTransaction trans, ObjectGuid::LowType guid, uint8 race, uint8 gender);
+        static void RemoveShapehiftRaceCustomizations(CharacterDatabaseTransaction trans, ObjectGuid::LowType guid, uint8 oldRace, uint8 newRace);
         static void SaveCustomizations(CharacterDatabaseTransaction trans, ObjectGuid::LowType guid,
             Trinity::IteratorPair<UF::ChrCustomizationChoice const*> customizations);
         static void SavePositionInDB(WorldLocation const& loc, uint16 zoneId, ObjectGuid guid, CharacterDatabaseTransaction trans);
@@ -3047,7 +3050,6 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
             if (markChanged)
                 m_customizationsChanged = true;
 
-            ClearDynamicUpdateFieldValues(m_values.ModifyValue(&Player::m_playerData).ModifyValue(&UF::PlayerData::Customizations));
             for (auto&& customization : customizations)
             {
                 UF::ChrCustomizationChoice& newChoice = AddDynamicUpdateFieldValue(m_values.ModifyValue(&Player::m_playerData).ModifyValue(&UF::PlayerData::Customizations));
@@ -3055,6 +3057,7 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
                 newChoice.ChrCustomizationChoiceID = customization.ChrCustomizationChoiceID;
             }
         }
+
         void SetPvpTitle(uint8 pvpTitle) { SetUpdateFieldValue(m_values.ModifyValue(&Player::m_playerData).ModifyValue(&UF::PlayerData::PvpTitle), pvpTitle); }
         void SetArenaFaction(uint8 arenaFaction) { SetUpdateFieldValue(m_values.ModifyValue(&Player::m_playerData).ModifyValue(&UF::PlayerData::ArenaFaction), arenaFaction); }
         void SetVirtualPlayerRealm(uint32 virtualRealmAddress) { SetUpdateFieldValue(m_values.ModifyValue(&Player::m_playerData).ModifyValue(&UF::PlayerData::VirtualPlayerRealm), virtualRealmAddress); }

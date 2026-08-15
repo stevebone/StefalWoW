@@ -525,7 +525,10 @@ namespace
     std::array<ClassPowerData, MAX_CLASSES> _powersByClass;
     std::unordered_map<uint32 /*chrCustomizationOptionId*/, std::vector<ChrCustomizationChoiceEntry const*>> _chrCustomizationChoicesByOption;
     std::unordered_map<std::pair<uint8, uint8>, ChrModelEntry const*> _chrModelsByRaceAndGender;
-    std::unordered_map<uint8 /*shapeshift form*/, ShapeshiftFormModelData> _chrCustomizationChoicesForShapeshifts;
+    std::set<uint8 /*chrModel*/> _chrPlayerModels;
+    std::map<std::pair<uint8 /*race*/, uint8 /*form*/>, ChrCustomizationChoiceEntry const*> _shapeshiftRaceFormDefaultOptions;
+    std::map<std::tuple<uint8 /*race*/, uint8 /*form*/>, ShapeshiftFormModelData> _chrCustomizationChoicesForShapeshifts;
+    std::unordered_map<uint32 /*chrModel*/, std::vector<ChrCustomizationOptionEntry const*>> _chrCustomizationOptionsByModel;
     std::unordered_map<std::pair<uint8 /*race*/, uint8/*gender*/>, std::vector<ChrCustomizationOptionEntry const*>> _chrCustomizationOptionsByRaceAndGender;
     std::unordered_map<uint32 /*chrCustomizationReqId*/, std::vector<std::pair<uint32 /*chrCustomizationOptionId*/, std::vector<uint32>>>> _chrCustomizationRequiredChoices;
     ChrSpecializationByIndexContainer _chrSpecializationsByIndex;
@@ -1234,10 +1237,11 @@ void DB2Manager::IndexLoadedStores()
     for (ChrCustomizationChoiceEntry const* customizationChoice : sChrCustomizationChoiceStore)
         _chrCustomizationChoicesByOption[customizationChoice->ChrCustomizationOptionID].push_back(customizationChoice);
 
-    std::unordered_multimap<uint32, std::pair<uint32, uint8>> shapeshiftFormByModel;
+    std::unordered_multimap<uint8, std::pair<uint32, uint8>> shapeshiftFormByRace;
     std::unordered_map<uint32, ChrCustomizationDisplayInfoEntry const*> displayInfoByCustomizationChoice;
 
     // build shapeshift form model lookup
+    static constexpr std::array<uint8, 7> druidRaces = { RACE_NIGHTELF, RACE_TAUREN, RACE_TROLL, RACE_WORGEN, RACE_HIGHMOUNTAIN_TAUREN, RACE_ZANDALARI_TROLL, RACE_KUL_TIRAN };
     for (ChrCustomizationElementEntry const* customizationElement : sChrCustomizationElementStore)
     {
         if (ChrCustomizationDisplayInfoEntry const* customizationDisplayInfo = sChrCustomizationDisplayInfoStore.LookupEntry(customizationElement->ChrCustomizationDisplayInfoID))
@@ -1246,14 +1250,30 @@ void DB2Manager::IndexLoadedStores()
             {
                 displayInfoByCustomizationChoice[customizationElement->ChrCustomizationChoiceID] = customizationDisplayInfo;
                 if (ChrCustomizationOptionEntry const* customizationOption = sChrCustomizationOptionStore.LookupEntry(customizationChoice->ChrCustomizationOptionID))
-                    shapeshiftFormByModel.emplace(customizationOption->ChrModelID, std::make_pair(customizationOption->ID, uint8(customizationDisplayInfo->ShapeshiftFormID)));
+                {
+                    if (customizationDisplayInfo->ShapeshiftFormID)
+                    {
+                        ChrCustomizationReqEntry const* customizationReq = sChrCustomizationReqStore.LookupEntry(customizationChoice->ChrCustomizationReqID);
+                        bool isDefault = !customizationReq || (customizationReq->AchievementID == 0 && customizationReq->QuestID == 0 && customizationReq->ItemModifiedAppearanceID == 0);
+
+                        for (uint8 race : druidRaces)
+                        {
+                            bool raceMatches = !customizationReq || customizationReq->RaceMask.HasRace(race);
+                            if (raceMatches)
+                            {
+                                shapeshiftFormByRace.emplace(race, std::make_pair(customizationOption->ID, uint8(customizationDisplayInfo->ShapeshiftFormID)));
+                                if (isDefault)
+                                    _shapeshiftRaceFormDefaultOptions.emplace(std::make_pair(race, uint8(customizationDisplayInfo->ShapeshiftFormID)), customizationChoice);
+                            }
+                        }
+                    }
+                }
             }
         }
     }
 
-    std::unordered_map<uint32, std::vector<ChrCustomizationOptionEntry const*>> customizationOptionsByModel;
     for (ChrCustomizationOptionEntry const* customizationOption : sChrCustomizationOptionStore)
-        customizationOptionsByModel[customizationOption->ChrModelID].push_back(customizationOption);
+        _chrCustomizationOptionsByModel[customizationOption->ChrModelID].push_back(customizationOption);
 
     for (ChrCustomizationReqChoiceEntry const* reqChoice : sChrCustomizationReqChoiceStore)
     {
@@ -1286,11 +1306,12 @@ void DB2Manager::IndexLoadedStores()
 
     for (ChrRaceXChrModelEntry const* raceModel : sChrRaceXChrModelStore)
     {
+        _chrPlayerModels.insert(raceModel->ChrModelID);
         if (ChrModelEntry const* model = sChrModelStore.LookupEntry(raceModel->ChrModelID))
         {
             _chrModelsByRaceAndGender[{ uint8(raceModel->ChrRacesID), uint8(raceModel->Sex) }] = model;
 
-            if (std::vector<ChrCustomizationOptionEntry const*> const* customizationOptionsForModel = Trinity::Containers::MapGetValuePtr(customizationOptionsByModel, model->ID))
+            if (std::vector<ChrCustomizationOptionEntry const*> const* customizationOptionsForModel = Trinity::Containers::MapGetValuePtr(_chrCustomizationOptionsByModel, model->ID))
             {
                 std::vector<ChrCustomizationOptionEntry const*>& raceOptions = _chrCustomizationOptionsByRaceAndGender[{ uint8(raceModel->ChrRacesID), uint8(raceModel->Sex) }];
                 raceOptions.insert(raceOptions.end(), customizationOptionsForModel->begin(), customizationOptionsForModel->end());
@@ -1301,30 +1322,20 @@ void DB2Manager::IndexLoadedStores()
                     parentRaceOptions.insert(parentRaceOptions.end(), customizationOptionsForModel->begin(), customizationOptionsForModel->end());
                 }
             }
-        }
-    }
 
-    // link shapeshift displays to form (form-specific ChrModelIDs are not in ChrRaceXChrModel)
-    std::unordered_set<uint8> processedForms;
-    for (std::pair<uint32 const, std::pair<uint32, uint8>> const& shapeshiftEntry : shapeshiftFormByModel)
-    {
-        uint8 formId = shapeshiftEntry.second.second;
-        if (formId == 0)
-            continue;
-
-        // each form has one OptionID; only process first occurrence
-        if (!processedForms.insert(formId).second)
-            continue;
-
-        uint32 optionId = shapeshiftEntry.second.first;
-        ShapeshiftFormModelData& data = _chrCustomizationChoicesForShapeshifts[formId];
-        data.OptionID = optionId;
-        data.Choices = Trinity::Containers::MapGetValuePtr(_chrCustomizationChoicesByOption, optionId);
-        if (data.Choices)
-        {
-            data.Displays.resize(data.Choices->size());
-            for (std::size_t i = 0; i < data.Choices->size(); ++i)
-                data.Displays[i] = Trinity::Containers::MapGetValuePtr(displayInfoByCustomizationChoice, (*data.Choices)[i]->ID);
+            // link shapeshift displays to race/form
+            for (std::pair<uint8 const, std::pair<uint32, uint8>> const& shapeshiftOptionsForRace : Trinity::Containers::MapEqualRange(shapeshiftFormByRace, uint8(raceModel->ChrRacesID)))
+            {
+                ShapeshiftFormModelData& data = _chrCustomizationChoicesForShapeshifts[std::make_tuple(uint8(raceModel->ChrRacesID), shapeshiftOptionsForRace.second.second)];
+                data.OptionID = shapeshiftOptionsForRace.second.first;
+                data.Choices = Trinity::Containers::MapGetValuePtr(_chrCustomizationChoicesByOption, shapeshiftOptionsForRace.second.first);
+                if (data.Choices)
+                {
+                    data.Displays.resize(data.Choices->size());
+                    for (std::size_t i = 0; i < data.Choices->size(); ++i)
+                        data.Displays[i] = Trinity::Containers::MapGetValuePtr(displayInfoByCustomizationChoice, (*data.Choices)[i]->ID);
+                }
+            }
         }
     }
 
@@ -2212,9 +2223,24 @@ std::vector<ChrCustomizationChoiceEntry const*> const* DB2Manager::GetCustomizti
     return Trinity::Containers::MapGetValuePtr(_chrCustomizationChoicesByOption, chrCustomizationOptionId);
 }
 
+std::vector<ChrCustomizationOptionEntry const*> const* DB2Manager::GetCustomiztionOptions(uint32 chrModel) const
+{
+    return Trinity::Containers::MapGetValuePtr(_chrCustomizationOptionsByModel, chrModel);
+}
+
 std::vector<ChrCustomizationOptionEntry const*> const* DB2Manager::GetCustomiztionOptions(uint8 race, uint8 gender) const
 {
     return Trinity::Containers::MapGetValuePtr(_chrCustomizationOptionsByRaceAndGender, { race,gender });
+}
+
+uint8 DB2Manager::GetZeroIfOptionUsedForPlayerModel(uint32 option) const
+{
+    if (ChrCustomizationOptionEntry const* customizationOption = sChrCustomizationOptionStore.LookupEntry(option))
+    {
+        // Return 0 if it's a player model to sync up with AlterAppearance packet behaviour
+        return _chrPlayerModels.find(customizationOption->ChrModelID) != _chrPlayerModels.end() ? 0 : customizationOption->ChrModelID;
+    }
+    return 0;
 }
 
 std::vector<std::pair<uint32, std::vector<uint32>>> const* DB2Manager::GetRequiredCustomizationChoices(uint32 chrCustomizationReqId) const
@@ -3053,9 +3079,14 @@ std::vector<RewardPackXItemEntry const*> const* DB2Manager::GetRewardPackItemsBy
     return Trinity::Containers::MapGetValuePtr(_rewardPackItems, rewardPackID);
 }
 
-ShapeshiftFormModelData const* DB2Manager::GetShapeshiftFormModelData(uint8 form) const
+ShapeshiftFormModelData const* DB2Manager::GetShapeshiftFormModelData(uint8 race, uint8 form) const
 {
-    return Trinity::Containers::MapGetValuePtr(_chrCustomizationChoicesForShapeshifts, form);
+    return Trinity::Containers::MapGetValuePtr(_chrCustomizationChoicesForShapeshifts, std::make_tuple(race, form));
+}
+
+ChrCustomizationChoiceEntry const* DB2Manager::GetShapeshiftRaceDefaultOptions(uint8 race, uint8 form) const
+{
+    return Trinity::Containers::MapGetValuePtr(_shapeshiftRaceFormDefaultOptions, { race, form });
 }
 
 std::vector<SkillLineEntry const*> const* DB2Manager::GetSkillLinesForParentSkill(uint32 parentSkillId) const
