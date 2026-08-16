@@ -4,17 +4,20 @@
 -- NPC: 48 Skeletal Warrior
 -- NPC: 202 Rotting Horror
 -- NPC: 203 Skeletal Mage
+-- NPC: 206 Nightbane Vile Fang
 -- NPC: 210 Bone Chewer
 -- NPC: 212 Splinter Fist Warrior
 -- NPC: 217 Venom Web Spider
 -- NPC: 218 Grave Robber
 -- NPC: 300 Zzarc
+-- NPC: 315 Stalvan Mistmantle
 -- NPC: 511 Insane Ghoul
 -- NPC: 533 Nightbane Shadow Weaver
 -- NPC: 604 Plague Spreader
 -- NPC: 628 Black Ravager
 -- NPC: 889 Splinter Fist Ogre
 -- NPC: 898 Nightbane Worgen
+-- NPC: 920 Nightbane Tainted One
 -- NPC: 930 Black Widow Hatchling
 -- NPC: 948 Rotted One
 -- NPC: 1251 Splinter Fist Firemonger
@@ -33,6 +36,7 @@
 
 -- Quest: 26717 The Yorgen Worgen
 -- Quest: 26727 The Embalmer's Revenge
+-- Quest: 26674 Mistmantle's Revenge
 
 -- Phase: 245 Stiches Attacks
 
@@ -50,12 +54,14 @@ INSERT INTO `conditions` VALUES
 -- Creature Difficulty
 DELETE FROM `creature_template_difficulty` WHERE `DifficultyID` = 1 AND `Entry` IN (
 48, 202, 203, 217, 511, 533, 898, 930, 1270, 43704, 43732, 44087, 44089, 628, 1251, 
-212, 44020, 300, 889, 45582, 44016, 210, 604, 948, 3, 218, 45811, 43862
+212, 44020, 300, 889, 45582, 44016, 210, 604, 948, 3, 218, 45811, 43862, 206, 920,
+315
 );
 
 UPDATE `creature_template_difficulty` SET `DamageModifier` = 0.2 WHERE `Entry` IN (
 48, 202, 203, 217, 511, 533, 898, 930, 1270, 43704, 43732, 44087, 44089, 628, 1251, 
-212, 44020, 300, 889, 45582, 44016, 210, 604, 948, 3, 218, 45811, 43862
+212, 44020, 300, 889, 45582, 44016, 210, 604, 948, 3, 218, 45811, 43862, 206, 920,
+315
 );
 
 UPDATE `creature_template_difficulty` SET `SkinLootID` = 3 WHERE `Entry` IN (43704,44016);
@@ -93,7 +99,7 @@ SET MovementType = 1,
 WHERE id IN (
     889,212,628,44016,44020,210,604,948,43923,45614,
     43732,44089,44087,533,202,930,898,205,45517,217,
-    48,203,206,920,3,827,828,1270
+    48,203,206,920,3,827,1270
 );
 
 -- Creature Spawn Fixes
@@ -101,7 +107,7 @@ UPDATE creature
 SET MovementType = 1,
     wander_distance = 3
 WHERE id IN (
-    494,228,886,999
+    494,228,886,999,2470,3137,885,1673
 );
 
 -- Specific quest related creature spawn changes
@@ -123,11 +129,21 @@ UPDATE `gameobject_template` SET `ScriptName` = 'go_mound_of_loose_dirt' WHERE `
 UPDATE `creature_template` SET `ScriptName` = 'npc_ello_ebonlocke' WHERE `entry` = 263;
 UPDATE `creature_template` SET `ScriptName` = 'npc_stiches' WHERE `entry` = 43862;
 
--- Go spawns for darkshire Stich attack phase
+-- Quest: 26674 Mistmantle's Revenge - Script Names
+DELETE FROM `spell_script_names` WHERE `ScriptName` = 'spell_call_stalvan';
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
+(82029, 'spell_call_stalvan');
 
+UPDATE `creature_template` SET `ScriptName` = 'npc_stalvan_mistmantle' WHERE `entry` = 315;
+UPDATE `creature_template` SET `ScriptName` = 'npc_tobias_mistmantle' WHERE `entry` = 43453;
+
+-- GO Spawns
 SET @OGUID := 900000;
-DELETE FROM `gameobject` WHERE `guid` BETWEEN @OGUID+197 AND @OGUID+224;
+DELETE FROM `gameobject` WHERE `guid` BETWEEN @OGUID+197 AND @OGUID+225;
 INSERT INTO `gameobject` (`guid`, `id`, `map`, `zoneId`, `areaId`, `spawnDifficulties`, `phaseUseFlags`, `PhaseId`, `PhaseGroup`, `terrainSwapMap`, `position_x`, `position_y`, `position_z`, `orientation`, `rotation0`, `rotation1`, `rotation2`, `rotation3`, `spawntimesecs`, `animprogress`, `state`, `ScriptName`, `StringId`, `VerifiedBuild`) VALUES
+-- Spell focus for Manor Mistmantle
+(@OGUID+225, 204811, 0, 10, 1098, 0, 0, 0, 0, -1, -10369.9, -1254.05, 35.9097, 2.12838, -0, -0, -0.874397, -0.485212, 300, 255, 1,'',NULL,0),
+-- Go spawns for darkshire Stich attack phase
 (@OGUID+197,204099,0,10,42,0,0,245,0,-1,-10543.1,-1164.34,27.8866,2.31095,-0,-0,-0.914987,-0.403482,300,255,1,'',NULL,0),
 (@OGUID+198,204099,0,10,42,0,0,245,0,-1,-10541.3,-1157.03,33.6871,6.27445,-0,-0,-0.0043662,0.999991,300,255,1,'',NULL,0),
 (@OGUID+199,204099,0,10,42,0,0,245,0,-1,-10533.3,-1207.74,28.119,5.03236,-0,-0,-0.585431,0.810722,300,255,1,'',NULL,0),
