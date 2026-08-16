@@ -52,6 +52,9 @@ void AddSC_custom_the_wandering_isle_spells();
 void AddSC_custom_tirisfal_glades_npcs();
 void AddSC_custom_tirisfal_glades_player();
 
+void AddSC_custom_duskwood_npcs();
+void AddSC_custom_duskwood_objects();
+
 void AddSC_custom_westfall_at();
 void AddSC_custom_westfall_npcs();
 void AddSC_custom_westfall_player();
@@ -146,6 +149,9 @@ void AddCustomScripts()
 
     AddSC_custom_tirisfal_glades_npcs();
     AddSC_custom_tirisfal_glades_player();
+
+    AddSC_custom_duskwood_npcs();
+    AddSC_custom_duskwood_objects();
 
     AddSC_custom_westfall_at();
     AddSC_custom_westfall_npcs();
