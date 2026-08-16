@@ -3,30 +3,54 @@
 -- NPC: 468 Town Crier
 -- NPC: 495 Watcher Keefer
 -- NPC: 576 Watcher Ladimore
+-- NPC: 828 Watcher Petras
 -- NPC: 840 Watcher Backus
 -- NPC: 887 Watcher Jordan
 -- NPC: 45771 Marus <The Pack Leader>
 
-UPDATE `creature_template` SET `MovementType` = 2 WHERE `Entry` IN (840,887,468,576,495);
+UPDATE `creature_template` SET `MovementType` = 2 WHERE `Entry` IN (828,840,887,468,576,495);
 
 UPDATE `creature_template_addon` SET `PathId` = 84000 WHERE `Entry` = 840;
 UPDATE `creature_template_addon` SET `PathId` = 88700 WHERE `Entry` = 887;
 UPDATE `creature_template_addon` SET `PathId` = 46800 WHERE `Entry` = 468;
 UPDATE `creature_template_addon` SET `PathId` = 49500 WHERE `Entry` = 495;
 UPDATE `creature_template_addon` SET `PathId` = 57600 WHERE `Entry` = 576;
+UPDATE `creature_template_addon` SET `PathId` = 82800 WHERE `Entry` = 828;
 
-UPDATE `creature` SET `MovementType` = 2 WHERE `id` IN (840,887,468,576,495);
+UPDATE `creature` SET `MovementType` = 2 WHERE `id` IN (828,840,887,468,576,495);
 
-DELETE FROM `waypoint_path` WHERE `PathId` IN (46800,57600,84000,88700,49500);
+DELETE FROM `waypoint_path` WHERE `PathId` IN (82800,46800,57600,84000,88700,49500);
 INSERT INTO `waypoint_path` (`PathId`, `MoveType`, `Flags`, `Velocity`, `Comment`) VALUES
 (46800, 0, 0, 0, 'Duskwood - Town Crier'),
 (57600, 0, 0, 0, 'Duskwood - Watcher Ladimore'),
+(82800, 0, 0, 0, 'Duskwood - Watcher Petras'),
 (84000, 0, 0, 0, 'Duskwood - Watcher Backus'),
 (88700, 0, 0, 0, 'Duskwood - Watcher Jordan'),
 (49500, 0, 0, 0, 'Duskwood - Watcher Keefer');
 
-DELETE FROM `waypoint_path_node` WHERE `PathId` IN (46800,57600,84000,88700,49500);
+DELETE FROM `waypoint_path_node` WHERE `PathId` IN (82800,46800,57600,84000,88700,49500);
 INSERT INTO `waypoint_path_node` (`PathId`, `NodeId`, `PositionX`, `PositionY`, `PositionZ`) VALUES
+(82800, 1, -10544.3, -1337.21, 48.0143),
+(82800, 2, -10543.5, -1351.77, 50.8769),
+(82800, 3, -10542.8, -1365.05, 53.5923),
+(82800, 4, -10536.3, -1379.36, 56.4621),
+(82800, 5, -10538.6, -1360.63, 52.7133),
+(82800, 6, -10540.5, -1345.17, 49.784),
+(82800, 7, -10539.5, -1330.3, 46.385),
+(82800, 8, -10535.6, -1314.47, 42.8338),
+(82800, 9, -10529.5, -1299.39, 41.0829),
+(82800, 10, -10530.1, -1281.78, 39.05),
+(82800, 11, -10543.5, -1268.33, 34.8918),
+(82800, 12, -10549.3, -1258.39, 32.9557),
+(82800, 13, -10551.5, -1228.01, 27.4997),
+(82800, 14, -10555.4, -1227.98, 27.6075),
+(82800, 15, -10555.8, -1249.64, 31.6375),
+(82800, 16, -10551.4, -1268.11, 34.12),
+(82800, 17, -10540.2, -1279.93, 37.3083),
+(82800, 18, -10533.7, -1288.11, 39.3204),
+(82800, 19, -10534.9, -1301.23, 41.363),
+(82800, 20, -10542.7, -1318.43, 44.002),
+
 (49500, 1, -10553, -1181.95, 27.9657),
 (49500, 2, -10554.4, -1162.24, 27.9124),
 (49500, 3, -10562.6, -1157.19, 27.839),
