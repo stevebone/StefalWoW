@@ -41,7 +41,7 @@ namespace Scripts::EasternKingdoms::Duskwood
         bool OnReportUse(Player* /*player*/) override
         {
             if (Creature* worgen = me->FindNearestCreature(Creatures::LurkingWorgen, 30.0f))
-                worgen->AI()->SetData(Data::DataPounce, 1);
+                worgen->AI()->SetData(Data::LurkingWorgenPounce, 1);
 
             return true;
         }

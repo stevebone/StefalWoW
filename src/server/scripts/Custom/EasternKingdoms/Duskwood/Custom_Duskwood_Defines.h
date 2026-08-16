@@ -30,12 +30,15 @@ namespace Scripts::EasternKingdoms::Duskwood
         static constexpr uint32 TheYorgenWorgen = 26717;
         static constexpr uint32 TheEmbalmersRevenge = 26727;
         static constexpr uint32 MistmantlesRevenge = 26674;
+        static constexpr uint32 ACurseWeCannotLift = 26720;
     }
 
     namespace Creatures
     {
         static constexpr uint32 ApprenticeFess  = 43738;
         static constexpr uint32 LurkingWorgen   = 43799;
+        static constexpr uint32 LurkingWorgenAddleStead = 43814;
+        static constexpr uint32 LurkingWorgenKillCredit = 43860;
         static constexpr uint32 Stiches = 43862;
         static constexpr uint32 StalvanMistmantle = 315;
         static constexpr uint32 TobiasMistmantle = 43453;
@@ -50,6 +53,8 @@ namespace Scripts::EasternKingdoms::Duskwood
     namespace Spells
     {
         static constexpr uint32 StunningPounce = 81949;
+        static constexpr uint32 Camouflage = 90954;
+        static constexpr uint32 HarrissAmpule = 82058;
         static constexpr uint32 AuraOfRot      = 3106;
         static constexpr uint32 WorgenTransformVisual = 81908;
         static constexpr uint32 CurseOfStalvan = 3105;
@@ -72,6 +77,7 @@ namespace Scripts::EasternKingdoms::Duskwood
     namespace Events
     {
         static constexpr uint8 LurkingWorgenMoveFlee = 1;
+        static constexpr uint8 LurkingWorgenAddleSteadAmbush = 2;
 
         static constexpr uint8 StalvanStep1 = 1;
         static constexpr uint8 StalvanStep2 = 2;
@@ -127,5 +133,7 @@ namespace Scripts::EasternKingdoms::Duskwood
         static constexpr uint8 TobiasSay02 = 2;
         static constexpr uint8 TobiasSay03 = 3;
         static constexpr uint8 TobiasSay04 = 4;
+
+        static constexpr uint8 LurkingWorgenAddleSteadSay00 = 0;
     }
 }

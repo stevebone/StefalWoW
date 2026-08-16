@@ -25,20 +25,26 @@
 -- NPC: 43704 Dire Wolf
 -- NPC: 43732 Corpseweed
 -- NPC: 43862 Stiches
+-- NPC: 43923 Forlorn Spirit
 -- NPC: 44016 Coalpelt Bear
 -- NPC: 44020 Barn Owl
 -- NPC: 44087 Nightbane Stalker
 -- NPC: 44089 Blackbelly Forager
 -- NPC: 45582 Black Widow
+-- NPC: 45614 Anguished Spirit
 -- NPC: 45811 Marina DeSirrus
 
 -- NPC: 43799 Lurking Worgen
+-- NPC: 43814 Lurking Worge (Addle Stead)
 
 -- Quest: 26717 The Yorgen Worgen
+-- Quest: 26720 A Curse We Cannot Lift
 -- Quest: 26727 The Embalmer's Revenge
 -- Quest: 26674 Mistmantle's Revenge
 
 -- Phase: 245 Stiches Attacks
+
+-- Spell: 76630 Detect: Quest Invis 1
 
 -- Phases
 DELETE FROM `phase_area` WHERE `PhaseId` IN (245);
@@ -55,13 +61,13 @@ INSERT INTO `conditions` VALUES
 DELETE FROM `creature_template_difficulty` WHERE `DifficultyID` = 1 AND `Entry` IN (
 48, 202, 203, 217, 511, 533, 898, 930, 1270, 43704, 43732, 44087, 44089, 628, 1251, 
 212, 44020, 300, 889, 45582, 44016, 210, 604, 948, 3, 218, 45811, 43862, 206, 920,
-315
+315, 43923, 45614, 43814
 );
 
 UPDATE `creature_template_difficulty` SET `DamageModifier` = 0.2 WHERE `Entry` IN (
 48, 202, 203, 217, 511, 533, 898, 930, 1270, 43704, 43732, 44087, 44089, 628, 1251, 
 212, 44020, 300, 889, 45582, 44016, 210, 604, 948, 3, 218, 45811, 43862, 206, 920,
-315
+315, 43923, 45614, 43814
 );
 
 UPDATE `creature_template_difficulty` SET `SkinLootID` = 3 WHERE `Entry` IN (43704,44016);
@@ -71,6 +77,8 @@ UPDATE `creature_template_difficulty` SET `LootID` = 44020 WHERE `Entry` = 44020
 UPDATE `creature_template_difficulty` SET `LootID` = 45582 WHERE `Entry` = 45582;
 UPDATE `creature_template_difficulty` SET `LootID` = 45811 WHERE `Entry` = 45811;
 UPDATE `creature_template_difficulty` SET `LootID` = 43862, `GoldMin` = 300, `GoldMax` = 400 WHERE `Entry` = 43862;
+UPDATE `creature_template_difficulty` SET `LootID` = 43923 WHERE `Entry` = 43923;
+UPDATE `creature_template_difficulty` SET `LootID` = 45614 WHERE `Entry` = 45614;
 
 -- Remove incorrect template flags
 UPDATE `creature_template` SET `unit_flags` = 0 WHERE `entry` IN (44089);
@@ -124,6 +132,9 @@ UPDATE `creature` SET `phaseUseFlags` = 1 WHERE `guid` IN (317620,317622,317623,
 UPDATE `creature_template` SET `ScriptName` = 'npc_apprentice_fess' WHERE `entry` = 43738;
 UPDATE `creature_template` SET `ScriptName` = 'npc_lurking_worgen' WHERE `entry` = 43799;
 UPDATE `gameobject_template` SET `ScriptName` = 'go_mound_of_loose_dirt' WHERE `entry` = 204777;
+
+-- Quest: 26720 A Curse We Cannot Lift - Script Names
+UPDATE `creature_template` SET `ScriptName` = 'npc_lurking_worgen_addle_stead' WHERE `entry` = 43814;
 
 -- Quest: 26727 The Embalmer's Revenge - Script Names
 UPDATE `creature_template` SET `ScriptName` = 'npc_ello_ebonlocke' WHERE `entry` = 263;

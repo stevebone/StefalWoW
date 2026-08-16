@@ -114,6 +114,112 @@ namespace Scripts::EasternKingdoms::Duskwood
     };
 
     /*######
+    ## 43814 Lurking Worgen (Addle Stead)
+    ######*/
+
+    struct npc_lurking_worgen_addle_stead : public ScriptedAI
+    {
+        npc_lurking_worgen_addle_stead(Creature* creature) : ScriptedAI(creature) { }
+
+        void Reset() override
+        {
+            me->SetUnitFlag(UNIT_FLAG_IMMUNE_TO_PC);
+            me->SetUnitFlag(UNIT_FLAG_IMMUNE_TO_NPC);
+            me->CastSpell(me, Spells::Camouflage, true);
+            _triggered = false;
+            _events.Reset();
+        }
+
+        void MoveInLineOfSight(Unit* who) override
+        {
+            ScriptedAI::MoveInLineOfSight(who);
+
+            if (_triggered)
+                return;
+
+            Player* player = who->ToPlayer();
+            if (!player)
+                return;
+
+            if (me->GetDistance(who) > 5.0f)
+                return;
+
+            if (player->GetQuestStatus(Quests::ACurseWeCannotLift) != QUEST_STATUS_INCOMPLETE)
+                return;
+
+            _triggered = true;
+            _playerGuid = player->GetGUID();
+            _events.ScheduleEvent(Events::LurkingWorgenAddleSteadAmbush, 5s);
+        }
+
+        void MovementInform(uint32 type, uint32 id) override
+        {
+            if (type == EFFECT_MOTION_TYPE && id == EVENT_JUMP)
+            {
+                if (Unit* target = ObjectAccessor::GetUnit(*me, _playerGuid))
+                {
+                    me->CastSpell(target, Spells::StunningPounce, true);
+                    AttackStart(target);
+                }
+            }
+        }
+
+        void SpellHit(WorldObject* caster, SpellInfo const* spellInfo) override
+        {
+            if (spellInfo->Id != Spells::HarrissAmpule)
+                return;
+
+            Player* player = caster->ToPlayer();
+            if (!player)
+                return;
+
+            _playerGuid = player->GetGUID();
+            me->SetReactState(REACT_PASSIVE);
+            me->AttackStop();
+
+            me->m_Events.AddEventAtOffset([this]()
+            {
+                if (Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid))
+                    player->KilledMonsterCredit(Creatures::LurkingWorgenKillCredit);
+
+                Talk(Talks::LurkingWorgenAddleSteadSay00);
+                me->DespawnOrUnsummon(2s);
+            }, 1s);
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _events.Update(diff);
+
+            while (uint32 eventId = _events.ExecuteEvent())
+            {
+                switch (eventId)
+                {
+                case Events::LurkingWorgenAddleSteadAmbush:
+                    me->RemoveUnitFlag(UNIT_FLAG_IMMUNE_TO_PC);
+                    me->RemoveUnitFlag(UNIT_FLAG_IMMUNE_TO_NPC);
+                    me->RemoveAura(Spells::Camouflage);
+                    if (Unit* target = ObjectAccessor::GetUnit(*me, _playerGuid))
+                        me->GetMotionMaster()->MoveJump(EVENT_JUMP, target->GetPosition(), 20.0f);
+                    break;
+                default:
+                    break;
+                }
+            }
+
+            if (!UpdateVictim())
+                return;
+
+            me->DoMeleeAttackIfReady();
+        }
+
+    private:
+        EventMap _events;
+        ObjectGuid _playerGuid;
+        bool _triggered = false;
+    };
+
+    /*######
     ## 263 Ello Ebonlocke
     ######*/
     
@@ -429,6 +535,7 @@ void AddSC_custom_duskwood_npcs()
 
     RegisterCreatureAI(npc_apprentice_fess);
     RegisterCreatureAI(npc_lurking_worgen);
+    RegisterCreatureAI(npc_lurking_worgen_addle_stead);
     RegisterCreatureAI(npc_ello_ebonlocke);
     RegisterCreatureAI(npc_stiches);
     RegisterCreatureAI(npc_stalvan_mistmantle);
