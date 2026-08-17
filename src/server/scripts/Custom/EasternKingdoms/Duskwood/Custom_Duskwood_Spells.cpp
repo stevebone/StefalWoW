@@ -21,8 +21,10 @@
  */
 
 #include "Creature.h"
+#include "Player.h"
 #include "ScriptMgr.h"
 #include "SpellScript.h"
+#include "TemporarySummon.h"
 
 #include "Custom_Duskwood_Defines.h"
 
