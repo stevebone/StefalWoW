@@ -30,6 +30,7 @@
 #include "ScriptMgr.h"
 #include "SpellInfo.h"
 #include "TemporarySummon.h"
+#include "Vehicle.h"
 
 #include "Custom_Duskwood_Defines.h"
 
