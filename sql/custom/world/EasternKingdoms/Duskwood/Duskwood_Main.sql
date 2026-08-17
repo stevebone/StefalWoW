@@ -35,16 +35,39 @@
 -- NPC: 45811 Marina DeSirrus
 
 -- NPC: 43799 Lurking Worgen
--- NPC: 43814 Lurking Worge (Addle Stead)
+-- NPC: 43814 Lurking Worgen (Addle Stead)
+-- NPC: 43950 Lurking Worgen (Raven Hill)
+-- NPC: 43969 Cry For The Moon Credit
+-- NPC: 43859 Spawned Jitters
+-- NPC: 43858 Spawned Oliver Harris
+-- NPC: 43861 Sven Yorgen
 
 -- Quest: 26717 The Yorgen Worgen
 -- Quest: 26720 A Curse We Cannot Lift
 -- Quest: 26727 The Embalmer's Revenge
 -- Quest: 26674 Mistmantle's Revenge
+-- Quest: 26760 Cry For The Moon
 
 -- Phase: 245 Stiches Attacks
 
 -- Spell: 76630 Detect: Quest Invis 1
+-- Spell: 82288 Raven Hill Questgiver Vision (Quest 01)
+-- Spell: 82289 Raven Hill Questgiver Vision (Quest 02)
+-- Spell: 82293 Cry For The Moon Quest Invis - Accept Cancel
+-- Spell: 82286 Cry For The Moon - Regain Quest Invis Detection
+-- Spell: 82056 Summon Jitters
+-- Spell: 82055 Summon Oliver Harris
+-- Spell: 82266 Duskwood Chocked by Sven
+
+-- Spell Area
+DELETE FROM `spell_area` WHERE (`spell` = 82289 AND `area` = 94);
+INSERT INTO `spell_area` (`spell`, `area`, `quest_start`, `quest_start_status`, `quest_end_status`, `quest_end`, `aura_spell`, `racemask`, `gender`, `flags`) VALUES
+(82289, 94, 26760, 2, 0, 0, 0, 0, 2, 3);
+
+DELETE FROM `spell_area` WHERE (`spell` = 82288 AND `area` = 94);
+INSERT INTO `spell_area` (`spell`, `area`, `quest_start`, `quest_start_status`, `quest_end_status`, `quest_end`, `aura_spell`, `racemask`, `gender`, `flags`) VALUES
+(82288, 94, 0, 0, 1, 26760, 0, 0, 2, 3),
+(82288, 94, 26760, 2, 0, 0, 0, 0, 2, 3);
 
 -- Phases
 DELETE FROM `phase_area` WHERE `PhaseId` IN (245);
@@ -77,14 +100,20 @@ UPDATE `creature_template_difficulty` SET `LootID` = 44020 WHERE `Entry` = 44020
 UPDATE `creature_template_difficulty` SET `LootID` = 45582 WHERE `Entry` = 45582;
 UPDATE `creature_template_difficulty` SET `LootID` = 45811 WHERE `Entry` = 45811;
 UPDATE `creature_template_difficulty` SET `LootID` = 43862, `GoldMin` = 300, `GoldMax` = 400 WHERE `Entry` = 43862;
-UPDATE `creature_template_difficulty` SET `LootID` = 43923 WHERE `Entry` = 43923;
-UPDATE `creature_template_difficulty` SET `LootID` = 45614 WHERE `Entry` = 45614;
+UPDATE `creature_template_difficulty` SET `LootID` = 43923, `GoldMin` = 500, `GoldMax` = 800 WHERE `Entry` = 43923;
+UPDATE `creature_template_difficulty` SET `LootID` = 45614, `GoldMin` = 500, `GoldMax` = 800 WHERE `Entry` = 45614;
 
 -- Remove incorrect template flags
 UPDATE `creature_template` SET `unit_flags` = 0 WHERE `entry` IN (44089);
 
 -- Fix template factions
 UPDATE `creature_template` SET `faction` = 11 WHERE `entry` IN (2470,887,576,11040);
+
+-- Add template vehicle ids
+UPDATE `creature_template` SET `VehicleId` = 1007 WHERE `entry` = 43950;
+
+-- Creature Template Addons
+UPDATE `creature_template_addon` SET `auras` = '49415' WHERE `Entry` = 43861;
 
 -- Wrong Creature Spawns
 DELETE FROM `creature` WHERE `guid` = 317602 AND `id` = 494;
@@ -95,10 +124,11 @@ DELETE FROM `creature` WHERE `id` IN (43799);
 
 -- New Creature Spawns
 SET @CGUID := 900000;
-DELETE FROM `creature` WHERE `guid` = @CGUID+1246;
+DELETE FROM `creature` WHERE `guid` IN (@CGUID+1246,@CGUID+3142);
 INSERT INTO `creature` (`guid`, `id`, `map`, `zoneId`, `areaId`, `spawnDifficulties`, `phaseUseFlags`, `phaseId`, `phaseGroup`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`) VALUES
 -- Marus <The Pack Leader>
-(@CGUID+1246, 45771, 0, 10, 241, 0, 0, 0, 0, 1, -11065.4, -778.968, 63.8591, 5.47845, 3600);
+(@CGUID+1246, 45771, 0, 10, 241, 0, 0, 0, 0, 1, -11065.4, -778.968, 63.8591, 5.47845, 3600),
+(@CGUID+3142, 43861, 0, 10, 94, 0, 0, 0, 0, 0, -10761.7, 337.977, 37.8645, 5.2709, 180);
 
 -- Creature Spawn Fixes
 UPDATE creature
@@ -147,6 +177,12 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 
 UPDATE `creature_template` SET `ScriptName` = 'npc_stalvan_mistmantle' WHERE `entry` = 315;
 UPDATE `creature_template` SET `ScriptName` = 'npc_tobias_mistmantle' WHERE `entry` = 43453;
+
+-- Quest: 26760 Cry For The Moon - Script Names
+UPDATE `creature_template` SET `ScriptName` = 'npc_spawned_oliver_harris' WHERE `entry` = 43858;
+UPDATE `creature_template` SET `ScriptName` = 'npc_spawned_jitters' WHERE `entry` = 43859;
+UPDATE `creature_template` SET `ScriptName` = 'npc_lurking_worgen_raven_hill' WHERE `entry` = 43950;
+UPDATE `quest_template_addon` SET `ScriptName` = 'quest_26760_cry_for_the_moon' WHERE `ID` = 26760;
 
 -- GO Spawns
 SET @OGUID := 900000;

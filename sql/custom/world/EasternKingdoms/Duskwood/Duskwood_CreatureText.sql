@@ -16,3 +16,17 @@ INSERT INTO `creature_text` VALUES
 (43797, 4, 0, 'No...', 12, 0, 100, 0, 0, 0, 0, 43982, 0, 'Tobias Mistmantle to Stalvan Mistmantle'),
 
 (43814, 0, 0, 'The worgen stares and hesitates!', 41, 0, 100, 0, 0, 0, 0, 44126, 0, 'Lurking Worgen to Player');
+
+DELETE FROM `creature_text` WHERE `CreatureID` IN (43858,43859,43950,43861);
+INSERT INTO `creature_text` VALUES
+(43859, 0, 0, 'I... I can''t...', 12, 0, 100, 0, 0, 0, 0, 44289, 0, 'Jitters to Player'),
+(43858, 0, 0, 'Here we go...', 12, 0, 100, 396, 0, 0, 0, 44300, 0, 'Oliver Harris to Player'),
+(43858, 1, 0, 'It''s working. Hold him still, Jitters.', 12, 0, 100, 396, 0, 0, 0, 44288, 0, 'Oliver Harris to Player'),
+(43858, 2, 0, 'Damn it, Jitters, I said HOLD!', 12, 0, 100, 5, 0, 0, 0, 44290, 0, 'Oliver Harris to Player'),
+(43858, 3, 0, 'Letting him go is the only thing that''s going to separate you from the beasts now, my friend.', 12, 0, 100, 0, 0, 0, 0, 44296, 0, 'Oliver Harris to Player'),
+(43950, 0, 0, 'Jitters...', 12, 0, 100, 0, 0, 0, 0, 44291, 0, 'Lurking Worgen to Player'),
+(43950, 1, 0, 'JITTERS!', 14, 0, 100, 0, 0, 0, 0, 44292, 0, 'Lurking Worgen to Player'),
+(43950, 2, 0, 'I remember now... it''s all your fault!', 12, 0, 100, 0, 0, 0, 0, 44293, 0, 'Lurking Worgen to Player'),
+(43950, 3, 0, 'You brought the worgen to Duskwood! You led the Dark Riders to my farm, and hid while they murdered my family!', 12, 0, 100, 0, 0, 0, 0, 44294, 0, 'Lurking Worgen to Player'),
+(43950, 4, 0, 'Every speck of suffering in my life is YOUR PATHETIC FAULT! I SHOULD KILL YOU!', 14, 0, 100, 0, 0, 0, 0, 44295, 0, 'Lurking Worgen to Player'),
+(43861, 0, 0, 'You''ve got a lot to make up for, Jitters. I won''t give you the easy way out.', 12, 0, 100, 0, 0, 0, 0, 44297, 0, 'Lurking Worgen to Player');

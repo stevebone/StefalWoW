@@ -527,6 +527,300 @@ namespace Scripts::EasternKingdoms::Duskwood
     private:
         EventMap _events;
     };
+
+    /*######
+    ## 43858 Spawned Oliver Harris
+    ######*/
+
+    struct npc_spawned_oliver_harris : public ScriptedAI
+    {
+        npc_spawned_oliver_harris(Creature* creature) : ScriptedAI(creature) { }
+
+        void Reset() override
+        {
+            me->SetReactState(REACT_PASSIVE);
+            me->SetWalk(true);
+            _events.Reset();
+        }
+
+        void SetData(uint32 id, uint32 /*value*/) override
+        {
+            if (id != Data::CryForTheMoonStart)
+                return;
+
+            if (WorldObject* summoner = me->ToTempSummon()->GetSummoner())
+                if (Player* player = summoner->ToPlayer())
+                    _playerGuid = player->GetGUID();
+
+            _events.ScheduleEvent(Events::OliverMoveToCure, 1s);
+        }
+
+        void MovementInform(uint32 type, uint32 id) override
+        {
+            if (type != POINT_MOTION_TYPE)
+                return;
+
+            switch (id)
+            {
+            case Points::OliverMoveToCure:
+                if (Creature* worgen = me->FindNearestCreature(Creatures::LurkingWorgenRavenHill, 10.0f))
+                    me->SetFacingToObject(worgen, true);
+                Talk(Talks::OliverSay0);
+                me->HandleEmoteCommand(EMOTE_ONESHOT_USE_STANDING);
+                _events.ScheduleEvent(Events::OliverTalk1, 5s);
+                _events.ScheduleEvent(Events::OliverTalk2, 10s);
+                _events.ScheduleEvent(Events::OliverTalk3, 30s);
+                _events.ScheduleEvent(Events::OliverWalkHome, 40s);
+                break;
+            case Points::OliverWalkHome:
+                if (Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid))
+                    player->KilledMonsterCredit(Creatures::CryForTheMoonCredit);
+
+                if (Creature* jitters = me->FindNearestCreature(Creatures::SpawnedJitters, 50.0f))
+                    jitters->DespawnOrUnsummon();
+
+                if (Creature* worgen = me->FindNearestCreatureWithOptions(50.f, { .CreatureId = Creatures::SvenYorgen, .PrivateObjectOwnerGuid = _playerGuid, }))
+                    worgen->DespawnOrUnsummon();
+
+                me->DespawnOrUnsummon();
+                break;
+            default:
+                break;
+            }
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _events.Update(diff);
+
+            while (uint32 eventId = _events.ExecuteEvent())
+            {
+                switch (eventId)
+                {
+                case Events::OliverMoveToCure:
+                    me->GetMotionMaster()->MovePoint(Points::OliverMoveToCure, Positions::OliverGivingCure);
+                    break;
+                case Events::OliverTalk1:
+                    Talk(Talks::OliverSay1);
+                    if (Creature* jitters = me->FindNearestCreature(Creatures::SpawnedJitters, 10.0f))
+                        jitters->AI()->SetData(Data::JittersTalk, 1);
+                    break;
+                case Events::OliverTalk2:
+                    Talk(Talks::OliverSay2);
+                    break;
+                case Events::OliverTalk3:
+                    Talk(Talks::OliverSay3);
+                    if (Creature* jitters = me->FindNearestCreature(Creatures::SpawnedJitters, 10.0f))
+                        jitters->AI()->SetData(Data::JittersRelease, 1);
+                    break;
+                case Events::OliverWalkHome:
+                    me->GetMotionMaster()->MovePoint(Points::OliverWalkHome, me->GetHomePosition());
+                    break;
+                default:
+                    break;
+                }
+            }
+        }
+
+    private:
+        EventMap _events;
+        ObjectGuid _playerGuid;
+    };
+
+    /*######
+    ## 43859 Spawned Jitters
+    ######*/
+
+    struct npc_spawned_jitters : public ScriptedAI
+    {
+        npc_spawned_jitters(Creature* creature) : ScriptedAI(creature) { }
+
+        void Reset() override
+        {
+            me->SetReactState(REACT_PASSIVE);
+            me->SetWalk(false);
+            _events.Reset();
+        }
+
+        void SetData(uint32 id, uint32 /*value*/) override
+        {
+            switch (id)
+            {
+            case Data::CryForTheMoonStart:
+                _events.ScheduleEvent(Events::JittersRunToWorgen, 1s);
+                break;
+            case Data::JittersTalk:
+                _events.ScheduleEvent(Events::JittersTalk0, 3s);
+                break;
+            case Data::JittersChoke:
+                _events.ScheduleEvent(Events::JittersChokeAndEnter, 1s);
+                break;
+            case Data::JittersRelease:
+                _events.ScheduleEvent(Events::JittersExitAndRunBack, 3s);
+                break;
+            default:
+                break;
+            }
+        }
+
+        void MovementInform(uint32 /*type*/, uint32 id) override
+        {
+            switch (id)
+            {
+            case Points::JittersRunToWorgen:
+                me->SetEmoteState(EMOTE_STATE_USE_STANDING);
+                break;
+            case EVENT_JUMP:
+                me->GetMotionMaster()->MovePoint(Points::JittersRunHome, me->GetHomePosition());
+                break;
+            default:
+                break;
+            }
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _events.Update(diff);
+
+            while (uint32 eventId = _events.ExecuteEvent())
+            {
+                switch (eventId)
+                {
+                case Events::JittersRunToWorgen:
+                    me->GetMotionMaster()->MovePoint(Points::JittersRunToWorgen, Positions::JittersHoldingWorgen);
+                    break;
+                case Events::JittersTalk0:
+                    Talk(Talks::JittersSay0);
+                    me->SetEmoteState(EMOTE_STATE_NONE);
+                    break;
+                case Events::JittersChokeAndEnter:
+                    if (Creature* worgen = me->FindNearestCreature(Creatures::LurkingWorgenRavenHill, 10.0f))
+                        me->CastSpell(worgen, Spells::RideVehicle, true);
+                    break;
+                case Events::JittersExitAndRunBack:
+                {
+                    Vehicle* veh = me->GetVehicle();
+                    veh->RemoveAllPassengers();
+                    me->m_Events.AddEventAtOffset([this]()
+                        {
+                            me->SetDisableGravity(false);
+                            me->SetPlayHoverAnim(false, true);
+                            me->RemoveAllAuras();
+                            me->GetMotionMaster()->Clear();
+                            me->GetMotionMaster()->MoveJump(EVENT_JUMP, Positions::JittersExitVehicle, 20.f);
+                        }, 400ms);
+                    break;
+                }
+                default:
+                    break;
+                }
+            }
+        }
+
+    private:
+        EventMap _events;
+    };
+
+    /*######
+    ## 43950 Lurking Worgen (Raven Hill)
+    ######*/
+
+    struct npc_lurking_worgen_raven_hill : public ScriptedAI
+    {
+        npc_lurking_worgen_raven_hill(Creature* creature) : ScriptedAI(creature) { }
+
+        void Reset() override
+        {
+            me->SetUninteractible(true);
+            me->SetReactState(REACT_PASSIVE);
+            me->SetWalk(true);
+            me->CastSpell(me, Spells::InStocks, true);
+            _events.Reset();
+        }
+
+        void PassengerBoarded(Unit* /*passenger*/, int8 /*seatId*/, bool apply) override
+        {
+            if (apply)
+            {
+                me->SetEmoteState(EMOTE_STATE_SPELL_CHANNEL_OMNI);
+                _events.ScheduleEvent(Events::WorgenRavenHillTalk2, 1s);
+                _events.ScheduleEvent(Events::WorgenRavenHillTalk3, 4s);
+                _events.ScheduleEvent(Events::WorgenRavenHillTalk4, 10s);
+            }
+
+            if (!apply)
+            {
+                _events.ScheduleEvent(Events::WorgenRavenHillTalk5, 1s);
+            }
+        }
+        void MovementInform(uint32 /*type*/, uint32 id) override
+        {
+            if (id == EVENT_JUMP)
+            {
+                if (Creature* jitters = me->FindNearestCreature(Creatures::SpawnedJitters, 10.0f))
+                {
+                    me->SetFacingToObject(jitters);
+                    Talk(Talks::WorgenRavenHillSay1);
+                    me->HandleEmoteCommand(EMOTE_ONESHOT_ROAR);
+                    jitters->AI()->SetData(Data::JittersChoke, 1);
+                }
+            }
+        }
+
+        void SetData(uint32 id, uint32 /*value*/) override
+        {
+            if (id != Data::CryForTheMoonStart)
+                return;
+
+            _events.ScheduleEvent(Events::WorgenRavenHillTalk0, 15s);
+            _events.ScheduleEvent(Events::WorgenRavenHillTalk1, 20s);
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _events.Update(diff);
+
+            while (uint32 eventId = _events.ExecuteEvent())
+            {
+                switch (eventId)
+                {
+                case Events::WorgenRavenHillTalk0:
+                    Talk(Talks::WorgenRavenHillSay0);
+                    break;
+                case Events::WorgenRavenHillTalk1:
+                    me->RemoveAura(Spells::InStocks);
+                    me->GetMotionMaster()->MoveJump(EVENT_JUMP, Positions::LurkingWorgenRavenHillJump, 20.f);
+                    break;
+                case Events::WorgenRavenHillTalk2:
+                    Talk(Talks::WorgenRavenHillSay2);
+                    break;
+                case Events::WorgenRavenHillTalk3:
+                    Talk(Talks::WorgenRavenHillSay3);
+                    break;
+                case Events::WorgenRavenHillTalk4:
+                    Talk(Talks::WorgenRavenHillSay4);
+                    break;
+                case Events::WorgenRavenHillTalk5:
+                {
+                    me->SetEmoteState(EMOTE_STATE_NONE);
+                    me->GetMotionMaster()->Clear();
+                    if (Creature* sven = me->FindNearestCreature(Creatures::SvenYorgen, 50.0f))
+                        me->GetMotionMaster()->MovePoint(Points::WorgenWalkToSven, sven->GetPosition());
+                    me->UpdateEntry(Creatures::SvenYorgen);
+                    me->RemoveNpcFlag(UNIT_NPC_FLAG_QUESTGIVER);
+                    Talk(Talks::WorgenRavenHillSay5);
+                    
+                    break;
+                }
+                default:
+                    break;
+                }
+            }
+        }
+
+    private:
+        EventMap _events;
+    };
 }
 
 void AddSC_custom_duskwood_npcs()
@@ -540,4 +834,7 @@ void AddSC_custom_duskwood_npcs()
     RegisterCreatureAI(npc_stiches);
     RegisterCreatureAI(npc_stalvan_mistmantle);
     RegisterCreatureAI(npc_tobias_mistmantle);
+    RegisterCreatureAI(npc_spawned_oliver_harris);
+    RegisterCreatureAI(npc_spawned_jitters);
+    RegisterCreatureAI(npc_lurking_worgen_raven_hill);
 }

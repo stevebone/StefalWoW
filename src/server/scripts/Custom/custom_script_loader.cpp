@@ -55,6 +55,7 @@ void AddSC_custom_tirisfal_glades_player();
 void AddSC_custom_duskwood_npcs();
 void AddSC_custom_duskwood_objects();
 void AddSC_custom_duskwood_spells();
+void AddSC_custom_duskwood_quests();
 
 void AddSC_custom_westfall_at();
 void AddSC_custom_westfall_npcs();
@@ -154,6 +155,7 @@ void AddCustomScripts()
     AddSC_custom_duskwood_npcs();
     AddSC_custom_duskwood_objects();
     AddSC_custom_duskwood_spells();
+    AddSC_custom_duskwood_quests();
 
     AddSC_custom_westfall_at();
     AddSC_custom_westfall_npcs();

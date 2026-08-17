@@ -31,6 +31,7 @@ namespace Scripts::EasternKingdoms::Duskwood
         static constexpr uint32 TheEmbalmersRevenge = 26727;
         static constexpr uint32 MistmantlesRevenge = 26674;
         static constexpr uint32 ACurseWeCannotLift = 26720;
+        static constexpr uint32 CryForTheMoon = 26760;
     }
 
     namespace Creatures
@@ -43,6 +44,11 @@ namespace Scripts::EasternKingdoms::Duskwood
         static constexpr uint32 StalvanMistmantle = 315;
         static constexpr uint32 TobiasMistmantle = 43453;
         static constexpr uint32 TobiasMistmantleWorgen = 43797;
+        static constexpr uint32 SpawnedOliverHarris = 43858;
+        static constexpr uint32 SpawnedJitters = 43859;
+        static constexpr uint32 SvenYorgen = 43861;
+        static constexpr uint32 LurkingWorgenRavenHill = 43950;
+        static constexpr uint32 CryForTheMoonCredit = 43969;
     }
 
     namespace Gameobjects
@@ -58,6 +64,14 @@ namespace Scripts::EasternKingdoms::Duskwood
         static constexpr uint32 AuraOfRot      = 3106;
         static constexpr uint32 WorgenTransformVisual = 81908;
         static constexpr uint32 CurseOfStalvan = 3105;
+        static constexpr uint32 RavenHillQuestgiverVision1 = 82288;
+        static constexpr uint32 RavenHillQuestgiverVision2 = 82289;
+        static constexpr uint32 SummonJitters = 82056;
+        static constexpr uint32 SummonOliverHarris = 82055;
+        static constexpr uint32 ChockedBySven = 82266;
+        static constexpr uint32 RegainQuestInvisDetection = 82286;
+        static constexpr uint32 InStocks = 69196;
+        static constexpr uint32 RideVehicle = 46598; // 60683;
     }
 
     namespace Positions
@@ -72,6 +86,12 @@ namespace Scripts::EasternKingdoms::Duskwood
         static constexpr Position TobiasSpawn = { -10351.5f, -1256.7f, 35.3011f };
         static constexpr Position TobiasMoveTo = { -10365.8f, -1255.7f, 35.9098f };
         static constexpr Position TobiasFlee = { -10350.37f, -1230.15f, 37.53f };
+
+        static constexpr Position LurkingWorgenRavenHillSpawn = { -10747.3818f, 332.1483f, 37.7059f, 4.5219f };
+        static constexpr Position OliverGivingCure = { -10746.0058f, 331.979f, 37.7435f, 3.7095f };
+        static constexpr Position JittersHoldingWorgen = { -10748.7841f, 332.4266f, 37.4959f, 5.9658f };
+        static constexpr Position LurkingWorgenRavenHillJump = { -10746.1f, 333.433f, 37.639f, 3.4f };
+        static constexpr Position JittersExitVehicle = { -10748.6f, 333.025f, 37.484f };
     }
 
     namespace Events
@@ -91,6 +111,24 @@ namespace Scripts::EasternKingdoms::Duskwood
         static constexpr uint8 TobiasStep2 = 2;
         static constexpr uint8 TobiasStep3 = 3;
         static constexpr uint8 TobiasStep4 = 4;
+
+        static constexpr uint8 OliverMoveToCure = 1;
+        static constexpr uint8 OliverTalk1 = 2;
+        static constexpr uint8 OliverTalk2 = 3;
+        static constexpr uint8 OliverTalk3 = 4;
+        static constexpr uint8 OliverWalkHome = 5;
+
+        static constexpr uint8 JittersRunToWorgen = 1;
+        static constexpr uint8 JittersTalk0 = 2;
+        static constexpr uint8 JittersChokeAndEnter = 3;
+        static constexpr uint8 JittersExitAndRunBack = 4;
+
+        static constexpr uint8 WorgenRavenHillTalk0 = 1;
+        static constexpr uint8 WorgenRavenHillTalk1 = 2;
+        static constexpr uint8 WorgenRavenHillTalk2 = 3;
+        static constexpr uint8 WorgenRavenHillTalk3 = 4;
+        static constexpr uint8 WorgenRavenHillTalk4 = 5;
+        static constexpr uint8 WorgenRavenHillTalk5 = 6;
     }
 
     namespace Points
@@ -99,6 +137,14 @@ namespace Scripts::EasternKingdoms::Duskwood
 
         static constexpr uint32 TobiasSpawn = 1;
         static constexpr uint32 TobiasFlee = 2;
+
+        static constexpr uint32 OliverMoveToCure = 1;
+        static constexpr uint32 OliverWalkHome = 2;
+
+        static constexpr uint32 JittersRunToWorgen = 1;
+        static constexpr uint32 JittersRunHome = 2;
+
+        static constexpr uint32 WorgenWalkToSven = 1;
     }
 
     namespace Data
@@ -106,6 +152,11 @@ namespace Scripts::EasternKingdoms::Duskwood
         static constexpr uint32 LurkingWorgenPounce = 1;
 
         static constexpr uint32 StalvanDied = 1;
+
+        static constexpr uint32 CryForTheMoonStart = 1;
+        static constexpr uint32 JittersTalk = 2;
+        static constexpr uint32 JittersChoke = 3;
+        static constexpr uint32 JittersRelease = 4;
     }
 
     namespace Watchers
@@ -135,5 +186,19 @@ namespace Scripts::EasternKingdoms::Duskwood
         static constexpr uint8 TobiasSay04 = 4;
 
         static constexpr uint8 LurkingWorgenAddleSteadSay00 = 0;
+
+        static constexpr uint8 OliverSay0 = 0;
+        static constexpr uint8 OliverSay1 = 1;
+        static constexpr uint8 OliverSay2 = 2;
+        static constexpr uint8 OliverSay3 = 3;
+
+        static constexpr uint8 JittersSay0 = 0;
+
+        static constexpr uint8 WorgenRavenHillSay0 = 0;
+        static constexpr uint8 WorgenRavenHillSay1 = 1;
+        static constexpr uint8 WorgenRavenHillSay2 = 2;
+        static constexpr uint8 WorgenRavenHillSay3 = 3;
+        static constexpr uint8 WorgenRavenHillSay4 = 4;
+        static constexpr uint8 WorgenRavenHillSay5 = 0; // this is actually Sven
     }
 }
