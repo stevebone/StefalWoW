@@ -2172,13 +2172,6 @@ void WorldSession::HandleAlterAppearance(WorldPackets::Character::AlterApperance
         return;
     }
 
-    // FORCE-SIT: previewing a druid form colour/skin shapeshifts the character client-side, which
-    // drops them out of the chair sit-state. A barber chair is already confirmed within range, so
-    // re-seat the player instead of rejecting with NotOnChair.
-    UnitStandStateType requiredStandState = UnitStandStateType(UNIT_STAND_STATE_SIT_LOW_CHAIR + go->GetGOInfo()->barberChair.chairheight);
-    if (_player->GetStandState() != requiredStandState)
-        _player->SetStandState(requiredStandState);
-
     int64 cost = _player->GetBarberShopCost(mergedRange);
     if (!_player->HasEnoughMoney(cost))
     {

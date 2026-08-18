@@ -3313,7 +3313,14 @@ void GameObject::Use(Unit* user, bool ignoreCastInProgress /*= false*/)
             // fallback, will always work
             player->TeleportTo(GetMapId(), GetPositionX(), GetPositionY(), GetPositionZ(), GetOrientation(), TELE_TO_NOT_LEAVE_TRANSPORT | TELE_TO_NOT_LEAVE_COMBAT | TELE_TO_NOT_UNSUMMON_PET);
 
-            player->SetStandState(UnitStandStateType(UNIT_STAND_STATE_SIT_LOW_CHAIR + info->barberChair.chairheight), info->barberChair.CustomSitAnimKit);
+            // In Midnight players no longer sit in the chair
+            //player->SetStandState(UnitStandStateType(UNIT_STAND_STATE_SIT_LOW_CHAIR + info->barberChair.chairheight), info->barberChair.CustomSitAnimKit);
+
+            // workaround to make the chair gone
+            // Ideally this is handled via phasing and spawning non occupied chairs
+            // However there is no ideal way to remove the phase when player cancels the UI
+            DespawnForPlayer(player, 60s); 
+
             return;
         }
         case GAMEOBJECT_TYPE_NEW_FLAG:
