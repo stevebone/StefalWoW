@@ -793,8 +793,14 @@ bool WorldSession::MeetsChrCustomizationReq(ChrCustomizationReqEntry const* req,
     if (race != RACE_NONE && !req->RaceMask.IsEmpty() && req->RaceMask != RACEMASK_ALL_v<int32, 2> && !req->RaceMask.HasRace(race))
         return false;
 
-    if (req->AchievementID /*&& !HasAchieved(req->AchievementID)*/)
-        return false;
+    if (req->AchievementID)
+    {
+        if (!_player)
+            return false;
+
+        if (!_player->HasAchieved(req->AchievementID))
+            return false;
+    }
 
     if (req->ItemModifiedAppearanceID && !GetCollectionMgr()->HasItemAppearance(req->ItemModifiedAppearanceID).first)
         return false;
@@ -857,7 +863,7 @@ bool WorldSession::ValidateAppearance(Races race, Classes playerClass, Gender ge
         uint8 chrModel = sDB2Manager.GetZeroIfOptionUsedForPlayerModel(playerChoice.ChrCustomizationOptionID);
         if (chrModel)
         {
-            // non-player model (shapeshift form or other model) — validate via conditional chr model
+            // non-player model (shapeshift form or other model) - validate via conditional chr model
             if (ConditionalChrModelEntry const* conditionalChrModel = DB2Manager::GetConditionalChrModel(chrModel))
             {
                 if (ChrCustomizationReqEntry const* req = sChrCustomizationReqStore.LookupEntry(conditionalChrModel->ChrCustomizationReqID))
@@ -888,7 +894,7 @@ bool WorldSession::ValidateAppearance(Races race, Classes playerClass, Gender ge
             continue;
         }
 
-        // player model — validate via race/gender option list
+        // player model - validate via race/gender option list
         auto customizationOptionDataItr = std::find_if(options->begin(), options->end(), [&](ChrCustomizationOptionEntry const* option)
         {
             return option->ID == playerChoice.ChrCustomizationOptionID;
