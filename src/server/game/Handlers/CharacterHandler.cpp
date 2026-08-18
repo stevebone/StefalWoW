@@ -795,10 +795,7 @@ bool WorldSession::MeetsChrCustomizationReq(ChrCustomizationReqEntry const* req,
 
     if (req->AchievementID)
     {
-        if (!_player)
-            return false;
-
-        if (!_player->HasAchieved(req->AchievementID))
+        if (_player && !_player->HasAchieved(req->AchievementID))
             return false;
     }
 
@@ -807,10 +804,7 @@ bool WorldSession::MeetsChrCustomizationReq(ChrCustomizationReqEntry const* req,
 
     if (req->QuestID)
     {
-        if (!_player)
-            return false;
-
-        if (!_player->IsQuestRewarded(req->QuestID))
+        if (_player && !_player->IsQuestRewarded(req->QuestID))
             return false;
     }
 
