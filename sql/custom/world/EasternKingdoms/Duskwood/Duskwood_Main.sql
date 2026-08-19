@@ -47,6 +47,7 @@
 -- Quest: 26727 The Embalmer's Revenge
 -- Quest: 26674 Mistmantle's Revenge
 -- Quest: 26760 Cry For The Moon
+-- Quest: 26777 Soothing Spirits
 
 -- Phase: 245 Stiches Attacks
 
@@ -62,12 +63,12 @@
 -- Spell Area
 DELETE FROM `spell_area` WHERE (`spell` = 82289 AND `area` = 94);
 INSERT INTO `spell_area` (`spell`, `area`, `quest_start`, `quest_start_status`, `quest_end_status`, `quest_end`, `aura_spell`, `racemask`, `gender`, `flags`) VALUES
-(82289, 94, 26760, 2, 0, 0, 0, 0, 2, 3);
+(82289, 94, 26760, 66, 0, 0, 0, 0, 2, 3);
 
 DELETE FROM `spell_area` WHERE (`spell` = 82288 AND `area` = 94);
 INSERT INTO `spell_area` (`spell`, `area`, `quest_start`, `quest_start_status`, `quest_end_status`, `quest_end`, `aura_spell`, `racemask`, `gender`, `flags`) VALUES
 (82288, 94, 0, 0, 1, 26760, 0, 0, 2, 3),
-(82288, 94, 26760, 2, 0, 0, 0, 0, 2, 3);
+(82288, 94, 26760, 66, 0, 0, 0, 0, 2, 3);
 
 -- Phases
 DELETE FROM `phase_area` WHERE `PhaseId` IN (245);
@@ -183,6 +184,9 @@ UPDATE `creature_template` SET `ScriptName` = 'npc_spawned_oliver_harris' WHERE 
 UPDATE `creature_template` SET `ScriptName` = 'npc_spawned_jitters' WHERE `entry` = 43859;
 UPDATE `creature_template` SET `ScriptName` = 'npc_lurking_worgen_raven_hill' WHERE `entry` = 43950;
 UPDATE `quest_template_addon` SET `ScriptName` = 'quest_26760_cry_for_the_moon' WHERE `ID` = 26760;
+
+-- Quest: 26777 Soothing Spirits - Script Names
+UPDATE `creature_template` SET `ScriptName` = 'npc_soothing_incense_cloud' WHERE `entry` = 43925;
 
 -- GO Spawns
 SET @OGUID := 900000;

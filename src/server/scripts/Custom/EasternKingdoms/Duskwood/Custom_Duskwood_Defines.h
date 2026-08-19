@@ -49,6 +49,8 @@ namespace Scripts::EasternKingdoms::Duskwood
         static constexpr uint32 SvenYorgen = 43861;
         static constexpr uint32 LurkingWorgenRavenHill = 43950;
         static constexpr uint32 CryForTheMoonCredit = 43969;
+        static constexpr uint32 ForlornSpirit = 43923;
+        static constexpr uint32 ForlornSpiritKillCredit = 43930;
     }
 
     namespace Gameobjects
@@ -129,6 +131,8 @@ namespace Scripts::EasternKingdoms::Duskwood
         static constexpr uint8 WorgenRavenHillTalk3 = 4;
         static constexpr uint8 WorgenRavenHillTalk4 = 5;
         static constexpr uint8 WorgenRavenHillTalk5 = 6;
+
+        static constexpr uint8 SoothingIncenseCloudSelectTarget = 1;
     }
 
     namespace Points

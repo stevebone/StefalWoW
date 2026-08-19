@@ -822,6 +822,63 @@ namespace Scripts::EasternKingdoms::Duskwood
     private:
         EventMap _events;
     };
+
+    /*######
+    ## 43925 Soothing Incense Cloud Bunny
+    ######*/
+
+    struct npc_soothing_incense_cloud : public ScriptedAI
+    {
+        npc_soothing_incense_cloud(Creature* creature) : ScriptedAI(creature) { }
+
+        void Reset() override
+        {
+            _events.Reset();
+            _events.ScheduleEvent(Events::SoothingIncenseCloudSelectTarget, 500ms);
+        }
+
+        Player* GetOwner()
+        {
+            return me->ToTempSummon()->GetSummoner()->ToPlayer();
+        }
+
+        void SelectTargets()
+        {
+            me->GetCreatureListWithEntryInGrid(_selectedTargets, Creatures::ForlornSpirit, 5.f);
+        }
+
+        void KillSelectedCreaturesAndRewardPlayer()
+        {
+            for (auto creature : _selectedTargets)
+            {
+                if (!creature->IsAlive())
+                    continue;
+
+                GetOwner()->RewardPlayerAndGroupAtEvent(Creatures::ForlornSpiritKillCredit, GetOwner());
+                creature->KillSelf();
+            }
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _events.Update(diff);
+
+            while (uint32 eventId = _events.ExecuteEvent())
+            {
+                switch (eventId)
+                {
+                case Events::SoothingIncenseCloudSelectTarget:
+                    SelectTargets();
+                    KillSelectedCreaturesAndRewardPlayer();
+                    break;
+                }
+            }
+        }
+
+    private:
+        EventMap _events;
+        std::list<Creature*> _selectedTargets;
+    };
 }
 
 void AddSC_custom_duskwood_npcs()
@@ -838,4 +895,5 @@ void AddSC_custom_duskwood_npcs()
     RegisterCreatureAI(npc_spawned_oliver_harris);
     RegisterCreatureAI(npc_spawned_jitters);
     RegisterCreatureAI(npc_lurking_worgen_raven_hill);
+    RegisterCreatureAI(npc_soothing_incense_cloud);
 }
