@@ -860,6 +860,33 @@ void Garrison::CreateShipyard()
 
     // Refresh garrison info so the client picks up the new state on its next read.
     SendInfo();
+
+    // Reveal the shipyard's coastal spawns now that it exists (the unlock movie has already played from the quest
+    // reward). Without this the Fleet Command Table, foreman and dock guards stay in their hidden phase.
+    UpdateShipyardPhase();
+}
+
+// The WoD Shipyard's NPCs (Fleet Command Table, shipyard foreman, dock guards) and structures physically live out on
+// the Draenor coast (map 1116) - NOT on the garrison child map - and are placed in a phase so they stay hidden until
+// the shipyard is built, exactly how retail reveals the shipyard on the garrison beach. The Alliance (Lunarfall) set
+// is tagged phase GARRISON_SHIPYARD_PHASE_ALLIANCE (20244), which nothing else in the world DB uses, so a personal
+// phase on the owner reveals precisely those spawns and affects nothing else. A personal phase does not survive a
+// relog, so this is called on build AND re-applied on login / map change (garrison_generic.cpp). NOTE: the Horde
+// (Frostwall) shipyard spawn set and its phase id are not yet in the world DB (data/capture gap), so only the
+// Alliance side is revealed here - a Horde owner simply gets no phase until those spawns are authored.
+void Garrison::UpdateShipyardPhase() const
+{
+    if (GetType() != GARRISON_TYPE_GARRISON || !_owner || !_owner->IsInWorld())
+        return;
+
+    // Only the Alliance shipyard spawns/phase exist so far; guard so an Alliance-only phase is never granted to Horde.
+    if (GetFaction() != GARRISON_FACTION_INDEX_ALLIANCE)
+        return;
+
+    if (HasShipyard())
+        PhasingHandler::AddPhase(_owner, GARRISON_SHIPYARD_PHASE_ALLIANCE, true);
+    else
+        PhasingHandler::RemovePhase(_owner, GARRISON_SHIPYARD_PHASE_ALLIANCE, true);
 }
 
 bool Garrison::IsMissionFollowerTypeAvailable(int8 followerTypeId) const

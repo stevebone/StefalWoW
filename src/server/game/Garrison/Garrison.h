@@ -355,6 +355,10 @@ public:
     void CreateShipyard();
     bool HasShipyard() const { return _shipyardBuilding != 0; }
     uint32 GetShipyardBuildingId() const { return _shipyardBuilding; }
+    // Reveal/hide the shipyard's coastal spawns (Fleet Command Table, foreman, dock guards) by toggling the owner's
+    // personal shipyard phase to match HasShipyard(). Applied on build and re-applied on login/map change because a
+    // personal phase does not survive a relog. See UpdateShipyardPhase() in Garrison.cpp.
+    void UpdateShipyardPhase() const;
     // Whether missions/followers of the given GarrFollowerType are available to this garrison: the garrison's own
     // primary type always is; the shipyard (naval) type only once the shipyard is built. Gates naval mission offers.
     bool IsMissionFollowerTypeAvailable(int8 followerTypeId) const;
@@ -679,6 +683,10 @@ private:
     static constexpr uint32 GARRISON_SHIPYARD_BUILDING_L1 = 205;
     static constexpr uint32 GARRISON_SHIPYARD_BUILDING_L2 = 206;
     static constexpr uint32 GARRISON_SHIPYARD_BUILDING_L3 = 207;
+    // The Alliance (Lunarfall) shipyard's coastal NPCs on Draenor (map 1116) are tagged this phase in the world DB;
+    // nothing else uses it, so it is toggled as a personal phase on the owner once the shipyard is built. The Horde
+    // (Frostwall) shipyard spawns + phase are not yet authored - see UpdateShipyardPhase().
+    static constexpr uint32 GARRISON_SHIPYARD_PHASE_ALLIANCE = 20244;
 
     std::unordered_map<uint32 /*garrPlotInstanceId*/, Plot> _plots;
     std::unordered_set<uint32 /*garrBuildingId*/> _knownBuildings;

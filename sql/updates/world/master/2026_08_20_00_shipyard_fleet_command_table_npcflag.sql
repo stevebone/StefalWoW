@@ -1,0 +1,47 @@
+--
+-- WoD Shipyard - "Fleet Command Table" (naval command table) is not interactable
+-- =============================================================================
+--
+-- BUG (tester report)
+-- -------------------
+-- After the shipyard unlocks (and its unlock movie plays), the Fleet Command Table on the garrison coast has
+-- npcflag = 0, so clicking it does nothing - there is no gossip and no way into the naval mission board.
+--
+-- THE SPAWN AND THE TWO TEMPLATES
+-- -------------------------------
+-- The Alliance (Lunarfall) shipyard set is spawned on Draenor (map 1116) inside phase 20244, revealed by
+-- Garrison::UpdateShipyardPhase() once the shipyard is built. Its command table spawn (guid 50038915) uses
+-- creature_template 94399 "Fleet Command Table", which ships with npcflag = 0:
+--
+--   entry  name                  npcflag         unit_flags  unit_flags2  gossip menu (creature_template_gossip)
+--   94398  Fleet Command Table   137438953473    768         67110912     18536   <- retail interactable table
+--   94399  Fleet Command Table   0               0           2048         18536   <- the one we actually spawn
+--
+-- 137438953473 = 0x2000000001 = UNIT_NPC_FLAG_GOSSIP (0x1) | (UNIT_NPC_FLAG_2_GARRISON_MISSION_NPC (0x20) << 32).
+-- That is the correct flag set for a garrison naval command table: GOSSIP so it can be clicked, plus the
+-- GARRISON_MISSION_NPC bit that marks it as a mission-board table. 94399 (the entry our spawn uses) simply has
+-- neither, which is exactly the reported "npcflag = 0, no interaction".
+--
+-- FIX
+-- ---
+-- Give 94399 the same npcflag its retail-flagged sibling 94398 carries, so the spawned Fleet Command Table becomes
+-- interactable and opens its gossip greeting (gossip_menu 18536, already linked via creature_template_gossip). This
+-- is the naval analogue of the WoD land command table (GARRISON_MISSION_NPC) and mirrors how the garrison / covenant
+-- command tables are made interactable.
+--
+-- STILL NEEDS A CAPTURE (documented, NOT guessed here)
+-- ---------------------------------------------------
+-- Making the table CLICKABLE is done here; making its gossip option actually OPEN the naval mission board is a
+-- separate, sniff-gated step - the same class of fix as 2026_08_09_00_covenant_command_table_gossip.sql. The single
+-- option on menu 18536 (OptionID 0, OptionNpc 27 = GarrisonMissionNpc) has GossipNpcOptionID = NULL, so the select
+-- is inert (Player::OnGossipSelect falls through to SMSG_NPC_INTERACTION_OPEN_RESULT, a client no-op). The land WoD
+-- table (menu 18757) uses GossipNpcOptionID 30323; the naval table needs the naval GossipNPCOption.db2 row - a
+-- type-27 row whose GarrFollowerTypeID = 2 (shipyard) and whose UiMapID is the naval mission map. That value is in
+-- the client DB2 / a naval sniff, not in any world or hotfix DB on this box (the gossip_npc_option hotfix tables hold
+-- 1 row each), so it is deliberately left NULL until one WoD shipyard-table sniff or a GossipNPCOption.db2 read
+-- provides it. When it does, set gossip_menu_option.GossipNpcOptionID on MenuID 18536 / OptionID 0 and nothing else.
+--
+-- Idempotent (a plain UPDATE). Reversible by setting npcflag back to 0.
+--
+
+UPDATE `creature_template` SET `npcflag` = 137438953473 WHERE `entry` = 94399; -- Fleet Command Table: GOSSIP | GARRISON_MISSION_NPC (match retail sibling 94398)
