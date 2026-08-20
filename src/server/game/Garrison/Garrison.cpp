@@ -4362,6 +4362,14 @@ GameObject* Garrison::Plot::CreateGameObject(Map* map, GarrisonFactionIndex fact
                     finalizer->SetAnimKitId(animKit, false);
 
                 map->AddToMap(finalizer);
+
+                // Track the finalize goober alongside the building's other spawns so DeleteGameObject removes it.
+                // Its self-delete (SetSpellId above) only fires if the player *clicks* it to finalize construction;
+                // when the building is instead activated through the Architect UI (CMSG_GARRISON_SET_BUILDING_ACTIVE
+                // -> ActivateBuilding) the goober is never used and, being otherwise untracked, would linger on the
+                // plot as the construction scaffolding overlapping the finished building. Recording its GUID here lets
+                // every building transition (activate / place / cancel / swap / upgrade) despawn it via DeleteGameObject.
+                BuildingInfo.Spawns.insert(finalizer->GetGUID());
             }
         }
     }
