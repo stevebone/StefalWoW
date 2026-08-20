@@ -1240,6 +1240,22 @@ void Garrison::ActivateBuilding(uint32 garrPlotInstanceId)
             _owner->UpdateCriteria(CriteriaType::ActivateAnyGarrisonBuilding, plot->BuildingInfo.PacketInfo->GarrBuildingID);
             // CriteriaType::ActivateGarrisonBuilding (169, Asset = GarrBuildingID).
             _owner->UpdateCriteria(CriteriaType::ActivateGarrisonBuilding, plot->BuildingInfo.PacketInfo->GarrBuildingID);
+
+            // Force the client to re-render the plot as a finished building.
+            //
+            // The client draws each plot's building shell/WMO from the plot-building landmarks in
+            // GarrisonMapDataResponse (SendMapData) combined with the building's Active/TimeBuilt in
+            // GetGarrisonInfoResult (SendInfo) - NOT from the server GameObject's model. This is the same
+            // render pipeline the render-on-entry fix drives (see garrison_generic.cpp GarrisonRenderEvent:
+            // on a seamless garrison entry the plots render empty until exactly these two packets are pushed).
+            //
+            // The lone GarrisonBuildingActivated above updates the Architect/report UI but does not make the
+            // client rebuild the plot's world WMO, so the under-construction shell stays drawn and the finished
+            // building appears merged over it (two building objects at once). Re-pushing the map data + info -
+            // the same snapshot the client would receive on entry - makes it rebuild the plot cleanly from the
+            // now-Active state, so only the completed building remains. Mirrors GarrisonRenderEvent's order.
+            SendInfo();
+            SendMapData(_owner);
         }
     }
 }
