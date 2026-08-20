@@ -2,13 +2,14 @@
 
 -- NPC: 468 Town Crier
 -- NPC: 495 Watcher Keefer
+-- NPC: 522 Morladim
 -- NPC: 576 Watcher Ladimore
 -- NPC: 828 Watcher Petras
 -- NPC: 840 Watcher Backus
 -- NPC: 887 Watcher Jordan
 -- NPC: 45771 Marus <The Pack Leader>
 
-UPDATE `creature_template` SET `MovementType` = 2 WHERE `Entry` IN (828,840,887,468,576,495);
+UPDATE `creature_template` SET `MovementType` = 2 WHERE `Entry` IN (828,840,887,468,576,495,522);
 
 UPDATE `creature_template_addon` SET `PathId` = 84000 WHERE `Entry` = 840;
 UPDATE `creature_template_addon` SET `PathId` = 88700 WHERE `Entry` = 887;
@@ -16,20 +17,45 @@ UPDATE `creature_template_addon` SET `PathId` = 46800 WHERE `Entry` = 468;
 UPDATE `creature_template_addon` SET `PathId` = 49500 WHERE `Entry` = 495;
 UPDATE `creature_template_addon` SET `PathId` = 57600 WHERE `Entry` = 576;
 UPDATE `creature_template_addon` SET `PathId` = 82800 WHERE `Entry` = 828;
+UPDATE `creature_template_addon` SET `PathId` = 52200 WHERE `Entry` = 522;
 
-UPDATE `creature` SET `MovementType` = 2 WHERE `id` IN (828,840,887,468,576,495);
+UPDATE `creature` SET `MovementType` = 2 WHERE `id` IN (828,840,887,468,576,495,522);
 
-DELETE FROM `waypoint_path` WHERE `PathId` IN (82800,46800,57600,84000,88700,49500);
+DELETE FROM `waypoint_path` WHERE `PathId` IN (82800,46800,57600,84000,88700,49500,52200);
 INSERT INTO `waypoint_path` (`PathId`, `MoveType`, `Flags`, `Velocity`, `Comment`) VALUES
 (46800, 0, 0, 0, 'Duskwood - Town Crier'),
 (57600, 0, 0, 0, 'Duskwood - Watcher Ladimore'),
 (82800, 0, 0, 0, 'Duskwood - Watcher Petras'),
 (84000, 0, 0, 0, 'Duskwood - Watcher Backus'),
 (88700, 0, 0, 0, 'Duskwood - Watcher Jordan'),
-(49500, 0, 0, 0, 'Duskwood - Watcher Keefer');
+(49500, 0, 0, 0, 'Duskwood - Watcher Keefer'),
+(52200, 0, 0, 0, 'Duskwood - Morladim');
 
-DELETE FROM `waypoint_path_node` WHERE `PathId` IN (82800,46800,57600,84000,88700,49500);
+DELETE FROM `waypoint_path_node` WHERE `PathId` IN (82800,46800,57600,84000,88700,49500,52200);
 INSERT INTO `waypoint_path_node` (`PathId`, `NodeId`, `PositionX`, `PositionY`, `PositionZ`) VALUES
+(52200, 1, -10363.4, 359.383, 53.171),
+(52200, 2, -10371.7, 338.914, 48.4701),
+(52200, 3, -10361.1, 322.492, 48.2917),
+(52200, 4, -10358.1, 289.67, 39.8141),
+(52200, 5, -10378.5, 277.855, 37.5104),
+(52200, 6, -10407.3, 284.497, 40.8748),
+(52200, 7, -10450.9, 248.557, 32.4436),
+(52200, 8, -10465.8, 265.495, 32.4443),
+(52200, 9, -10449.3, 288.402, 36.5922),
+(52200, 10, -10474.8, 298.544, 34.4282),
+(52200, 11, -10482.9, 321.214, 33.1095),
+(52200, 12, -10466.8, 331.526, 35.6161),
+(52200, 13, -10447.1, 331.333, 40.5168),
+(52200, 14, -10428.2, 321.36, 40.9299),
+(52200, 15, -10393, 317.033, 41.0087),
+(52200, 16, -10391.8, 331.272, 42.8239),
+(52200, 17, -10395.2, 338.253, 43.6321),
+(52200, 18, -10420.1, 333.926, 42.7166),
+(52200, 19, -10445, 352.519, 40.6271),
+(52200, 20, -10422, 387.013, 45.0018),
+(52200, 21, -10388.9, 383.009, 46.9237),
+
+
 (82800, 1, -10544.3, -1337.21, 48.0143),
 (82800, 2, -10543.5, -1351.77, 50.8769),
 (82800, 3, -10542.8, -1365.05, 53.5923),

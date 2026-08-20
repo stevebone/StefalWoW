@@ -51,6 +51,8 @@ namespace Scripts::EasternKingdoms::Duskwood
         static constexpr uint32 CryForTheMoonCredit = 43969;
         static constexpr uint32 ForlornSpirit = 43923;
         static constexpr uint32 ForlornSpiritKillCredit = 43930;
+        static constexpr uint32 MorbentFel = 43761;
+        static constexpr uint32 WeakenedMorbentFel = 43762;
     }
 
     namespace Gameobjects

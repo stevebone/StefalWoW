@@ -67,6 +67,47 @@ namespace Scripts::EasternKingdoms::Duskwood
             OnCheckCast += SpellCheckCastFn(spell_call_stalvan::CheckRequirement);
         }
     };
+
+    /*######
+    ## 82130 Sacred Cleansing
+    ######*/
+
+    class spell_sacred_cleansing : public SpellScript
+    {
+        void SelectTarget(WorldObject*& target)
+        {
+            target = GetCaster()->FindNearestCreature(Creatures::MorbentFel, 15.0f, true);
+        }
+
+        SpellCastResult CheckRequirement()
+        {
+            if (GetCaster()->FindNearestCreature(Creatures::MorbentFel, 15.0f, true))
+                return SPELL_CAST_OK;
+
+            return SPELL_FAILED_BAD_TARGETS;
+        }
+
+        void HandleDummy(SpellEffIndex /*effIndex*/)
+        {
+            Unit* hitUnit = GetHitUnit();
+            if (!hitUnit || !GetCaster()->IsPlayer())
+                return;
+
+            if (Creature* target = hitUnit->ToCreature())
+                if (target->GetEntry() == Creatures::MorbentFel)
+                {
+                    target->RemoveAllAuras();
+                    target->UpdateEntry(Creatures::WeakenedMorbentFel);
+                }
+        }
+
+        void Register() override
+        {
+            OnObjectTargetSelect += SpellObjectTargetSelectFn(spell_sacred_cleansing::SelectTarget, EFFECT_0, TARGET_UNIT_NEARBY_ENTRY);
+            OnEffectHitTarget += SpellEffectFn(spell_sacred_cleansing::HandleDummy, EFFECT_0, SPELL_EFFECT_DUMMY);
+            OnCheckCast += SpellCheckCastFn(spell_sacred_cleansing::CheckRequirement);
+        }
+    };
 }
 
 void AddSC_custom_duskwood_spells()
@@ -74,4 +115,5 @@ void AddSC_custom_duskwood_spells()
     using namespace Scripts::EasternKingdoms::Duskwood;
 
     RegisterSpellScript(spell_call_stalvan);
+    RegisterSpellScript(spell_sacred_cleansing);
 }

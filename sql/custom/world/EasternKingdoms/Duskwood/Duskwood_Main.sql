@@ -12,6 +12,7 @@
 -- NPC: 300 Zzarc
 -- NPC: 315 Stalvan Mistmantle
 -- NPC: 511 Insane Ghoul
+-- NPC: 522 Morladim
 -- NPC: 533 Nightbane Shadow Weaver
 -- NPC: 604 Plague Spreader
 -- NPC: 628 Black Ravager
@@ -24,14 +25,20 @@
 -- NPC: 1270 Fetid Corpse
 -- NPC: 43704 Dire Wolf
 -- NPC: 43732 Corpseweed
+-- NPC: 43761 Morbent Fel
+-- NPC: 43762 Morbent Fel
 -- NPC: 43862 Stiches
 -- NPC: 43923 Forlorn Spirit
 -- NPC: 44016 Coalpelt Bear
 -- NPC: 44020 Barn Owl
+-- NPC: 44028 Silent Shade
+-- NPC: 44029 Clattering Coldwraith
 -- NPC: 44087 Nightbane Stalker
 -- NPC: 44089 Blackbelly Forager
+-- NPC: 44098 Writhing Terror
 -- NPC: 45582 Black Widow
 -- NPC: 45614 Anguished Spirit
+-- NPC: 45619 Morbidius
 -- NPC: 45811 Marina DeSirrus
 
 -- NPC: 43799 Lurking Worgen
@@ -48,6 +55,7 @@
 -- Quest: 26674 Mistmantle's Revenge
 -- Quest: 26760 Cry For The Moon
 -- Quest: 26777 Soothing Spirits
+-- Quest: 26754 Morbent's Bane
 
 -- Phase: 245 Stiches Attacks
 
@@ -85,13 +93,13 @@ INSERT INTO `conditions` VALUES
 DELETE FROM `creature_template_difficulty` WHERE `DifficultyID` = 1 AND `Entry` IN (
 48, 202, 203, 217, 511, 533, 898, 930, 1270, 43704, 43732, 44087, 44089, 628, 1251, 
 212, 44020, 300, 889, 45582, 44016, 210, 604, 948, 3, 218, 45811, 43862, 206, 920,
-315, 43923, 45614, 43814
+315, 43923, 45614, 43814, 522, 45619, 44028, 44098, 44029, 43761, 43762
 );
 
 UPDATE `creature_template_difficulty` SET `DamageModifier` = 0.2 WHERE `Entry` IN (
 48, 202, 203, 217, 511, 533, 898, 930, 1270, 43704, 43732, 44087, 44089, 628, 1251, 
 212, 44020, 300, 889, 45582, 44016, 210, 604, 948, 3, 218, 45811, 43862, 206, 920,
-315, 43923, 45614, 43814
+315, 43923, 45614, 43814, 522, 45619, 44028, 44098, 44029, 43761, 43762
 );
 
 UPDATE `creature_template_difficulty` SET `SkinLootID` = 3 WHERE `Entry` IN (43704,44016);
@@ -103,6 +111,11 @@ UPDATE `creature_template_difficulty` SET `LootID` = 45811 WHERE `Entry` = 45811
 UPDATE `creature_template_difficulty` SET `LootID` = 43862, `GoldMin` = 300, `GoldMax` = 400 WHERE `Entry` = 43862;
 UPDATE `creature_template_difficulty` SET `LootID` = 43923, `GoldMin` = 500, `GoldMax` = 800 WHERE `Entry` = 43923;
 UPDATE `creature_template_difficulty` SET `LootID` = 45614, `GoldMin` = 500, `GoldMax` = 800 WHERE `Entry` = 45614;
+UPDATE `creature_template_difficulty` SET `LootID` = 45619, `GoldMin` = 600, `GoldMax` = 800 WHERE `Entry` = 45619;
+UPDATE `creature_template_difficulty` SET `LootID` = 44028, `GoldMin` = 300, `GoldMax` = 400 WHERE `Entry` = 44028;
+UPDATE `creature_template_difficulty` SET `LootID` = 44098, `GoldMin` = 300, `GoldMax` = 400 WHERE `Entry` = 44098;
+UPDATE `creature_template_difficulty` SET `LootID` = 44029, `GoldMin` = 400, `GoldMax` = 500 WHERE `Entry` = 44029;
+UPDATE `creature_template_difficulty` SET `LootID` = 43761, `GoldMin` = 500, `GoldMax` = 800 WHERE `Entry` = 43761;
 
 -- Remove incorrect template flags
 UPDATE `creature_template` SET `unit_flags` = 0 WHERE `entry` IN (44089);
@@ -125,11 +138,19 @@ DELETE FROM `creature` WHERE `id` IN (43799);
 
 -- New Creature Spawns
 SET @CGUID := 900000;
-DELETE FROM `creature` WHERE `guid` IN (@CGUID+1246,@CGUID+3142);
+DELETE FROM `creature` WHERE `guid` IN (@CGUID+1246,@CGUID+3142,@CGUID+3143,@CGUID+3144,@CGUID+3145,@CGUID+3146);
 INSERT INTO `creature` (`guid`, `id`, `map`, `zoneId`, `areaId`, `spawnDifficulties`, `phaseUseFlags`, `phaseId`, `phaseGroup`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`) VALUES
 -- Marus <The Pack Leader>
 (@CGUID+1246, 45771, 0, 10, 241, 0, 0, 0, 0, 1, -11065.4, -778.968, 63.8591, 5.47845, 3600),
-(@CGUID+3142, 43861, 0, 10, 94, 0, 0, 0, 0, 0, -10761.7, 337.977, 37.8645, 5.2709, 180);
+
+(@CGUID+3142, 43861, 0, 10, 94, 0, 0, 0, 0, 0, -10761.7, 337.977, 37.8645, 5.2709, 180),
+
+-- Battle Pet Trainer Eric Davidson and pets
+(@CGUID+3143, 65655, 0, 10, 492, 0, 0, 0, 0, 0, -10518.2, 296.562, 31.2232, 3.20364, 180),
+(@CGUID+3144, 65662, 0, 10, 492, 0, 0, 0, 0, 0, -10520.6, 296.173, 31.2188, 3.33814, 180),
+(@CGUID+3145, 65664, 0, 10, 492, 0, 0, 0, 0, 0, -10518.9, 294.727, 31.361, 3.11331, 180),
+(@CGUID+3146, 65665, 0, 10, 492, 0, 0, 0, 0, 0, -10519.5, 298.644, 31.044, 3.24237, 180);
+
 
 -- Creature Spawn Fixes
 UPDATE creature
@@ -146,7 +167,7 @@ UPDATE creature
 SET MovementType = 1,
     wander_distance = 3
 WHERE id IN (
-    494,228,886,999,2470,3137,885,1673
+    494,228,886,999,2470,3137,885,1673,44028,44098
 );
 
 -- Specific quest related creature spawn changes
@@ -187,6 +208,11 @@ UPDATE `quest_template_addon` SET `ScriptName` = 'quest_26760_cry_for_the_moon' 
 
 -- Quest: 26777 Soothing Spirits - Script Names
 UPDATE `creature_template` SET `ScriptName` = 'npc_soothing_incense_cloud' WHERE `entry` = 43925;
+
+-- Quest: 26754 Morbent's Bane - Script Names
+DELETE FROM `spell_script_names` WHERE `ScriptName` = 'spell_sacred_cleansing';
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
+(82130, 'spell_sacred_cleansing');
 
 -- GO Spawns
 SET @OGUID := 900000;
