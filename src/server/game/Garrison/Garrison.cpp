@@ -51,6 +51,13 @@
 #include <unordered_set>
 #include <vector>
 
+// Retail's far-PAST sentinel StartTime for an OFFERED (not-yet-started) mission. It goes out on the
+// wire (SMSG_GARRISON_ADD_MISSION_RESULT / mission list) so the client renders no bogus start timer,
+// but it must NEVER be persisted: character_garrison_missions.startTime cannot represent a ~year-0
+// Unix timestamp (out of column range -> DB error 1264). Offered missions persist 0 instead and the
+// sentinel is re-applied on load; a started mission persists its real GameTime start.
+static constexpr int64 GARRISON_MISSION_OFFERED_START_TIME_SENTINEL = int64(-62169984000);
+
 Garrison::Garrison(Player* owner) : _owner(owner), _garrType(GARRISON_TYPE_GARRISON), _siteLevel(nullptr), _followerActivationsRemainingToday(1), _conservatory(owner), _abominationFactory(owner), _pathOfAscension(owner), _emberCourt(owner)
 {
     // Fire the first periodic pass on the very next tick after login (instead of waiting a full interval),
@@ -331,6 +338,12 @@ bool Garrison::LoadFromDB(PreparedQueryResult garrison, PreparedQueryResult blue
             mission.PacketInfo.TravelDuration = Seconds(fields[6].GetInt32());
             mission.PacketInfo.MissionDuration = Seconds(fields[7].GetInt32());
             mission.PacketInfo.MissionState = fields[8].GetInt32();
+
+            // An offered (not-started) mission is persisted with startTime 0 (the wire sentinel is out of
+            // DB column range). Re-apply the far-past sentinel on load so SMSG mission data matches what
+            // AddMission originally sent and the client renders no bogus start timer.
+            if (mission.PacketInfo.MissionState == 0)
+                mission.PacketInfo.StartTime = time_t(GARRISON_MISSION_OFFERED_START_TIME_SENTINEL);
             mission.PacketInfo.SuccessChance = fields[9].GetInt32();
 
             // Register the rec id in the duplicate guard. AddMission consults _activeMissionRecIDs to refuse
@@ -535,7 +548,16 @@ void Garrison::SaveToDB(CharacterDatabaseTransaction trans)
         stmt->setUInt32(index++, mission.PacketInfo.MissionRecID);
         stmt->setInt64(index++, mission.PacketInfo.OfferTime);
         stmt->setInt32(index++, static_cast<int32>(Seconds(mission.PacketInfo.OfferDuration).count()));
-        stmt->setInt64(index++, mission.PacketInfo.StartTime);
+        // A not-yet-started mission (MissionState 0 == Offered) carries the far-past wire sentinel in
+        // StartTime; that value is out of range for the DB column and must NOT be written. Persist 0 for
+        // any mission that hasn't actually started; a started mission writes its real GameTime start.
+        // (Also defends against the raw sentinel arriving via any other not-started state.)
+        int64 const persistStartTime =
+            (mission.PacketInfo.MissionState == 0
+                || int64(mission.PacketInfo.StartTime) == GARRISON_MISSION_OFFERED_START_TIME_SENTINEL)
+            ? int64(0)
+            : int64(mission.PacketInfo.StartTime);
+        stmt->setInt64(index++, persistStartTime);
         stmt->setInt32(index++, static_cast<int32>(Seconds(mission.PacketInfo.TravelDuration).count()));
         stmt->setInt32(index++, static_cast<int32>(Seconds(mission.PacketInfo.MissionDuration).count()));
         stmt->setInt32(index++, mission.PacketInfo.MissionState);
@@ -1619,6 +1641,31 @@ void Garrison::SendInfo() const
     SendMissionStartConditionUpdate();
 }
 
+void Garrison::ReapplyBuildingCriteria()
+{
+    // The WoD profession-building quests complete through CRITERIA_TREE quest objectives:
+    //   36100 / 37669 "Building for Professions"  -> CriteriaType::PlaceGarrisonBuilding    (asset = L1 profession building)
+    //   34670          "Professional Processing"  -> CriteriaType::ActivateGarrisonBuilding (asset = L1 profession building)
+    // PlaceBuilding / ActivateBuilding already fire those criteria at build time, but they are event-driven
+    // only - CriteriaMgr::GetRetroactivelyUpdateableCriteriaTypes deliberately excludes the garrison building
+    // criteria. So if the player already owned the profession building when the quest was accepted, the
+    // one-time build event is gone and the objective can never be credited -> "building is built but the
+    // quest never completes". Re-assert the criteria for every building currently owned whenever the garrison
+    // state is (re)sent (garrison entry / login). This is safe to repeat: an already-completed or not-on-quest
+    // objective is rejected by CanUpdateCriteriaTree, and the asset match (miscValue1 == GarrBuildingID) means
+    // only the criteria for a building the player actually owns can advance - so nothing over-credits.
+    for (auto const& [plotInstanceId, plot] : _plots)
+    {
+        if (!plot.BuildingInfo.PacketInfo)
+            continue;
+
+        uint32 buildingId = plot.BuildingInfo.PacketInfo->GarrBuildingID;
+        _owner->UpdateCriteria(CriteriaType::PlaceGarrisonBuilding, buildingId);
+        if (plot.BuildingInfo.PacketInfo->Active)
+            _owner->UpdateCriteria(CriteriaType::ActivateGarrisonBuilding, buildingId);
+    }
+}
+
 void Garrison::SendBlueprintAndSpecializationData()
 {
     WorldPackets::Garrison::GarrisonRequestBlueprintAndSpecializationDataResult data;
@@ -2070,8 +2117,9 @@ void Garrison::AddMission(uint32 garrMissionId)
     // Sentinel StartTime for an offered (not-yet-started) mission. The client keys "offered" off
     // MissionState == 0 and does not render a start timer for it, but the value should still match
     // retail's far-PAST sentinel (~year 0) rather than the old far-FUTURE ~2042 value (2288912640),
-    // which could render as a bogus future start if a client ever read it.
-    mission.PacketInfo.StartTime = time_t(-62169984000);
+    // which could render as a bogus future start if a client ever read it. This is a WIRE-only value;
+    // SaveToDB persists 0 for a not-started mission (see GARRISON_MISSION_OFFERED_START_TIME_SENTINEL).
+    mission.PacketInfo.StartTime = time_t(GARRISON_MISSION_OFFERED_START_TIME_SENTINEL);
     // Command Table tier 2 (GarrAbility 1273 'Strategic Genius', GarrAbilityEffect 1843: AbilityAction 17,
     // ActionValueFlat 0.75) multiplies the travel duration of a Shadowlands adventure. Applied at offer time so
     // the discounted value is what persists and round-trips (character_garrison_missions.travelDuration).

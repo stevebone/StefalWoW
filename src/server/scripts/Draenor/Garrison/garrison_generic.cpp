@@ -213,6 +213,11 @@ public:
                 {
                     garrison->SendInfo();           // GetGarrisonInfoResult (+ mission/troop refresh) - the login snapshot
                     garrison->SendMapData(_player);  // GarrisonMapDataResponse - drives the plot-building WMO rendering
+                    // Retroactively credit building-based quest objectives (e.g. "Building for Professions")
+                    // for buildings the player already owned before accepting the quest - the Place/Activate
+                    // criteria are not retroactive, so without this a pre-built profession building leaves the
+                    // quest permanently stuck. Idempotent; see Garrison::ReapplyBuildingCriteria.
+                    garrison->ReapplyBuildingCriteria();
                     break;
                 }
             }

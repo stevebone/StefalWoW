@@ -621,6 +621,12 @@ public:
     void SendMissionStartConditionUpdate() const;
     void SendTroopQualityRefresh() const;
 
+    // Re-assert PlaceGarrisonBuilding / ActivateGarrisonBuilding criteria for every building the player
+    // currently owns. These criteria are event-driven only (not retroactive), so a building built before
+    // its crediting quest was accepted would leave that quest permanently stuck; call this at garrison
+    // entry/login so a freshly-accepted quest can catch up. Idempotent (see the .cpp for why).
+    void ReapplyBuildingCriteria();
+
     void ResetFollowerActivationLimit() { _followerActivationsRemainingToday = 1; }
     uint32 GetFollowerActivationsRemaining() const { return _followerActivationsRemainingToday; }
 
