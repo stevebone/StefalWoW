@@ -89,22 +89,20 @@ namespace Scripts::EasternKingdoms::Duskwood
 
         void HandleDummy(SpellEffIndex /*effIndex*/)
         {
-            Unit* hitUnit = GetHitUnit();
-            if (!hitUnit || !GetCaster()->IsPlayer())
+            if (!GetCaster()->IsPlayer())
                 return;
 
-            if (Creature* target = hitUnit->ToCreature())
-                if (target->GetEntry() == Creatures::MorbentFel)
-                {
-                    target->RemoveAllAuras();
-                    target->UpdateEntry(Creatures::WeakenedMorbentFel);
-                }
+            if (Creature* target = GetCaster()->FindNearestCreature(Creatures::MorbentFel, 15.0f, true))
+            {
+                target->RemoveAllAuras();
+                target->UpdateEntry(Creatures::WeakenedMorbentFel);
+            }
         }
 
         void Register() override
         {
             OnObjectTargetSelect += SpellObjectTargetSelectFn(spell_sacred_cleansing::SelectTarget, EFFECT_0, TARGET_UNIT_NEARBY_ENTRY);
-            OnEffectHitTarget += SpellEffectFn(spell_sacred_cleansing::HandleDummy, EFFECT_0, SPELL_EFFECT_DUMMY);
+            OnEffectHit += SpellEffectFn(spell_sacred_cleansing::HandleDummy, EFFECT_0, SPELL_EFFECT_DUMMY);
             OnCheckCast += SpellCheckCastFn(spell_sacred_cleansing::CheckRequirement);
         }
     };
