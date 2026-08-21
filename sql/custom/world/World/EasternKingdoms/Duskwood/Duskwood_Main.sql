@@ -146,8 +146,8 @@ INSERT INTO `creature` (`guid`, `id`, `map`, `zoneId`, `areaId`, `spawnDifficult
 (@CGUID+3142, 43861, 0, 10, 94, 0, 0, 0, 0, 0, -10761.7, 337.977, 37.8645, 5.2709, 180),
 
 -- Battle Pet Trainer Eric Davidson and pets
-(@CGUID+3143, 65655, 0, 10, 492, 0, 0, 0, 0, 0, -10518.2, 296.562, 31.2232, 3.20364, 180),
-(@CGUID+3144, 65662, 0, 10, 492, 0, 0, 0, 0, 0, -10520.6, 296.173, 31.2188, 3.33814, 180),
+(@CGUID+3143, 65655, 0, 10, 492, 0, 0, 0, 0, 0, -10520.6, 296.173, 31.2188, 3.33814, 180),
+(@CGUID+3144, 65662, 0, 10, 492, 0, 0, 0, 0, 0, -10518.2, 296.562, 31.2232, 3.20364, 180),
 (@CGUID+3145, 65664, 0, 10, 492, 0, 0, 0, 0, 0, -10518.9, 294.727, 31.361, 3.11331, 180),
 (@CGUID+3146, 65665, 0, 10, 492, 0, 0, 0, 0, 0, -10519.5, 298.644, 31.044, 3.24237, 180);
 
@@ -213,6 +213,21 @@ UPDATE `creature_template` SET `ScriptName` = 'npc_soothing_incense_cloud' WHERE
 DELETE FROM `spell_script_names` WHERE `ScriptName` = 'spell_sacred_cleansing';
 INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 (82130, 'spell_sacred_cleansing');
+
+-- Quest 26797 A Daughter's Love - SAI
+UPDATE `quest_template_addon` SET `ScriptName` = 'SmartQuest' WHERE `ID` = 26797;
+DELETE FROM `smart_scripts` WHERE `entryorguid` = 26797 AND `source_type` = 5 AND `id` = 0;
+INSERT INTO `smart_scripts` (
+    `entryorguid`, `source_type`, `id`,
+    `event_type`, `action_type`, `action_param1`, `action_param2`, `action_param3`,
+    `target_type`, `target_x`, `target_y`, `target_z`, `target_o`,
+    `comment`
+) VALUES (
+    26797, 5, 0,
+    50, 12, 3301, 3, 30000,
+    8, -10237.4677, 353.4848, 50.8473, 2.5317,
+    'Quest 26797 completion - Summon NPC 3301 at position'
+);
 
 -- GO Spawns
 SET @OGUID := 900000;
