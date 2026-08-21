@@ -25,45 +25,45 @@
 -- (original data omitted MoP; omission preserved pending retail verification)
 DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId`=25 AND `SourceEntry`=1190;
 INSERT INTO `conditions` (`SourceTypeOrReferenceId`,`SourceGroup`,`SourceEntry`,`SourceId`,`ElseGroup`,`ConditionTypeOrReference`,`ConditionTarget`,`ConditionValue1`,`ConditionValue2`,`ConditionValue3`,`NegativeCondition`,`ErrorType`,`ErrorTextId`,`ScriptName`,`Comment`) VALUES
-(25,0,1190,0,0,60,0,6,0,0,1,0,0,'','Blasted Lands WoD terrain: not active in TBC CT'),
-(25,0,1190,0,0,60,0,7,0,0,1,0,0,'','Blasted Lands WoD terrain: not active in WotLK CT'),
-(25,0,1190,0,0,60,0,5,0,0,1,0,0,'','Blasted Lands WoD terrain: not active in Cata CT');
+(25,0,1190,0,0,61,0,6,0,0,1,0,0,'','Blasted Lands WoD terrain: not active in TBC CT'),
+(25,0,1190,0,0,61,0,7,0,0,1,0,0,'','Blasted Lands WoD terrain: not active in WotLK CT'),
+(25,0,1190,0,0,61,0,5,0,0,1,0,0,'','Blasted Lands WoD terrain: not active in Cata CT');
 
 -- Silithus: The Wound (1817): not active for pre-BfA CT (TBC..Legion)
 DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId`=25 AND `SourceEntry`=1817;
 INSERT INTO `conditions` (`SourceTypeOrReferenceId`,`SourceGroup`,`SourceEntry`,`SourceId`,`ElseGroup`,`ConditionTypeOrReference`,`ConditionTarget`,`ConditionValue1`,`ConditionValue2`,`ConditionValue3`,`NegativeCondition`,`ErrorType`,`ErrorTextId`,`ScriptName`,`Comment`) VALUES
-(25,0,1817,0,0,60,0,6,0,0,1,0,0,'','Silithus Wound terrain: not active in TBC CT'),
-(25,0,1817,0,0,60,0,7,0,0,1,0,0,'','Silithus Wound terrain: not active in WotLK CT'),
-(25,0,1817,0,0,60,0,5,0,0,1,0,0,'','Silithus Wound terrain: not active in Cata CT'),
-(25,0,1817,0,0,60,0,8,0,0,1,0,0,'','Silithus Wound terrain: not active in MoP CT'),
-(25,0,1817,0,0,60,0,9,0,0,1,0,0,'','Silithus Wound terrain: not active in WoD CT'),
-(25,0,1817,0,0,60,0,10,0,0,1,0,0,'','Silithus Wound terrain: not active in Legion CT');
+(25,0,1817,0,0,61,0,6,0,0,1,0,0,'','Silithus Wound terrain: not active in TBC CT'),
+(25,0,1817,0,0,61,0,7,0,0,1,0,0,'','Silithus Wound terrain: not active in WotLK CT'),
+(25,0,1817,0,0,61,0,5,0,0,1,0,0,'','Silithus Wound terrain: not active in Cata CT'),
+(25,0,1817,0,0,61,0,8,0,0,1,0,0,'','Silithus Wound terrain: not active in MoP CT'),
+(25,0,1817,0,0,61,0,9,0,0,1,0,0,'','Silithus Wound terrain: not active in WoD CT'),
+(25,0,1817,0,0,61,0,10,0,0,1,0,0,'','Silithus Wound terrain: not active in Legion CT');
 
 -- Stormwind Gunship Pandaria Start (1066): not active for pre-MoP CT
 DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId`=25 AND `SourceEntry`=1066;
 INSERT INTO `conditions` (`SourceTypeOrReferenceId`,`SourceGroup`,`SourceEntry`,`SourceId`,`ElseGroup`,`ConditionTypeOrReference`,`ConditionTarget`,`ConditionValue1`,`ConditionValue2`,`ConditionValue3`,`NegativeCondition`,`ErrorType`,`ErrorTextId`,`ScriptName`,`Comment`) VALUES
-(25,0,1066,0,0,60,0,6,0,0,1,0,0,'','SW Gunship MoP terrain: not active in TBC CT'),
-(25,0,1066,0,0,60,0,7,0,0,1,0,0,'','SW Gunship MoP terrain: not active in WotLK CT'),
-(25,0,1066,0,0,60,0,5,0,0,1,0,0,'','SW Gunship MoP terrain: not active in Cata CT');
+(25,0,1066,0,0,61,0,6,0,0,1,0,0,'','SW Gunship MoP terrain: not active in TBC CT'),
+(25,0,1066,0,0,61,0,7,0,0,1,0,0,'','SW Gunship MoP terrain: not active in WotLK CT'),
+(25,0,1066,0,0,61,0,5,0,0,1,0,0,'','SW Gunship MoP terrain: not active in Cata CT');
 
 -- Orgrimmar Gunship Pandaria Start (1074): not active for pre-MoP CT
 DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId`=25 AND `SourceEntry`=1074;
 INSERT INTO `conditions` (`SourceTypeOrReferenceId`,`SourceGroup`,`SourceEntry`,`SourceId`,`ElseGroup`,`ConditionTypeOrReference`,`ConditionTarget`,`ConditionValue1`,`ConditionValue2`,`ConditionValue3`,`NegativeCondition`,`ErrorType`,`ErrorTextId`,`ScriptName`,`Comment`) VALUES
-(25,0,1074,0,0,60,0,6,0,0,1,0,0,'','Org Gunship MoP terrain: not active in TBC CT'),
-(25,0,1074,0,0,60,0,7,0,0,1,0,0,'','Org Gunship MoP terrain: not active in WotLK CT'),
-(25,0,1074,0,0,60,0,5,0,0,1,0,0,'','Org Gunship MoP terrain: not active in Cata CT');
+(25,0,1074,0,0,61,0,6,0,0,1,0,0,'','Org Gunship MoP terrain: not active in TBC CT'),
+(25,0,1074,0,0,61,0,7,0,0,1,0,0,'','Org Gunship MoP terrain: not active in WotLK CT'),
+(25,0,1074,0,0,61,0,5,0,0,1,0,0,'','Org Gunship MoP terrain: not active in Cata CT');
 
 -- Twilight Highlands Dragonmaw Port (736): not active for pre-Cata CT
 DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId`=25 AND `SourceEntry`=736;
 INSERT INTO `conditions` (`SourceTypeOrReferenceId`,`SourceGroup`,`SourceEntry`,`SourceId`,`ElseGroup`,`ConditionTypeOrReference`,`ConditionTarget`,`ConditionValue1`,`ConditionValue2`,`ConditionValue3`,`NegativeCondition`,`ErrorType`,`ErrorTextId`,`ScriptName`,`Comment`) VALUES
-(25,0,736,0,0,60,0,6,0,0,1,0,0,'','TH Dragonmaw terrain: not active in TBC CT'),
-(25,0,736,0,0,60,0,7,0,0,1,0,0,'','TH Dragonmaw terrain: not active in WotLK CT');
+(25,0,736,0,0,61,0,6,0,0,1,0,0,'','TH Dragonmaw terrain: not active in TBC CT'),
+(25,0,736,0,0,61,0,7,0,0,1,0,0,'','TH Dragonmaw terrain: not active in WotLK CT');
 
 -- Mount Hyjal default terrain (719): not active for pre-Cata CT
 DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId`=25 AND `SourceEntry`=719;
 INSERT INTO `conditions` (`SourceTypeOrReferenceId`,`SourceGroup`,`SourceEntry`,`SourceId`,`ElseGroup`,`ConditionTypeOrReference`,`ConditionTarget`,`ConditionValue1`,`ConditionValue2`,`ConditionValue3`,`NegativeCondition`,`ErrorType`,`ErrorTextId`,`ScriptName`,`Comment`) VALUES
-(25,0,719,0,0,60,0,6,0,0,1,0,0,'','Hyjal terrain: not active in TBC CT'),
-(25,0,719,0,0,60,0,7,0,0,1,0,0,'','Hyjal terrain: not active in WotLK CT');
+(25,0,719,0,0,61,0,6,0,0,1,0,0,'','Hyjal terrain: not active in TBC CT'),
+(25,0,719,0,0,61,0,7,0,0,1,0,0,'','Hyjal terrain: not active in WotLK CT');
 
 -- ============================================================================
 -- Chromie (167032) gossip menu 25426 — retail option layout (capture A @68275):
@@ -87,9 +87,9 @@ INSERT INTO `gossip_menu_option` (`MenuID`,`GossipOptionID`,`OptionID`,`OptionNp
 -- 51901 only while NOT in Chromie Time; 51902/51903 only while in Chromie Time.
 DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId`=15 AND `SourceGroup`=25426;
 INSERT INTO `conditions` (`SourceTypeOrReferenceId`,`SourceGroup`,`SourceEntry`,`SourceId`,`ElseGroup`,`ConditionTypeOrReference`,`ConditionTarget`,`ConditionValue1`,`ConditionValue2`,`ConditionValue3`,`NegativeCondition`,`ErrorType`,`ErrorTextId`,`ScriptName`,`Comment`) VALUES
-(15,25426,0,0,0,60,0,0,0,0,1,0,0,'','Chromie: Select a timeline - only while not in Chromie Time'),
-(15,25426,1,0,0,60,0,0,0,0,0,0,0,'','Chromie: Select a different timeline - only while in Chromie Time'),
-(15,25426,2,0,0,60,0,0,0,0,0,0,0,'','Chromie: Return to the present - only while in Chromie Time');
+(15,25426,0,0,0,61,0,0,0,0,1,0,0,'','Chromie: Select a timeline - only while not in Chromie Time'),
+(15,25426,1,0,0,61,0,0,0,0,0,0,0,'','Chromie: Select a different timeline - only while in Chromie Time'),
+(15,25426,2,0,0,61,0,0,0,0,0,0,0,'','Chromie: Return to the present - only while in Chromie Time');
 
 -- ============================================================================
 -- Dragonflight Chromie Time phases 16439/16440 (capture A rec 4621: DF select
@@ -109,8 +109,8 @@ INSERT INTO `phase_area` (`AreaId`,`PhaseId`,`Comment`) VALUES
 
 DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId`=26 AND `SourceGroup` IN (16439,16440);
 INSERT INTO `conditions` (`SourceTypeOrReferenceId`,`SourceGroup`,`SourceEntry`,`SourceId`,`ElseGroup`,`ConditionTypeOrReference`,`ConditionTarget`,`ConditionValue1`,`ConditionValue2`,`ConditionValue3`,`NegativeCondition`,`ErrorType`,`ErrorTextId`,`ScriptName`,`Comment`) VALUES
-(26,16439,0,0,0,60,0,16,0,0,0,0,0,'','Phase 16439 only in Dragonflight Chromie Time'),
-(26,16440,0,0,0,60,0,16,0,0,0,0,0,'','Phase 16440 only in Dragonflight Chromie Time');
+(26,16439,0,0,0,61,0,16,0,0,0,0,0,'','Phase 16439 only in Dragonflight Chromie Time'),
+(26,16440,0,0,0,61,0,16,0,0,0,0,0,'','Phase 16440 only in Dragonflight Chromie Time');
 
 
 -- ============================================================================
