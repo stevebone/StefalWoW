@@ -6,7 +6,7 @@
 -- Template Fixes
 UPDATE `creature_template` SET `unit_flags` = 537133824, `unit_flags2` = 2049, unit_flags3 = 8192 WHERE `entry` IN (48147,48148,47485);
 
-UPDATE creature_template_difficulty SET StaticFlags1 = StaticFlags1 | 0x20000000 WHERE Entry IN (48147,48148,48155,48104,41097,48188,48166);
+UPDATE creature_template_difficulty SET StaticFlags1 = StaticFlags1 | 0x20000000 WHERE Entry IN (48147,48148,48155,48104,41097,48188,48166,48137,48138);
 UPDATE creature_template_difficulty SET StaticFlags1 = StaticFlags1 | 0x10000000 WHERE Entry IN (48188,50741);
 
 -- Creature Fixes
@@ -33,11 +33,11 @@ INSERT INTO `creature` (`guid`, `id`, `map`, `zoneId`, `areaId`, `equipment_id`,
 
 -- Spawn Pools
 SET @POOLID := 900000;
-DELETE FROM `pool_template` WHERE `entry` BETWEEN @POOLID+17 AND @POOLID+17;
+DELETE FROM `pool_template` WHERE `entry` = @POOLID+17;
 INSERT INTO `pool_template` (`entry`, `max_limit`, `description`) VALUES 
 (@POOLID+17, 1, 'Thousand Needles - Krkk''kx (entry 4132)');
 
-DELETE FROM `pool_members` WHERE `poolSpawnId` BETWEEN @POOLID+17 AND @POOLID+17;
+DELETE FROM `pool_members` WHERE `poolSpawnId` = @POOLID+17;
 INSERT INTO `pool_members` (`type`, `spawnId`, `poolSpawnId`, `chance`, `description`) VALUES 
 (0, @CGUID+3162, @POOLID+17, 0, 'Thousand Needles - Krkk''kx (entry 4132)'), 
 (0, @CGUID+3163, @POOLID+17, 0, 'Thousand Needles - Krkk''kx (entry 4132)'), 
