@@ -45,12 +45,17 @@ INSERT INTO `pool_members` (`type`, `spawnId`, `poolSpawnId`, `chance`, `descrip
 (0, @CGUID+3165, @POOLID+17, 0, 'Thousand Needles - Krkk''kx (entry 4132)'), 
 (0, @CGUID+3166, @POOLID+17, 0, 'Thousand Needles - Krkk''kx (entry 4132)');
 
--- creature addons
-DELETE FROM `creature_addon` WHERE `guid` IN (331350,331354,331349);
-INSERT INTO `creature_addon` (`guid`, `emote`) VALUES 
-(331350, 379),
-(331354, 379),
-(331349, 379);
+DELETE FROM smart_scripts WHERE entryorguid IN (-331350,-331354,-331349) AND source_type = 0;
+INSERT INTO smart_scripts (entryorguid, source_type, id, link, Difficulties, event_type, event_phase_mask, event_chance, event_flags, event_param1, event_param2, event_param3, event_param4, event_param5, event_param_string, action_type, action_param1, action_param2, action_param3, action_param4, action_param5, action_param6, action_param7, action_param_string, target_type, target_param1, target_param2, target_param3, target_param4, target_param_string, target_x, target_y, target_z, target_o, comment) VALUES
+(-331350, 0, 0, 0, '', 0, 0, 100, 0, 3500, 4500, 12000, 13000, 0, '', 11, 74759, 0, 0, 0, 0, 0, 0, NULL, 2, 0, 0, 0, 0, NULL, 0, 0, 0, 0, 'Southsea Sailor - In Combat - Cast ''Bottle of Grog'''),
+(-331350, 0, 1, 0, '', 2, 0, 100, 1, 0, 15, 0, 0, 0, '', 25, 1, 0, 0, 0, 0, 0, 0, NULL, 0, 0, 0, 0, 0, NULL, 0, 0, 0, 0, 'Southsea Sailor - Between 0-15% Health - Flee For Assist (No Repeat)'),
+(-331350, 0, 2, 0, '', 1, 0, 100, 0, 5000, 10000, 120000, 150000, 0, '', 11, 1252746, 0, 0, 0, 0, 0, 0, NULL, 1, 0, 0, 0, 0, NULL, 0, 0, 0, 0, 'OOC - Cast spell 1252746 on self'),
+(-331354, 0, 0, 0, '', 0, 0, 100, 0, 3500, 4500, 12000, 13000, 0, '', 11, 74759, 0, 0, 0, 0, 0, 0, NULL, 2, 0, 0, 0, 0, NULL, 0, 0, 0, 0, 'Southsea Sailor - In Combat - Cast ''Bottle of Grog'''),
+(-331354, 0, 1, 0, '', 2, 0, 100, 1, 0, 15, 0, 0, 0, '', 25, 1, 0, 0, 0, 0, 0, 0, NULL, 0, 0, 0, 0, 0, NULL, 0, 0, 0, 0, 'Southsea Sailor - Between 0-15% Health - Flee For Assist (No Repeat)'),
+(-331354, 0, 2, 0, '', 1, 0, 100, 0, 5000, 10000, 120000, 150000, 0, '', 11, 1252746, 0, 0, 0, 0, 0, 0, NULL, 1, 0, 0, 0, 0, NULL, 0, 0, 0, 0, 'OOC - Cast spell 1252746 on self'),
+(-331349, 0, 0, 0, '', 0, 0, 100, 0, 3500, 4500, 12000, 13000, 0, '', 11, 74759, 0, 0, 0, 0, 0, 0, NULL, 2, 0, 0, 0, 0, NULL, 0, 0, 0, 0, 'Southsea Sailor - In Combat - Cast ''Bottle of Grog'''),
+(-331349, 0, 1, 0, '', 2, 0, 100, 1, 0, 15, 0, 0, 0, '', 25, 1, 0, 0, 0, 0, 0, 0, NULL, 0, 0, 0, 0, 0, NULL, 0, 0, 0, 0, 'Southsea Sailor - Between 0-15% Health - Flee For Assist (No Repeat)'),
+(-331349, 0, 2, 0, '', 1, 0, 100, 0, 5000, 10000, 120000, 150000, 0, '', 11, 1252746, 0, 0, 0, 0, 0, 0, NULL, 1, 0, 0, 0, 0, NULL, 0, 0, 0, 0, 'OOC - Cast spell 1252746 on self');
 
 -- Position Fixes
 UPDATE creature SET position_x = -4858.45, position_y = -2243.861, position_z = 59.14572, orientation = 3.0353801 WHERE guid = 329571;

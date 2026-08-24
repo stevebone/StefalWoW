@@ -82,7 +82,6 @@ WHERE id IN (
 );
 
 -- Paths
--- [04.08.2026 21:09:25] wayadd: PathId=3291961528 -> entry 5835 (spawn 303533)
 
 UPDATE `creature` SET `MovementType` = 2 WHERE `guid` = 303533;
 
