@@ -3407,6 +3407,7 @@ struct PhaseXPhaseGroupEntry
 struct PlayerCompanionInfoEntry
 {
     LocalizedString UnlockDescription;
+    LocalizedString Field_001;
     uint32 ID;
     int32 DelvesSeasonID;
     int32 TraitTreeID;
@@ -3420,6 +3421,7 @@ struct PlayerCompanionInfoEntry
     int32 UiModelSceneID;
     int32 Field_011;
     int32 Field_012;
+    int32 FlavorNodeID;
     uint32 Field_014;
 };
 

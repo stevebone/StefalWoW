@@ -1429,12 +1429,12 @@ void HotfixDatabaseConnection::DoPrepareStatements()
     PREPARE_MAX_ID_STMT(HOTFIX_SEL_PHASE_X_PHASE_GROUP, "SELECT MAX(ID) + 1 FROM phase_x_phase_group", CONNECTION_SYNCH);
 
     // PlayerCompanionInfo.db2
-    PrepareStatement(HOTFIX_SEL_PLAYER_COMPANION_INFO, "SELECT UnlockDescription, ID, DelvesSeasonID, TraitTreeID, TraitNodeID_DPS, TraitNodeID_Heal, "
+    PrepareStatement(HOTFIX_SEL_PLAYER_COMPANION_INFO, "SELECT UnlockDescription, Field_001, ID, DelvesSeasonID, TraitTreeID, TraitNodeID_DPS, TraitNodeID_Heal, "
         "TraitSubTreeID_DPS, TraitSubTreeID_Heal, TraitSubTreeID_Tank, FactionID, CreatureDisplayInfoID, UiModelSceneID, "
-        "Field_011, Field_012, Field_014 FROM player_companion_info"
+        "Field_011, Field_012, FlavorNodeID, Field_014 FROM player_companion_info"
         " WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
     PREPARE_MAX_ID_STMT(HOTFIX_SEL_PLAYER_COMPANION_INFO, "SELECT MAX(ID) + 1 FROM player_companion_info", CONNECTION_SYNCH);
-    PREPARE_LOCALE_STMT(HOTFIX_SEL_PLAYER_COMPANION_INFO, "SELECT ID, UnlockDescription_lang FROM player_companion_info_locale"
+    PREPARE_LOCALE_STMT(HOTFIX_SEL_PLAYER_COMPANION_INFO, "SELECT ID, UnlockDescription_lang, Field_001_lang FROM player_companion_info_locale"
         " WHERE (`VerifiedBuild` > 0) = ? AND locale = ?", CONNECTION_SYNCH);
 
     // PlayerCondition.db2

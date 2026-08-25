@@ -1648,7 +1648,7 @@ void Player::Regenerate(Powers power)
     float addvalue = GetPowerRegen(power) * 0.001f * m_regenTimer;
 
     // Vigor regen scales with forward velocity during advanced flying
-    if (power == POWER_ALTERNATE_MOUNT && m_movementInfo.HasExtraMovementFlag2(MOVEMENTFLAG3_ADV_FLYING) && m_movementInfo.advFlying)
+    if (power == POWER_ALTERNATE_MOUNT && m_movementInfo.HasMovementFlag(MOVEMENTFLAG_ADV_FLYING) && m_movementInfo.advFlying)
     {
         if (FlightCapabilityEntry const* flightCapability = sFlightCapabilityStore.LookupEntry(GetFlightCapabilityID()))
         {

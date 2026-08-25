@@ -4583,9 +4583,10 @@ struct PhaseXPhaseGroupLoadInfo
 
 struct PlayerCompanionInfoLoadInfo
 {
-    static constexpr DB2FieldMeta Fields[15] =
+    static constexpr DB2FieldMeta Fields[17] =
     {
         {.IsSigned = false, .Type = FT_STRING, .Name = "UnlockDescription" },
+        {.IsSigned = false, .Type = FT_STRING, .Name = "Field_001" },
         {.IsSigned = false, .Type = FT_INT,    .Name = "ID" },
         {.IsSigned = true,  .Type = FT_INT,    .Name = "DelvesSeasonID" },
         {.IsSigned = true,  .Type = FT_INT,    .Name = "TraitTreeID" },
@@ -4599,10 +4600,11 @@ struct PlayerCompanionInfoLoadInfo
         {.IsSigned = true,  .Type = FT_INT,    .Name = "UiModelSceneID" },
         {.IsSigned = true,  .Type = FT_INT,    .Name = "Field_011" },
         {.IsSigned = true,  .Type = FT_INT,    .Name = "Field_012" },
+        {.IsSigned = true,  .Type = FT_INT,    .Name = "FlavorNodeID" },
         {.IsSigned = false, .Type = FT_INT,    .Name = "Field_014" },
     };
 
-    static constexpr DB2LoadInfo Instance{ Fields, 15, &PlayerCompanionInfoMeta::Instance, HOTFIX_SEL_PLAYER_COMPANION_INFO };
+    static constexpr DB2LoadInfo Instance{ Fields, 17, &PlayerCompanionInfoMeta::Instance, HOTFIX_SEL_PLAYER_COMPANION_INFO };
 };
 
 struct PlayerConditionLoadInfo

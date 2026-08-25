@@ -14867,9 +14867,9 @@ void Unit::SetDriveCapabilityID(int32 driveCapabilityId, bool clientUpdate)
     SetUpdateFieldValue(m_values.ModifyValue(&Unit::m_unitData).ModifyValue(&UF::UnitData::DriveCapabilityID), driveCapabilityId);
 
     if (driveCapabilityId)
-        AddExtraUnitMovementFlag2(MOVEMENTFLAG3_CAN_DRIVE);
+        AddUnitMovementFlag(MOVEMENTFLAG_CAN_DRIVE);
     else
-        RemoveExtraUnitMovementFlag2(MOVEMENTFLAG3_CAN_DRIVE | MOVEMENTFLAG3_DRIVING_FORWARD);
+        RemoveUnitMovementFlag(MOVEMENTFLAG_CAN_DRIVE | MOVEMENTFLAG_DRIVING_FORWARD);
 
     if (!clientUpdate)
         return;
