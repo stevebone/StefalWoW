@@ -25,7 +25,13 @@
 
 #include "Followship_bots_mail_handler.h"
 
+#include "Config.h"                       // sConfigMgr
+#include "Util.h"                         // Trinity::Tokenize
+#include "StringConvert.h"                // Trinity::StringTo
+
 #include "Custom_Player_Defines.h"
+#include "Mail.h"                        // MAX_MAIL_ITEMS
+#include "Log.h"                          // TC_LOG_ERROR
 
 class player_custom_voucher_mailer : public PlayerScript
 {
@@ -219,8 +225,50 @@ public:
     }
 };
 
+class player_custom_starter_kit_mailer : public PlayerScript
+{
+public:
+    player_custom_starter_kit_mailer() : PlayerScript("player_custom_starter_kit_mailer") { }
+
+    void OnLogin(Player* player, bool firstLogin) override
+    {
+        if (!firstLogin)
+            return;
+
+        std::string configValue = sConfigMgr->GetStringDefault("PlayerStart.StarterKit", "");
+        if (configValue.empty())
+            return;
+
+        std::vector<std::pair<uint32, uint32>> items;
+        for (std::string_view token : Trinity::Tokenize(configValue, ',', false))
+        {
+            Optional<uint32> itemId = Trinity::StringTo<uint32>(token);
+            if (itemId && *itemId)
+                items.emplace_back(*itemId, 1);
+        }
+
+        if (items.empty())
+            return;
+
+        if (items.size() > MAX_MAIL_ITEMS)
+        {
+            TC_LOG_ERROR("server.loading", "PlayerStart.StarterKit has {} items configured, but max mail items is {}. Only the first {} will be sent.",
+                items.size(), MAX_MAIL_ITEMS, MAX_MAIL_ITEMS);
+            items.resize(MAX_MAIL_ITEMS);
+        }
+
+        std::string subject = "A Starter Kit for Azeroth's Newest Hero";
+        std::string body = "Welcome to Azeroth, brave adventurer! The Postmaster has been expecting you. "
+            "Enclosed you will find a few essentials to help you take your first steps into this vast world. "
+            "May your journey be filled with glory and fortune!";
+
+        FSBMail::SendMail(103976, player, subject, body, items);
+    }
+};
+
 void AddSC_custom_player_mails()
 {
     new player_custom_voucher_mailer();
     new player_custom_riding_mailer();
+    new player_custom_starter_kit_mailer();
 }
