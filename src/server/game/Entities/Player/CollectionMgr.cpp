@@ -74,11 +74,21 @@ void CollectionMgr::LoadMountDefinitions()
     TC_LOG_INFO("server.loading", ">> Loaded {} mount definitions in {} ms", FactionSpecificMounts.size(), GetMSTimeDiffToNow(oldMSTime));
 }
 
-void CollectionMgr::LoadWarbandSceneDefinitions()
-{
-    for (WarbandSceneEntry const* warbandScene : sWarbandSceneStore)
-        if (warbandScene->GetFlags().HasFlag(WarbandSceneFlags::AwardedAutomatically))
-            DefaultWarbandScenes.push_back(warbandScene->ID);
+void CollectionMgr::LoadWarbandSceneDefinitions()  
+{  
+    for (WarbandSceneEntry const* warbandScene : sWarbandSceneStore)  
+        if (warbandScene->GetFlags().HasFlag(WarbandSceneFlags::AwardedAutomatically))  
+            DefaultWarbandScenes.push_back(warbandScene->ID);  
+  
+    // FoundryCore: grant starter warband scenes to every account 
+    static constexpr std::array<uint32, 9> starterScenes = { 1, 4, 5, 7, 25, 29, 119, 145, 146 };  
+    for (uint32 sceneId : starterScenes)  
+    {  
+        if (!sWarbandSceneStore.HasRecord(sceneId))  
+            continue;  
+        if (std::ranges::find(DefaultWarbandScenes, sceneId) == DefaultWarbandScenes.end())  
+            DefaultWarbandScenes.push_back(sceneId);  
+    }  
 }
 
 namespace
