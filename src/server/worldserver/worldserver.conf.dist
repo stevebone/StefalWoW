@@ -3444,6 +3444,16 @@ ShowBanInWorld = 0
 PlayerStart.String = ""
 
 #
+#    PlayerStart.StarterKit
+#        Description: Comma-separated list of item IDs to send via mail to newly created
+#                     characters on first login.
+#                     Important: A max of 16 items is allowed.
+#        Example:     "1235,16762,1238"
+#        Default:     "" - (Disabled)
+
+PlayerStart.StarterKit = ""
+
+#
 #     LevelReq.Trade
 #        Description: Level requirement for characters to be able to trade.
 #        Default:     1
