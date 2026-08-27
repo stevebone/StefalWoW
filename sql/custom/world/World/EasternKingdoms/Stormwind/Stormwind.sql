@@ -115,7 +115,7 @@ INSERT INTO `creature` (`guid`, `id`, `map`, `zoneId`, `areaId`, `equipment_id`,
 (@CGUID+3227, 68, 	  0, 1519, 9171, 1, -8207.6, 736.775, 76.6387, 1.25267, 300, 0, 0),
 (@CGUID+3228, 230720, 0, 1519, 9171, 1, -8205.25, 743.125, 76.2716, 4.39512, 180, 0, 0),
 (@CGUID+3229, 68, 	  0, 1519, 9171, 1, -8205.33, 740.407, 76.7355, 1.38924, 300, 0, 0),
-(@CGUID+3230, 133675, 0, 1519, 9171, 0, -8202.89, 801.594, 70.3561, 4.9572, 180, 0, 0),
+(@CGUID+3230, 133675, 0, 1519, 9171, 0, -8228.7363, 744.421, 73.7751, 3.4497, 180, 0, 0),
 (@CGUID+3231, 133675, 0, 1519, 9171, 3, -8196.87, 839.535, 70.128, 0.910764, 180, 0, 0),
 (@CGUID+3232, 133675, 0, 1519, 9171, 0, -8194.49, 840.229, 70.1337, 2.66701, 180, 0, 0),
 (@CGUID+3233, 133675, 0, 1519, 9171, 0, -8204.4, 806.072, 70.1003, 5.09507, 180, 0, 0),
@@ -197,22 +197,54 @@ INSERT INTO smart_scripts (entryorguid, source_type, id, link, Difficulties, eve
 (-313706, 0, 0, 0, '', 1, 0, 100, 0, 5000, 10000, 120000, 150000, 0, '', 11, 1252746, 0, 0, 0, 0, 0, 0, NULL, 1, 0, 0, 0, 0, NULL, 0, 0, 0, 0, 'OOC - Cast spell 1252746 on self'),
 (-313907, 0, 0, 0, '', 1, 0, 100, 0, 5000, 10000, 120000, 150000, 0, '', 11, 1252746, 0, 0, 0, 0, 0, 0, NULL, 1, 0, 0, 0, 0, NULL, 0, 0, 0, 0, 'OOC - Cast spell 1252746 on self');
 
+SET @CGUID := 900000;
+UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (133675);
+-- Delete existing smart_scripts for creature 133675 (source_type 0 = creature)
+DELETE FROM `smart_scripts` WHERE `entryorguid` IN (-(@CGUID+3230),-(@CGUID+3233)) AND `source_type` = 0;
+-- Insert: On waypoint 7 reached, cast spell 262247 on self & on waypoint 13 remove aura
+INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `Difficulties`, `event_type`, `event_phase_mask`, `event_chance`, `event_flags`, `event_param1`, `event_param2`, `event_param3`, `event_param4`, `event_param5`, `event_param_string`, `action_type`, `action_param1`, `action_param2`, `action_param3`, `action_param4`, `action_param5`, `action_param6`, `action_param7`, `action_param_string`, `target_type`, `target_param1`, `target_param2`, `target_param3`, `target_param4`, `target_param_string`, `target_x`, `target_y`, `target_z`, `target_o`, `comment`) VALUES
+(-(@CGUID+3230), 0, 0, 0, '', 40, 0, 100, 0, 7, 13367500, 0, 0, 0, '', 11, 262247, 0, 0, 0, 0, 0, 0, NULL, 1, 0, 0, 0, 0, NULL, 0, 0, 0, 0, 'Peasant Worker - On Waypoint 6 Reached - Cast 262247 on Self'),
+(-(@CGUID+3230), 0, 1, 0, '', 40, 0, 100, 0, 13, 13367500, 0, 0, 0, '', 28, 262247, 0, 0, 0, 0, 0, 0, NULL, 1, 0, 0, 0, 0, NULL, 0, 0, 0, 0, 'Peasant Worker - On Waypoint 13 Reached - Remove 262247 on Self'),
+(-(@CGUID+3233), 0, 0, 0, '', 40, 0, 100, 0, 7, 13367500, 0, 0, 0, '', 11, 262247, 0, 0, 0, 0, 0, 0, NULL, 1, 0, 0, 0, 0, NULL, 0, 0, 0, 0, 'Peasant Worker - On Waypoint 6 Reached - Cast 262247 on Self'),
+(-(@CGUID+3233), 0, 1, 0, '', 40, 0, 100, 0, 13, 13367500, 0, 0, 0, '', 28, 262247, 0, 0, 0, 0, 0, 0, NULL, 1, 0, 0, 0, 0, NULL, 0, 0, 0, 0, 'Peasant Worker - On Waypoint 13 Reached - Remove 262247 on Self');
+
+
 -- Remove wrong/duplicate spawns
 DELETE FROM creature WHERE id = 50525 AND guid = 314226;
 
 -- Paths
 SET @CGUID := 900000;
-UPDATE `creature` SET `MovementType` = 2 WHERE `guid` = @CGUID+3269;
+UPDATE `creature` SET `MovementType` = 2 WHERE `guid` IN (@CGUID+3269,@CGUID+3230,@CGUID+3233);
 
-DELETE FROM `creature_addon` WHERE `guid` IN (@CGUID+3269);
-INSERT INTO `creature_addon` (`guid`, `PathId`) VALUES (@CGUID+3269, 13350900);
+DELETE FROM `creature_addon` WHERE `guid` IN (@CGUID+3269,@CGUID+3230,@CGUID+3233);
+INSERT INTO `creature_addon` (`guid`, `PathId`) VALUES 
+(@CGUID+3269, 13350900),
+(@CGUID+3230, 13367500),
+(@CGUID+3233, 13367500);
 
-DELETE FROM `waypoint_path` WHERE `PathId` = 13350900;
+DELETE FROM `waypoint_path` WHERE `PathId` IN (13350900,13367500);
 INSERT INTO `waypoint_path` (`PathId`, `MoveType`, `Flags`, `Comment`) VALUES 
-(13350900, 0, 0, 'Stormwind - Riftwarden Acolyte (entry 133509)');
+(13350900, 0, 0, 'Stormwind - Riftwarden Acolyte (entry 133509)'),
+(13367500, 0, 0, 'Stormwind - Peasant Worker (entry 133675)');
 
-DELETE FROM `waypoint_path_node` WHERE `PathId` = 13350900;
+DELETE FROM `waypoint_path_node` WHERE `PathId` IN (13350900,13367500);
 INSERT INTO waypoint_path_node (`PathId`, `NodeId`, `PositionX`, `PositionY`, `PositionZ`, `Orientation`, `Delay`) VALUES
+(13367500, 1, -8204.99, 791.689, 71.7737, 4.83855, 0),
+(13367500, 2, -8201.65, 777.999, 72.6808, 4.95913, 0),
+(13367500, 3, -8204.58, 771.765, 72.7369, 4.27803, 0),
+(13367500, 4, -8223.32, 750.319, 73.8129, 3.9969, 0),
+(13367500, 5, -8239.11, 737.019, 74.1546, 3.84143, 0),
+(13367500, 6, -8245.8, 735.336, 75.6313, 3.38809, 0),
+(13367500, 7, -8264.36, 742.76, 78.3988, 2.75746, 3000),
+(13367500, 8, -8249.28, 730.255, 76.0052, 5.65384, 0),
+(13367500, 9, -8234.69, 733.924, 73.9489, 0.421478, 0),
+(13367500, 10, -8194.88, 772.177, 72.4331, 0.791194, 0),
+(13367500, 11, -8200.65, 798.746, 70.8888, 1.78762, 0),
+(13367500, 12, -8205.37, 817.139, 70.6086, 1.78762, 0),
+(13367500, 13, -8223.52, 815.274, 70.0449, 2.99147, 3000),
+(13367500, 14, -8210.4, 808.14, 70.1276, 5.78528, 0),
+(13367500, 15, -8206.41, 799.698, 70.3499, 5.14403, 0),
+
 (13350900, 1, -8624.9180, 526.8926, 101.8336, 2.3627, 0),
 (13350900, 2, -8637.0996, 538.9153, 99.7671, 2.3627, 0),
 (13350900, 3, -8650.1396, 549.4830, 97.2426, 2.6031, 0),
