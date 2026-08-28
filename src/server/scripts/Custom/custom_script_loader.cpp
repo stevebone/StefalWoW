@@ -62,6 +62,9 @@ void AddSC_custom_westfall_npcs();
 void AddSC_custom_westfall_player();
 void AddSC_custom_westfall_quests();
 
+void AddSC_custom_redridge_mountains_npcs();
+void AddSC_custom_redridge_mountains_at();
+
 // ==================== Followship Scripts ==================== //
 void AddSC_followship_bots();                // FSB main Script
 void AddSC_followship_bots_player();                // FSB Player Scripts
@@ -161,6 +164,9 @@ void AddCustomScripts()
     AddSC_custom_westfall_npcs();
     AddSC_custom_westfall_player();
     AddSC_custom_westfall_quests();
+
+    AddSC_custom_redridge_mountains_npcs();
+    AddSC_custom_redridge_mountains_at();
 
     AddSC_followship_bots();
     AddSC_followship_bots_player();
