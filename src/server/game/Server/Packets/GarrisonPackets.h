@@ -1680,7 +1680,7 @@ namespace WorldPackets
             std::vector<int32> UnlockedTalentTreeIDs;
         };
 
-        // SMSG_GARRISON_APPLY_TALENT_SOCKET_DATA_CHANGES (0x4C004F). Reader RVA 0x717CE0, read in full.
+        // SMSG_GARRISON_APPLY_TALENT_SOCKET_DATA_CHANGES (0x4F004F). Reader RVA 0x717CE0, read in full.
         //
         //   u8  GarrTypeID
         //   u32 changeCount            <- sizes the change vector, but its ELEMENTS come last

@@ -25,7 +25,7 @@ namespace WorldPackets
 {
 namespace Covenant
 {
-    // CMSG_ACTIVATE_SOULBIND (0x3A028F). Serializer sub_7FF72914B2B0 writes a single uint32 (the soulbind id).
+    // CMSG_ACTIVATE_SOULBIND (0x3D028B). Serializer sub_7FF72914B2B0 writes a single uint32 (the soulbind id).
     class ActivateSoulbind final : public ClientPacket
     {
     public:
@@ -75,7 +75,7 @@ namespace Covenant
         int32 SoulbindID = 0;
     };
 
-    // SMSG_COVENANT_PREVIEW_OPEN_NPC (0x4202A5). Wire (client reader sub_7FF7290AF0E0, dispatcher 0x7FF729103660):
+    // SMSG_COVENANT_PREVIEW_OPEN_NPC (0x4502A7). Wire (client reader sub_7FF7290AF0E0, dispatcher 0x7FF729103660):
     // ObjectGuid (16) followed by uint32 (4). Drives the client's COVENANT_PREVIEW_OPEN Lua event.
     //
     // CovenantID is CONFIRMED, not inferred: the listener (0x7FF72AB65D90 -> sub_7FF72ACD2D40) passes the dword to
@@ -96,7 +96,7 @@ namespace Covenant
         int32 CovenantID = 0;
     };
 
-    // CMSG_REQUEST_COVENANT_CALLINGS (0x3A0269). Empty payload; the client asks which covenant callings (bounties) are available.
+    // CMSG_REQUEST_COVENANT_CALLINGS (0x3D0265). Empty payload; the client asks which covenant callings (bounties) are available.
     class RequestCovenantCallings final : public ClientPacket
     {
     public:
@@ -105,7 +105,7 @@ namespace Covenant
         void Read() override { }
     };
 
-    // SMSG_COVENANT_CALLINGS_AVAILABILITY_RESPONSE (0x600024). Deserializer reads Bits<1> CallingsUnlocked, then uint32 count, then count x uint32 Bounty.db2 ID.
+    // SMSG_COVENANT_CALLINGS_AVAILABILITY_RESPONSE (0x650024). Deserializer reads Bits<1> CallingsUnlocked, then uint32 count, then count x uint32 Bounty.db2 ID.
     class CovenantCallingsAvailabilityResponse final : public ServerPacket
     {
     public:
@@ -117,7 +117,7 @@ namespace Covenant
         std::vector<int32> BountyIDs;
     };
 
-    // CMSG_COVENANT_RENOWN_REQUEST_CATCHUP_STATE (0x3B0111). Empty payload; the client asks whether accelerated
+    // CMSG_COVENANT_RENOWN_REQUEST_CATCHUP_STATE (0x3E0113). Empty payload; the client asks whether accelerated
     // renown catch-up is currently active for the player.
     class CovenantRenownRequestCatchupState final : public ClientPacket
     {
@@ -127,7 +127,7 @@ namespace Covenant
         void Read() override { }
     };
 
-    // SMSG_COVENANT_RENOWN_SEND_CATCHUP_STATE (0x42030D). Wire (client reader, all_smsg_layouts): a single Bits<1>.
+    // SMSG_COVENANT_RENOWN_SEND_CATCHUP_STATE (0x45030F). Wire (client reader, all_smsg_layouts): a single Bits<1>.
     // Core does not implement accelerated renown catch-up, so the answer is false (no catch-up active).
     class CovenantRenownSendCatchupState final : public ServerPacket
     {

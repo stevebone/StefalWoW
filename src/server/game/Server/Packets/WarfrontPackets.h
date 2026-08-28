@@ -24,7 +24,7 @@ namespace WorldPackets
 {
 namespace Warfront
 {
-    // SMSG_WARFRONT_COMPLETE (0x420206): fires the client's WARFRONT_COMPLETED event, which drives
+    // SMSG_WARFRONT_COMPLETE (0x450208): fires the client's WARFRONT_COMPLETED event, which drives
     // Blizzard_WarfrontsPartyPoseUI's victory screen.
     //
     // BYTE-RECOVERED from the 12.0.7 (68275) client - exactly 8 bytes, { int32 MapID, int32 Winner }.

@@ -428,7 +428,7 @@ namespace WorldPackets
             lfg::LfgTeleportResult Reason;
         };
 
-        // SMSG_OPEN_LFG_DUNGEON_FINDER (0x560015): makes the client open its native dungeon/group finder panel
+        // SMSG_OPEN_LFG_DUNGEON_FINDER (0x5A0015): makes the client open its native dungeon/group finder panel
         // preselected to the given LFGDungeons.db2 id. Used to surface the BfA warfront war-table assault entry,
         // whose "Join Battle" button then sends CMSG_DF_JOIN back with slot = dungeonID | (TypeID << 24).
         //

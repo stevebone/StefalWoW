@@ -42,7 +42,7 @@ enum WarfrontId : uint32
 
 // --- LFG wiring (the native "Join Battle" button) ---------------------------------------------------------------
 // Warfronts queue through the LFG system, NOT BattlemasterList: the client's war-table "Join Battle" button calls
-// JoinSingleLFG(LE_LFG_CATEGORY_SCENARIO, lfgDungeonID), which puts CMSG_DF_JOIN (0x400037) on the wire with
+// JoinSingleLFG(LE_LFG_CATEGORY_SCENARIO, lfgDungeonID), which puts CMSG_DF_JOIN (0x430037) on the wire with
 // slot = dungeonID | (TypeID << 24). Warfront LFGDungeons rows are TypeID 1 / Subtype 3, so slot = id | 0x01000000 -
 // exactly TrinityCore's existing LFG_DUNGEON_ENTRY convention, which WorldSession::HandleLfgJoinOpcode already
 // decodes. That handler intercepts these ids and routes them to WarfrontMgr's single-team queue instead of running

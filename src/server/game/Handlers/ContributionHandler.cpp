@@ -42,7 +42,7 @@ void WorldSession::HandleContributionContribute(WorldPackets::Contribution::Cont
     sContributionMgr->SendLastUpdate(player, contribute.ContributionID);
 }
 
-// CMSG_CONTRIBUTION_LAST_UPDATE_REQUEST (0x3B00FE) - { uint32 ContributionID, uint32 ContributionGUID }. The layout is
+// CMSG_CONTRIBUTION_LAST_UPDATE_REQUEST (0x3E0100) - { uint32 ContributionID, uint32 ContributionGUID }. The layout is
 // byte-exact from the 68275 client serializer at VA 0x7FF729154070 and matches shipped BfA-era server code
 // (ContributionGetState::Read - two consecutive uint32).
 void WorldSession::HandleContributionLastUpdateRequest(WorldPackets::Contribution::ContributionLastUpdateRequest& request)

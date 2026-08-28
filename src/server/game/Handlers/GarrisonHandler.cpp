@@ -811,7 +811,7 @@ void WorldSession::HandleQueryGarrisonPetName(WorldPackets::Garrison::QueryGarri
 
 void WorldSession::HandleRequestGarrisonTalentWorldQuestUnlocks(WorldPackets::Garrison::RequestGarrisonTalentWorldQuestUnlocks& /*requestGarrisonTalentWorldQuestUnlocks*/)
 {
-    // SMSG_GARRISON_TALENT_WORLD_QUEST_UNLOCKS_RESPONSE (0x4C004E) — Legion+ talent-gated
+    // SMSG_GARRISON_TALENT_WORLD_QUEST_UNLOCKS_RESPONSE (0x4F004E) — Legion+ talent-gated
     // map POIs. IDA dispatcher uses opaque helper so exact field shape is unconfirmed; the
     // best conservative match is a size-prefixed list of unlocked talent tree IDs (the
     // server's view of which trees the player has unlocked talents in for world-quest UI).

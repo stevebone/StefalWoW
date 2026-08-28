@@ -279,7 +279,7 @@ ContributionResult ContributionMgr::Contribute(Player* player, ObjectGuid collec
 }
 
 /* ------------------------------------------------------------------------------------------------------------------
- * Native Contribution Collector last-update ack (SMSG_CONTRIBUTION_LAST_UPDATE_RESPONSE, 0x4202C4).
+ * Native Contribution Collector last-update ack (SMSG_CONTRIBUTION_LAST_UPDATE_RESPONSE, 0x4502C6).
  *
  * Twelve bytes: uint32 Data (unix time of the last update), uint32 ContributionID, uint32 ContributionGUID. It is
  * only an acknowledgement - the bar itself is painted client-side from Contribution.db2 / ManagedWorldState.db2

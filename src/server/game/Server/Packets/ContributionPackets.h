@@ -33,7 +33,7 @@ namespace WorldPackets
 {
 namespace Contribution
 {
-    // CMSG_CONTRIBUTION_CONTRIBUTE (0x3B00FD): { PackedGuid CollectorGUID, uint32 ContributionID }.
+    // CMSG_CONTRIBUTION_CONTRIBUTE (0x3E00FF): { PackedGuid CollectorGUID, uint32 ContributionID }.
     // Wire recovered from the 68275 client serializer (sub_7FF729154010). The payload id is the *contribution id*:
     // the only argument of C_ContributionCollector.Contribute(contributionID), while GetOrderIndex(contributionID)
     // is a pure client-side Contribution.db2 lookup and therefore never travels on the wire.
@@ -48,7 +48,7 @@ namespace Contribution
         uint32 ContributionID = 0;
     };
 
-    // CMSG_CONTRIBUTION_LAST_UPDATE_REQUEST (0x3B00FE): { uint32 ContributionID, uint32 ContributionGUID }.
+    // CMSG_CONTRIBUTION_LAST_UPDATE_REQUEST (0x3E0100): { uint32 ContributionID, uint32 ContributionGUID }.
     class ContributionLastUpdateRequest final : public ClientPacket
     {
     public:
@@ -60,7 +60,7 @@ namespace Contribution
         uint32 ContributionGUID = 0;
     };
 
-    // SMSG_CONTRIBUTION_LAST_UPDATE_RESPONSE (0x4202C4): BYTE-RECOVERED from the 12.0.7 (68275) client as
+    // SMSG_CONTRIBUTION_LAST_UPDATE_RESPONSE (0x4502C6): BYTE-RECOVERED from the 12.0.7 (68275) client as
     // exactly SIXTEEN bytes - { uint64 Data, int32 ContributionID, int32 ContributionGUID }. The old
     // "exactly twelve bytes" claim was wrong: the timestamp is 8 bytes wide, not 4.
     // Like SMSG_WARFRONT_COMPLETE this is not reflection-serialized; the handler casts the raw payload to a POD:

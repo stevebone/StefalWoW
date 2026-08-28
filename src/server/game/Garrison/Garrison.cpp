@@ -1666,7 +1666,7 @@ void Garrison::SendDeleteExpiredMissionsResult() const
     result.Result = GARRISON_SUCCESS; // must be 0 (client gates the mission-open fire on it) — GARRISON_SUCCESS == 0
     result.Succeeded = true;
     // CRITICAL: this bit (wire bit6, the second packed bit) MUST be 0. The 68275 client fires the
-    // legacy GARRISON_MISSION_NPC_OPENED event from the SMSG_DELETE_EXPIRED_MISSIONS_RESULT (0x4C0022)
+    // legacy GARRISON_MISSION_NPC_OPENED event from the SMSG_DELETE_EXPIRED_MISSIONS_RESULT (0x4F0022)
     // handler *while PlayerInteractionType == GarrMission(32)* — but ONLY if the second u32 (Result) is 0
     // AND this trailing bit is 0. Sending it as 1 makes the client silently skip the fire, which is why
     // the WoD command table never opened. (Binary-traced: fire fn sub_7FF72AD3DAD0, gate cmp [mgr+0x30],0x20.)
