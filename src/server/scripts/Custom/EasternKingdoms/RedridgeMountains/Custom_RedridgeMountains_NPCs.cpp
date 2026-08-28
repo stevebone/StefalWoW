@@ -29,6 +29,8 @@
 #include "ScriptedCreature.h"
 #include "Unit.h"
 
+#include <queue>
+
 #include "Custom_RedridgeMountains_Defines.h"
 
 namespace Scripts::EasternKingdoms::RedridgeMountains
