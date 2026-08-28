@@ -31,20 +31,13 @@
 class GarrisonGridLoader
 {
 public:
-    GarrisonGridLoader(NGridType* grid, GarrisonMap* map, Cell const& cell)
-        : i_cell(cell), i_grid(grid), i_map(map), i_garrison(map->GetGarrison()), i_gameObjects(0), i_creatures(0)
+    GarrisonGridLoader(NGridType* grid, GarrisonMap* map)
+        : i_grid(grid), i_map(map), i_garrison(map->GetGarrison()), i_gameObjects(0), i_creatures(0)
     { }
-
-    void Visit(GameObjectMapType& m);
-    void Visit(CreatureMapType& m);
 
     void LoadN();
 
-    template<class T> static void SetObjectCell(T* obj, CellCoord const& cellCoord);
-    template<class T> void Visit(GridRefManager<T>& /*m*/) { }
-
 private:
-    Cell i_cell;
     NGridType* i_grid;
     GarrisonMap* i_map;
     Garrison* i_garrison;
@@ -56,134 +49,79 @@ void GarrisonGridLoader::LoadN()
 {
     if (i_garrison)
     {
-        i_cell.data.Part.cell_y = 0;
-        for (uint32 x = 0; x < MAX_NUMBER_OF_CELLS; ++x)
+        for (Garrison::Plot* plot : i_garrison->GetPlots())
         {
-            i_cell.data.Part.cell_x = x;
-            for (uint32 y = 0; y < MAX_NUMBER_OF_CELLS; ++y)
-            {
-                i_cell.data.Part.cell_y = y;
+            GameObject* go = plot->CreateGameObject(i_map, i_garrison->GetFaction());
+            if (!go)
+                continue;
 
-                //Load creatures and game objects
-                TypeContainerVisitor<GarrisonGridLoader, GridTypeMapContainer> visitor(*this);
-                i_grid->VisitGrid(x, y, visitor);
+            ObjectGridLoaderBase::AddToMap(go, i_map, i_gameObjects);
+        }
+
+        // Spawn active garrison followers as creatures near their plots. Branch feature, re-hosted into
+        // 12.1's rewritten LoadN(): upstream dropped the per-cell Visit(CreatureMapType&) mechanism and now
+        // loads the whole grid inline, so the followers are spawned here alongside the plot gameobjects, via
+        // the same ObjectGridLoaderBase::AddToMap path (AddToGrid + AddToWorld). The former cell-coordinate
+        // filter is gone with the mechanism that needed it.
+        std::vector<Garrison::Plot*> plots = i_garrison->GetPlots();
+        if (!plots.empty())
+        {
+            GarrisonFactionIndex faction = i_garrison->GetFaction();
+            uint32 plotCount = static_cast<uint32>(plots.size());
+            uint32 followerIndex = 0;
+            for (auto const& [dbId, follower] : i_garrison->GetFollowerMap())
+            {
+                if (follower.PacketInfo.CurrentMissionID != 0)                       // on a mission
+                    continue;
+                if (follower.PacketInfo.FollowerStatus & FOLLOWER_STATUS_INACTIVE)   // inactive
+                    continue;
+                GarrFollowerEntry const* followerEntry = sGarrFollowerStore.LookupEntry(follower.PacketInfo.GarrFollowerID);
+                if (!followerEntry)
+                    continue;
+                if (followerEntry->GarrTypeID != static_cast<int8>(i_garrison->GetType()))
+                    continue;
+                uint32 creatureId = faction == GARRISON_FACTION_INDEX_HORDE ?
+                    followerEntry->HordeCreatureID : followerEntry->AllianceCreatureID;
+                if (!creatureId)
+                    continue;
+
+                Position spawnPos;
+                bool positionFound = false;
+                if (follower.PacketInfo.CurrentBuildingID != 0)
+                {
+                    for (Garrison::Plot* plot : plots)
+                    {
+                        if (plot->BuildingInfo.PacketInfo &&
+                            plot->BuildingInfo.PacketInfo->GarrBuildingID == follower.PacketInfo.CurrentBuildingID)
+                        {
+                            spawnPos = plot->PacketInfo.PlotPos.Pos;
+                            spawnPos.RelocateOffset({ 3.0f, 3.0f, 0.0f, 0.0f });
+                            positionFound = true;
+                            break;
+                        }
+                    }
+                }
+                if (!positionFound)
+                {
+                    Garrison::Plot* plot = plots[followerIndex % plotCount];
+                    spawnPos = plot->PacketInfo.PlotPos.Pos;
+                    float angle = static_cast<float>(followerIndex % 8) * (float(M_PI) / 4.0f);
+                    float dist = 5.0f + 2.0f * (followerIndex / 8);
+                    spawnPos.m_positionX += dist * std::cos(angle);
+                    spawnPos.m_positionY += dist * std::sin(angle);
+                }
+                ++followerIndex;
+
+                Creature* creature = Creature::CreateCreature(creatureId, i_map, spawnPos);
+                if (!creature)
+                    continue;
+                creature->SetHomePosition(spawnPos);
+                ObjectGridLoaderBase::AddToMap(creature, i_map, i_creatures);
             }
         }
     }
 
     TC_LOG_DEBUG("maps", "{} GameObjects and {} Creatures loaded for grid {} on map {}", i_gameObjects, i_creatures, i_grid->GetGridId(), i_map->GetId());
-}
-
-void GarrisonGridLoader::Visit(GameObjectMapType& m)
-{
-    std::vector<Garrison::Plot*> plots = i_garrison->GetPlots();
-    if (!plots.empty())
-    {
-        CellCoord cellCoord = i_cell.GetCellCoord();
-        for (Garrison::Plot* plot : plots)
-        {
-            Position const& spawn = plot->PacketInfo.PlotPos.Pos;
-            if (cellCoord != Trinity::ComputeCellCoord(spawn.GetPositionX(), spawn.GetPositionY()))
-                continue;
-
-            GameObject* go = plot->CreateGameObject(i_map, i_garrison->GetFaction());
-            if (!go)
-                continue;
-
-            go->AddToGrid(m);
-            ObjectGridLoader::SetObjectCell(go, cellCoord);
-            go->AddToWorld();
-            ++i_gameObjects;
-        }
-    }
-}
-
-void GarrisonGridLoader::Visit(CreatureMapType& m)
-{
-    if (!i_garrison)
-        return;
-
-    CellCoord cellCoord = i_cell.GetCellCoord();
-    GarrisonFactionIndex faction = i_garrison->GetFaction();
-    std::vector<Garrison::Plot*> plots = i_garrison->GetPlots();
-
-    if (plots.empty())
-        return;
-
-    uint32 plotCount = static_cast<uint32>(plots.size());
-    uint32 followerIndex = 0;
-
-    for (auto const& [dbId, follower] : i_garrison->GetFollowerMap())
-    {
-        // Skip followers currently on missions
-        if (follower.PacketInfo.CurrentMissionID != 0)
-            continue;
-
-        // Skip inactive followers
-        if (follower.PacketInfo.FollowerStatus & FOLLOWER_STATUS_INACTIVE)
-            continue;
-
-        GarrFollowerEntry const* followerEntry = sGarrFollowerStore.LookupEntry(follower.PacketInfo.GarrFollowerID);
-        if (!followerEntry)
-            continue;
-
-        // Only spawn followers matching this garrison type
-        if (followerEntry->GarrTypeID != static_cast<int8>(i_garrison->GetType()))
-            continue;
-
-        uint32 creatureId = faction == GARRISON_FACTION_INDEX_HORDE ?
-            followerEntry->HordeCreatureID : followerEntry->AllianceCreatureID;
-        if (!creatureId)
-            continue;
-
-        // Determine spawn position
-        Position spawnPos;
-        bool positionFound = false;
-
-        if (follower.PacketInfo.CurrentBuildingID != 0)
-        {
-            // Follower is assigned to a building - spawn near that building's plot
-            for (Garrison::Plot* plot : plots)
-            {
-                if (plot->BuildingInfo.PacketInfo &&
-                    plot->BuildingInfo.PacketInfo->GarrBuildingID == follower.PacketInfo.CurrentBuildingID)
-                {
-                    spawnPos = plot->PacketInfo.PlotPos.Pos;
-                    spawnPos.RelocateOffset({ 3.0f, 3.0f, 0.0f, 0.0f });
-                    positionFound = true;
-                    break;
-                }
-            }
-        }
-
-        if (!positionFound)
-        {
-            // Unassigned follower - scatter around plots
-            Garrison::Plot* plot = plots[followerIndex % plotCount];
-            spawnPos = plot->PacketInfo.PlotPos.Pos;
-            // Distribute followers in a circle around the plot center
-            float angle = static_cast<float>(followerIndex % 8) * (float(M_PI) / 4.0f);
-            float dist = 5.0f + 2.0f * (followerIndex / 8);
-            spawnPos.m_positionX += dist * std::cos(angle);
-            spawnPos.m_positionY += dist * std::sin(angle);
-        }
-
-        ++followerIndex;
-
-        // Check if this position belongs to current cell
-        if (cellCoord != Trinity::ComputeCellCoord(spawnPos.GetPositionX(), spawnPos.GetPositionY()))
-            continue;
-
-        Creature* creature = Creature::CreateCreature(creatureId, i_map, spawnPos);
-        if (!creature)
-            continue;
-
-        creature->SetHomePosition(spawnPos);
-        creature->AddToGrid(m);
-        ObjectGridLoader::SetObjectCell(creature, cellCoord);
-        creature->AddToWorld();
-        ++i_creatures;
-    }
 }
 
 GarrisonMap::GarrisonMap(uint32 id, time_t expiry, uint32 instanceId, ObjectGuid const& owner)
@@ -192,11 +130,11 @@ GarrisonMap::GarrisonMap(uint32 id, time_t expiry, uint32 instanceId, ObjectGuid
     GarrisonMap::InitVisibilityDistance();
 }
 
-void GarrisonMap::LoadGridObjects(NGridType* grid, Cell const& cell)
+void GarrisonMap::LoadGridObjects(NGridType* grid)
 {
-    Map::LoadGridObjects(grid, cell);
+    Map::LoadGridObjects(grid);
 
-    GarrisonGridLoader loader(grid, this, cell);
+    GarrisonGridLoader loader(grid, this);
     loader.LoadN();
 }
 
