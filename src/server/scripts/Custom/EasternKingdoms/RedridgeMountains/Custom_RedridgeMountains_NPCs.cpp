@@ -28,6 +28,8 @@
 #include "Player.h"
 #include "ScriptedCreature.h"
 #include "Unit.h"
+#include "SpellAuras.h"
+#include "ScriptMgr.h"
 
 #include <queue>
 
