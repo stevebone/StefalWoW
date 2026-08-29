@@ -51,6 +51,16 @@ void GarrisonGridLoader::LoadN()
     {
         for (Garrison::Plot* plot : i_garrison->GetPlots())
         {
+            // LoadN() runs once PER GRID (EnsureGridLoaded -> LoadGridObjects -> LoadN). This loader
+            // synthesizes its objects from the owner's Garrison state instead of a grid-local GUID set, so it
+            // must skip plots whose position lies in another grid - otherwise every grid load re-spawns the
+            // whole garrison (N loaded grids -> N stacked copies, since AddToMap places by object position,
+            // not by the grid being loaded). Upstream's generic ObjectGridLoader gets this for free.
+            Position const& plotPos = plot->PacketInfo.PlotPos.Pos;
+            GridCoord const plotGrid = Trinity::ComputeGridCoord(plotPos.GetPositionX(), plotPos.GetPositionY());
+            if (plotGrid.x_coord != uint32(i_grid->getX()) || plotGrid.y_coord != uint32(i_grid->getY()))
+                continue;
+
             GameObject* go = plot->CreateGameObject(i_map, i_garrison->GetFaction());
             if (!go)
                 continue;
@@ -61,8 +71,8 @@ void GarrisonGridLoader::LoadN()
         // Spawn active garrison followers as creatures near their plots. Branch feature, re-hosted into
         // 12.1's rewritten LoadN(): upstream dropped the per-cell Visit(CreatureMapType&) mechanism and now
         // loads the whole grid inline, so the followers are spawned here alongside the plot gameobjects, via
-        // the same ObjectGridLoaderBase::AddToMap path (AddToGrid + AddToWorld). The former cell-coordinate
-        // filter is gone with the mechanism that needed it.
+        // the same ObjectGridLoaderBase::AddToMap path (AddToGrid + AddToWorld). The old per-cell filter that
+        // the Visit mechanism provided is replaced below by a per-grid filter (see the plot loop above).
         std::vector<Garrison::Plot*> plots = i_garrison->GetPlots();
         if (!plots.empty())
         {
@@ -110,7 +120,13 @@ void GarrisonGridLoader::LoadN()
                     spawnPos.m_positionX += dist * std::cos(angle);
                     spawnPos.m_positionY += dist * std::sin(angle);
                 }
-                ++followerIndex;
+                ++followerIndex;   // advanced before the grid check, so the scatter is grid-independent
+
+                // Same per-grid guard as the plots above: only spawn this follower when its computed position
+                // falls in the grid being loaded.
+                GridCoord const followerGrid = Trinity::ComputeGridCoord(spawnPos.GetPositionX(), spawnPos.GetPositionY());
+                if (followerGrid.x_coord != uint32(i_grid->getX()) || followerGrid.y_coord != uint32(i_grid->getY()))
+                    continue;
 
                 Creature* creature = Creature::CreateCreature(creatureId, i_map, spawnPos);
                 if (!creature)
