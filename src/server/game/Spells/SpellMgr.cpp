@@ -410,7 +410,7 @@ void SpellMgr::GetSetOfSpellsInSpellGroup(SpellGroup group_id, std::set<uint32>&
     }
 }
 
-bool SpellMgr::AddSameEffectStackRuleSpellGroups(SpellInfo const* spellInfo, uint32 auraType, int32 amount, std::map<SpellGroup, int32>& groups) const
+bool SpellMgr::AddSameEffectStackRuleSpellGroups(SpellInfo const* spellInfo, AuraType auraType, SpellEffectValue amount, std::map<SpellGroup, SpellEffectValue>& groups) const
 {
     uint32 spellId = spellInfo->GetFirstRankSpell()->Id;
     auto spellGroupBounds = GetSpellSpellGroupMapBounds(spellId);
@@ -422,7 +422,7 @@ bool SpellMgr::AddSameEffectStackRuleSpellGroups(SpellInfo const* spellInfo, uin
         if (found != mSpellSameEffectStack.end())
         {
             // check auraTypes
-            if (!found->second.count(auraType))
+            if (!found->second.contains(auraType))
                 continue;
 
             // Put the highest amount in the map
@@ -431,7 +431,7 @@ bool SpellMgr::AddSameEffectStackRuleSpellGroups(SpellInfo const* spellInfo, uin
                 groups.emplace(group, amount);
             else
             {
-                int32 curr_amount = groups[group];
+                SpellEffectValue curr_amount = groupItr->second;
                 // Take absolute value because this also counts for the highest negative aura
                 if (std::abs(curr_amount) < std::abs(amount))
                     groupItr->second = amount;
@@ -975,7 +975,7 @@ void SpellMgr::LoadSpellLearnSkills()
             {
                 case SPELL_EFFECT_SKILL:
                     dbc_node.skill = uint16(spellEffectInfo.MiscValue);
-                    dbc_node.step  = uint16(spellEffectInfo.CalcValue());
+                    dbc_node.step  = uint16(spellEffectInfo.CalcValueAsInt());
                     dbc_node.value = 0;
                     dbc_node.maxvalue = 0;
                     break;
@@ -1753,10 +1753,12 @@ void SpellMgr::LoadSpellProcs()
     count = 0;
     oldMSTime = getMSTime();
 
+    std::unordered_map<std::pair<uint32, Difficulty>, SpellProcEntry> generatedSpellProcMap;
+
     for (SpellInfo const& spellInfo : mSpellInfoMap)
     {
         // Data already present in DB, overwrites default proc
-        if (mSpellProcMap.find({ spellInfo.Id, spellInfo.Difficulty }) != mSpellProcMap.end())
+        if (GetSpellProcEntry(&spellInfo) != nullptr)
             continue;
 
         // Nothing to do if no flags set
@@ -1858,7 +1860,7 @@ void SpellMgr::LoadSpellProcs()
                     break;
                 // proc auras with another aura reducing hit chance (eg 63767) only proc on missed attack
                 case SPELL_AURA_MOD_HIT_CHANCE:
-                    if (spellEffectInfo.CalcValue() <= -100)
+                    if (spellEffectInfo.CalcValueAsInt() <= -100)
                         procEntry.HitMask = PROC_HIT_MISS;
                     break;
                 case SPELL_AURA_PROC_TRIGGER_SPELL:
@@ -1899,9 +1901,11 @@ void SpellMgr::LoadSpellProcs()
             continue;
         }
 
-        mSpellProcMap[{ spellInfo.Id, spellInfo.Difficulty }] = procEntry;
+        generatedSpellProcMap[{ spellInfo.Id, spellInfo.Difficulty }] = procEntry;
         ++count;
     }
+
+    mSpellProcMap.merge(generatedSpellProcMap);
 
     TC_LOG_INFO("server.loading", ">> Generated spell proc data for {} spells in {} ms", count, GetMSTimeDiffToNow(oldMSTime));
 }
@@ -2101,7 +2105,7 @@ void SpellMgr::LoadSpellLinked()
         {
             for (SpellEffectInfo const& spellEffectInfo : spellInfo->GetEffects())
             {
-                if (spellEffectInfo.CalcValue() == abs(effect))
+                if (spellEffectInfo.CalcValueAsInt() == abs(effect))
                     TC_LOG_ERROR("sql.sql", "The spell {} Effect: {} listed in `spell_linked_spell` has same bp{} like effect (possible hack).", abs(trigger), abs(effect), uint32(spellEffectInfo.EffectIndex));
             }
         }
@@ -2322,7 +2326,7 @@ void SpellMgr::LoadSpellAreas()
         spellArea.questEndStatus      = fields[4].GetUInt32();
         spellArea.questEnd            = fields[5].GetUInt32();
         spellArea.auraSpell           = fields[6].GetInt32();
-        spellArea.raceMask.RawValue   = fields[7].GetUInt64();
+        spellArea.raceMask            = { fields[7].GetUInt64() };
         spellArea.gender              = Gender(fields[8].GetUInt8());
         spellArea.flags               = fields[9].GetUInt8();
 
@@ -2443,7 +2447,7 @@ void SpellMgr::LoadSpellAreas()
 
         if (!spellArea.raceMask.IsEmpty() && (spellArea.raceMask & RACEMASK_ALL_PLAYABLE).IsEmpty())
         {
-            TC_LOG_ERROR("sql.sql", "The spell {} listed in `spell_area` has wrong race mask ({}) requirement.", spell, spellArea.raceMask.RawValue);
+            TC_LOG_ERROR("sql.sql", "The spell {} listed in `spell_area` has wrong race mask ({}) requirement.", spell, spellArea.raceMask.RawValue[0]);
             continue;
         }
 
@@ -3192,7 +3196,7 @@ void SpellMgr::LoadSpellInfoCustomAttributes()
                         default:
                         {
                             // No value and not interrupt cast or crowd control without SPELL_ATTR0_UNAFFECTED_BY_INVULNERABILITY flag
-                            if (!spellEffectInfo.CalcValue() && !((spellEffectInfo.Effect == SPELL_EFFECT_INTERRUPT_CAST || spellInfoMutable->HasAttribute(SPELL_ATTR0_CU_AURA_CC)) && !spellInfoMutable->HasAttribute(SPELL_ATTR0_NO_IMMUNITIES)))
+                            if (!spellEffectInfo.CalcValueAsInt() && !((spellEffectInfo.Effect == SPELL_EFFECT_INTERRUPT_CAST || spellInfoMutable->HasAttribute(SPELL_ATTR0_CU_AURA_CC)) && !spellInfoMutable->HasAttribute(SPELL_ATTR0_NO_IMMUNITIES)))
                                 break;
 
                             // Sindragosa Frost Breath
@@ -3262,6 +3266,13 @@ void SpellMgr::LoadSpellInfoCustomAttributes()
         }
 
         spellInfoMutable->_InitializeExplicitTargetMask();
+
+        // Frozen Orb (84714) is fully scripted - no explicit target needed
+        if (spellInfoMutable->Id == 84714)
+        {
+            spellInfoMutable->ExplicitTargetMask = 0;
+            spellInfoMutable->RequiredExplicitTargetMask = 0;
+        }
 
         if (spellInfoMutable->Speed > 0.0f)
         {
@@ -3352,6 +3363,11 @@ void SpellMgr::LoadSpellInfoCustomAttributes()
             for (SpellInfo const& spellInfo : _GetSpellInfo(liquid->SpellID))
                 const_cast<SpellInfo&>(spellInfo).AttributesCu |= SPELL_ATTR0_CU_AURA_CANNOT_BE_SAVED;
     }
+
+    // Dragonriding flight style auras - applied fresh on login, do not save
+    for (uint32 spellId : { 404464u, 404468u, 372773u })
+        for (SpellInfo const& spellInfo : _GetSpellInfo(spellId))
+            const_cast<SpellInfo&>(spellInfo).AttributesCu |= SPELL_ATTR0_CU_AURA_CANNOT_BE_SAVED;
 
     TC_LOG_INFO("server.loading", ">> Loaded SpellInfo custom attributes in {} ms", GetMSTimeDiffToNow(oldMSTime));
 }
@@ -3466,15 +3482,6 @@ void SpellMgr::LoadSpellInfoCorrections()
             });
         });
 
-        // Remote Toy
-        ApplySpellFix({ 37027 }, [](SpellInfo* spellInfo)
-        {
-            ApplySpellEffectFix(spellInfo, EFFECT_0, [](SpellEffectInfo* spellEffectInfo)
-            {
-                spellEffectInfo->TriggerSpell = 37029;
-            });
-        });
-
         // Eye of Grillok
         ApplySpellFix({ 38495 }, [](SpellInfo* spellInfo)
         {
@@ -3502,6 +3509,58 @@ void SpellMgr::LoadSpellInfoCorrections()
                 spellEffectInfo->ApplyAuraName = SPELL_AURA_PERIODIC_TRIGGER_SPELL;
             });
         });
+
+        // Frozen Orb damage (84721) - DBC has DamageClass=NONE which prevents damage calculation; fix to MAGIC
+        ApplySpellFix({ 84721 }, [](SpellInfo* spellInfo)
+            {
+                spellInfo->DmgClass = SPELL_DAMAGE_CLASS_MAGIC;
+            });
+
+        // Brain Freeze (190447) and its buff (190446) - handled entirely by AuraScript/SpellScript
+        // Override EFFECT_0 aura from SPELL_AURA_PROC_TRIGGER_SPELL (42) to SPELL_AURA_NO_REAGENT_USE (229)
+        // which hits the default: break case in AuraEffect::HandleProc, silencing the "no trigger spell" spam
+        ApplySpellFix({ 190447, 190446 }, [](SpellInfo* spellInfo)
+            {
+                ApplySpellEffectFix(spellInfo, EFFECT_0, [](SpellEffectInfo* spellEffectInfo)
+                    {
+                        spellEffectInfo->ApplyAuraName = SPELL_AURA_NO_REAGENT_USE;
+                        spellEffectInfo->TriggerSpell = 0;
+                    });
+            });
+
+        // Permafrost Lances (460590) - passive talent with PROC_TRIGGER_SPELL but no trigger spell set on EFFECT_0
+        // Logic handled in spell_mage_frozen_orb::HandleCast
+        ApplySpellFix({ 460590 }, [](SpellInfo* spellInfo)
+            {
+                ApplySpellEffectFix(spellInfo, EFFECT_0, [](SpellEffectInfo* spellEffectInfo)
+                    {
+                        spellEffectInfo->ApplyAuraName = SPELL_AURA_NO_REAGENT_USE;
+                        spellEffectInfo->TriggerSpell = 0;
+                    });
+            });
+
+        // Everlasting Frost (385167) - both EFFECT_0 and EFFECT_1 are PROC_TRIGGER_SPELL with no trigger spell
+        // Logic handled in spell_mage_frozen_orb::HandleCast and spell_mage_frozen_orb_damage::HandleHit
+        ApplySpellFix({ 385167 }, [](SpellInfo* spellInfo)
+            {
+                ApplySpellEffectFix(spellInfo, EFFECT_0, [](SpellEffectInfo* spellEffectInfo)
+                    {
+                        spellEffectInfo->ApplyAuraName = SPELL_AURA_NO_REAGENT_USE;
+                        spellEffectInfo->TriggerSpell = 0;
+                    });
+                ApplySpellEffectFix(spellInfo, EFFECT_1, [](SpellEffectInfo* spellEffectInfo)
+                    {
+                        spellEffectInfo->ApplyAuraName = SPELL_AURA_NO_REAGENT_USE;
+                        spellEffectInfo->TriggerSpell = 0;
+                    });
+            });
+
+        // Brain Freeze buff (190446) - clear interrupt flags so buff persists through damage dealt
+        ApplySpellFix({ 190446 }, [](SpellInfo* spellInfo)
+            {
+                spellInfo->AuraInterruptFlags = SpellAuraInterruptFlags::None;
+                spellInfo->AuraInterruptFlags2 = SpellAuraInterruptFlags2::None;
+            });
     }
 
     ApplySpellFix({
@@ -3540,7 +3599,6 @@ void SpellMgr::LoadSpellInfoCorrections()
 
     ApplySpellFix({
         63665, // Charge (Argent Tournament emote on riders)
-        31298, // Sleep (needs target selection script)
         51904, // Summon Ghouls On Scarlet Crusade (this should use conditions table, script for this spell needs to be fixed)
         68933, // Wrath of Air Totem rank 2 (Aura)
         29200  // Purify Helboar Meat
@@ -3564,18 +3622,11 @@ void SpellMgr::LoadSpellInfoCorrections()
         spellInfo->AttributesEx4 |= SPELL_ATTR4_IGNORE_DAMAGE_TAKEN_MODIFIERS;
     });
 
-    // Howl of Azgalor
-    ApplySpellFix({ 31344 }, [](SpellInfo* spellInfo)
-    {
-        ApplySpellEffectFix(spellInfo, EFFECT_0, [](SpellEffectInfo* spellEffectInfo)
-        {
-            spellEffectInfo->TargetARadiusEntry = sSpellRadiusStore.LookupEntry(EFFECT_RADIUS_100_YARDS); // 100yards instead of 50000?!
-        });
-    });
-
     ApplySpellFix({
         42818, // Headless Horseman - Wisp Flight Port
-        42821  // Headless Horseman - Wisp Flight Missile
+        42821, // Headless Horseman - Wisp Flight Missile
+        720,   // Entangle
+        731    // Entangle
     }, [](SpellInfo* spellInfo)
     {
         spellInfo->RangeEntry = sSpellRangeStore.LookupEntry(6); // 100 yards
@@ -3591,7 +3642,6 @@ void SpellMgr::LoadSpellInfoCorrections()
     });
 
     ApplySpellFix({
-        31347, // Doom
         36327, // Shoot Arcane Explosion Arrow
         39365, // Thundering Storm
         41071, // Raise Dead (HACK)
@@ -3737,6 +3787,15 @@ void SpellMgr::LoadSpellInfoCorrections()
         {
             spellEffectInfo->ApplyAuraPeriod = 3000;
         });
+    });
+
+    // Radius in DBC is not enough
+    ApplySpellFix({
+        36854, // Channel
+        36856  // Channel
+        }, [](SpellInfo* spellInfo)
+    {
+        spellInfo->RangeEntry = sSpellRangeStore.LookupEntry(5); // 40yd
     });
 
     // Nether Portal - Perseverence
@@ -5053,21 +5112,96 @@ void SpellMgr::LoadSpellInfoCorrections()
     // THE WANDERING ISLE SPELLS
     //
 
-    // Summon Master Li Fei
-    ApplySpellFix({ 102445 }, [](SpellInfo* spellInfo)
-    {
-        ApplySpellEffectFix(spellInfo, EFFECT_0, [](SpellEffectInfo* spellEffectInfo)
+    // THE WANDERING ISLE SPELLS
+    // Summon Pet
+    ApplySpellFix({ 107924 }, [](SpellInfo* spellInfo)
         {
-            spellEffectInfo->TargetA = SpellImplicitTargetInfo(TARGET_DEST_DB);
+            ApplySpellEffectFix(spellInfo, EFFECT_1, [](SpellEffectInfo* spellEffectInfo)
+                {
+                    spellEffectInfo->TargetA = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
+                });
         });
-    });
+
+    ApplySpellFix({
+        102445, // Summon Master Li Fei
+        102499, // Fire Crash
+        //118499, // Summon Aysa
+        //118500, // Summon Ji
+        //104571, // Summon Aysa
+        //126040, // Summon Master Shang Xi
+        //115334, // Summon Aysa
+        //115336, // Summon Ji
+        //115338, // Summon Jojo
+        //115493, // Summon Aysa
+        //115494, // Summon Ji
+        //115495, // Summon Jojo
+        108858, // Summon Tiger Stand
+        }, [](SpellInfo* spellInfo)
+        {
+            ApplySpellEffectFix(spellInfo, EFFECT_0, [](SpellEffectInfo* spellEffectInfo)
+                {
+                    spellEffectInfo->TargetA = SpellImplicitTargetInfo(TARGET_DEST_DB);
+                });
+        });
+
+    ApplySpellFix({
+        114710, // Forcecast Summon Amberleaf Troublemaker
+        118032  // Water Spout
+        }, [](SpellInfo* spellInfo)
+        {
+            spellInfo->MaxAffectedTargets = 1;
+        });
+
+    // Summon Lightning
+    ApplySpellFix({ 109062 }, [](SpellInfo* spellInfo)
+        {
+            spellInfo->CastTimeEntry = sSpellCastTimesStore.LookupEntry(1);
+        });
 
     // Flame Spout
     ApplySpellFix({ 114685 }, [](SpellInfo* spellInfo)
-    {
-        spellInfo->AttributesEx |= SPELL_ATTR1_NO_THREAT;
-        spellInfo->AttributesEx8 |= SPELL_ATTR8_CAN_ATTACK_IMMUNE_PC;
-    });
+        {
+            ApplySpellEffectFix(spellInfo, EFFECT_0, [](SpellEffectInfo* spellEffectInfo)
+                {
+                    spellEffectInfo->TargetARadiusEntry = sSpellRadiusStore.LookupEntry(EFFECT_RADIUS_1_YARD);
+                });
+
+            spellInfo->AttributesEx |= SPELL_ATTR1_NO_THREAT;
+            spellInfo->AttributesEx8 |= SPELL_ATTR8_CAN_ATTACK_IMMUNE_PC;
+        });
+
+    // Ride Vehicle
+    ApplySpellFix({ 102717 }, [](SpellInfo* spellInfo)
+        {
+            spellInfo->RecoveryTime = 0;
+        });
+
+    // Summon Jojo Ironbrow
+    ApplySpellFix({ 108845 }, [](SpellInfo* spellInfo)
+        {
+            spellInfo->DurationEntry = sSpellDurationStore.LookupEntry(4); // 120 seconds
+        });
+
+    // Eject Passenger 1
+    ApplySpellFix({ 60603 }, [](SpellInfo* spellInfo)
+        {
+            ApplySpellEffectFix(spellInfo, EFFECT_0, [](SpellEffectInfo* spellEffectInfo)
+                {
+                    spellEffectInfo->BasePoints = 1;
+                });
+        });
+
+    ApplySpellFix({
+        104012, // Break Gong Credit
+        105002, // Summon Hot Air Balloon
+        120344, // Summon Aysa
+        120345, // Summon Jojo
+        120749, // Summon Ji
+        120753  // Summon Garrosh
+        }, [](SpellInfo* spellInfo)
+        {
+            spellInfo->RangeEntry = sSpellRangeStore.LookupEntry(7); // 10yd
+        });
 
     // ENDOF THE WANDERING ISLE SPELLS
     //
@@ -5109,6 +5243,31 @@ void SpellMgr::LoadSpellInfoCorrections()
     // ENDOF JADE FOREST SPELLS
     //
 
+    //
+    // DARKFLAME CLEFT SPELLS
+    //
+
+    // Darkflame Pickaxe
+    ApplySpellFix({ 421277 }, [](SpellInfo* spellInfo)
+    {
+        spellInfo->AttributesEx2 |= SPELL_ATTR2_IGNORE_LINE_OF_SIGHT;
+    });
+
+    // Throw Darkflame
+    ApplySpellFix({ 420696 }, [](SpellInfo* spellInfo)
+    {
+        spellInfo->Attributes |= SPELL_ATTR0_AURA_IS_DEBUFF;
+    });
+
+    // Throw Darkflame
+    ApplySpellFix({ 421250 }, [](SpellInfo* spellInfo)
+    {
+        spellInfo->DurationEntry = sSpellDurationStore.LookupEntry(165); // 7s
+    });
+
+    // ENDOF DARKFLAME CLEFT SPELLS
+    //
+
     // Earthquake
     ApplySpellFix({ 61882 }, [](SpellInfo* spellInfo)
     {
@@ -5130,6 +5289,24 @@ void SpellMgr::LoadSpellInfoCorrections()
     ApplySpellFix({ 42401, 43105, 42428 }, [](SpellInfo* spellInfo)
     {
         spellInfo->Attributes |= SPELL_ATTR0_NO_IMMUNITIES;
+    });
+
+    ApplySpellFix({
+        61874, // Noblegarden Chocolate
+        71068, // Sweet Surprise
+        71071, // Very Berry Cream
+        71073, // Dark Desire
+        71074  // Buttermilk Delight
+    }, [](SpellInfo* spellInfo)
+    {
+        ApplySpellEffectFix(spellInfo, EFFECT_1, [](SpellEffectInfo* spellEffectInfo)
+        {
+            spellEffectInfo->Effect          = SPELL_EFFECT_APPLY_AURA;
+            spellEffectInfo->TargetA         = SpellImplicitTargetInfo(TARGET_UNIT_CASTER);
+            spellEffectInfo->ApplyAuraName   = SPELL_AURA_PERIODIC_TRIGGER_SPELL;
+            spellEffectInfo->ApplyAuraPeriod = 10 * IN_MILLISECONDS;
+            spellEffectInfo->TriggerSpell    = 24870;
+        });
     });
 
     // Horde / Alliance switch (BG mercenary system)
@@ -5182,12 +5359,6 @@ void SpellMgr::LoadSpellInfoCorrections()
         spellInfo->AttributesEx4 |= SPELL_ATTR4_AURA_IS_BUFF;
     });
 
-    // TODO: temporary, remove with dragonriding
-    ApplySpellFix({ 404468 }, [](SpellInfo* spellInfo)
-    {
-        spellInfo->AttributesCu |= SPELL_ATTR0_CU_AURA_CANNOT_BE_SAVED;
-    });
-
     // Sigil of Flame
     ApplySpellFix({ 204598 }, [](SpellInfo* spellInfo)
     {
@@ -5197,11 +5368,50 @@ void SpellMgr::LoadSpellInfoCorrections()
         });
     });
 
+    // Eradicate, Reap, Cull
+    ApplySpellFix({ 1225826, 1226019, 1245453 }, [](SpellInfo* spellInfo)
+    {
+        spellInfo->NegativeEffects[EFFECT_0] = true;
+    });
+
     // Collective Anguish channel hack (triggered by another channel)
     ApplySpellFix({ 391057, 393831 }, [](SpellInfo* spellInfo)
     {
         spellInfo->AttributesEx &= ~SPELL_ATTR1_IS_CHANNELLED;
     });
+
+    // Frozen Orb (84714) - fully scripted: spawns AT at caster and flies forward
+    // Remove all DBC effects and target requirements - our SpellScript and AreaTriggerAI handle everything
+    ApplySpellFix({ 84714 }, [](SpellInfo* spellInfo)
+        {
+            spellInfo->ExplicitTargetMask = 0;
+            spellInfo->RequiredExplicitTargetMask = 0;
+            for (SpellEffectInfo const& spellEffectInfo : spellInfo->GetEffects())
+            {
+                SpellEffectInfo& effect = const_cast<SpellEffectInfo&>(spellEffectInfo);
+                effect.Effect = SPELL_EFFECT_NONE;
+                effect.TargetA = SpellImplicitTargetInfo(0);
+                effect.TargetB = SpellImplicitTargetInfo(0);
+            }
+        });
+
+    // Dragonriding Thrill of the Skies visual
+    ApplySpellFix({ 373404 }, [](SpellInfo* spellInfo)
+        {
+            spellInfo->DurationEntry = sSpellDurationStore.LookupEntry(21); // Infinite
+        });
+
+    // Dragonrider Energy
+    ApplySpellFix({ 372773 }, [](SpellInfo* spellInfo)
+        {
+            spellInfo->AuraInterruptFlags = SpellAuraInterruptFlags::None;
+        });
+
+    // Racing
+    ApplySpellFix({ 377560, 395101, 409880 }, [](SpellInfo* spellInfo)
+        {
+            spellInfo->AuraInterruptFlags |= SpellAuraInterruptFlags::LeaveWorld;
+        });
 
     for (SpellInfo const& s : mSpellInfoMap)
     {
@@ -5344,7 +5554,7 @@ void SpellMgr::LoadSpellInfoImmunities()
             for (std::string_view token : Trinity::Tokenize(fields[4].GetStringView(), ',', false))
             {
                 if (Optional<uint32> effect = Trinity::StringTo<uint32>(token); effect && effect < uint32(TOTAL_SPELL_EFFECTS))
-                    immunities.Effect.push_back(SpellEffectName(*effect));
+                    immunities.Effect.push_back(SpellEffects(*effect));
                 else
                     TC_LOG_ERROR("sql.sql", "Invalid effect type in `Effects` {} for creature immunities {}, skipped", token, id);
             }
@@ -5494,6 +5704,23 @@ void SpellMgr::LoadSpellInfoTargetCaps()
     ApplySpellFix({ 400370 }, [](SpellInfo* spellInfo)
     {
         spellInfo->_LoadSqrtTargetLimit(5, 0, {}, EFFECT_1, {}, {});
+    });
+
+    ApplySpellFix({ 435222 }, [](SpellInfo* spellInfo)
+    {
+        spellInfo->_LoadSqrtTargetLimit(5, 0, {}, EFFECT_4, {}, {});
+    });
+
+    // Rampaging Ruin
+    ApplySpellFix({ 1265579, 1265580, 1265581, 1265582 }, [](SpellInfo* spellInfo)
+    {
+        spellInfo->_LoadSqrtTargetLimit(5, 0, 1265357, EFFECT_0, {}, {});
+    });
+
+    // Eradicate
+    ApplySpellFix({ 1225827, 1279200 }, [](SpellInfo* spellInfo)
+    {
+        spellInfo->_LoadSqrtTargetLimit(5, 0, 1226033, EFFECT_0, {}, {});
     });
 
     TC_LOG_INFO("server.loading", ">> Loaded SpellInfo target caps in {} ms", GetMSTimeDiffToNow(oldMSTime));

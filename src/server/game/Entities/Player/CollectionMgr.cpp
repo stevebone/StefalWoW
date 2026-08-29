@@ -15,8 +15,10 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+
 #include "CollectionMgr.h"
 #include "CollectionPackets.h"
+#include "Config.h"                       // sConfigMgr
 #include "DatabaseEnv.h"
 #include "DB2Stores.h"
 #include "Item.h"
@@ -25,10 +27,14 @@
 #include "MiscPackets.h"
 #include "ObjectMgr.h"
 #include "Player.h"
+#include "StringConvert.h"                // Trinity::StringTo
 #include "Timer.h"
+#include "TransmogMgr.h"
 #include "TransmogrificationPackets.h"
+#include "Util.h"                         // Trinity::Tokenize
 #include "WorldSession.h"
 #include <boost/dynamic_bitset.hpp>
+#include <cctype>            			   // std::isspace
 
 namespace
 {
@@ -73,11 +79,60 @@ void CollectionMgr::LoadMountDefinitions()
     TC_LOG_INFO("server.loading", ">> Loaded {} mount definitions in {} ms", FactionSpecificMounts.size(), GetMSTimeDiffToNow(oldMSTime));
 }
 
-void CollectionMgr::LoadWarbandSceneDefinitions()
-{
-    for (WarbandSceneEntry const* warbandScene : sWarbandSceneStore)
-        if (warbandScene->GetFlags().HasFlag(WarbandSceneFlags::AwardedAutomatically))
-            DefaultWarbandScenes.push_back(warbandScene->ID);
+void CollectionMgr::LoadWarbandSceneDefinitions()  
+{  
+    uint32 oldMSTime = getMSTime();  
+  
+    // Clear so a reload does not accumulate duplicates  
+    DefaultWarbandScenes.clear();  
+  
+    for (WarbandSceneEntry const* warbandScene : sWarbandSceneStore)  
+        if (warbandScene->GetFlags().HasFlag(WarbandSceneFlags::AwardedAutomatically))  
+            DefaultWarbandScenes.push_back(warbandScene->ID);  
+  
+    // FoundryCore: grant starter warband scenes to every account (config-driven)  
+    if (!sConfigMgr->GetBoolDefault("Warband.StarterScenes.Enable", true))  
+    {  
+        TC_LOG_INFO("server.loading", ">> Warband starter scenes disabled by config (Warband.StarterScenes.Enable = 0)");  
+        TC_LOG_INFO("server.loading", ">> Loaded {} default warband scene definitions in {} ms",  
+            DefaultWarbandScenes.size(), GetMSTimeDiffToNow(oldMSTime));  
+        return;  
+    }  
+  
+    std::string sceneList = sConfigMgr->GetStringDefault("Warband.StarterScenes.List", "1,4");  
+  
+    uint32 starterCount = 0;  
+    for (std::string_view token : Trinity::Tokenize(sceneList, ',', false))  
+    {  
+        // manual trim (no Trinity::String::Trim exists in this codebase)  
+        while (!token.empty() && std::isspace(static_cast<unsigned char>(token.front())))  
+            token.remove_prefix(1);  
+        while (!token.empty() && std::isspace(static_cast<unsigned char>(token.back())))  
+            token.remove_suffix(1);  
+  
+        Optional<uint32> parsed = Trinity::StringTo<uint32>(token);  
+        if (!parsed)  
+        {  
+            TC_LOG_ERROR("server.loading", "Warband.StarterScenes.List contains invalid (non-numeric) entry '{}', skipped", token);  
+            continue;  
+        }  
+  
+        uint32 sceneId = *parsed;  
+        if (!sWarbandSceneStore.HasRecord(sceneId))  
+        {  
+            TC_LOG_ERROR("server.loading", "Warband.StarterScenes.List references WarbandScene {} which does not exist in WarbandScene.db2, skipped", sceneId);  
+            continue;  
+        }  
+  
+        if (std::ranges::find(DefaultWarbandScenes, sceneId) == DefaultWarbandScenes.end())  
+        {  
+            DefaultWarbandScenes.push_back(sceneId);  
+            ++starterCount;  
+        }  
+    }  
+  
+    TC_LOG_INFO("server.loading", ">> Loaded {} default warband scene definitions ({} from config starter list) in {} ms",  
+        DefaultWarbandScenes.size(), starterCount, GetMSTimeDiffToNow(oldMSTime));  
 }
 
 namespace
@@ -95,11 +150,35 @@ namespace
     }
 }
 
-CollectionMgr::CollectionMgr(WorldSession* owner) : _owner(owner), _appearances(std::make_unique<boost::dynamic_bitset<uint32>>()), _transmogIllusions(std::make_unique<boost::dynamic_bitset<uint32>>())
+CollectionMgr::CollectionMgr(WorldSession* owner) : _owner(owner),
+    _appearances(std::make_unique<boost::dynamic_bitset<uint32>>()),
+    _transmogIllusions(std::make_unique<boost::dynamic_bitset<uint32>>())
 {
 }
 
 CollectionMgr::~CollectionMgr() = default;
+
+void CollectionMgr::LoadCharacterData()
+{
+    LoadToys();
+    LoadHeirlooms();
+    LoadMounts();
+    LoadItemAppearances();
+    LoadTransmogIllusions();
+    LoadTransmogOutfits();
+    LoadWarbandScenes();
+}
+
+void CollectionMgr::SaveToDB(LoginDatabaseTransaction trans)
+{
+    SaveAccountToys(trans);
+    SaveAccountHeirlooms(trans);
+    SaveAccountMounts(trans);
+    SaveAccountItemAppearances(trans);
+    SaveAccountTransmogIllusions(trans);
+    SaveAccountTransmogOutfits(trans);
+    SaveAccountWarbandScenes(trans);
+}
 
 void CollectionMgr::LoadToys()
 {
@@ -417,6 +496,16 @@ bool CollectionMgr::AddMount(uint32 spellId, MountStatusFlags flags, bool factio
     return true;
 }
 
+void CollectionMgr::ClearMountFanfare(uint32 spellId)
+{
+    auto itr = _mounts.find(spellId);
+    if (itr == _mounts.end())
+        return;
+
+    itr->second = MountStatusFlags(itr->second & ~MOUNT_NEEDS_FANFARE);
+    SendSingleMountUpdate(*itr);
+}
+
 void CollectionMgr::MountSetFavorite(uint32 spellId, bool favorite)
 {
     auto itr = _mounts.find(spellId);
@@ -524,12 +613,13 @@ void CollectionMgr::LoadAccountItemAppearances(PreparedQueryResult knownAppearan
         168665, // Hidden Bracers
         158329, // Hidden Gloves
         143539, // Hidden Belt
-        168664  // Hidden Boots
+        168664,  // Hidden Boots
+        216696,  // Hidden Pants
     };
 
     for (uint32 hiddenItem : hiddenAppearanceItems)
     {
-        ItemModifiedAppearanceEntry const* hiddenAppearance = sDB2Manager.GetItemModifiedAppearance(hiddenItem, 0);
+        ItemModifiedAppearanceEntry const* hiddenAppearance = TransmogMgr::GetDefaultItemModifiedAppearance(hiddenItem);
         ASSERT(hiddenAppearance);
         if (_appearances->size() <= hiddenAppearance->ID)
             _appearances->resize(hiddenAppearance->ID + 1);
@@ -603,7 +693,7 @@ void CollectionMgr::AddItemAppearance(Item* item)
 
 void CollectionMgr::AddItemAppearance(uint32 itemId, uint32 appearanceModId /*= 0*/)
 {
-    ItemModifiedAppearanceEntry const* itemModifiedAppearance = sDB2Manager.GetItemModifiedAppearance(itemId, appearanceModId);
+    ItemModifiedAppearanceEntry const* itemModifiedAppearance = TransmogMgr::GetItemModifiedAppearance(itemId, appearanceModId);
     if (!CanAddAppearance(itemModifiedAppearance))
         return;
 
@@ -612,11 +702,7 @@ void CollectionMgr::AddItemAppearance(uint32 itemId, uint32 appearanceModId /*= 
 
 void CollectionMgr::AddTransmogSet(uint32 transmogSetId)
 {
-    std::vector<TransmogSetItemEntry const*> const* items = sDB2Manager.GetTransmogSetItems(transmogSetId);
-    if (!items)
-        return;
-
-    for (TransmogSetItemEntry const* item : *items)
+    for (TransmogSetItemEntry const* item : TransmogMgr::GetTransmogSetItems(transmogSetId))
     {
         ItemModifiedAppearanceEntry const* itemModifiedAppearance = sItemModifiedAppearanceStore.LookupEntry(item->ItemModifiedAppearanceID);
         if (!itemModifiedAppearance)
@@ -628,13 +714,13 @@ void CollectionMgr::AddTransmogSet(uint32 transmogSetId)
 
 bool CollectionMgr::IsSetCompleted(uint32 transmogSetId) const
 {
-    std::vector<TransmogSetItemEntry const*> const* transmogSetItems = sDB2Manager.GetTransmogSetItems(transmogSetId);
-    if (!transmogSetItems)
+    std::span<TransmogSetItemEntry const* const> transmogSetItems = TransmogMgr::GetTransmogSetItems(transmogSetId);
+    if (transmogSetItems.empty())
         return false;
 
     std::array<int8, EQUIPMENT_SLOT_END> knownPieces;
     knownPieces.fill(-1);
-    for (TransmogSetItemEntry const* transmogSetItem : *transmogSetItems)
+    for (TransmogSetItemEntry const* transmogSetItem : transmogSetItems)
     {
         ItemModifiedAppearanceEntry const* itemModifiedAppearance = sItemModifiedAppearanceStore.LookupEntry(transmogSetItem->ItemModifiedAppearanceID);
         if (!itemModifiedAppearance)
@@ -671,7 +757,10 @@ bool CollectionMgr::CanAddAppearance(ItemModifiedAppearanceEntry const* itemModi
     if (!itemTemplate)
         return false;
 
-    if (itemTemplate->HasFlag(ITEM_FLAG2_NO_SOURCE_FOR_ITEM_VISUAL) || itemTemplate->GetQuality() == ITEM_QUALITY_ARTIFACT)
+    //if (itemTemplate->HasFlag(ITEM_FLAG2_NO_SOURCE_FOR_ITEM_VISUAL) || itemTemplate->GetQuality() == ITEM_QUALITY_ARTIFACT)
+    // In Midnight and probably prior exp artifact quality items can have appearances and be collected
+    // Some of these are needed to unlock druid form customizations
+    if (itemTemplate->HasFlag(ITEM_FLAG2_NO_SOURCE_FOR_ITEM_VISUAL))
         return false;
 
     switch (itemTemplate->GetClass())
@@ -756,18 +845,14 @@ void CollectionMgr::AddItemAppearance(ItemModifiedAppearanceEntry const* itemMod
             owner->UpdateCriteria(CriteriaType::LearnAnyTransmogInSlot, transmogSlot, itemModifiedAppearance->ID);
     }
 
-    if (std::vector<TransmogSetEntry const*> const* sets = sDB2Manager.GetTransmogSetsForItemModifiedAppearance(itemModifiedAppearance->ID))
+    for (TransmogSetEntry const* set : TransmogMgr::GetTransmogSetsForItemModifiedAppearance(itemModifiedAppearance->ID))
     {
-        for (TransmogSetEntry const* set : *sets)
+        if (IsSetCompleted(set->ID))
         {
-            if (IsSetCompleted(set->ID))
-            {
+            if (Quest const* quest = sObjectMgr->GetQuestTemplate(set->TrackingQuestID))
+                owner->RewardQuest(quest, LootItemType::Item, 0, owner, false);
 
-                if (Quest const* quest = sObjectMgr->GetQuestTemplate(set->TrackingQuestID))
-                    owner->RewardQuest(quest, LootItemType::Item, 0, owner, false);
-
-                owner->UpdateCriteria(CriteriaType::CollectTransmogSetFromGroup, set->TransmogSetGroupID);
-            }
+            owner->UpdateCriteria(CriteriaType::CollectTransmogSetFromGroup, set->TransmogSetGroupID);
         }
     }
 }
@@ -964,6 +1049,55 @@ void CollectionMgr::AddTransmogIllusion(uint32 transmogIllusionId)
 bool CollectionMgr::HasTransmogIllusion(uint32 transmogIllusionId) const
 {
     return transmogIllusionId < _transmogIllusions->size() && _transmogIllusions->test(transmogIllusionId);
+}
+
+void CollectionMgr::LoadTransmogOutfits()
+{
+    _owner->GetPlayer()->AddUnlockedTransmogOutfits(_transmogOutfits);
+}
+
+void CollectionMgr::LoadAccountTransmogOutfits(PreparedQueryResult unlockedTransmogOutfits)
+{
+    if (unlockedTransmogOutfits)
+    {
+        do
+        {
+            Field* fields = unlockedTransmogOutfits->Fetch();
+
+            int32 transmogOutfitId = fields[0].GetInt32();
+
+            if (!sTransmogOutfitEntryStore.HasRecord(transmogOutfitId))
+                continue;
+
+            _transmogOutfits.insert(transmogOutfitId);
+
+        } while (unlockedTransmogOutfits->NextRow());
+    }
+
+    for (TransmogOutfitEntryEntry const* transmogOutfitEntry : TransmogMgr::GetAutomaticallyUnlockedOutfits())
+        _transmogOutfits.insert(transmogOutfitEntry->ID);
+}
+
+void CollectionMgr::SaveAccountTransmogOutfits(LoginDatabaseTransaction trans)
+{
+    for (int32 transmogOutfitId : _transmogOutfits)
+    {
+        LoginDatabasePreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_INS_BNET_TRANSMOG_OUTFITS);
+        stmt->setUInt32(0, _owner->GetBattlenetAccountId());
+        stmt->setInt32(1, transmogOutfitId);
+        trans->Append(stmt);
+    }
+}
+
+void CollectionMgr::AddTransmogOutfit(int32 transmogOutfitId)
+{
+    if (_transmogOutfits.insert(transmogOutfitId).second)
+        _owner->GetPlayer()->AddUnlockedTransmogOutfit(transmogOutfitId);
+}
+
+bool CollectionMgr::HasTransmogOutfit(int32 transmogOutfitId) const
+{
+    return _transmogOutfits.contains(transmogOutfitId);
 }
 
 void CollectionMgr::LoadWarbandScenes()

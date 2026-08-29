@@ -56,6 +56,7 @@ LootStore LootTemplates_Prospecting("prospecting_loot_template",     "item entry
 LootStore LootTemplates_Reference("reference_loot_template",         "reference id",                    false);
 LootStore LootTemplates_Skinning("skinning_loot_template",           "creature skinning id",            true);
 LootStore LootTemplates_Spell("spell_loot_template",                 "spell id (random item creating)", false);
+LootStore LootTemplates_Scrapping("scrapping_loot_template",         "scrapping id",                    true);
 
 // Selects invalid loot items to be removed from group possible entries (before rolling)
 struct LootGroupInvalidSelector
@@ -190,7 +191,7 @@ bool LootStore::HaveQuestLootFor(uint32 loot_id) const
 {
     // scan loot for quest items
     if (LootTemplate const* lootTemplate = Trinity::Containers::MapGetValuePtr(m_LootTemplates, loot_id))
-        return lootTemplate->HasQuestDrop(m_LootTemplates);
+        return lootTemplate->HasQuestDrop();
 
     return false;
 }
@@ -198,7 +199,7 @@ bool LootStore::HaveQuestLootFor(uint32 loot_id) const
 bool LootStore::HaveQuestLootForPlayer(uint32 loot_id, Player const* player) const
 {
     if (LootTemplate const* lootTemplate = Trinity::Containers::MapGetValuePtr(m_LootTemplates, loot_id))
-        if (lootTemplate->HasQuestDropForPlayer(m_LootTemplates, player))
+        if (lootTemplate->HasQuestDropForPlayer(player))
             return true;
 
     return false;
@@ -260,20 +261,20 @@ bool LootStoreItem::Roll(bool rate) const
 
             float qualityModifier = pProto && rate && QualityToRate[pProto->GetQuality()] != MAX_RATES ? sWorld->getRate(QualityToRate[pProto->GetQuality()]) : 1.0f;
 
-            return roll_chance_f(chance * qualityModifier);
+            return roll_chance(chance * qualityModifier);
         }
         case Type::Reference:
-            return roll_chance_f(chance * (rate ? sWorld->getRate(RATE_DROP_ITEM_REFERENCED) : 1.0f));
+            return roll_chance(chance * (rate ? sWorld->getRate(RATE_DROP_ITEM_REFERENCED) : 1.0f));
         case Type::Currency:
         {
             CurrencyTypesEntry const* currency = sCurrencyTypesStore.AssertEntry(itemid);
 
             float qualityModifier = currency && rate && QualityToRate[currency->Quality] != MAX_RATES ? sWorld->getRate(QualityToRate[currency->Quality]) : 1.0f;
 
-            return roll_chance_f(chance * qualityModifier);
+            return roll_chance(chance * qualityModifier);
         }
         case Type::TrackingQuest:
-            return roll_chance_f(chance);
+            return roll_chance(chance);
         default:
             break;
     }
@@ -697,14 +698,13 @@ void LootTemplate::Process(Loot& loot, bool rate, uint16 lootMode, uint8 groupId
 
 void LootTemplate::ProcessPersonalLoot(std::unordered_map<Player*, std::unique_ptr<Loot>>& personalLoot, bool rate, uint16 lootMode) const
 {
-    auto getLootersForItem = [&personalLoot](auto&& predicate)
+    auto getLootersForItem = [&personalLoot](auto&& predicate) -> std::vector<Player*>
     {
         std::vector<Player*> lootersForItem;
         for (auto&& [looter, loot] : personalLoot)
-        {
             if (predicate(looter))
                 lootersForItem.push_back(looter);
-        }
+
         return lootersForItem;
     };
 
@@ -861,7 +861,7 @@ bool LootTemplate::HasDropForPlayer(Player const* player, uint8 groupId, bool st
 }
 
 // True if template includes at least 1 quest drop entry
-bool LootTemplate::HasQuestDrop(LootTemplateMap const& store, uint8 groupId) const
+bool LootTemplate::HasQuestDrop(uint8 groupId) const
 {
     if (groupId)                                            // Group reference
     {
@@ -885,10 +885,10 @@ bool LootTemplate::HasQuestDrop(LootTemplateMap const& store, uint8 groupId) con
                 break;
             case LootStoreItem::Type::Reference:
             {
-                LootTemplateMap::const_iterator Referenced = store.find(item->itemid);
-                if (Referenced == store.end())
+                LootTemplate const* Referenced = LootTemplates_Reference.GetLootFor(item->itemid);
+                if (!Referenced)
                     continue;                               // Error message [should be] already printed at loading stage
-                if (Referenced->second->HasQuestDrop(store, item->groupid))
+                if (Referenced->HasQuestDrop(item->groupid))
                     return true;
                 break;
             }
@@ -906,7 +906,7 @@ bool LootTemplate::HasQuestDrop(LootTemplateMap const& store, uint8 groupId) con
 }
 
 // True if template includes at least 1 quest drop for an active quest of the player
-bool LootTemplate::HasQuestDropForPlayer(LootTemplateMap const& store, Player const* player, uint8 groupId) const
+bool LootTemplate::HasQuestDropForPlayer(Player const* player, uint8 groupId) const
 {
     if (groupId)                                            // Group reference
     {
@@ -930,10 +930,10 @@ bool LootTemplate::HasQuestDropForPlayer(LootTemplateMap const& store, Player co
                 break;
             case LootStoreItem::Type::Reference:
             {
-                LootTemplateMap::const_iterator Referenced = store.find(item->itemid);
-                if (Referenced == store.end())
+                LootTemplate const* Referenced = LootTemplates_Reference.GetLootFor(item->itemid);
+                if (!Referenced)
                     continue;                               // Error message already printed at loading stage
-                if (Referenced->second->HasQuestDropForPlayer(store, player, item->groupid))
+                if (Referenced->HasQuestDropForPlayer(player, item->groupid))
                     return true;
                 break;
             }
@@ -1430,6 +1430,48 @@ void LoadLootTemplates_Spell()
         TC_LOG_INFO("server.loading", ">> Loaded 0 spell loot templates. DB table `spell_loot_template` is empty");
 }
 
+void LoadLootTemplates_Scrapping()
+{
+    TC_LOG_INFO("server.loading", "Loading scrapping loot templates...");
+
+    uint32 oldMSTime = getMSTime();
+
+    LootIdSet lootIdSet, lootIdSetUsed;
+    uint32 count = LootTemplates_Scrapping.LoadAndCollectLootIds(lootIdSet);
+
+    for (auto const& itemScrappingLoot : *sObjectMgr->GetItemScrappingLootStore())
+    {
+        uint32 lootid = itemScrappingLoot.Id;
+        if (lootIdSet.find(lootid) == lootIdSet.end())
+            LootTemplates_Scrapping.ReportNonExistingId(lootid, "ItemScrappingLoot", lootid);
+        else
+            lootIdSetUsed.insert(lootid);
+    }
+
+    for (ItemBonusEntry const* itemBonus : sItemBonusStore)
+    {
+        if (itemBonus->Type != ITEM_BONUS_SCRAPPING_LOOT_ID)
+            continue;
+
+        uint32 lootid = itemBonus->Value[0];
+        if (!lootIdSet.contains(lootid))
+            LootTemplates_Scrapping.ReportNonExistingId(lootid, "ItemBonusList", itemBonus->ParentItemBonusListID);
+        else
+            lootIdSetUsed.insert(lootid);
+    }
+
+    for (uint32 lootId : lootIdSetUsed)
+        lootIdSet.erase(lootId);
+
+    // output error for any still listed (not referenced from appropriate table) ids
+    LootTemplates_Scrapping.ReportUnusedIds(lootIdSet);
+
+    if (count)
+        TC_LOG_INFO("server.loading", ">> Loaded {} scrapping loot templates in {} ms", count, GetMSTimeDiffToNow(oldMSTime));
+    else
+        TC_LOG_INFO("server.loading", ">> Loaded 0 scrapping loot templates. DB table `scrapping_loot_template` is empty");
+}
+
 void LoadLootTemplates_Reference()
 {
     TC_LOG_INFO("server.loading", "Loading reference loot templates...");
@@ -1451,6 +1493,7 @@ void LoadLootTemplates_Reference()
     LootTemplates_Prospecting.CheckLootRefs(&lootIdSet);
     LootTemplates_Mail.CheckLootRefs(&lootIdSet);
     LootTemplates_Reference.CheckLootRefs(&lootIdSet);
+    LootTemplates_Scrapping.CheckLootRefs(&lootIdSet);
 
     // output error for any still listed ids (not referenced from any loot table)
     LootTemplates_Reference.ReportUnusedIds(lootIdSet);
@@ -1471,6 +1514,7 @@ void LoadLootTables()
     LoadLootTemplates_Disenchant();
     LoadLootTemplates_Prospecting();
     LoadLootTemplates_Spell();
+    LoadLootTemplates_Scrapping();
 
     LoadLootTemplates_Reference();
 }

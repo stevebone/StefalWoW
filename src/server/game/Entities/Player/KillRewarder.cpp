@@ -159,6 +159,10 @@ inline void KillRewarder::_RewardXP(Player* player, float rate)
         xp *= player->GetTotalAuraMultiplier(SPELL_AURA_MOD_XP_PCT);
         xp *= player->GetTotalAuraMultiplierByMiscValue(SPELL_AURA_MOD_XP_FROM_CREATURE_TYPE, int32(_victim->GetCreatureType()));
 
+        // Warband alt XP bonus (5% per max-level character on account, max 25%)
+        if (uint8 altCount = player->GetWarbandMaxLevelCharCount())
+            xp += xp * altCount * 5 / 100;
+
         // 4.2.3. Give XP to player.
         player->GiveXP(xp, _victim, _groupRate);
         if (Pet* pet = player->GetPet())

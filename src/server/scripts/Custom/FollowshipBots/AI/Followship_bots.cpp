@@ -1,39 +1,70 @@
-// =========================================
-// TO-DO
-// =========================================
+/*
+ * This file is part of the Stefal WoW Project.
+ * It is designed to work exclusively with the TrinityCore framework.
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 2 of the License, or (at your
+ * option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ *
+ * This code is provided for personal and educational use within the
+ * Stefal WoW Project. It is not intended for commercial distribution,
+ * resale, or any form of monetization.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 
-
+#include "Battleground.h"
+#include "BattlegroundScore.h"
+#include "Chat.h"
+#include "GameObject.h"
+#include "Log.h"
+#include "Map.h"
+#include "ObjectAccessor.h"
 #include "Player.h"
+#include "ScriptMgr.h"
 #include "ScriptedCreature.h"
 #include "ScriptedGossip.h"
+#include "ScriptHelpers.h"
+#include "SpellInfo.h"
 
 #include "Followship_bots.h"
 #include "Followship_bots_ai_base.h"
-#include "Followship_bots_config.h"
-
-#include "Followship_bots_druid.h"
-#include "Followship_bots_paladin.h"
-#include "Followship_bots_priest.h"
-#include "Followship_bots_mage.h"
-#include "Followship_bots_warlock.h"
-#include "Followship_bots_warrior.h"
 #include "Followship_bots_mgr.h"
-#include "Followship_bots_utils.h"
 
 #include "Followship_bots_auras_handler.h"
+#include "Followship_bots_config.h"
+#include "Followship_bots_chat_handler.h"
+#include "Followship_bots_chatter_handler.h"
+#include "Followship_bots_combat_handler.h"
+
+#include "Followship_bots_db.h"
+
+#include "GenAI_chatter_prompts.h"
 #include "Followship_bots_death_handler.h"
+#include "Followship_bots_dungeon_handler.h"
 #include "Followship_bots_events_handler.h"
 #include "Followship_bots_gossip_handler.h"
 #include "Followship_bots_group_handler.h"
 #include "Followship_bots_incombat_handler.h"
 #include "Followship_bots_movement_handler.h"
 #include "Followship_bots_outofcombat_handler.h"
+#include "Followship_bots_pet_handler.h"
 #include "Followship_bots_powers_handler.h"
 #include "Followship_bots_recovery_handler.h"
 #include "Followship_bots_regen_handler.h"
 #include "Followship_bots_spells_handler.h"
 #include "Followship_bots_stats_handler.h"
+#include "Followship_bots_party_handler.h"
 #include "Followship_bots_teleport_handler.h"
+#include "Followship_bots_battleground_handler.h"
+#include "Followship_bots_warsong_gulch.h"
 
 
 
@@ -44,7 +75,7 @@ public:
 
     struct npc_followship_botsAI : public FSB_BaseAI
     {
-        npc_followship_botsAI(Creature* creature) : FSB_BaseAI(creature)
+        npc_followship_botsAI(Creature* creature) : FSB_BaseAI(creature), _summons(creature)
         {
             // Runs once when creature is spawned
             static bool tablesInitialized = false;
@@ -64,6 +95,17 @@ public:
             ScriptedAI::InitializeAI(); // always call base first            
         }
 
+        void OnDespawn() override
+        {
+            if (me && me->GetMap() && me->GetMap()->IsBattlegroundOrArena())
+            {
+                if (me->GetMap()->IsBattleground())
+                    FSBBattleground::RespawnBotOnDespawn(me);
+                ScriptHelpers::EraseBotScore(me->GetGUID());
+                ScriptHelpers::EraseBotRace(me->GetGUID());
+            }
+        }
+
         void Reset() override // Runs at creature respawn, evade or when triggered
         {
             if (FollowshipBotsConfig::configFSBEnabled)
@@ -72,9 +114,10 @@ public:
 
                 FSBMgr::Get()->SetInitialBotState(me);
 
-                TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Reset() triggered for bot: {}", me->GetName());
+                TC_LOG_DEBUG("scripts.fsb.general", "FSB: Reset() triggered for bot: {}", me->GetName());
 
                 // Schedule Generic Events
+                FSBEvents::ScheduleBotEvent(me, FSB_EVENT_GENERIC_MAINTENANCE, 1s);
 
                 // Periodic events happen as long as the bot exists in the world
                 events.ScheduleEvent(FSB_EVENT_PERIODIC_MAINTENANCE, 1s);
@@ -112,12 +155,14 @@ public:
         // This only works if creature is spawned by summon (NOT DB spawn)
         void IsSummonedBy(WorldObject* /*summoner*/) override
         {
-            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: IsSummonedBy() triggered for bot: {}", me->GetName());
+            TC_LOG_DEBUG("scripts.fsb.general", "FSB: IsSummonedBy() triggered for bot: {}", me->GetName());
         }
 
         void JustAppeared() override // Runs once when creature appeared in world, works for DB spawns
         {
-            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: JustAppeared() triggered for bot: {}", me->GetName());
+            TC_LOG_DEBUG("scripts.fsb.general", "FSB: JustAppeared() triggered for bot: {}", me->GetName());
+            FSBChatMgr::Get()->RegisterActiveBot(me);
+            FSBChatMgr::Get()->JoinBotChannels(me);
         }
 
         bool OnGossipHello(Player* player) override // Runs once when opening creature gossip
@@ -125,352 +170,95 @@ public:
             return FSBGossip::HandleDefaultGossipHello(me, player, botHired, _playerGuid);
         }
 
-        bool OnGossipSelect(Player* player, uint32 /*menuId*/, uint32 gossipListId) override // Runs once when gossip item selected
+        bool OnGossipSelect(Player* player, uint32 menuId, uint32 gossipListId) override // Runs once when gossip item selected
         {
-            int32 pLevel = player->GetLevel();
-
-            uint32 const action = player->PlayerTalkClass->GetGossipOptionAction(gossipListId);
-            ClearGossipMenuFor(player);
-
-            switch (action)
-            {
-                // Hire Menu
-            case GOSSIP_ACTION_INFO_DEF + 1:
-                return FSBGossip::HandleGossipMenuHire(me, player);
-
-                // Bot Info
-            case GOSSIP_ACTION_INFO_DEF + 2:
-            {
-                FSBGossip::HandleGossipItemInfo(me, player);
-                return true;
-            }
-
-                // Roles Menu
-            case GOSSIP_ACTION_INFO_DEF + 3:
-                return FSBGossip::HandleGossipMenuRoles(me, player);
-
-                // Bot Gossip Back to main
-            case GOSSIP_ACTION_INFO_DEF + 4:
-            {
-                OnGossipHello(player);
-                return true;
-            }
-
-                // Bot Dismiss
-            case GOSSIP_ACTION_INFO_DEF + 5:
-            {
-                events.ScheduleEvent(FSB_EVENT_HIRE_DISMISSED, 1s);
-                break;
-            }
-
-                // Bot Instructions Menu
-            case GOSSIP_ACTION_INFO_DEF + 6:
-                return FSBGossip::HandleGossipMenuInstructions(me, player);
-
-                // Bot Follow Distance Menu
-            case GOSSIP_ACTION_INFO_DEF + 7:
-            {
-                return FSBGossip::HandleGossipMenuFollowDistance(me, player);
-            }
-
-                // Bot Follow Angle Menu
-            case GOSSIP_ACTION_INFO_DEF + 8:
-                return FSBGossip::HandleGossipMenuFollowAngle(me, player);
-
-                // Bot Hire Option 1
-            case GOSSIP_ACTION_INFO_DEF + 10:
-            {
-                // End price is base cost per level times player level times duration of contract
-                if (!FSBUtils::TryChargeHire(player, FollowshipBotsConfig::configFSBHireDuration1))
-                {
-                    player->PlayerTalkClass->SendCloseGossip();
-                    return true;
-                }
-
-                botHired = true;
-                //FSBMgr::Get()->HandleBotHire(player, me, FollowshipBotsConfig::configFSBHireDuration1);
-                FSBMgr::Get()->HirePersistentBot(player, me, FollowshipBotsConfig::configFSBHireDuration1);
-                //FSBStats::RecalculateStats(me, true, true);
-
-                events.ScheduleEvent(FSB_EVENT_HIRE_EXPIRED, std::chrono::minutes(FollowshipBotsConfig::configFSBHireDuration1 * 60));
-                events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 100ms);
-
-                std::string msg = FSBUtilsTexts::BuildNPCSayText(player->GetName(), FollowshipBotsConfig::configFSBHireDuration1, FSBSayType::Hire, "");
-                me->Say(msg, LANG_UNIVERSAL);
-
-                player->PlayerTalkClass->SendCloseGossip();
-                return true;
-            }
-
-                // Bot Hire Option 2
-            case GOSSIP_ACTION_INFO_DEF + 11:
-            {
-                // End price is base cost per level times player level times duration of contract
-                if (!FSBUtils::TryChargeHire(player, FollowshipBotsConfig::configFSBHireDuration2))
-                {
-                    player->PlayerTalkClass->SendCloseGossip();
-                    return true;
-                }
-
-                botHired = true;
-                FSBMgr::Get()->HirePersistentBot(player, me, FollowshipBotsConfig::configFSBHireDuration2);
-                //FSBStats::RecalculateStats(me, true, true);
-
-                events.ScheduleEvent(FSB_EVENT_HIRE_EXPIRED, std::chrono::minutes(FollowshipBotsConfig::configFSBHireDuration2 * 60));
-                events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 100ms);
-
-                std::string msg = FSBUtilsTexts::BuildNPCSayText(player->GetName(), FollowshipBotsConfig::configFSBHireDuration2, FSBSayType::Hire, "");
-                me->Say(msg, LANG_UNIVERSAL);
-
-                player->PlayerTalkClass->SendCloseGossip();
-                return true;
-            }
-
-                // Bot Hire Option 3
-            case GOSSIP_ACTION_INFO_DEF + 12:
-            {
-                // End price is base cost per level times player level times duration of contract
-                if (!FSBUtils::TryChargeHire(player, FollowshipBotsConfig::configFSBHireDuration3))
-                {
-                    player->PlayerTalkClass->SendCloseGossip();
-                    return true;
-                }
-
-                botHired = true;
-                FSBMgr::Get()->HirePersistentBot(player, me, FollowshipBotsConfig::configFSBHireDuration3);
-                //FSBStats::RecalculateStats(me, true, true);
-
-                events.ScheduleEvent(FSB_EVENT_HIRE_EXPIRED, std::chrono::minutes(FollowshipBotsConfig::configFSBHireDuration3 * 60));
-                events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 100ms);
-
-                std::string msg = FSBUtilsTexts::BuildNPCSayText(player->GetName(), FollowshipBotsConfig::configFSBHireDuration3, FSBSayType::Hire, "");
-                me->Say(msg, LANG_UNIVERSAL);
-
-                player->PlayerTalkClass->SendCloseGossip();
-                return true;
-            }
-
-                // Bot Hire Option Permanent
-            case GOSSIP_ACTION_INFO_DEF + 13:
-            {
-                // End price is base cost per level times player level
-                if (player->HasEnoughMoney(int64(FollowshipBotsConfig::configFSBPermanentPricePerLevel * pLevel)))
-                {
-                    player->ModifyMoney(-int64(FollowshipBotsConfig::configFSBPermanentPricePerLevel * pLevel));
-                    player->GetSession()->SendNotification(FSB_PLAYER_NOTIFICATION_PAYMENT_SUCCESS);
-
-                    botHired = true;
-                    FSBMgr::Get()->HirePersistentBot(player, me, 0);
-                    //FSBStats::RecalculateStats(me, true, true);
-
-                    events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 100ms);
-
-                    std::string msg = FSBUtilsTexts::BuildNPCSayText(player->GetName(), NULL, FSBSayType::PHire, "");
-                    me->Say(msg, LANG_UNIVERSAL);
-                }
-                else
-                    player->GetSession()->SendNotification(FSB_PLAYER_NOTIFICATION_PAYMENT_FAIL);
-
-                player->PlayerTalkClass->SendCloseGossip();
-                return true;
-            }
-
-                // Bot Follow Distance Option 1
-            case GOSSIP_ACTION_INFO_DEF + 14:
-            {
-                botFollowDistance = FOLLOW_DISTANCE_CLOSE;
-                updateFollowInfo = true;
-                events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 100ms);
-                break;
-            }
-
-                // Bot Follow Distance Option 2
-            case GOSSIP_ACTION_INFO_DEF + 15:
-            {
-                botFollowDistance = FOLLOW_DISTANCE_NORMAL;
-                updateFollowInfo = true;
-                events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 100ms);
-                break;
-            }
-
-                // Bot Follow Distance Option 3
-            case GOSSIP_ACTION_INFO_DEF + 16:
-            {
-                botFollowDistance = FOLLOW_DISTANCE_WIDE;
-                updateFollowInfo = true;
-                events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 100ms);
-                break;
-            }
-
-                // Bot Follow Angle Option 1
-            case GOSSIP_ACTION_INFO_DEF + 17:
-            {
-                botFollowAngle = FOLLOW_ANGLE_FRONT;
-                updateFollowInfo = true;
-                events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 1s);
-                break;
-            }
-
-                // Bot Follow Angle Option 2
-            case GOSSIP_ACTION_INFO_DEF + 18:
-            {
-                botFollowAngle = FOLLOW_ANGLE_BEHIND;
-                updateFollowInfo = true;
-                events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 1s);
-                break;
-            }
-
-                // Bot Follow Angle Option 3
-            case GOSSIP_ACTION_INFO_DEF + 19:
-            {
-                botFollowAngle = FSBUtils::GetRandomRightAngle(); //FOLLOW_ANGLE_RIGHT;
-                updateFollowInfo = true;
-                events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 1s);
-                break;
-            }
-
-                // Bot Stay Option
-            case GOSSIP_ACTION_INFO_DEF + 20:
-            {
-                events.ScheduleEvent(FSB_EVENT_MOVE_STAY, 1s, 3s);
-                break;
-            }
-
-                // Bot Follow Option
-            case GOSSIP_ACTION_INFO_DEF + 21:
-            {
-                events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 1s, 3s);
-                break;
-            }
-
-                // Bot Follow Angle Option 4
-            case GOSSIP_ACTION_INFO_DEF + 22:
-            {
-                botFollowAngle = FSBUtils::GetRandomLeftAngle(); //FOLLOW_ANGLE_LEFT;
-                updateFollowInfo = true;
-                events.ScheduleEvent(FSB_EVENT_MOVE_FOLLOW, 1s);
-                break;
-            }
-
-                // Bot Role Option 1
-            case GOSSIP_ACTION_INFO_DEF + 23:
-                FSBGossip::HandleGossipItemRole(me, botClass, FSB_GOSSIP_ROLE_1, botHasDemon);
-                break;
-
-                // Bot Role Option 2
-            case GOSSIP_ACTION_INFO_DEF + 24:
-                FSBGossip::HandleGossipItemRole(me, botClass, FSB_GOSSIP_ROLE_2, botHasDemon);
-                break;
-
-            // Bot Role Option 3
-            case GOSSIP_ACTION_INFO_DEF + 25:
-                FSBGossip::HandleGossipItemRole(me, botClass, FSB_GOSSIP_ROLE_3, botHasDemon);
-                break;
-
-            case GOSSIP_ACTION_INFO_DEF + 26:
-                return FSBGossip::HandleGossipMenuPortals(me, player);
-
-            case GOSSIP_ACTION_INFO_DEF + 27:
-            {
-                me->CastSpell(me, SPELL_MAGE_PORTAL_STORMWIND);
-                me->Say("Okay one portal coming up!", LANG_UNIVERSAL);
-                break;
-            }
-
-            case GOSSIP_ACTION_INFO_DEF + 28:
-            {
-                player->CastSpell(me, 121849);
-                me->Say("Okay one portal coming up!", LANG_UNIVERSAL);
-                break;
-            }
-
-            case GOSSIP_ACTION_INFO_DEF + 29:
-            {
-                player->CastSpell(player, 121851);
-                me->Say("Okay one portal coming up!", LANG_UNIVERSAL);
-                break;
-            }
-
-            case GOSSIP_ACTION_INFO_DEF + 30:
-            {
-                player->CastSpell(player, 121850);
-                me->Say("Okay one portal coming up!", LANG_UNIVERSAL);
-                break;
-            }
-
-            // Bot Role Option 4 - Druid
-            case GOSSIP_ACTION_INFO_DEF + 31:
-                FSBGossip::HandleGossipItemRole(me, botClass, FSB_GOSSIP_ROLE_4, botHasDemon);
-                break;
-
-            default:
-                break;
-            }
-            CloseGossipMenuFor(player);
-            return true;
+            return FSBGossip::HandleGossipSelect(me, player->GetGUID(), menuId, gossipListId);
         }
 
         void JustEngagedWith(Unit* who) override // Runs every time creature gets in combat
         {
-            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Entered JustEngagedWith: {}", who->GetName());
+            if(!botHired)
+                FSBChat::StartBotRandomChat(me, FSBChat::ChatChannelType::CombatDefense, who);
 
-            // Target might be NULL if called from spell with invalid cast targets
-            if (!who || !me->IsAlive())
-                return;
-
-            // Passive pets don't do anything
-            if (me->HasReactState(REACT_PASSIVE))
-                return;
-
-            // Prevent bot from disengaging from current target
-            if (me->GetVictim() && me->EnsureVictim()->IsAlive())
-                return;
-
-            // Continue to evaluate and attack if necessary
-            FSBUtilsBotCombat::BotAttackStart(me, who, botMoveState);
-
-            //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: OnBotOwnerAttacked target: {}, move state: {}", who->GetName(), moveState);
+            TC_LOG_DEBUG("scripts.fsb.general", "FSB: JustEngagedWith() triggered for bot: {}", me->GetName());
         }
 
-        void JustEnteredCombat(Unit* /*who*/) override
+        void JustEnteredCombat(Unit* who) override
         {
-            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: JustEnteredCombat Triggered");
+            FSBCombat::BotSyncShapeshift(me, true);
+
+            for (ObjectGuid const& guid : _summons)
+                if (Creature* summon = ObjectAccessor::GetCreature(*me, guid))
+                    if (summon->IsAlive())
+                        summon->EngageWithTarget(who);
         }
 
         void JustExitedCombat() override
         {
-            FSBUtilsBotCombat::BotHandleReturnMovement(me, botMoveState, botFollowDistance, botFollowAngle); // Return
+            botOutOfCombatTimer = getMSTime();
+
+            FSBCombat::BotSyncShapeshift(me, false);
+
+            botGenericData.manaPotionUsed = false;
+            botGenericData.healthPotionUsed = false;
+
+            if (!botHired)
+            {
+                if (me->GetMap()->IsBattleground())
+                {
+                    if (me->HasUnitState(UNIT_STATE_CHASE))
+                        me->GetMotionMaster()->Clear();
+
+                    if (FSB_BattlegroundData* bgData = GetBattlegroundData())
+                    {
+                        // setDeathState calls CombatStop before JustDied, so we must not clear the tap list when the bot is dying.
+                        if (me->IsAlive())
+                            bgData->damageTappers.clear();
+                        // recentPlayerTargets is also needed by OnPlayerKilledByCreature, which runs after death triggers CombatStop.
+                    }
+                }
+            }
         }        
-
-        void AttackStart(Unit* /*target*/) override
-        {
-
-        }
 
         void HealReceived(Unit* /*done_by*/, uint32& /*addhealth*/) override
         {
-            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Heal Received");
         }
 
-        void DamageDealt(Unit* /*victim*/, uint32& damage, DamageEffectType /*damageType*/) override
+        int32 GetBotSpellPower() const override
         {
+            TC_LOG_DEBUG("scripts.fsb.general", "FSB: GetBotSpellPower() triggered for bot: {}", me->GetName());
+
+            return FSBStats::BotGetSpellPower(me);
+        }
+
+        void DamageDealt(Unit* victim, uint32& damage, DamageEffectType /*damageType*/) override
+        {
+            damage = uint32(damage * FSBStats::ApplyBotDamageDoneReduction(me));
             FSBPowers::GenerateRageFromDamageDone(me, damage);
 
-            damage = uint32(damage * FSBStats::ApplyBotDamageDoneReduction(me));
+            if (me->GetMap()->IsBattlegroundOrArena())
+            {
+                ScriptHelpers::RecordBotDamageDone(me->GetGUID(), damage);
+
+                if (victim && victim->GetTypeId() == TYPEID_PLAYER)
+                    if (FSB_BattlegroundData* bgData = GetBattlegroundData())
+                        bgData->recentPlayerTargets.insert(victim->GetGUID());
+            }
         }
 
         // Runs every time creature takes damage
         void DamageTaken(Unit* attacker, uint32& damage, DamageEffectType /*damageType*/, SpellInfo const* /*spellInfo = nullptr*/) override
         {
+            damage = uint32(damage * FSBStats::ApplyBotDamageTakenReduction(me));
             FSBPowers::GenerateRageFromDamageTaken(me, damage);
 
-            damage = uint32(damage * FSBStats::ApplyBotDamageTakenReduction(me));
+            FSBBattleground::HandleBotDamageTaken(me, attacker, damage);
+        }
 
-            if (!me->GetVictim() && attacker)
-            {
-                TC_LOG_DEBUG("scripts.ai.fsb", "FSB: DamageTaken - bot: {}, has no victim but is attacked by: {}", me->GetName(), attacker->GetName());
-                FSBUtilsBotCombat::BotAttackStart(me, attacker, botMoveState);
-            }
+        void HealDone(Unit* /*done_to*/, uint32& addhealth) override
+        {
+            if (me->GetMap()->IsBattlegroundOrArena())
+                ScriptHelpers::RecordBotHealingDone(me->GetGUID(), addhealth);
         }
 
         void EnterEvadeMode(EvadeReason /*why*/) override // Runs every time creature evades
@@ -480,29 +268,19 @@ public:
 
         void KilledUnit(Unit* victim) override // Runs every time the creature kills an unit
         {
-            FSBUtilsTexts::OnKilledTargetSay(me, victim);
-            // Called from Unit::Kill() in case where pet or owner kills something
-            // if owner killed this victim, pet may still be attacking something else
-            if (me->GetVictim() && me->GetVictim() != victim)
+            if (!victim)
                 return;
 
-            // Clear target just in case. May help problem where health / focus / mana
-            // regen gets stuck. Also resets attack command.
-            // Can't use StopAttack() because that activates movement handlers and ignores
-            // next target selection
-            me->AttackStop();
-            me->InterruptNonMeleeSpells(false);
+            if (urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
+                FSBGenAIPrompts::DispatchBotTargetKilled(me, victim->GetGUID());
 
+            if (me->GetMap()->IsBattlegroundOrArena())
+            {
+                if (victim && victim->GetTypeId() == TYPEID_PLAYER)
+                    FSBBattleground::HandleBotKilledPlayer(me, victim->GetGUID());
 
-            // TO-DO Add autoselect for damage role
-            // Before returning to owner, see if there are more things to attack
-            if (Unit* nextTarget = FSBUtilsBotCombat::BotSelectNextTarget(me, false, botLogicalGroup))
-                //AttackStart(nextTarget);
-                FSBUtilsBotCombat::BotAttackStart(me, nextTarget, botMoveState);
-            else
-                FSBUtilsBotCombat::BotHandleReturnMovement(me, botMoveState, botFollowDistance, botFollowAngle); // Return
-
-            
+                ScriptHelpers::RecordBotKillingBlow(me->GetGUID());
+            }
         }
 
         void OnSpellCast(SpellInfo const* spell) override // Runs every time the creature casts a spell
@@ -520,9 +298,14 @@ public:
             FSBDeath::HandleSpellResurrection(me, spellInfo->Id);
         }
 
-        void SpellHitTarget(WorldObject* /*target*/, SpellInfo const* /*spellInfo*/) override
+        void SpellHitTarget(WorldObject* target, SpellInfo const* spellInfo) override
         {
+            TC_LOG_DEBUG("scripts.fsb.general", "FSB: SpellHitTarget() triggered for bot: {} with target {} and Spell {}", me->GetName(), target->GetName(), spellInfo->Id);
 
+            Player* player = target->ToPlayer();
+
+            if (spellInfo->Id == 461537 && player && !player->IsAlive() && player->GetGUID() == me->GetOwnerGUID())
+                player->ResurrectPlayer(0.35f, false);
         }
 
         void OnAuraApplied(AuraApplication const* aurApp) override
@@ -543,38 +326,75 @@ public:
 
         void JustSummoned(Creature* summon) override // Runs every time the creature summons another creature
         {
-            if (summon && botClass == FSB_Class::Warlock)
+            if (summon)
             {
-                FSBWarlock::AdjustSummonHealth(me, summon);
-                botHasDemon = true;
-                TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Warlock summon {} for bot {} appeared", summon->GetName(), me->GetName());
+                summon->ApplyLevelScaling(3325, 0);
+                summon->SetLevel(me->GetLevel());
+
+                if (botClass == FSB_Class::Warlock)
+                {
+                    FSBWarlock::AdjustSummonHealth(me, summon);
+                    botHasDemon = true;
+                    TC_LOG_DEBUG("scripts.fsb.general", "FSB: JustSummoned Triggered for Warlock bot {} with summon {}", me->GetName(), summon->GetName());
+                }
+
+                _summons.Summon(summon);
             }
-                
         }
 
         void SummonedCreatureDies(Creature* summon, Unit* /*killer*/) override // Runs everytime the creature's summon dies - pet or minion
         {
-            botHasDemon = false;
-            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Warlock summon {} for bot {} died", summon->GetName(), me->GetName());
+            if (summon && botClass == FSB_Class::Warlock)
+            {
+                botHasDemon = false;
+                TC_LOG_DEBUG("scripts.fsb.general", "FSB: SummonedCreatureDies Triggered for Warlock bot {} with summon {}", me->GetName(), summon->GetName());
+            }
+
+            if(summon)
+                _summons.Despawn(summon);
         }
 
-        void JustDied(Unit* /*killer*/) override // Runs once when creature dies
+        void JustDied(Unit* killer) override // Runs once when creature dies
         {
             botCorpsePos = me->GetPosition();
-            FSBDeath::HandlerJustDied(me, botLogicalGroup, botHasSoulstone);
+            FSBChatMgr::Get()->UnregisterActiveBot(me);
+            FSBChatMgr::Get()->LeaveBotChannels(me);
+            FSBDeath::HandlerJustDied(me, killer);
+
+            FSBBattleground::HandleBotDeathScores(me, killer);
         }
 
-        void MovementInform(uint32 /*type*/, uint32 id) override
+        void MovementInform(uint32 type, uint32 id) override
         {
+            if (type == EFFECT_MOTION_TYPE)
+            {
+                FSBMovement::HandleBattlegroundMovement(me, type, id);
+                return;
+            }
+
+            if (type != POINT_MOTION_TYPE)
+                return;
+
             switch (id)
             {
-            case FSB_MOVEMENT_POINT_CORPSE:
+            case FSBMovement::MOVEMENT_POINT_CORPSE:
             {
                 FSBDeath::BotSetStateAfterCorpseRevive(me);
                 break;
             }
-            default:
+
+            case FSBMovement::MOVEMENT_POINT_NEAR_FIRE:
+            {
+                FSBEvents::ScheduleBotEvent(me, FSB_EVENT_RANDOM_ACTION_SIT_BY_FIRE, 1s, 3s);
                 break;
+            }
+
+            default:
+            {
+                if (FSBMovement::IsWsgMovementPoint(id))
+                    FSBMovement::HandleBattlegroundMovement(me, type, id);
+                break;
+            }
             }
         }
 
@@ -590,8 +410,7 @@ public:
             case FSB_DATA_HIRED:
             {
                 botHired = value;
-
-                TC_LOG_DEBUG("scripts.ai.fsb", "FSB SetData: Bot {} received hired value: {}", me->GetName(), botHired);
+                TC_LOG_DEBUG("scripts.fsb.general", "FSB: SetData FSB_DATA_HIRED for bot {} with hired value {}", me->GetName(), botHired);
 
                 break;
             }
@@ -602,20 +421,20 @@ public:
 
                 if (hireTimeLeft > 0)
                 {
-                    events.ScheduleEvent(FSB_EVENT_HIRE_EXPIRED, std::chrono::seconds(hireTimeLeft));
-                    events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, 1s);
-
-                    TC_LOG_DEBUG("scripts.ai.fsb", "FSB SetData: Bot {} received hired left time value: {}", me->GetName(), hireTimeLeft);
+                    FSBEvents::ScheduleBotEvent(me, FSB_EVENT_HIRED_EXPIRED, std::chrono::seconds(hireTimeLeft));
+                    TC_LOG_DEBUG("scripts.fsb.general", "FSB: SetData FSB_DATA_HIRE_TIME_LEFT for bot {} with hireTimeLeft value {}", me->GetName(), hireTimeLeft);
                 }
-                else
-                {
-                    events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, 1s);
-
-                    TC_LOG_DEBUG("scripts.ai.fsb", "FSB SetData: Bot {} received permanent hired", me->GetName());
-                }
+                
+                FSBMovement::ResumeFollow(me, botFollowDistance, botFollowAngle);
+                TC_LOG_DEBUG("scripts.fsb.general", "FSB: SetData FSB_DATA_HIRE_TIME_LEFT for bot {} with permanent hire.", me->GetName());
 
                 break;
             }
+
+            case ScriptHelpers::DATA_BOT_CAPTURED_FLAG:
+                if(!botHired)
+                    FSBBattleground::WarsongGulch::OnBotCapturedFlag(me);
+                break;
 
             }
         }
@@ -632,12 +451,8 @@ public:
                 events.ScheduleEvent(FSB_EVENT_SOULSTONE_RESSURECT, 4s, 6s);
                 break;
 
-            case FSB_ACTION_TELEPORT_GRAVEYARD:
-                events.ScheduleEvent(FSB_EVENT_TELEPORT_GRAVEYARD, 4s, 6s);
-                break;
-
             case FSB_ACTION_TELEPORT_DUNGEON:
-                events.ScheduleEvent(FSB_EVENT_HIRED_TELEPORT_DUNGEON, 4s, 6s);
+                events.ScheduleEvent(FSB_EVENT_HIRED_TELEPORT_DUNGEON, 5s, 6s);
                 break;
             
             default:
@@ -647,48 +462,10 @@ public:
 
         void UpdateAI(uint32 diff) override
         {
-            if (me->IsInCombat() && !me->HasUnitState(UNIT_STATE_CASTING))
-            {
-                Unit* victim = me->GetVictim();
+            if (!botDungeonData || !botDungeonData->mechanicFlagC)
+                FSBCombat::EvaluateAttackNeeded(me);
 
-                if (victim && victim->IsAlive())
-                {
-                    if (!me->IsValidAttackTarget(victim) &&
-                        victim->IsInCombatWith(me->GetOwner()))
-                    {
-                        me->GetCombatManager().SetInCombatWith(victim);
-                        victim->GetCombatManager().SetInCombatWith(me);
-                    }
-
-
-                    FSBUtilsBotCombat::BotAttackStart(me, victim, botMoveState);
-                }
-
-
-
-                if (!victim || !victim->IsAlive())
-                {
-                    Unit* newTarget = FSBUtilsBotCombat::BotSelectNextTarget(me, true, botLogicalGroup);
-                    if (newTarget)
-                    {
-                        //AttackStart(newTarget);
-                        FSBUtilsBotCombat::BotAttackStart(me, newTarget, botMoveState);
-                        TC_LOG_DEBUG("scripts.ai.fsb",
-                            "FSB: Bot {} selected new target {}",
-                            me->GetName(), newTarget->GetName());
-                    }
-                    else
-                    {
-                        me->AttackStop();
-                        me->CombatStop();
-                        Player* owner = FSBMgr::Get()->GetBotOwner(me);
-
-                        if(owner)
-                            FSBUtilsBotCombat::BotHandleReturnMovement(me, botMoveState, botFollowDistance, botFollowAngle); // Return
-                    }
-                }
-                
-            }
+            FSBCombat::SetOwnerTapToVictim(me);
 
             events.Update(diff);
             botEvents.Update(diff);
@@ -707,7 +484,8 @@ public:
                 {
                     // bot events
                     FSBEvents::ScheduleBotEvent(me, FSB_EVENT_GENERIC_CHECK_HIRED_TIME, 10s);
-                    FSBEvents::ScheduleBotEvent(me, FSB_EVENT_HIRED_DESPAWN_TEMP_BOT, 1s);
+                    if(!botHired)
+                        FSBEvents::ScheduleBotEvent(me, FSB_EVENT_DESPAWN_TEMP_BOT, 1s);
 
                     uint32 now = getMSTime();
 
@@ -720,28 +498,35 @@ public:
 
                             // ? lock regen for next 2 seconds
                             _nextRegenMs = now + 2000;
-                            
+
                         }
                     }
 
                     // Check if combat is NOT taking place and schedule OOC actions
-                    if (!FSBUtilsCombat::IsCombatActive(me))
+                    if (!FSBCombatUtils::IsCombatActive(me))
                     {
                         if (FollowshipBotsConfig::configFSBUseOOCActions && now >= _1secondsCheckMs && !me->HasAura(SPELL_SPECIAL_GHOST))
                         {
-                            auto baseAI = dynamic_cast<FSB_BaseAI*>(me->AI());
-
-                            if (FSBOOC::BotOOCActions(baseAI))
-                                events.ScheduleEvent(FSB_EVENT_RESUME_FOLLOW, std::chrono::milliseconds(botGlobalCooldown - now));
-
-                            // ? lock regen for next 2 seconds
+                            FSBOOC::BotOOCActions(me);
                             _1secondsCheckMs = now + 1000;
                         }
                     }
 
-                    events.ScheduleEvent(FSB_EVENT_PERIODIC_MAINTENANCE, 1s);
+                    FSBParty::PeriodicPartyNeededCheck(me);
 
-                    //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Event Periodic Maintenance Reached the end"); // TEMP LOG
+                    if (me->GetMap()->IsBattleground())
+                    {
+                        uint32 nowMs = getMSTime();
+                        if (nowMs >= _bgRaidUpdateMs)
+                        {
+                            _bgRaidUpdateMs = nowMs + 10000;
+                            FSBParty::PeriodicBattlegroundRaidUpdate(me);
+                        }
+                    }
+
+                    FSBChatMgr::Get()->UpdateBotChannels(me);
+
+                    events.ScheduleEvent(FSB_EVENT_PERIODIC_MAINTENANCE, 1s);
 
                     break;
                 }
@@ -760,59 +545,23 @@ public:
                     {
                         uint32 now = getMSTime();
 
-                        events.ScheduleEvent(FSB_EVENT_HIRED_CHECK_OWNER_COMBAT, 500ms);
                         events.ScheduleEvent(FSB_EVENT_HIRED_CHECK_TELEPORT, 3s, 5s);
                         events.ScheduleEvent(FSB_EVENT_HIRED_CHECK_MOUNT, 3s, 5s);
+                        FSBEvents::ScheduleBotEvent(me, FSB_EVENT_HIRED_DESPAWN_TEMP_BOT, 1s);
 
-                        // bot events
-                        FSBEvents::ScheduleBotEvent(me, FSB_EVENT_HIRED_CHECK_MEMBER_DEATH, 3s, 5s);                        
+                        FSBDungeon::CheckDungeonHandlingNeeded(me);
 
                         if (now >= _5secondsCheckMs)
                         {
                             FSBStats::UpdateBotLevelToPlayer(me);
 
-                            // Check to dermine what friendlies we have in our "group"
-                            // Includes: bot, owner and other bots owner by its owner
-                            // TO-DO: Add check to include other players in the group of the owner
                             FSBGroup::BuildLogicalBotGroup(me, botLogicalGroup);
 
-                            // ? lock check for next 5 seconds
                             _5secondsCheckMs = now + 5000;
                         }
                     }
 
-                    events.ScheduleEvent(FSB_EVENT_HIRED_MAINTENANCE, 1ms);
-
-                    //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Event Hired Maintenance Reached the end"); // TEMP LOG
-
-                    break;
-                }
-
-                    // Checks to determine if owner is attacked or attacks target
-                    // This is used to determine when assist is needed
-                case FSB_EVENT_HIRED_CHECK_OWNER_COMBAT:
-                {
-                    Player* owner = FSBMgr::Get()->GetBotOwner(me);
-
-                    if (owner && me->IsAlive())
-                    {
-                        // OWNER ATTACKED SOMEONE
-                        if (FSBUtilsOwnerCombat::CheckBotOwnerAttacked(FSBMgr::Get()->GetBotOwner(me), _lastOwnerVictim))
-                        {
-                            //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Owner attacked a new target");
-
-                            FSBUtilsOwnerCombat::OnBotOwnerAttacked(FSBMgr::Get()->GetBotOwner(me)->GetVictim(), me, botMoveState);
-                        }
-
-                        // OWNER WAS ATTACKED
-                        if (Unit* attacker = FSBUtilsOwnerCombat::CheckBotOwnerAttackedBy(FSBMgr::Get()->GetBotOwner(me)))
-                        {
-                            //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Owner was attacked by {}", attacker->GetName());
-
-                            FSBUtilsOwnerCombat::OnBotOwnerAttackedBy(attacker, me, botMoveState);
-                        }
-                    }
-
+                    events.ScheduleEvent(FSB_EVENT_HIRED_MAINTENANCE, 1s);
                     break;
                 }
 
@@ -821,6 +570,10 @@ public:
                 {
                     if(botMoveState != FSB_MOVE_STATE_STAY || !me->HasAura(SPELL_SPECIAL_GHOST))
                         FSBTeleport::BotTeleport(me, BOT_TOO_FAR);
+
+                    if (FSBPet::BotHasPet(me))
+                        FSBTeleport::BotPetTeleport(me);
+
                     break;
                 }
 
@@ -829,7 +582,7 @@ public:
                     {
                         events.ScheduleEvent(FSB_EVENT_HIRED_TELEPORT_DUNGEON, 4s, 6s);
                     } else
-                    me->AI()->DoAction(FSB_ACTION_TELEPORT_GRAVEYARD);
+                        FSBEvents::ScheduleBotEvent(me, FSB_EVENT_GENERIC_TELEPORT_GRAVEYARD, 4s, 6s);
                     break;
 
                 case FSB_EVENT_HIRED_TELEPORT_DUNGEON:
@@ -854,11 +607,13 @@ public:
                 case FSB_EVENT_COMBAT_MAINTENANCE:
                 {
                     if (me->IsAlive() && me->IsInCombat())
-                        FSBIC::BotICActions(me, botManaPotionUsed, botHealthPotionUsed, botGlobalCooldown, botCastedCombatBuffs, botLogicalGroup);
+                        if (!botDungeonData || !botDungeonData->mechanicFlagD)
+                            FSBIC::BotICActions(me, botGlobalCooldown, botCastedCombatBuffs);
+
+                    if (botClass == FSB_Class::Hunter && FSBPet::BotHasPet(me))
+                        FSBPet::DoAttackSpell(me);
 
                     events.ScheduleEvent(FSB_EVENT_COMBAT_MAINTENANCE, 1s);
-
-                    //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Event Combat Maintenance Reached the end"); // TEMP LOG
 
                     break;
                 }
@@ -868,83 +623,8 @@ public:
                 // Events that are needed for actions                  //
                 // =================================================== //   
 
-                    // BOT Follows player again
-                    // For timed events
-                case FSB_EVENT_RESUME_FOLLOW:
-                    FSBMovement::ResumeFollow(me, botFollowDistance, botFollowAngle);
-                    break;
-
-                case FSB_EVENT_HIRE_EXPIRED:
-                case FSB_EVENT_HIRE_DISMISSED:
-                {
-                    if (!me->IsInCombat() || !me->HasUnitState(UNIT_STAND_STATE_SIT))
-                    {
-                        events.Reset();
-                        botHired = false;
-                        FSBMgr::Get()->DismissPersistentBot(me);
-                        events.ScheduleEvent(FSB_EVENT_HIRE_LEAVE, 5s);
-                        break;
-                    }
-                    else events.ScheduleEvent(FSB_EVENT_HIRE_DISMISSED, 5s);                                     
-                    break;
-                }
-
-                case FSB_EVENT_HIRE_LEAVE:
-                {
-                    //float x, y, z;
-                    //me->GetRandomPoint(me->GetPosition(), 10.0f, x, y, z); // 10 yd radius
-                    //me->GetMotionMaster()->MovePoint(1, me->GetPositionX() + 30, me->GetPositionY(), me->GetPositionZ(), true);
-                    float x, y, z;
-                    me->GetRandomPoint(me->GetPosition(), 30.0f, x, y, z);
-                    me->GetMotionMaster()->MovePoint(1, x, y, z);
-                    me->DespawnOrUnsummon(10s);
-                    
-                    break;
-                }
-
-                case FSB_EVENT_MOVE_STAY:
-                {
-                    Unit* owner = me->GetOwner();
-                    Player* player = owner ? owner->ToPlayer() : nullptr;
-
-                    FSBMovement::StopFollow(me);
-
-                    if (botHired && player)
-                    {
-                        std::string msg = FSBUtilsTexts::BuildNPCSayText(player->GetName(), NULL, FSBSayType::Stay, "");
-                        me->Say(msg, LANG_UNIVERSAL);
-                    }
-                    break;
-                }
-
-                case FSB_EVENT_MOVE_FOLLOW:
-                {
-                    Unit* owner = me->GetOwner();
-                    Player* player = owner ? owner->ToPlayer() : nullptr;
-
-                    FSBMovement::ResumeFollow(me, botFollowDistance, botFollowAngle);
-
-                    if (updateFollowInfo)
-                    {
-                        updateFollowInfo = false;
-                        me->Say(FSB_SAY_FOLLOW_INFO_CHANGED, LANG_UNIVERSAL);
-                    }
-                    else
-                    {
-                        std::string pName = player ? player->GetName() : "";
-                        std::string msg = FSBUtilsTexts::BuildNPCSayText(pName, NULL, FSBSayType::Follow, "");
-                        me->Say(msg, LANG_UNIVERSAL);
-                    }
-                    break;
-                }
-
                 case FSB_EVENT_SOULSTONE_RESSURECT:
                     FSBDeath::HandleDeathWithSoulstone(me, botHasSoulstone);
-                    break;
-
-                case FSB_EVENT_TELEPORT_GRAVEYARD:
-                    FSBTeleport::BotTeleport(me, BOT_DEATH);
-                    events.ScheduleEvent(FSB_EVENT_GRAVEYARD_RESSURECT, 1s);
                     break;
 
                 case FSB_EVENT_GRAVEYARD_RESSURECT:
@@ -961,16 +641,13 @@ public:
                 HandleBotEvent(this, eventId);
             }
 
+            PollPendingGenAIResponse();
         }
-
-        // Helper methods
-
-        uint8 attackers = FSBUtilsCombat::CountActiveAttackers(me); // count active attackers on bot
-
         
         private:
             EventMap events;
             ObjectGuid _playerGuid;
+            SummonList _summons;
 
 
             uint32 hireTimeLeft = 0;
@@ -980,25 +657,11 @@ public:
 
             // ----------
             // Combat
-            ObjectGuid _pendingResTarget;
             ObjectGuid _lastOwnerVictim;
-            bool _ownerWasInCombat = false;
-            uint8 _appliedInitialCBuffs = 0;
-            //std::vector<FSBSpellRuntime> _runtimeSpells; // runtime for spells cooldowns
-            uint32 _buffsTimerMs = 0;
-            uint32 _selfBuffsTimerMs = 0;
 
-            // ----------
-            // Movement States
-            //uint16 moveState = 0;
-
-            // ----------
-            // Allies & Group
-            //std::vector<Unit*> botGroup_;
-
-            uint32 _60secondsCheckMs = 0;
             uint32 _5secondsCheckMs = 0;
-            uint32 _1secondsCheckMs = 0;            
+            uint32 _1secondsCheckMs = 0;
+            uint32 _bgRaidUpdateMs = 0;
     };
 
     
@@ -1013,8 +676,11 @@ public:
 void AddSC_followship_bots()
 {
     FollowshipBotsConfig::Load();
+    FSBMgr::Get()->LoadBotTemplates();
     FSBMgr::Get()->LoadAllPersistentBots();
+    FSBUtilsDB::LoadBotChatterLines(FSBChatter::BotChatterLinesMap);
     FSBSpells::InitBotSpellTables();
+    FSBSpellsDB::LoadBotSpellsFromDB();
 
     new npc_followship_bots();
 }

@@ -1,57 +1,41 @@
-#pragma once
+/*
+ * This file is part of the Stefal WoW Project.
+ * It is designed to work exclusively with the TrinityCore framework.
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 2 of the License, or (at your
+ * option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ *
+ * This code is provided for personal and educational use within the
+ * Stefal WoW Project. It is not intended for commercial distribution,
+ * resale, or any form of monetization.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 
-#include <string>
-#include <vector>
+#pragma once
 
 #include "Unit.h"
 #include "Creature.h"
 
-#include "followship_bots_utils_spells.h"
-#include "followship_bots_ai_base.h" // for FSB_Roles and FSBUtils::GetRole
-
-enum class FSBSayType;
-
-namespace FSBUtilsCombat
+namespace FSBCombatUtils
 {
+    // Actually gets a random target from attackers so maybe rename?
+    Unit* GetRandomAttacker(Creature* bot);
+
     // Checks if either bot or player is in combat
     bool IsCombatActive(Creature* me);
 
-    Unit* GetRandomAttacker(Creature* bot);
-
-    // Counts active attackers
-    uint8 CountActiveAttackers(Unit* me);
-
-    // Counts active attackers on bot
-    uint8 CountAttackersOn(Unit* who);
-
-    /// Sends a combat-related NPC say message with optional spell name and cooldown to prevent spam
-    void SayCombatMessage(Creature* me, Unit* target, uint32 integer, FSBSayType sayType, uint32 spellId);   
-}
-
-namespace FSBUtilsBotCombat
-{
-    bool BotCanAttack(Unit* target, Creature* bot, uint16 moveState);
-    void BotAttackStart(Creature* bot, Unit* target, uint16 moveState);
-    void BotDoAttack(Creature* bot, Unit* target, bool chase, uint16 moveState);
-    Unit* BotSelectNextTarget(Creature* bot, bool allowAutoSelect, std::vector<Unit*> botGroup_);
-    void BotHandleReturnMovement(Creature* bot, uint16 moveState, float followDist, float followAngle);
-
     float GetBotChaseDistance(Creature* bot);
     float GetFallbackChaseDistanceForClass(FSB_Class cls);
-    bool ShouldForceMeleeRange(Creature* bot);
-}
 
-namespace FSBUtilsOwnerCombat
-{
-    // Owner attacked victim
-    bool CheckBotOwnerAttacked(Player* owner, ObjectGuid& lastVictim);
-
-    // Owner was attacked by target
-    Unit* CheckBotOwnerAttackedBy(Player* owner);
-
-    // Bot reaction when owner attacks target
-    void OnBotOwnerAttacked(Unit* victim, Creature* bot, uint16 moveState);
-
-    // Bot reaction when owner is attacked by target
-    void OnBotOwnerAttackedBy(Unit* attacker, Creature* bot, uint16 moveState);
+    bool HasHostileInRange(Unit* bot, float range, uint32 count);
+    bool IsOutOfCombatFor(Creature* bot, uint32 ms);
 }

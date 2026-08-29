@@ -47,6 +47,9 @@ class TC_GAME_API PlayerTaxi
         void InitTaxiNodesForLevel(uint32 race, uint32 chrClass, uint8 level);
         bool LoadTaxiMask(std::string const& data);
 
+        static TaxiMask LoadTaxiMaskFromString(std::string const& data);
+        void MergeAccountTaxiMask(TaxiMask const& accountMask);
+
         bool IsTaximaskNodeKnown(uint32 nodeidx) const
         {
             uint32 field = uint32((nodeidx - 1) / (sizeof(TaxiMask::value_type) * 8));

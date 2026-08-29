@@ -23,6 +23,7 @@
 
 #include "Implementation/LoginDatabase.h"
 #include "Implementation/CharacterDatabase.h"
+#include "Implementation/FollowshipDatabase.h"
 #include "Implementation/WorldDatabase.h"
 #include "Implementation/HotfixDatabase.h"
 
@@ -36,6 +37,8 @@
 TC_DATABASE_API extern DatabaseWorkerPool<WorldDatabaseConnection> WorldDatabase;
 /// Accessor to the character database
 TC_DATABASE_API extern DatabaseWorkerPool<CharacterDatabaseConnection> CharacterDatabase;
+/// Accessor to the followship database
+TC_DATABASE_API extern DatabaseWorkerPool<FollowshipDatabaseConnection> FollowshipDatabase;
 /// Accessor to the realm/login database
 TC_DATABASE_API extern DatabaseWorkerPool<LoginDatabaseConnection> LoginDatabase;
 /// Accessor to the hotfix database

@@ -25,6 +25,7 @@
 #include "GameEventMgr.h"
 #include "GossipDef.h"
 #include "Language.h"
+#include "LFG.h"
 #include "Log.h"
 #include "MapManager.h"
 #include "MapUtils.h"
@@ -65,7 +66,7 @@ uint8 BattlegroundTemplate::GetMaxLevel() const
 
 BattlegroundMgr::BattlegroundMgr() :
     m_NextRatedArenaUpdate(sWorld->getIntConfig(CONFIG_ARENA_RATED_UPDATE_TIMER)),
-    m_UpdateTimer(0), m_ArenaTesting(0), m_Testing(false)
+    m_UpdateTimer(0), m_ArenaTesting(0), m_Testing(false), m_FSBOverrideEnabled(false)
 { }
 
 BattlegroundMgr::~BattlegroundMgr()
@@ -75,6 +76,10 @@ BattlegroundMgr::~BattlegroundMgr()
 
 void BattlegroundMgr::DeleteAllBattlegrounds()
 {
+    for (auto& [_, data] : m_BGFreeSlotQueue)
+        for (Battleground* battleground : data)
+            battleground->RemoveFromBGFreeSlotQueueOnShutdown();
+
     bgDataStore.clear();
     m_BGFreeSlotQueue.clear();
 }
@@ -162,7 +167,7 @@ void BattlegroundMgr::BuildBattlegroundStatusHeader(WorldPackets::Battleground::
     header->Ticket.Time = joinTime;
     header->QueueID.push_back(queueId.GetPacked());
     header->RangeMin = 0; // seems to always be 0
-    header->RangeMax = DEFAULT_MAX_LEVEL; // alwyas max level of current expansion. Might be limited to account
+    header->RangeMax = GetMaxLevelForExpansion(CURRENT_EXPANSION); // alwyas max level of current expansion. Might be limited to account
     header->TeamSize = queueId.TeamSize;
     header->InstanceID = 0; // seems to always be 0
     header->RegisteredMatch = queueId.Rated;
@@ -182,7 +187,16 @@ void BattlegroundMgr::BuildBattlegroundStatusNeedConfirmation(WorldPackets::Batt
     BuildBattlegroundStatusHeader(&battlefieldStatus->Hdr, player, ticketId, joinTime, queueId);
     battlefieldStatus->Mapid = bg->GetMapId();
     battlefieldStatus->Timeout = timeout;
-    battlefieldStatus->Role = 0;
+    BattlegroundQueue const& bgQueue = sBattlegroundMgr->GetBattlegroundQueue(queueId);
+    uint8 roles = bgQueue.GetPlayerRoles(player->GetGUID());
+    if (roles & lfg::PLAYER_ROLE_TANK)
+        battlefieldStatus->Role = 0;
+    else if (roles & lfg::PLAYER_ROLE_HEALER)
+        battlefieldStatus->Role = 1;
+    else if (roles & lfg::PLAYER_ROLE_DAMAGE)
+        battlefieldStatus->Role = 2;
+    else
+        battlefieldStatus->Role = 0;
 }
 
 void BattlegroundMgr::BuildBattlegroundStatusActive(WorldPackets::Battleground::BattlefieldStatusActive* battlefieldStatus, Battleground const* bg, Player const* player, uint32 ticketId, uint32 joinTime, BattlegroundQueueTypeId queueId)
@@ -487,7 +501,7 @@ void BattlegroundMgr::SendBattlegroundList(Player* player, ObjectGuid const& gui
     Team team = player->GetBGTeam();
 
     WorldSafeLocsEntry const* pos = battleground->GetTeamStartPosition(Battleground::GetTeamIndexByTeamId(team));
-    TC_LOG_DEBUG("bg.battleground", "BattlegroundMgr::SendToBattleground: Sending {} to map {}, {} (bgType {})", player->GetName(), mapid, pos->Loc.ToString(), battleground->GetTypeID());
+    TC_LOG_DEBUG("bg.battleground", "BattlegroundMgr::SendToBattleground: Sending {} to map {}, {} (bgType {})", player->GetName(), mapid, pos->Loc, battleground->GetTypeID());
     player->TeleportTo({ .Location = pos->Loc, .TransportGuid = pos->TransportSpawnId ? ObjectGuid::Create<HighGuid::Transport>(*pos->TransportSpawnId) : ObjectGuid::Empty });
 }
 
@@ -737,13 +751,12 @@ void BattlegroundMgr::AddToBGFreeSlotQueue(Battleground* bg)
 
 void BattlegroundMgr::RemoveFromBGFreeSlotQueue(uint32 mapId, uint32 instanceId)
 {
-    BGFreeSlotQueueContainer& queues = m_BGFreeSlotQueue[mapId];
-    for (BGFreeSlotQueueContainer::iterator itr = queues.begin(); itr != queues.end(); ++itr)
-        if ((*itr)->GetInstanceID() == instanceId)
-        {
-            queues.erase(itr);
-            return;
-        }
+    if (BGFreeSlotQueueContainer* freeSlotQueue = Trinity::Containers::MapGetValuePtr(m_BGFreeSlotQueue, mapId))
+    {
+        auto itr = std::ranges::find(*freeSlotQueue, instanceId, [](Battleground const* bg) { return bg->GetInstanceID(); });
+        if (itr != freeSlotQueue->end())
+            freeSlotQueue->erase(itr);
+    }
 }
 
 void BattlegroundMgr::AddBattleground(Battleground* bg)

@@ -1,30 +1,41 @@
+/*
+ * This file is part of the Stefal WoW Project.
+ * It is designed to work exclusively with the TrinityCore framework.
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 2 of the License, or (at your
+ * option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ *
+ * This code is provided for personal and educational use within the
+ * Stefal WoW Project. It is not intended for commercial distribution,
+ * resale, or any form of monetization.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include <algorithm>
 
+#include "Creature.h"
+#include "GridNotifiers.h"
 #include "ScriptMgr.h"
 #include "Unit.h"
-#include "Creature.h"
 
 #include "Followship_bots_config.h"
-
 #include "Followship_bots_utils.h"
 #include "Followship_bots.h"
 #include "Followship_bots_mgr.h"
 
 #include "Followship_bots_group_handler.h"
 
-namespace FSBUtilsCombat
+namespace FSBCombatUtils
 {
-    bool IsCombatActive(Creature* bot)
-    {
-        if (!bot)
-            return false;
-
-        auto owner = FSBMgr::Get()->GetBotOwner(bot);
-        Player* player = owner ? owner->ToPlayer() : nullptr;
-
-        return bot->IsInCombat() || (player && player->IsInCombat());
-    }
-
     Unit* GetRandomAttacker(Creature* bot)
     {
         auto const& attackers = bot->getAttackers();
@@ -38,281 +49,34 @@ namespace FSBUtilsCombat
         return *it;
     }
 
-    uint8 CountActiveAttackers(Unit* me)
+    bool IsCombatActive(Creature* bot)
     {
-        if (!me)
-            return 0;
-
-        uint8 count = 0;
-
-        for (ThreatReference const* ref : me->GetThreatManager().GetUnsortedThreatList())
-        {
-            Unit* u = ref->GetVictim();
-            if (!u || !u->IsAlive())
-                continue;
-
-            if (!me->IsInMap(u))
-                continue;
-
-            ++count;
-        }
-
-        return count;
-    }
-
-    uint8 CountAttackersOn(Unit* who)
-    {
-        if (!who)
-            return 0;
-
-        uint8 count = 0;
-
-        for (ThreatReference const* ref : who->GetThreatManager().GetUnsortedThreatList())
-        {
-            Unit* u = ref->GetVictim();
-            if (u && u->IsAlive() && u->GetVictim() == who)
-                ++count;
-        }
-
-        return count;
-    }
-
-    void SayCombatMessage(Creature* me, Unit* target, uint32 integer, FSBSayType sayType, uint32 spellId)
-    {
-        if (!me)
-            return;
-
-        if(urand(0, 99) <= FollowshipBotsConfig::configFSBChatterRate)
-        {
-
-            // Spell name lookup
-            std::string spellName;
-            if (spellId)
-                spellName = FSBSpellsUtils::GetSpellName(spellId);
-
-            // Target name
-            std::string targetName;
-            if (target)
-                targetName = target->GetName();
-
-            // Build the message
-            std::string msg = FSBUtilsTexts::BuildNPCSayText(targetName, integer, sayType, spellName);
-            me->Say(msg, LANG_UNIVERSAL);
-        }
-    }
-
-
-
-    
-
-    
-}
-
-namespace FSBUtilsBotCombat
-{
-    // checks to determine if bot cannot attack a target
-    // result false means bot cannot attack
-    bool BotCanAttack(Unit* target, Creature* bot, uint16 moveState)
-    {
-        // Evaluates wether a bot can attack a specific target based on MoveState, ReactState and other flags
-        // IMPORTANT: The order in which things are checked is important, be careful if you add or remove checks
-
-        // Hmmm...
-        if (!bot->IsAlive())
+        if (!bot)
             return false;
 
-        if (!target)
-            return false;
+        auto owner = FSBMgr::Get()->GetBotOwner(bot);
 
-        if (!target->IsAlive())
-        {
-            // if target is invalid, pet should evade automaticly
-            // Clear target to prevent getting stuck on dead targets
-            //me->AttackStop();
-            //me->InterruptNonMeleeSpells(false);
-            return false;
-        }
-
-        // Passive - passive bots cannot attack
-        if (bot->HasReactState(REACT_PASSIVE))
-            return false;
-
-        // CC - mobs under crowd control can be attacked if owner commanded
-        // Perhaps check on role and allow role damamge to attack
-        //if (target->HasBreakableByDamageCrowdControlAura())
-        //    return me->GetCharmInfo()->IsCommandAttack();
-
-        // Returning - pets ignore attacks only if owner clicked follow
-        //if (me->GetCharmInfo()->IsReturning())
-        //    return !me->GetCharmInfo()->IsCommandFollow();
-
-        // Stay - can attack if target is within range or commanded to
-        if (moveState == FSB_MOVE_STATE_STAY)
-            return (bot->IsWithinMeleeRange(target) || bot->IsWithinCombatRange(target, GetBotChaseDistance(bot)));
-        else return true;
-
-        //  Bots attacking something (or chasing) should only switch targets if owner tells them to
-        // TO-DO add later based on roles
-
-        // Follow / returning
-        // TO-DO check later
-
-        // default, though we shouldn't ever get here
-        //return false;
-    }
-
-    void BotAttackStart(Creature* bot, Unit* target, uint16 moveState)
-    {
-        if (!BotCanAttack(target, bot, moveState))
-            return;
-
-        // Do not switch target mid-fight
-        if (bot->GetVictim() && bot->GetVictim()->IsAlive())
-            return;
-
-        bool chase = false;
-        if (moveState != FSB_EVENT_MOVE_STAY)
-            chase = true;
-
-        BotDoAttack(bot, target, chase, moveState);
-    }
-
-    void BotDoAttack(Creature* bot, Unit* target, bool chase, uint16 /*moveState*/)
-    {
-        // Handles attack with or without chase and also resets flags
-        // for next update / creature kill
-
-        if (bot->Attack(target, true))
-        {
-            bot->SetUnitFlag(UNIT_FLAG_IN_COMBAT); // on player bots, this flag indicates we're actively going after a target - that's what we're doing, so set it
-            
-            if (chase)
-            {
-                if (bot->HasUnitState(UNIT_STATE_FOLLOW))
-                    bot->GetMotionMaster()->Remove(FOLLOW_MOTION_TYPE);
-
-                // Bots with ranged attacks should not care about the chase angle at all.
-                float chaseDistance = GetBotChaseDistance(bot);
-                float angle = chaseDistance == 2.f ? float(M_PI) : frand(-2.f, 2.f);
-                float tolerance = chaseDistance == 0.f ? float(M_PI_4) : float(M_PI * 2);
-                bot->GetMotionMaster()->MoveChase(target, ChaseRange(0.f, chaseDistance), ChaseAngle(angle, tolerance));
-            }
-        }
-    }
-
-    Unit* BotSelectNextTarget(Creature* bot, bool allowAutoSelect, std::vector<Unit*> botGroup_)
-    {
-        //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: BotSelectNextTarget with allowAutoSelect: {}", allowAutoSelect);
-
-        // Provides next target selection after current target death.
-        // This function should only be called internally by the AI
-        // Targets are not evaluated here for being valid targets, that is done in _CanAttack()
-        // The parameter: allowAutoSelect lets us disable aggressive pet auto targeting for certain situations
-
-        // Passive bots don't do next target selection
-        if (bot->HasReactState(REACT_PASSIVE))
-            return nullptr;
-
-        // Check pet attackers first so we don't drag a bunch of targets to the owner
-        if (Unit* myAttacker = bot->getAttackerForHelper())
-        {
-            //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: BotSelectNextTarget with myAttacker: {}", myAttacker->GetName());
-            if (!myAttacker->HasBreakableByDamageCrowdControlAura())
-                return myAttacker;
-        }
-
-        // 1. Bot is being attacked ? defend self
-        if (!bot->getAttackers().empty())
-        {
-            // Pick the highest-threat attacker on the bot
-            Unit* attacker = bot->GetVictim();
-
-            if (!attacker)
-                attacker = *bot->getAttackers().begin();
-
-            if (attacker && attacker->IsAlive())
-                return attacker;
-        }
-
-        // Not sure why we wouldn't have an owner but just in case...
-        Player* owner = FSBMgr::Get()->GetBotOwner(bot);
-        if (!owner)
-            return nullptr;
-
-        // Check owner attackers
-        if (Unit* ownerAttacker = owner->getAttackerForHelper())
-        {
-            //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: BotSelectNextTarget with ownerAttacker: {}", ownerAttacker->GetName());
-            if (!ownerAttacker->HasBreakableByDamageCrowdControlAura())
-                return ownerAttacker;
-        }
-
-        // Check owner victim
-        // 3.0.2 - Pets now start attacking their owners victim in defensive mode as soon as the hunter does
-        if (Unit* ownerVictim = owner->GetVictim())
-            return ownerVictim;
-
-        // 3. Check other bots owned by the same player
-        if (Unit* target = FSBGroup::BotGetFirstMemberToAssist(bot, botGroup_))
-            return target;
-
-        // Neither pet or owner had a target and aggressive pets can pick any target
-        // To prevent aggressive pets from chain selecting targets and running off, we
-        //  only select a random target if certain conditions are met.
-        if (bot->HasReactState(REACT_AGGRESSIVE) && allowAutoSelect)
-        {
-            // TO-DO add this for damage role
-            //if (!me->GetCharmInfo()->IsReturning() || me->GetCharmInfo()->IsFollowing() || me->GetCharmInfo()->IsAtStay())
-            //    if (Unit* nearTarget = me->SelectNearestHostileUnitInAggroRange(true, true))
-            //        return nearTarget;
-        }
-
-        // Default - no valid targets
-        return nullptr;
-    }
-
-
-
-    void BotHandleReturnMovement(Creature* bot, uint16 moveState, float followDist, float followAngle)
-    {
-        TC_LOG_DEBUG("scripts.ai.fsb", "FSB: BotHandleReturnMovement move state: {}", moveState);
-        // Handles moving the bot back to follow or owner
-        Player* owner = FSBMgr::Get()->GetBotOwner(bot);
-        if (!owner)
-        {
-            if (bot->HasUnitState(UNIT_STATE_FOLLOW))
-                bot->GetMotionMaster()->Remove(FOLLOW_MOTION_TYPE);
-            bot->GetMotionMaster()->MoveIdle();
-            return;
-        }
-
-        if(moveState == FSB_MOVE_STATE_FOLLOWING || moveState == FSB_MOVE_STATE_IDLE) // COMMAND_FOLLOW
-        {
-                if (bot->HasUnitState(UNIT_STATE_CHASE))
-                    bot->GetMotionMaster()->Remove(CHASE_MOTION_TYPE);
-
-                bot->GetMotionMaster()->MoveFollow(owner, followDist, followAngle);
-            
-        }
-        bot->RemoveUnitFlag(UNIT_FLAG_IN_COMBAT); 
+        return bot->IsInCombat() || (owner && owner->IsInCombat());
     }
 
     float GetBotChaseDistance(Creature* bot)
     {
         // 1?? HARD OVERRIDES (state-based, must win)
-        if (ShouldForceMeleeRange(bot))
-            return 2.0f;
+        //if (ShouldForceMeleeRange(bot))
+        //    return 2.0f;
 
-        FSB_Roles role = FSBUtils::GetRole(bot);
+        FSB_Roles role = FSBMgr::Get()->GetRole(bot);
         FSB_Class cls = FSBMgr::Get()->GetBotClassForEntry(bot->GetEntry());
 
         switch (role)
         {
         case FSB_ROLE_TANK:
-            return 2.0f;   // glue yourself to target
+            return 1.0f;   // glue yourself to target
 
         case FSB_ROLE_MELEE_DAMAGE:
-            return 2.5f;
+        case FSB_ROLE_MELEE_DAMAGE_2:
+        case FSB_ROLE_MELEE_DAMAGE_3:
+            return 2.f;
 
         case FSB_ROLE_RANGED_ARCANE:
         case FSB_ROLE_RANGED_FIRE:
@@ -342,6 +106,8 @@ namespace FSBUtilsBotCombat
         case FSB_Class::Warlock:
             return 30.0f;
 
+        case FSB_Class::Shaman:
+        case FSB_Class::Druid:
         case FSB_Class::Priest:
             return 25.0f; // priest tends to step closer for fear / dispel
 
@@ -351,121 +117,57 @@ namespace FSBUtilsBotCombat
         case FSB_Class::Rogue:
         case FSB_Class::Warrior:
         case FSB_Class::Paladin:
-            return 2.5f;
+            return 2.f;
 
         default:
             return 5.0f;
         }
     }
 
-    bool ShouldForceMeleeRange(Creature* bot)
+    bool HasHostileInRange(Unit* bot, float range, uint32 count)
     {
         if (!bot)
             return false;
 
-        // Only mana users
-        if (bot->GetPowerType() != POWER_MANA)
-            return false;
+        uint32 found = 0;
 
-        uint32 maxMana = bot->GetMaxPower(POWER_MANA);
-        if (maxMana == 0)
-            return false;
+        std::list<Unit*> targets;
+        Trinity::AnyUnfriendlyUnitInObjectRangeCheck check(bot, bot, range);
+        Trinity::UnitListSearcher<Trinity::AnyUnfriendlyUnitInObjectRangeCheck> searcher(bot, targets, check);
 
-        float manaPct = 100.0f * bot->GetPower(POWER_MANA) / maxMana;
+        Cell::VisitAllObjects(bot, searcher, range);
 
-        // < 5% mana = desperate mode
-        if (manaPct >= 5.0f)
-            return false;
-
-        // Optional: must be in combat
-        if (!bot->IsInCombat())
-            return false;
-
-        return true;
-    }
-
-
-}
-
-namespace FSBUtilsOwnerCombat
-{
-    // Owner attacked victim
-    bool CheckBotOwnerAttacked(Player* owner, ObjectGuid& lastVictim)
-    {
-        if (!owner || !owner->IsInCombat())
-            return false;
-
-        Unit* victim = owner->GetVictim();
-        if (!victim)
-            return false;
-
-        if (victim->GetGUID() == lastVictim)
-            return false; // no change
-
-        lastVictim = victim->GetGUID();
-        return true;
-    }
-
-    // Owner was attacked by target
-    Unit* CheckBotOwnerAttackedBy(Player* owner)
-    {
-        if (!owner || !owner->IsInCombat())
-            return nullptr;
-
-        for (Unit* attacker : owner->getAttackers())
+        for (Unit* u : targets)
         {
-            if (attacker && attacker->IsAlive())
-                return attacker;
+            if (!u->IsAlive())
+                continue;
 
+            if (!bot->IsValidAttackTarget(u))
+                continue;
+
+            if (++found >= count)
+                return true;
         }
 
-        return nullptr;
+        return false;
     }
 
-    // Bot reaction when owner attacks target
-    void OnBotOwnerAttacked(Unit* victim, Creature* bot, uint16 moveState)
+    bool IsOutOfCombatFor(Creature* bot, uint32 ms)
     {
-        // Called when owner attacks something. Allows defensive pets to know
-        //  that they need to assist
+        if (!bot || !bot->IsAlive())
+            return false;
 
-        // Target might be NULL if called from spell with invalid cast targets
-        if (!victim || !bot->IsAlive())
-            return;
+        if (bot->IsInCombat())
+            return false;
 
-        // Passive pets don't do anything
-        if (bot->HasReactState(REACT_PASSIVE))
-            return;
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        auto combatTimer = baseAI->botOutOfCombatTimer;
 
-        // Prevent pet from disengaging from current target
-        if (bot->GetVictim() && bot->EnsureVictim()->IsAlive())
-            return;
+        // Prevent triggering before first combat
+        if (combatTimer == 0)
+            return false;
 
-        // Continue to evaluate and attack if necessary
-        FSBUtilsBotCombat::BotAttackStart(bot, victim, moveState);
 
-        //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: OnBotOwnerAttacked target: {}, move state: {}", victim->GetName(), moveState);
-    }
-
-    // Bot reaction when owner is attacked by target
-    void OnBotOwnerAttackedBy(Unit* attacker, Creature* bot, uint16 moveState)
-    {
-        // Called when owner takes damage. This function helps keep bots from running off
-        //  simply due to owner gaining aggro.
-
-        if (!attacker || !bot->IsAlive())
-            return;
-
-        // Passive bots don't do anything
-        if (bot->HasReactState(REACT_PASSIVE))
-            return;
-
-        // Prevent pet from disengaging from current target
-        if (bot->GetVictim() && bot->EnsureVictim()->IsAlive())
-            return;
-
-        // Continue to evaluate and attack if necessary
-        FSBUtilsBotCombat::BotAttackStart(bot, attacker, moveState);
-
-        //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: OnBotOwnerAttackedBy attacker: {}, move state: {}", attacker->GetName(), moveState);
+        return GetMSTimeDiffToNow(combatTimer) >= ms;
     }
 }

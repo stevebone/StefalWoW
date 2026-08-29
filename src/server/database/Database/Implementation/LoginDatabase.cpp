@@ -118,7 +118,7 @@ void LoginDatabaseConnection::DoPrepareStatements()
     PrepareStatement(LOGIN_UPD_ACCOUNT_TOTP_SECRET, "UPDATE account SET totp_secret = ? WHERE id = ?", CONNECTION_ASYNC);
 
 #define BnetAccountInfo "ba.id AS bnet_account_id, UPPER(ba.email), ba.locked, ba.lock_country, ba.last_ip, ba.LoginTicketExpiry, bab.unbandate > UNIX_TIMESTAMP() OR bab.unbandate = bab.bandate AS is_bnet_banned, bab.unbandate = bab.bandate AS is_bnet_permanently_banned"
-#define BnetGameAccountInfo "a.id AS account_id, a.username, ab.unbandate AS account_unbandate, ab.unbandate = ab.bandate AS is_banned, aa.SecurityLevel"
+#define BnetGameAccountInfo "a.id AS account_id, a.username, ab.bandate, ab.unbandate AS account_unbandate, ab.unbandate = ab.bandate AS is_banned, aa.SecurityLevel"
 
     PrepareStatement(LOGIN_SEL_BNET_AUTHENTICATION, "SELECT ba.id, ba.srp_version, COALESCE(ba.salt, 0x0000000000000000000000000000000000000000000000000000000000000000), ba.verifier, ba.failed_logins, ba.LoginTicket, ba.LoginTicketExpiry, bab.unbandate > UNIX_TIMESTAMP() OR bab.unbandate = bab.bandate FROM battlenet_accounts ba LEFT JOIN battlenet_account_bans bab ON ba.id = bab.id WHERE email = ?", CONNECTION_ASYNC);
     PrepareStatement(LOGIN_UPD_BNET_AUTHENTICATION, "UPDATE battlenet_accounts SET LoginTicket = ?, LoginTicketExpiry = ? WHERE id = ?", CONNECTION_ASYNC);
@@ -191,6 +191,8 @@ void LoginDatabaseConnection::DoPrepareStatements()
     PrepareStatement(LOGIN_SEL_BNET_TRANSMOG_ILLUSIONS, "SELECT blobIndex, illusionMask FROM battlenet_account_transmog_illusions WHERE battlenetAccountId = ? ORDER BY blobIndex DESC", CONNECTION_ASYNC);
     PrepareStatement(LOGIN_INS_BNET_TRANSMOG_ILLUSIONS, "INSERT INTO battlenet_account_transmog_illusions (battlenetAccountId, blobIndex, illusionMask) VALUES (?, ?, ?) "
         "ON DUPLICATE KEY UPDATE illusionMask = illusionMask | VALUES(illusionMask)", CONNECTION_ASYNC);
+    PrepareStatement(LOGIN_SEL_BNET_TRANSMOG_OUTFITS, "SELECT transmogOutfitId FROM battlenet_account_transmog_outfits WHERE battlenetAccountId = ?", CONNECTION_ASYNC);
+    PrepareStatement(LOGIN_INS_BNET_TRANSMOG_OUTFITS, "INSERT IGNORE INTO battlenet_account_transmog_outfits (battlenetAccountId, transmogOutfitId) VALUES (?, ?)", CONNECTION_ASYNC);
     PrepareStatement(LOGIN_SEL_BNET_WARBAND_SCENES, "SELECT warbandSceneId, isFavorite, hasFanfare FROM battlenet_account_warband_scenes WHERE battlenetAccountId = ?", CONNECTION_ASYNC);
     PrepareStatement(LOGIN_INS_BNET_WARBAND_SCENE, "INSERT INTO battlenet_account_warband_scenes (battlenetAccountId, warbandSceneId, isFavorite, hasFanfare) VALUES (?, ?, ?, ?) "
         "ON DUPLICATE KEY UPDATE isFavorite = VALUES(isFavorite)", CONNECTION_ASYNC);

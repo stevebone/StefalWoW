@@ -1,5 +1,27 @@
+/*
+ * This file is part of the Stefal WoW Project.
+ * It is designed to work exclusively with the TrinityCore framework.
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 2 of the License, or (at your
+ * option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ *
+ * This code is provided for personal and educational use within the
+ * Stefal WoW Project. It is not intended for commercial distribution,
+ * resale, or any form of monetization.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 
-#include "Followship_bots_priest.h"
+#include "Log.h"
+
 #include "Followship_bots_utils.h"
 #include "Followship_bots_mgr.h"
 
@@ -15,6 +37,13 @@ std::vector<FSBSpellDefinition> PriestSpellsTable =
     { SPELL_HUMAN_WILL_TO_SURVIVE,          FSBSpellType::Heal,     0.f,        80.f,           100.f,           0.f,           true,       180000,         FSB_RoleMask::FSB_ROLEMASK_ANY },
     { SPELL_DWARF_STONEFORM,                FSBSpellType::Heal,     0.f,        80.f,           100.f,           0.f,           true,       120000,         FSB_RoleMask::FSB_ROLEMASK_ANY },
     { SPELL_DRAENEI_GIFT_NAARU,             FSBSpellType::Heal,     0.f,        50.f,           100.f,           30.f,          false,      120000,         FSB_RoleMask::FSB_ROLEMASK_ANY },
+    { SPELL_PANDAREN_QUAKING_PALM,          FSBSpellType::Damage,   0.f,        0.f,            100.f,           2.f,           false,      120000,         FSB_RoleMask::FSB_ROLEMASK_ANY },
+    { SPELL_ORC_BLOOD_FURY,                 FSBSpellType::Damage,   0.f,        0.f,            100.f,           0.f,           true,       120000,         FSB_RoleMask::FSB_ROLEMASK_ANY },
+    { SPELL_UNDEAD_WILL_OF_FORSAKEN,        FSBSpellType::Heal,     0.f,        80.f,           100.f,           0.f,           true,        30000,         FSB_RoleMask::FSB_ROLEMASK_ANY },
+    { SPELL_TAUREN_WAR_STOMP,               FSBSpellType::Damage,   0.f,        0.f,            100.f,           8.f,           false,       90000,         FSB_RoleMask::FSB_ROLEMASK_ANY },
+    { SPELL_TROLL_BERSERKING,               FSBSpellType::Damage,   0.f,        0.f,            100.f,           0.f,           true,       180000,         FSB_RoleMask::FSB_ROLEMASK_ANY },
+    { SPELL_BLOODELF_ARCANE_TORRENT,        FSBSpellType::Damage,   0.f,        0.f,            100.f,           8.f,           false,      120000,         FSB_RoleMask::FSB_ROLEMASK_ANY },
+    { SPELL_GOBLIN_ROCKET_BARRAGE,          FSBSpellType::Damage,   0.f,        0.f,            100.f,          30.f,           false,       90000,         FSB_RoleMask::FSB_ROLEMASK_ANY },
 
     { SPELL_PRIEST_RENEW,               FSBSpellType::Heal,     0.f,        85.f,           75.f,           40.f,           false,      1000,           FSB_RoleMask::FSB_ROLEMASK_ANY    },
     { SPELL_PRIEST_FLASH_HEAL,          FSBSpellType::Heal,     0.f,        70.f,           70.f,           40.f,           false,      1000,           FSB_RoleMask::FSB_ROLEMASK_ANY    },
@@ -70,13 +99,13 @@ std::vector<FSBSpellDefinition> PriestSpellsTable =
     { SPELL_PRIEST_ULTIMATE_PENITENCE,  FSBSpellType::Damage,   0.f,       0.f,            80.f,           40.f,           false,       240000,         FSB_RoleMask::FSB_ROLEMASK_ASSIST },
     { SPELL_PRIEST_HOLY_FIRE,           FSBSpellType::Damage,   0.f,       0.f,            60.f,           40.f,           false,       10000,          FSB_RoleMask::FSB_ROLEMASK_ASSIST },
     { SPELL_PRIEST_PENANCE,             FSBSpellType::Damage,   0.f,       0.f,            55.f,           40.f,           false,       9000,           FSB_RoleMask::FSB_ROLEMASK_ASSIST },
-    { SPELL_PRIEST_HOLY_NOVA,           FSBSpellType::Damage,   0.f,       0.f,            80.f,           6.f,            true,        1000,           FSB_RoleMask::FSB_ROLEMASK_ASSIST },
+    { SPELL_PRIEST_HOLY_NOVA,           FSBSpellType::Damage,   0.f,       0.f,            60.f,           6.f,            true,        1000,           FSB_RoleMask::FSB_ROLEMASK_ASSIST },
 };
 
 
 namespace FSBPriest
 {
-    bool BotInitialCombatSpells(Creature* bot, uint32& globalCooldown, bool& botCastedCombatBuffs, FSB_Roles botRole, const std::vector<Unit*>& botGroup)
+    bool BotInitialCombatSpells(Creature* bot, uint32& globalCooldown, bool& botCastedCombatBuffs, FSB_Roles botRole)
     {
         if (botCastedCombatBuffs)
             return false;
@@ -88,7 +117,7 @@ namespace FSBPriest
             return false;
 
         Unit* target = nullptr;
-        Unit* tank = FSBGroup::BotGetFirstGroupTank(botGroup);
+        Unit* tank = FSBGroup::BotGetFirstGroupTank(bot);
 
         switch (botRole)
         {
@@ -128,7 +157,7 @@ namespace FSBPriest
                 if (FSBSpells::BotCastSpell(bot, SPELL_PRIEST_POWER_WORD_SHIELD, target))
                 {
                     globalCooldown = now + 1500;
-                    TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Initial Combat Spell Cast: PWS on target: {}", target->GetName());
+                    TC_LOG_DEBUG("scripts.fsb.buffs", "FSB: Priest Initial Combat Spell Cast: PWS on target: {}", target->GetName());
                     return true;
                 }
             }
@@ -137,7 +166,7 @@ namespace FSBPriest
                 if (FSBSpells::BotCastSpell(bot, SPELL_PRIEST_RENEW, target))
                 {
                     globalCooldown = now + 1500;
-                    TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Initial Combat Spell Cast: Renew on target: {}", target->GetName());
+                    TC_LOG_DEBUG("scripts.fsb.buffs", "FSB: Priest Initial Combat Spell Cast: Renew on target: {}", target->GetName());
                     botCastedCombatBuffs = true;
                     return true;
                 }
@@ -159,7 +188,7 @@ namespace FSBPriest
             bot->CastSpell(player, SPELL_PRIEST_HEAL, false);
             globalCooldown = now + 1500;
 
-            TC_LOG_DEBUG("scripts.ai.core", "FSB Out-of-combat: Bot: {} Player Heal < 50", bot->GetName());
+            TC_LOG_DEBUG("scripts.fsb.spells", "FSB: Priest Out-of-combat: Bot: {} Player Heal < 50", bot->GetName());
 
             return true;
 
@@ -169,7 +198,7 @@ namespace FSBPriest
             bot->CastSpell(player, SPELL_PRIEST_FLASH_HEAL, false);
             globalCooldown = now + 1500;
 
-            TC_LOG_DEBUG("scripts.ai.core", "FSB Out-of-combat: Bot: {} Player Heal < 70", bot->GetName());
+            TC_LOG_DEBUG("scripts.fsb.spells", "FSB: Priest Out-of-combat: Bot: {} Player Heal < 70", bot->GetName());
 
             return true;
         }
@@ -187,5 +216,26 @@ namespace FSBPriest
 
         return false;
 
+    }
+
+    void BotSetRoleAuras(Creature* bot, FSB_Roles role)
+    {
+        if (!bot)
+            return;
+
+        switch (role)
+        {
+        case FSB_ROLE_RANGED_DAMAGE:
+            if (!bot->HasAura(SPELL_PRIEST_SHADOWFORM))
+                bot->CastSpell(bot, SPELL_PRIEST_SHADOWFORM);
+            break;
+        case FSB_ROLE_HEALER:
+        case FSB_ROLE_ASSIST:
+            if (bot->HasAura(SPELL_PRIEST_SHADOWFORM))
+                bot->RemoveAurasDueToSpell(SPELL_PRIEST_SHADOWFORM);
+            break;
+        default:
+            break;
+        }
     }
 }

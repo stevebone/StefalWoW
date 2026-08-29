@@ -268,7 +268,7 @@ int main(int argc, char** argv)
     }
 
     // Set signal handlers (this must be done before starting IoContext threads, because otherwise they would unblock and exit)
-    boost::asio::basic_signal_set<Trinity::Asio::IoContext::Executor> signals(*ioContext, SIGINT, SIGTERM);
+    boost::asio::basic_signal_set<Trinity::Asio::IoContextExecutor> signals(*ioContext, SIGINT, SIGTERM);
 #if TRINITY_PLATFORM == TRINITY_PLATFORM_WINDOWS
     signals.add(SIGBREAK);
 #endif
@@ -331,6 +331,7 @@ int main(int argc, char** argv)
         TC_METRIC_VALUE("online_players", sWorld->GetPlayerCount());
         TC_METRIC_VALUE("db_queue_login", uint64(LoginDatabase.QueueSize()));
         TC_METRIC_VALUE("db_queue_character", uint64(CharacterDatabase.QueueSize()));
+        TC_METRIC_VALUE("db_queue_followship", uint64(FollowshipDatabase.QueueSize()));
         TC_METRIC_VALUE("db_queue_world", uint64(WorldDatabase.QueueSize()));
     });
 
@@ -545,6 +546,7 @@ void WorldUpdateLoop()
 
     LoginDatabase.WarnAboutSyncQueries(true);
     CharacterDatabase.WarnAboutSyncQueries(true);
+    FollowshipDatabase.WarnAboutSyncQueries(true);
     WorldDatabase.WarnAboutSyncQueries(true);
     HotfixDatabase.WarnAboutSyncQueries(true);
 
@@ -579,6 +581,7 @@ void WorldUpdateLoop()
 
     LoginDatabase.WarnAboutSyncQueries(false);
     CharacterDatabase.WarnAboutSyncQueries(false);
+    FollowshipDatabase.WarnAboutSyncQueries(false);
     WorldDatabase.WarnAboutSyncQueries(false);
     HotfixDatabase.WarnAboutSyncQueries(false);
 }
@@ -653,6 +656,7 @@ bool StartDB()
     loader
         .AddDatabase(LoginDatabase, "Login")
         .AddDatabase(CharacterDatabase, "Character")
+        .AddDatabase(FollowshipDatabase, "Followship")
         .AddDatabase(WorldDatabase, "World")
         .AddDatabase(HotfixDatabase, "Hotfix");
 
@@ -672,6 +676,7 @@ void StopDB()
 {
     HotfixDatabase.Close();
     WorldDatabase.Close();
+    FollowshipDatabase.Close();
     CharacterDatabase.Close();
     LoginDatabase.Close();
 
@@ -734,7 +739,7 @@ variables_map GetConsoleArguments(int argc, char** argv, fs::path& configFile, f
     return vm;
 }
 
-#if TRINITY_PLATFORM == TRINITY_PLATFORM_WINDOWS
+#if TRINITY_COMPILER_IS_MICROSOFT
 #include "WheatyExceptionReport.h"
 // must be at end of file because of init_seg pragma
 INIT_CRASH_HANDLER();

@@ -452,13 +452,9 @@ struct areatrigger_action_capture_flag : AreaTriggerAI
 
     void OnUnitEnter(Unit* unit) override
     {
-        if (!unit->IsPlayer())
-            return;
-
-        Player* player = unit->ToPlayer();
         if (ZoneScript* zoneScript = at->GetZoneScript())
-            if (zoneScript->CanCaptureFlag(at, player))
-                zoneScript->OnCaptureFlag(at, player);
+            if (zoneScript->CanCaptureFlag(at, unit))
+                zoneScript->OnCaptureFlag(at, unit);
     }
 };
 
@@ -519,9 +515,9 @@ struct at_abyssal_portal_harbinger : AreaTriggerAI
     void OnCreate(Spell const* creatingSpell) override
     {
         if (Unit* caster = at->GetCaster())
-            _remainingSummons = creatingSpell->GetSpellInfo()->GetEffect(EFFECT_0).CalcValue(caster);
+            _remainingSummons = creatingSpell->GetSpellInfo()->GetEffect(EFFECT_0).CalcValueAsInt(caster);
 
-        _scheduler.Schedule(500ms, [this](TaskContext task)
+        _scheduler.Schedule(500ms, [this](TaskContext& task)
         {
             if (Unit* caster = at->GetCaster())
                 caster->CastSpell(at->GetRandomNearPosition(3.0f), SPELL_ABYSSAL_PORTAL_SUMMON, true);

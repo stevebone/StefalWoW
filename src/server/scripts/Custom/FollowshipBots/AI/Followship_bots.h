@@ -1,11 +1,24 @@
-
-// Player Notifications
-constexpr auto FSB_PLAYER_NOTIFICATION_PAYMENT_SUCCESS = "Payment successful!";
-constexpr auto FSB_PLAYER_NOTIFICATION_PAYMENT_FAIL = "Not enough money!";
-
-
-// Spell Related
-static constexpr uint32 NPC_GCD_MS = 1500;
+/*
+ * This file is part of the Stefal WoW Project.
+ * It is designed to work exclusively with the TrinityCore framework.
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 2 of the License, or (at your
+ * option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ *
+ * This code is provided for personal and educational use within the
+ * Stefal WoW Project. It is not intended for commercial distribution,
+ * resale, or any form of monetization.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 
 // MoveChase range for spell casters
 constexpr float SPELL_MAX_RANGE = 30.0f;
@@ -19,29 +32,16 @@ enum FSB_Data
     FSB_DATA_HIRE_TIME_LEFT = 2,
 };
 
-enum FSB_Factions
-{
-    FSB_FACTION_HUMAN = 1
-};
-
 enum FSB_GenericEvents
 {
-    FSB_EVENT_HIRE_EXPIRED = 1,
-    FSB_EVENT_HIRE_LEAVE = 2,
-    FSB_EVENT_HIRE_DISMISSED = 3,
-    
-    FSB_EVENT_RESUME_FOLLOW = 5,
     
     FSB_EVENT_CHECK_DESPAWN = 7,
-    FSB_EVENT_MOVE_STAY = 10,
-    FSB_EVENT_MOVE_FOLLOW = 11,
-    // = 12,
+
 };
 
 enum FSB_Events
 {
     FSB_EVENT_HIRED_MAINTENANCE = 30,
-    FSB_EVENT_HIRED_CHECK_OWNER_COMBAT = 31,
     FSB_EVENT_HIRED_CHECK_TELEPORT = 32,
     
     FSB_EVENT_HIRED_WAIT_HEALER_RESSURECT = 34,
@@ -50,7 +50,6 @@ enum FSB_Events
     FSB_EVENT_HIRED_CHECK_MOUNT = 35,
     FSB_EVENT_HIRED_CHECK_RESS_TARGETS = 36,
     FSB_EVENT_SOULSTONE_RESSURECT = 39,
-    FSB_EVENT_TELEPORT_GRAVEYARD = 40,
 
     FSB_EVENT_COMBAT_MAINTENANCE = 41,
 
@@ -66,17 +65,6 @@ enum FSB_Actions
     FSB_ACTION_WAIT_HEALER_RESSURECT = 2,
     FSB_ACTION_TELEPORT_DUNGEON = 3,
     FSB_ACTION_SOULSTONE_RESSURECT = 4,
-    FSB_ACTION_TELEPORT_GRAVEYARD = 5
-};
-
-enum FSB_MovementPoints
-{
-    FSB_MOVEMENT_POINT_CORPSE = 2
-};
-
-enum FSB_SpecialSpells
-{
-    SPELL_SPECIAL_GHOST = 8326
 };
 
 constexpr float FOLLOW_DISTANCE_CLOSE = 3.0f;

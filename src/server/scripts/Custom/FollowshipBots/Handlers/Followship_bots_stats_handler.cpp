@@ -1,14 +1,37 @@
+/*
+ * This file is part of the Stefal WoW Project.
+ * It is designed to work exclusively with the TrinityCore framework.
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 2 of the License, or (at your
+ * option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ *
+ * This code is provided for personal and educational use within the
+ * Stefal WoW Project. It is not intended for commercial distribution,
+ * resale, or any form of monetization.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#include "Log.h"
+#include "ObjectMgr.h"
+#include "DB2Stores.h"
+#include "GameTables.h"
+#include "SpellAuraEffects.h"
+
+#include "Followship_bots_config.h"
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_utils.h"
 
 #include "Followship_bots_powers_handler.h"
 #include "Followship_bots_stats_handler.h"
-
-#include "Followship_bots_druid.h"
-#include "Followship_bots_paladin.h"
-#include "Followship_bots_priest.h"
-#include "Followship_bots_warlock.h"
-#include "Followship_bots_warrior.h"
 
 namespace FSBStats
 {
@@ -30,69 +53,24 @@ namespace FSBStats
         if (!stats)
             return;
 
-        
-        bot->SetClass(FSBStatsUtils::FSBToTCClass(botClass));
+        bot->SetClass(FSBUtils::FSBToTCClass(botClass));
 
         // Health
         ApplyBotHealth(bot, botClass, true);        
 
         // Power
-        ApplyBotBasePower(bot, botClass);
+        ApplyBotPower(bot, botClass, true);
 
         // Attack Power
         ApplyBotAttackPower(bot, botClass);
 
         // Damage
+        bot->SetBaseAttackTime(BASE_ATTACK, stats->baseAttackTime);
+        bot->SetBaseAttackTime(RANGED_ATTACK, stats->baseRangedAttackTime);
         ApplyBotDamage(bot, botClass);
 
         // Armor
-        ApplyBotArmor(bot);
-
-
-
-        //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Base Stats set for bot: {}, Level= {}, TC Class= {}, FSB Class= {}", bot->GetName(), bot->GetLevel(), bot->GetClass(), botClass);
-    }
-
-    void ApplyBotBasePower(Creature* bot, FSB_Class botClass)
-    {
-        if (!bot)
-            return;
-
-        auto const* stats = GetBotClassStats(botClass);
-        if (!stats)
-            return;
-
-        uint8 level = bot->GetLevel();
-
-        Powers basePowerType = stats->powerType;
-        uint32 basePower = stats->basePower + stats->powerPerLevel * (level - 1);
-
-        if (FSBPowers::IsRageUser(bot))
-        {
-            basePowerType = POWER_RAGE;
-            basePower = 1000;
-        }
-
-        if (FSBPowers::IsEnergyUser(bot))
-        {
-            basePowerType = POWER_ENERGY;
-            basePower = 100;
-        }
-
-        bot->SetPowerType(basePowerType, true);
-
-        bot->SetStatFlatModifier(UnitMods(UNIT_MOD_POWER_START + AsUnderlyingType(basePowerType)), BASE_VALUE, (float)basePower);
-        bot->SetCreateMana(basePower);
-        float totalPower = bot->GetTotalAuraModValue(UnitMods(UNIT_MOD_POWER_START + AsUnderlyingType(basePowerType)));
-        bot->SetMaxPower(basePowerType, totalPower);
-
-        if (FSBPowers::IsRageUser(bot))
-            bot->SetPower(basePowerType, 0, true);
-        else bot->SetPower(basePowerType, totalPower, true);
-
-        //creature->SetOverrideDisplayPowerId(466);
-
-        //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Bot {} statsHandler BASE powerType: {}, base: {}, total: {}", bot->GetName(), basePowerType, basePower, totalPower);
+        ApplyBotArmor(bot, botClass);
     }
 
     void ApplyBotHealth(Creature* bot, FSB_Class botClass, bool updateHealth)
@@ -104,9 +82,31 @@ namespace FSBStats
         if (!stats)
             return;
 
-        uint8 level = bot->GetLevel();
+        int32 level = bot->GetLevel();
+        float modifier = FollowshipBotsConfig::configFSBHealthRate;
 
-        uint32 baseHealth = stats->baseHealth + stats->healthPerLevel * (level - 1);
+        // Get player-level stats using core's PlayerLevelInfo
+        FSB_Race botRace = FSBMgr::Get()->GetBotRaceForEntry(bot->GetEntry());
+        Races tcRace = FSBUtils::BotRaceToTC(botRace);
+        Classes tcClass = FSBUtils::FSBToTCClass(botClass);
+
+        PlayerLevelInfo levelInfo;
+        sObjectMgr->GetPlayerLevelInfo(tcRace, tcClass, level, &levelInfo);
+
+        // Use stamina from PlayerLevelInfo to calculate health
+        float stamina = levelInfo.stats[STAT_STAMINA];
+        
+        // Get HP per stamina ratio from game table (varies by level)
+        float hpPerStamina = 10.0f;
+        if (GtHpPerStaEntry const* hpBase = sHpPerStaGameTable.GetRow(level))
+            hpPerStamina = hpBase->Health;
+
+        // Calculate health bonus from stamina (same as Player::GetHealthBonusFromStamina)
+        float healthFromStamina = stamina * hpPerStamina;
+
+        // Add base health from config and apply modifier
+        uint32 baseHealth = ((float)stats->baseHealth + healthFromStamina) * modifier;
+        
         bot->SetStatFlatModifier(UNIT_MOD_HEALTH, BASE_VALUE, baseHealth);
         float totalHealth = bot->GetTotalAuraModValue(UNIT_MOD_HEALTH);
 
@@ -116,7 +116,8 @@ namespace FSBStats
         if(updateHealth)
             bot->SetHealth(uint32(totalHealth));
 
-        //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Bot {} statsHandler health base: {}, total: {}", bot->GetName(), baseHealth, totalHealth);
+        //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Bot {} statsHandler health base: {}, total: {}, stamina: {}, hpPerSta: {}", 
+        //    bot->GetName(), baseHealth, totalHealth, stamina, hpPerStamina);
     }
 
     void ApplyBotPower(Creature* bot, FSB_Class botClass, bool updatePower)
@@ -128,10 +129,18 @@ namespace FSBStats
         if (!stats)
             return;
 
-        uint8 level = bot->GetLevel();
+        int32 level = bot->GetLevel();
+
+        float modifier = FollowshipBotsConfig::configFSBPowerRate;
 
         Powers basePowerType = stats->powerType;
-        uint32 basePower = stats->basePower + stats->powerPerLevel * (level - 1);
+        
+        // Get base mana from core's GetPlayerClassLevelInfo (uses GtBaseMPEntry game table)
+        Classes tcClass = FSBUtils::FSBToTCClass(botClass);
+        uint32 baseMana = 0;
+        sObjectMgr->GetPlayerClassLevelInfo(tcClass, level, baseMana);
+        
+        uint32 basePower = baseMana * modifier;
 
         if (FSBPowers::IsRageUser(bot))
         {
@@ -145,10 +154,16 @@ namespace FSBStats
             basePower = 100;
         }
 
+        if (FSBPowers::IsFocusUser(bot))
+        {
+            basePowerType = POWER_FOCUS;
+            basePower = 100;
+        }
+
         bot->SetPowerType(basePowerType, true);
 
         bot->SetStatFlatModifier(UnitMods(UNIT_MOD_POWER_START + AsUnderlyingType(basePowerType)), BASE_VALUE, (float)basePower);
-        bot->SetCreateMana(basePower);
+        bot->SetCreateMana(0);
         float totalPower = bot->GetTotalAuraModValue(UnitMods(UNIT_MOD_POWER_START + AsUnderlyingType(basePowerType)));
         bot->SetMaxPower(basePowerType, totalPower);
             
@@ -159,11 +174,6 @@ namespace FSBStats
                 bot->SetPower(basePowerType, totalPower, true);
         }
         else bot->SetPower(basePowerType, bot->GetPower(basePowerType), true);
-        
-
-        //creature->SetOverrideDisplayPowerId(466);
-
-        //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Bot {} statsHandler powerType: {}, base: {}, total: {}", bot->GetName(), basePowerType, basePower, totalPower);
     }
 
     void ApplyBotAttackPower(Creature* bot, FSB_Class botClass)
@@ -177,25 +187,39 @@ namespace FSBStats
 
         int32 level = bot->GetLevel();
 
-        float attackPowerPerLevel = stats->attackPowerPerLevel;
+        // Get player-level stats using core's PlayerLevelInfo
+        FSB_Race botRace = FSBMgr::Get()->GetBotRaceForEntry(bot->GetEntry());
+        Races tcRace = FSBUtils::BotRaceToTC(botRace);
+        Classes tcClass = FSBUtils::FSBToTCClass(botClass);
 
-        float baseAttackPower = bot->GetFlatModifierValue(UNIT_MOD_ATTACK_POWER, BASE_VALUE);
-        float baseRAttackPower = bot->GetFlatModifierValue(UNIT_MOD_ATTACK_POWER_RANGED, BASE_VALUE);
+        PlayerLevelInfo levelInfo;
+        sObjectMgr->GetPlayerLevelInfo(tcRace, tcClass, level, &levelInfo);
 
-        float multiplierAttackPower = bot->GetPctModifierValue(UNIT_MOD_ATTACK_POWER, TOTAL_PCT);
-        float multiplierRAttackPower = bot->GetPctModifierValue(UNIT_MOD_ATTACK_POWER_RANGED, TOTAL_PCT);
+        // Get class-specific stat multipliers from ChrClassesEntry
+        ChrClassesEntry const* classEntry = sChrClassesStore.LookupEntry(tcClass);
+        if (!classEntry)
+        {
+            TC_LOG_ERROR("scripts.fsb.stats", "FSB: ApplyBotAttackPower - Failed to get ChrClassesEntry for class {}", tcClass);
+            return;
+        }
+        
+        // Calculate attack power from stats (same as Player::UpdateAttackPowerAndDamage)
+        float strength = levelInfo.stats[STAT_STRENGTH];
+        float agility = levelInfo.stats[STAT_AGILITY];
+        
+        float strengthValue = std::max(strength * classEntry->AttackPowerPerStrength, 0.0f);
+        float agilityValue = std::max(agility * classEntry->AttackPowerPerAgility, 0.0f);
+        
+        uint32 finalAP = uint32(strengthValue + agilityValue);
+        uint32 finalRAP = uint32(agilityValue * classEntry->RangedAttackPowerPerAgility);
 
-        float totalAttackPowerMod = bot->GetFlatModifierValue(UNIT_MOD_ATTACK_POWER, TOTAL_VALUE);
-        float totalRAttackPowerMod = bot->GetFlatModifierValue(UNIT_MOD_ATTACK_POWER_RANGED, TOTAL_VALUE);
+        bot->SetBaseAttackPower(finalAP);
+        bot->SetBaseRangedAttackPower(finalRAP);
+        bot->UpdateAttackPowerAndDamage();
+        bot->UpdateAttackPowerAndDamage(true);
 
-        int32 finalAttackPower = int32(((baseAttackPower + (level * attackPowerPerLevel)) + totalAttackPowerMod) * multiplierAttackPower);
-        int32 finalRAttackPower = int32(((baseRAttackPower + (level * attackPowerPerLevel)) + totalRAttackPowerMod) * multiplierRAttackPower);
-
-        bot->SetRangedAttackPower(finalRAttackPower);
-        bot->SetAttackPower(finalAttackPower);
-
-        //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Stats AttackPower Bot: {} Has baseAP: {}, levelAP: {}, modAP: {}, multiAP: {}, totalAP: {}",
-        //    unit->GetName(), baseAttackPower, level * attackPowerPerLevel, totalAttackPowerMod, multiplierAttackPower, finalAttackPower);
+        //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Stats AttackPower Bot: {} Has STR: {}, AGI: {}, AP: {}, RAP: {}",
+        //    bot->GetName(), strength, agility, finalAP, finalRAP);
     }
 
     void ApplyBotDamage(Creature* bot, FSB_Class botClass)
@@ -207,21 +231,15 @@ namespace FSBStats
         if (!stats)
             return;
 
-        uint8 level = bot->GetLevel();
+        float modifier = FollowshipBotsConfig::configFSBDamageRate;
 
-        bot->SetBaseAttackTime(BASE_ATTACK, stats->baseAttackTime);
-        bot->SetBaseAttackTime(RANGED_ATTACK, stats->baseRangedAttackTime);
+        bot->SetDamageModifier(1.0f);
 
-        float basedamage = bot->GetBaseDamageForLevel(level) * 0.5f * stats->baseClassDamageVariance;
-
-        if (level >= 10)
-            basedamage = bot->GetBaseDamageForLevel(level) * 1.2f * stats->baseClassDamageVariance;
-
-        if (level >= 20)
-            basedamage = bot->GetBaseDamageForLevel(level) * 1.5f * stats->baseClassDamageVariance;
+        int32 level = bot->GetLevel();
+        float basedamage = stats->baseDamagePerLevel * float(level) * stats->baseClassDamageVariance * modifier;
 
         float weaponBaseMinDamage = basedamage;
-        float weaponBaseMaxDamage = basedamage * 1.5f;
+        float weaponBaseMaxDamage = weaponBaseMinDamage * 1.5f;
 
         bot->SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, weaponBaseMinDamage);
         bot->SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, weaponBaseMaxDamage);
@@ -237,20 +255,70 @@ namespace FSBStats
         bot->UpdateDamagePhysical(OFF_ATTACK);
     }
 
-    void ApplyBotArmor(Creature* bot)
+    void ApplyBotArmor(Creature* bot, FSB_Class botClass)
     {
         if (!bot)
             return;
 
-        uint8 level = bot->GetLevel();
+        auto const* stats = GetBotClassStats(botClass);
+        if (!stats)
+            return;
 
-        float baseArmor = bot->GetBaseArmorForLevel(level);
+        int32 level = bot->GetLevel();
+
+        // Get player-level stats from core (same pattern as ApplyBotHealth/AttackPower)
+        FSB_Race botRace = FSBMgr::Get()->GetBotRaceForEntry(bot->GetEntry());
+        Races tcRace = FSBUtils::BotRaceToTC(botRace);
+        Classes tcClass = FSBUtils::FSBToTCClass(botClass);
+
+        PlayerLevelInfo levelInfo;
+        sObjectMgr->GetPlayerLevelInfo(tcRace, tcClass, level, &levelInfo);
+
+        float agility = levelInfo.stats[STAT_AGILITY];
+
+        float modifier = FollowshipBotsConfig::configFSBArmorRate;
+
+        // 1. Base armor: agility * 2 (player model) + armorPerLevel (compensates for no items)
+        float baseArmor = (agility * 2.0f + (float)(stats->armorPerLevel * level)) * modifier * stats->baseArmorVariance;
         bot->SetStatFlatModifier(UNIT_MOD_ARMOR, BASE_VALUE, baseArmor);
-        float totalArmor = bot->GetTotalAuraModValue(UNIT_MOD_ARMOR);
 
-        bot->SetArmor(baseArmor, totalArmor - baseArmor);
+        // 2. Apply BASE_PCT
+        UnitMods unitMod = UNIT_MOD_ARMOR;
+        float value = baseArmor * bot->GetPctModifierValue(unitMod, BASE_PCT);
 
-        //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Bot {} statsHandler armor base: {}, total: {}", bot->GetName(), baseArmor, totalArmor);
+        // 3. SPELL_AURA_MOD_ARMOR_PCT_FROM_STAT (e.g., Guardian Druid armor from primary stat)
+        ChrClassesEntry const* classEntry = sChrClassesStore.LookupEntry(tcClass);
+        Stats primaryStat = STAT_STRENGTH;
+        if (classEntry)
+        {
+            if (classEntry->PrimaryStatPriority >= 4)
+                primaryStat = STAT_STRENGTH;
+            else if (classEntry->PrimaryStatPriority >= 2)
+                primaryStat = STAT_AGILITY;
+            else
+                primaryStat = STAT_INTELLECT;
+        }
+
+        bot->GetTotalAuraModifier(SPELL_AURA_MOD_ARMOR_PCT_FROM_STAT, [&value, &levelInfo, primaryStat](AuraEffect const* aurEff) {
+            int32 miscValue = aurEff->GetMiscValue();
+            Stats stat = (miscValue != -2) ? Stats(miscValue) : primaryStat;
+            value += CalculatePct(float(levelInfo.stats[stat]), aurEff->GetAmount());
+            return true;
+        });
+
+        float baseValue = value;
+
+        // 4. TOTAL_VALUE (bonus armor from auras)
+        value += bot->GetFlatModifierValue(unitMod, TOTAL_VALUE);
+
+        // 5. TOTAL_PCT
+        value *= bot->GetPctModifierValue(unitMod, TOTAL_PCT);
+
+        // 6. SPELL_AURA_MOD_BONUS_ARMOR_PCT
+        value *= bot->GetTotalAuraMultiplier(SPELL_AURA_MOD_BONUS_ARMOR_PCT);
+
+        bot->SetArmor(int32(value), int32(value - baseValue));
+        //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Bot {} statsHandler armor base: {}, total: {}, agility: {}", bot->GetName(), baseValue, value, agility);
     }
 
     void UpdateBotLevelToPlayer(Creature* bot)
@@ -260,14 +328,11 @@ namespace FSBStats
 
         Player* player = bot->GetOwner()->ToPlayer();
         if (!player)
-            return; // <-- Prevent crash if owner is gone
+            return;
 
         uint8 pLevel = player->GetLevel();
         if (bot->GetLevel() == pLevel)
-        {
-            //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: UpdateBotLevel: Nothing to do");
-            return; // nothing to do
-        }
+            return;
 
         bot->SetLevel(pLevel);
 
@@ -285,7 +350,7 @@ namespace FSBStats
         ApplyBotPower(bot, cls, updatePower);
         ApplyBotAttackPower(bot, cls);
         ApplyBotDamage(bot, cls);
-        ApplyBotArmor(bot);
+        ApplyBotArmor(bot, cls);
     }
 
     int32 BotGetSpellPower(const Creature* bot)
@@ -294,7 +359,7 @@ namespace FSBStats
             return 0;
 
         FSB_Class botClass = FSBMgr::Get()->GetBotClassForEntry(bot->GetEntry());
-        uint16 level = bot->GetLevel();
+        uint8 level = bot->GetLevel();
 
         auto const* stats = GetBotClassStats(botClass);
         if (!stats)
@@ -355,6 +420,9 @@ namespace FSBStats
 
         if (FSBPriest::BotHasPainSuppression(bot))
             multiplier *= 0.6f;
+
+        if (FSBMonk::BotHasFortifyingBrew(bot))
+            multiplier *= 0.8f;
 
         return multiplier;
     }

@@ -131,9 +131,9 @@ enum ItemBondingType
     BIND_QUEST                                  = 4,
     BIND_UNUSED_1                               = 5,
     BIND_UNUSED_2                               = 6,
-    BIND_WOW_ACCOUNT                            = 7,
-    BIND_BNET_ACCOUNT                           = 8,
-    BIND_BNET_ACCOUNT_UNTIL_EQUIPPED            = 9,
+    BIND_WOW_ACCOUNT                            = 7, // Bind to Warband (WoW account scope)
+    BIND_BNET_ACCOUNT                           = 8, // Bind to Warband (Battle.net account scope)
+    BIND_BNET_ACCOUNT_UNTIL_EQUIPPED            = 9, // Bind to Warband until equipped, then becomes soulbound
 };
 
 /* /// @todo: Requiring actual cases in which using (an) item isn't allowed while shapeshifted. Else, this flag would need an implementation.
@@ -146,7 +146,7 @@ enum ItemFieldFlags : uint32
     ITEM_FIELD_FLAG_TRANSLATED    = 0x00000002, // Item text will not read as garbage when player does not know the language
     ITEM_FIELD_FLAG_UNLOCKED      = 0x00000004, // Item had lock but can be opened now
     ITEM_FIELD_FLAG_WRAPPED       = 0x00000008, // Item is wrapped and contains another item
-    ITEM_FIELD_FLAG_UNK2          = 0x00000010,
+    ITEM_FIELD_FLAG_CONVERTED_WARBOUND = 0x00000010, // BtWuE item has been equipped and converted to soulbound
     ITEM_FIELD_FLAG_UNK3          = 0x00000020,
     ITEM_FIELD_FLAG_UNK4          = 0x00000040,
     ITEM_FIELD_FLAG_UNK5          = 0x00000080,
@@ -850,6 +850,7 @@ struct TC_GAME_API ItemTemplate
     uint32 GetId() const { return BasicData->ID; }
     uint32 GetClass() const { return BasicData->ClassID; }
     uint32 GetSubClass() const { return BasicData->SubclassID; }
+    ItemSheatheType GetSheatheType() const { return static_cast<ItemSheatheType>(BasicData->SheatheType); }
     uint32 GetQuality() const { return ExtendedData->OverallQualityID; }
     uint32 GetOtherFactionItemId() const { return ExtendedData->FactionRelated; }
     float GetPriceRandomValue() const { return ExtendedData->PriceRandomValue; }
@@ -859,7 +860,7 @@ struct TC_GAME_API ItemTemplate
     uint32 GetSellPrice() const { return ExtendedData->SellPrice; }
     InventoryType GetInventoryType() const { return InventoryType(ExtendedData->InventoryType); }
     int32 GetAllowableClass() const { return ExtendedData->AllowableClass; }
-    Trinity::RaceMask<int64> GetAllowableRace() const { return ExtendedData->AllowableRace; }
+    Trinity::RaceMask<int32, 2> GetAllowableRace() const { return ExtendedData->AllowableRace; }
     uint32 GetBaseItemLevel() const { return ExtendedData->ItemLevel; }
     int32 GetBaseRequiredLevel() const { return ExtendedData->RequiredLevel; }
     uint32 GetRequiredSkill() const { return ExtendedData->RequiredSkill; }
@@ -900,6 +901,7 @@ struct TC_GAME_API ItemTemplate
     float  GetDmgVariance() const { return ExtendedData->DmgVariance; }
     uint8 GetArtifactID() const { return ExtendedData->ArtifactID; }
     uint8 GetRequiredExpansion() const { return ExtendedData->ExpansionID; }
+    uint32 GetScrappingLootId() const { return ScrappingLootId; }
 
     uint32 MaxDurability;
     std::vector<ItemEffectEntry const*> Effects;
@@ -909,6 +911,7 @@ struct TC_GAME_API ItemTemplate
     uint32 FoodType;
     uint32 MinMoneyLoot;
     uint32 MaxMoneyLoot;
+    uint32 ScrappingLootId;
     uint32 FlagsCu;
     float SpellPPMRate;
     uint32 RandomBonusListTemplateId;
@@ -928,7 +931,6 @@ struct TC_GAME_API ItemTemplate
 
     uint32 GetSkill() const;
 
-    bool IsPotion() const { return GetClass() == ITEM_CLASS_CONSUMABLE && GetSubClass() == ITEM_SUBCLASS_POTION; }
     bool IsVellum() const { return HasFlag(ITEM_FLAG3_CAN_STORE_ENCHANTS); }
     bool IsConjuredConsumable() const { return GetClass() == ITEM_CLASS_CONSUMABLE && HasFlag(ITEM_FLAG_CONJURED); }
     bool IsCraftingReagent() const { return HasFlag(ITEM_FLAG2_USED_IN_A_TRADESKILL); }
@@ -967,6 +969,7 @@ struct TC_GAME_API ItemTemplate
     void GetDamage(uint32 itemLevel, float& minDamage, float& maxDamage) const;
     bool IsUsableByLootSpecialization(Player const* player, bool alwaysAllowBoundToAccount) const;
     static std::size_t CalculateItemSpecBit(ChrSpecializationEntry const* spec);
+    TransmogOutfitSlotOption GetWeaponTransmogOutfitSlotOption() const;
 };
 
 #endif

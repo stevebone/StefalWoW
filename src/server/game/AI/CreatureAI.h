@@ -18,6 +18,7 @@
 #ifndef TRINITY_CREATUREAI_H
 #define TRINITY_CREATUREAI_H
 
+#include "Duration.h"
 #include "LootItemType.h"
 #include "ObjectDefines.h"
 #include "Optional.h"
@@ -245,6 +246,8 @@ class TC_GAME_API CreatureAI : public UnitAI
 
         static bool IsInBounds(CreatureBoundary const& boundary, Position const* who);
         bool IsInBoundary(Position const* who = nullptr) const;
+
+        virtual int32 GetBotSpellPower() const { return 0; }
 
     protected:
         void EngagementStart(Unit* who);

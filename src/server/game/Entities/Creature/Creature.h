@@ -124,6 +124,7 @@ class TC_GAME_API Creature : public Unit, public GridObject<Creature>, public Ma
         uint32 GetCorpseDelay() const { return m_corpseDelay; }
         bool IsRacialLeader() const { return GetCreatureTemplate()->RacialLeader; }
         bool IsCivilian() const { return (GetCreatureTemplate()->flags_extra & CREATURE_FLAG_EXTRA_CIVILIAN) != 0; }
+        void RemoveCivilianFlag();
         bool IsTrigger() const { return (GetCreatureTemplate()->flags_extra & CREATURE_FLAG_EXTRA_TRIGGER) != 0; }
         bool IsGuard() const { return (GetCreatureTemplate()->flags_extra & CREATURE_FLAG_EXTRA_GUARD) != 0; }
 
@@ -157,7 +158,7 @@ class TC_GAME_API Creature : public Unit, public GridObject<Creature>, public Ma
         bool CanOnlySwimIfTargetSwims() const { return _staticFlags.HasFlag(CREATURE_STATIC_FLAG_4_AI_WILL_ONLY_SWIM_IF_TARGET_SWIMS); }
 
         bool CanSwim() const override;
-        bool CanEnterWater() const override { return (CanSwim() || IsAmphibious()); };
+        bool CanEnterWater() const override { return (CanSwim() || IsAmphibious()); }
         bool CanFly()  const override { return (IsFlying() || HasUnitMovementFlag(MOVEMENTFLAG_CAN_FLY)); }
 
         MovementGeneratorType GetDefaultMovementType() const override;
@@ -202,16 +203,21 @@ class TC_GAME_API Creature : public Unit, public GridObject<Creature>, public Ma
         void UpdateNearbyPlayersInteractions() override;
 
         bool HasScalableLevels() const;
+        uint32 GetContentTuningIdForTarget(WorldObject const* target) const;
         void ApplyLevelScaling();
+        void ApplyLevelScaling(int32 contentTuningId, int32 scalingLevelDelta);
         uint8 GetLevelForTarget(WorldObject const* target) const override;
 
         uint64 GetMaxHealthByLevel(uint8 level) const;
+        uint64 GetMaxHealthByLevel(uint8 level, uint32 contentTuningId) const;
         float GetHealthMultiplierForTarget(WorldObject const* target) const override;
 
         float GetBaseDamageForLevel(uint8 level) const;
+        float GetBaseDamageForLevel(uint8 level, uint32 contentTuningId) const;
         float GetDamageMultiplierForTarget(WorldObject const* target) const override;
 
         float GetBaseArmorForLevel(uint8 level) const;
+        float GetBaseArmorForLevel(uint8 level, uint32 contentTuningId) const;
         float GetArmorMultiplierForTarget(WorldObject const* target) const override;
 
         bool IsInEvadeMode() const { return HasUnitState(UNIT_STATE_EVADE); }
@@ -247,7 +253,11 @@ class TC_GAME_API Creature : public Unit, public GridObject<Creature>, public Ma
         void UpdateMaxHealth() override;
         void UpdateMaxPower(Powers power) override;
         uint32 GetPowerIndex(Powers power) const override;
+        ClassPowerTypes GetPowerTypes() const override;
         void UpdateAttackPowerAndDamage(bool ranged = false) override;
+        void SetBaseAttackPower(uint32 attackPower) { m_baseAttackPower = attackPower; }
+        void SetBaseRangedAttackPower(uint32 attackPower) { m_baseRangedAttackPower = attackPower; }
+        void SetDamageModifier(float mod) { m_overrideDamageModifier = mod; }
         void CalculateMinMaxDamage(WeaponAttackType attType, bool normalized, bool addTotalPct, float& minDamage, float& maxDamage) const override;
 
         void SetCanDualWield(bool value) override;
@@ -493,6 +503,7 @@ class TC_GAME_API Creature : public Unit, public GridObject<Creature>, public Ma
 
         void SetBot(bool isBot) { m_isFSBot = isBot; }
         bool IsBot() const { return m_isFSBot; }
+        virtual int32 GetBotSpellPower() const;
 
     protected:
         void BuildValuesCreate(UF::UpdateFieldFlag flags, ByteBuffer& data, Player const* target) const override;
@@ -501,15 +512,16 @@ class TC_GAME_API Creature : public Unit, public GridObject<Creature>, public Ma
     public:
         void BuildValuesUpdateWithFlag(UF::UpdateFieldFlag flags, ByteBuffer& data, Player const* target) const override;
         void BuildValuesUpdateForPlayerWithMask(UpdateData* data, UF::ObjectData::Mask const& requestedObjectMask,
-            UF::UnitData::Mask const& requestedUnitMask, Player const* target) const;
+            UF::UnitData::Mask const& requestedUnitMask, Player const* target, bool ignoreNestedChangesMask) const;
 
         struct ValuesUpdateForPlayerWithMaskSender // sender compatible with MessageDistDeliverer
         {
-            explicit ValuesUpdateForPlayerWithMaskSender(Creature const* owner) : Owner(owner) { }
+            explicit ValuesUpdateForPlayerWithMaskSender(Creature const* owner) : Owner(owner), IgnoreNestedChangesMask(false) { }
 
             Creature const* Owner;
             UF::ObjectData::Base ObjectMask;
             UF::UnitData::Base UnitMask;
+            bool IgnoreNestedChangesMask;
 
             void operator()(Player const* player) const;
         };
@@ -550,6 +562,9 @@ class TC_GAME_API Creature : public Unit, public GridObject<Creature>, public Ma
         uint32 m_cannotReachTimer;
 
         SpellSchoolMask m_meleeDamageSchoolMask;
+        uint32 m_baseAttackPower;
+        uint32 m_baseRangedAttackPower;
+        float m_overrideDamageModifier = -1.0f;
         uint32 m_originalEntry;
 
         Position m_homePosition;
@@ -612,7 +627,7 @@ class TC_GAME_API Creature : public Unit, public GridObject<Creature>, public Ma
         Optional<uint32> _trainerId;
         float _sparringHealthPct;
 
-        bool m_isFSBot;
+        bool m_isFSBot = false;
 };
 
 class TC_GAME_API AssistDelayEvent : public BasicEvent

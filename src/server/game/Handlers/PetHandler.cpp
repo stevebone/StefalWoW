@@ -20,6 +20,7 @@
 #include "Common.h"
 #include "CreatureAI.h"
 #include "DatabaseEnv.h"
+#include "DB2Stores.h"
 #include "Group.h"
 #include "Log.h"
 #include "Map.h"
@@ -31,11 +32,13 @@
 #include "Player.h"
 #include "QueryPackets.h"
 #include "Spell.h"
+#include "SpellAuraEffects.h"
 #include "SpellHistory.h"
 #include "SpellInfo.h"
 #include "SpellMgr.h"
 #include "SpellPackets.h"
 #include "PetAI.h"
+#include "UpdateFields.h"
 #include "Util.h"
 
 void WorldSession::HandleDismissCritter(WorldPackets::Pet::DismissCritter& packet)
@@ -181,14 +184,6 @@ void WorldSession::HandlePetActionHelper(Unit* pet, ObjectGuid guid1, uint32 spe
                     break;
                 case COMMAND_ATTACK: // spellid = 1792 - ATTACK
                 {
-                    // Can't attack if owner is pacified
-                    if (_player->HasAuraType(SPELL_AURA_MOD_PACIFY))
-                    {
-                        // pet->SendPetCastFail(spellid, SPELL_FAILED_PACIFIED);
-                        /// @todo Send proper error message to client
-                        return;
-                    }
-
                     // only place where pet can be player
                     Unit* TargetUnit = ObjectAccessor::GetUnit(*_player, guid2);
                     if (!TargetUnit)
@@ -219,8 +214,8 @@ void WorldSession::HandlePetActionHelper(Unit* pet, ObjectGuid guid1, uint32 spe
                                 AI->AttackStart(TargetUnit);
 
                             // 10% chance to play special pet attack talk, else growl
-                            if (pet->IsPet() && ((Pet*)pet)->getPetType() == SUMMON_PET && pet != TargetUnit && urand(0, 100) < 10)
-                                pet->SendPetTalk((uint32)PET_TALK_ATTACK);
+                            if (pet->IsPet() && pet->ToPet()->getPetType() == SUMMON_PET && pet != TargetUnit && roll_chance(10))
+                                pet->SendPetActionSound(PET_ACTION_ATTACK);
                             else
                             {
                                 // 90% chance for pet and 100% chance for charmed creature
@@ -249,10 +244,13 @@ void WorldSession::HandlePetActionHelper(Unit* pet, ObjectGuid guid1, uint32 spe
                         ASSERT(pet->GetTypeId() == TYPEID_UNIT);
                         if (pet->IsPet())
                         {
-                            if (((Pet*)pet)->getPetType() == HUNTER_PET)
-                                GetPlayer()->RemovePet((Pet*)pet, PET_SAVE_AS_DELETED);
+                            if (pet->ToPet()->getPetType() == HUNTER_PET)
+                                GetPlayer()->RemovePet(pet->ToPet(), PET_SAVE_AS_DELETED);
                             else
-                                GetPlayer()->RemovePet((Pet*)pet, PET_SAVE_NOT_IN_SLOT);
+                            {
+                                pet->SendPetDismissSound();
+                                GetPlayer()->RemovePet(pet->ToPet(), PET_SAVE_NOT_IN_SLOT);
+                            }
                         }
                         else if (pet->HasUnitTypeMask(UNIT_MASK_MINION))
                         {
@@ -361,8 +359,8 @@ void WorldSession::HandlePetActionHelper(Unit* pet, ObjectGuid guid1, uint32 spe
 
                 // 10% chance to play special pet attack talk, else growl
                 // actually this only seems to happen on special spells, fire shield for imp, torment for voidwalker, but it's stupid to check every spell
-                if (pet->IsPet() && (((Pet*)pet)->getPetType() == SUMMON_PET) && (pet != unit_target) && (urand(0, 100) < 10))
-                    pet->SendPetTalk((uint32)PET_TALK_SPECIAL_SPELL);
+                if (pet->IsPet() && pet->ToPet()->getPetType() == SUMMON_PET && pet != unit_target && roll_chance(10))
+                    pet->SendPetActionSound(PET_ACTION_SPECIAL_SPELL);
                 else
                 {
                     pet->SendPetAIReaction(guid1);
@@ -530,81 +528,155 @@ void WorldSession::HandlePetSetAction(WorldPackets::Pet::PetSetAction& packet)
 
 void WorldSession::HandlePetRename(WorldPackets::Pet::PetRename& packet)
 {
-    ObjectGuid petguid = packet.RenameData.PetGUID;
+    auto const& rd = packet.RenameData;
+    std::string const& name = rd.NewName;
+    Optional<DeclinedName> declinedname = rd.DeclinedNames;
 
-    std::string name = packet.RenameData.NewName;
-    Optional<DeclinedName> const& declinedname = packet.RenameData.DeclinedNames;
-
-    PetStable* petStable = _player->GetPetStable();
-    Pet* pet = ObjectAccessor::GetPet(*_player, petguid);
-                                                            // check it!
-    if (!pet || !pet->IsPet() || ((Pet*)pet)->getPetType() != HUNTER_PET ||
-        !pet->HasPetFlag(UNIT_PET_FLAG_CAN_BE_RENAMED) ||
-        pet->GetOwnerGUID() != _player->GetGUID() || !pet->GetCharmInfo() ||
-        !petStable || !petStable->GetCurrentPet() || petStable->GetCurrentPet()->PetNumber != pet->GetCharmInfo()->GetPetNumber())
-        return;
-
-    PetNameInvalidReason res = ObjectMgr::CheckPetName(name);
-    if (res != PET_NAME_SUCCESS)
+    if (PetNameInvalidReason res = ObjectMgr::CheckPetName(name); res != PET_NAME_SUCCESS)
     {
-        SendPetNameInvalid(res, name, {});
-        return;
+        SendPetNameInvalid(res, name, {}); return;
     }
 
     if (sObjectMgr->IsReservedName(name))
     {
-        SendPetNameInvalid(PET_NAME_RESERVED, name, {});
-        return;
+        SendPetNameInvalid(PET_NAME_RESERVED, name, {}); return;
     }
-
-    pet->SetName(name);
-
-    pet->SetGroupUpdateFlag(GROUP_UPDATE_FLAG_PET_NAME);
-
-    pet->RemovePetFlag(UNIT_PET_FLAG_CAN_BE_RENAMED);
-
-    petStable->GetCurrentPet()->Name = name;
-    petStable->GetCurrentPet()->WasRenamed = true;
 
     if (declinedname)
     {
         std::wstring wname;
-        if (!Utf8toWStr(name, wname))
-            return;
-
-        if (!ObjectMgr::CheckDeclinedNames(wname, *declinedname))
+        if (!Utf8toWStr(name, wname) || !ObjectMgr::CheckDeclinedNames(wname, *declinedname))
         {
             SendPetNameInvalid(PET_NAME_DECLENSION_DOESNT_MATCH_BASE_NAME, name, declinedname);
-            return;
+            declinedname.reset();
         }
     }
 
-    CharacterDatabaseTransaction trans = CharacterDatabase.BeginTransaction();
-    if (declinedname)
+    PetStable* petStable = _player->GetPetStable();
+    if (!petStable)
+        return;
+
+    auto saveDeclined = [&](CharacterDatabaseTransaction& trans, uint32 petNum)
+        {
+            if (!declinedname) return;
+            CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CHAR_PET_DECLINEDNAME);
+            stmt->setUInt32(0, petNum); trans->Append(stmt);
+            stmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_CHAR_PET_DECLINEDNAME);
+            stmt->setUInt32(0, petNum); stmt->setUInt64(1, _player->GetGUID().GetCounter());
+            for (uint8 i = 0; i < 5; i++) stmt->setString(i + 2, declinedname->name[i]);
+            trans->Append(stmt);
+        };
+
+    bool atStableMaster = _player->m_activePlayerData->PetStable.has_value()
+        && !_player->GetStableMaster().IsEmpty();
+
+    if (rd.PetNumber != 0 && atStableMaster)
     {
-        CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CHAR_PET_DECLINEDNAME);
-        stmt->setUInt32(0, pet->GetCharmInfo()->GetPetNumber());
-        trans->Append(stmt);
+        uint32 petNumber = rd.PetNumber;
 
-        stmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_CHAR_PET_DECLINEDNAME);
-        stmt->setUInt32(0, pet->GetCharmInfo()->GetPetNumber());
+        PetStable::PetInfo* si = nullptr;
+        for (uint8 i = 0; i < MAX_ACTIVE_PETS && !si; ++i)
+            if (petStable->ActivePets[i] && petStable->ActivePets[i]->PetNumber == petNumber)
+                si = &*petStable->ActivePets[i];
+        for (uint16 i = 0; i < MAX_PET_STABLES && !si; ++i)
+            if (petStable->StabledPets[i] && petStable->StabledPets[i]->PetNumber == petNumber)
+                si = &*petStable->StabledPets[i];
+        for (size_t i = 0; i < petStable->UnslottedPets.size() && !si; ++i)
+            if (petStable->UnslottedPets[i].PetNumber == petNumber)
+                si = &petStable->UnslottedPets[i];
+
+        if (!si || si->Type != HUNTER_PET)
+        {
+            SendPetStableResult(StableResult::NotFound); return;
+        }
+
+        si->Name = name;
+        si->WasRenamed = true;
+
+        if (Pet* pet = _player->GetPet(); pet && pet->GetCharmInfo() && pet->GetCharmInfo()->GetPetNumber() == petNumber)
+        {
+            pet->SetName(name);
+            pet->SetGroupUpdateFlag(GROUP_UPDATE_FLAG_PET_NAME);
+            pet->SetPetNameTimestamp(uint32(GameTime::GetGameTime()));
+        }
+
+        if (!_player->GetAnimalCompanion().IsEmpty())
+        {
+            if (Pet* ac = ObjectAccessor::GetPet(*_player, _player->GetAnimalCompanion()))
+            {
+                if (ac->GetCharmInfo() && ac->GetCharmInfo()->GetPetNumber() == petNumber)
+                {
+                    _player->RemovePet(ac, PET_SAVE_DISMISS, false, true);
+                    _player->SetAnimalCompanion(ObjectGuid::Empty);
+                    for (AuraEffect const* aurEff : _player->GetAuraEffectsByType(SPELL_AURA_ANIMAL_COMPANION))
+                    {
+                        if (uint32 triggerSpell = aurEff->GetSpellEffectInfo().TriggerSpell)
+                            if (sSpellMgr->GetSpellInfo(triggerSpell, _player->GetMap()->GetDifficultyID()))
+                                _player->CastSpell(_player, triggerSpell, true);
+                        break;
+                    }
+                }
+            }
+        }
+
+        CharacterDatabaseTransaction trans = CharacterDatabase.BeginTransaction();
+        saveDeclined(trans, petNumber);
+        CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_UPD_CHAR_PET_NAME);
+        stmt->setString(0, name);
         stmt->setUInt64(1, _player->GetGUID().GetCounter());
-
-        for (uint8 i = 0; i < 5; i++)
-            stmt->setString(i + 2, declinedname->name[i]);
-
+        stmt->setUInt32(2, petNumber);
         trans->Append(stmt);
+        CharacterDatabase.CommitTransaction(trans);
+
+        _player->GetOrInitPetStable();
+        int32 ufIdx = _player->m_activePlayerData->PetStable.has_value()
+            ? _player->m_activePlayerData->PetStable->Pets.FindIndexIf(
+                [petNumber](UF::StablePetInfo const& p) { return p.PetNumber == petNumber; })
+            : -1;
+
+        if (ufIdx >= 0)
+        {
+            auto ufStable = _player->m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::PetStable, 0);
+            _player->SetUpdateFieldValue(ufStable.ModifyValue(&UF::StableInfo::Pets, ufIdx).ModifyValue(&UF::StablePetInfo::Name), name);
+        }
+        else if (si)
+            _player->AddPetToUpdateFields(*si, PET_SAVE_NOT_IN_SLOT, PET_STABLE_INACTIVE);
+
+        SendPetStableResult(StableResult::PetRenamed);
     }
+    else if (!rd.PetGUID.IsEmpty())
+    {
+        Pet* pet = ObjectAccessor::GetPet(*_player, rd.PetGUID);
+        if (!pet || !pet->IsPet() || pet->getPetType() != HUNTER_PET ||
+            pet->GetOwnerGUID() != _player->GetGUID() || !pet->GetCharmInfo() ||
+            !petStable->GetCurrentPet() || petStable->GetCurrentPet()->PetNumber != pet->GetCharmInfo()->GetPetNumber())
+            return;
 
-    CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_UPD_CHAR_PET_NAME);
-    stmt->setString(0, name);
-    stmt->setUInt64(1, _player->GetGUID().GetCounter());
-    stmt->setUInt32(2, pet->GetCharmInfo()->GetPetNumber());
-    trans->Append(stmt);
+        pet->SetName(name);
+        pet->SetGroupUpdateFlag(GROUP_UPDATE_FLAG_PET_NAME);
+        pet->RemovePetFlag(UNIT_PET_FLAG_CAN_BE_RENAMED);
+        pet->SetPetNameTimestamp(uint32(GameTime::GetGameTime()));
 
-    CharacterDatabase.CommitTransaction(trans);
+        petStable->GetCurrentPet()->Name = name;
+        petStable->GetCurrentPet()->WasRenamed = true;
 
-    pet->SetPetNameTimestamp(uint32(GameTime::GetGameTime()));
+        CharacterDatabaseTransaction trans = CharacterDatabase.BeginTransaction();
+        saveDeclined(trans, pet->GetCharmInfo()->GetPetNumber());
+        CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_UPD_CHAR_PET_NAME);
+        stmt->setString(0, name);
+        stmt->setUInt64(1, _player->GetGUID().GetCounter());
+        stmt->setUInt32(2, pet->GetCharmInfo()->GetPetNumber());
+        trans->Append(stmt);
+        CharacterDatabase.CommitTransaction(trans);
+
+        uint32 petNum = pet->GetCharmInfo()->GetPetNumber();
+        if (int32 ufIdx = _player->m_activePlayerData->PetStable->Pets.FindIndexIf(
+            [petNum](UF::StablePetInfo const& p) { return p.PetNumber == petNum; }); ufIdx >= 0)
+        {
+            auto ufStable = _player->m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::PetStable, 0);
+            _player->SetUpdateFieldValue(ufStable.ModifyValue(&UF::StableInfo::Pets, ufIdx).ModifyValue(&UF::StablePetInfo::Name), name);
+        }
+    }
 }
 
 void WorldSession::HandlePetAbandon(WorldPackets::Pet::PetAbandon& packet)
@@ -727,10 +799,13 @@ void WorldSession::HandlePetCastSpellOpcode(WorldPackets::Spells::PetCastSpell& 
             return;
     }
 
+    if (petCastSpell.Cast.MoveUpdate)
+        HandleMovementOpcode(CMSG_MOVE_STOP, *petCastSpell.Cast.MoveUpdate);
+
     Spell* spell = new Spell(caster, spellInfo, triggerCastFlags);
     spell->m_fromClient = true;
     std::ranges::copy(petCastSpell.Cast.Misc, std::ranges::begin(spell->m_misc.Raw.Data));
-    spell->m_targets = targets;
+    spell->InitExplicitTargets(targets);
 
     SpellCastResult result = spell->CheckPetCast(nullptr);
 
@@ -740,10 +815,10 @@ void WorldSession::HandlePetCastSpellOpcode(WorldPackets::Spells::PetCastSpell& 
         {
             if (Pet* pet = creature->ToPet())
             {
-                // 10% chance to play special pet attack talk, else growl
+                // 10% chance to play special pet attack sound, else growl
                 // actually this only seems to happen on special spells, fire shield for imp, torment for voidwalker, but it's stupid to check every spell
-                if (pet->getPetType() == SUMMON_PET && (urand(0, 100) < 10))
-                    pet->SendPetTalk(PET_TALK_SPECIAL_SPELL);
+                if (pet->getPetType() == SUMMON_PET && roll_chance(10))
+                    pet->SendPetActionSound(PET_ACTION_SPECIAL_SPELL);
                 else
                     pet->SendPetAIReaction(petCastSpell.PetGUID);
             }
@@ -797,4 +872,113 @@ void WorldSession::HandleRequestPetInfo(WorldPackets::Pet::RequestPetInfo& /*req
         else
             _player->CharmSpellInitialize();
     }
+}
+
+void WorldSession::HandleSetPetSpecialization(WorldPackets::Pet::SetPetSpecializationClient& packet)
+{
+    uint32 specID = packet.SpecID;
+    uint32 petNumber = packet.PetNumber;
+
+    ChrSpecializationEntry const* specEntry = sChrSpecializationStore.LookupEntry(specID);
+    if (!specEntry || specEntry->ClassID != 0)
+        return;
+
+    PetStable* petStable = _player->GetPetStable();
+    if (!petStable)
+        return;
+
+    if (Pet* currentPet = _player->GetPet())
+    {
+        if (currentPet->GetCharmInfo() && currentPet->GetCharmInfo()->GetPetNumber() == petNumber)
+            currentPet->SetSpecialization(specID);
+    }
+
+    auto updatePetSpec = [&](auto& pets, uint8 maxCount) {
+        for (uint8 i = 0; i < maxCount; ++i)
+            if (pets[i] && pets[i]->PetNumber == petNumber)
+                return pets[i]->SpecializationId = specID, true;
+        return false;
+        };
+
+    updatePetSpec(petStable->ActivePets, MAX_ACTIVE_PETS) || updatePetSpec(petStable->StabledPets, MAX_PET_STABLES);
+
+    CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_UPD_PET_SPEC);
+    stmt->setUInt16(0, specID);
+    stmt->setUInt32(1, petNumber);
+    stmt->setUInt64(2, _player->GetGUID().GetCounter());
+    CharacterDatabase.Execute(stmt);
+
+    if (_player->m_activePlayerData->PetStable.has_value())
+    {
+        int32 ufIndex = _player->m_activePlayerData->PetStable->Pets.FindIndexIf([petNumber](UF::StablePetInfo const& p) {
+            return p.PetNumber == petNumber;
+            });
+
+        if (ufIndex >= 0)
+        {
+            auto ufStable = _player->m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::PetStable, 0);
+            auto ufPet = ufStable.ModifyValue(&UF::StableInfo::Pets, ufIndex);
+            _player->SetUpdateFieldValue(ufPet.ModifyValue(&UF::StablePetInfo::Specialization), specID);
+        }
+    }
+
+    WorldPackets::Pet::SetPetSpecialization specPacket;
+    specPacket.SpecID = specID;
+    SendPacket(specPacket.Write());
+}
+
+void WorldSession::HandleSetPetFavorite(WorldPackets::Pet::SetPetFavorite& packet)
+{
+    if ((!_player->GetStableMaster().IsEmpty() && !CheckStableMaster(_player->GetStableMaster()))
+        || (_player->GetStableMaster().IsEmpty() && !_player->HasAuraType(SPELL_AURA_OPEN_STABLE) && !_player->IsGameMaster()))
+    {
+        SendPetStableResult(StableResult::NotStableMaster);
+        return;
+    }
+
+    PetStable* petStable = _player->GetPetStable();
+    if (!petStable)
+    {
+        SendPetStableResult(StableResult::InternalError);
+        return;
+    }
+
+    PetStable::PetInfo* petInfo = nullptr;
+    if (packet.Slot < MAX_ACTIVE_PETS)
+        petInfo = petStable->ActivePets[packet.Slot] ? &*petStable->ActivePets[packet.Slot] : nullptr;
+    else if (packet.Slot < MAX_ACTIVE_PETS + MAX_PET_STABLES)
+        petInfo = petStable->StabledPets[packet.Slot - MAX_ACTIVE_PETS] ? &*petStable->StabledPets[packet.Slot - MAX_ACTIVE_PETS] : nullptr;
+
+    if (!petInfo)
+    {
+        SendPetStableResult(StableResult::NotFound);
+        return;
+    }
+
+    if (_player->m_activePlayerData->PetStable.has_value())
+    {
+        int32 ufIndex = _player->m_activePlayerData->PetStable->Pets.FindIndexIf([petInfo](UF::StablePetInfo const& p) {
+            return p.PetNumber == petInfo->PetNumber;
+            });
+
+        if (ufIndex >= 0)
+        {
+            auto ufStable = _player->m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::PetStable, 0);
+            auto ufPet = ufStable.ModifyValue(&UF::StableInfo::Pets, ufIndex);
+            auto flagsSetter = ufPet.ModifyValue(&UF::StablePetInfo::PetFlags);
+            if (packet.Favorite)
+                _player->SetUpdateFieldFlagValue(flagsSetter, PET_STABLE_FAVORITE);
+            else
+                _player->RemoveUpdateFieldFlagValue(flagsSetter, PET_STABLE_FAVORITE);
+        }
+    }
+
+    CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_UPD_PET_FAVORITE);
+    stmt->setBool(0, packet.Favorite);
+    stmt->setUInt32(1, petInfo->PetNumber);
+    stmt->setUInt64(2, _player->GetGUID().GetCounter());
+    CharacterDatabase.Execute(stmt);
+
+    petInfo->IsFavorite = packet.Favorite;
+    SendPetStableResult(StableResult::FavoriteToggle);
 }

@@ -1,12 +1,38 @@
+/*
+ * This file is part of the Stefal WoW Project.
+ * It is designed to work exclusively with the TrinityCore framework.
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 2 of the License, or (at your
+ * option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ *
+ * This code is provided for personal and educational use within the
+ * Stefal WoW Project. It is not intended for commercial distribution,
+ * resale, or any form of monetization.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 
 #include "Chat.h"
 #include "ChatCommand.h"
+#include "Log.h"
+#include "Pet.h"
+#include "SpellAuras.h"
 #include "WorldSession.h"
 
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_utils.h"
 
-#include "Followship_bots_stats_handler.h"
+#include "Followship_bots_outofcombat_handler.h"
+#include "Followship_bots_pet_handler.h"
+#include "Followship_bots_utils_spells.h"
 
 using namespace Trinity::ChatCommands;
 
@@ -15,77 +41,28 @@ class followship_bots_commandscript : public CommandScript
 public:
     followship_bots_commandscript() : CommandScript("followship_bots_commandscript") { }
 
-    std::vector<ChatCommand> GetCommands() const override
+    std::span<ChatCommandBuilder const> GetCommands() const override
     {
-        static std::vector<ChatCommand> fsbCommandTable =
+        static ChatCommandTable fsbCommandTable =
         {
-            { "info", rbac::RBAC_PERM_COMMAND_GM, true, &HandleFSBInfo, "This is help text?"},
-            { "stats", rbac::RBAC_PERM_COMMAND_GM, true, &HandleFSBStats, "This is help text?"},
+            { "info",      HandleFSBInfo,            rbac::RBAC_PERM_COMMAND_GM, Console::No },
+            { "afkaction", HandleFSBAfkAction,       rbac::RBAC_PERM_COMMAND_GM, Console::No },
+            { "playsound", HandleFSBPlaySound,       rbac::RBAC_PERM_COMMAND_GM, Console::No },
+            { "summonpet", HandleFSBSummonPet,       rbac::RBAC_PERM_COMMAND_GM, Console::No },
+            { "castSpell", HandleFSBCastSpellOnTarget, rbac::RBAC_PERM_COMMAND_GM, Console::No },
         };
 
-        static std::vector<ChatCommand> commandTable =
+        static ChatCommandTable commandTable =
         {
-            { "fsb", rbac::RBAC_PERM_COMMAND_GM, true, nullptr, "", fsbCommandTable }
+            { "fsb", fsbCommandTable }
         };
+
+
 
         return commandTable;
     }
 
-    static bool HandleFSBStats(ChatHandler* handler, char const* /*args*/)
-    {
-        Creature* target = handler->getSelectedCreature();
-
-        if (!target)
-        {
-            handler->SendSysMessage(LANG_SELECT_CREATURE);
-            handler->SetSentErrorMessage(true);
-            return false;
-        }
-
-        Creature* bot = target->ToCreature();
-        if (!bot || !bot->IsBot())
-        {
-            handler->SendSysMessage("Target is not a Followship bot.");
-            return false;
-        }
-
-        handler->PSendSysMessage("=== Followship Bot Stats ===");
-
-        float baseHealth = bot->GetFlatModifierValue(UNIT_MOD_HEALTH, BASE_VALUE);
-        float totalHealth = bot->GetTotalAuraModValue(UNIT_MOD_HEALTH);
-
-        handler->PSendSysMessage("Health: Base: %.1f Max: %.1f (%.1f%%)", baseHealth, totalHealth, bot->GetHealthPct());
-
-        Powers powerType = bot->GetPowerType();
-        float basePower = bot->GetFlatModifierValue(UnitMods(UNIT_MOD_POWER_START + AsUnderlyingType(powerType)), BASE_VALUE);
-        float totalPower = bot->GetTotalAuraModValue(UnitMods(UNIT_MOD_POWER_START + AsUnderlyingType(powerType)));
-
-        handler->PSendSysMessage("Power (%s): Base %u / %u", FSBUtils::PowerTypeToString(powerType), (int32)basePower, (int32)totalPower);
-
-
-        float baseArmor = bot->GetFlatModifierValue(UNIT_MOD_ARMOR, BASE_VALUE);
-        float totalArmor = bot->GetTotalAuraModValue(UNIT_MOD_ARMOR);
-
-        handler->PSendSysMessage("Armor: Base: %.1f, Total: %.1f, Bonus: %.1f", baseArmor, totalArmor, totalArmor - baseArmor);
-
-        float baseAttackPower = bot->GetFlatModifierValue(UNIT_MOD_ATTACK_POWER, BASE_VALUE);
-        float totalAttackPower = bot->GetTotalAuraModValue(UNIT_MOD_ATTACK_POWER);
-
-        handler->PSendSysMessage("Attack Power: Base %.1f / Total %.1f", baseAttackPower, totalAttackPower);
-
-        float baseRAttackPower = bot->GetFlatModifierValue(UNIT_MOD_ATTACK_POWER_RANGED, BASE_VALUE);
-        float totalRAttackPower = bot->GetTotalAuraModValue(UNIT_MOD_ATTACK_POWER_RANGED);
-
-        handler->PSendSysMessage("Ranged Attack Power: Base %.1f / Total %.1f", baseRAttackPower, totalRAttackPower);
-
-        int32 spellPower = FSBStats::BotGetSpellPower(bot);
-
-        handler->PSendSysMessage("Spell Power: %u", spellPower);
-
-        return true;
-    }
-
-    static bool HandleFSBInfo(ChatHandler* handler, char const* /*args*/)
+    static bool HandleFSBInfo(ChatHandler* handler)
     {
         Creature* target = handler->getSelectedCreature();
 
@@ -115,7 +92,8 @@ public:
         handler->PSendSysMessage("Class: %s", FSBUtils::BotClassToString(botClass));
         handler->PSendSysMessage("Race: %s", FSBUtils::BotRaceToString(botRace));
 
-        
+        if (auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI()))
+            handler->PSendSysMessage("Role: %s", FSBUtils::BotRoleToString(baseAI->botRole));
 
         handler->PSendSysMessage("Attack Power: %.1f and Ranged Attack Power: %.1f ", bot->GetTotalAttackPowerValue(BASE_ATTACK), bot->GetTotalAttackPowerValue(RANGED_ATTACK));
 
@@ -129,6 +107,132 @@ public:
             bot->GetPctModifierValue(UNIT_MOD_DAMAGE_MAINHAND, TOTAL_PCT));
 
         handler->PSendSysMessage("In Combat: %s", bot->IsInCombat() ? "Yes" : "No");
+
+        return true;
+    }
+
+    static bool HandleFSBAfkAction(ChatHandler* handler)
+    {
+        Creature* target = handler->getSelectedCreature();
+
+        if (!target)
+        {
+            handler->SendSysMessage(LANG_SELECT_CREATURE);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        Creature* bot = target->ToCreature();
+        if (!bot || !bot->IsBot())
+        {
+            handler->SendSysMessage("Target is not a Followship bot.");
+            return false;
+        }
+
+        // --- Fetch bot metadata ---
+        handler->PSendSysMessage("=== Followship Bot Random AFK Action ===");
+        handler->PSendSysMessage("Returned: %s", FSBOOC::BotOOCActionPlayerAFK(bot, true) ? "true" : "false");
+
+        return true;
+    }
+
+    static bool HandleFSBPlaySound(ChatHandler* handler, uint32 soundId)
+    {
+        Creature* target = handler->getSelectedCreature();
+
+        if (!target)
+        {
+            handler->SendSysMessage(LANG_SELECT_CREATURE);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        Creature* bot = target->ToCreature();
+        if (!bot || !bot->IsBot())
+        {
+            handler->SendSysMessage("Target is not a Followship bot.");
+            return false;
+        }
+
+        // --- Fetch bot metadata ---
+        handler->PSendSysMessage("=== Followship Bot Play Sound ID ===");
+        handler->PSendSysMessage("Playing Sound Id: %u", soundId);
+
+        bot->PlayDistanceSound(soundId, handler->GetPlayer());
+
+        return true;
+    }
+
+    static bool HandleFSBSummonPet(ChatHandler* handler)
+    {
+        Creature* target = handler->getSelectedCreature();
+
+        if (!target)
+        {
+            handler->SendSysMessage(LANG_SELECT_CREATURE);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        Creature* bot = target->ToCreature();
+        if (!bot || !bot->IsBot())
+        {
+            handler->SendSysMessage("Target is not a Followship bot.");
+            return false;
+        }
+
+        // --- Fetch bot metadata ---
+        handler->PSendSysMessage("=== Followship Bot Summon Pet ===");
+
+        FSBPet::BotSummonPet(bot);
+        
+        return true;
+    }
+
+    static bool HandleFSBCastSpellOnTarget(ChatHandler* handler, uint32 spellId, std::string name)
+    {
+        Creature* target = handler->getSelectedCreature();
+
+        if (!target)
+        {
+            handler->SendSysMessage(LANG_SELECT_CREATURE);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        Creature* bot = target->ToCreature();
+
+        // --- Fetch bot metadata ---
+        handler->PSendSysMessage("=== Followship Bot Cast Spell On Target ===");
+        Unit* spellTarget = FSBUtils::FindCreatureByName(bot, name);
+        if (!spellTarget)
+        {
+            handler->PSendSysMessage("Cast Failed: Target Not Found");
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        if(!spellId)
+        {
+            handler->PSendSysMessage("Cast Failed: No valid spell id");
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        SpellCastResult result = FSBSpells::BotCastSpellWithResult(bot, spellId, spellTarget);
+        if (result == SPELL_CAST_OK)
+        {
+            handler->PSendSysMessage("Cast Success");
+            TC_LOG_DEBUG("scripts.fsb.command", "FSB Command: Bot {} cast spell {} on target {} successfully", bot->GetName(), spellId, spellTarget->GetName());
+        }
+        else
+        {
+            std::string resultString = FSBSpellsUtils::GetSpellCastResultString(result);
+            handler->PSendSysMessage("Cast Failed: %u (%s)", result, resultString.c_str());
+            TC_LOG_DEBUG("scripts.fsb.command", "FSB Command: Bot {} failed to cast spell {} on target {} with result {} ({})", bot->GetName(), spellId, spellTarget->GetName(), result, resultString);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
 
         return true;
     }

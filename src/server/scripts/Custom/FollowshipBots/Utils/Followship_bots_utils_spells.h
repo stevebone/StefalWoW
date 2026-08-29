@@ -1,3 +1,25 @@
+/*
+ * This file is part of the Stefal WoW Project.
+ * It is designed to work exclusively with the TrinityCore framework.
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 2 of the License, or (at your
+ * option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ *
+ * This code is provided for personal and educational use within the
+ * Stefal WoW Project. It is not intended for commercial distribution,
+ * resale, or any form of monetization.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #pragma once
 
 #include <optional>
@@ -14,11 +36,29 @@
 #include "Followship_bots_defines.h"
 #include "Followship_bots_utils_stats.h"
 
+#include "Followship_bots_druid.h"
+#include "Followship_bots_hunter.h"
+#include "Followship_bots_mage.h"
+#include "Followship_bots_monk.h"
+#include "Followship_bots_paladin.h"
+#include "Followship_bots_priest.h"
+#include "Followship_bots_rogue.h"
+#include "Followship_bots_shaman.h"
+#include "Followship_bots_warlock.h"
+#include "Followship_bots_warrior.h"
+
 enum FSB_RACIAL_SPELLS
 {
     SPELL_DWARF_STONEFORM = 20594,
     SPELL_DRAENEI_GIFT_NAARU = 28880,
     SPELL_HUMAN_WILL_TO_SURVIVE = 59752,
+    SPELL_PANDAREN_QUAKING_PALM = 107079, //2m
+    SPELL_ORC_BLOOD_FURY = 33697,
+    SPELL_UNDEAD_WILL_OF_FORSAKEN = 7744,
+    SPELL_TAUREN_WAR_STOMP = 20549,
+    SPELL_TROLL_BERSERKING = 26297,
+    SPELL_BLOODELF_ARCANE_TORRENT = 28730,
+    SPELL_GOBLIN_ROCKET_BARRAGE = 69041,
 };
 
 enum FSB_RECOVERY_SPELLS
@@ -33,6 +73,16 @@ enum FSB_RECOVERY_SPELLS
 
     // Mage spells
     SPELL_MAGE_CONJURED_MANA_PUDDING = 167152
+};
+
+enum FSB_SPECIAL_SPELLS
+{
+    SPELL_SPECIAL_CAMP_FIRE = 818,
+    SPELL_SPECIAL_COOKING_POT = 383081,
+    SPELL_SPECIAL_COOK_SAUSAGES = 171760,
+    SPELL_SPECIAL_ROMANTIC_PICNIC = 45094,
+
+    SPELL_SPECIAL_GHOST = 8326
 };
 
 // Mana Potion Spells
@@ -116,6 +166,21 @@ enum FSB_StandardGroundMounts
     SPELL_MOUNT_MOUNTAIN_HORSE = 103195,
 
     SPELL_MOUNT_SWIFT_MOUNTAIN_HORSE = 103196,
+
+    // Pandaren
+    SPELL_MOUNT_GREEN_DRAGON_TURTLE = 120395,
+    SPELL_MOUNT_BLACK_DRAGON_TURTLE = 127286,
+    SPELL_MOUNT_BLUE_DRAGON_TURTLE = 127287,
+    SPELL_MOUNT_BROWN_DRAGON_TURTLE = 127288,
+    SPELL_MOUNT_PURPLE_DRAGON_TURTLE = 127289,
+    SPELL_MOUNT_RED_DRAGON_TURTLE = 127290,
+
+    SPELL_MOUNT_GREEN_GREAT_TURTLE = 127293,
+    SPELL_MOUNT_BLACK_GREAT_TURTLE = 127295,
+    SPELL_MOUNT_PURPLE_GREAT_TURTLE = 127310,
+    SPELL_MOUNT_BLUE_GREAT_TURTLE = 127302,
+    SPELL_MOUNT_BROWN_GREAT_TURTLE = 127308,
+    SPELL_MOUNT_RED_GREAT_TURTLE = 120822,
 };
 
 using MountSpellList = std::vector<uint32>;
@@ -165,6 +230,16 @@ static MountRaceMap MountSpells =
     },
 
     {
+        FSB_Race::Pandaren,
+        {
+            { 10, {SPELL_MOUNT_GREEN_DRAGON_TURTLE, SPELL_MOUNT_BLACK_DRAGON_TURTLE, SPELL_MOUNT_BLUE_DRAGON_TURTLE,
+                    SPELL_MOUNT_BROWN_DRAGON_TURTLE, SPELL_MOUNT_PURPLE_DRAGON_TURTLE, SPELL_MOUNT_RED_DRAGON_TURTLE } },
+            { 20, {SPELL_MOUNT_GREEN_GREAT_TURTLE, SPELL_MOUNT_BLACK_GREAT_TURTLE, SPELL_MOUNT_BLUE_GREAT_TURTLE,
+                    SPELL_MOUNT_BROWN_GREAT_TURTLE, SPELL_MOUNT_PURPLE_GREAT_TURTLE, SPELL_MOUNT_RED_GREAT_TURTLE } },
+        }
+    },
+
+    {
         FSB_Race::Worgen,
         {
             { 10, { SPELL_MOUNT_MOUNTAIN_HORSE} },
@@ -204,7 +279,8 @@ namespace FSBSpellsUtils
     bool CanCastNow(Unit* me, uint32 now, uint32 globalCooldownUntil);
     bool BotHasHealSpells(Creature* bot);
     bool BotHasHealSpellsForSelf(Creature* bot);
-    
+
+    bool IsCrowdControlWithRandomTarget(uint32 spellId);
 
     DispelType ConvertAuraToDispelType(Aura* aura);
 
@@ -228,5 +304,10 @@ namespace FSBSpellsUtils
 
     bool CheckSpellContextRequirements(Creature* bot, uint32 spellId, Unit* target);
     bool CheckDwarfStoneformRequirements(Creature* bot);
+    bool CheckRepentanceRequirements(Creature* bot, Unit* target);
+    bool CheckCrowdControlRequirements(Creature* bot, float range);
+    bool CheckNoNpcInRangeRequirement(Creature* bot, uint32 entry, float range);
+
+    std::string GetSpellCastResultString(SpellCastResult result);
 }
 

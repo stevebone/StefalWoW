@@ -29,6 +29,7 @@
 #include "Totem.h"
 #include "UpdateData.h"
 #include "Vehicle.h"
+#include "WorldPacket.h"
 #include <boost/dynamic_bitset.hpp>
 #include <sstream>
 
@@ -549,11 +550,11 @@ void Transport::LoadStaticPassengers()
     if (!mapId)
         return;
 
-    CellObjectGuidsMap const* cells = sObjectMgr->GetMapObjectGuids(mapId, GetMap()->GetDifficultyID());
-    if (!cells)
+    GridObjectGuidsMap const* grids = sObjectMgr->GetMapObjectGuids(mapId, GetMap()->GetDifficultyID());
+    if (!grids)
         return;
 
-    for (auto const& [cellId, guids] : *cells)
+    for (auto const& [gridId, guids] : *grids)
     {
         // GameObjects on transport
         for (ObjectGuid::LowType spawnId : guids.gameobjects)

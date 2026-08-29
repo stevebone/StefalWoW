@@ -33,6 +33,7 @@ class TransportBase;
 class Unit;
 struct Loot;
 struct TransportAnimation;
+enum SpellTargetCheckTypes : uint8;
 enum TriggerCastFlags : uint32;
 
 namespace Vignettes
@@ -98,13 +99,13 @@ private:
 class TC_GAME_API SetNewFlagState : public GameObjectTypeBase::CustomCommand
 {
 public:
-    explicit SetNewFlagState(FlagState state, Player* player);
+    explicit SetNewFlagState(FlagState state, Unit* unit);
 
     void Execute(GameObjectTypeBase& type) const override;
 
 private:
     FlagState _state;
-    Player* _player;
+    Unit* _unit;
 };
 
 class TC_GAME_API SetControlZoneValue : public GameObjectTypeBase::CustomCommand
@@ -122,6 +123,11 @@ private:
 
 union GameObjectValue
 {
+    //6 GAMEOBJECT_TYPE_TRAP
+    struct
+    {
+        SpellTargetCheckTypes TargetSearcherCheckType;
+    } Trap;
     //25 GAMEOBJECT_TYPE_FISHINGHOLE
     struct
     {
@@ -175,15 +181,16 @@ class TC_GAME_API GameObject : public WorldObject, public GridObject<GameObject>
 
     public:
         void BuildValuesUpdateForPlayerWithMask(UpdateData* data, UF::ObjectData::Mask const& requestedObjectMask,
-            UF::GameObjectData::Mask const& requestedGameObjectMask, Player const* target) const;
+            UF::GameObjectData::Mask const& requestedGameObjectMask, Player const* target, bool ignoreNestedChangesMask) const;
 
         struct ValuesUpdateForPlayerWithMaskSender // sender compatible with MessageDistDeliverer
         {
-            explicit ValuesUpdateForPlayerWithMaskSender(GameObject const* owner) : Owner(owner) { }
+            explicit ValuesUpdateForPlayerWithMaskSender(GameObject const* owner) : Owner(owner), IgnoreNestedChangesMask(false) { }
 
             GameObject const* Owner;
             UF::ObjectData::Base ObjectMask;
             UF::GameObjectData::Base GameObjectMask;
+            bool IgnoreNestedChangesMask;
 
             void operator()(Player const* player) const;
         };
@@ -351,7 +358,7 @@ class TC_GAME_API GameObject : public WorldObject, public GridObject<GameObject>
 
         void TriggeringLinkedGameObject(uint32 trapEntry, Unit* target);
 
-        bool IsNeverVisibleFor(WorldObject const* seer, bool allowServersideObjects = false) const override;
+        bool IsNeverVisibleFor(WorldObject const* seer, bool allowServersideObjects) const override;
         bool IsAlwaysVisibleFor(WorldObject const* seer) const override;
         bool IsInvisibleDueToDespawn(WorldObject const* seer) const override;
 
@@ -433,9 +440,9 @@ class TC_GAME_API GameObject : public WorldObject, public GridObject<GameObject>
         void SetVignette(uint32 vignetteId);
 
         void SetSpellVisualId(int32 spellVisualId, ObjectGuid activatorGuid = ObjectGuid::Empty);
-        void AssaultCapturePoint(Player* player);
+        void AssaultCapturePoint(Unit* user);
         void UpdateCapturePoint();
-        bool CanInteractWithCapturePoint(Player const* target) const;
+        bool CanInteractWithCapturePoint(Unit const* target) const;
         FlagState GetFlagState() const;
         ObjectGuid const& GetFlagCarrierGUID() const;
         time_t GetFlagTakenFromBaseTime() const;

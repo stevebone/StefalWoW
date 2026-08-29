@@ -1,0 +1,2 @@
+- reimplement/update left out class quests from classic (guard Roberts quest or paladin quest in Eastvale for example)
+- waypoints or routines for static (not quest related) npcs from farms/eastvale etc

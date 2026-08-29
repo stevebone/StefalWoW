@@ -22,6 +22,7 @@
 #include "ConditionMgr.h"
 #include "CreatureData.h"
 #include "DatabaseEnvFwd.h"
+#include "FlatSet.h"
 #include "GameObjectData.h"
 #include "ItemTemplate.h"
 #include "IteratorPair.h"
@@ -169,8 +170,7 @@ enum ScriptsType
 {
     SCRIPTS_FIRST = 1,
 
-    SCRIPTS_SPELL = SCRIPTS_FIRST,
-    SCRIPTS_EVENT,
+    SCRIPTS_EVENT = SCRIPTS_FIRST,
     SCRIPTS_WAYPOINT,
 
     SCRIPTS_LAST
@@ -413,7 +413,6 @@ typedef std::multimap<uint32, ScriptInfo> ScriptMap;
 typedef std::map<uint32, ScriptMap> ScriptMapMap;
 typedef std::multimap<uint32 /*spell id*/, std::pair<uint32 /*script id*/, bool /*enabled*/>> SpellScriptsContainer;
 typedef std::pair<SpellScriptsContainer::iterator, SpellScriptsContainer::iterator> SpellScriptsBounds;
-TC_GAME_API extern ScriptMapMap sSpellScripts;
 TC_GAME_API extern ScriptMapMap sEventScripts;
 
 std::string GetScriptsTableNameByType(ScriptsType type);
@@ -469,15 +468,15 @@ struct AccessRequirement
     std::string questFailedText;
 };
 
-typedef std::set<ObjectGuid::LowType> CellGuidSet;
-struct CellObjectGuids
+typedef Trinity::Containers::FlatSet<ObjectGuid::LowType> GridGuidSet;
+struct GridObjectGuids
 {
-    CellGuidSet creatures;
-    CellGuidSet gameobjects;
+    GridGuidSet creatures;
+    GridGuidSet gameobjects;
 };
-typedef std::unordered_map<uint32/*cell_id*/, CellObjectGuids> CellObjectGuidsMap;
-typedef std::unordered_map<std::pair<uint32 /*mapId*/, Difficulty>, CellObjectGuidsMap> MapObjectGuids;
-typedef std::map<std::tuple<uint32/*mapId*/, Difficulty, uint32 /*phaseId*/>, CellObjectGuidsMap> MapPersonalObjectGuids;
+typedef std::unordered_map<uint32/*grid_id*/, GridObjectGuids> GridObjectGuidsMap;
+typedef std::unordered_map<std::pair<uint32 /*mapId*/, Difficulty>, GridObjectGuidsMap> MapObjectGuids;
+typedef std::map<std::tuple<uint32/*mapId*/, Difficulty, uint32 /*phaseId*/>, GridObjectGuidsMap> MapPersonalObjectGuids;
 
 struct TrinityString
 {
@@ -822,7 +821,7 @@ struct QuestPOIData
     std::vector<QuestPOIBlobData> Blobs;
 
     void InitializeQueryData();
-    ByteBuffer QueryDataBuffer;
+    std::vector<uint8> QueryDataBuffer;
 };
 
 typedef std::unordered_map<uint32, QuestPOIData> QuestPOIContainer;
@@ -858,6 +857,18 @@ struct SceneTemplate
     uint32 ScenePackageId = 0;
     bool Encrypted = false;
     uint32 ScriptId = 0;
+};
+
+struct ItemScrappingLoot
+{
+    uint32 Id;
+    uint32 Class;
+    uint32 Subclass;
+    int32 InventoryType;
+    uint32 MinLevel;
+    uint32 MaxLevel;
+    int32 Quality;
+    int32 IsCrafted;
 };
 
 typedef std::unordered_map<uint32, SceneTemplate> SceneTemplateContainer;
@@ -1159,8 +1170,6 @@ class TC_GAME_API ObjectMgr
             return nullptr;
         }
 
-        int32 GetBaseReputationOf(FactionEntry const* factionEntry, uint8 race, uint8 playerClass) const;
-
         RepSpilloverTemplate const* GetRepSpilloverTemplate(uint32 factionId) const
         {
             RepSpilloverTemplateContainer::const_iterator itr = _repSpilloverTemplateStore.find(factionId);
@@ -1193,6 +1202,10 @@ class TC_GAME_API ObjectMgr
         void LoadCreatureQuestStarters();
         void LoadCreatureQuestEnders();
 
+        std::vector<ItemScrappingLoot> _itemScrappingLootStore;
+        ItemScrappingLoot const* GetItemScrappingLoot(Item* item) const;
+        std::vector<ItemScrappingLoot> const* GetItemScrappingLootStore() const { return &_itemScrappingLootStore; }
+
         QuestRelations* GetGOQuestRelationMapHACK() { return &_goQuestRelations; }
         QuestRelationResult GetGOQuestRelations(uint32 entry) const { return GetQuestRelationsFrom(_goQuestRelations, entry, true); }
         QuestRelationResult GetGOQuestInvolvedRelations(uint32 entry) const { return GetQuestRelationsFrom(_goQuestInvolvedRelations, entry, false); }
@@ -1212,7 +1225,6 @@ class TC_GAME_API ObjectMgr
         bool LoadTrinityStrings();
 
         void LoadEventScripts();
-        void LoadSpellScripts();
 
         void LoadSpellScriptNames();
         void ValidateSpellScripts();
@@ -1388,12 +1400,12 @@ class TC_GAME_API ObjectMgr
             return nullptr;
         }
 
-        CellObjectGuids const* GetCellObjectGuids(uint32 mapid, Difficulty spawnMode, uint32 cell_id);
+        GridObjectGuids const* GetGridObjectGuids(uint32 mapid, Difficulty spawnMode, uint32 gridId);
 
-        CellObjectGuidsMap const* GetMapObjectGuids(uint32 mapid, Difficulty spawnMode);
+        GridObjectGuidsMap const* GetMapObjectGuids(uint32 mapid, Difficulty spawnMode);
 
         bool HasPersonalSpawns(uint32 mapid, Difficulty spawnMode, uint32 phaseId) const;
-        CellObjectGuids const* GetCellPersonalObjectGuids(uint32 mapid, Difficulty spawnMode, uint32 phaseId, uint32 cell_id) const;
+        GridObjectGuids const* GetCellPersonalObjectGuids(uint32 mapid, Difficulty spawnMode, uint32 phaseId, uint32 gridId) const;
 
         /**
          * Gets temp summon data for all creatures of specified group.
@@ -1782,10 +1794,10 @@ class TC_GAME_API ObjectMgr
         QuestRelationResult GetQuestRelationsFrom(QuestRelations const& map, uint32 key, bool onlyActive) const { return { map.equal_range(key), onlyActive }; }
         void PlayerCreateInfoAddItemHelper(uint32 race_, uint32 class_, uint32 itemId, int32 count);
 
-        template<CellGuidSet CellObjectGuids::*guids>
+        template<GridGuidSet GridObjectGuids::*guids>
         void AddSpawnDataToGrid(SpawnData const* data);
 
-        template<CellGuidSet CellObjectGuids::*guids>
+        template<GridGuidSet GridObjectGuids::*guids>
         void RemoveSpawnDataFromGrid(SpawnData const* data);
 
         MailLevelRewardContainer _mailLevelRewardStore;

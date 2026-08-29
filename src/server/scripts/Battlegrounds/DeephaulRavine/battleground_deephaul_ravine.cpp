@@ -31,6 +31,7 @@
 #include "TaskScheduler.h"
 #include "TemporarySummon.h"
 #include "Vehicle.h"
+#include <queue>
 
 namespace DeephaulRavine
 {
@@ -255,14 +256,14 @@ struct battleground_deephaul_ravine : BattlegroundScript
     void OnStart() override
     {
         BattlegroundScript::OnStart();
-        _scheduler.Schedule(15s, [&](TaskContext)
+        _scheduler.Schedule(15s, [&](TaskContext const&)
         {
             UpdateWorldState(DeephaulRavine::WorldStates::FlagEnabled, 3);
         });
 
         UpdateWorldState(DeephaulRavine::WorldStates::BattleBegun, 1);
 
-        _scheduler.Schedule(2s, [&](TaskContext context)
+        _scheduler.Schedule(2s, [&](TaskContext& context)
         {
             uint32 const underAllianceControl = std::ranges::count_if(DeephaulRavine::WorldStates::AllianceControlWorldStates, [&](int32 worldState)
             {
@@ -288,7 +289,7 @@ struct battleground_deephaul_ravine : BattlegroundScript
                 context.Repeat();
         });
 
-        _scheduler.Schedule(5s, [&](TaskContext context)
+        _scheduler.Schedule(5s, [&](TaskContext& context)
         {
             RespawnEarthenMineCarts();
             context.Repeat();
@@ -310,12 +311,12 @@ struct battleground_deephaul_ravine : BattlegroundScript
     {
         BattlegroundScript::OnPrepareStage3();
 
-        _scheduler.Schedule(2s, [&](TaskContext)
+        _scheduler.Schedule(2s, [&](TaskContext const&)
         {
             SpawnMineCarts();
         });
 
-        _scheduler.Schedule(15s, [&](TaskContext)
+        _scheduler.Schedule(15s, [&](TaskContext const&)
         {
             DoForLeaders([&](Creature const* creature)
             {
@@ -348,7 +349,7 @@ struct battleground_deephaul_ravine : BattlegroundScript
         }
     }
 
-    bool CanCaptureFlag(AreaTrigger* areaTrigger, Player* player) override
+    bool CanCaptureFlag(AreaTrigger* areaTrigger, Unit* player) override
     {
         Team const team = battleground->GetPlayerTeam(player->GetGUID());
         TeamId const teamId = Battleground::GetTeamIndexByTeamId(team);
@@ -362,7 +363,7 @@ struct battleground_deephaul_ravine : BattlegroundScript
         return false;
     }
 
-    void OnCaptureFlag(AreaTrigger* areaTrigger, Player* player) override
+    void OnCaptureFlag(AreaTrigger* areaTrigger, Unit* player) override
     {
         BattlegroundScript::OnCaptureFlag(areaTrigger, player);
 
@@ -370,40 +371,49 @@ struct battleground_deephaul_ravine : BattlegroundScript
             gameObject->HandleCustomTypeCommand(GameObjectType::SetNewFlagState(FlagState::Respawning, player));
 
         player->RemoveAurasDueToSpell(DeephaulRavine::Spells::DeephaulCrystal);
-        battleground->UpdatePvpStat(player, DeephaulRavine::PvpStats::FlagCaptures, 1);
+        battleground->UpdatePvpStat(player->ToPlayer(), DeephaulRavine::PvpStats::FlagCaptures, 1);
 
-        battleground->AddPoint(player->GetBGTeam(), 100);
-        if (player->GetBGTeam() == ALLIANCE)
+        battleground->AddPoint(player->ToPlayer()->GetBGTeam(), 100);
+        if (player->ToPlayer()->GetBGTeam() == ALLIANCE)
         {
             battleground->SendBroadcastText(DeephaulRavine::BroadcastTexts::CrystalCapturedAlliance, CHAT_MSG_BG_SYSTEM_ALLIANCE, player);
             battleground->PlaySoundToAll(DeephaulRavine::Sounds::PvpFlagCapturedAlliance);
         }
-        else if (player->GetBGTeam() == HORDE)
+        else if (player->ToPlayer()->GetBGTeam() == HORDE)
         {
             battleground->SendBroadcastText(DeephaulRavine::BroadcastTexts::CrystalCapturedHorde, CHAT_MSG_BG_SYSTEM_HORDE, player);
             battleground->PlaySoundToAll(DeephaulRavine::Sounds::PvpFlagCapturedHorde);
         }
     }
 
-    void OnFlagStateChange(GameObject* flagInBase, FlagState oldValue, FlagState newValue, Player* player) override
+    void OnFlagStateChange(GameObject* flagInBase, FlagState oldValue, FlagState newValue, Unit* unit) override
     {
-        BattlegroundScript::OnFlagStateChange(flagInBase, oldValue, newValue, player);
+        BattlegroundScript::OnFlagStateChange(flagInBase, oldValue, newValue, unit);
+
+        Player* player = unit ? unit->ToPlayer() : nullptr;
 
         switch (newValue)
         {
             case FlagState::Taken:
-                battleground->SendMessageToAll(LANG_BG_DR_CRYSTAL_TAKEN, player->GetBGTeam() == HORDE ? CHAT_MSG_BG_SYSTEM_HORDE : CHAT_MSG_BG_SYSTEM_ALLIANCE, player);
-                battleground->SendMessageToAll(LANG_BG_DR_CRYSTAL_TAKEN_TUTORIAL, CHAT_MSG_RAID_BOSS_EMOTE, player); // player should also be the sender
-                battleground->PlaySoundToAll(player->GetBGTeam() == HORDE ? DeephaulRavine::Sounds::PvpFlagTakenHorde : DeephaulRavine::Sounds::PvpFlagTakenAlliance);
-                UpdateWorldState(DeephaulRavine::WorldStates::HordeFlagState, player->GetBGTeam() == HORDE ? DeephaulRavine::WorldStates::Values::FlagClaimed : DeephaulRavine::WorldStates::Values::FlagUnclaimed);
-                UpdateWorldState(DeephaulRavine::WorldStates::AllianceFlagState, player->GetBGTeam() == ALLIANCE ? DeephaulRavine::WorldStates::Values::FlagClaimed : DeephaulRavine::WorldStates::Values::FlagUnclaimed);
+                if (player)
+                {
+                    battleground->SendMessageToAll(LANG_BG_DR_CRYSTAL_TAKEN, player->GetBGTeam() == HORDE ? CHAT_MSG_BG_SYSTEM_HORDE : CHAT_MSG_BG_SYSTEM_ALLIANCE, player);
+                    battleground->SendMessageToAll(LANG_BG_DR_CRYSTAL_TAKEN_TUTORIAL, CHAT_MSG_RAID_BOSS_EMOTE, player); // player should also be the sender
+                    battleground->PlaySoundToAll(player->GetBGTeam() == HORDE ? DeephaulRavine::Sounds::PvpFlagTakenHorde : DeephaulRavine::Sounds::PvpFlagTakenAlliance);
+                    UpdateWorldState(DeephaulRavine::WorldStates::HordeFlagState, player->GetBGTeam() == HORDE ? DeephaulRavine::WorldStates::Values::FlagClaimed : DeephaulRavine::WorldStates::Values::FlagUnclaimed);
+                    UpdateWorldState(DeephaulRavine::WorldStates::AllianceFlagState, player->GetBGTeam() == ALLIANCE ? DeephaulRavine::WorldStates::Values::FlagClaimed : DeephaulRavine::WorldStates::Values::FlagUnclaimed);
+                }
                 break;
             case FlagState::Dropped:
-                if (player->GetBGTeam() == ALLIANCE)
-                    battleground->SendBroadcastText(DeephaulRavine::BroadcastTexts::FlagDropped, CHAT_MSG_BG_SYSTEM_ALLIANCE, player);
-                else
-                    battleground->SendBroadcastText(DeephaulRavine::BroadcastTexts::FlagDropped, CHAT_MSG_BG_SYSTEM_HORDE, player);
-                player->CastSpell(player, DeephaulRavine::Spells::RecentlyDroppedFlag, true);
+                if (player)
+                {
+                    if (player->GetBGTeam() == ALLIANCE)
+                        battleground->SendBroadcastText(DeephaulRavine::BroadcastTexts::FlagDropped, CHAT_MSG_BG_SYSTEM_ALLIANCE, player);
+                    else
+                        battleground->SendBroadcastText(DeephaulRavine::BroadcastTexts::FlagDropped, CHAT_MSG_BG_SYSTEM_HORDE, player);
+                }
+                if (unit)
+                    unit->CastSpell(unit, DeephaulRavine::Spells::RecentlyDroppedFlag, true);
                 UpdateWorldState(DeephaulRavine::WorldStates::HordeFlagState, DeephaulRavine::WorldStates::Values::FlagUnclaimed);
                 UpdateWorldState(DeephaulRavine::WorldStates::AllianceFlagState, DeephaulRavine::WorldStates::Values::FlagUnclaimed);
                 break;
@@ -411,7 +421,7 @@ struct battleground_deephaul_ravine : BattlegroundScript
                 UpdateWorldState(DeephaulRavine::WorldStates::HordeFlagState, DeephaulRavine::WorldStates::Values::FlagUnclaimed);
                 UpdateWorldState(DeephaulRavine::WorldStates::AllianceFlagState, DeephaulRavine::WorldStates::Values::FlagUnclaimed);
 
-                _scheduler.Schedule(Milliseconds(flagInBase->GetGOInfo()->newflag.RespawnTime) - 5s, [&](TaskContext)
+                _scheduler.Schedule(Milliseconds(flagInBase->GetGOInfo()->newflag.RespawnTime) - 5s, [&](TaskContext const&)
                 {
                     DoForLeaders([&](Creature const* creature)
                     {
@@ -474,7 +484,7 @@ struct battleground_deephaul_ravine : BattlegroundScript
         AreaTriggerCreatePropertiesId const createPropertiesId = trigger->GetCreateProperties()->Id;
         Position pos = trigger->GetPosition();
 
-        _scheduler.Schedule(90s, [&, createPropertiesId, pos](TaskContext)
+        _scheduler.Schedule(90s, [&, createPropertiesId, pos](TaskContext const&)
         {
             if (Creature* genericBunny = battlegroundMap->GetCreature(_genericBunnyGUID))
                 AreaTrigger::CreateAreaTrigger(createPropertiesId, pos, -1, genericBunny, nullptr);
@@ -628,7 +638,7 @@ struct battleground_deephaul_ravine : BattlegroundScript
 
         CheckWinner();
 
-        _scheduler.Schedule(2s, [&](TaskContext)
+        _scheduler.Schedule(2s, [&](TaskContext const&)
         {
             SpawnMineCarts();
         });
@@ -893,7 +903,7 @@ public:
     void JustAppeared() override
     {
         me->ToTempSummon()->GetSummoner()->ToPlayer()->EnterVehicle(me);
-        _scheduler.Schedule(1500ms, [&](TaskContext)
+        _scheduler.Schedule(1500ms, [&](TaskContext const&)
         {
             // teleport packet sends same x & y for some reason
             // teleport and movement start at same time
@@ -912,7 +922,7 @@ public:
         switch (pathId)
         {
             case Path1:
-                _scheduler.Schedule(500ms, [&](TaskContext)
+                _scheduler.Schedule(500ms, [&](TaskContext const&)
                 {
                     if (Vehicle* vehicle = me->GetVehicleKit())
                         vehicle->RemoveAllPassengers();
@@ -920,7 +930,7 @@ public:
                 });
                 break;
             case Path2:
-                _scheduler.Schedule(1s, [&](TaskContext)
+                _scheduler.Schedule(1s, [&](TaskContext const&)
                 {
                     me->GetMotionMaster()->MovePath(Path3, false);
                 });
@@ -951,7 +961,7 @@ public:
     void JustAppeared() override
     {
         me->ToTempSummon()->GetSummoner()->ToPlayer()->EnterVehicle(me);
-        _scheduler.Schedule(1500ms, [&](TaskContext)
+        _scheduler.Schedule(1500ms, [&](TaskContext const&)
         {
             // teleport packet sends same x & y for some reason
             // teleport and movement start at same time
@@ -970,7 +980,7 @@ public:
         switch (pathId)
         {
             case Path1:
-                _scheduler.Schedule(500ms, [&](TaskContext)
+                _scheduler.Schedule(500ms, [&](TaskContext const&)
                 {
                     if (Vehicle* vehicle = me->GetVehicleKit())
                     {
@@ -987,7 +997,7 @@ public:
                 });
                 break;
             case Path2:
-                _scheduler.Schedule(1s, [&](TaskContext)
+                _scheduler.Schedule(1s, [&](TaskContext const&)
                 {
                     me->DespawnOrUnsummon();
                 });
@@ -1051,20 +1061,20 @@ public:
         switch (pathId)
         {
             case Path1:
-                _scheduler.Schedule(10s, [this](TaskContext)
+                _scheduler.Schedule(10s, [this](TaskContext const&)
                 {
                     me->GetMotionMaster()->MovePath(Path2, false);
                     Talk(DeephaulRavine::CreatureTexts::Intro2);
                 });
                 break;
             case Path2:
-                _scheduler.Schedule(3s, [this](TaskContext)
+                _scheduler.Schedule(3s, [this](TaskContext const&)
                 {
                     me->GetMotionMaster()->MovePath(Path3, false);
                 });
                 break;
             case Path3:
-                _scheduler.Schedule(5s, [this](TaskContext)
+                _scheduler.Schedule(5s, [this](TaskContext const&)
                 {
                     me->GetMotionMaster()->MovePath(Path4, false);
                 });

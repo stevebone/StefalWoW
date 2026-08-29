@@ -1,0 +1,899 @@
+/*
+ * This file is part of the Stefal WoW Project.
+ * It is designed to work exclusively with the TrinityCore framework.
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 2 of the License, or (at your
+ * option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ *
+ * This code is provided for personal and educational use within the
+ * Stefal WoW Project. It is not intended for commercial distribution,
+ * resale, or any form of monetization.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#include "Creature.h"
+#include "EventMap.h"
+#include "MotionMaster.h"
+#include "ObjectAccessor.h"
+#include "PhasingHandler.h"
+#include "Player.h"
+#include "ScriptedCreature.h"
+#include "ScriptMgr.h"
+#include "SpellInfo.h"
+#include "TemporarySummon.h"
+#include "Vehicle.h"
+
+#include "Custom_Duskwood_Defines.h"
+
+namespace Scripts::EasternKingdoms::Duskwood
+{
+    /*######
+    ## npc_apprentice_fess
+    ######*/
+
+    struct npc_apprentice_fess : public ScriptedAI
+    {
+        npc_apprentice_fess(Creature* creature) : ScriptedAI(creature) { }
+
+        void OnQuestAccept(Player* /*player*/, Quest const* quest) override
+        {
+            if (quest->GetQuestId() == Quests::TheYorgenWorgen)
+                me->SummonCreature(Creatures::LurkingWorgen, Positions::LurkingWorgenSummonPos, TEMPSUMMON_MANUAL_DESPAWN);
+        }
+    };
+
+    /*######
+    ## npc_lurking_worgen
+    ######*/
+
+    struct npc_lurking_worgen : public ScriptedAI
+    {
+        npc_lurking_worgen(Creature* creature) : ScriptedAI(creature) { }
+
+        void Reset() override
+        {
+            me->SetDisplayId(33511);
+            _pounceTargetGuid.Clear();
+            _events.Reset();
+        }
+
+        void SetData(uint32 id, uint32 value) override
+        {
+            if (id == Data::LurkingWorgenPounce && value == 1)
+            {
+                if (Player* player = me->SelectNearestPlayer(30.0f))
+                {
+                    _pounceTargetGuid = player->GetGUID();
+                    me->GetMotionMaster()->MoveJump(EVENT_JUMP, player->GetPosition(), 20.0f);
+                }
+            }
+        }
+
+        void MovementInform(uint32 type, uint32 id) override
+        {
+            if (type == EFFECT_MOTION_TYPE && id == EVENT_JUMP)
+            {
+                if (Unit* target = ObjectAccessor::GetUnit(*me, _pounceTargetGuid))
+                    me->CastSpell(target, Spells::StunningPounce, true);
+
+                _events.ScheduleEvent(Events::LurkingWorgenMoveFlee, 1s);
+            }
+            else if (type == POINT_MOTION_TYPE && id == Points::LurkingWorgenFlee)
+            {
+                me->DespawnOrUnsummon();
+            }
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _events.Update(diff);
+
+            while (uint32 eventId = _events.ExecuteEvent())
+            {
+                switch (eventId)
+                {
+                case Events::LurkingWorgenMoveFlee:
+                    me->GetMotionMaster()->MovePoint(Points::LurkingWorgenFlee, Positions::LurkingWorgenFleePos);
+                    break;
+                default:
+                    break;
+                }
+            }
+        }
+
+        EventMap _events;
+        ObjectGuid _pounceTargetGuid;
+    };
+
+    /*######
+    ## 43814 Lurking Worgen (Addle Stead)
+    ######*/
+
+    struct npc_lurking_worgen_addle_stead : public ScriptedAI
+    {
+        npc_lurking_worgen_addle_stead(Creature* creature) : ScriptedAI(creature) { }
+
+        void Reset() override
+        {
+            me->SetUnitFlag(UNIT_FLAG_IMMUNE_TO_PC);
+            me->SetUnitFlag(UNIT_FLAG_IMMUNE_TO_NPC);
+            me->CastSpell(me, Spells::Camouflage, true);
+            _triggered = false;
+            _events.Reset();
+        }
+
+        void MoveInLineOfSight(Unit* who) override
+        {
+            ScriptedAI::MoveInLineOfSight(who);
+
+            if (_triggered)
+                return;
+
+            Player* player = who->ToPlayer();
+            if (!player)
+                return;
+
+            if (me->GetDistance(who) > 5.0f)
+                return;
+
+            if (player->GetQuestStatus(Quests::ACurseWeCannotLift) != QUEST_STATUS_INCOMPLETE)
+                return;
+
+            _triggered = true;
+            _playerGuid = player->GetGUID();
+            _events.ScheduleEvent(Events::LurkingWorgenAddleSteadAmbush, 5s);
+        }
+
+        void MovementInform(uint32 type, uint32 id) override
+        {
+            if (type == EFFECT_MOTION_TYPE && id == EVENT_JUMP)
+            {
+                if (Unit* target = ObjectAccessor::GetUnit(*me, _playerGuid))
+                {
+                    me->CastSpell(target, Spells::StunningPounce, true);
+                    AttackStart(target);
+                }
+            }
+        }
+
+        void SpellHit(WorldObject* caster, SpellInfo const* spellInfo) override
+        {
+            if (spellInfo->Id != Spells::HarrissAmpule)
+                return;
+
+            Player* player = caster->ToPlayer();
+            if (!player)
+                return;
+
+            _playerGuid = player->GetGUID();
+            me->SetReactState(REACT_PASSIVE);
+            me->AttackStop();
+
+            me->m_Events.AddEventAtOffset([this]()
+            {
+                if (Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid))
+                    player->KilledMonsterCredit(Creatures::LurkingWorgenKillCredit);
+
+                Talk(Talks::LurkingWorgenAddleSteadSay00);
+                me->DespawnOrUnsummon(2s);
+            }, 1s);
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _events.Update(diff);
+
+            while (uint32 eventId = _events.ExecuteEvent())
+            {
+                switch (eventId)
+                {
+                case Events::LurkingWorgenAddleSteadAmbush:
+                    me->RemoveUnitFlag(UNIT_FLAG_IMMUNE_TO_PC);
+                    me->RemoveUnitFlag(UNIT_FLAG_IMMUNE_TO_NPC);
+                    me->RemoveAura(Spells::Camouflage);
+                    if (Unit* target = ObjectAccessor::GetUnit(*me, _playerGuid))
+                        me->GetMotionMaster()->MoveJump(EVENT_JUMP, target->GetPosition(), 20.0f);
+                    break;
+                default:
+                    break;
+                }
+            }
+
+            if (!UpdateVictim())
+                return;
+
+            me->DoMeleeAttackIfReady();
+        }
+
+    private:
+        EventMap _events;
+        ObjectGuid _playerGuid;
+        bool _triggered = false;
+    };
+
+    /*######
+    ## 263 Ello Ebonlocke
+    ######*/
+    
+    struct npc_ello_ebonlocke : public ScriptedAI
+    {
+        npc_ello_ebonlocke(Creature* creature) : ScriptedAI(creature) {}
+
+        void OnQuestAccept(Player* player, Quest const* quest) override
+        {
+            if (quest->GetQuestId() == Quests::TheEmbalmersRevenge)
+            {
+                PhasingHandler::OnConditionChange(player, true);
+
+                player->SummonCreature(Creatures::Stiches, Positions::StichesSpawn,
+                    TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 90s);
+            }
+        }
+    };
+
+    /*######
+    ## 43862 Stiches
+    ######*/
+
+    struct npc_stiches : public ScriptedAI
+    {
+        npc_stiches(Creature* creature) : ScriptedAI(creature) { }
+
+        void Reset() override
+        {
+            me->CastSpell(me, Spells::AuraOfRot, true);
+            EngageWatchers();
+        }
+
+        void DamageTaken(Unit* attacker, uint32& damage, DamageEffectType /*damageType*/, SpellInfo const* /*spellInfo*/) override
+        {
+            if (attacker && attacker->GetTypeId() == TYPEID_UNIT)
+                if (IsWatcher(attacker->GetEntry()))
+                    damage = 0;
+        }
+
+        void DamageDealt(Unit* victim, uint32& damage, DamageEffectType /*damageType*/) override
+        {
+            if (victim && victim->GetTypeId() == TYPEID_UNIT)
+                if (IsWatcher(victim->GetEntry()))
+                    damage = 0;
+        }
+
+    private:
+        static bool IsWatcher(uint32 entry)
+        {
+            switch (entry)
+            {
+            case Watchers::Brownell:
+            case Watchers::Fraizer:
+            case Watchers::Hartin:
+            case Watchers::Jordan:
+            case Watchers::Keefer:
+            case Watchers::Ladimore:
+                return true;
+            default:
+                return false;
+            }
+        }
+
+        void EngageWatchers()
+        {
+            static constexpr uint32 watcherEntries[] =
+            {
+                Watchers::Brownell, Watchers::Fraizer, Watchers::Hartin,
+                Watchers::Jordan, Watchers::Keefer, Watchers::Ladimore
+            };
+
+            for (uint32 entry : watcherEntries)
+                if (Creature* watcher = me->FindNearestCreature(entry, 20.0f, true))
+                    if (!watcher->IsInCombat())
+                        watcher->AI()->AttackStart(me);
+        }
+    };
+
+    /*######
+    ## 315 Stalvan Mistmantle
+    ######*/
+
+    struct npc_stalvan_mistmantle : public ScriptedAI
+    {
+        npc_stalvan_mistmantle(Creature* creature) : ScriptedAI(creature)
+        {
+            me->SetUnitFlag(UNIT_FLAG_IMMUNE_TO_PC);
+            me->SetUnitFlag(UNIT_FLAG_IMMUNE_TO_NPC);
+        }
+
+        void Reset() override
+        {
+            me->SetReactState(REACT_PASSIVE);
+            _events.Reset();
+            _events.ScheduleEvent(Events::StalvanStep1, 3s);
+            _events.ScheduleEvent(Events::StalvanStep2, 8s);
+            _events.ScheduleEvent(Events::StalvanStep3, 15s);
+            _events.ScheduleEvent(Events::StalvanStep4, 23s);
+            _events.ScheduleEvent(Events::StalvanStep5, 26s);
+            _events.ScheduleEvent(Events::StalvanStep6, 32s);
+        }
+
+        void JustDied(Unit* /*killer*/) override
+        {
+            if (Creature* tobias = ObjectAccessor::GetCreature(*me, _tobiasGuid))
+            {
+                Talk(Talks::StalvanSay06, tobias);
+                tobias->AI()->SetData(Data::StalvanDied, 1);
+            }
+        }
+
+        Creature* GetTobias()
+        {
+            if (Creature* tobias = me->FindNearestCreature(Creatures::TobiasMistmantle, 10.0f, true))
+                return tobias;
+
+            return me->FindNearestCreature(Creatures::TobiasMistmantleWorgen, 10.0f, true);
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _events.Update(diff);
+
+            while (uint32 eventId = _events.ExecuteEvent())
+            {
+                switch (eventId)
+                {
+                case Events::StalvanStep1:
+                    me->SetWalk(true);
+                    me->SetSpeed(MOVE_WALK, 2.5f);
+                    me->GetMotionMaster()->MovePoint(0, Positions::StalvanMoveTo, true);
+                    if (Creature* tobias = GetTobias())
+                    {
+                        _tobiasGuid = tobias->GetGUID();
+                        Talk(Talks::StalvanSay00, tobias);
+                    }
+                    break;
+                case Events::StalvanStep2:
+                    Talk(Talks::StalvanSay01, GetTobias());
+                    break;
+                case Events::StalvanStep3:
+                    Talk(Talks::StalvanSay02, GetTobias());
+                    break;
+                case Events::StalvanStep4:
+                    Talk(Talks::StalvanSay03, GetTobias());
+                    break;
+                case Events::StalvanStep5:
+                    Talk(Talks::StalvanSay04, GetTobias());
+                    break;
+                case Events::StalvanStep6:
+                    Talk(Talks::StalvanSay05, GetTobias());
+                    _events.ScheduleEvent(Events::StalvanCastSpell, 5s);
+                    break;
+                case Events::StalvanCastSpell:
+                {
+                    if(me->GetVictim() && !me->GetVictim()->HasAura(Spells::CurseOfStalvan))
+                        DoCastVictim(Spells::CurseOfStalvan);
+
+                    _events.ScheduleEvent(Events::StalvanCastSpell, 5s);
+
+                    break;
+                }
+                default:
+                    break;
+                }
+            }
+
+            if (!UpdateVictim())
+                return;
+
+            me->DoMeleeAttackIfReady();
+        }
+
+    private:
+        EventMap _events;
+        ObjectGuid _tobiasGuid;
+    };
+
+    /*######
+    ## 43453 Tobias Mistmantle
+    ######*/
+
+    struct npc_tobias_mistmantle : public ScriptedAI
+    {
+        npc_tobias_mistmantle(Creature* creature) : ScriptedAI(creature) { }
+
+        void Reset() override
+        {
+            // this is needed to avoid the spawn in Darkshire to run the script
+            // there may be another npc entry for Tobias human for this quest
+            if (me->GetSpawnId() > 0)
+                return;
+
+            me->SetReactState(REACT_PASSIVE);
+            me->RemoveNpcFlag(NPCFlags(UNIT_NPC_FLAG_QUESTGIVER | UNIT_NPC_FLAG_GOSSIP));
+            me->SetWalk(true);
+            me->SetSpeed(MOVE_WALK, 3.5f);
+            me->GetMotionMaster()->MovePoint(0, Positions::TobiasMoveTo, true);
+
+            _events.Reset();
+            _events.ScheduleEvent(Events::TobiasStep1, 5s);
+            _events.ScheduleEvent(Events::TobiasStep2, 9s);
+            _events.ScheduleEvent(Events::TobiasStep3, 16s);
+            _events.ScheduleEvent(Events::TobiasStep4, 35s);
+        }
+
+        Creature* GetStalvan()
+        {
+            return me->FindNearestCreature(Creatures::StalvanMistmantle, 10.0f, true);
+        }
+
+        void SetData(uint32 id, uint32 /*value*/) override
+        {
+            if (id == Data::StalvanDied)
+            {
+                if (!me->IsAlive())
+                    return;
+
+                me->SetReactState(REACT_PASSIVE);
+                me->GetMotionMaster()->Clear();
+
+                me->m_Events.AddEventAtOffset([this]()
+                {
+                    Talk(Talks::TobiasSay04);
+                    me->SetWalk(false);
+                    me->GetMotionMaster()->MovePoint(Points::TobiasSpawn, Positions::TobiasSpawn);
+                }, 3s);
+            }
+        }
+
+        void MovementInform(uint32 type, uint32 id) override
+        {
+            if (type != POINT_MOTION_TYPE)
+                return;
+
+            switch (id)
+            {
+            case Points::TobiasSpawn:
+                me->GetMotionMaster()->MovePoint(Points::TobiasFlee, Positions::TobiasFlee);
+                break;
+            case Points::TobiasFlee:
+                me->DespawnOrUnsummon();
+                break;
+            default:
+                break;
+            }
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _events.Update(diff);
+
+            while (uint32 eventId = _events.ExecuteEvent())
+            {
+                switch (eventId)
+                {
+                case Events::TobiasStep1:
+                    if (Creature* stalvan = GetStalvan())
+                    {
+                        me->SetFacingToObject(stalvan, true);
+                        stalvan->SetFacingToObject(me, true);
+                        Talk(Talks::TobiasSay00, stalvan);
+                    }
+                    break;
+                case Events::TobiasStep2:
+                    if (Creature* stalvan = GetStalvan())
+                        Talk(Talks::TobiasSay01, stalvan);
+                    break;
+                case Events::TobiasStep3:
+                    if (Creature* stalvan = GetStalvan())
+                        Talk(Talks::TobiasSay02, stalvan);
+                    break;
+                case Events::TobiasStep4:
+                    me->CastSpell(me, Spells::WorgenTransformVisual, true);
+                    me->UpdateEntry(Creatures::TobiasMistmantleWorgen);
+                    me->SetReactState(REACT_AGGRESSIVE);
+
+                    if (Creature* stalvan = GetStalvan())
+                    {
+                        stalvan->RemoveUnitFlag(UNIT_FLAG_IMMUNE_TO_PC);
+                        stalvan->RemoveUnitFlag(UNIT_FLAG_IMMUNE_TO_NPC);
+                        stalvan->SetReactState(REACT_AGGRESSIVE);
+
+                        if (me->Attack(stalvan, true))
+                            me->GetMotionMaster()->MoveChase(stalvan);
+
+                        if (stalvan->Attack(me, true))
+                            stalvan->GetMotionMaster()->MoveChase(me);
+
+                        Talk(Talks::TobiasSay03, me->GetOwner());
+                    }
+                    break;
+                default:
+                    break;
+                }
+            }
+
+            if (!UpdateVictim())
+                return;
+
+            me->DoMeleeAttackIfReady();
+        }
+
+    private:
+        EventMap _events;
+    };
+
+    /*######
+    ## 43858 Spawned Oliver Harris
+    ######*/
+
+    struct npc_spawned_oliver_harris : public ScriptedAI
+    {
+        npc_spawned_oliver_harris(Creature* creature) : ScriptedAI(creature) { }
+
+        void Reset() override
+        {
+            me->SetReactState(REACT_PASSIVE);
+            me->SetWalk(true);
+            _events.Reset();
+        }
+
+        void SetData(uint32 id, uint32 /*value*/) override
+        {
+            if (id != Data::CryForTheMoonStart)
+                return;
+
+            if (WorldObject* summoner = me->ToTempSummon()->GetSummoner())
+                if (Player* player = summoner->ToPlayer())
+                    _playerGuid = player->GetGUID();
+
+            _events.ScheduleEvent(Events::OliverMoveToCure, 1s);
+        }
+
+        void MovementInform(uint32 type, uint32 id) override
+        {
+            if (type != POINT_MOTION_TYPE)
+                return;
+
+            switch (id)
+            {
+            case Points::OliverMoveToCure:
+                if (Creature* worgen = me->FindNearestCreature(Creatures::LurkingWorgenRavenHill, 10.0f))
+                    me->SetFacingToObject(worgen, true);
+                Talk(Talks::OliverSay0);
+                me->HandleEmoteCommand(EMOTE_ONESHOT_USE_STANDING);
+                _events.ScheduleEvent(Events::OliverTalk1, 5s);
+                _events.ScheduleEvent(Events::OliverTalk2, 10s);
+                _events.ScheduleEvent(Events::OliverTalk3, 30s);
+                _events.ScheduleEvent(Events::OliverWalkHome, 40s);
+                break;
+            case Points::OliverWalkHome:
+                if (Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid))
+                    player->KilledMonsterCredit(Creatures::CryForTheMoonCredit);
+
+                if (Creature* jitters = me->FindNearestCreature(Creatures::SpawnedJitters, 50.0f))
+                    jitters->DespawnOrUnsummon();
+
+                if (Creature* worgen = me->FindNearestCreatureWithOptions(50.f, { .CreatureId = Creatures::SvenYorgen, .PrivateObjectOwnerGuid = _playerGuid, }))
+                    worgen->DespawnOrUnsummon();
+
+                me->DespawnOrUnsummon();
+                break;
+            default:
+                break;
+            }
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _events.Update(diff);
+
+            while (uint32 eventId = _events.ExecuteEvent())
+            {
+                switch (eventId)
+                {
+                case Events::OliverMoveToCure:
+                    me->GetMotionMaster()->MovePoint(Points::OliverMoveToCure, Positions::OliverGivingCure);
+                    break;
+                case Events::OliverTalk1:
+                    Talk(Talks::OliverSay1);
+                    if (Creature* jitters = me->FindNearestCreature(Creatures::SpawnedJitters, 10.0f))
+                        jitters->AI()->SetData(Data::JittersTalk, 1);
+                    break;
+                case Events::OliverTalk2:
+                    Talk(Talks::OliverSay2);
+                    break;
+                case Events::OliverTalk3:
+                    Talk(Talks::OliverSay3);
+                    if (Creature* jitters = me->FindNearestCreature(Creatures::SpawnedJitters, 10.0f))
+                        jitters->AI()->SetData(Data::JittersRelease, 1);
+                    break;
+                case Events::OliverWalkHome:
+                    me->GetMotionMaster()->MovePoint(Points::OliverWalkHome, me->GetHomePosition());
+                    break;
+                default:
+                    break;
+                }
+            }
+        }
+
+    private:
+        EventMap _events;
+        ObjectGuid _playerGuid;
+    };
+
+    /*######
+    ## 43859 Spawned Jitters
+    ######*/
+
+    struct npc_spawned_jitters : public ScriptedAI
+    {
+        npc_spawned_jitters(Creature* creature) : ScriptedAI(creature) { }
+
+        void Reset() override
+        {
+            me->SetReactState(REACT_PASSIVE);
+            me->SetWalk(false);
+            _events.Reset();
+        }
+
+        void SetData(uint32 id, uint32 /*value*/) override
+        {
+            switch (id)
+            {
+            case Data::CryForTheMoonStart:
+                _events.ScheduleEvent(Events::JittersRunToWorgen, 1s);
+                break;
+            case Data::JittersTalk:
+                _events.ScheduleEvent(Events::JittersTalk0, 3s);
+                break;
+            case Data::JittersChoke:
+                _events.ScheduleEvent(Events::JittersChokeAndEnter, 1s);
+                break;
+            case Data::JittersRelease:
+                _events.ScheduleEvent(Events::JittersExitAndRunBack, 3s);
+                break;
+            default:
+                break;
+            }
+        }
+
+        void MovementInform(uint32 /*type*/, uint32 id) override
+        {
+            switch (id)
+            {
+            case Points::JittersRunToWorgen:
+                me->SetEmoteState(EMOTE_STATE_USE_STANDING);
+                break;
+            case EVENT_JUMP:
+                me->GetMotionMaster()->MovePoint(Points::JittersRunHome, me->GetHomePosition());
+                break;
+            default:
+                break;
+            }
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _events.Update(diff);
+
+            while (uint32 eventId = _events.ExecuteEvent())
+            {
+                switch (eventId)
+                {
+                case Events::JittersRunToWorgen:
+                    me->GetMotionMaster()->MovePoint(Points::JittersRunToWorgen, Positions::JittersHoldingWorgen);
+                    break;
+                case Events::JittersTalk0:
+                    Talk(Talks::JittersSay0);
+                    me->SetEmoteState(EMOTE_STATE_NONE);
+                    break;
+                case Events::JittersChokeAndEnter:
+                    if (Creature* worgen = me->FindNearestCreature(Creatures::LurkingWorgenRavenHill, 10.0f))
+                        me->CastSpell(worgen, Spells::RideVehicle, true);
+                    break;
+                case Events::JittersExitAndRunBack:
+                {
+                    Vehicle* veh = me->GetVehicle();
+                    veh->RemoveAllPassengers();
+                    me->m_Events.AddEventAtOffset([this]()
+                        {
+                            me->SetDisableGravity(false);
+                            me->SetPlayHoverAnim(false, true);
+                            me->RemoveAllAuras();
+                            me->GetMotionMaster()->Clear();
+                            me->GetMotionMaster()->MoveJump(EVENT_JUMP, Positions::JittersExitVehicle, 20.f);
+                        }, 400ms);
+                    break;
+                }
+                default:
+                    break;
+                }
+            }
+        }
+
+    private:
+        EventMap _events;
+    };
+
+    /*######
+    ## 43950 Lurking Worgen (Raven Hill)
+    ######*/
+
+    struct npc_lurking_worgen_raven_hill : public ScriptedAI
+    {
+        npc_lurking_worgen_raven_hill(Creature* creature) : ScriptedAI(creature) { }
+
+        void Reset() override
+        {
+            me->SetUninteractible(true);
+            me->SetReactState(REACT_PASSIVE);
+            me->SetWalk(true);
+            me->CastSpell(me, Spells::InStocks, true);
+            _events.Reset();
+        }
+
+        void PassengerBoarded(Unit* /*passenger*/, int8 /*seatId*/, bool apply) override
+        {
+            if (apply)
+            {
+                me->SetEmoteState(EMOTE_STATE_SPELL_CHANNEL_OMNI);
+                _events.ScheduleEvent(Events::WorgenRavenHillTalk2, 1s);
+                _events.ScheduleEvent(Events::WorgenRavenHillTalk3, 4s);
+                _events.ScheduleEvent(Events::WorgenRavenHillTalk4, 10s);
+            }
+
+            if (!apply)
+            {
+                _events.ScheduleEvent(Events::WorgenRavenHillTalk5, 1s);
+            }
+        }
+        void MovementInform(uint32 /*type*/, uint32 id) override
+        {
+            if (id == EVENT_JUMP)
+            {
+                if (Creature* jitters = me->FindNearestCreature(Creatures::SpawnedJitters, 10.0f))
+                {
+                    me->SetFacingToObject(jitters);
+                    Talk(Talks::WorgenRavenHillSay1);
+                    me->HandleEmoteCommand(EMOTE_ONESHOT_ROAR);
+                    jitters->AI()->SetData(Data::JittersChoke, 1);
+                }
+            }
+        }
+
+        void SetData(uint32 id, uint32 /*value*/) override
+        {
+            if (id != Data::CryForTheMoonStart)
+                return;
+
+            _events.ScheduleEvent(Events::WorgenRavenHillTalk0, 15s);
+            _events.ScheduleEvent(Events::WorgenRavenHillTalk1, 20s);
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _events.Update(diff);
+
+            while (uint32 eventId = _events.ExecuteEvent())
+            {
+                switch (eventId)
+                {
+                case Events::WorgenRavenHillTalk0:
+                    Talk(Talks::WorgenRavenHillSay0);
+                    break;
+                case Events::WorgenRavenHillTalk1:
+                    me->RemoveAura(Spells::InStocks);
+                    me->GetMotionMaster()->MoveJump(EVENT_JUMP, Positions::LurkingWorgenRavenHillJump, 20.f);
+                    break;
+                case Events::WorgenRavenHillTalk2:
+                    Talk(Talks::WorgenRavenHillSay2);
+                    break;
+                case Events::WorgenRavenHillTalk3:
+                    Talk(Talks::WorgenRavenHillSay3);
+                    break;
+                case Events::WorgenRavenHillTalk4:
+                    Talk(Talks::WorgenRavenHillSay4);
+                    break;
+                case Events::WorgenRavenHillTalk5:
+                {
+                    me->SetEmoteState(EMOTE_STATE_NONE);
+                    me->GetMotionMaster()->Clear();
+                    if (Creature* sven = me->FindNearestCreature(Creatures::SvenYorgen, 50.0f))
+                        me->GetMotionMaster()->MovePoint(Points::WorgenWalkToSven, sven->GetPosition());
+                    me->UpdateEntry(Creatures::SvenYorgen);
+                    me->RemoveNpcFlag(UNIT_NPC_FLAG_QUESTGIVER);
+                    Talk(Talks::WorgenRavenHillSay5);
+                    
+                    break;
+                }
+                default:
+                    break;
+                }
+            }
+        }
+
+    private:
+        EventMap _events;
+    };
+
+    /*######
+    ## 43925 Soothing Incense Cloud Bunny
+    ######*/
+
+    struct npc_soothing_incense_cloud : public ScriptedAI
+    {
+        npc_soothing_incense_cloud(Creature* creature) : ScriptedAI(creature) { }
+
+        void Reset() override
+        {
+            _events.Reset();
+            _events.ScheduleEvent(Events::SoothingIncenseCloudSelectTarget, 500ms);
+        }
+
+        Player* GetOwner()
+        {
+            return me->ToTempSummon()->GetSummoner()->ToPlayer();
+        }
+
+        void SelectTargets()
+        {
+            me->GetCreatureListWithEntryInGrid(_selectedTargets, Creatures::ForlornSpirit, 5.f);
+        }
+
+        void KillSelectedCreaturesAndRewardPlayer()
+        {
+            for (auto creature : _selectedTargets)
+            {
+                if (!creature->IsAlive())
+                    continue;
+
+                GetOwner()->RewardPlayerAndGroupAtEvent(Creatures::ForlornSpiritKillCredit, GetOwner());
+                creature->KillSelf();
+            }
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _events.Update(diff);
+
+            while (uint32 eventId = _events.ExecuteEvent())
+            {
+                switch (eventId)
+                {
+                case Events::SoothingIncenseCloudSelectTarget:
+                    SelectTargets();
+                    KillSelectedCreaturesAndRewardPlayer();
+                    break;
+                }
+            }
+        }
+
+    private:
+        EventMap _events;
+        std::list<Creature*> _selectedTargets;
+    };
+}
+
+void AddSC_custom_duskwood_npcs()
+{
+    using namespace Scripts::EasternKingdoms::Duskwood;
+
+    RegisterCreatureAI(npc_apprentice_fess);
+    RegisterCreatureAI(npc_lurking_worgen);
+    RegisterCreatureAI(npc_lurking_worgen_addle_stead);
+    RegisterCreatureAI(npc_ello_ebonlocke);
+    RegisterCreatureAI(npc_stiches);
+    RegisterCreatureAI(npc_stalvan_mistmantle);
+    RegisterCreatureAI(npc_tobias_mistmantle);
+    RegisterCreatureAI(npc_spawned_oliver_harris);
+    RegisterCreatureAI(npc_spawned_jitters);
+    RegisterCreatureAI(npc_lurking_worgen_raven_hill);
+    RegisterCreatureAI(npc_soothing_incense_cloud);
+}

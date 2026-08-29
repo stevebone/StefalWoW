@@ -84,15 +84,16 @@ class TC_GAME_API AreaTrigger final : public WorldObject, public GridObject<Area
 
     public:
         void BuildValuesUpdateForPlayerWithMask(UpdateData* data, UF::ObjectData::Mask const& requestedObjectMask,
-            UF::AreaTriggerData::Mask const& requestedAreaTriggerMask, Player const* target) const;
+            UF::AreaTriggerData::Mask const& requestedAreaTriggerMask, Player const* target, bool ignoreNestedChangesMask) const;
 
         struct ValuesUpdateForPlayerWithMaskSender // sender compatible with MessageDistDeliverer
         {
-            explicit ValuesUpdateForPlayerWithMaskSender(AreaTrigger const* owner) : Owner(owner) { }
+            explicit ValuesUpdateForPlayerWithMaskSender(AreaTrigger const* owner) : Owner(owner), IgnoreNestedChangesMask(false) { }
 
             AreaTrigger const* Owner;
             UF::ObjectData::Base ObjectMask;
             UF::AreaTriggerData::Base AreaTriggerMask;
+            bool IgnoreNestedChangesMask;
 
             void operator()(Player const* player) const;
         };
@@ -110,7 +111,7 @@ class TC_GAME_API AreaTrigger final : public WorldObject, public GridObject<Area
         bool IsStaticSpawn() const { return _spawnId != 0; }
         bool HasActionSetFlag(AreaTriggerActionSetFlag flag) const { return _areaTriggerTemplate->ActionSetFlags.HasFlag(flag); }
 
-        bool IsNeverVisibleFor(WorldObject const* seer, bool allowServersideObjects = false) const override;
+        bool IsNeverVisibleFor(WorldObject const* seer, bool allowServersideObjects) const override;
 
         Position const& GetStationaryPosition() const override { return _stationaryPosition; }
         void RelocateStationaryPosition(Position const& pos) { _stationaryPosition.Relocate(pos); }

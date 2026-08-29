@@ -1,10 +1,29 @@
+/*
+ * This file is part of the Stefal WoW Project.
+ * It is designed to work exclusively with the TrinityCore framework.
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 2 of the License, or (at your
+ * option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ *
+ * This code is provided for personal and educational use within the
+ * Stefal WoW Project. It is not intended for commercial distribution,
+ * resale, or any form of monetization.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#include "SpellAuras.h"
+
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_utils.h"
-
-#include "followship_bots_druid.h"
-#include "followship_bots_mage.h"
-#include "followship_bots_warlock.h"
-#include "followship_bots_warrior.h"
 
 #include "Followship_bots_auras_handler.h"
 #include "Followship_bots_movement_handler.h"
@@ -32,6 +51,10 @@ namespace FSBAuras
         case FSB_Class::Priest:
             break;
         case FSB_Class::Mage:
+            break;
+        case FSB_Class::Monk:
+            if (FSBMonk::BotOnAuraApplied(bot, aurApp, applied, botStats))
+                break;
             break;
         case FSB_Class::Rogue:
             break;
@@ -131,9 +154,9 @@ namespace FSBAuras
         case SPELL_MAGE_EVOCATION:
         {
             if(applied)
-                botRegenMods.pctManaPerTick += 1500.f;
+                botRegenMods.pctManaPerTick += 15.f;
             else if(!applied)
-                botRegenMods.pctManaPerTick -= 1500.f;
+                botRegenMods.pctManaPerTick -= 15.f;
 
             FSBStats::RecalculateStats(bot, false, false);
 
@@ -145,23 +168,20 @@ namespace FSBAuras
         {
             float hpPct = bot->GetPctModifierValue(UNIT_MOD_HEALTH, TOTAL_PCT);
             float manaPct = bot->GetPctModifierValue(UNIT_MOD_MANA, TOTAL_PCT);
-            float apPct = bot->GetPctModifierValue(UNIT_MOD_ATTACK_POWER, TOTAL_PCT);
-            float rapPct = bot->GetPctModifierValue(UNIT_MOD_ATTACK_POWER_RANGED, TOTAL_PCT);
 
             if (applied)
             {
                 bot->SetStatPctModifier(UNIT_MOD_HEALTH, TOTAL_PCT, hpPct + 0.1f);
                 bot->SetStatPctModifier(UNIT_MOD_MANA, TOTAL_PCT, manaPct + 0.1f);
-                bot->SetStatPctModifier(UNIT_MOD_ATTACK_POWER, TOTAL_PCT, apPct + 0.1f);
-                bot->SetStatPctModifier(UNIT_MOD_ATTACK_POWER_RANGED, TOTAL_PCT, rapPct + 0.1f);
             }
             else if (!applied)
             {
                 bot->SetStatPctModifier(UNIT_MOD_HEALTH, TOTAL_PCT, hpPct - 0.1f);
                 bot->SetStatPctModifier(UNIT_MOD_MANA, TOTAL_PCT, manaPct - 0.1f);
-                bot->SetStatPctModifier(UNIT_MOD_ATTACK_POWER, TOTAL_PCT, apPct - 0.1f);
-                bot->SetStatPctModifier(UNIT_MOD_ATTACK_POWER_RANGED, TOTAL_PCT, rapPct - 0.1f);
             }
+
+            bot->HandleAttackPowerModifier(AttackPowerModIndex::Melee, AttackPowerModType::Pct, 10.0f, applied);
+            bot->HandleAttackPowerModifier(AttackPowerModIndex::Ranged, AttackPowerModType::Pct, 10.0f, applied);
 
             FSBStats::RecalculateStats(bot, false, false);
 
@@ -205,10 +225,7 @@ namespace FSBAuras
             // Warrior
         case SPELL_WARRIOR_BATTLE_SHOUT:
         {
-            if(applied)
-                bot->ApplyStatPctModifier(UNIT_MOD_ATTACK_POWER, TOTAL_PCT, 0.05f);
-            else if(!applied)
-                bot->ApplyStatPctModifier(UNIT_MOD_ATTACK_POWER, TOTAL_PCT, -0.05f);
+            bot->HandleAttackPowerModifier(AttackPowerModIndex::Melee, AttackPowerModType::Pct, 5.0f, applied);
 
             FSBStats::RecalculateStats(bot, false, false);
 
@@ -247,6 +264,17 @@ namespace FSBAuras
                 bot->SetStatPctModifier(UNIT_MOD_HEALTH, TOTAL_PCT, HpPct - 0.1f);
                 bot->SetStatPctModifier(UNIT_MOD_ARMOR, TOTAL_PCT, armorPct - 1.6f);
             }
+
+            break;
+        }
+
+        // Shaman
+        case SPELL_MANA_TIDE_TOTEM:
+        {
+            if (applied)
+                botRegenMods.pctManaPerTick += 0.8f;
+            else if (!applied)
+                botRegenMods.pctManaPerTick -= 0.8f;
 
             break;
         }

@@ -30,6 +30,14 @@ WorldPacket const* BindPointUpdate::Write()
     return &_worldPacket;
 }
 
+WorldPacket const* PlayerBound::Write()
+{
+    _worldPacket << BinderID;
+    _worldPacket << uint32(AreaID);
+
+    return &_worldPacket;
+}
+
 WorldPacket const* InvalidatePlayer::Write()
 {
     _worldPacket << Guid;
@@ -175,9 +183,10 @@ void TimeSyncResponse::Read()
     _worldPacket >> ClientTime;
 }
 
-WorldPacket const* ServerTimeOffset::Write()
+WorldPacket const* TriggerCinematic::Write()
 {
-    _worldPacket << Time;
+    _worldPacket << uint32(CinematicID);
+    _worldPacket << ConversationGuid;
 
     return &_worldPacket;
 }
@@ -189,10 +198,9 @@ WorldPacket const* TriggerMovie::Write()
     return &_worldPacket;
 }
 
-WorldPacket const* TriggerCinematic::Write()
+WorldPacket const* ServerTimeOffset::Write()
 {
-    _worldPacket << uint32(CinematicID);
-    _worldPacket << ConversationGuid;
+    _worldPacket << Time;
 
     return &_worldPacket;
 }
@@ -343,14 +351,6 @@ WorldPacket const* SetAnimTier::Write()
     _worldPacket << Unit;
     _worldPacket << uint8(Tier);
     _worldPacket.FlushBits();
-
-    return &_worldPacket;
-}
-
-WorldPacket const* PlayerBound::Write()
-{
-    _worldPacket << BinderID;
-    _worldPacket << uint32(AreaID);
 
     return &_worldPacket;
 }
@@ -846,6 +846,62 @@ WorldPacket const* AccountWarbandSceneUpdate::Write()
         _worldPacket << Bits<1>(data.Flags.HasFlag(WarbandSceneCollectionFlags::HasFanfare));
 
     _worldPacket.FlushBits();
+
+    return &_worldPacket;
+}
+
+void WorldPackets::Misc::FactionSelect::Read()
+{
+    _worldPacket >> FactionChoice;
+}
+
+void RequestStoreFrontInfoUpdate::Read()
+{
+    _worldPacket >> StoreFrontID;
+    uint32 currencyCount = _worldPacket.read<uint32>();
+    CurrencyIDs.resize(currencyCount);
+    for (uint32 i = 0; i < currencyCount; ++i)
+        _worldPacket >> CurrencyIDs[i];
+}
+
+WorldPacket const* AccountStoreFrontUpdate::Write()
+{
+    _worldPacket << uint8(Status);
+    _worldPacket << uint32(StoreFrontID);
+    _worldPacket << uint64(Expiry);
+    _worldPacket << Bits<1>(Flag1);
+    _worldPacket << Bits<1>(Flag2);
+    _worldPacket.FlushBits();
+
+    return &_worldPacket;
+}
+
+void ChromieTimeSelectExpansion::Read()
+{
+    _worldPacket >> Vendor;
+    _worldPacket >> ExpansionID;
+}
+
+WorldPacket const* TimerunningSeasonEnded::Write()
+{
+    _worldPacket << uint32(SeasonID);
+
+    return &_worldPacket;
+}
+
+WorldPacket const* SetCtrOptions::Write()
+{
+    auto writeBlock = [&](CTROptionsBlock const& block)
+        {
+            _worldPacket << uint32(block.ConditionalFlags.size());
+            _worldPacket << uint8(block.FactionGroup);
+            _worldPacket << uint32(block.ChromieTimeExpansionMask);
+            for (uint32 flag : block.ConditionalFlags)
+                _worldPacket << uint32(flag);
+        };
+
+    writeBlock(Previous);
+    writeBlock(Current);
 
     return &_worldPacket;
 }

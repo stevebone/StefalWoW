@@ -1,11 +1,35 @@
+/*
+ * This file is part of the Stefal WoW Project.
+ * It is designed to work exclusively with the TrinityCore framework.
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 2 of the License, or (at your
+ * option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ *
+ * This code is provided for personal and educational use within the
+ * Stefal WoW Project. It is not intended for commercial distribution,
+ * resale, or any form of monetization.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#include "SpellAuras.h"
+#include "Log.h"
+
 #include "Followship_bots_mgr.h"
+#include "Followship_bots_utils.h"
 
 #include "Followship_bots_group_handler.h"
+#include "Followship_bots_movement_handler.h"
 #include "Followship_bots_spells_handler.h"
 #include "Followship_bots_stats_handler.h"
-
-#include "Followship_bots_druid.h"
-
 
 std::vector<FSBSpellDefinition> DruidSpellsTable =
 {
@@ -15,6 +39,13 @@ std::vector<FSBSpellDefinition> DruidSpellsTable =
     { SPELL_HUMAN_WILL_TO_SURVIVE,          FSBSpellType::Heal,     0.f,        80.f,           100.f,           0.f,           true,       180000,         FSB_RoleMask::FSB_ROLEMASK_ANY },
     { SPELL_DWARF_STONEFORM,                FSBSpellType::Heal,     0.f,        80.f,           100.f,           0.f,           true,       120000,         FSB_RoleMask::FSB_ROLEMASK_ANY },
     { SPELL_DRAENEI_GIFT_NAARU,             FSBSpellType::Heal,     0.f,        50.f,           100.f,           30.f,          false,      120000,         FSB_RoleMask::FSB_ROLEMASK_ANY },
+    { SPELL_PANDAREN_QUAKING_PALM,          FSBSpellType::Damage,   0.f,        0.f,            100.f,           2.f,           false,      120000,         FSB_RoleMask::FSB_ROLEMASK_ANY },
+    { SPELL_ORC_BLOOD_FURY,                 FSBSpellType::Damage,   0.f,        0.f,            100.f,           0.f,           true,       120000,         FSB_RoleMask::FSB_ROLEMASK_ANY },
+    { SPELL_UNDEAD_WILL_OF_FORSAKEN,        FSBSpellType::Heal,     0.f,        80.f,           100.f,           0.f,           true,        30000,         FSB_RoleMask::FSB_ROLEMASK_ANY },
+    { SPELL_TAUREN_WAR_STOMP,               FSBSpellType::Damage,   0.f,        0.f,            100.f,           8.f,           false,       90000,         FSB_RoleMask::FSB_ROLEMASK_ANY },
+    { SPELL_TROLL_BERSERKING,               FSBSpellType::Damage,   0.f,        0.f,            100.f,           0.f,           true,       180000,         FSB_RoleMask::FSB_ROLEMASK_ANY },
+    { SPELL_BLOODELF_ARCANE_TORRENT,        FSBSpellType::Damage,   0.f,        0.f,            100.f,           8.f,           false,      120000,         FSB_RoleMask::FSB_ROLEMASK_ANY },
+    { SPELL_GOBLIN_ROCKET_BARRAGE,          FSBSpellType::Damage,   0.f,        0.f,            100.f,          30.f,           false,       90000,         FSB_RoleMask::FSB_ROLEMASK_ANY },
 
     { SPELL_DRUID_WRATH,                FSBSpellType::Damage,   0.f,        0.f,            70.f,            40.f,         false,       1000,        FSB_RoleMask::FSB_ROLEMASK_ANY },
     { SPELL_DRUID_BARKSKIN,             FSBSpellType::Heal,     0.f,        60.f,           100.f,            0.f,          true,        60000,       FSB_RoleMask::FSB_ROLEMASK_ANY },
@@ -90,7 +121,7 @@ namespace FSBDruid
 
         uint32 now = getMSTime();
 
-        if (player->GetHealthPct() <= 50)
+        if (player->GetHealthPct() <= 50 && !player->HasAura(SPELL_DRUID_LIFEBLOOM))
         {
             bot->CastSpell(player, SPELL_DRUID_LIFEBLOOM, false);
             globalCooldown = now + 1500;
@@ -100,7 +131,7 @@ namespace FSBDruid
             return true;
 
         }
-        else if (player->GetHealthPct() <= 90)
+        else if (player->GetHealthPct() <= 90 && !player->HasAura(SPELL_DRUID_REGROWTH))
         {
             bot->CastSpell(player, SPELL_DRUID_REGROWTH, false);
             globalCooldown = now + 1500;
@@ -235,7 +266,7 @@ namespace FSBDruid
             {
                 //float x, y, z;
                 //bot->GetRandomPoint(bot->GetPosition(), 10.0f, x, y, z);
-                bot->GetMotionMaster()->MovePoint(3, bot->GetPositionX() + frand(-10.f, 10.f), bot->GetPositionY(), bot->GetPositionZ());
+                bot->GetMotionMaster()->MovePoint(FSBMovement::MOVEMENT_POINT_DRUID_ROOTS_ESCAPE, bot->GetPositionX() + frand(-10.f, 10.f), bot->GetPositionY(), bot->GetPositionZ());
             }
             break;
         }
@@ -245,7 +276,7 @@ namespace FSBDruid
         }
     }
 
-    void BotSetRoleAuras(Creature* bot, FSB_Roles role)
+    void BotSetRoleAuras(Creature* bot, FSB_Roles role, bool recalculateStats)
     {
         if (!bot)
             return;
@@ -316,7 +347,8 @@ namespace FSBDruid
             break;
         }
 
-        FSBStats::RecalculateStats(bot, false, true);
+        if (recalculateStats)
+            FSBStats::RecalculateStats(bot, false, true);
     }
 
     bool BotHasMarkWild(Creature* bot)
@@ -355,7 +387,7 @@ namespace FSBDruid
 
     }
 
-    bool BotInitialCombatSpells(Creature* bot, uint32& globalCooldown, bool& botCastedCombatBuffs, FSB_Roles botRole, const std::vector<Unit*>& botGroup)
+    bool BotInitialCombatSpells(Creature* bot, uint32& globalCooldown, bool& botCastedCombatBuffs, FSB_Roles botRole)
     {
         if (botCastedCombatBuffs)
             return false;
@@ -367,7 +399,7 @@ namespace FSBDruid
             return false;
 
         Unit* target = nullptr;
-        Unit* tank = FSBGroup::BotGetFirstGroupTank(botGroup);
+        Unit* tank = FSBGroup::BotGetFirstGroupTank(bot);
 
         switch (botRole)
         {

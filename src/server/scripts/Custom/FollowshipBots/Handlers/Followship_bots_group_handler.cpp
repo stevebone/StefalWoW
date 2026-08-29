@@ -1,3 +1,29 @@
+/*
+ * This file is part of the Stefal WoW Project.
+ * It is designed to work exclusively with the TrinityCore framework.
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 2 of the License, or (at your
+ * option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ *
+ * This code is provided for personal and educational use within the
+ * Stefal WoW Project. It is not intended for commercial distribution,
+ * resale, or any form of monetization.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#include "Log.h"
+#include "ObjectAccessor.h"
+#include "SpellAuras.h"
+
 #include "Followship_bots_utils.h"
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_db.h"
@@ -6,88 +32,132 @@
 
 namespace FSBGroup
 {
-    void BuildLogicalBotGroup(Creature* bot, std::vector<Unit*>& outGroup)
+    void BuildLogicalBotGroup(Creature* bot, std::vector<ObjectGuid>& outGroup)
     {
         outGroup.clear();
 
-        Player* owner = FSBMgr::Get()->GetBotOwner(bot);
-
-        if (!owner || !bot)
+        if (!bot)
             return;
 
-        outGroup.push_back(owner);
+        Player* owner = FSBMgr::Get()->GetBotOwner(bot);
+        if (!owner)
+            return;
+
+        outGroup.push_back(owner->GetGUID());
 
         auto botsPtr = FSBMgr::Get()->GetPersistentBotsForPlayer(owner);
         if (!botsPtr)
         {
-            TC_LOG_DEBUG("scripts.ai.fsb", "FSB: BuildLogicalGroup. Player has no bots");
+            TC_LOG_DEBUG("scripts.fsb.general", "FSB: BuildLogicalBotGroup Player has no bots");
             return;
         }
 
         for (auto const& botData : *botsPtr)
-        {
-            if (botData.runtimeGuid.IsEmpty())
-                continue;
-
-            if (Unit* botUnit = ObjectAccessor::GetUnit(*owner, botData.runtimeGuid))
-            {
-                outGroup.push_back(botUnit);
-                //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: BuildLogicalGroup. Bot: {} got added {} to group of: {}", bot->GetName(), botUnit->GetName(), outGroup.size());  // TEMP-LOG
-            }
-        }
-
-        
+            if (!botData.runtimeGuid.IsEmpty())
+                outGroup.push_back(botData.runtimeGuid);        
     }
 
-    Unit* BotGetFirstMemberToAssist(Creature* bot, const std::vector<Unit*>& botGroup)
+    // Resolves a stored guid group to valid, alive Unit* for use within a single tick
+    std::vector<Unit*> ResolveGroup(WorldObject* context, const std::vector<ObjectGuid>& guids, bool requireAlive)
+    {
+        std::vector<Unit*> resolved;
+        resolved.reserve(guids.size());
+
+        for (const ObjectGuid& guid : guids)
+        {
+            Unit* unit = ObjectAccessor::GetUnit(*context, guid);
+            if (!unit || !unit->IsInWorld() || unit->IsDuringRemoveFromWorld())
+                continue;
+            if (requireAlive && !unit->IsAlive())
+                continue;
+            resolved.push_back(unit);
+        }
+
+        return resolved;
+    }
+
+    Unit* BotGetFirstMemberToAssist(Creature* bot)
     {
         if (!bot || !bot->IsInWorld() || bot->IsDuringRemoveFromWorld())
+            return nullptr;
+
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
+            return nullptr;
+
+        auto group = ResolveGroup(bot, baseAI->botLogicalGroup);
+        if (group.empty())
             return nullptr;
 
         Unit* bestTarget = nullptr;
         float lowestHpPct = 100.f;
 
-        for (Unit* member : botGroup)
+        for (Unit* member : group)
         {
-            // Validate group member
             if (!member || member == bot)
                 continue;
 
             if (!member->IsAlive() || !member->IsInWorld() || member->IsDuringRemoveFromWorld())
                 continue;
 
-            // Check if member is under attack
+            // Case 1: Member is being attacked
             Unit* attacker = member->getAttackerForHelper();
-            if (!attacker || !attacker->IsAlive() || !attacker->IsInWorld() || attacker->IsDuringRemoveFromWorld())
-                continue;
-
-            // Don't break CC
-            if (attacker->HasBreakableByDamageCrowdControlAura())
-                continue;
-
-            // Prioritize the most injured group member
-            float hpPct = member->GetHealthPct();
-            if (hpPct < lowestHpPct)
+            if (attacker && attacker->IsAlive() && attacker->IsInWorld() && !attacker->IsDuringRemoveFromWorld())
             {
-                lowestHpPct = hpPct;
-                bestTarget = attacker;
+                // Skip CC
+                if (!attacker->HasBreakableByDamageCrowdControlAura() &&
+                    !member->HasBreakableByDamageCrowdControlAura())
+                {
+                    float hpPct = member->GetHealthPct();
+                    if (hpPct < lowestHpPct)
+                    {
+                        lowestHpPct = hpPct;
+                        bestTarget = attacker;
+                    }
+                }
+            }
+
+            // Case 2: Member is attacking something (victim)
+            Unit* victim = member->GetVictim();
+            if (victim && victim->IsAlive() && victim->IsInWorld() && !victim->IsDuringRemoveFromWorld())
+            {
+                // Skip CC
+                if (!victim->HasBreakableByDamageCrowdControlAura() &&
+                    !member->HasBreakableByDamageCrowdControlAura())
+                {
+                    float hpPct = member->GetHealthPct();
+                    if (hpPct < lowestHpPct)
+                    {
+                        lowestHpPct = hpPct;
+                        bestTarget = victim;
+                    }
+                }
             }
         }
 
         return bestTarget;
     }
 
-    Unit* BotGetFirstGroupHealer(const std::vector<Unit*>& group)
+    Unit* BotGetFirstGroupHealer(Creature* bot)
     {
+        if (!bot || !bot->IsInWorld() || bot->IsDuringRemoveFromWorld())
+            return nullptr;
+
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
+            return nullptr;
+
+        auto group = ResolveGroup(bot, baseAI->botLogicalGroup);
+        if (group.empty())
+            return nullptr;
+
         for (Unit* member : group)
         {
             if (!member || !member->IsAlive())
                 continue;
 
-            FSB_Roles role = FSBUtils::GetRole(member->ToCreature());
-
             // Check healer role
-            if (role == FSB_Roles::FSB_ROLE_HEALER)
+            if (member->ToCreature() && FSBUtils::BotIsHealerClass(member->ToCreature()))
             {
                 return member; // first healer found
             }
@@ -96,14 +166,25 @@ namespace FSBGroup
         return nullptr; // no healer in group
     }
 
-    Unit* BotGetFirstGroupTank(const std::vector<Unit*>& botGroup)
+    Unit* BotGetFirstGroupTank(Creature* bot)
     {
-        for (Unit* member : botGroup)
+        if (!bot || !bot->IsInWorld() || bot->IsDuringRemoveFromWorld())
+            return nullptr;
+
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
+            return nullptr;
+
+        auto group = ResolveGroup(bot, baseAI->botLogicalGroup);
+        if (group.empty())
+            return nullptr;
+
+        for (Unit* member : group)
         {
             if (!member || !member->IsAlive())
                 continue;
 
-            FSB_Roles role = FSBUtils::GetRole(member->ToCreature());
+            FSB_Roles role = FSBMgr::Get()->GetRole(member->ToCreature());
 
             // Check healer role
             if (role == FSB_Roles::FSB_ROLE_TANK)
@@ -115,14 +196,20 @@ namespace FSBGroup
         return nullptr; // no healer in group
     }
 
-    Unit* BotGetFirstDeadMember(const std::vector<Unit*>& botGroup)
+    Unit* BotGetFirstDeadMember(Creature* bot)
     {
+        if (!bot || !bot->IsInWorld() || bot->IsDuringRemoveFromWorld())
+            return nullptr;
 
-        for (Unit* unit : botGroup)
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
+            return nullptr;
+
+        for (const ObjectGuid& guid : baseAI->botLogicalGroup)
         {
-            if (!unit)
+            Unit* unit = ObjectAccessor::GetUnit(*bot, guid);
+            if (!unit || !unit->IsInWorld() || unit->IsDuringRemoveFromWorld())
                 continue;
-
             if (!unit->IsAlive())
                 return unit;
         }
@@ -132,13 +219,20 @@ namespace FSBGroup
 
     Unit* BotGetDispelMember(Creature* bot, const DispelAbility& ability)
     {
+        if (!bot || !bot->IsInWorld() || bot->IsDuringRemoveFromWorld())
+            return nullptr;
+
         auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
         if (!baseAI)
             return nullptr;
 
-        for (Unit* member : baseAI->botLogicalGroup)
+        auto group = ResolveGroup(bot, baseAI->botLogicalGroup);
+        if (group.empty())
+            return nullptr;
+
+        for (Unit* member : group)
         {
-            if (!member || !member->IsInWorld())
+            if (!member || !member->IsInWorld() || member->IsDuringRemoveFromWorld())
                 continue;
 
             // Scan all auras on the member
@@ -156,20 +250,28 @@ namespace FSBGroup
                 if (info->IsPositive())
                     continue;
 
-
                 DispelType type = FSBSpellsUtils::ConvertAuraToDispelType(aura);
                 if (std::find(ability.dispels.begin(), ability.dispels.end(), type) != ability.dispels.end())
-                {
                     return member; // Found someone we can dispel
-                }
             }
         }
 
         return nullptr;
     }
 
-    std::vector<Unit*> BotGetMembersToHeal(const std::vector<Unit*>& group, float lowHpThreshold)
+    std::vector<Unit*> BotGetMembersToHeal(Creature* bot, float lowHpThreshold)
     {
+        if (!bot || !bot->IsInWorld() || bot->IsDuringRemoveFromWorld())
+            return {};
+
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
+            return {};
+
+        auto group = ResolveGroup(bot, baseAI->botLogicalGroup);
+        if (group.empty())
+            return {};
+
         std::vector<Unit*> candidates;
 
         for (Unit* unit : group)
@@ -179,17 +281,9 @@ namespace FSBGroup
 
             // Emergency 1: HP below threshold
             if (unit->GetHealthPct() <= lowHpThreshold)
-            {
                 candidates.push_back(unit);
-                //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Heal / Emergency Candidate: {}", unit->GetName());
-            }
         }
 
-        // Optional: sort by urgency (lowest HP first)
-        std::sort(candidates.begin(), candidates.end(),
-            [](Unit* a, Unit* b) { return a->GetHealthPct() < b->GetHealthPct(); });
-
-        //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Heal / Emergency list size: {}", candidates.size());
         return candidates;
     }
 
@@ -198,21 +292,22 @@ namespace FSBGroup
         if (!unit)
             return 0.f;
 
+        float hpUrgency = 100.f - unit->GetHealthPct();
+
         // Get role (works for any bot)
-        FSB_Roles role = FSBUtils::GetRole(unit->ToCreature());
+        FSB_Roles role = FSBMgr::Get()->GetRole(unit->ToCreature());
 
-        // Assign priority values (higher = more urgent)
+        // Assign base priority values (higher = more urgent)
+        float rolePriority = 50.f;
         if (role == FSB_ROLE_HEALER)           // healer
-            return 80.f;
-        if (role == FSB_ROLE_TANK)             // tank
-            return 100.f;
+            rolePriority = 80.f;
+        else if (role == FSB_ROLE_TANK)        // tank
+            rolePriority = 100.f;
+        else if (unit->IsPlayer())             // player
+            rolePriority = 90.f;
 
-        // If player, slightly lower than tank
-        if (unit->IsPlayer())
-            return 90.f;
-
-        // Default: based on missing health percentage
-        return 50.f + (100.f - unit->GetHealthPct()); // 50..150 based on HP
+        // Combine role priority with HP urgency
+        return rolePriority + hpUrgency;
     }
     void SortEmergencyTargets(std::vector<Unit*>& targets)
     {
@@ -220,5 +315,31 @@ namespace FSBGroup
             {
                 return CalculateEmergencyPriority(a) > CalculateEmergencyPriority(b);
             });
+    }
+
+    bool BotGroupIsHealthy_Average(Creature* bot, uint32 groupHP)
+    {
+        if (!bot || !bot->IsAlive())
+            return true;
+
+        auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+        if (!baseAI)
+            return true;
+
+        auto group = ResolveGroup(bot, baseAI->botLogicalGroup);
+        if (group.empty())
+            return true;
+
+        float totalPct = 0.f;
+        uint32 count = 0;
+
+        for (Unit* u : group)
+        {
+            totalPct += u->GetHealthPct();
+            count++;
+        }
+
+        float avg = totalPct / count;
+        return avg >= groupHP;
     }
 }

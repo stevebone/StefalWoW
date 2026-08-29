@@ -366,7 +366,7 @@ class spell_wintergrasp_force_building : public SpellScript
     void HandleScript(SpellEffIndex effIndex)
     {
         PreventHitDefaultEffect(effIndex);
-        GetHitUnit()->CastSpell(GetHitUnit(), GetEffectValue(), false);
+        GetHitUnit()->CastSpell(GetHitUnit(), GetEffectValueAsInt(), false);
     }
 
     void Register() override
@@ -387,6 +387,20 @@ class spell_wintergrasp_grab_passenger : public SpellScript
     void Register() override
     {
         OnEffectHitTarget += SpellEffectFn(spell_wintergrasp_grab_passenger::HandleScript, EFFECT_0, SPELL_EFFECT_SCRIPT_EFFECT);
+    }
+};
+
+// 49899 - Activate Robotic Arms
+class spell_wintergrasp_activate_robotic_arms : public SpellScript
+{
+    void HandleScript(SpellEffIndex /*effIndex*/)
+    {
+        GetHitUnit()->HandleEmoteCommand(EMOTE_ONESHOT_CUSTOM_SPELL_05);
+    }
+
+    void Register() override
+    {
+        OnEffectHitTarget += SpellEffectFn(spell_wintergrasp_activate_robotic_arms::HandleScript, EFFECT_0, SPELL_EFFECT_SCRIPT_EFFECT);
     }
 };
 
@@ -465,7 +479,7 @@ class spell_wintergrasp_tenacity_refresh : public AuraScript
     {
         if (!ValidateSpellEffect({ { spellInfo->Id, EFFECT_2 } }))
             return false;
-        uint32 triggeredSpellId = spellInfo->GetEffect(EFFECT_2).CalcValue();
+        uint32 triggeredSpellId = spellInfo->GetEffect(EFFECT_2).CalcValueAsInt();
         return !triggeredSpellId || ValidateSpellInfo({ triggeredSpellId });
     }
 
@@ -473,9 +487,9 @@ class spell_wintergrasp_tenacity_refresh : public AuraScript
     {
         PreventDefaultAction();
 
-        if (uint32 triggeredSpellId = aurEff->GetSpellEffectInfo().CalcValue())
+        if (uint32 triggeredSpellId = aurEff->GetSpellEffectInfo().CalcValueAsInt())
         {
-            int32 bp = 0;
+            SpellEffectValue bp = 0;
             if (AuraEffect const* healEffect = GetEffect(EFFECT_0))
                 bp = healEffect->GetAmount();
 
@@ -491,7 +505,7 @@ class spell_wintergrasp_tenacity_refresh : public AuraScript
 
     void OnRemove(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
     {
-        if (uint32 triggeredSpellId = aurEff->GetSpellEffectInfo().CalcValue())
+        if (uint32 triggeredSpellId = aurEff->GetSpellEffectInfo().CalcValueAsInt())
             GetTarget()->RemoveAurasDueToSpell(triggeredSpellId);
     }
 
@@ -542,6 +556,7 @@ void AddSC_wintergrasp()
     RegisterGameObjectAI(go_wg_vehicle_teleporter);
     RegisterSpellScript(spell_wintergrasp_force_building);
     RegisterSpellScript(spell_wintergrasp_grab_passenger);
+    RegisterSpellScript(spell_wintergrasp_activate_robotic_arms);
     new achievement_wg_didnt_stand_a_chance();
     RegisterSpellScript(spell_wintergrasp_defender_teleport);
     RegisterSpellScript(spell_wintergrasp_defender_teleport_trigger);

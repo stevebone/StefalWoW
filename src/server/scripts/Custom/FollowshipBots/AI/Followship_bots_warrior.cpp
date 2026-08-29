@@ -1,7 +1,27 @@
-#include "Followship_bots_defines.h"
+/*
+ * This file is part of the Stefal WoW Project.
+ * It is designed to work exclusively with the TrinityCore framework.
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 2 of the License, or (at your
+ * option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ *
+ * This code is provided for personal and educational use within the
+ * Stefal WoW Project. It is not intended for commercial distribution,
+ * resale, or any form of monetization.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 
-#include "Followship_bots_warrior.h"
-#include "Followship_bots_utils_spells.h"
+#include "Followship_bots_defines.h"
+#include "Followship_bots_utils.h"
 
 
 std::vector<FSBSpellDefinition> WarriorSpellsTable =
@@ -12,6 +32,13 @@ std::vector<FSBSpellDefinition> WarriorSpellsTable =
     { SPELL_HUMAN_WILL_TO_SURVIVE,          FSBSpellType::Heal,     0.f,        80.f,           100.f,           0.f,           true,       180000,         FSB_RoleMask::FSB_ROLEMASK_ANY },
     { SPELL_DWARF_STONEFORM,                FSBSpellType::Heal,     0.f,        80.f,           100.f,           0.f,           true,       120000,         FSB_RoleMask::FSB_ROLEMASK_ANY },
     { SPELL_DRAENEI_GIFT_NAARU,             FSBSpellType::Heal,     0.f,        50.f,           100.f,           30.f,          false,      120000,         FSB_RoleMask::FSB_ROLEMASK_ANY },
+    { SPELL_PANDAREN_QUAKING_PALM,          FSBSpellType::Damage,   0.f,        0.f,            100.f,           2.f,           false,      120000,         FSB_RoleMask::FSB_ROLEMASK_ANY },
+    { SPELL_ORC_BLOOD_FURY,                 FSBSpellType::Damage,   0.f,        0.f,            100.f,           0.f,           true,       120000,         FSB_RoleMask::FSB_ROLEMASK_ANY },
+    { SPELL_UNDEAD_WILL_OF_FORSAKEN,        FSBSpellType::Heal,     0.f,        80.f,           100.f,           0.f,           true,        30000,         FSB_RoleMask::FSB_ROLEMASK_ANY },
+    { SPELL_TAUREN_WAR_STOMP,               FSBSpellType::Damage,   0.f,        0.f,            100.f,           8.f,           false,       90000,         FSB_RoleMask::FSB_ROLEMASK_ANY },
+    { SPELL_TROLL_BERSERKING,               FSBSpellType::Damage,   0.f,        0.f,            100.f,           0.f,           true,       180000,         FSB_RoleMask::FSB_ROLEMASK_ANY },
+    { SPELL_BLOODELF_ARCANE_TORRENT,        FSBSpellType::Damage,   0.f,        0.f,            100.f,           8.f,           false,      120000,         FSB_RoleMask::FSB_ROLEMASK_ANY },
+    { SPELL_GOBLIN_ROCKET_BARRAGE,          FSBSpellType::Damage,   0.f,        0.f,            100.f,          30.f,           false,       90000,         FSB_RoleMask::FSB_ROLEMASK_ANY },
 
     { SPELL_WARRIOR_CHARGE,         FSBSpellType::Damage,            0.f,        0.f,            100.f,          25.f,          false,        20000,         FSB_RoleMask::FSB_ROLEMASK_ANY },
     { SPELL_WARRIOR_TAUNT,          FSBSpellType::Damage,            0.f,        0.f,            100.f,          30.f,          false,        8000,          FSB_RoleMask::FSB_ROLEMASK_ANY },
@@ -131,6 +158,29 @@ namespace FSBWarrior
             bot->ModifyPower(POWER_RAGE, 80, false);
             break;
 
+        default:
+            break;
+        }
+    }
+
+    void BotSetRoleAuras(Creature* bot, FSB_Roles role)
+    {
+        if (!bot)
+            return;
+
+        switch (role)
+        {
+        case FSB_ROLE_TANK:
+            if (!bot->HasAura(SPELL_WARRIOR_DEFENSIVE_STANCE))
+                bot->CastSpell(bot, SPELL_WARRIOR_DEFENSIVE_STANCE);
+            break;
+        case FSB_ROLE_MELEE_DAMAGE:
+            if (!bot->HasAura(SPELL_WARRIOR_BATTLE_STANCE) && !bot->HasAura(SPELL_WARRIOR_BERSERKER_STANCE))
+            {
+                uint32 spellId = urand(0, 1) ? SPELL_WARRIOR_BATTLE_STANCE : SPELL_WARRIOR_BERSERKER_STANCE;
+                bot->CastSpell(bot, spellId);
+            }
+            break;
         default:
             break;
         }

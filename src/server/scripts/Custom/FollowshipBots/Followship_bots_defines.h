@@ -1,5 +1,65 @@
-// followship_bots_defines.h
+/*
+ * This file is part of the Stefal WoW Project.
+ * It is designed to work exclusively with the TrinityCore framework.
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 2 of the License, or (at your
+ * option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ *
+ * This code is provided for personal and educational use within the
+ * Stefal WoW Project. It is not intended for commercial distribution,
+ * resale, or any form of monetization.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #pragma once
+
+#include <string>
+
+#include "Define.h"
+#include "ObjectGuid.h"
+
+enum class FSB_ChatterType : uint8
+{
+    None,
+    Neutral,
+    Positive,
+    Negative,
+    Cynical,
+    Bitter,
+    Cold,
+    Guarded,
+    Serious,
+    Dry,
+    Curious,
+    Warm,
+    Enthusiastic,
+    Cheerful,
+    Devoted,
+    Morbid,
+    Narcissist,
+    Sadist,
+    Hyperthymic,
+    Autotelic,
+    Autistic,
+};
+
+enum class FSB_ReplyType : uint8
+{
+    None,
+    Say,
+    Yell,
+    Whisper,
+    Raid
+};
 
 enum class FSB_Class : uint8
 {
@@ -28,12 +88,28 @@ enum class FSB_Race : uint8
     Worgen = 6,
     Pandaren = 7,
     VoidElf = 8,
+    Orc = 9,
+    Undead = 10,
+    Tauren = 11,
+    Troll = 12,
+    BloodElf = 13,
+    Goblin = 14,
+    PandarenHorde = 15,
+    HighmountainTauren = 16,
+    Nightborne = 17,
+    LightforgedDraenei = 18,
+    EarthenAlliance = 19,
+    EarthenHorde = 20,
+    HaranirAlliance = 21,
+    HaranirHorde = 22,
 };
 
 enum FSB_Roles
 {
     FSB_ROLE_NONE = 0,
     FSB_ROLE_MELEE_DAMAGE,
+    FSB_ROLE_MELEE_DAMAGE_2,
+    FSB_ROLE_MELEE_DAMAGE_3,
     FSB_ROLE_RANGED_DAMAGE,
     FSB_ROLE_HEALER,
     FSB_ROLE_ASSIST,
@@ -59,10 +135,12 @@ enum FSB_RoleMask : uint32
     FSB_ROLEMASK_RANGED_FIRE = 1 << 7,
     FSB_ROLEMASK_RANGED_AFFLICTION = 1 << 8,
     FSB_ROLEMASK_RANGED_DEMONOLOGY = 1 << 9,
-    FSB_ROLEMASK_RANGED_DESTRUCTION = 1 << 10
+    FSB_ROLEMASK_RANGED_DESTRUCTION = 1 << 10,
+    FSB_ROLEMASK_MELEE_DAMAGE_2 = 1 << 11,
+    FSB_ROLEMASK_MELEE_DAMAGE_3 = 1 << 12,
 };
 
-static uint32 RoleToMask(FSB_Roles role)
+inline uint32 RoleToMask(FSB_Roles role)
 {
     switch (role)
     {
@@ -71,6 +149,8 @@ static uint32 RoleToMask(FSB_Roles role)
     case FSB_ROLE_RANGED_DAMAGE:        return FSB_ROLEMASK_RANGED_DAMAGE;
     case FSB_ROLE_ASSIST:               return FSB_ROLEMASK_ASSIST;
     case FSB_ROLE_MELEE_DAMAGE:         return FSB_ROLEMASK_MELEE_DAMAGE;
+    case FSB_ROLE_MELEE_DAMAGE_2:         return FSB_ROLEMASK_MELEE_DAMAGE_2;
+    case FSB_ROLE_MELEE_DAMAGE_3:         return FSB_ROLEMASK_MELEE_DAMAGE_3;
     case FSB_ROLE_RANGED_FROST:         return FSB_ROLEMASK_RANGED_FROST;
     case FSB_ROLE_RANGED_ARCANE:        return FSB_ROLEMASK_RANGED_ARCANE;
     case FSB_ROLE_RANGED_FIRE:          return FSB_ROLEMASK_RANGED_FIRE;
@@ -109,4 +189,23 @@ struct PlayerBotData
     ObjectGuid runtimeGuid = ObjectGuid::Empty;
 
     PlayerBotData() = default;
+};
+
+struct FSB_GenericData
+{
+    bool isRecovering = false;
+    bool isBuffing = false;
+    uint8 consecutiveSelfHeals = 0;
+    bool pauseCombatChase = false;
+    bool manaPotionUsed = false;
+    bool healthPotionUsed = false;
+};
+
+struct FSBChatterDBLine
+{
+    uint32 id = 0;
+    int32 zoneId = 0;
+    uint8 fsbRaceId = 0;
+    uint8 fsbClassId = 0;
+    std::string lineText;
 };

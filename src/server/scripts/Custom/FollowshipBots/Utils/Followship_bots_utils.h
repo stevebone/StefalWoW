@@ -1,3 +1,25 @@
+/*
+ * This file is part of the Stefal WoW Project.
+ * It is designed to work exclusively with the TrinityCore framework.
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 2 of the License, or (at your
+ * option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ *
+ * This code is provided for personal and educational use within the
+ * Stefal WoW Project. It is not intended for commercial distribution,
+ * resale, or any form of monetization.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #pragma once
 
 #include <cmath>
@@ -7,22 +29,39 @@
 #include <cstdint>
 
 #include "Creature.h"
+#include "CreatureAIImpl.h"
 #include "MotionMaster.h"
 #include "Player.h"
 #include "Unit.h"
 
+#include "Followship_bots_ai_base.h"
 #include "Followship_bots_defines.h"
 #include "Followship_bots_utils_combat.h"
 #include "Followship_bots_utils_gossip.h"
 #include "Followship_bots_utils_spells.h"
 #include "Followship_bots_utils_stats.h"
 
+#include "Weather.h"
+
 
 namespace FSBUtils
 {
     const char* BotClassToString(FSB_Class cls);
     const char* BotRaceToString(FSB_Race race);
+    const char* BotRoleToString(FSB_Roles role);
+    const char* ChatterTypeToString(FSB_ChatterType type);
+    const char* GenderToString(Gender gender);
     const char* PowerTypeToString(Powers power);
+
+    Classes FSBToTCClass(FSB_Class botClass);
+    Races BotRaceToTC(FSB_Race race);
+
+    Team GetTeamFromFSBRace(FSB_Race race);
+
+    uint32 GetFactionForFSBRace(FSB_Race race);
+
+    Language GetLanguageForFSBRace(FSB_Race race);
+    Language GetTeamLanguageForFSBRace(FSB_Race race);
 
     constexpr float SIDE_OFFSET_MAX = float(M_PI) / 6.0f; // +-30 degrees from pure left/right
 
@@ -32,65 +71,15 @@ namespace FSBUtils
     // Returns a random angle slightly to the right of the player
     float GetRandomRightAngle();
 
-    // Get the role of a bot (returns FSB_ROLE_NONE if not a bot or AI not present)
-    FSB_Roles GetRole(Creature* unit);
-
-    // Set the role of a bot (does nothing if not a bot or AI not present)
-    void SetRole(Creature* unit, FSB_Roles role);
-
     bool TryChargeHire(Player* player, uint32 duration);
 
     bool BotIsHealerClass(Creature* bot);
-}
+    bool BotIsCasterRole(Creature* bot);
 
-namespace FSBUtilsMovement
-{
-    // Returns true if chase was started or is ongoing
-    bool EnsureInRange(Creature* me, Unit* target, float requiredRange);
-    bool EnsureLOS(Unit* me, Unit* target);
+    Unit* FindCreatureByName(WorldObject* bot, std::string name, float range = 50.0f);
+    std::vector<Creature*> FindNearbyBots(Creature* center, float radius = 300.f);
 
-    
-}
+    bool IsBotInTradeCity(Creature* bot);
 
-enum class FSBSayType
-{
-    Hire,           // NPC hired by player
-    PHire,          // NPC permanent hired by player
-    Fire,           // NPC Dismissed or Duration Expired
-    Stay,           // NPC asked to stay
-    Follow,         // NPC asked to follow or after hire
-    Buffed,         // NPC received a positive spell buff
-    HealTarget,     // NPC Heals target (not self)
-    HealSelf,       // NPC Heals self
-    Resurrect,      // NPC Resurrects the player
-    PlayerOrMemberDead,     // NPC reacts to dead player or bot
-    SpellOnTarget,  // NPC reacts when casting combat spell on target
-    CombatMana,     // NPC IC OOM and uses mana potion
-    CombatHealth,
-    BotDeath,       // NPC Dies
-    TargetDeath,    // NPC Kills Target
-    BuffTarget,
-    BuffSelf,
-    OOCRecovery
-};
-
-namespace FSBUtilsTexts
-{
-    // Converts an int64 price in copper to a string like 10 silver
-    std::string MoneyToString(int64 price);
-
-    // Builds NPC say text dynamically, inserts placeholders
-    std::string BuildNPCSayText(
-        const std::string& playerName,
-        uint32 duration,
-        FSBSayType type,
-        const std::string& string2 = std::string()
-    );
-
-    void ReplaceAll(std::string& text, const std::string& from, const std::string& to);
-
-    // Builds the hire option text dynamically
-    std::string BuildHireText(int64 price, uint32 hours);
-
-    void OnKilledTargetSay(Creature* creature, Unit* victim);
+    std::string WeatherStateToText(WeatherState state);
 }

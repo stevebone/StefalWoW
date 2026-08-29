@@ -16,6 +16,10 @@ REVOKE ALL PRIVILEGES ON `hotfixes` . * FROM 'trinity'@'localhost';
 
 REVOKE GRANT OPTION ON `hotfixes` . * FROM 'trinity'@'localhost';
 
+REVOKE ALL PRIVILEGES ON `followship` . * FROM 'trinity'@'localhost';
+
+REVOKE GRANT OPTION ON `followship` . * FROM 'trinity'@'localhost';
+
 DROP USER 'trinity'@'localhost';
 
 DROP DATABASE IF EXISTS `world`;
@@ -25,3 +29,5 @@ DROP DATABASE IF EXISTS `characters`;
 DROP DATABASE IF EXISTS `auth`;
 
 DROP DATABASE IF EXISTS `hotfixes`;
+
+DROP DATABASE IF EXISTS `followship`;

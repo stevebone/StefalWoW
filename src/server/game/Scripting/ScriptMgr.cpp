@@ -1787,14 +1787,14 @@ OutdoorPvP* ScriptMgr::CreateOutdoorPvP(uint32 scriptId, Map* map)
     return tmpscript->GetOutdoorPvP(map);
 }
 
-Trinity::ChatCommands::ChatCommandTable ScriptMgr::GetChatCommands()
+std::vector<Trinity::ChatCommands::ChatCommandBuilder> ScriptMgr::GetChatCommands()
 {
-    Trinity::ChatCommands::ChatCommandTable table;
+    std::vector<Trinity::ChatCommands::ChatCommandBuilder> table;
 
     FOR_SCRIPTS(CommandScript, itr, end)
     {
-        Trinity::ChatCommands::ChatCommandTable cmds = itr->second->GetCommands();
-        std::move(cmds.begin(), cmds.end(), std::back_inserter(table));
+        std::span<Trinity::ChatCommands::ChatCommandBuilder const> cmds = itr->second->GetCommands();
+        table.insert(table.end(), cmds.begin(), cmds.end());
     }
 
     return table;
@@ -2007,6 +2007,11 @@ void ScriptMgr::OnPlayerKilledByCreature(Creature* killer, Player* killed)
     FOREACH_SCRIPT(PlayerScript)->OnPlayerKilledByCreature(killer, killed);
 }
 
+void ScriptMgr::OnPlayerDeath(Player* player)
+{
+    FOREACH_SCRIPT(PlayerScript)->OnPlayerDeath(player);
+}
+
 void ScriptMgr::OnPlayerLevelChanged(Player* player, uint8 oldLevel)
 {
     FOREACH_SCRIPT(PlayerScript)->OnLevelChanged(player, oldLevel);
@@ -2017,9 +2022,9 @@ void ScriptMgr::OnPlayerFreeTalentPointsChanged(Player* player, uint32 points)
     FOREACH_SCRIPT(PlayerScript)->OnFreeTalentPointsChanged(player, points);
 }
 
-void ScriptMgr::OnPlayerTalentsReset(Player* player, bool noCost)
+void ScriptMgr::OnPlayerTalentsReset(Player* player, bool involuntarily)
 {
-    FOREACH_SCRIPT(PlayerScript)->OnTalentsReset(player, noCost);
+    FOREACH_SCRIPT(PlayerScript)->OnTalentsReset(player, involuntarily);
 }
 
 void ScriptMgr::OnPlayerMoneyChanged(Player* player, int64& amount)
@@ -2135,6 +2140,11 @@ void ScriptMgr::OnPlayerBindToInstance(Player* player, Difficulty difficulty, ui
 void ScriptMgr::OnPlayerUpdateZone(Player* player, uint32 newZone, uint32 newArea)
 {
     FOREACH_SCRIPT(PlayerScript)->OnUpdateZone(player, newZone, newArea);
+}
+
+void ScriptMgr::OnPhaseChange(Player* player)
+{
+    FOREACH_SCRIPT(PlayerScript)->OnPhaseChange(player);
 }
 
 void ScriptMgr::OnQuestStatusChange(Player* player, uint32 questId)
@@ -2906,6 +2916,10 @@ void PlayerScript::OnPlayerKilledByCreature(Creature* /*killer*/, Player* /*kill
 {
 }
 
+void PlayerScript::OnPlayerDeath(Player* /*player*/)
+{
+}
+
 void PlayerScript::OnLevelChanged(Player* /*player*/, uint8 /*oldLevel*/)
 {
 }
@@ -2914,7 +2928,7 @@ void PlayerScript::OnFreeTalentPointsChanged(Player* /*player*/, uint32 /*points
 {
 }
 
-void PlayerScript::OnTalentsReset(Player* /*player*/, bool /*noCost*/)
+void PlayerScript::OnTalentsReset(Player* /*player*/, bool /*involuntarily*/)
 {
 }
 
@@ -3007,6 +3021,10 @@ void PlayerScript::OnBindToInstance(Player* /*player*/, Difficulty /*difficulty*
 }
 
 void PlayerScript::OnUpdateZone(Player* /*player*/, uint32 /*newZone*/, uint32 /*newArea*/)
+{
+}
+
+void PlayerScript::OnPhaseChange(Player* /*player*/)
 {
 }
 

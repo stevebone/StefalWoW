@@ -1,0 +1,96 @@
+/*
+ * This file is part of the Stefal WoW Project.
+ * It is designed to work exclusively with the TrinityCore framework.
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 2 of the License, or (at your
+ * option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ *
+ * This code is provided for personal and educational use within the
+ * Stefal WoW Project. It is not intended for commercial distribution,
+ * resale, or any form of monetization.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "Followship_bots_spells_handler.h"
+
+extern std::vector<FSBSpellDefinition> MageSpellsTable;
+
+enum FSB_MAGE_SPECIAL_SPELLS
+{
+    SPELL_MAGE_REMOVE_CURSE = 475,
+    SPELL_MAGE_GREATER_INVIS = 110959, //NYI
+};
+
+enum FSB_MAGE_PORTAL_SPELLS
+{
+    SPELL_MAGE_PORTAL_STORMWIND = 129467
+};
+
+enum FSB_MAGE_BUFF_SPELLS
+{
+    SPELL_MAGE_ARCANE_INTELLECT = 1459
+};
+
+enum FSB_MAGE_COMBAT_SPELLS
+{
+    // FROST
+    SPELL_MAGE_FROSTBOLT = 116, //20792,//12675, //12675, //164378
+    SPELL_MAGE_FROST_NOVA = 122,
+    SPELL_MAGE_CONE_OF_COLD = 120, //162120, //90052,
+    SPELL_MAGE_ICE_BLOCK = 45438,
+    SPELL_MAGE_ICE_LANCE = 30455, //284871,
+    SPELL_MAGE_BLIZZARD = 50715, //29458, //44178,
+    SPELL_MAGE_FROZEN_ORB = 84714,
+    SPELL_MAGE_FLURRY = 44614, //284858,
+    SPELL_MAGE_FROSTFIRE_BOLT = 431044,
+    SPELL_MAGE_RAY_FROST = 205021,
+    SPELL_MAGE_WATER_ELEMENTAL = 31687,
+    SPELL_MAGE_ICE_NOVA = 157997,
+    SPELL_MAGE_RING_FROST = 113724,
+
+    SPELL_MAGE_ICE_BARRIER = 11426,
+
+    // FIRE
+    SPELL_MAGE_FIREBALL = 133, //11921, //11921,
+    SPELL_MAGE_PYROBLAST = 11366, //120670, //,
+    SPELL_MAGE_FIRE_BLAST = 108853, //13339
+    SPELL_MAGE_COMBUSTION = 190319,
+    SPELL_MAGE_FLAMESTRIKE = 20827, //2120,
+    SPELL_MAGE_BLAZING_BARRIER = 235313,
+    SPELL_MAGE_SCORCH = 2948, //13878,
+    SPELL_MAGE_PHOENIX_FLAMES = 257541, //420182,
+    SPELL_MAGE_METEOR = 153561, //270264,
+    SPELL_MAGE_DRAGON_BREATH = 31661,
+
+    // ARCANE
+    SPELL_MAGE_ARCANE_MISSILES = 15791, //5143
+    SPELL_MAGE_ARCANE_EXPLOSION = 1449, //34517
+    SPELL_MAGE_ARCANE_BLAST = 30451, //35927
+    SPELL_MAGE_ARCANE_BARRAGE = 44425, //50273
+    SPELL_MAGE_ARCANE_PULSE = 1241462,
+    SPELL_MAGE_ARCANE_SURGE = 365350,
+    SPELL_MAGE_ARCANE_TOUCH_MAGI = 321507,
+    SPELL_MAGE_ARCANE_SUPERNOVA = 157980,
+
+    SPELL_MAGE_SPELL_STEAL = 30449,
+    SPELL_MAGE_TIME_WARP = 80353,
+    SPELL_MAGE_EVOCATION = 12051,
+
+    SPELL_MAGE_PRESENCE_MIND = 205025,
+    SPELL_MAGE_PRISMATIC_BARRIER = 1239672,
+
+    SPELL_MAGE_BLINK = 1953,
+    SPELL_MAGE_POLYMORPH = 118,
+    SPELL_MAGE_COUNTERSPELL = 2139
+};

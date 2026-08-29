@@ -1,3 +1,25 @@
+/*
+ * This file is part of the Stefal WoW Project.
+ * It is designed to work exclusively with the TrinityCore framework.
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 2 of the License, or (at your
+ * option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ *
+ * This code is provided for personal and educational use within the
+ * Stefal WoW Project. It is not intended for commercial distribution,
+ * resale, or any form of monetization.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #pragma once
 
 #include "Followship_bots_spells_handler.h"
@@ -7,7 +29,10 @@ extern std::vector<FSBSpellDefinition> PaladinSpellsTable;
 enum FSB_PALADIN_SPECIAL_SPELLS
 {
     SPELL_PALADIN_CHARGER = 23214,
-    SPELL_PALADIN_WARHORSE = 13819
+    SPELL_PALADIN_WARHORSE = 13819,
+
+    SPELL_PALADIN_REDEMPTION = 7328,
+    SPELL_PALADIN_CLEANSE = 4987,
 };
 
 enum FSB_PALADIN_SELF_BUFFS
@@ -39,15 +64,18 @@ enum FSB_PALADIN_COMBAT_SPELLS
     // HEALER
     SPELL_PALADIN_LAY_ON_HANDS = 633,
     SPELL_PALADIN_WORD_OF_GLORY = 150631,
-    SPELL_PALADIN_HOLY_LIGHT = 295698, //82326,
+    SPELL_PALADIN_HOLY_LIGHT = 82326, //295698,
     SPELL_PALADIN_SEAL_OF_THE_CRUSADER = 416771,
 
     SPELL_PALADIN_DIVINE_PROTECTION = 498,
 
-    SPELL_PALADIN_HOLY_SHOCK = 36340, //20473,
+    SPELL_PALADIN_HOLY_SHOCK = 20473,//36340,
+    SPELL_PALADIN_HOLY_PRISM = 114165,
 
-    SPELL_PALADIN_REDEMPTION = 7328,
-    SPELL_PALADIN_CLEANSE = 4987,
+    SPELL_PALADIN_BEACON_OF_LIGHT = 53563,
+    SPELL_PALADIN_LIGHT_OF_DAWN = 185984,
+
+
 
 
     // DPS
@@ -62,9 +90,11 @@ enum FSB_PALADIN_COMBAT_SPELLS
 
     SPELL_PALADIN_AVENGING_WRATH = 231895,
 
+    SPELL_PALADIN_REPENTANCE = 20066,
+
     // PROTECTION
     SPELL_PALADIN_AVENGER_SHIELD = 31935,
-    SPELL_PALADIN_HOLY_SHIELD = 31904,
+    SPELL_PALADIN_HOLY_SHIELD = 32777, //31904,
     SPELL_PALADIN_BLESSED_HAMMER = 204301,
     SPELL_PALADIN_HAMMER_OF_THE_RIGHT = 53595,
     SPELL_PALADIN_REBUKE = 96231,
@@ -75,7 +105,7 @@ enum FSB_PALADIN_COMBAT_SPELLS
     SPELL_PALADIN_HAND_OF_RECKONING = 62124,
 
     
-    SPELL_PALADIN_FLASH_OF_LIGHT = 57766,
+    SPELL_PALADIN_FLASH_OF_LIGHT = 19750, //57766,
 
     SPELL_PALADIN_DIVINE_SHIELD = 642
 };

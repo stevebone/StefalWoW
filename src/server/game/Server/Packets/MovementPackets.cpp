@@ -175,10 +175,7 @@ ByteBuffer& operator>>(ByteBuffer& data, MovementInfo& movementInfo)
     data >> movementInfo.gravityModifier;
 
     for (uint32 i = 0; i < removeMovementForcesCount; ++i)
-    {
-        ObjectGuid guid;
-        data >> guid;
-    }
+        data >> WorldPackets::Ignored<ObjectGuid>;
 
     data >> WorldPackets::OptionalInit(movementInfo.standingOnGameObjectGUID);
     bool hasTransport = data.ReadBit();
@@ -781,6 +778,7 @@ WorldPacket const* NewWorld::Write()
     _worldPacket << uint32(Reason);
     _worldPacket << MovementOffset;
     _worldPacket << int32(Counter);
+    _worldPacket << uint64(InstanceID);
 
     return &_worldPacket;
 }
@@ -1198,4 +1196,122 @@ void MoveInitActiveMoverComplete::Read()
 {
     _worldPacket >> Ticks;
 }
+
+WorldPacket const* MoveApplyInertia::Write()
+{
+    _worldPacket << MoverGUID;
+    _worldPacket << uint32(SequenceIndex);
+    _worldPacket << int32(InertiaID);
+    _worldPacket << LifetimeMs;
+
+    return &_worldPacket;
 }
+
+WorldPacket const* MoveRemoveInertia::Write()
+{
+    _worldPacket << MoverGUID;
+    _worldPacket << uint32(SequenceIndex);
+    _worldPacket << int32(InertiaID);
+
+    return &_worldPacket;
+}
+
+void MoveApplyInertiaAck::Read()
+{
+    _worldPacket >> Ack;
+    _worldPacket >> InertiaID;
+    _worldPacket >> LifetimeMs;
+}
+
+void MoveRemoveInertiaAck::Read()
+{
+    _worldPacket >> Ack;
+    _worldPacket >> InertiaID;
+}
+
+WorldPacket const* MoveUpdateApplyInertia::Write()
+{
+    _worldPacket << *Status;
+    _worldPacket << int32(InertiaID);
+    _worldPacket << LifetimeMs;
+
+    return &_worldPacket;
+}
+
+WorldPacket const* MoveUpdateRemoveInertia::Write()
+{
+    _worldPacket << *Status;
+    _worldPacket << int32(InertiaID);
+
+    return &_worldPacket;
+}
+
+// StefalWoW
+WorldPacket const* MoveAddImpulse::Write()
+{
+    _worldPacket << MoverGUID;
+    _worldPacket << SequenceIndex;
+    _worldPacket << Direction;
+
+    return &_worldPacket;
+}
+
+void MoveAddImpulseAck::Read()
+{
+    _worldPacket >> Ack;
+}
+
+WorldPacket const* MoveUpdateAddImpulse::Write()
+{
+    _worldPacket << *Status;
+
+    return &_worldPacket;
+}
+
+WorldPacket const* MoveSetCanDrive::Write()
+{
+    _worldPacket << MoverGUID;
+    _worldPacket << SequenceIndex;
+    _worldPacket << int32(DriveCapabilityRecID);
+
+    return &_worldPacket;
+}
+
+WorldPacket const* MoveUnsetCanDrive::Write()
+{
+    _worldPacket << MoverGUID;
+    _worldPacket << SequenceIndex;
+
+    return &_worldPacket;
+}
+
+void MoveSetCanDriveAck::Read()
+{
+    _worldPacket >> Ack;
+    _worldPacket >> DriveCapabilityRecID;
+}
+
+void MoveStartDriveForward::Read()
+{
+    _worldPacket >> Status;
+}
+
+WorldPacket const* AdjustSplineDuration::Write()
+{
+    _worldPacket << MoverGUID;
+    _worldPacket << Scale;
+
+    return &_worldPacket;
+}
+
+WorldPacket const* WorldPackets::Movement::SetAdvFlyingMinMaxSpeeds::Write()
+{
+    _worldPacket << uint32(SequenceIndex);
+    _worldPacket << float(Speed);
+    _worldPacket << float(MaxSpeed);
+
+    return &_worldPacket;
+}
+// StefalWoW
+}
+

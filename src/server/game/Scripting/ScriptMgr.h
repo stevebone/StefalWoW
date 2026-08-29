@@ -537,7 +537,7 @@ class TC_GAME_API CommandScript : public ScriptObject
         ~CommandScript();
 
         // Should return a pointer to a valid command table (ChatCommand array) to be used by ChatHandler.
-        virtual std::vector<Trinity::ChatCommands::ChatCommandBuilder> GetCommands() const = 0;
+        virtual std::span<Trinity::ChatCommands::ChatCommandBuilder const> GetCommands() const = 0;
 };
 
 class TC_GAME_API WeatherScript : public ScriptObject
@@ -707,6 +707,9 @@ class TC_GAME_API PlayerScript : public ScriptObject
         // Called when a player is killed by a creature
         virtual void OnPlayerKilledByCreature(Creature* killer, Player* killed);
 
+        // Called when a player dies (any cause)
+        virtual void OnPlayerDeath(Player* player);
+
         // Called when a player's level changes (after the level is applied)
         virtual void OnLevelChanged(Player* player, uint8 oldLevel);
 
@@ -714,7 +717,7 @@ class TC_GAME_API PlayerScript : public ScriptObject
         virtual void OnFreeTalentPointsChanged(Player* player, uint32 points);
 
         // Called when a player's talent points are reset (right before the reset is done)
-        virtual void OnTalentsReset(Player* player, bool noCost);
+        virtual void OnTalentsReset(Player* player, bool involuntarily);
 
         // Called when a player's money is modified (before the modification is done)
         virtual void OnMoneyChanged(Player* player, int64& amount);
@@ -779,6 +782,9 @@ class TC_GAME_API PlayerScript : public ScriptObject
 
         // Called when a player switches to a new zone
         virtual void OnUpdateZone(Player* player, uint32 newZone, uint32 newArea);
+
+        // Called when a player's phase changes
+        virtual void OnPhaseChange(Player* player);
 
         // Called when a player changes to a new map (after moving to new map)
         virtual void OnMapChanged(Player* player);
@@ -1216,9 +1222,10 @@ class TC_GAME_API ScriptMgr
         void OnPVPKill(Player* killer, Player* killed);
         void OnCreatureKill(Player* killer, Creature* killed);
         void OnPlayerKilledByCreature(Creature* killer, Player* killed);
+        void OnPlayerDeath(Player* player);
         void OnPlayerLevelChanged(Player* player, uint8 oldLevel);
         void OnPlayerFreeTalentPointsChanged(Player* player, uint32 newPoints);
-        void OnPlayerTalentsReset(Player* player, bool noCost);
+        void OnPlayerTalentsReset(Player* player, bool involuntarily);
         void OnPlayerMoneyChanged(Player* player, int64& amount);
         void OnPlayerMoneyLimit(Player* player, int64 amount);
         void OnGivePlayerXP(Player* player, uint32& amount, Unit* victim);
@@ -1242,6 +1249,7 @@ class TC_GAME_API ScriptMgr
         void OnPlayerSave(Player* player);
         void OnPlayerBindToInstance(Player* player, Difficulty difficulty, uint32 mapid, bool permanent, uint8 extendState);
         void OnPlayerUpdateZone(Player* player, uint32 newZone, uint32 newArea);
+        void OnPhaseChange(Player* player);
         void OnQuestStatusChange(Player* player, uint32 questId);
         void OnPlayerRepop(Player* player);
         void OnMovieComplete(Player* player, uint32 movieId);

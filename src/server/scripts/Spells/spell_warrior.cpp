@@ -37,55 +37,58 @@
 
 enum WarriorSpells
 {
+    SPELL_WARRIOR_ALWAYS_ANGRY                      = 280270,
     SPELL_WARRIOR_AVATAR                            = 107574,
     SPELL_WARRIOR_BLADESTORM                        = 227847,
     SPELL_WARRIOR_BLADESTORM_PERIODIC_WHIRLWIND     = 50622,
     SPELL_WARRIOR_BLOODSURGE_ENERGIZE               = 384362,
     SPELL_WARRIOR_BLOODTHIRST_HEAL                  = 117313,
-    SPELL_WARRIOR_BOUNDING_STRIDE_AURA              = 202163,
     SPELL_WARRIOR_BOUNDING_STRIDE                   = 202164,
-    SPELL_WARRIOR_CHARGE                            = 34846,
+    SPELL_WARRIOR_BOUNDING_STRIDE_AURA              = 202163,
+    SPELL_WARRIOR_BRUTAL_FINISH_BUFF                = 446918,
+    SPELL_WARRIOR_BRUTAL_FINISH_TALENT              = 446085,
     SPELL_WARRIOR_CHARGE_DROP_FIRE_PERIODIC         = 126661,
     SPELL_WARRIOR_CHARGE_EFFECT                     = 198337,
     SPELL_WARRIOR_CHARGE_ROOT_EFFECT                = 105771,
     SPELL_WARRIOR_COLD_STEEL_HOT_BLOOD_TALENT       = 383959,
     SPELL_WARRIOR_COLOSSUS_SMASH                    = 167105,
     SPELL_WARRIOR_COLOSSUS_SMASH_AURA               = 208086,
+    SPELL_WARRIOR_CRASHING_THUNDER                  = 436707,
     SPELL_WARRIOR_CRITICAL_THINKING_ENERGIZE        = 392776,
     SPELL_WARRIOR_DEFT_EXPERIENCE                   = 383295,
-    SPELL_WARRIOR_EXECUTE                           = 20647,
     SPELL_WARRIOR_ENRAGE                            = 184362,
+    SPELL_WARRIOR_EXECUTE                           = 20647,
     SPELL_WARRIOR_FRENZIED_ENRAGE                   = 383848,
-    SPELL_WARRIOR_FRENZY_TALENT                     = 335077,
-    SPELL_WARRIOR_FRENZY_BUFF                       = 335082,
     SPELL_WARRIOR_FRESH_MEAT_DEBUFF                 = 316044,
     SPELL_WARRIOR_FRESH_MEAT_TALENT                 = 215568,
     SPELL_WARRIOR_FROTHING_BERSERKER_ENERGIZE       = 392793,
     SPELL_WARRIOR_FUELED_BY_VIOLENCE_HEAL           = 383104,
     SPELL_WARRIOR_GLYPH_OF_THE_BLAZING_TRAIL        = 123779,
-    SPELL_WARRIOR_GLYPH_OF_HEROIC_LEAP              = 159708,
-    SPELL_WARRIOR_GLYPH_OF_HEROIC_LEAP_BUFF         = 133278,
     SPELL_WARRIOR_GUSHING_WOUND                     = 385042,
-    SPELL_WARRIOR_HEROIC_LEAP_JUMP                  = 178368,
-    SPELL_WARRIOR_HEROIC_LEAP_DAMAGE                = 52174,
     SPELL_WARRIOR_IGNORE_PAIN                       = 190456,
+    SPELL_WARRIOR_IMPENDING_VICTORY                 = 202168,
+    SPELL_WARRIOR_IMPENDING_VICTORY_HEAL            = 202166,
+    SPELL_WARRIOR_IMPROVED_EXECUTE_ARMS             = 316405,
     SPELL_WARRIOR_IMPROVED_RAGING_BLOW              = 383854,
     SPELL_WARRIOR_IMPROVED_WHIRLWIND                = 12950,
-    SPELL_WARRIOR_INTERVENE_CHARGE                  = 316531,
     SPELL_WARRIOR_INTERVENE_AURA                    = 147833,
+    SPELL_WARRIOR_INTERVENE_CHARGE                  = 316531,
     SPELL_WARRIOR_INTIMIDATING_SHOUT_MENACE_AOE     = 316595,
     SPELL_WARRIOR_INVIGORATING_FURY                 = 385174,
     SPELL_WARRIOR_INVIGORATING_FURY_TALENT          = 383468,
     SPELL_WARRIOR_IN_FOR_THE_KILL                   = 248621,
     SPELL_WARRIOR_IN_FOR_THE_KILL_HASTE             = 248622,
-    SPELL_WARRIOR_IMPENDING_VICTORY                 = 202168,
-    SPELL_WARRIOR_IMPENDING_VICTORY_HEAL            = 202166,
-    SPELL_WARRIOR_IMPROVED_HEROIC_LEAP              = 157449,
-    SPELL_WARRIOR_MORTAL_STRIKE                     = 12294,
+    SPELL_WARRIOR_KILL_OR_BE_KILLED_COOLDOWN        = 1265598,
+    SPELL_WARRIOR_KILL_OR_BE_KILLED_FULFILLED       = 1265645,
+    SPELL_WARRIOR_KILL_OR_BE_KILLED_INSTAKILL       = 1265646,
+    SPELL_WARRIOR_KILL_OR_BE_KILLED_PROC            = 1265600,
+    SPELL_WARRIOR_KILL_OR_BE_KILLED_TARGET          = 1265641,
+    SPELL_WARRIOR_MEAT_CLEAVER_TALENT               = 280392,
     SPELL_WARRIOR_MORTAL_WOUNDS                     = 115804,
     SPELL_WARRIOR_OVERPOWER                         = 7384,
     SPELL_WARRIOR_OVERPOWERING_FINISH               = 400205,
     SPELL_WARRIOR_POWERFUL_ENRAGE                   = 440277,
+    SPELL_WARRIOR_RAMPAGING_RUIN                    = 1265357,
     SPELL_WARRIOR_RALLYING_CRY                      = 97463,
     SPELL_WARRIOR_RAVAGER                           = 228920,
     SPELL_WARRIOR_RECKLESSNESS                      = 1719,
@@ -97,27 +100,28 @@ enum WarriorSpells
     SPELL_WARRIOR_SHIELD_SLAM                       = 23922,
     SPELL_WARRIOR_SHIELD_SLAM_MARKER                = 224324,
     SPELL_WARRIOR_SHIELD_WALL                       = 871,
-    SPELL_WARRIOR_SHOCKWAVE                         = 46968,
     SPELL_WARRIOR_SHOCKWAVE_STUN                    = 132168,
     SPELL_WARRIOR_SLAUGHTERING_STRIKES              = 388004,
     SPELL_WARRIOR_SLAUGHTERING_STRIKES_BUFF         = 393931,
     SPELL_WARRIOR_STOICISM                          = 70845,
-    SPELL_WARRIOR_STORM_BOLT_STUN                   = 132169,
     SPELL_WARRIOR_STORM_BOLTS                       = 436162,
-    SPELL_WARRIOR_STRATEGIST                        = 384041,
+    SPELL_WARRIOR_STORM_BOLT_STUN                   = 132169,
     SPELL_WARRIOR_SUDDEN_DEATH                      = 29725,
     SPELL_WARRIOR_SUDDEN_DEATH_BUFF                 = 52437,
+    SPELL_WARRIOR_SURGE_OF_ADRENALINE_TALENT        = 1265359,
+    SPELL_WARRIOR_SURGE_OF_ADRENALINE_PROC          = 1265560,
     SPELL_WARRIOR_SWEEPING_STRIKES_EXTRA_ATTACK_1   = 12723,
     SPELL_WARRIOR_SWEEPING_STRIKES_EXTRA_ATTACK_2   = 26654,
     SPELL_WARRIOR_TACTICIAN_ACTION_BUTTON_GLOW      = 199854,
     SPELL_WARRIOR_TAUNT                             = 355,
+    SPELL_WARRIOR_THUNDER_BLAST                     = 435615,
     SPELL_WARRIOR_THUNDER_CLAP_SLOW                 = 435203,
-    SPELL_WARRIOR_TITANIC_RAGE                      = 394329,
     SPELL_WARRIOR_TRAUMA_EFFECT                     = 215537,
     SPELL_WARRIOR_VICIOUS_CONTEMPT                  = 383885,
     SPELL_WARRIOR_VICTORIOUS                        = 32216,
     SPELL_WARRIOR_VICTORY_RUSH_HEAL                 = 118779,
     SPELL_WARRIOR_WARBREAKER                        = 262161,
+    SPELL_WARRIOR_WARRIORS_WRATH                    = 21887,
     SPELL_WARRIOR_WHIRLWIND_CLEAVE_AURA             = 85739,
     SPELL_WARRIOR_WHIRLWIND_ENERGIZE                = 280715,
     SPELL_WARRIOR_WRATH_AND_FURY                    = 392936,
@@ -126,6 +130,11 @@ enum WarriorSpells
 enum WarriorMisc
 {
     SPELL_VISUAL_BLAZING_CHARGE = 26423
+};
+
+enum WarriorSpellLabels
+{
+    SPELL_LABEL_THUNDER_BLAST   = 3159
 };
 
 static void ApplyWhirlwindCleaveAura(Player* caster, Difficulty difficulty, Spell const* triggeringSpell)
@@ -146,7 +155,7 @@ class spell_warr_anger_management_proc : public AuraScript
 {
     static bool ValidateProc(AuraEffect const* aurEff, ProcEventInfo const& eventInfo, ChrSpecialization spec)
     {
-        if (aurEff->GetAmount() == 0)
+        if (aurEff->GetAmountAsInt() == 0)
             return false;
 
         Player const* player = eventInfo.GetActor()->ToPlayer();
@@ -202,7 +211,7 @@ class spell_warr_anger_management_proc : public AuraScript
     void HandleProc(AuraEffect const* aurEff, ProcEventInfo const& eventInfo, std::span<int32 const> spellIds) const
     {
         int32 rageCost = *eventInfo.GetProcSpell()->GetPowerTypeCostAmount(POWER_RAGE) / 10; // db values are 10x the actual rage cost
-        float multiplier  = static_cast<float>(rageCost) / static_cast<float>(aurEff->GetAmount());
+        SpellEffectValue multiplier  = static_cast<float>(rageCost) / aurEff->GetAmount();
         Milliseconds cooldownMod = -duration_cast<Milliseconds>(multiplier * CooldownReduction);
 
         for (int32 spellId : spellIds)
@@ -290,8 +299,8 @@ class spell_warr_bloodsurge : public AuraScript
         Trinity::UnitWorker worker(caster, work);
         Cell::VisitAllObjects(caster, worker, 50.0f);
 
-        float chance = std::sqrt(rends) * aurEff->GetAmount();
-        if (!roll_chance_f(chance))
+        SpellEffectValue chance = std::sqrt(rends) * aurEff->GetAmount();
+        if (!roll_chance(chance))
             return;
 
         caster->CastSpell(caster, SPELL_WARRIOR_BLOODSURGE_ENERGIZE, CastSpellExtraArgsInit{
@@ -330,6 +339,94 @@ class spell_warr_bloodthirst : public SpellScript
     void Register() override
     {
         OnEffectHitTarget += SpellEffectFn(spell_warr_bloodthirst::CastHeal, EFFECT_0, SPELL_EFFECT_SCHOOL_DAMAGE);
+    }
+};
+
+// 23881 - Bloodthirst
+// 335096 - Bloodbath
+class spell_warr_bloodthirst_enrage : public SpellScript
+{
+    bool Validate(SpellInfo const* spellInfo) override
+    {
+        return ValidateSpellInfo({ SPELL_WARRIOR_FRESH_MEAT_TALENT, SPELL_WARRIOR_FRESH_MEAT_DEBUFF })
+            && ValidateSpellEffect({{ spellInfo->Id, EFFECT_2 }});
+    }
+
+    enum class EnrageResult
+    {
+        No,
+        Yes,
+        FreshMeat
+    };
+
+    EnrageResult CheckEnrageProc() const
+    {
+        Unit const* caster = GetCaster();
+        Unit const* hitUnit = GetHitUnit();
+
+        if (hitUnit != GetExplTargetUnit())
+            return EnrageResult::No;
+
+        if (caster->HasAura(SPELL_WARRIOR_FRESH_MEAT_TALENT))
+            if (!hitUnit->HasAura(SPELL_WARRIOR_FRESH_MEAT_DEBUFF, caster->GetGUID()))
+                return EnrageResult::FreshMeat;
+
+        if (roll_chance(GetEffectInfo(EFFECT_2).CalcValue(caster)))
+            return EnrageResult::Yes;
+
+        return EnrageResult::No;
+    }
+
+    void Enrage(SpellEffIndex /*effIndex*/) const
+    {
+        EnrageResult procResult = CheckEnrageProc();
+        if (procResult == EnrageResult::No)
+            return;
+
+        Unit* caster = GetCaster();
+
+        caster->CastSpell(nullptr, SPELL_WARRIOR_ENRAGE, CastSpellExtraArgsInit{
+            .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR,
+            .TriggeringSpell = GetSpell()
+        });
+
+        // Fresh Meat talent handling
+        if (procResult == EnrageResult::FreshMeat)
+            caster->CastSpell(GetHitUnit(), SPELL_WARRIOR_FRESH_MEAT_DEBUFF, CastSpellExtraArgsInit{
+                .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR
+            });
+    }
+
+    void Register() override
+    {
+        OnEffectHitTarget += SpellEffectFn(spell_warr_bloodthirst_enrage::Enrage, EFFECT_0, SPELL_EFFECT_SCHOOL_DAMAGE);
+    }
+};
+
+// 446085 - Brutal Finish (attached to 446035 - Bladestorm)
+class spell_warr_brutal_finish : public AuraScript
+{
+    bool Validate(SpellInfo const* /*spellInfo*/) override
+    {
+        return ValidateSpellInfo({ SPELL_WARRIOR_BRUTAL_FINISH_TALENT, SPELL_WARRIOR_BRUTAL_FINISH_BUFF });
+    }
+
+    bool Load() override
+    {
+        return GetUnitOwner()->HasAura(SPELL_WARRIOR_BRUTAL_FINISH_TALENT);
+    }
+
+    void HandleEffectRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/) const
+    {
+        Unit* caster = GetTarget();
+        caster->CastSpell(caster, SPELL_WARRIOR_BRUTAL_FINISH_BUFF, CastSpellExtraArgsInit{
+            .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR
+        });
+    }
+
+    void Register() override
+    {
+        AfterEffectRemove += AuraEffectRemoveFn(spell_warr_brutal_finish::HandleEffectRemove, EFFECT_2, SPELL_AURA_DISABLE_CASTING_EXCEPT_ABILITIES, AURA_EFFECT_HANDLE_REAL);
     }
 };
 
@@ -577,7 +674,7 @@ class spell_warr_deft_experience : public SpellScript
         Unit const* caster = GetCaster();
         if (Aura* enrageAura = caster->GetAura(SPELL_WARRIOR_ENRAGE))
             if (AuraEffect const* aurEff = caster->GetAuraEffect(SPELL_WARRIOR_DEFT_EXPERIENCE, EFFECT_1))
-                enrageAura->SetDuration(enrageAura->GetDuration() + aurEff->GetAmount());
+                enrageAura->SetDuration(enrageAura->GetDuration() + (aurEff->GetAmountAsInt() * (IsHitCrit() ? 2 : 1)));
     }
 
     void Register() override
@@ -598,7 +695,7 @@ class spell_warr_devastator : public AuraScript
     {
         if (GetTarget()->GetSpellHistory()->HasCooldown(SPELL_WARRIOR_SHIELD_SLAM))
         {
-            if (roll_chance_i(GetEffectInfo(EFFECT_1).CalcValue()))
+            if (roll_chance(GetEffectInfo(EFFECT_1).CalcValue()))
             {
                 GetTarget()->GetSpellHistory()->ResetCooldown(SPELL_WARRIOR_SHIELD_SLAM, true);
                 GetTarget()->CastSpell(GetTarget(), SPELL_WARRIOR_SHIELD_SLAM_MARKER, TRIGGERED_IGNORE_CAST_IN_PROGRESS);
@@ -615,11 +712,6 @@ class spell_warr_devastator : public AuraScript
 // 184361 - Enrage
 class spell_warr_enrage_proc : public AuraScript
 {
-    bool Validate(SpellInfo const* /*spellInfo*/) override
-    {
-        return ValidateSpellInfo({ SPELL_WARRIOR_FRESH_MEAT_TALENT, SPELL_WARRIOR_FRESH_MEAT_DEBUFF });
-    }
-
     static bool CheckRampageProc(AuraScript const&, AuraEffect const* /*aurEff*/, ProcEventInfo const& eventInfo)
     {
         SpellInfo const* spellInfo = eventInfo.GetSpellInfo();
@@ -627,39 +719,6 @@ class spell_warr_enrage_proc : public AuraScript
             return false;
 
         return true;
-    }
-
-    static bool IsBloodthirst(SpellInfo const* spellInfo)
-    {
-        // Bloodthirst/Bloodbath
-        return spellInfo->IsAffected(SPELLFAMILY_WARRIOR, { 0x0, 0x400 });
-    }
-
-    static bool CheckBloodthirstProc(AuraScript const&, AuraEffect const* aurEff, ProcEventInfo const& eventInfo)
-    {
-        SpellInfo const* spellInfo = eventInfo.GetSpellInfo();
-        if (!spellInfo || !IsBloodthirst(spellInfo))
-            return false;
-
-        // Fresh Meat talent handling
-        if (Unit const* actor = eventInfo.GetActor())
-        {
-            if (actor->HasAura(SPELL_WARRIOR_FRESH_MEAT_TALENT))
-            {
-                Spell const* procSpell = eventInfo.GetProcSpell();
-                if (!procSpell)
-                    return false;
-
-                Unit const* target = procSpell->m_targets.GetUnitTarget();
-                if (!target)
-                    return false;
-
-                if (!target->HasAura(SPELL_WARRIOR_FRESH_MEAT_DEBUFF, actor->GetGUID()))
-                    return true;
-            }
-        }
-
-        return roll_chance_i(aurEff->GetAmount());
     }
 
     void HandleProc(ProcEventInfo const& eventInfo)
@@ -672,45 +731,133 @@ class spell_warr_enrage_proc : public AuraScript
             .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR,
             .TriggeringSpell = eventInfo.GetProcSpell()
         });
-
-        // Fresh Meat talent handling
-        if (auraTarget->HasAura(SPELL_WARRIOR_FRESH_MEAT_TALENT))
-        {
-            Spell const* procSpell = eventInfo.GetProcSpell();
-            if (!procSpell)
-                return;
-
-            if (!IsBloodthirst(procSpell->GetSpellInfo()))
-                return;
-
-            if (Unit* bloodthirstTarget = procSpell->m_targets.GetUnitTarget())
-                if (!bloodthirstTarget->HasAura(SPELL_WARRIOR_FRESH_MEAT_DEBUFF, auraTarget->GetGUID()))
-                    auraTarget->CastSpell(bloodthirstTarget, SPELL_WARRIOR_FRESH_MEAT_DEBUFF, CastSpellExtraArgsInit{
-                        .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR
-                    });
-        }
     }
 
     void Register() override
     {
         DoCheckEffectProc += AuraCheckEffectProcFn(spell_warr_enrage_proc::CheckRampageProc, EFFECT_0, SPELL_AURA_DUMMY);
-        DoCheckEffectProc += AuraCheckEffectProcFn(spell_warr_enrage_proc::CheckBloodthirstProc, EFFECT_1, SPELL_AURA_DUMMY);
         OnProc += AuraProcFn(spell_warr_enrage_proc::HandleProc);
     }
 };
 
+// 163201 - Execute (Arms, Protection)
+// 281000 - Massacre
+// 330334 - Condemn (Venthyr) (Arms)
+// 317349 - Condemn (Venthyr) (Protection)
+class spell_warr_execute : public SpellScript
+{
+    bool Validate(SpellInfo const* spellInfo) override
+    {
+        return ValidateSpellEffect({
+            { SPELL_WARRIOR_SUDDEN_DEATH, EFFECT_0 },
+            { spellInfo->Id, EFFECT_0 }
+        }) && ValidateSpellInfo({
+            SPELL_WARRIOR_SUDDEN_DEATH_BUFF,
+            spellInfo->GetEffect(EFFECT_0).TriggerSpell
+        });
+    }
+
+    Optional<int32> GetSuddenDeathRageCost() const
+    {
+        if (Aura* suddenDeathAura = GetCaster()->GetAura(SPELL_WARRIOR_SUDDEN_DEATH_BUFF))
+            if (GetSpell()->m_appliedMods.contains(suddenDeathAura))
+                if (AuraEffect const* suddenDeathTalentAura = GetCaster()->GetAuraEffect(SPELL_WARRIOR_SUDDEN_DEATH, EFFECT_0))
+                    return suddenDeathTalentAura->GetAmountAsInt() * 10;
+
+        return {};
+    }
+
+    std::pair<int32, int32> GetRageCost() const
+    {
+        for (SpellPowerEntry const* powerCost : GetSpellInfo()->PowerCosts)
+            if (powerCost->PowerType == POWER_RAGE)
+                return { powerCost->ManaCost, powerCost->OptionalCost };
+
+        return { 0, 0 };
+    }
+
+    void HandleExecuteCast(SpellEffIndex spellEffIndex)
+    {
+        PreventHitDefaultEffect(spellEffIndex);
+
+        // Can't use SpellInfo::CalcPowerCost here since Sudden Death modifies the costs so it's free.
+        auto [baseCost, optionalCost] = GetRageCost();
+        int32 rageSpent = GetSpell()->GetPowerTypeCostAmount(POWER_RAGE).value_or(0);
+
+        GetCaster()->CastSpell(GetHitUnit(), GetEffectInfo(spellEffIndex).TriggerSpell, CastSpellExtraArgsInit{
+            .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR,
+            .TriggeringSpell = GetSpell(),
+            .CustomArg = TriggerArgs{
+                .BaseRageCost = baseCost,
+                .OptionalRageCost = optionalCost,
+                .DamageRageSpent = GetSuddenDeathRageCost().value_or(rageSpent),
+                .RefundRage = CalculatePct(rageSpent, GetEffectInfo(EFFECT_1).CalcValueAsInt())
+            }
+        });
+    }
+
+    void Register() override
+    {
+        OnEffectLaunchTarget += SpellEffectFn(spell_warr_execute::HandleExecuteCast, EFFECT_0, SPELL_EFFECT_TRIGGER_SPELL);
+    }
+
+public:
+    struct TriggerArgs
+    {
+        int32 BaseRageCost;
+        int32 OptionalRageCost;
+        int32 DamageRageSpent;
+        int32 RefundRage;
+    };
+};
+
 // 260798 - Execute (Arms, Protection)
+// 317483 - Condemn (Venthyr) (Arms, Protection)
 class spell_warr_execute_damage : public SpellScript
 {
-    static void CalculateExecuteDamage(SpellScript const&, SpellEffectInfo const& /*spellEffectInfo*/, Unit const* /*victim*/, int32 const& /*damageOrHealing*/, int32 const& /*flatMod*/, float& pctMod)
+    void CalculateExecuteDamage(SpellEffectInfo const& /*spellEffectInfo*/, Unit const* /*victim*/, int32 const& /*damageOrHealing*/, int32 const& /*flatMod*/, float& pctMod) const
     {
-        // tooltip has 2 multiplier hardcoded in it $damage=${2.0*$260798s1}
-        pctMod *= 2.0f;
+        spell_warr_execute::TriggerArgs const* triggerArgs = std::any_cast<spell_warr_execute::TriggerArgs>(&GetSpell()->m_customArg);
+        if (!triggerArgs)
+            return;
+
+        if (triggerArgs->OptionalRageCost <= 0)
+            return;
+
+        pctMod *= (static_cast<float>(triggerArgs->DamageRageSpent - triggerArgs->BaseRageCost) / static_cast<float>(triggerArgs->OptionalRageCost) + 1.0f);
     }
 
     void Register() override
     {
         CalcDamage += SpellCalcDamageFn(spell_warr_execute_damage::CalculateExecuteDamage);
+    }
+};
+
+// 260798 - Execute -> 316405 (Improved Execute (Arms))
+class spell_warr_execute_refund_rage : public SpellScript
+{
+    bool Load() override
+    {
+        return GetCaster()->HasAura(SPELL_WARRIOR_IMPROVED_EXECUTE_ARMS);
+    }
+
+    void DetermineKillStatus(DamageInfo const& damageInfo, uint32& /*resistAmount*/, int32& /*absorbAmount*/) const
+    {
+        bool killed = damageInfo.GetDamage() >= damageInfo.GetVictim()->GetHealth();
+        if (killed)
+            return;
+
+        spell_warr_execute::TriggerArgs const* triggerArgs = std::any_cast<spell_warr_execute::TriggerArgs>(&GetSpell()->m_customArg);
+        if (!triggerArgs)
+            return;
+
+        GetCaster()->ModifyPower(POWER_RAGE, triggerArgs->RefundRage, false);
+    }
+
+    void Register() override
+    {
+        // abuse OnCalculateResistAbsorb to determine if this spell will kill target or not (its still not perfect - happens before absorbs are applied)
+        OnCalculateResistAbsorb += SpellOnResistAbsorbCalculateFn(spell_warr_execute_refund_rage::DetermineKillStatus);
     }
 };
 
@@ -739,63 +886,6 @@ class spell_warr_frenzied_enrage : public SpellScript
     {
         OnObjectTargetSelect += SpellObjectTargetSelectFn(spell_warr_frenzied_enrage::HandleFrenziedEnrage, EFFECT_0, TARGET_UNIT_CASTER);
         OnObjectTargetSelect += SpellObjectTargetSelectFn(spell_warr_frenzied_enrage::HandleFrenziedEnrage, EFFECT_1, TARGET_UNIT_CASTER);
-    }
-};
-
-// 335082 - frenzy
-class spell_warr_frenzy : public AuraScript
-{
-public:
-    void SetTargetGUID(ObjectGuid const& guid) { _targetGUID = guid; }
-    ObjectGuid const& GetTargetGUID() const { return _targetGUID; }
-
-private:
-    void Register() override { }
-
-    ObjectGuid _targetGUID;
-};
-
-// 335077 - Frenzy (attached to 184367 - Rampage)
-class spell_warr_frenzy_rampage : public SpellScript
-{
-    bool Validate(SpellInfo const* /*spellInfo*/) override
-    {
-        return ValidateSpellInfo({ SPELL_WARRIOR_FRENZY_BUFF, SPELL_WARRIOR_FRENZY_TALENT });
-    }
-
-    bool Load() override
-    {
-        return GetCaster()->HasAura(SPELL_WARRIOR_FRENZY_TALENT);
-    }
-
-    void HandleAfterCast(SpellEffIndex /*effIndex*/) const
-    {
-        Unit* caster = GetCaster();
-        Unit* hitUnit = GetHitUnit();
-
-        if (hitUnit != GetExplTargetUnit())
-            return;
-
-        caster->CastSpell(nullptr, SPELL_WARRIOR_FRENZY_BUFF, CastSpellExtraArgsInit{
-            .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR,
-            .TriggeringSpell = GetSpell()
-        });
-
-        if (Aura* frenzyAura = caster->GetAura(SPELL_WARRIOR_FRENZY_BUFF))
-        {
-            if (spell_warr_frenzy* script = frenzyAura->GetScript<spell_warr_frenzy>())
-            {
-                if (!script->GetTargetGUID().IsEmpty() && script->GetTargetGUID() != hitUnit->GetGUID())
-                    frenzyAura->SetStackAmount(1);
-
-                script->SetTargetGUID(hitUnit->GetGUID());
-            }
-        }
-    }
-
-    void Register() override
-    {
-        OnEffectHitTarget += SpellEffectFn(spell_warr_frenzy_rampage::HandleAfterCast, EFFECT_0, SPELL_EFFECT_DUMMY);
     }
 };
 
@@ -828,7 +918,7 @@ class spell_warr_frothing_berserker : public AuraScript
             .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR,
             .TriggeringSpell = procSpell,
             .TriggeringAura = aurEff,
-            .SpellValueOverrides = { { SPELLVALUE_BASE_POINT0, CalculatePct(spentRage, aurEff->GetAmount()) } }
+            .SpellValueOverrides = { { SPELLVALUE_BASE_POINT0, static_cast<SpellEffectValue>(CalculatePct(spentRage, aurEff->GetAmount())) } }
         });
     }
 
@@ -839,6 +929,21 @@ class spell_warr_frothing_berserker : public AuraScript
         DoCheckEffectProc += AuraCheckEffectProcFn(spell_warr_frothing_berserker::CheckSpecialization<ChrSpecialization::WarriorFury>, EFFECT_1, SPELL_AURA_DUMMY);
         DoCheckEffectProc += AuraCheckEffectProcFn(spell_warr_frothing_berserker::CheckSpecialization<ChrSpecialization::WarriorProtection>, EFFECT_2, SPELL_AURA_DUMMY);
         OnEffectProc += AuraEffectProcFn(spell_warr_frothing_berserker::HandleProc, EFFECT_ALL, SPELL_AURA_DUMMY);
+    }
+};
+
+// 438590 - Keep Your Feet on the Ground
+class spell_warr_keep_your_feet_on_the_ground : public AuraScript
+{
+    static bool CheckProc(AuraScript const&, AuraEffect const* /*aurEff*/, ProcEventInfo const& eventInfo)
+    {
+        SpellInfo const* spellInfo = eventInfo.GetSpellInfo();
+        return spellInfo->HasLabel(SPELL_LABEL_THUNDER_BLAST);
+    }
+
+    void Register() override
+    {
+        DoCheckEffectProc += AuraCheckEffectProcFn(spell_warr_keep_your_feet_on_the_ground::CheckProc, EFFECT_0, SPELL_AURA_PROC_TRIGGER_SPELL);
     }
 };
 
@@ -960,7 +1065,7 @@ class spell_warr_heroic_leap : public SpellScript
 {
     bool Validate(SpellInfo const* /*spellInfo*/) override
     {
-        return ValidateSpellInfo({ SPELL_WARRIOR_HEROIC_LEAP_DAMAGE, SPELL_WARRIOR_TAUNT });
+        return ValidateSpellInfo({ SPELL_WARRIOR_TAUNT });
     }
 
     SpellCastResult CheckElevation() const
@@ -1082,15 +1187,15 @@ class spell_warr_improved_whirlwind : public SpellScript
         if (!caster)
             return;
 
-        int32 const ragePerTarget = GetEffectValue();
-        int32 const baseRage = GetEffectInfo(EFFECT_0).CalcValue();
-        int32 const maxRage = baseRage + (ragePerTarget * GetEffectInfo(EFFECT_2).CalcValue());
+        int32 const ragePerTarget = GetEffectValueAsInt();
+        int32 const baseRage = GetEffectInfo(EFFECT_0).CalcValueAsInt();
+        int32 const maxRage = baseRage + (ragePerTarget * GetEffectInfo(EFFECT_2).CalcValueAsInt());
         int32 const rageGained = std::min<int32>(baseRage + (targetsHit * ragePerTarget), maxRage);
 
         caster->CastSpell(nullptr, SPELL_WARRIOR_WHIRLWIND_ENERGIZE, CastSpellExtraArgsInit{
             .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR,
             .TriggeringSpell = GetSpell(),
-            .SpellValueOverrides = {{ SPELLVALUE_BASE_POINT0, rageGained * 10 } }
+            .SpellValueOverrides = {{ SPELLVALUE_BASE_POINT0, SpellEffectValue(rageGained * 10) } }
         });
 
         ApplyWhirlwindCleaveAura(caster, GetCastDifficulty(), GetSpell());
@@ -1099,6 +1204,70 @@ class spell_warr_improved_whirlwind : public SpellScript
     void Register() override
     {
         OnEffectHitTarget += SpellEffectFn(spell_warr_improved_whirlwind::HandleHit, EFFECT_1, SPELL_EFFECT_DUMMY);
+    }
+};
+
+/**
+ * 85739 - Whirlwind Cleave aura, attached to the following spells:
+ *
+ * 1464 - Slam
+ * 1715 - Hamstring
+ * 23881 - Bloodthirst
+ * 23922 - Shield Slam
+ * 34428 - Victory Rush
+ * 85384 - Raging Blow
+ * 96103 - Raging Blow
+ * 100130 - Furious Slash
+ * 163558 - Execute Off-Hand
+ * 184707 - Rampage
+ * 184709 - Rampage
+ * 201363 - Rampage
+ * 201364 - Rampage
+ * 202168 - Impending Victory
+ * 218617 - Rampage
+ * 260798 - Execute
+ * 280772 - Siegebreaker
+ * 280849 - Execute
+ * 317483 - Condemn (Venthyr)
+ * 317488 - Condemn (Venthyr)
+ * 317489 - Condemn Off-Hand (Venthyr)
+ * 335096 - Bloodbath
+ * 335098 - Crushing Blow
+ * 335100 - Crushing Blow
+ * 394062 - Rend
+ * 394063 - Rend
+ * 396718 - Onslaught
+ * 463815 - Arms Execute FX Test
+ * 463816 - Fury Execute FX Test
+ * 463817 - Fury Execute Off-Hand FX Test
+ * 1269383 - Heroic Strike
+ */
+class spell_warr_improved_whirlwind_cleave : public SpellScript
+{
+    bool Validate(SpellInfo const* spellInfo) override
+    {
+        return ValidateSpellEffect({ { SPELL_WARRIOR_WHIRLWIND_CLEAVE_AURA, EFFECT_1 } })
+            && spellInfo->IsAffected(SPELLFAMILY_WARRIOR, sSpellMgr->AssertSpellInfo(SPELL_WARRIOR_WHIRLWIND_CLEAVE_AURA, DIFFICULTY_NONE)->GetEffect(EFFECT_0).SpellClassMask);
+    }
+
+    bool Load() override
+    {
+        return GetCaster()->HasAura(SPELL_WARRIOR_WHIRLWIND_CLEAVE_AURA);
+    }
+
+    void CalculateDamage(SpellEffectInfo const& spellEffectInfo, Unit const* victim, int32& /*damage*/, int32& /*flatMod*/, float& pctMod) const
+    {
+        int32 const targetIndex = GetUnitTargetIndexForEffect(victim->GetGUID(), spellEffectInfo.EffectIndex);
+        if (targetIndex == 0)
+            return; // nothing to do, it's the first target
+
+        if (AuraEffect const* damageEffect = GetCaster()->GetAuraEffect(SPELL_WARRIOR_WHIRLWIND_CLEAVE_AURA, EFFECT_1))
+            ApplyPct(pctMod, damageEffect->GetAmount());
+    }
+
+    void Register() override
+    {
+        CalcDamage += SpellCalcDamageFn(spell_warr_improved_whirlwind_cleave::CalculateDamage);
     }
 };
 
@@ -1249,7 +1418,7 @@ class spell_warr_item_t10_prot_4p_bonus : public AuraScript
         PreventDefaultAction();
 
         Unit* target = eventInfo.GetActionTarget();
-        int32 bp0 = CalculatePct(target->GetMaxHealth(), GetEffectInfo(EFFECT_1).CalcValue());
+        SpellEffectValue bp0 = CalculatePct(target->GetMaxHealth(), GetEffectInfo(EFFECT_1).CalcValue());
         CastSpellExtraArgs args(TRIGGERED_FULL_MASK);
         args.AddSpellBP0(bp0);
         target->CastSpell(nullptr, SPELL_WARRIOR_STOICISM, args);
@@ -1258,6 +1427,161 @@ class spell_warr_item_t10_prot_4p_bonus : public AuraScript
     void Register() override
     {
         OnProc += AuraProcFn(spell_warr_item_t10_prot_4p_bonus::HandleProc);
+    }
+};
+
+// 1265361 - Kill or Be Killed
+class spell_warr_kill_or_be_killed : public AuraScript
+{
+    bool Validate(SpellInfo const* /*spellInfo*/) override
+    {
+        return ValidateSpellInfo({ SPELL_WARRIOR_KILL_OR_BE_KILLED_COOLDOWN, SPELL_WARRIOR_KILL_OR_BE_KILLED_PROC, SPELL_WARRIOR_KILL_OR_BE_KILLED_TARGET });
+    }
+
+    void HandleAbsorb(AuraEffect const* /*aurEff*/, DamageInfo const& dmgInfo, uint32& absorbAmount) const
+    {
+        Unit* target = GetTarget();
+
+        if (target->HasAura(SPELL_WARRIOR_KILL_OR_BE_KILLED_PROC))
+            return;
+
+        if (target->HasAura(SPELL_WARRIOR_KILL_OR_BE_KILLED_COOLDOWN))
+        {
+            absorbAmount = 0;
+            return;
+        }
+
+        CastSpellExtraArgs castArgs = CastSpellExtraArgsInit{
+            .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR
+        };
+
+        SpellCastResult result = target->CastSpell(dmgInfo.GetAttacker(), SPELL_WARRIOR_KILL_OR_BE_KILLED_TARGET, castArgs);
+        if (result != SPELL_FAILED_SUCCESS)
+        {
+            absorbAmount = 0;
+            return;
+        }
+
+        target->CastSpell(nullptr, SPELL_WARRIOR_KILL_OR_BE_KILLED_PROC, castArgs);
+
+        target->CastSpell(nullptr, SPELL_WARRIOR_KILL_OR_BE_KILLED_COOLDOWN, castArgs);
+    }
+
+    void Register() override
+    {
+        OnEffectAbsorb += AuraEffectAbsorbOverkillFn(spell_warr_kill_or_be_killed::HandleAbsorb, EFFECT_0);
+    }
+};
+
+// 1265641 - Kill or Be Killed (target)
+class spell_warr_kill_or_be_killed_target : public AuraScript
+{
+    static void HandleProc(AuraScript const&, AuraEffect const* aurEff, ProcEventInfo const& /*procEvent*/)
+    {
+        Unit* caster = aurEff->GetCaster();
+        if (!caster || !caster->IsAlive())
+            return;
+
+        caster->RemoveAurasDueToSpell(SPELL_WARRIOR_KILL_OR_BE_KILLED_PROC);
+    }
+
+    void Register() override
+    {
+        OnEffectProc += AuraEffectProcFn(spell_warr_kill_or_be_killed_target::HandleProc, EFFECT_0, SPELL_AURA_DUMMY);
+    }
+};
+
+// 1265600 - Kill or Be Killed (warrior)
+class spell_warr_kill_or_be_killed_warrior : public AuraScript
+{
+    bool Validate(SpellInfo const* /*spellInfo*/) override
+    {
+        return ValidateSpellInfo({ SPELL_WARRIOR_KILL_OR_BE_KILLED_FULFILLED, SPELL_WARRIOR_KILL_OR_BE_KILLED_INSTAKILL });
+    }
+
+    void OnRemove(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/) const
+    {
+        Unit* target = GetTarget();
+        switch (GetTargetApplication()->GetRemoveMode())
+        {
+            case AURA_REMOVE_BY_EXPIRE:
+                target->CastSpell(nullptr, SPELL_WARRIOR_KILL_OR_BE_KILLED_INSTAKILL, CastSpellExtraArgsInit{
+                    .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR
+                });
+                break;
+            case AURA_REMOVE_BY_DEFAULT:
+                target->CastSpell(nullptr, SPELL_WARRIOR_KILL_OR_BE_KILLED_FULFILLED, CastSpellExtraArgsInit{
+                    .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR
+                });
+
+                if (target->HealthBelowPct(aurEff->GetAmount()))
+                    target->SetHealth(target->CountPctFromMaxHealth(aurEff->GetAmount()));
+                break;
+            default:
+                break;
+        }
+    }
+
+    void Register() override
+    {
+        AfterEffectRemove += AuraEffectRemoveFn(spell_warr_kill_or_be_killed_warrior::OnRemove, EFFECT_4, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL);
+    }
+};
+
+// 280392 - Meat Cleaver (attached to 199667 - Whirlwind, 44949 - Whirlwind Off-Hand, 199852 - Whirlwind, 199851 - Whirlwind Off-Hand)
+class spell_warr_meat_cleaver_damage_bonus : public SpellScript
+{
+protected:
+    bool Validate(SpellInfo const* /*spellInfo*/) override
+    {
+        return ValidateSpellEffect({{ SPELL_WARRIOR_MEAT_CLEAVER_TALENT, EFFECT_1 } });
+    }
+
+    bool Load() override
+    {
+        return GetCaster()->HasAura(SPELL_WARRIOR_MEAT_CLEAVER_TALENT);
+    }
+
+    void HandleDamageBonus(SpellEffectInfo const& spellEffectInfo, Unit const* /*victim*/, int32& /*damage*/, int32& /*flatMod*/, float& pctMod) const
+    {
+        Unit const* caster = GetCaster();
+        Aura const* meatCleaver = caster->GetAura(SPELL_WARRIOR_MEAT_CLEAVER_TALENT);
+        if (!meatCleaver)
+            return;
+
+        AuraEffect const* minTargetCount = meatCleaver->GetEffect(EFFECT_1);
+        if (!minTargetCount)
+            return;
+
+        int64 const targetCount = GetUnitTargetCountForEffect(spellEffectInfo.EffectIndex);
+
+        if (targetCount < minTargetCount->GetAmountAsInt())
+            return;
+
+        if (AuraEffect const* aurEff = meatCleaver->GetEffect(EFFECT_0))
+            AddPct(pctMod, aurEff->GetAmount());
+    }
+
+    void Register() override
+    {
+        CalcDamage += SpellCalcDamageFn(spell_warr_meat_cleaver_damage_bonus::HandleDamageBonus);
+    }
+};
+
+// 280392 - Meat Cleaver (attached to 6343 - Thunder Clap)
+// 280392 - Meat Cleaver (attached to 435222 - Thunder Blast)
+class spell_warr_meat_cleaver_damage_bonus_thunder_clap : public spell_warr_meat_cleaver_damage_bonus
+{
+    bool Validate(SpellInfo const* spellInfo) override
+    {
+        return spell_warr_meat_cleaver_damage_bonus::Validate(spellInfo)
+            && ValidateSpellInfo({ SPELL_WARRIOR_CRASHING_THUNDER });
+    }
+
+    bool Load() override
+    {
+        return spell_warr_meat_cleaver_damage_bonus::Load()
+            && GetCaster()->HasAura(SPELL_WARRIOR_CRASHING_THUNDER);
     }
 };
 
@@ -1289,29 +1613,37 @@ class spell_warr_raging_blow_cooldown_reset : public SpellScript
 {
     bool Validate(SpellInfo const* /*spellInfo*/) override
     {
-        return ValidateSpellInfo({ SPELL_WARRIOR_IMPROVED_RAGING_BLOW })
+        return ValidateSpellInfo({ SPELL_WARRIOR_IMPROVED_RAGING_BLOW, SPELL_WARRIOR_SURGE_OF_ADRENALINE_TALENT, SPELL_WARRIOR_ALWAYS_ANGRY })
             && ValidateSpellEffect({{ SPELL_WARRIOR_WRATH_AND_FURY, EFFECT_0 }});
     }
 
     bool Load() override
     {
         Unit const* caster = GetCaster();
-        return caster->HasAura(SPELL_WARRIOR_IMPROVED_RAGING_BLOW) || caster->HasAuraEffect(SPELL_WARRIOR_WRATH_AND_FURY, EFFECT_0);
+        return caster->HasAura(SPELL_WARRIOR_IMPROVED_RAGING_BLOW)
+            || caster->HasAuraEffect(SPELL_WARRIOR_WRATH_AND_FURY, EFFECT_0)
+            || caster->HasAura(SPELL_WARRIOR_SURGE_OF_ADRENALINE_TALENT);
     }
 
     void HandleResetCooldown(SpellEffIndex /*effIndex*/) const
     {
         // it is currently impossible to have Wrath and Fury without having Improved Raging Blow, but we will check it anyway
         Unit* caster = GetCaster();
-        int32 value = 0;
+        SpellEffectValue value = 0;
         if (caster->HasAura(SPELL_WARRIOR_IMPROVED_RAGING_BLOW))
             value = GetEffectValue();
 
         if (AuraEffect const* auraEffect = caster->GetAuraEffect(SPELL_WARRIOR_WRATH_AND_FURY, EFFECT_0))
             value += auraEffect->GetAmount();
 
-        if (roll_chance_i(value))
+        if (roll_chance(value))
+        {
+            caster->CastSpell(nullptr, SPELL_WARRIOR_ALWAYS_ANGRY, CastSpellExtraArgsInit{
+                .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR,
+                .TriggeringSpell = GetSpell()
+            });
             caster->GetSpellHistory()->RestoreCharge(GetSpellInfo()->ChargeCategoryId);
+        }
     }
 
     void Register() override
@@ -1336,7 +1668,7 @@ class spell_warr_rallying_cry : public SpellScript
     void HandleScript(SpellEffIndex /*effIndex*/)
     {
         CastSpellExtraArgs args(TRIGGERED_FULL_MASK);
-        args.AddSpellMod(SPELLVALUE_BASE_POINT0, int32(GetHitUnit()->CountPctFromMaxHealth(GetEffectValue())));
+        args.AddSpellMod(SPELLVALUE_BASE_POINT0, SpellEffectValue(GetHitUnit()->CountPctFromMaxHealth(GetEffectValue())));
 
         GetCaster()->CastSpell(GetHitUnit(), SPELL_WARRIOR_RALLYING_CRY, args);
     }
@@ -1344,6 +1676,42 @@ class spell_warr_rallying_cry : public SpellScript
     void Register() override
     {
         OnEffectHitTarget += SpellEffectFn(spell_warr_rallying_cry::HandleScript, EFFECT_0, SPELL_EFFECT_DUMMY);
+    }
+};
+
+// 1265357 - Rampaging Ruin (attached to 184367 - Rampage)
+class spell_warr_rampaging_ruin : public SpellScript
+{
+    bool Validate(SpellInfo const* /*spellInfo*/) override
+    {
+        return ValidateSpellInfo({ SPELL_WARRIOR_RAMPAGING_RUIN, SPELL_WARRIOR_WHIRLWIND_CLEAVE_AURA });
+    }
+
+    void HandleSingleTarget(SpellEffIndex effIndex)
+    {
+        Unit const* caster = GetCaster();
+        if (caster->HasAura(SPELL_WARRIOR_RAMPAGING_RUIN) && caster->HasAura(SPELL_WARRIOR_WHIRLWIND_CLEAVE_AURA))
+            PreventHitDefaultEffect(effIndex);
+    }
+
+    void HandleCone(SpellEffIndex effIndex)
+    {
+        Unit const* caster = GetCaster();
+        if (!caster->HasAura(SPELL_WARRIOR_RAMPAGING_RUIN) || !caster->HasAura(SPELL_WARRIOR_WHIRLWIND_CLEAVE_AURA))
+            PreventHitDefaultEffect(effIndex);
+    }
+
+    void Register() override
+    {
+        OnEffectLaunchTarget += SpellEffectFn(spell_warr_rampaging_ruin::HandleSingleTarget, EFFECT_1, SPELL_EFFECT_TRIGGER_SPELL);
+        OnEffectLaunchTarget += SpellEffectFn(spell_warr_rampaging_ruin::HandleSingleTarget, EFFECT_2, SPELL_EFFECT_TRIGGER_SPELL);
+        OnEffectLaunchTarget += SpellEffectFn(spell_warr_rampaging_ruin::HandleSingleTarget, EFFECT_3, SPELL_EFFECT_TRIGGER_SPELL);
+        OnEffectLaunchTarget += SpellEffectFn(spell_warr_rampaging_ruin::HandleSingleTarget, EFFECT_4, SPELL_EFFECT_TRIGGER_SPELL);
+
+        OnEffectLaunch += SpellEffectFn(spell_warr_rampaging_ruin::HandleCone, EFFECT_5, SPELL_EFFECT_TRIGGER_SPELL);
+        OnEffectLaunch += SpellEffectFn(spell_warr_rampaging_ruin::HandleCone, EFFECT_6, SPELL_EFFECT_TRIGGER_SPELL);
+        OnEffectLaunch += SpellEffectFn(spell_warr_rampaging_ruin::HandleCone, EFFECT_7, SPELL_EFFECT_TRIGGER_SPELL);
+        OnEffectLaunch += SpellEffectFn(spell_warr_rampaging_ruin::HandleCone, EFFECT_8, SPELL_EFFECT_TRIGGER_SPELL);
     }
 };
 
@@ -1372,8 +1740,8 @@ class spell_warr_rumbling_earth : public SpellScript
         if (!minTargetCount || !cooldownReduction)
             return;
 
-        if (GetUnitTargetCountForEffect(EFFECT_0) >= minTargetCount->GetAmount())
-            GetCaster()->GetSpellHistory()->ModifyCooldown(GetSpellInfo()->Id, Seconds(-cooldownReduction->GetAmount()));
+        if (GetUnitTargetCountForEffect(EFFECT_0) >= minTargetCount->GetAmountAsInt())
+            GetCaster()->GetSpellHistory()->ModifyCooldown(GetSpellInfo()->Id, -duration_cast<Milliseconds>(FloatSeconds(cooldownReduction->GetAmount())));
     }
 
     void Register() override
@@ -1493,13 +1861,12 @@ class spell_warr_strategist : public AuraScript
 {
     bool Validate(SpellInfo const* /*spellInfo*/) override
     {
-        return ValidateSpellInfo({ SPELL_WARRIOR_SHIELD_SLAM, SPELL_WARRIOR_SHIELD_SLAM_MARKER })
-            && ValidateSpellEffect({ { SPELL_WARRIOR_STRATEGIST, EFFECT_0 } });
+        return ValidateSpellInfo({ SPELL_WARRIOR_SHIELD_SLAM, SPELL_WARRIOR_SHIELD_SLAM_MARKER });
     }
 
     static bool CheckProc(AuraScript const&, AuraEffect const* aurEff, ProcEventInfo const& /*procEvent*/)
     {
-        return roll_chance_i(aurEff->GetAmount());
+        return roll_chance(aurEff->GetAmount());
     }
 
     void HandleCooldown(AuraEffect const* /*aurEff*/, ProcEventInfo const& /*procEvent*/) const
@@ -1538,6 +1905,33 @@ class spell_warr_sudden_death : public AuraScript
     }
 };
 
+// 1265359 - Surge of Adrenaline (talent) - attached to 280270 (Always Angry)
+class spell_warr_surge_of_adrenaline : public SpellScript
+{
+    bool Validate(SpellInfo const* /*spellInfo*/) override
+    {
+        return ValidateSpellInfo({ SPELL_WARRIOR_SURGE_OF_ADRENALINE_PROC, SPELL_WARRIOR_SURGE_OF_ADRENALINE_TALENT });
+    }
+
+    bool Load() override
+    {
+        return GetCaster()->HasAura(SPELL_WARRIOR_SURGE_OF_ADRENALINE_TALENT);
+    }
+
+    void TriggerBuff() const
+    {
+        GetCaster()->CastSpell(nullptr, SPELL_WARRIOR_SURGE_OF_ADRENALINE_PROC, CastSpellExtraArgsInit{
+            .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR,
+            .TriggeringSpell = GetSpell()
+        });
+    }
+
+    void Register() override
+    {
+        AfterCast += SpellCastFn(spell_warr_surge_of_adrenaline::TriggerBuff);
+    }
+};
+
 // 12328, 18765, 35429 - Sweeping Strikes
 class spell_warr_sweeping_strikes : public AuraScript
 {
@@ -1548,7 +1942,7 @@ class spell_warr_sweeping_strikes : public AuraScript
 
     bool CheckProc(ProcEventInfo& eventInfo)
     {
-        _procTarget = eventInfo.GetActor()->SelectNearbyTarget(eventInfo.GetProcTarget());
+        _procTarget = eventInfo.GetActor()->SelectNearbyTarget(eventInfo.GetActionTarget());
         return _procTarget != nullptr;
     }
 
@@ -1599,7 +1993,7 @@ class spell_warr_tactician : public AuraScript
         if (!procSpell->CalcPowerCost(POWER_RAGE, false, eventInfo.GetActor(), SpellSchoolMask(procSpell->SchoolMask)))
             return false;
 
-        return roll_chance_i(aurEff->GetAmount());
+        return roll_chance(aurEff->GetAmount());
     }
 
     static void HandleProc(AuraScript const&, AuraEffect const* aurEff, ProcEventInfo const& eventInfo)
@@ -1646,7 +2040,7 @@ class spell_warr_tenderize : public AuraScript
         target->CastSpell(nullptr, SPELL_WARRIOR_SLAUGHTERING_STRIKES_BUFF, CastSpellExtraArgsInit{
             .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR,
             .TriggeringSpell = eventInfo.GetProcSpell(),
-            .SpellValueOverrides = { { SPELLVALUE_AURA_STACK, aurEff->GetAmount() } }
+            .SpellValueOverrides = { { SPELLVALUE_AURA_STACK, aurEff->GetAmountAsInt() } }
         });
     }
 
@@ -1657,7 +2051,51 @@ class spell_warr_tenderize : public AuraScript
     }
 };
 
+// 435607 - Thunder Blast
+class spell_warr_thunder_blast : public SpellScript
+{
+    static void PreventDefaultTargetObject(SpellScript const&, WorldObject*& target)
+    {
+        target = nullptr;
+    }
+
+    void Register() override
+    {
+        // unused effects
+        OnObjectTargetSelect += SpellObjectTargetSelectFn(spell_warr_thunder_blast::PreventDefaultTargetObject, EFFECT_1, TARGET_UNIT_CASTER);
+        OnObjectTargetSelect += SpellObjectTargetSelectFn(spell_warr_thunder_blast::PreventDefaultTargetObject, EFFECT_2, TARGET_UNIT_CASTER);
+    }
+};
+
+class spell_warr_thunder_blast_aura : public AuraScript
+{
+    bool Validate(SpellInfo const* /*spellInfo*/) override
+    {
+        return ValidateSpellInfo({ SPELL_WARRIOR_THUNDER_BLAST });
+    }
+
+    static bool CheckProc(AuraScript const&, AuraEffect const* aurEff, ProcEventInfo const& /*eventInfo*/)
+    {
+        return roll_chance(aurEff->GetAmount());
+    }
+
+    void HandleProc(AuraEffect const* /*aurEff*/, ProcEventInfo const& /*eventInfo*/) const
+    {
+        Unit* target = GetTarget();
+        target->CastSpell(nullptr, SPELL_WARRIOR_THUNDER_BLAST, CastSpellExtraArgsInit{
+            .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR,
+        });
+    }
+
+    void Register() override
+    {
+        DoCheckEffectProc += AuraCheckEffectProcFn(spell_warr_thunder_blast_aura::CheckProc, EFFECT_0, SPELL_AURA_DUMMY);
+        OnEffectProc += AuraEffectProcFn(spell_warr_thunder_blast_aura::HandleProc, EFFECT_0, SPELL_AURA_DUMMY);
+    }
+};
+
 // 6343 - Thunder Clap
+// 435222 - Thunder Blast
 class spell_warr_thunder_clap : public SpellScript
 {
     bool Validate(SpellInfo const* /*spellInfo*/) override
@@ -1680,6 +2118,7 @@ class spell_warr_thunder_clap : public SpellScript
 };
 
 // 6343 - Thunder Clap (Rend)
+// 435222 - Thunder Blast (Rend)
 class spell_warr_thunder_clap_rend : public SpellScript
 {
     bool Validate(SpellInfo const* /*spellInfo*/) override
@@ -1747,7 +2186,7 @@ class spell_warr_trauma : public AuraScript
     {
         Unit* target = eventInfo.GetActionTarget();
         //Get 25% of damage from the spell casted (Slam & Whirlwind) plus Remaining Damage from Aura
-        int32 damage = int32(CalculatePct(eventInfo.GetDamageInfo()->GetDamage(), aurEff->GetAmount()) / sSpellMgr->AssertSpellInfo(SPELL_WARRIOR_TRAUMA_EFFECT, GetCastDifficulty())->GetEffect(EFFECT_0).GetPeriodicTickCount());
+        SpellEffectValue damage = CalculatePct(eventInfo.GetDamageInfo()->GetDamage(), aurEff->GetAmount()) / sSpellMgr->AssertSpellInfo(SPELL_WARRIOR_TRAUMA_EFFECT, GetCastDifficulty())->GetEffect(EFFECT_0).GetPeriodicTickCount();
         CastSpellExtraArgs args(TRIGGERED_FULL_MASK);
         args.AddSpellMod(SPELLVALUE_BASE_POINT0, damage);
         GetCaster()->CastSpell(target, SPELL_WARRIOR_TRAUMA_EFFECT, args);
@@ -1794,7 +2233,7 @@ class spell_warr_unbridled_ferocity : public AuraScript
 
     void HandleProc(ProcEventInfo& /*eventInfo*/) const
     {
-        int32 durationMs = GetEffect(EFFECT_1)->GetAmount();
+        int32 durationMs = GetEffect(EFFECT_1)->GetAmountAsInt();
 
         GetTarget()->CastSpell(nullptr, SPELL_WARRIOR_RECKLESSNESS, CastSpellExtraArgsInit{
             .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR | TRIGGERED_IGNORE_SPELL_AND_CATEGORY_CD,
@@ -1804,7 +2243,7 @@ class spell_warr_unbridled_ferocity : public AuraScript
 
     bool CheckProc(ProcEventInfo& /*eventInfo*/) const
     {
-        return roll_chance_i(GetEffect(EFFECT_0)->GetAmount());
+        return roll_chance(GetEffect(EFFECT_0)->GetAmount());
     }
 
     void Register() override
@@ -1890,6 +2329,25 @@ class spell_warr_victory_rush : public SpellScript
     }
 };
 
+// 21977 - Warrior's Wrath
+class spell_warr_warriors_wrath : public SpellScript
+{
+    bool Validate(SpellInfo const* /*spellInfo*/) override
+    {
+        return ValidateSpellInfo({ SPELL_WARRIOR_WARRIORS_WRATH });
+    }
+
+    void HandleDummy(SpellEffIndex /*effIndex*/)
+    {
+        GetCaster()->CastSpell(GetCaster(), SPELL_WARRIOR_WARRIORS_WRATH, true);
+    }
+
+    void Register() override
+    {
+        OnEffectHit += SpellEffectFn(spell_warr_warriors_wrath::HandleDummy, EFFECT_0, SPELL_EFFECT_DUMMY);
+    }
+};
+
 void AddSC_warrior_spell_scripts()
 {
     RegisterSpellScript(spell_warr_anger_management_proc);
@@ -1897,6 +2355,8 @@ void AddSC_warrior_spell_scripts()
     RegisterSpellScript(spell_warr_avatar);
     RegisterSpellScript(spell_warr_bloodsurge);
     RegisterSpellScript(spell_warr_bloodthirst);
+    RegisterSpellScript(spell_warr_bloodthirst_enrage);
+    RegisterSpellScript(spell_warr_brutal_finish);
     RegisterSpellScript(spell_warr_brutal_vitality);
     RegisterSpellScript(spell_warr_charge);
     RegisterSpellScript(spell_warr_charge_drop_fire_periodic);
@@ -1907,28 +2367,36 @@ void AddSC_warrior_spell_scripts()
     RegisterSpellScript(spell_warr_deft_experience);
     RegisterSpellScript(spell_warr_devastator);
     RegisterSpellScript(spell_warr_enrage_proc);
+    RegisterSpellScript(spell_warr_execute);
     RegisterSpellScript(spell_warr_execute_damage);
+    RegisterSpellScript(spell_warr_execute_refund_rage);
     RegisterSpellScript(spell_warr_frenzied_enrage);
-    RegisterSpellScript(spell_warr_frenzy);
-    RegisterSpellScript(spell_warr_frenzy_rampage);
     RegisterSpellScript(spell_warr_frothing_berserker);
     RegisterSpellScript(spell_warr_fueled_by_violence);
     RegisterSpellScript(spell_warr_heroic_leap);
     RegisterSpellScript(spell_warr_heroic_leap_damage);
     RegisterSpellScript(spell_warr_impending_victory);
     RegisterSpellScript(spell_warr_improved_whirlwind);
+    RegisterSpellScript(spell_warr_improved_whirlwind_cleave);
     RegisterSpellScript(spell_warr_intervene);
     RegisterSpellScript(spell_warr_intervene_charge);
     RegisterSpellScript(spell_warr_intimidating_shout);
     RegisterSpellScript(spell_warr_intimidating_shout_menace_knock_back);
     RegisterSpellScript(spell_warr_invigorating_fury);
     RegisterSpellScript(spell_warr_item_t10_prot_4p_bonus);
+    RegisterSpellScript(spell_warr_keep_your_feet_on_the_ground);
+    RegisterSpellScript(spell_warr_kill_or_be_killed);
+    RegisterSpellScript(spell_warr_kill_or_be_killed_target);
+    RegisterSpellScript(spell_warr_kill_or_be_killed_warrior);
+    RegisterSpellScript(spell_warr_meat_cleaver_damage_bonus);
+    RegisterSpellScript(spell_warr_meat_cleaver_damage_bonus_thunder_clap);
     RegisterSpellScript(spell_warr_mortal_strike);
     RegisterSpellScript(spell_warr_overpowering_finish);
     RegisterSpellScript(spell_warr_pain_and_gain_heal);
     RegisterSpellScript(spell_warr_powerful_enrage);
     RegisterSpellScript(spell_warr_raging_blow_cooldown_reset);
     RegisterSpellScript(spell_warr_rallying_cry);
+    RegisterSpellScript(spell_warr_rampaging_ruin);
     RegisterSpellScript(spell_warr_rumbling_earth);
     RegisterSpellScript(spell_warr_shield_block);
     RegisterSpellScript(spell_warr_shield_charge);
@@ -1937,9 +2405,11 @@ void AddSC_warrior_spell_scripts()
     RegisterSpellScript(spell_warr_storm_bolts);
     RegisterSpellScript(spell_warr_strategist);
     RegisterSpellScript(spell_warr_sudden_death);
+    RegisterSpellScript(spell_warr_surge_of_adrenaline);
     RegisterSpellScript(spell_warr_sweeping_strikes);
     RegisterSpellScript(spell_warr_tactician);
     RegisterSpellScript(spell_warr_tenderize);
+    RegisterSpellAndAuraScriptPair(spell_warr_thunder_blast, spell_warr_thunder_blast_aura);
     RegisterSpellScript(spell_warr_thunder_clap);
     RegisterSpellScript(spell_warr_thunder_clap_rend);
     RegisterSpellScript(spell_warr_titanic_rage);
@@ -1949,4 +2419,5 @@ void AddSC_warrior_spell_scripts()
     RegisterSpellScript(spell_warr_vicious_contempt);
     RegisterSpellScript(spell_warr_victorious_state);
     RegisterSpellScript(spell_warr_victory_rush);
+    RegisterSpellScript(spell_warr_warriors_wrath);
 }

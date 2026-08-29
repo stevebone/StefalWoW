@@ -227,6 +227,9 @@ class TC_GAME_API Item : public Object
         bool IsSoulBound() const { return HasItemFlag(ITEM_FIELD_FLAG_SOULBOUND); }
         bool IsBoundAccountWide() const { return GetTemplate()->HasFlag(ITEM_FLAG_IS_BOUND_TO_ACCOUNT); }
         bool IsBattlenetAccountBound() const { return GetTemplate()->HasFlag(ITEM_FLAG2_BNET_ACCOUNT_TRADE_OK); }
+        bool IsWarbandBound() const;
+        bool IsAccountBound() const { return IsBoundAccountWide() || IsWarbandBound(); }
+        void ConvertToSoulbound();
         bool IsBindedNotWith(Player const* player) const;
         bool IsBoundByEnchant() const;
         virtual void SaveToDB(CharacterDatabaseTransaction trans);
@@ -271,7 +274,7 @@ class TC_GAME_API Item : public Object
         void SetInTrade(bool b = true) { mb_in_trade = b; }
         bool IsInTrade() const { return mb_in_trade; }
 
-        uint64 CalculateDurabilityRepairCost(float discount) const;
+        uint64 CalculateDurabilityRepairCost(float discount, bool useRateConfig = true) const;
 
         bool HasEnchantRequiredSkill(Player const* player) const;
         uint32 GetEnchantRequiredLevel() const;
@@ -341,7 +344,6 @@ class TC_GAME_API Item : public Object
 
         bool hasQuest(uint32 quest_id) const override { return GetTemplate()->GetStartQuest() == quest_id; }
         bool hasInvolvedQuest(uint32 /*quest_id*/) const override { return false; }
-        bool IsPotion() const { return GetTemplate()->IsPotion(); }
         bool IsVellum() const { return GetTemplate()->IsVellum(); }
         bool IsConjuredConsumable() const { return GetTemplate()->IsConjuredConsumable(); }
         uint32 GetQuality() const { return _bonusData.Quality; }
@@ -394,15 +396,16 @@ class TC_GAME_API Item : public Object
     public:
         void BuildValuesUpdateWithFlag(UF::UpdateFieldFlag flags, ByteBuffer& data, Player const* target) const override;
         void BuildValuesUpdateForPlayerWithMask(UpdateData* data, UF::ObjectData::Mask const& requestedObjectMask,
-            UF::ItemData::Mask const& requestedItemMask, Player const* target) const;
+            UF::ItemData::Mask const& requestedItemMask, Player const* target, bool ignoreNestedChangesMask) const;
 
         struct ValuesUpdateForPlayerWithMaskSender // sender compatible with MessageDistDeliverer
         {
-            explicit ValuesUpdateForPlayerWithMaskSender(Item const* owner) : Owner(owner) { }
+            explicit ValuesUpdateForPlayerWithMaskSender(Item const* owner) : Owner(owner), IgnoreNestedChangesMask(false) { }
 
             Item const* Owner;
             UF::ObjectData::Base ObjectMask;
             UF::ItemData::Base ItemMask;
+            bool IgnoreNestedChangesMask;
 
             void operator()(Player const* player) const;
         };
@@ -416,7 +419,7 @@ class TC_GAME_API Item : public Object
         static bool CanTransmogrifyItemWithItem(Item const* item, ItemModifiedAppearanceEntry const* itemModifiedAppearance);
         uint32 GetBuyPrice(Player const* owner, bool& standardPrice) const;
         static uint32 GetBuyPrice(ItemTemplate const* proto, uint32 quality, uint32 itemLevel, bool& standardPrice);
-        uint32 GetSellPrice(Player const* owner) const;
+        uint32 GetSellPrice(Player const* owner, bool forVendor = false) const;
         static uint32 GetSellPrice(ItemTemplate const* proto, uint32 quality, uint32 itemLevel);
 
         uint32 GetVisibleEntry(Player const* owner) const;

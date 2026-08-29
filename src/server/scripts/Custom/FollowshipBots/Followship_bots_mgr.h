@@ -1,3 +1,26 @@
+/*
+ * This file is part of the Stefal WoW Project.
+ * It is designed to work exclusively with the TrinityCore framework.
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 2 of the License, or (at your
+ * option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ *
+ * This code is provided for personal and educational use within the
+ * Stefal WoW Project. It is not intended for commercial distribution,
+ * resale, or any form of monetization.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
 
 #include "Followship_bots_db.h"
 #include "Followship_bots_defines.h"
@@ -8,60 +31,27 @@ struct FSBEntryRaceClassMap
     uint32 entry;
     FSB_Class botClass;
     FSB_Race botRace;
+    uint32 companionSpell;
+    FSB_ChatterType chatterType;
+    Gender gender;
+    uint32 petSource;
 };
-
-static constexpr FSBEntryRaceClassMap BotEntryClassTable[] =
-{
-    // PRIESTS
-    { 141508,   FSB_Class::Priest,          FSB_Race::Human },      // Stormwind Priest
-    { 375,      FSB_Class::Priest,          FSB_Race::Human },      // Priestess Anetta
-    { 16502,    FSB_Class::Priest,          FSB_Race::Draenei },    // Zalduun
-    { 3595,     FSB_Class::Priest,          FSB_Race::NightElf },   // Shanda
-    { 837,      FSB_Class::Priest,          FSB_Race::Dwarf },      // 
-
-    // WARRIORS
-    { 911,   FSB_Class::Warrior,            FSB_Race::Human },      // Llane Beshere
-    { 912,   FSB_Class::Warrior,            FSB_Race::Dwarf },      // 
-    { 50595, FSB_Class::Warrior,            FSB_Race::Human },      // Stormwind Defender
-    { 46405, FSB_Class::Warrior,            FSB_Race::Human },      // Stockade Guard
-    { 16503, FSB_Class::Warrior,            FSB_Race::Draenei },    // Kore
-    { 3593,  FSB_Class::Warrior,            FSB_Race::NightElf },   // Alyissia
-
-    // MAGES
-    { 198,   FSB_Class::Mage,               FSB_Race::Human },      // Khelden Bremen
-    { 16500, FSB_Class::Mage,               FSB_Race::Draenei },    // Valaatu
-    { 37121, FSB_Class::Mage,               FSB_Race::Dwarf },      //
-    { 43006, FSB_Class::Mage,               FSB_Race::NightElf },   // Rhyanda
-
-    // PALADINS
-    { 925, FSB_Class::Paladin,              FSB_Race::Human },      // Brother Sammuel
-    { 926, FSB_Class::Paladin,              FSB_Race::Dwarf },      // 
-    { 16501, FSB_Class::Paladin,            FSB_Race::Draenei },    // Aurelon (Draenei)
-
-    // WARLOCKS
-    { 459,   FSB_Class::Warlock,            FSB_Race::Human },      // Drusilla la Salle
-
-    // DRUID
-    { 3597,  FSB_Class::Druid,            FSB_Race::NightElf },   // Mardant
-
-    // ROGUES
-    //{ 90030, FSB_Class::Rogue },
-};
-
-
 
 class FSBMgr
 {
 public:
     static FSBMgr* Get();
 
+    void LoadBotTemplates();
+
     // Persistent Layer - with DB relation
     void LoadAllPersistentBots();
     bool StorePersistentBot(Creature* bot, Player* player, uint64 hireExpiry);
 
-    void LoadPersistentPlayerBots(Player* player);
     void RemovePersistentExpiredPlayerBots(Player* player);
     bool RemovePersistentBot(uint64 playerGuid, uint32 botEntry);
+
+    void UpdateHiredBotCount(Player* player);
 
     void SpawnPlayerBots(Player* player);
 
@@ -104,6 +94,37 @@ public:
     uint32 GetAvailableRolesForClass(FSB_Class botClass);
     FSB_Roles GetRandomRoleForClass(FSB_Class botClass);
 
+    FSB_ChatterType GetBotChatterTypeForEntry(uint32 entry);
+
+    Gender GetBotGenderForEntry(uint32 entry);
+
+    uint32 GetBotPetSourceForEntry(uint32 entry);
+    uint32 GetBotCompanionSpellForEntry(uint32 entry);
+
+    // Get the role of a bot (returns FSB_ROLE_NONE if not a bot or AI not present)
+    FSB_Roles GetRole(Creature* bot);
+
+    // Set the role of a bot (does nothing if not a bot or AI not present)
+    void SetRole(Creature* bot, FSB_Roles role);
+
+    // Apply class+role specific auras/forms/stances (no-op for classes without them)
+    void ApplyRoleAuras(Creature* bot, FSB_Roles role);
+
+    // Check if bot is a melee role
+    static bool BotIsMeleeRole(Creature* bot);
+
+    // Sync bot phasing with owner
+    void SyncBotPhasingWithOwner(Player* player);
+
+    // Bot template management
+    bool HasBotTemplate(uint32 entry);
+    void AddBotTemplate(FSBEntryRaceClassMap const& data);
+    void RemoveBotTemplate(uint32 entry);
+
+    std::unordered_map<uint32, FSBEntryRaceClassMap> const& GetBotTemplates() const { return _botTemplates; }
+    bool IsBotTemplateHired(uint32 entry) const;
+
 private:
     std::unordered_map<uint64 /*playerGuid*/, std::vector<PlayerBotData>> _playerBotsPersistent;
+    std::unordered_map<uint32 /*entry*/, FSBEntryRaceClassMap> _botTemplates;
 };

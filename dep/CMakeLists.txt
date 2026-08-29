@@ -20,7 +20,9 @@ if(SERVERS OR TOOLS)
   add_subdirectory(utf8cpp)
   add_subdirectory(valgrind)
   add_subdirectory(openssl)
-  add_subdirectory(jemalloc)
+  if(CMAKE_SYSTEM_NAME MATCHES "Linux" AND NOT NOJEM)
+    add_subdirectory(jemalloc)
+  endif()
   add_subdirectory(argon2)
   add_subdirectory(openssl_ed25519)
   add_subdirectory(short_alloc)
@@ -46,7 +48,7 @@ if(BUILD_TESTING)
   include(FetchContent)
   FetchContent_Declare(Catch2
     GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-    GIT_TAG        v2.13.9
+    GIT_TAG        v3.15.2
     GIT_SHALLOW    1)
   FetchContent_MakeAvailable(Catch2)
 endif()

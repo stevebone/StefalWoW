@@ -340,25 +340,25 @@ struct npc_dancing_flames : public ScriptedAI
             switch (emote)
             {
                 case TEXT_EMOTE_KISS:
-                    _scheduler.Schedule(1500ms, [this](TaskContext /*context*/)
+                    _scheduler.Schedule(1500ms, [this](TaskContext const& /*context*/)
                     {
                         me->HandleEmoteCommand(EMOTE_ONESHOT_SHY);
                     });
                     break;
                 case TEXT_EMOTE_WAVE:
-                    _scheduler.Schedule(1500ms, [this](TaskContext /*context*/)
+                    _scheduler.Schedule(1500ms, [this](TaskContext const& /*context*/)
                     {
                         me->HandleEmoteCommand(EMOTE_ONESHOT_WAVE);
                     });
                     break;
                 case TEXT_EMOTE_BOW:
-                    _scheduler.Schedule(1500ms, [this](TaskContext /*context*/)
+                    _scheduler.Schedule(1500ms, [this](TaskContext const& /*context*/)
                     {
                         me->HandleEmoteCommand(EMOTE_ONESHOT_BOW);
                     });
                     break;
                 case TEXT_EMOTE_JOKE:
-                    _scheduler.Schedule(1500ms, [this](TaskContext /*context*/)
+                    _scheduler.Schedule(1500ms, [this](TaskContext const& /*context*/)
                     {
                         me->HandleEmoteCommand(EMOTE_ONESHOT_LAUGH);
                     });
@@ -398,10 +398,10 @@ public:
 
         void Reset() override
         {
-            _scheduler.Schedule(Seconds(2), [this](TaskContext context)
+            _scheduler.Schedule(Seconds(2), [this](TaskContext& context)
             {
                 me->CastSpell(nullptr, SPELL_TORCH_TARGET_PICKER);
-                _scheduler.Schedule(Seconds(3), [this](TaskContext /*context*/)
+                _scheduler.Schedule(Seconds(3), [this](TaskContext const& /*context*/)
                 {
                     me->CastSpell(nullptr, SPELL_TORCH_TARGET_PICKER);
                 });
@@ -900,9 +900,6 @@ void npc_doctor::npc_doctorAI::UpdateAI(uint32 diff)
 
             if (Creature* Patient = me->SummonCreature(patientEntry, **point, TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 5s))
             {
-                //303, this flag appear to be required for client side item->spell to work (TARGET_SINGLE_FRIEND)
-                Patient->SetUnitFlag(UNIT_FLAG_PLAYER_CONTROLLED);
-
                 Patients.push_back(Patient->GetGUID());
                 ENSURE_AI(npc_injured_patient::npc_injured_patientAI, Patient->AI())->DoctorGUID = me->GetGUID();
                 ENSURE_AI(npc_injured_patient::npc_injured_patientAI, Patient->AI())->Coord = *point;
@@ -917,176 +914,6 @@ void npc_doctor::npc_doctorAI::UpdateAI(uint32 diff)
             SummonPatientTimer -= diff;
     }
 }
-
-/*######
-## npc_garments_of_quests
-######*/
-
-/// @todo get text for each NPC
-
-enum Garments
-{
-    SPELL_LESSER_HEAL_R2    = 2052,
-    SPELL_FORTITUDE_R1      = 1243,
-
-    QUEST_MOON              = 5621,
-    QUEST_LIGHT_1           = 5624,
-    QUEST_LIGHT_2           = 5625,
-    QUEST_SPIRIT            = 5648,
-    QUEST_DARKNESS          = 5650,
-
-    ENTRY_SHAYA             = 12429,
-    ENTRY_ROBERTS           = 12423,
-    ENTRY_DOLF              = 12427,
-    ENTRY_KORJA             = 12430,
-    ENTRY_DG_KEL            = 12428,
-
-    // used by 12429, 12423, 12427, 12430, 12428, but signed for 12429
-    SAY_THANKS              = 0,
-    SAY_GOODBYE             = 1,
-    SAY_HEALED              = 2,
-};
-
-class npc_garments_of_quests : public CreatureScript
-{
-public:
-    npc_garments_of_quests() : CreatureScript("npc_garments_of_quests") { }
-
-    struct npc_garments_of_questsAI : public EscortAI
-    {
-        npc_garments_of_questsAI(Creature* creature) : EscortAI(creature)
-        {
-            switch (me->GetEntry())
-            {
-                case ENTRY_SHAYA:
-                    quest = QUEST_MOON;
-                    break;
-                case ENTRY_ROBERTS:
-                    quest = QUEST_LIGHT_1;
-                    break;
-                case ENTRY_DOLF:
-                    quest = QUEST_LIGHT_2;
-                    break;
-                case ENTRY_KORJA:
-                    quest = QUEST_SPIRIT;
-                    break;
-                case ENTRY_DG_KEL:
-                    quest = QUEST_DARKNESS;
-                    break;
-                default:
-                    quest = 0;
-                    break;
-            }
-
-            Initialize();
-        }
-
-        void Initialize()
-        {
-            IsHealed = false;
-            CanRun = false;
-
-            RunAwayTimer = 5000;
-        }
-
-        ObjectGuid CasterGUID;
-
-        bool IsHealed;
-        bool CanRun;
-
-        uint32 RunAwayTimer;
-        uint32 quest;
-
-        void Reset() override
-        {
-            CasterGUID.Clear();
-
-            Initialize();
-
-            me->SetStandState(UNIT_STAND_STATE_KNEEL);
-            // expect database to have RegenHealth=0
-            me->SetSpawnHealth();
-        }
-
-        void JustEngagedWith(Unit* /*who*/) override { }
-
-        void SpellHit(WorldObject* caster, SpellInfo const* spellInfo) override
-        {
-            if (spellInfo->Id == SPELL_LESSER_HEAL_R2 || spellInfo->Id == SPELL_FORTITUDE_R1)
-            {
-                //not while in combat
-                if (me->IsInCombat())
-                    return;
-
-                //nothing to be done now
-                if (IsHealed && CanRun)
-                    return;
-
-                if (Player* player = caster->ToPlayer())
-                {
-                    if (quest && player->GetQuestStatus(quest) == QUEST_STATUS_INCOMPLETE)
-                    {
-                        if (IsHealed && !CanRun && spellInfo->Id == SPELL_FORTITUDE_R1)
-                        {
-                            Talk(SAY_THANKS, player);
-                            CanRun = true;
-                        }
-                        else if (!IsHealed && spellInfo->Id == SPELL_LESSER_HEAL_R2)
-                        {
-                            CasterGUID = player->GetGUID();
-                            me->SetStandState(UNIT_STAND_STATE_STAND);
-                            Talk(SAY_HEALED, player);
-                            IsHealed = true;
-                        }
-                    }
-
-                    // give quest credit, not expect any special quest objectives
-                    if (CanRun)
-                        player->TalkedToCreature(me->GetEntry(), me->GetGUID());
-                }
-            }
-        }
-
-        void UpdateAI(uint32 diff) override
-        {
-            if (CanRun && !me->IsInCombat())
-            {
-                if (RunAwayTimer <= diff)
-                {
-                    if (Unit* unit = ObjectAccessor::GetUnit(*me, CasterGUID))
-                    {
-                        switch (me->GetEntry())
-                        {
-                            case ENTRY_SHAYA:
-                            case ENTRY_ROBERTS:
-                            case ENTRY_DOLF:
-                            case ENTRY_KORJA:
-                            case ENTRY_DG_KEL:
-                                Talk(SAY_GOODBYE, unit);
-                                break;
-                        }
-
-                        LoadPath((me->GetEntry() << 3) | 2);
-                        Start(false);
-                    }
-                    else
-                        EnterEvadeMode(EvadeReason::Other);                       //something went wrong
-
-                    RunAwayTimer = 30000;
-                }
-                else
-                    RunAwayTimer -= diff;
-            }
-
-            EscortAI::UpdateAI(diff);
-        }
-    };
-
-    CreatureAI* GetAI(Creature* creature) const override
-    {
-        return new npc_garments_of_questsAI(creature);
-    }
-};
 
 /*######
 ## npc_guardian
@@ -1519,7 +1346,7 @@ struct npc_brewfest_reveler_2 : ScriptedAI
                 }
                 case EVENT_EMOTE:
                     // Play random emote or dance
-                    if (roll_chance_i(50))
+                    if (roll_chance(50))
                     {
                         me->HandleEmoteCommand(Trinity::Containers::SelectRandomContainerElement(BrewfestRandomEmote));
                         _events.ScheduleEvent(EVENT_NEXT, 4s, 6s);
@@ -1536,7 +1363,7 @@ struct npc_brewfest_reveler_2 : ScriptedAI
                         me->SetEmoteState(EMOTE_ONESHOT_NONE);
 
                     // Random EVENT_EMOTE or EVENT_FACETO
-                    if (roll_chance_i(50))
+                    if (roll_chance(50))
                         _events.ScheduleEvent(EVENT_FACE_TO, 1s);
                     else
                         _events.ScheduleEvent(EVENT_EMOTE, 1s);
@@ -2265,7 +2092,7 @@ struct npc_gen_void_zone : public ScriptedAI
 
     void JustAppeared() override
     {
-        _scheduler.Schedule(2s, [this](TaskContext /*task*/)
+        _scheduler.Schedule(2s, [this](TaskContext const& /*task*/)
         {
             DoCastSelf(SPELL_CONSUMPTION);
         });
@@ -2280,6 +2107,34 @@ private:
     TaskScheduler _scheduler;
 };
 
+/*######
+## npc_chromie_timewalking - 167032 (Timewalking Campaigns, Stormwind/Orgrimmar)
+######*/
+
+enum ChromieTimewalkingGossip
+{
+    GOSSIP_OPTION_CHROMIE_RETURN_TO_PRESENT = 51903 // "I'd like to return to the present timeline, Chromie." (capture A rec 4675)
+};
+
+struct npc_chromie_timewalking : public ScriptedAI
+{
+    npc_chromie_timewalking(Creature* creature) : ScriptedAI(creature) { }
+
+    bool OnGossipSelect(Player* player, uint32 /*menuId*/, uint32 gossipListId) override
+    {
+        GossipMenuItem const* item = player->PlayerTalkClass->GetGossipMenu().GetItemByIndex(gossipListId);
+        if (!item || item->GossipOptionID != GOSSIP_OPTION_CHROMIE_RETURN_TO_PRESENT)
+            return false;
+
+        // Retail's deselect wire was never sniffed (no capture contains
+        // CMSG_CHROMIE_TIME_SELECT_EXPANSION with ExpansionID = 0); acting on the plain
+        // gossip option server-side is inferred from it having OptionNpc = None (audit R6).
+        player->SetChromieTime(0);
+        CloseGossipMenuFor(player);
+        return true;
+    }
+};
+
 void AddSC_npcs_special()
 {
     new npc_air_force_bots();
@@ -2289,7 +2144,6 @@ void AddSC_npcs_special()
     new npc_midsummer_bunny_pole();
     new npc_doctor();
     new npc_injured_patient();
-    new npc_garments_of_quests();
     new npc_guardian();
     new npc_steam_tonk();
     new npc_tournament_mount();
@@ -2303,4 +2157,5 @@ void AddSC_npcs_special()
     new npc_argent_squire_gruntling();
     new npc_bountiful_table();
     RegisterCreatureAI(npc_gen_void_zone);
+    RegisterCreatureAI(npc_chromie_timewalking);
 }

@@ -27,6 +27,11 @@ void CollectionItemSetFavorite::Read()
     _worldPacket >> Bits<1>(IsFavorite);
 }
 
+void WorldPackets::Collections::MountClearFanfare::Read()
+{
+    _worldPacket >> spellID;
+}
+
 ByteBuffer& operator<<(ByteBuffer& data, ItemCollectionItemData const& item)
 {
     data << int32(item.ID);

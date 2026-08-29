@@ -25,12 +25,15 @@ namespace Battlenet
 
 #include "SocketMgr.h"
 #include "Session.h"
+#include <atomic>
 
 namespace Battlenet
 {
     class SessionNetworkThread final : public Trinity::Net::NetworkThread<Session, SessionNetworkThread>
     {
     };
+
+    class SessionManager;
 
     struct SessionManagerTraits
     {
@@ -43,6 +46,8 @@ namespace Battlenet
     {
     public:
         static SessionManager& Instance();
+
+        std::atomic<uint32> SessionIdGenerator = 0;
     };
 }
 

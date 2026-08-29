@@ -199,6 +199,7 @@ enum WorldBoolConfigs : uint32
     CONFIG_ENABLE_AE_LOOT,
     CONFIG_LOAD_LOCALES,
     CONFIG_LOG_UNHANDLED_OPCODES,
+    CONFIG_WEEKLY_REWARD_CHESTS_ENABLED,
     BOOL_CONFIG_VALUE_COUNT
 };
 
@@ -347,6 +348,7 @@ enum WorldIntConfigs : uint32
     CONFIG_ARENA_START_PERSONAL_RATING,
     CONFIG_ARENA_START_MATCHMAKER_RATING,
     CONFIG_MAX_WHO,
+    CONFIG_WHO_LIST_UPDATE_INTERVAL,
     CONFIG_HONOR_AFTER_DUEL,
     CONFIG_PVP_TOKEN_MAP_TYPE,
     CONFIG_PVP_TOKEN_ID,
@@ -432,6 +434,10 @@ enum WorldIntConfigs : uint32
     CONFIG_VISIBILITY_NOTIFY_PERIOD_INSTANCE,
     CONFIG_VISIBILITY_NOTIFY_PERIOD_BATTLEGROUND,
     CONFIG_VISIBILITY_NOTIFY_PERIOD_ARENA,
+    CONFIG_MYTHIC_PLUS_DISPLAY_SEASON_ID,
+    CONFIG_MYTHIC_PLUS_MILESTONE_SEASON_ID,
+    CONFIG_PVP_SEASON_ID,
+    CONFIG_PLAYER_EXTENDED_BACKPACK_SLOTS,
     INT_CONFIG_VALUE_COUNT
 };
 
@@ -439,6 +445,10 @@ enum WorldInt64Configs : uint32
 {
     CONFIG_CHARACTER_CREATING_DISABLED_RACEMASK,
     CONFIG_START_PLAYER_MONEY,
+    CONFIG_START_DEATH_KNIGHT_PLAYER_MONEY,
+    CONFIG_START_DEMON_HUNTER_PLAYER_MONEY,
+    CONFIG_START_EVOKER_PLAYER_MONEY,
+    CONFIG_START_ALLIED_RACE_MONEY,
     INT64_CONFIG_VALUE_COUNT
 };
 
@@ -655,8 +665,6 @@ class TC_GAME_API World
         void SendServerMessage(ServerMessageType messageID, std::string_view stringParam = {}, Player const* player = nullptr);
         void SendGlobalMessage(WorldPacket const* packet, WorldSession* self = nullptr, Optional<Team> team = { });
         void SendGlobalGMMessage(WorldPacket const* packet, WorldSession* self = nullptr, Optional<Team> team = { });
-        bool SendZoneMessage(uint32 zone, WorldPacket const* packet, WorldSession* self = nullptr, Optional<Team> team = { });
-        void SendZoneText(uint32 zone, const char *text, WorldSession* self = nullptr, Optional<Team> team = { });
 
         /// Are we in the middle of a shutdown?
         bool IsShuttingDown() const { return m_ShutdownTimer > 0; }
@@ -764,6 +772,7 @@ class TC_GAME_API World
         void UpdateAreaDependentAuras();
 
         bool IsBattlePetJournalLockAcquired(ObjectGuid battlenetAccountGuid);
+        bool IsAccountInventoryLockAcquired(ObjectGuid battlenetAccountGuid, WorldSession const* exclude = nullptr);
 
         uint32 GetCleaningFlags() const { return m_CleaningFlags; }
         void SetCleaningFlags(uint32 flags) { m_CleaningFlags = flags; }

@@ -1,0 +1,109 @@
+/*
+ * This file is part of the Stefal WoW Project.
+ * It is designed to work exclusively with the TrinityCore framework.
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 2 of the License, or (at your
+ * option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ *
+ * This code is provided for personal and educational use within the
+ * Stefal WoW Project. It is not intended for commercial distribution,
+ * resale, or any form of monetization.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#include "ScriptMgr.h"
+#include "Player.h"
+#include "SpellAuras.h"
+
+#include "Followship_bots_mail_handler.h"
+#include "Custom_Westfall_Defines.h"
+
+namespace Scripts::EasternKingdoms::Westfall
+{
+
+    class player_westfall_q26232_handler : public PlayerScript
+    {
+    public:
+        player_westfall_q26232_handler() : PlayerScript("player_westfall_q26232_handler") { }
+
+        void OnQuestStatusChange(Player* player, uint32 questId) override
+        {
+            if (questId != Quests::LousPartingThoughts)
+                return;
+
+            if (player->IsActiveQuest(Quests::LousPartingThoughts) && player->HasAura(Spells::DetectQuestInvis1))
+                return;
+
+            if (player->GetQuestStatus(Quests::LousPartingThoughts) == QUEST_STATUS_REWARDED)
+                return;
+
+            // Quest accepted or incomplete ? ensure phase 1 aura
+            if (player->GetQuestStatus(Quests::LousPartingThoughts) != QUEST_STATUS_COMPLETE)
+            {
+                if (!player->HasAura(Spells::DetectQuestInvis1))
+                    player->AddAura(Spells::DetectQuestInvis1, player);
+
+                if (player->HasAura(Spells::DetectQuestInvis2))
+                    player->RemoveAura(Spells::DetectQuestInvis2);
+
+                return;
+            }
+        }
+    };
+
+    class player_westfall_defias_brotherhood_mailer : public PlayerScript
+    {
+    public:
+        player_westfall_defias_brotherhood_mailer() : PlayerScript("player_westfall_defias_brotherhood_mailer") { }
+
+        void OnQuestStatusChange(Player* player, uint32 questId) override
+        {
+            if (!player)
+                return;
+
+            if (questId != Quests::TheDefiasBrotherhoodFinal)
+                return;
+
+            // Only trigger when the quest is actually rewarded
+            if (player->GetQuestStatus(Quests::TheDefiasBrotherhoodFinal) != QUEST_STATUS_REWARDED)
+                return;
+
+            SendWestfallMurderMail(player);
+        }
+
+        void SendWestfallMurderMail(Player* player)
+        {
+            uint32 senderEntry = Creatures::LtHorationLaineAtTower;
+
+            std::string subject = "Urgent Request For Questioning!";
+            std::string text =
+                "Citizen,\n\n"
+                "This is Lieutenant Horatio Laine of the Westfall Brigade. "
+                "Your previous dealings with the Furlbrows have come to our attention.\n\n"
+                "A serious incident has occurred at their farm, and your presence is required "
+                "for questioning. Report to the crime scene immediately.\n\n"
+                "Do not delay.\n"
+                "- Lt. Horatio Laine";
+
+            // No items needed, so pass empty vector
+            FSBMail::SendMail(senderEntry, player, subject, text, {});
+        }
+    };
+}
+
+void AddSC_custom_westfall_player()
+{
+    using namespace Scripts::EasternKingdoms::Westfall;
+
+    new player_westfall_q26232_handler();
+    new player_westfall_defias_brotherhood_mailer();
+}

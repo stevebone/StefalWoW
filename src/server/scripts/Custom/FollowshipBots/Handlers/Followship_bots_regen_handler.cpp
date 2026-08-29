@@ -1,5 +1,28 @@
+/*
+ * This file is part of the Stefal WoW Project.
+ * It is designed to work exclusively with the TrinityCore framework.
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 2 of the License, or (at your
+ * option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ *
+ * This code is provided for personal and educational use within the
+ * Stefal WoW Project. It is not intended for commercial distribution,
+ * resale, or any form of monetization.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include "Followship_bots_utils.h"
 
+#include "Followship_bots_config.h"
 #include "Followship_bots_powers_handler.h"
 #include "Followship_bots_regen_handler.h"
 #include "Followship_bots_stats_handler.h"
@@ -22,9 +45,23 @@ namespace FSBRegen
         // ---------- HEALTH ----------
         if (doHealth && bot->GetHealthPct() < 100)
         {
-            int32 baseHpRegen = inCombat
-                ? classStats->baseHpRegenIC
-                : classStats->baseHpRegenOOC;
+            int32 baseHpRegen;
+
+            if (!inCombat)
+            {
+                // Use player-like formula for OOC regen based on level
+                uint8 level = bot->GetLevel();
+                uint32 maxHp = bot->GetMaxHealth();
+
+                if (level < 15)
+                    baseHpRegen = int32(0.20f * maxHp / level);
+                else
+                    baseHpRegen = int32(0.015f * maxHp);
+            }
+            else
+            {
+                baseHpRegen = classStats->baseHpRegenIC;
+            }
 
             int32 amount = baseHpRegen + regenMods.flatHealthPerTick;
 
@@ -35,6 +72,9 @@ namespace FSBRegen
                 amount += int32(maxHp * regenMods.pctHealthPerTick);
             }
 
+            // Apply regen rate multiplier
+            amount = int32(amount * FollowshipBotsConfig::configFSBHealthRegenRate);
+
             if (amount > 0)
                 bot->ModifyHealth(amount);
 
@@ -44,9 +84,23 @@ namespace FSBRegen
         // ---------- POWER ----------
         if (doMana && bot->GetPowerType() == POWER_MANA && bot->GetPowerPct(POWER_MANA) < 100)
         {
-            int32 basePowerRegen = inCombat
-                ? classStats->basePowerRegenIC
-                : classStats->basePowerRegenOOC;
+            int32 basePowerRegen;
+
+            if (!inCombat)
+            {
+                // Use player-like formula for OOC mana regen based on level
+                uint8 level = bot->GetLevel();
+                uint32 maxPower = bot->GetMaxPower(POWER_MANA);
+
+                if (level < 15)
+                    basePowerRegen = int32(0.15f * maxPower / level);
+                else
+                    basePowerRegen = int32(0.01f * maxPower);
+            }
+            else
+            {
+                basePowerRegen = classStats->basePowerRegenIC;
+            }
 
             int32 amount = basePowerRegen + regenMods.flatManaPerTick;
 
@@ -55,6 +109,9 @@ namespace FSBRegen
                 uint32 maxPower = bot->GetMaxPower(POWER_MANA);
                 amount += int32(maxPower * regenMods.pctManaPerTick);
             }
+
+            // Apply regen rate multiplier
+            amount = int32(amount * FollowshipBotsConfig::configFSBPowerRegenRate);
 
             if (amount > 0)
                 bot->ModifyPower(POWER_MANA, amount);
@@ -113,6 +170,27 @@ namespace FSBRegen
 
             //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Custom Regen tick for bot {} (MP={}) in combat: {}", unit->GetName(), amount, inCombat);
         }
+
+        // ---------- FOCUS ----------
+        else if (FSBPowers::IsFocusUser(bot))
+        {
+            int32 basePowerRegen = inCombat
+                ? classStats->basePowerRegenIC
+                : classStats->basePowerRegenOOC;
+
+            int32 amount = basePowerRegen; //+ regenMods.flatManaPerTick;
+
+            //if (regenMods.pctManaPerTick > 0.0f)
+            //{
+            //    uint32 maxPower = bot->GetMaxPower(POWER_MANA);
+            //    amount += int32(maxPower * regenMods.pctManaPerTick);
+            //}
+
+            if (amount > 0)
+                bot->ModifyPower(POWER_FOCUS, amount);
+
+            //TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Custom Regen tick for bot {} (MP={}) in combat: {}", unit->GetName(), amount, inCombat);
+        }
     }
 
     void ProcessBotCustomRegenTick(Creature* creature, FSB_Class botClass, FSBRegenMods regenMods)
@@ -121,7 +199,7 @@ namespace FSBRegen
             return;
 
         // Only apply regen if HP or power is not full
-        if (creature->GetHealthPct() < 100 || creature->GetPowerPct(POWER_MANA) < 100 || creature->GetPower(POWER_RAGE))
+        if (creature->GetHealthPct() < 100 || creature->GetPowerPct(POWER_MANA) < 100 || creature->GetPower(POWER_RAGE) || creature->GetPower(POWER_FOCUS) || creature->GetPower(POWER_ENERGY))
         {
             // Apply regen
             ApplyBotRegen(creature, botClass, regenMods, true, true);

@@ -67,6 +67,8 @@ TC_GAME_API extern DB2Storage<BattlePetSpeciesStateEntry>           sBattlePetSp
 TC_GAME_API extern DB2Storage<BattlemasterListEntry>                sBattlemasterListStore;
 TC_GAME_API extern DB2Storage<BattlemasterListXMapEntry>            sBattlemasterListXMapStore;
 TC_GAME_API extern DB2Storage<BroadcastTextEntry>                   sBroadcastTextStore;
+TC_GAME_API extern DB2Storage<CampaignEntry>                        sCampaignStore;
+TC_GAME_API extern DB2Storage<CampaignXQuestLineEntry>              sCampaignXQuestLineStore;
 TC_GAME_API extern DB2Storage<Cfg_CategoriesEntry>                  sCfgCategoriesStore;
 TC_GAME_API extern DB2Storage<Cfg_RegionsEntry>                     sCfgRegionsStore;
 TC_GAME_API extern DB2Storage<ChallengeModeItemBonusOverrideEntry>  sChallengeModeItemBonusOverrideStore;
@@ -95,8 +97,12 @@ TC_GAME_API extern DB2Storage<CriteriaEntry>                        sCriteriaSto
 TC_GAME_API extern DB2Storage<CriteriaTreeEntry>                    sCriteriaTreeStore;
 TC_GAME_API extern DB2Storage<CurrencyTypesEntry>                   sCurrencyTypesStore;
 TC_GAME_API extern DB2Storage<CurveEntry>                           sCurveStore;
+TC_GAME_API extern DB2Storage<DelvesSeasonEntry>                    sDelvesSeasonStore;
+TC_GAME_API extern DB2Storage<DelvesSeasonXSpellEntry>              sDelvesSeasonXSpellStore;
 TC_GAME_API extern DB2Storage<DestructibleModelDataEntry>           sDestructibleModelDataStore;
 TC_GAME_API extern DB2Storage<DifficultyEntry>                      sDifficultyStore;
+TC_GAME_API extern DB2Storage<DriveCapabilityEntry>                 sDriveCapabilityStore;
+TC_GAME_API extern DB2Storage<DriveCapabilityTierEntry>             sDriveCapabilityTierStore;
 TC_GAME_API extern DB2Storage<DungeonEncounterEntry>                sDungeonEncounterStore;
 TC_GAME_API extern DB2Storage<DurabilityCostsEntry>                 sDurabilityCostsStore;
 TC_GAME_API extern DB2Storage<DurabilityQualityEntry>               sDurabilityQualityStore;
@@ -201,7 +207,21 @@ TC_GAME_API extern DB2Storage<MythicPlusSeasonEntry>                sMythicPlusS
 TC_GAME_API extern DB2Storage<OverrideSpellDataEntry>               sOverrideSpellDataStore;
 TC_GAME_API extern DB2Storage<ParagonReputationEntry>               sParagonReputationStore;
 TC_GAME_API extern DB2Storage<PerksActivityEntry>                   sPerksActivityStore;
+TC_GAME_API extern DB2Storage<PerksActivityThresholdEntry>          sPerksActivityThresholdStore;
+TC_GAME_API extern DB2Storage<PerksActivityThresholdGroupEntry>     sPerksActivityThresholdGroupStore;
+TC_GAME_API extern DB2Storage<PerksActivityXIntervalEntry>          sPerksActivityXIntervalStore;
+TC_GAME_API extern DB2Storage<PerksActivityConditionEntry>          sPerksActivityConditionStore;
+TC_GAME_API extern DB2Storage<PerksActivityTagEntry>                sPerksActivityTagStore;
+TC_GAME_API extern DB2Storage<PerksActivityXHolidaysEntry>          sPerksActivityXHolidaysStore;
+TC_GAME_API extern DB2Storage<PerksActivityXTagEntry>               sPerksActivityXTagStore;
+TC_GAME_API extern DB2Storage<PerksUIThemeEntry>                    sPerksUIThemeStore;
+TC_GAME_API extern DB2Storage<PerksVendorCategoryEntry>             sPerksVendorCategoryStore;
+TC_GAME_API extern DB2Storage<PerksVendorItemEntry>                 sPerksVendorItemStore;
+TC_GAME_API extern DB2Storage<PerksVendorItemUIGroupEntry>          sPerksVendorItemUIGroupStore;
+TC_GAME_API extern DB2Storage<PerksVendorItemUIInfoEntry>           sPerksVendorItemUIInfoStore;
+TC_GAME_API extern DB2Storage<PerksVendorItemXIntervalEntry>        sPerksVendorItemXIntervalStore;
 TC_GAME_API extern DB2Storage<PhaseEntry>                           sPhaseStore;
+TC_GAME_API extern DB2Storage<PlayerCompanionInfoEntry>             sPlayerCompanionInfoStore;
 TC_GAME_API extern DB2Storage<PlayerConditionEntry>                 sPlayerConditionStore;
 TC_GAME_API extern DB2Storage<PlayerDataElementAccountEntry>        sPlayerDataElementAccountStore;
 TC_GAME_API extern DB2Storage<PlayerDataElementCharacterEntry>      sPlayerDataElementCharacterStore;
@@ -217,6 +237,7 @@ TC_GAME_API extern DB2Storage<PvpTalentSlotUnlockEntry>             sPvpTalentSl
 TC_GAME_API extern DB2Storage<PvpTierEntry>                         sPvpTierStore;
 TC_GAME_API extern DB2Storage<QuestFactionRewardEntry>              sQuestFactionRewardStore;
 TC_GAME_API extern DB2Storage<QuestInfoEntry>                       sQuestInfoStore;
+TC_GAME_API extern DB2Storage<QuestLineXQuestEntry>                 sQuestLineXQuestStore;
 TC_GAME_API extern DB2Storage<QuestMoneyRewardEntry>                sQuestMoneyRewardStore;
 TC_GAME_API extern DB2Storage<QuestSortEntry>                       sQuestSortStore;
 TC_GAME_API extern DB2Storage<QuestXPEntry>                         sQuestXPStore;
@@ -303,12 +324,19 @@ TC_GAME_API extern DB2Storage<TraitTreeXTraitCostEntry>             sTraitTreeXT
 TC_GAME_API extern DB2Storage<TraitTreeXTraitCurrencyEntry>         sTraitTreeXTraitCurrencyStore;
 TC_GAME_API extern DB2Storage<TransmogHolidayEntry>                 sTransmogHolidayStore;
 TC_GAME_API extern DB2Storage<TransmogIllusionEntry>                sTransmogIllusionStore;
+TC_GAME_API extern DB2Storage<TransmogOutfitEntryEntry>             sTransmogOutfitEntryStore;
+TC_GAME_API extern DB2Storage<TransmogOutfitSlotInfoEntry>          sTransmogOutfitSlotInfoStore;
+TC_GAME_API extern DB2Storage<TransmogOutfitSlotOptionEntry>        sTransmogOutfitSlotOptionInfoStore;
+TC_GAME_API extern DB2Storage<TransmogSituationEntry>               sTransmogSituationStore;
+TC_GAME_API extern DB2Storage<TransmogSituationGroupEntry>          sTransmogSituationGroupStore;
+TC_GAME_API extern DB2Storage<TransmogSituationTriggerEntry>        sTransmogSituationTriggerStore;
 TC_GAME_API extern DB2Storage<TransmogSetEntry>                     sTransmogSetStore;
 TC_GAME_API extern DB2Storage<TransmogSetGroupEntry>                sTransmogSetGroupStore;
 TC_GAME_API extern DB2Storage<TransmogSetItemEntry>                 sTransmogSetItemStore;
 TC_GAME_API extern DB2Storage<TransportAnimationEntry>              sTransportAnimationStore;
 TC_GAME_API extern DB2Storage<TransportRotationEntry>               sTransportRotationStore;
 TC_GAME_API extern DB2Storage<UiMapEntry>                           sUiMapStore;
+TC_GAME_API extern DB2Storage<UIChromieTimeExpansionInfoEntry>      sUIChromieTimeExpansionInfoStore;
 TC_GAME_API extern DB2Storage<UISplashScreenEntry>                  sUISplashScreenStore;
 TC_GAME_API extern DB2Storage<UnitConditionEntry>                   sUnitConditionStore;
 TC_GAME_API extern DB2Storage<UnitPowerBarEntry>                    sUnitPowerBarStore;
@@ -316,9 +344,26 @@ TC_GAME_API extern DB2Storage<VehicleEntry>                         sVehicleStor
 TC_GAME_API extern DB2Storage<VehicleSeatEntry>                     sVehicleSeatStore;
 TC_GAME_API extern DB2Storage<VignetteEntry>                        sVignetteStore;
 TC_GAME_API extern DB2Storage<WarbandSceneEntry>                    sWarbandSceneStore;
+TC_GAME_API extern DB2Storage<WarbandScenePlacementEntry>           sWarbandScenePlacementStore;
+TC_GAME_API extern DB2Storage<WarbandSceneAnimationEntry>           sWarbandSceneAnimationStore;
+TC_GAME_API extern DB2Storage<WarbandSceneAnimChrSpecEntry>         sWarbandSceneAnimChrSpecStore;
+TC_GAME_API extern DB2Storage<WarbandScenePlacementFilterReqEntry>  sWarbandScenePlacementFilterReqStore;
+TC_GAME_API extern DB2Storage<WarbandScenePlacementOptionEntry>     sWarbandScenePlacementOptionStore;
+TC_GAME_API extern DB2Storage<WarbandScenePlcmntAnimOverrideEntry>  sWarbandScenePlcmntAnimOverrideStore;
+TC_GAME_API extern DB2Storage<WarbandPlacementDisplayInfoEntry>     sWarbandPlacementDisplayInfoStore;
+TC_GAME_API extern DB2Storage<WarbandSceneSourceInfoEntry>          sWarbandSceneSourceInfoStore;
 TC_GAME_API extern DB2Storage<WorldEffectEntry>                     sWorldEffectStore;
 TC_GAME_API extern DB2Storage<WorldMapOverlayEntry>                 sWorldMapOverlayStore;
 TC_GAME_API extern DB2Storage<WorldStateExpressionEntry>            sWorldStateExpressionStore;
+
+struct ClassPowerTypes
+{
+    std::array<Powers, MAX_POWERS_PER_CLASS> PowerType = { };
+    uint8 PowerTypeCount = 0;
+
+    Powers const* begin() const { return PowerType.data(); }
+    Powers const* end() const { return PowerType.data() + PowerTypeCount; }
+};
 
 struct ContentTuningLevels
 {
@@ -465,9 +510,12 @@ public:
     static CharBaseInfoEntry const* GetCharBaseInfo(Races race, Classes class_);
     ChrClassUIDisplayEntry const* GetUiDisplayForClass(Classes unitClass) const;
     static char const* GetChrClassName(uint8 class_, LocaleConstant locale = DEFAULT_LOCALE);
-    uint32 GetPowerIndexByClass(Powers power, uint32 classId) const;
+    static ClassPowerTypes GetPowerTypesByClass(uint32 classId);
+    static uint32 GetPowerIndexByClass(Powers power, uint32 classId);
     std::vector<ChrCustomizationChoiceEntry const*> const* GetCustomiztionChoices(uint32 chrCustomizationOptionId) const;
+    std::vector<ChrCustomizationOptionEntry const*> const* GetCustomiztionOptions(uint32 chrModel) const;
     std::vector<ChrCustomizationOptionEntry const*> const* GetCustomiztionOptions(uint8 race, uint8 gender) const;
+    uint8 GetZeroIfOptionUsedForPlayerModel(uint32 option) const;
     std::vector<std::pair<uint32, std::vector<uint32>>> const* GetRequiredCustomizationChoices(uint32 chrCustomizationReqId) const;
     ChrModelEntry const* GetChrModel(uint8 race, uint8 gender) const;
     static ConditionalChrModelEntry const* GetConditionalChrModel(int32 chrModelId);
@@ -483,6 +531,7 @@ public:
     std::pair<float, float> GetCurveXAxisRange(uint32 curveId) const;
     float GetCurveValueAt(uint32 curveId, float x) const;
     float GetCurveValueAt(CurveInterpolationMode mode, std::span<DBCPosition2D const> points, float x) const;
+    static std::string_view GetDifficultyName(Difficulty difficulty);
     EmotesTextSoundEntry const* GetTextSoundEmoteFor(uint32 emote, uint8 race, uint8 gender, uint8 class_) const;
     float EvaluateExpectedStat(ExpectedStatType stat, uint32 level, int32 expansion, uint32 contentTuningId, Classes unitClass, int32 mythicPlusMilestoneSeason) const;
     std::vector<uint32> const* GetFactionTeamList(uint32 faction) const;
@@ -496,18 +545,15 @@ public:
     ItemClassEntry const* GetItemClassByOldEnum(uint32 itemClass) const;
     bool HasItemCurrencyCost(uint32 itemId) const;
     std::vector<ItemLimitCategoryConditionEntry const*> const* GetItemLimitCategoryConditions(uint32 categoryId) const;
-    uint32 GetItemDisplayId(uint32 itemId, uint32 appearanceModId) const;
-    ItemModifiedAppearanceEntry const* GetItemModifiedAppearance(uint32 itemId, uint32 appearanceModId) const;
-    ItemModifiedAppearanceEntry const* GetDefaultItemModifiedAppearance(uint32 itemId) const;
     std::vector<ItemSetSpellEntry const*> const* GetItemSetSpells(uint32 itemSetId) const;
     std::vector<ItemSpecOverrideEntry const*> const* GetItemSpecOverrides(uint32 itemId) const;
     JournalTierEntry const* GetJournalTier(uint32 index) const;
     static LFGDungeonsEntry const* GetLfgDungeon(uint32 mapId, Difficulty difficulty);
     static uint32 GetDefaultMapLight(uint32 mapId);
     static uint32 GetLiquidFlags(uint32 liquidType);
-    MapDifficultyEntry const* GetDefaultMapDifficulty(uint32 mapId, Difficulty* difficulty = nullptr) const;
+    MapDifficultyEntry const* GetDefaultMapDifficulty(uint32 mapId) const;
     MapDifficultyEntry const* GetMapDifficultyData(uint32 mapId, Difficulty difficulty) const;
-    MapDifficultyEntry const* GetDownscaledMapDifficultyData(uint32 mapId, Difficulty &difficulty) const;
+    MapDifficultyEntry const* GetDownscaledMapDifficultyData(uint32 mapId, Difficulty difficulty) const;
     MapDifficultyConditionsContainer const* GetMapDifficultyConditions(uint32 mapDifficultyId) const;
     MountEntry const* GetMount(uint32 spellId) const;
     MountEntry const* GetMountById(uint32 id) const;
@@ -525,13 +571,13 @@ public:
     static PVPDifficultyEntry const* GetBattlegroundBracketById(uint32 mapid, BattlegroundBracketId id);
     uint32 GetRequiredLevelForPvpTalentSlot(uint8 slot, Classes class_) const;
     int32 GetPvpTalentNumSlotsAtLevel(uint32 level, Classes class_) const;
-    std::vector<QuestLineXQuestEntry const*> const* GetQuestsForQuestLine(uint32 questLineId) const;
     std::vector<QuestPackageItemEntry const*> const* GetQuestPackageItems(uint32 questPackageID) const;
     std::vector<QuestPackageItemEntry const*> const* GetQuestPackageItemsFallback(uint32 questPackageID) const;
     uint32 GetQuestUniqueBitFlag(uint32 questId);
     std::vector<RewardPackXCurrencyTypeEntry const*> const* GetRewardPackCurrencyTypesByRewardID(uint32 rewardPackID) const;
     std::vector<RewardPackXItemEntry const*> const* GetRewardPackItemsByRewardID(uint32 rewardPackID) const;
-    ShapeshiftFormModelData const* GetShapeshiftFormModelData(uint8 race, uint8 gender, uint8 form) const;
+    ShapeshiftFormModelData const* GetShapeshiftFormModelData(uint8 race, uint8 form) const;
+    ChrCustomizationChoiceEntry const* GetShapeshiftRaceDefaultOptions(uint8 race, uint8 form) const;
     std::vector<SkillLineEntry const*> const* GetSkillLinesForParentSkill(uint32 parentSkillId) const;
     std::vector<SkillLineAbilityEntry const*> const* GetSkillLineAbilitiesBySkill(uint32 skillId) const;
     SkillRaceClassInfoEntry const* GetSkillRaceClassInfo(uint32 skill, uint8 race, uint8 class_) const;
@@ -546,16 +592,14 @@ public:
     TaxiPathEntry const* GetTaxiPath(uint32 from, uint32 to) const;
     static bool IsTotemCategoryCompatibleWith(uint32 itemTotemCategoryId, uint32 requiredTotemCategoryId, bool requireAllTotems = true);
     bool IsToyItem(uint32 toy) const;
-    TransmogIllusionEntry const* GetTransmogIllusionForEnchantment(uint32 spellItemEnchantmentId) const;
-    std::vector<TransmogSetEntry const*> const* GetTransmogSetsForItemModifiedAppearance(uint32 itemModifiedAppearanceId) const;
-    std::vector<TransmogSetItemEntry const*> const* GetTransmogSetItems(uint32 transmogSetId) const;
     static bool GetUiMapPosition(float x, float y, float z, int32 mapId, int32 areaId, int32 wmoDoodadPlacementId, int32 wmoGroupId, UiMapSystem system, bool local,
         uint32* uiMapId = nullptr, DBCPosition2D* newPos = nullptr);
     bool Zone2MapCoordinates(uint32 areaId, float& x, float& y) const;
     void Map2ZoneCoordinates(uint32 areaId, float& x, float& y) const;
     bool IsUiMapPhase(uint32 phaseId) const;
-    WMOAreaTableEntry const* GetWMOAreaTable(int32 rootId, int32 adtId, int32 groupId) const;
+    static WMOAreaTableEntry const* GetWMOAreaTable(int32 rootId, int32 adtId, int32 groupId, bool allowGroupFallback);
     std::unordered_set<uint32> const* GetPVPStatIDsForMap(uint32 mapId) const;
+    std::vector<WarbandScenePlacementEntry const*> const* GetWarbandScenePlacements(uint32 warbandSceneId) const;
 
 private:
     friend class DB2HotfixGeneratorBase;

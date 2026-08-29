@@ -353,7 +353,7 @@ public:
 
     void AddItem(T const* item)
     {
-        auto where = std::lower_bound(_items.begin(), _items.end(), item, std::cref(_sorter));
+        auto where = std::ranges::lower_bound(_items, item, std::cref(_sorter));
 
         _items.insert(where, item);
         if (_items.size() > _maxResults + _offset)
@@ -363,9 +363,9 @@ public:
         }
     }
 
-    Trinity::IteratorPair<typename std::vector<T const*>::const_iterator> GetResultRange() const
+    std::span<T const* const> GetResultRange() const
     {
-        return Trinity::Containers::MakeIteratorPair(_items.begin() + _offset, _items.end());
+        return std::span(_items.begin() + _offset, _items.end());
     }
 
     bool HasMoreResults() const
@@ -1234,15 +1234,19 @@ void AuctionHouseObject::BuildListBuckets(WorldPackets::AuctionHouse::AuctionLis
             else if (bucketData->ItemClass == ITEM_CLASS_CONSUMABLE || bucketData->ItemClass == ITEM_CLASS_RECIPE || bucketData->ItemClass == ITEM_CLASS_MISCELLANEOUS)
             {
                 ItemTemplate const* itemTemplate = ASSERT_NOTNULL(sObjectMgr->GetItemTemplate(bucket.first.ItemId));
-                if (itemTemplate->Effects.size() >= 2 && (itemTemplate->Effects[0]->SpellID == 483 || itemTemplate->Effects[0]->SpellID == 55884))
+                bool hasUnlearned = std::ranges::any_of(itemTemplate->Effects, [player, &knownPetSpecies](ItemEffectEntry const* itemEffect)
                 {
-                    if (player->HasSpell(itemTemplate->Effects[1]->SpellID))
-                        continue;
-
-                    if (BattlePetSpeciesEntry const* battlePetSpecies = BattlePets::BattlePetMgr::GetBattlePetSpeciesBySpell(itemTemplate->Effects[1]->SpellID))
+                    if (itemEffect->TriggerType != ITEM_SPELLTRIGGER_ON_LEARN)
+                        return false;
+                    if (player->HasSpell(itemEffect->SpellID))
+                        return false;
+                    if (BattlePetSpeciesEntry const* battlePetSpecies = BattlePets::BattlePetMgr::GetBattlePetSpeciesBySpell(itemEffect->SpellID))
                         if (knownPetSpecies.test(battlePetSpecies->ID))
-                            continue;
-                }
+                            return false;
+                    return true;
+                });
+                if (!hasUnlearned)
+                    continue;
             }
         }
 
@@ -1364,9 +1368,9 @@ void AuctionHouseObject::BuildListAuctionItems(WorldPackets::AuctionHouse::Aucti
 {
     AuctionsResultBuilder<AuctionPosting> builder(offset, player->GetSession()->GetSessionDbcLocale(), sorts, AuctionHouseResultLimits::Items);
     auto itr = _buckets.lower_bound(AuctionsBucketKey(itemId, 0, 0, 0));
-    auto end = _buckets.lower_bound(AuctionsBucketKey(itemId + 1, 0, 0, 0));
+    auto end = _buckets.end();
     listItemsResult.TotalCount = 0;
-    while (itr != end)
+    while (itr != end && itr->first.ItemId == itemId)
     {
         for (AuctionPosting const* auction : itr->second.Auctions)
         {

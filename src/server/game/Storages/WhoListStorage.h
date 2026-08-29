@@ -64,6 +64,7 @@ private:
 };
 
 typedef std::vector<WhoListPlayerInfo> WhoListInfoVector;
+typedef void(*WhoListBotCallback)(WhoListInfoVector&);
 
 class TC_GAME_API WhoListStorageMgr
 {
@@ -82,8 +83,11 @@ public:
     void Update();
     WhoListInfoVector const& GetWhoList() const { return _whoListStorage; }
 
+    void SetBotCallback(WhoListBotCallback callback) { _botCallback = callback; }
+
 protected:
     WhoListInfoVector _whoListStorage;
+    WhoListBotCallback _botCallback = nullptr;
 };
 
 #define sWhoListStorageMgr WhoListStorageMgr::instance()

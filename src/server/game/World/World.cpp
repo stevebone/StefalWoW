@@ -40,6 +40,7 @@
 #include "Chat.h"
 #include "ChatCommand.h"
 #include "ChatPackets.h"
+#include "ClubFinderMgr.h"
 #include "Config.h"
 #include "Containers.h"
 #include "ConversationDataStore.h"
@@ -78,10 +79,12 @@
 #include "ObjectAccessor.h"
 #include "ObjectMgr.h"
 #include "OutdoorPvPMgr.h"
+#include "PerksProgramMgr.h"
 #include "PetitionMgr.h"
 #include "Player.h"
 #include "PlayerDump.h"
 #include "PoolMgr.h"
+#include "QuestMgr.h"
 #include "QuestPools.h"
 #include "RealmList.h"
 #include "ScenarioMgr.h"
@@ -95,6 +98,7 @@
 #include "TaxiPathGraph.h"
 #include "TerrainMgr.h"
 #include "TraitMgr.h"
+#include "TransmogMgr.h"
 #include "TransportMgr.h"
 #include "Unit.h"
 #include "UpdateTime.h"
@@ -647,6 +651,7 @@ void World::LoadConfigSettings(bool reload)
         { .Name = "Battleground.GiveXPForKills"sv, .DefaultValue = false, .Index = CONFIG_BG_XP_FOR_KILL },
         { .Name = "Arena.QueueAnnouncer.Enable"sv, .DefaultValue = false, .Index = CONFIG_ARENA_QUEUE_ANNOUNCER_ENABLE },
         { .Name = "Arena.ArenaSeason.InProgress"sv, .DefaultValue = false, .Index = CONFIG_ARENA_SEASON_IN_PROGRESS },
+        { .Name = "Season.WeeklyRewardChestsEnabled"sv, .DefaultValue = true, .Index = CONFIG_WEEKLY_REWARD_CHESTS_ENABLED },
         { .Name = "ArenaLog.ExtendedInfo"sv, .DefaultValue = false, .Index = CONFIG_ARENA_LOG_EXTENDED_INFO },
         { .Name = "OffhandCheckAtSpellUnlearn"sv, .DefaultValue = true, .Index = CONFIG_OFFHAND_CHECK_AT_SPELL_UNLEARN },
         { .Name = "Respawn.DynamicEscortNPC"sv, .DefaultValue = false, .Index = CONFIG_RESPAWN_DYNAMIC_ESCORTNPC },
@@ -746,7 +751,7 @@ void World::LoadConfigSettings(bool reload)
         { .Name = "CharacterCreating.MinLevelForDemonHunter"sv, .DefaultValue = 0, .Index = CONFIG_CHARACTER_CREATING_MIN_LEVEL_FOR_DEMON_HUNTER },
         { .Name = "CharacterCreating.MinLevelForEvoker"sv, .DefaultValue = 50, .Index = CONFIG_CHARACTER_CREATING_MIN_LEVEL_FOR_EVOKER },
         { .Name = "SkipCinematics"sv, .DefaultValue = 0, .Index = CONFIG_SKIP_CINEMATICS, .Min = 0, .Max = 2 },
-        { .Name = "MaxPlayerLevel"sv, .DefaultValue = DEFAULT_MAX_LEVEL, .Index = CONFIG_MAX_PLAYER_LEVEL, .Min = 1, .Max = MAX_LEVEL, .Reloadable = false },
+        { .Name = "MaxPlayerLevel"sv, .DefaultValue = GetMaxLevelForExpansion(CURRENT_EXPANSION), .Index = CONFIG_MAX_PLAYER_LEVEL, .Min = 1, .Max = MAX_LEVEL, .Reloadable = false },
         { .Name = "MinDualSpecLevel"sv, .DefaultValue = 40, .Index = CONFIG_MIN_DUALSPEC_LEVEL },
         { .Name = "StartPlayerLevel"sv, .DefaultValue = 1, .Index = CONFIG_START_PLAYER_LEVEL, .Min = 1 },
         { .Name = "StartDeathKnightPlayerLevel"sv, .DefaultValue = 8, .Index = CONFIG_START_DEATH_KNIGHT_PLAYER_LEVEL, .Min = 1 },
@@ -756,7 +761,7 @@ void World::LoadConfigSettings(bool reload)
         { .Name = "Currency.ResetHour"sv, .DefaultValue = 3, .Index = CONFIG_CURRENCY_RESET_HOUR, .Min = 0, .Max = 23 },
         { .Name = "Currency.ResetDay"sv, .DefaultValue = 3, .Index = CONFIG_CURRENCY_RESET_DAY, .Min = 0, .Max = 6 },
         { .Name = "Currency.ResetInterval"sv, .DefaultValue = 7, .Index = CONFIG_CURRENCY_RESET_INTERVAL, .Min = 1 },
-        { .Name = "RecruitAFriend.MaxLevel"sv, .DefaultValue = DEFAULT_MAX_LEVEL, .Index = CONFIG_MAX_RECRUIT_A_FRIEND_BONUS_PLAYER_LEVEL, .Min = 1 },
+        { .Name = "RecruitAFriend.MaxLevel"sv, .DefaultValue = GetMaxLevelForExpansion(CURRENT_EXPANSION), .Index = CONFIG_MAX_RECRUIT_A_FRIEND_BONUS_PLAYER_LEVEL, .Min = 1 },
         { .Name = "RecruitAFriend.MaxDifference"sv, .DefaultValue = 4, .Index = CONFIG_MAX_RECRUIT_A_FRIEND_BONUS_PLAYER_LEVEL_DIFFERENCE },
         { .Name = "ResetSchedule.WeekDay"sv, .DefaultValue = 2, .Index = CONFIG_RESET_SCHEDULE_WEEK_DAY, .Min = 0, .Max = 6 },
         { .Name = "ResetSchedule.Hour"sv, .DefaultValue = 8, .Index = CONFIG_RESET_SCHEDULE_HOUR, .Min = 0, .Max = 23 },
@@ -824,6 +829,9 @@ void World::LoadConfigSettings(bool reload)
         { .Name = "Arena.RatingDiscardTimer"sv, .DefaultValue = 10 * MINUTE * IN_MILLISECONDS, .Index = CONFIG_ARENA_RATING_DISCARD_TIMER },
         { .Name = "Arena.RatedUpdateTimer"sv, .DefaultValue = 5 * IN_MILLISECONDS, .Index = CONFIG_ARENA_RATED_UPDATE_TIMER },
         { .Name = "Arena.ArenaSeason.ID"sv, .DefaultValue = 32, .Index = CONFIG_ARENA_SEASON_ID },
+        { .Name = "Season.MythicPlusDisplaySeasonID"sv, .DefaultValue = 34, .Index = CONFIG_MYTHIC_PLUS_DISPLAY_SEASON_ID },
+        { .Name = "Season.MythicPlusMilestoneSeasonID"sv, .DefaultValue = 117, .Index = CONFIG_MYTHIC_PLUS_MILESTONE_SEASON_ID },
+        { .Name = "Season.PvpSeasonID"sv, .DefaultValue = 39, .Index = CONFIG_PVP_SEASON_ID },
         { .Name = "Arena.ArenaStartRating"sv, .DefaultValue = 0, .Index = CONFIG_ARENA_START_RATING },
         { .Name = "Arena.ArenaStartPersonalRating"sv, .DefaultValue = 1000, .Index = CONFIG_ARENA_START_PERSONAL_RATING },
         { .Name = "Arena.ArenaStartMatchmakerRating"sv, .DefaultValue = 1500, .Index = CONFIG_ARENA_START_MATCHMAKER_RATING },
@@ -852,6 +860,7 @@ void World::LoadConfigSettings(bool reload)
         { .Name = "Respawn.DynamicMinimumGameObject"sv, .DefaultValue = 10, .Index = CONFIG_RESPAWN_DYNAMICMINIMUM_GAMEOBJECT },
         { .Name = "Respawn.WarningFrequency"sv, .DefaultValue = 1800, .Index = CONFIG_RESPAWN_GUIDWARNING_FREQUENCY },
         { .Name = "MaxWhoListReturns"sv, .DefaultValue = 49, .Index = CONFIG_MAX_WHO },
+        { .Name = "WhoList.Update.Interval"sv, .DefaultValue = 5, .Index = CONFIG_WHO_LIST_UPDATE_INTERVAL, .Min = 1 },
         { .Name = "HonorPointsAfterDuel"sv, .DefaultValue = 0, .Index = CONFIG_HONOR_AFTER_DUEL },
         { .Name = "PvPToken.MapAllowType"sv, .DefaultValue = 4, .Index = CONFIG_PVP_TOKEN_MAP_TYPE, .Min = 1, .Max = 4 },
         { .Name = "PvPToken.ItemID"sv, .DefaultValue = 29434, .Index = CONFIG_PVP_TOKEN_ID },
@@ -892,12 +901,17 @@ void World::LoadConfigSettings(bool reload)
         { .Name = "BlackMarket.MaxAuctions"sv, .DefaultValue = 12, .Index = CONFIG_BLACKMARKET_MAXAUCTIONS },
         { .Name = "BlackMarket.UpdatePeriod"sv, .DefaultValue = 24, .Index = CONFIG_BLACKMARKET_UPDATE_PERIOD },
         { .Name = "Pvp.FactionBalance.LevelCheckDiff"sv, .DefaultValue = 0, .Index = CONFIG_FACTION_BALANCE_LEVEL_CHECK_DIFF },
+        { .Name = "Player.Extended.BackPackSlots"sv, .DefaultValue = 0, .Index = CONFIG_PLAYER_EXTENDED_BACKPACK_SLOTS },
     } };
 
     static constexpr ConfigOptionLoadDefinitionArray<uint64, INT64_CONFIG_VALUE_COUNT> int64s =
     { {
         { .Name = "CharacterCreating.Disabled.RaceMask"sv, .DefaultValue = 0, .Index = CONFIG_CHARACTER_CREATING_DISABLED_RACEMASK },
         { .Name = "StartPlayerMoney"sv, .DefaultValue = 0, .Index = CONFIG_START_PLAYER_MONEY, .Min = 0, .Max = MAX_MONEY_AMOUNT },
+        { .Name = "StartDeathKnightPlayerMoney"sv, .DefaultValue = 2000, .Index = CONFIG_START_DEATH_KNIGHT_PLAYER_MONEY, .Min = 0, .Max = MAX_MONEY_AMOUNT },
+        { .Name = "StartDemonHunterPlayerMoney"sv, .DefaultValue = 0, .Index = CONFIG_START_DEMON_HUNTER_PLAYER_MONEY, .Min = 0, .Max = MAX_MONEY_AMOUNT },
+        { .Name = "StartEvokerPlayerMoney"sv, .DefaultValue = 0, .Index = CONFIG_START_EVOKER_PLAYER_MONEY, .Min = 0, .Max = MAX_MONEY_AMOUNT },
+        { .Name = "StartAlliedRacePlayerMoney"sv, .DefaultValue = 10000, .Index = CONFIG_START_ALLIED_RACE_MONEY, .Min = 0, .Max = MAX_MONEY_AMOUNT },
     } };
 
     static constexpr ConfigOptionLoadDefinitionArray<float, FLOAT_CONFIG_VALUE_COUNT> floats =
@@ -1217,8 +1231,10 @@ void World::LoadConfigSettings(bool reload)
         m_timers[WUPDATE_CLEANDB].Reset();
         m_timers[WUPDATE_AUTOBROADCAST].SetInterval(m_int_configs[CONFIG_AUTOBROADCAST_INTERVAL]);
         m_timers[WUPDATE_AUTOBROADCAST].Reset();
-        sWorldStateMgr->SetValue(WS_CURRENT_PVP_SEASON_ID, getBoolConfig(CONFIG_ARENA_SEASON_IN_PROGRESS) ? getIntConfig(CONFIG_ARENA_SEASON_ID) : 0, false, nullptr);
-        sWorldStateMgr->SetValue(WS_PREVIOUS_PVP_SEASON_ID, getIntConfig(CONFIG_ARENA_SEASON_ID) - getBoolConfig(CONFIG_ARENA_SEASON_IN_PROGRESS), false, nullptr);
+        m_timers[WUPDATE_WHO_LIST].SetInterval(m_int_configs[CONFIG_WHO_LIST_UPDATE_INTERVAL] * IN_MILLISECONDS);
+        m_timers[WUPDATE_WHO_LIST].Reset();
+        WorldStateMgr::SetValue(WS_CURRENT_PVP_SEASON_ID, getBoolConfig(CONFIG_ARENA_SEASON_IN_PROGRESS) ? getIntConfig(CONFIG_ARENA_SEASON_ID) : 0, false, nullptr);
+        WorldStateMgr::SetValue(WS_PREVIOUS_PVP_SEASON_ID, getIntConfig(CONFIG_ARENA_SEASON_ID) - getBoolConfig(CONFIG_ARENA_SEASON_IN_PROGRESS), false, nullptr);
 
         // call ScriptMgr if we're reloading the configuration
         sScriptMgr->OnConfigLoad(reload);
@@ -1580,6 +1596,7 @@ bool World::SetInitialWorldSettings()
     WeatherMgr::LoadWeatherData();
 
     TC_LOG_INFO("server.loading", "Loading Quests...");
+    QuestMgr::Load();
     sObjectMgr->LoadQuests();                                    // must be loaded after DBCs, creature_template, items, gameobject tables
 
     TC_LOG_INFO("server.loading", "Checking Quest Disables");
@@ -1603,7 +1620,7 @@ bool World::SetInitialWorldSettings()
     sQuestPoolMgr->LoadFromDB();                                // must be after quest templates
 
     TC_LOG_INFO("server.loading", "Loading World State templates...");
-    sWorldStateMgr->LoadFromDB();                               // must be loaded before battleground, outdoor PvP, game events and conditions
+    WorldStateMgr::LoadFromDB();                               // must be loaded before battleground, outdoor PvP, game events and conditions
 
     TC_LOG_INFO("server.loading", "Loading Game Event Data...");               // must be after loading pools fully
     sGameEventMgr->LoadFromDB();
@@ -1786,11 +1803,27 @@ bool World::SetInitialWorldSettings()
         sBlackMarketMgr->LoadAuctions();
     }
 
+    TC_LOG_INFO("server.loading", "Loading Perks Program vendor items...");
+    sPerksProgramMgr->LoadVendorItems();
+
+    TC_LOG_INFO("server.loading", "Loading Perks Program monthly rotation...");
+    sPerksProgramMgr->LoadMonthlyRotation();
+
+    TC_LOG_INFO("server.loading", "Loading Perks Program activity intervals...");
+    sPerksProgramMgr->LoadActivityIntervals();
+    sPerksProgramMgr->BuildCriteriaTreeMap();
+
+    TC_LOG_INFO("server.loading", "Loading Perks Program current activities...");
+    sPerksProgramMgr->LoadCurrentActivities();
+
     TC_LOG_INFO("server.loading", "Loading Guild rewards...");
     sGuildMgr->LoadGuildRewards();
 
     TC_LOG_INFO("server.loading", "Loading Guilds...");
     sGuildMgr->LoadGuilds();
+
+    TC_LOG_INFO("server.loading", "Loading Club Finder data...");
+    sClubFinderMgr->LoadFromDB();
 
     TC_LOG_INFO("server.loading", "Loading ArenaTeams...");
     sArenaTeamMgr->LoadArenaTeams();
@@ -1840,8 +1873,8 @@ bool World::SetInitialWorldSettings()
     TC_LOG_INFO("server.loading", "Loading Persistend World Variables...");
     LoadPersistentWorldVariables();
 
-    sWorldStateMgr->SetValue(WS_CURRENT_PVP_SEASON_ID, getBoolConfig(CONFIG_ARENA_SEASON_IN_PROGRESS) ? getIntConfig(CONFIG_ARENA_SEASON_ID) : 0, false, nullptr);
-    sWorldStateMgr->SetValue(WS_PREVIOUS_PVP_SEASON_ID, getIntConfig(CONFIG_ARENA_SEASON_ID) - getBoolConfig(CONFIG_ARENA_SEASON_IN_PROGRESS), false, nullptr);
+    WorldStateMgr::SetValue(WS_CURRENT_PVP_SEASON_ID, getBoolConfig(CONFIG_ARENA_SEASON_IN_PROGRESS) ? getIntConfig(CONFIG_ARENA_SEASON_ID) : 0, false, nullptr);
+    WorldStateMgr::SetValue(WS_PREVIOUS_PVP_SEASON_ID, getIntConfig(CONFIG_ARENA_SEASON_ID) - getBoolConfig(CONFIG_ARENA_SEASON_IN_PROGRESS), false, nullptr);
 
     sObjectMgr->LoadPhases();
 
@@ -1895,7 +1928,6 @@ bool World::SetInitialWorldSettings()
     LoadAutobroadcasts();
 
     ///- Load and initialize scripts
-    sObjectMgr->LoadSpellScripts();                              // must be after load Creature/Gameobject(Template/Data)
     sObjectMgr->LoadEventScripts();                              // must be after load Creature/Gameobject(Template/Data)
 
     TC_LOG_INFO("server.loading", "Loading spell script names...");
@@ -1970,7 +2002,7 @@ bool World::SetInitialWorldSettings()
 
     m_timers[WUPDATE_CHECK_FILECHANGES].SetInterval(500);
 
-    m_timers[WUPDATE_WHO_LIST].SetInterval(5 * IN_MILLISECONDS); // update who list cache every 5 seconds
+    m_timers[WUPDATE_WHO_LIST].SetInterval(getIntConfig(CONFIG_WHO_LIST_UPDATE_INTERVAL) * IN_MILLISECONDS); // update who list cache every 5 seconds
 
     m_timers[WUPDATE_CHANNEL_SAVE].SetInterval(getIntConfig(CONFIG_PRESERVE_CUSTOM_CHANNEL_INTERVAL) * MINUTE * IN_MILLISECONDS);
 
@@ -2065,6 +2097,9 @@ bool World::SetInitialWorldSettings()
     TC_LOG_INFO("server.loading", "Loading phase names...");
     sObjectMgr->LoadPhaseNames();
 
+    TC_LOG_INFO("server.loading", "Loading transmog data...");
+    TransmogMgr::Load();
+
     uint32 startupDuration = GetMSTimeDiffToNow(startupBegin);
 
     TC_LOG_INFO("server.worldserver", "World initialized in {} minutes {} seconds", startupDuration / 60000, startupDuration % 60000 / 1000);
@@ -2075,8 +2110,8 @@ bool World::SetInitialWorldSettings()
 
 void World::SetForcedWarModeFactionBalanceState(TeamId team, int32 reward)
 {
-    sWorldStateMgr->SetValueAndSaveInDb(WS_WAR_MODE_HORDE_BUFF_VALUE, 10 + (team == TEAM_ALLIANCE ? reward : 0), false, nullptr);
-    sWorldStateMgr->SetValueAndSaveInDb(WS_WAR_MODE_ALLIANCE_BUFF_VALUE, 10 + (team == TEAM_HORDE ? reward : 0), false, nullptr);
+    WorldStateMgr::SetValueAndSaveInDb(WS_WAR_MODE_HORDE_BUFF_VALUE, 10 + (team == TEAM_ALLIANCE ? reward : 0), false, nullptr);
+    WorldStateMgr::SetValueAndSaveInDb(WS_WAR_MODE_ALLIANCE_BUFF_VALUE, 10 + (team == TEAM_HORDE ? reward : 0), false, nullptr);
 }
 
 void World::DisableForcedWarModeFactionBalanceState()
@@ -2381,7 +2416,7 @@ void World::Update(uint32 diff)
     {
         TC_METRIC_TIMER("world_update_time", TC_METRIC_TAG("type", "Ping MySQL"));
         m_timers[WUPDATE_PINGDB].Reset();
-        TC_LOG_DEBUG("misc", "Ping MySQL to keep connection alive");
+        TC_LOG_DEBUG("sql.driver", "Ping MySQL to keep connection alive");
         CharacterDatabase.KeepAlive();
         LoginDatabase.KeepAlive();
         WorldDatabase.KeepAlive();
@@ -2404,6 +2439,8 @@ void World::Update(uint32 diff)
         else if (_warnDiff > getIntConfig(CONFIG_RESPAWN_GUIDWARNING_FREQUENCY) * IN_MILLISECONDS)
             SendGuidWarning();
     }
+
+    WorldStateMgr::Update();
 
     {
         TC_METRIC_TIMER("world_update_time", TC_METRIC_TAG("type", "Process cli commands"));
@@ -2592,37 +2629,6 @@ void World::SendGlobalText(char const* text, WorldSession* self)
     }
 
     free(buf);
-}
-
-/// Send a packet to all players (or players selected team) in the zone (except self if mentioned)
-bool World::SendZoneMessage(uint32 zone, WorldPacket const* packet, WorldSession* self, Optional<Team> team)
-{
-    bool foundPlayerToSend = false;
-    SessionMap::const_iterator itr;
-
-    for (itr = m_sessions.begin(); itr != m_sessions.end(); ++itr)
-    {
-        if (itr->second &&
-            itr->second->GetPlayer() &&
-            itr->second->GetPlayer()->IsInWorld() &&
-            itr->second->GetPlayer()->GetZoneId() == zone &&
-            itr->second != self &&
-            (!team || itr->second->GetPlayer()->GetTeam() == team))
-        {
-            itr->second->SendPacket(packet);
-            foundPlayerToSend = true;
-        }
-    }
-
-    return foundPlayerToSend;
-}
-
-/// Send a System Message to all players in the zone (except self if mentioned)
-void World::SendZoneText(uint32 zone, char const* text, WorldSession* self, Optional<Team> team)
-{
-    WorldPackets::Chat::Chat packet;
-    packet.Initialize(CHAT_MSG_SYSTEM, LANG_UNIVERSAL, nullptr, nullptr, text);
-    SendZoneMessage(zone, packet.Write(), self, team);
 }
 
 /// Kick (and save) all players
@@ -3398,6 +3404,22 @@ bool World::IsBattlePetJournalLockAcquired(ObjectGuid battlenetAccountGuid)
     return false;
 }
 
+bool World::IsAccountInventoryLockAcquired(ObjectGuid battlenetAccountGuid, WorldSession const* exclude)
+{
+    for (auto&& sessionForBnet : Trinity::Containers::MapEqualRange(m_sessionsByBnetGuid, battlenetAccountGuid))
+    {
+        WorldSession const* session = sessionForBnet.second;
+        if (session == exclude)
+            continue;
+
+        Player const* other = session->GetPlayer();
+        if (other && other->HasPlayerLocalFlag(PLAYER_LOCAL_FLAG_HAS_ACCOUNT_BANK_LOCK))
+            return true;
+    }
+
+    return false;
+}
+
 bool World::IsPvPRealm() const
 {
     return (getIntConfig(CONFIG_GAME_TYPE) == REALM_TYPE_PVP || getIntConfig(CONFIG_GAME_TYPE) == REALM_TYPE_RPPVP || getIntConfig(CONFIG_GAME_TYPE) == REALM_TYPE_FFA_PVP);
@@ -3512,8 +3534,8 @@ void World::UpdateWarModeRewardValues()
             outnumberedFactionReward = 5;
     }
 
-    sWorldStateMgr->SetValueAndSaveInDb(WS_WAR_MODE_HORDE_BUFF_VALUE, 10 + (dominantFaction == TEAM_ALLIANCE ? outnumberedFactionReward : 0), false, nullptr);
-    sWorldStateMgr->SetValueAndSaveInDb(WS_WAR_MODE_ALLIANCE_BUFF_VALUE, 10 + (dominantFaction == TEAM_HORDE ? outnumberedFactionReward : 0), false, nullptr);
+    WorldStateMgr::SetValueAndSaveInDb(WS_WAR_MODE_HORDE_BUFF_VALUE, 10 + (dominantFaction == TEAM_ALLIANCE ? outnumberedFactionReward : 0), false, nullptr);
+    WorldStateMgr::SetValueAndSaveInDb(WS_WAR_MODE_ALLIANCE_BUFF_VALUE, 10 + (dominantFaction == TEAM_HORDE ? outnumberedFactionReward : 0), false, nullptr);
 }
 
 uint32 GetVirtualRealmAddress()

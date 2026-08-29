@@ -1,10 +1,51 @@
+/*
+ * This file is part of the Stefal WoW Project.
+ * It is designed to work exclusively with the TrinityCore framework.
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 2 of the License, or (at your
+ * option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ *
+ * This code is provided for personal and educational use within the
+ * Stefal WoW Project. It is not intended for commercial distribution,
+ * resale, or any form of monetization.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#include "CharmInfo.h"
+#include "DatabaseEnv.h"
+#include "Log.h"
+#include "Map.h"
+#include "PhasingHandler.h"
+#include "ScriptHelpers.h"
+#include "TemporarySummon.h"
+#include "DB2Stores.h"
+#include <random>
+
+#include "GenAI_chatter_prompts.h"
+
 #include "Followship_bots_mgr.h"
 #include "Followship_bots_db.h"
 #include "Followship_bots.h"
-#include "PhasingHandler.h"
-#include "CharmInfo.h"
+#include "FollowshipDatabase.h"
+#include "Followship_bots_config.h"
 
+#include "Followship_bots_battleground_handler.h"
+#include "Followship_bots_events_handler.h"
+#include "Followship_bots_dungeon_handler.h"
+#include "Followship_bots_gossip_handler.h"
+#include "Followship_bots_movement_handler.h"
+#include "Followship_bots_powers_handler.h"
 #include "Followship_bots_stats_handler.h"
+#include "Followship_bots_utils.h"
 
 FSBMgr* FSBMgr::Get()
 {
@@ -26,10 +67,39 @@ void FSBMgr::LoadAllPersistentBots()
         _playerBotsPersistent[bot.owner].push_back(bot);
     }
 
-    TC_LOG_INFO("scripts.ai.fsb",
-        "FSB Mgr: Loaded {} persistent bots for {} players",
-        allBots.size(),
-        _playerBotsPersistent.size());
+    TC_LOG_INFO("scripts.fsb.manager", "FSB: LoadAllPersistentBots {} persistent bots loaded for {} players", allBots.size(), _playerBotsPersistent.size());
+}
+
+void FSBMgr::LoadBotTemplates()
+{
+    _botTemplates.clear();
+
+    FollowshipDatabasePreparedStatement* stmt = FollowshipDatabase.GetPreparedStatement(FSB_SEL_BOT_TEMPLATES_ALL);
+    PreparedQueryResult result = FollowshipDatabase.Query(stmt);
+
+    if (!result)
+    {
+        TC_LOG_ERROR("scripts.fsb.manager", "FSB: LoadBotTemplates failed - no data found in bot_templates table");
+        return;
+    }
+
+    do
+    {
+        Field* fields = result->Fetch();
+
+        FSBEntryRaceClassMap data;
+        data.entry = fields[0].GetUInt32();
+        data.botClass = static_cast<FSB_Class>(fields[1].GetUInt8());
+        data.botRace = static_cast<FSB_Race>(fields[2].GetUInt8());
+        data.companionSpell = fields[3].GetUInt32();
+        data.chatterType = static_cast<FSB_ChatterType>(fields[4].GetUInt8());
+        data.gender = static_cast<Gender>(fields[5].GetUInt8());
+        data.petSource = fields[6].GetUInt32();
+
+        _botTemplates[data.entry] = data;
+    } while (result->NextRow());
+
+    TC_LOG_INFO("scripts.fsb.manager", "FSB: LoadBotTemplates {} bot templates loaded from database", _botTemplates.size());
 }
 
 bool FSBMgr::StorePersistentBot(Creature* bot, Player* player, uint64 hireExpiry)
@@ -53,8 +123,8 @@ bool FSBMgr::StorePersistentBot(Creature* bot, Player* player, uint64 hireExpiry
     // Save to DB first
     if (!FSBUtilsDB::SaveBotToDB(bot, player, hireExpiry))
     {
-        TC_LOG_ERROR("scripts.ai.fsb",
-            "FSB Mgr: Failed to save bot {} for player {} to DB",
+        TC_LOG_ERROR("scripts.fsb.manager",
+            "FSB: StorePersistentBot Failed to save bot {} for player {} to DB",
             entry, player->GetName());
         return false;
     }
@@ -62,36 +132,11 @@ bool FSBMgr::StorePersistentBot(Creature* bot, Player* player, uint64 hireExpiry
     // Insert into persistent container
     _playerBotsPersistent[ownerGuid].push_back(data);
 
-    TC_LOG_DEBUG("scripts.ai.fsb",
-        "FSB Mgr: Stored persistent bot {} for player {} (spawnId {}). Player has now {} bots.",
+    TC_LOG_DEBUG("scripts.fsb.manager",
+        "FSB: StorePersistentBot Stored persistent bot {} for player {} (spawnId {}). Player has now {} bots.",
         entry, player->GetName(), spawnId, _playerBotsPersistent[ownerGuid].size());
 
     return true;
-}
-
-// Load persistent bots - once for player - this is used at first login for example
-void FSBMgr::LoadPersistentPlayerBots(Player* player)
-{
-    if (!player)
-        return;
-
-    uint64 guid = player->GetGUID().GetCounter();
-
-    // Already loaded from DB?
-    if (_playerBotsPersistent.contains(guid) && _playerBotsPersistent[guid].size() != 0)
-    {
-        TC_LOG_DEBUG("scripts.ai.fsb", "LoadPlayerBots: already cached for {} and playerBots size: {}", player->GetName(), _playerBotsPersistent[guid].size());
-        return;
-    }
-
-    std::vector<PlayerBotData> bots;
-    if (!FSBUtilsDB::LoadBotsForPlayer(guid, bots))
-        return;
-
-    _playerBotsPersistent[guid] = std::move(bots);
-
-    TC_LOG_DEBUG("scripts.ai.fsb",
-        "FSB Mgr: Loaded persistent bots for player {} with size {}", player->GetName(), _playerBotsPersistent[guid].size());
 }
 
 void FSBMgr::RemovePersistentExpiredPlayerBots(Player* player)
@@ -120,8 +165,8 @@ void FSBMgr::RemovePersistentExpiredPlayerBots(Player* player)
             // Remove from persistent container
             botIt = bots.erase(botIt);
 
-            TC_LOG_DEBUG("scripts.ai.fsb",
-                "FSB Mgr: Removed expired bot entry {} for player {}", botEntry, player->GetName());
+            TC_LOG_DEBUG("scripts.fsb.manager",
+                "FSB: RemovePersistentExpiredPlayerBots Removed expired bot entry {} for player {}", botEntry, player->GetName());
         }
         else
         {
@@ -132,6 +177,31 @@ void FSBMgr::RemovePersistentExpiredPlayerBots(Player* player)
     // If the player now has zero bots, you may optionally erase the key entirely:
     if (bots.empty())
         _playerBotsPersistent.erase(guid);
+
+    UpdateHiredBotCount(player);
+}
+
+void FSBMgr::UpdateHiredBotCount(Player* player)
+{
+    if (!player)
+        return;
+
+    auto* bots = GetPersistentBotsForPlayer(player);
+    if (!bots || bots->empty())
+    {
+        ScriptHelpers::EraseHiredBotCount(player->GetGUID().GetCounter());
+        return;
+    }
+
+    uint8 count = 0;
+    for (auto const& botData : *bots)
+        if (!IsBotExpired(botData))
+            ++count;
+
+    if (count > 0)
+        ScriptHelpers::SetHiredBotCount(player->GetGUID().GetCounter(), count);
+    else
+        ScriptHelpers::EraseHiredBotCount(player->GetGUID().GetCounter());
 }
 
 bool FSBMgr::RemovePersistentBot(uint64 playerGuid, uint32 botEntry)
@@ -148,8 +218,8 @@ bool FSBMgr::RemovePersistentBot(uint64 playerGuid, uint32 botEntry)
     // Remove from DB
     FSBUtilsDB::DeleteBotByEntry(botEntry, playerGuid);
 
-    TC_LOG_INFO("scripts.ai.fsb",
-        "FSB Mgr: Removed 1 persistent bot with entry {} for player guid {}", botEntry, playerGuid);
+    TC_LOG_INFO("scripts.fsb.manager",
+        "FSB: RemovePersistentBot Removed 1 persistent bot with entry {} for player guid {}", botEntry, playerGuid);
 
     // Optional: remove empty entry
     if (bots.empty())
@@ -167,8 +237,8 @@ void FSBMgr::SpawnPlayerBots(Player* player)
     auto* bots = FSBMgr::Get()->GetPersistentBotsForPlayer(player);
     if (!bots || bots->empty())
     {
-        TC_LOG_DEBUG("scripts.ai.fsb",
-            "FSB: OnMapChanged - Player {} has no persistent bots", player->GetName());
+        TC_LOG_INFO("scripts.fsb.manager",
+            "FSB: SpawnPlayerBots Player {} has no persistent bots", player->GetName());
         return;
     }
 
@@ -194,26 +264,31 @@ void FSBMgr::SpawnPlayerBots(Player* player)
         if (!bot)
         {
             Position pos = player->GetPosition();
-            bot = player->SummonCreature(botData.entry, pos, TEMPSUMMON_MANUAL_DESPAWN, 0s);
+            TempSummon* temp = player->SummonCreature(botData.entry, pos, TEMPSUMMON_MANUAL_DESPAWN, 0s);
+            if (temp)
+            {
+                bot = static_cast<Creature*>(temp);
+                PhasingHandler::InheritPhaseShift(bot, player);
+            }
 
             if (!bot)
             {
-                TC_LOG_ERROR("scripts.ai.fsb",
-                    "FSB: OnMapChanged - Failed to summon bot entry {} for player {}",
+                TC_LOG_ERROR("scripts.fsb.manager",
+                    "FSB: SpawnPlayerBots Failed to summon bot entry {} for player {}",
                     botData.entry, player->GetName());
                 continue;
             }
 
             botData.runtimeGuid = bot->GetGUID();
 
-            TC_LOG_DEBUG("scripts.ai.fsb",
-                "FSB: OnMapChanged - Spawned TEMP bot {} for player {} on new map",
+            TC_LOG_DEBUG("scripts.fsb.manager",
+                "FSB: SpawnPlayerBots Spawned TEMP bot {} for player {} on new map",
                 bot->GetName(), player->GetName());
         }
         else
         {
-            TC_LOG_DEBUG("scripts.ai.fsb",
-                "FSB: OnMapChanged - Found existing DB bot {} on new map for player {}",
+            TC_LOG_DEBUG("scripts.fsb.manager",
+                "FSB: SpawnPlayerBots Found existing DB bot {} on new map for player {}",
                 bot->GetName(), player->GetName());
         }
 
@@ -223,6 +298,16 @@ void FSBMgr::SpawnPlayerBots(Player* player)
             : 0;
 
         FSBMgr::Get()->RestoreBotOwnership(player, bot, hireTimeLeft);
+
+        // 5. Update dungeon ID
+        FSBDungeon::UpdateBotDungeonId(bot);
+
+        // 6. Schedule stats recalculation if in dungeon (to override difficulty-based stats)
+        if (bot->GetMap()->IsDungeon())
+        {
+            FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_DUNGEON_STATS_RECALCULATE, 500ms);
+            TC_LOG_DEBUG("scripts.fsb.manager", "FSB: Scheduled stats recalculation for bot {} in dungeon", bot->GetName());
+        }
     }
 }
 
@@ -246,6 +331,10 @@ void FSBMgr::RestoreBotOwnership(Player* player, Creature* bot, uint32 hireTimeL
     if (!player || !bot)
         return;
 
+    auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
+    if (!baseAI)
+        return;
+
     // Set owner
     bot->SetOwnerGUID(player->GetGUID());
 
@@ -253,10 +342,17 @@ void FSBMgr::RestoreBotOwnership(Player* player, Creature* bot, uint32 hireTimeL
     bot->AI()->SetData(FSB_DATA_HIRE_TIME_LEFT, hireTimeLeft);
 
     FSBMgr::Get()->RegisterBotSpawn(bot, player);
+    PhasingHandler::InheritPhaseShift(bot, player);
 
+    bot->SetFaction(player->GetFaction());
 
-    PhasingHandler::ResetPhaseShift(bot);
+    // Do not remove the below since they are needed for the Hire flow
     bot->SetStandState(UNIT_STAND_STATE_STAND);
+    FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_HIRED_RESUME_FOLLOW, 1s, 3s);
+
+    // Hired bots keep their gossip flag in battlegrounds.
+    if (FSBBattleground::IsInBG(bot))
+        bot->SetNpcFlag(UNIT_NPC_FLAG_GOSSIP);
 }
 
 // ==================== GETTER METHODS ==================================================== //
@@ -374,6 +470,20 @@ bool FSBMgr::IsBotOwned(Creature* bot)
     return false;
 }
 
+bool FSBMgr::IsBotTemplateHired(uint32 entry) const
+{
+    for (auto const& [ownerGuid, bots] : _playerBotsPersistent)
+    {
+        for (auto const& data : bots)
+        {
+            if (data.entry == entry)
+                return true;
+        }
+    }
+
+    return false;
+}
+
 
 // ==================== MANAGEMENT METHODS ==================================================== //
 void FSBMgr::HirePersistentBot(Player* player, Creature* bot, uint32 hireDurationHours)
@@ -393,10 +503,20 @@ void FSBMgr::HirePersistentBot(Player* player, Creature* bot, uint32 hireDuratio
     uint32 hireTimeLeft = hireDurationHours * 3600;
     RestoreBotOwnership(player, bot, hireTimeLeft);
 
-    TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Player {} hired bot {} (entry {}) until {}",
+    // Update dungeon ID
+    FSBDungeon::UpdateBotDungeonId(bot);
+
+    // Schedule stats recalculation if in dungeon (to override difficulty-based stats)
+    if (bot->GetMap()->IsDungeon())
+    {
+        FSBEvents::ScheduleBotEvent(bot, FSB_EVENT_DUNGEON_STATS_RECALCULATE, 500ms);
+        TC_LOG_DEBUG("scripts.fsb.manager", "FSB: Scheduled stats recalculation for hired bot {} in dungeon", bot->GetName());
+    }
+
+    TC_LOG_DEBUG("scripts.fsb.manager", "FSB: HirePersistentBot Player {} hired bot {} (entry {}) until {}",
         player->GetName(), bot->GetName(), bot->GetEntry(), hireExpiry);
 
-
+    UpdateHiredBotCount(player);
 }
 
 void FSBMgr::DismissPersistentBot(Creature* bot)
@@ -416,14 +536,13 @@ void FSBMgr::DismissPersistentBot(Creature* bot)
     bot->StopMoving();
     bot->GetMotionMaster()->Clear();
     if (player)
-    {
-        std::string msg = FSBUtilsTexts::BuildNPCSayText(player->GetName(), NULL, FSBSayType::Fire, "");
-        bot->Say(msg, LANG_UNIVERSAL);
-    }
+        FSBGenAIPrompts::DispatchBotDismissed(bot);
 
     RemovePersistentBot(playerGuidLow, botEntry);
 
-    TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Dismissed bot {} for player {}", bot->GetName(), player->GetName());
+    TC_LOG_DEBUG("scripts.fsb.manager", "FSB: DismissPersistentBot Dismissed bot {} for player {}", bot->GetName(), player->GetName());
+
+    UpdateHiredBotCount(player);
 }
 
 void FSBMgr::SetInitialBotState(Creature* bot)
@@ -434,38 +553,96 @@ void FSBMgr::SetInitialBotState(Creature* bot)
     bot->SetBot(true);
     bot->setActive(true);
 
-    if (bot->HasUnitState(UNIT_STAND_STATE_SIT))
-        bot->SetStandState(UNIT_STAND_STATE_STAND);
+    bot->SetStandState(UNIT_STAND_STATE_STAND);
+    bot->SetEmoteState(EMOTE_STATE_NONE);
+    bot->RemoveAllAuras();
+    bot->SetDisableGravity(false);
+
+    bot->SetLevel(90, true);
 
     auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->AI());
     if (!baseAI)
         return;
 
-    baseAI->botHired = false;
-    baseAI->botHasDemon = false;
-    baseAI->botMoveState = FSB_MOVE_STATE_IDLE;
-    baseAI->botFollowDistance = frand(2.f, 8.f);
-    baseAI->botFollowAngle = frand(0.0f, float(M_PI * 2.0f));
+    if (FSBMgr::Get()->GetBotOwner(bot))
+    {
+        baseAI->botHired = true;
+        FSBMovement::ResumeFollow(bot, baseAI->botFollowDistance, baseAI->botFollowAngle);
+    }
+    else
+    {
+        baseAI->botHired = false;
+        baseAI->botMoveState = FSB_MOVE_STATE_IDLE;
+        baseAI->botFollowDistance = frand(2.f, 8.f);
+        baseAI->botFollowAngle = frand(0.0f, float(M_PI * 2.0f));
+    }
+
     auto& botClass = baseAI->botClass;
     auto& botRace = baseAI->botRace;
     auto& botStats = baseAI->botStats;
     auto& botRole = baseAI->botRole;
+    SetBotClassAndRace(bot, botClass, botRace);
+    baseAI->botClassStats = FSBStats::GetBotClassStats(botClass);
+    baseAI->botTCRace = FSBUtils::BotRaceToTC(botRace);
+    ScriptHelpers::SetBotRace(bot->GetGUID(), uint8(baseAI->botTCRace));
+    bot->SetClass(uint8(FSBUtils::FSBToTCClass(botClass)));
+    baseAI->botHasDemon = false;
+
+    // For shaman we set self resurrect flag for reincarnation
+    if (botClass == FSB_Class::Shaman)
+    {
+        baseAI->botHasSoulstone = true;
+
+        if (roll_chance(30))
+            bot->CastSpell(bot, SPELL_SHAMAN_GHOST_WOLF, false);
+    }
 
     // Initial Flags and States
     bot->RemoveUnitFlag(UNIT_FLAG_IMMUNE_TO_PC);
     bot->RemoveUnitFlag(UNIT_FLAG_IMMUNE_TO_NPC);
 
-    bot->SetNpcFlag(UNIT_NPC_FLAG_GOSSIP);
-    bot->SetReactState(REACT_DEFENSIVE);
-    bot->SetFaction(FSB_FACTION_HUMAN);
-    //creature->SetFaction(12); // it is actually template
+    if (!bot->GetGossipMenuId())
+        bot->SetGossipMenuId(FSB_GOSSIP_DEFAULT_MENU);
 
-    SetBotClassAndRace(bot, botClass, botRace);
+    if (FSBBattleground::IsInBG(bot) && !baseAI->botHired)
+        bot->RemoveNpcFlag(UNIT_NPC_FLAG_GOSSIP);
+    else bot->SetNpcFlag(UNIT_NPC_FLAG_GOSSIP);
+
+    if (FSBBattleground::IsInBG(bot) && !baseAI->botHired)
+        FSBBattleground::InitializeBot(bot);
+    else if (baseAI->botBattlegroundData)
+    {
+        baseAI->botBattlegroundData->Reset();
+        delete baseAI->botBattlegroundData;
+        baseAI->botBattlegroundData = nullptr;
+    }
+
+    bot->SetReactState(REACT_DEFENSIVE);
+    
+    bot->ApplyLevelScaling(3325, 0); // Sets Content Tuning override
+    bot->RemoveCivilianFlag();
+    bot->SetFaction(FSBUtils::GetFactionForFSBRace(botRace));
+    baseAI->botLanguage = FSBUtils::GetLanguageForFSBRace(botRace);
     FSBStats::ApplyBotBaseClassStats(bot, botClass);
     botStats = FSBBotStats();
     botRole = GetRandomRoleForClass(botClass);
-    TC_LOG_INFO("scripts.ai.fsb", "Assigned random role {} to bot {}", botRole, bot->GetName());
+    TC_LOG_INFO("scripts.fsb.manager", "FSB: SetInitialBotState Assigned random role {} to bot {}", botRole, bot->GetName());
 
+    ApplyRoleAuras(bot, botRole);
+
+    if (botClass == FSB_Class::Monk)
+    {
+        if(botRole == FSB_Roles::FSB_ROLE_HEALER)
+            FSBPowers::SetBotToMana(bot);
+
+        if (botRole == FSB_Roles::FSB_ROLE_TANK)
+            FSBPowers::SetBotToEnergy(bot);
+
+        if (botRole == FSB_Roles::FSB_ROLE_MELEE_DAMAGE)
+            FSBPowers::SetBotToChi(bot);
+    }
+
+    FSBStats::RecalculateStats(bot, true, true);
 }
 
 void FSBMgr::SetBotClassAndRace(Creature* creature, FSB_Class& outClass, FSB_Race& outRace)
@@ -482,16 +659,16 @@ void FSBMgr::SetBotClassAndRace(Creature* creature, FSB_Class& outClass, FSB_Rac
     if (!found)
     {
         TC_LOG_WARN(
-            "scripts.ai.fsb",
-            "FSB: No class/race mapping found for creature entry {}",
+            "scripts.fsb.manager",
+            "FSB: SetBotClassAndRace No class/race mapping found for creature entry {}",
             creature->GetEntry()
         );
         return;
     }
 
     TC_LOG_DEBUG(
-        "scripts.ai.fsb",
-        "FSB: Class set to {} and Race set to {} for bot with entry {}",
+        "scripts.fsb.manager",
+        "FSB: SetBotClassAndRace Class set to {} and Race set to {} for bot with entry {}",
         outClass,
         outRace,
         creature->GetEntry()
@@ -500,14 +677,12 @@ void FSBMgr::SetBotClassAndRace(Creature* creature, FSB_Class& outClass, FSB_Rac
 
 bool FSBMgr::GetBotClassAndRaceForEntry(uint32 entry, FSB_Class& outClass, FSB_Race& outRace)
 {
-    for (auto const& map : BotEntryClassTable)
+    auto it = _botTemplates.find(entry);
+    if (it != _botTemplates.end())
     {
-        if (map.entry == entry)
-        {
-            outClass = map.botClass;
-            outRace = map.botRace;
-            return true;
-        }
+        outClass = it->second.botClass;
+        outRace = it->second.botRace;
+        return true;
     }
 
     outClass = FSB_Class::None;
@@ -517,11 +692,9 @@ bool FSBMgr::GetBotClassAndRaceForEntry(uint32 entry, FSB_Class& outClass, FSB_R
 
 FSB_Class FSBMgr::GetBotClassForEntry(uint32 entry)
 {
-    for (auto const& map : BotEntryClassTable)
-    {
-        if (map.entry == entry)
-            return map.botClass;
-    }
+    auto it = _botTemplates.find(entry);
+    if (it != _botTemplates.end())
+        return it->second.botClass;
 
     return FSB_Class::None;
 }
@@ -533,11 +706,11 @@ void FSBMgr::SetBotClass(Creature* creature, FSB_Class& outClass)
 
     FSB_Class cls = GetBotClassForEntry(creature->GetEntry());
 
-    TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Class set: {} for bot with entry {}", cls, creature->GetEntry());
+    TC_LOG_DEBUG("scripts.fsb.manager", "FSB: SetBotClass Class set: {} for bot with entry {}", cls, creature->GetEntry());
 
     if (cls == FSB_Class::None)
     {
-        TC_LOG_WARN("scripts.ai.fsb", "FSB: No class mapping found for creature entry {}", creature->GetEntry());
+        TC_LOG_WARN("scripts.fsb.manager", "FSB: SetBotClass No class mapping found for creature entry {}", creature->GetEntry());
     }
 
     outClass = cls;
@@ -545,11 +718,9 @@ void FSBMgr::SetBotClass(Creature* creature, FSB_Class& outClass)
 
 FSB_Race FSBMgr::GetBotRaceForEntry(uint32 entry)
 {
-    for (auto const& map : BotEntryClassTable)
-    {
-        if (map.entry == entry)
-            return map.botRace;
-    }
+    auto it = _botTemplates.find(entry);
+    if (it != _botTemplates.end())
+        return it->second.botRace;
 
     return FSB_Race::None;
 }
@@ -561,11 +732,11 @@ void FSBMgr::SetBotRace(Creature* creature, FSB_Race& outRace)
 
     FSB_Race race = GetBotRaceForEntry(creature->GetEntry());
 
-    TC_LOG_DEBUG("scripts.ai.fsb", "FSB: Race set: {} for bot with entry {}", race, creature->GetEntry());
+    TC_LOG_DEBUG("scripts.fsb.manager", "FSB: SetBotRace Race set: {} for bot with entry {}", race, creature->GetEntry());
 
     if (race == FSB_Race::None)
     {
-        TC_LOG_WARN("scripts.ai.fsb", "FSB: No race mapping found for creature entry {}", creature->GetEntry());
+        TC_LOG_WARN("scripts.fsb.manager", "FSB: SetBotRace No race mapping found for creature entry {}", creature->GetEntry());
     }
 
     outRace = race;
@@ -581,17 +752,17 @@ uint32 FSBMgr::GetAvailableRolesForClass(FSB_Class botClass)
     case FSB_Class::Paladin:
         return FSB_ROLEMASK_TANK | FSB_ROLEMASK_HEALER | FSB_ROLEMASK_MELEE_DAMAGE;
 
+    case FSB_Class::Shaman:
+        return FSB_ROLEMASK_RANGED_DAMAGE | FSB_ROLEMASK_HEALER | FSB_ROLEMASK_MELEE_DAMAGE;
+
     case FSB_Class::Hunter:
-        return FSB_ROLEMASK_RANGED_DAMAGE;
+        return FSB_ROLEMASK_RANGED_DAMAGE | FSB_ROLEMASK_ASSIST;
 
     case FSB_Class::Rogue:
-        return FSB_ROLEMASK_MELEE_DAMAGE;
+        return FSB_ROLEMASK_MELEE_DAMAGE | FSB_ROLEMASK_MELEE_DAMAGE_2 | FSB_ROLEMASK_MELEE_DAMAGE_3;
 
     case FSB_Class::Priest:
         return FSB_ROLEMASK_HEALER | FSB_ROLEMASK_RANGED_DAMAGE | FSB_ROLEMASK_ASSIST;
-
-    case FSB_Class::Shaman:
-        return FSB_ROLEMASK_HEALER | FSB_ROLEMASK_MELEE_DAMAGE | FSB_ROLEMASK_RANGED_DAMAGE;
 
     case FSB_Class::Mage:
         return FSB_ROLEMASK_RANGED_ARCANE | FSB_ROLEMASK_RANGED_FIRE | FSB_ROLEMASK_RANGED_FROST;
@@ -602,8 +773,8 @@ uint32 FSBMgr::GetAvailableRolesForClass(FSB_Class botClass)
     case FSB_Class::Druid:
         return FSB_ROLEMASK_TANK | FSB_ROLEMASK_HEALER | FSB_ROLEMASK_MELEE_DAMAGE | FSB_ROLEMASK_RANGED_DAMAGE;
 
-    case FSB_Class::DeathKnight:
-        return FSB_ROLEMASK_TANK | FSB_ROLEMASK_MELEE_DAMAGE;
+    //case FSB_Class::DeathKnight:
+    //    return FSB_ROLEMASK_TANK | FSB_ROLEMASK_MELEE_DAMAGE;
 
     case FSB_Class::Monk:
         return FSB_ROLEMASK_TANK | FSB_ROLEMASK_HEALER | FSB_ROLEMASK_MELEE_DAMAGE;
@@ -638,6 +809,145 @@ FSB_Roles FSBMgr::GetRandomRoleForClass(FSB_Class botClass)
     return roles[idx];
 }
 
+FSB_ChatterType FSBMgr::GetBotChatterTypeForEntry(uint32 entry)
+{
+    auto it = _botTemplates.find(entry);
+    if (it != _botTemplates.end())
+        return it->second.chatterType;
 
+    return FSB_ChatterType::None;
+}
 
+Gender FSBMgr::GetBotGenderForEntry(uint32 entry)
+{
+    auto it = _botTemplates.find(entry);
+    if (it != _botTemplates.end())
+        return it->second.gender;
+
+    return GENDER_NONE;
+}
+
+uint32 FSBMgr::GetBotPetSourceForEntry(uint32 entry)
+{
+    auto it = _botTemplates.find(entry);
+    if (it != _botTemplates.end())
+        return it->second.petSource;
+
+    return 0;
+}
+
+uint32 FSBMgr::GetBotCompanionSpellForEntry(uint32 entry)
+{
+    auto it = _botTemplates.find(entry);
+    if (it != _botTemplates.end())
+        return it->second.companionSpell;
+
+    return 0;
+}
+
+bool FSBMgr::HasBotTemplate(uint32 entry)
+{
+    return _botTemplates.find(entry) != _botTemplates.end();
+}
+
+void FSBMgr::AddBotTemplate(FSBEntryRaceClassMap const& data)
+{
+    _botTemplates[data.entry] = data;
+}
+
+void FSBMgr::RemoveBotTemplate(uint32 entry)
+{
+    _botTemplates.erase(entry);
+}
+
+FSB_Roles FSBMgr::GetRole(Creature* bot)
+{
+    if (!bot || !bot->IsBot())
+        return FSB_Roles::FSB_ROLE_NONE;
+
+    if (FSB_BaseAI* ai = dynamic_cast<FSB_BaseAI*>(bot->AI()))
+        return ai->botRole;
+
+    return FSB_Roles::FSB_ROLE_NONE;
+}
+
+bool FSBMgr::BotIsMeleeRole(Creature* bot)
+{
+    if (!bot)
+        return false;
+
+    FSB_Roles role = Get()->GetRole(bot);
+    return role == FSB_ROLE_MELEE_DAMAGE || role == FSB_ROLE_MELEE_DAMAGE_2 || role == FSB_ROLE_MELEE_DAMAGE_3;
+}
+
+void FSBMgr::SetRole(Creature* bot, FSB_Roles role)
+{
+    if (!bot || !bot->IsBot())
+        return;
+
+    if (FSB_BaseAI* ai = dynamic_cast<FSB_BaseAI*>(bot->AI()))
+        ai->botRole = role;
+}
+
+void FSBMgr::ApplyRoleAuras(Creature* bot, FSB_Roles role)
+{
+    if (!bot)
+        return;
+
+    FSB_Class botClass = GetBotClassForEntry(bot->GetEntry());
+
+    switch (botClass)
+    {
+    case FSB_Class::Druid:   FSBDruid::BotSetRoleAuras(bot, role);   break;
+    case FSB_Class::Paladin: FSBPaladin::BotSetRoleAuras(bot, role); break;
+    case FSB_Class::Warrior: FSBWarrior::BotSetRoleAuras(bot, role); break;
+    case FSB_Class::Priest:  FSBPriest::BotSetRoleAuras(bot, role);  break;
+    case FSB_Class::Warlock: FSBWarlock::BotSetRoleAuras(bot, role); break;
+    default: break;
+    }
+}
+
+void FSBMgr::SyncBotPhasingWithOwner(Player* player)
+{
+    if (!player)
+        return;
+
+    auto* bots = GetPersistentBotsForPlayer(player);
+    if (!bots || bots->empty())
+    {
+        TC_LOG_DEBUG("scripts.fsb.manager", "FSB: SyncBotPhasingWithOwner Player {} has no persistent bots", player->GetName());
+        return;
+    }
+
+    TC_LOG_DEBUG("scripts.fsb.manager", "FSB: SyncBotPhasingWithOwner Player {} has {} bots to sync", player->GetName(), bots->size());
+
+    for (auto const& botData : *bots)
+    {
+        Creature* bot = nullptr;
+
+        // Try to find bot on current map by spawnId
+        if (botData.spawnId != 0)
+            bot = player->GetMap()->GetCreatureBySpawnId(botData.spawnId);
+
+        // If not found by spawnId, try by entry (for temp spawns)
+        if (!bot)
+            bot = player->FindNearestCreatureWithOptions(500.f, { .CreatureId = botData.entry, .IgnorePhases = true });
+
+        if (!bot)
+        {
+            TC_LOG_DEBUG("scripts.fsb.manager", "FSB: SyncBotPhasingWithOwner Bot entry {} spawnId {} not found for player {}", botData.entry, botData.spawnId, player->GetName());
+            continue;
+        }
+
+        if (bot->GetOwnerGUID() != player->GetGUID())
+        {
+            TC_LOG_DEBUG("scripts.fsb.manager", "FSB: SyncBotPhasingWithOwner Bot {} has wrong owner (expected {}, got {})", bot->GetName(), player->GetGUID().ToString(), bot->GetOwnerGUID().ToString());
+            continue;
+        }
+
+        PhasingHandler::InheritPhaseShift(bot, player);
+        bot->UpdateObjectVisibility(true);
+        TC_LOG_DEBUG("scripts.fsb.manager", "FSB: SyncBotPhasingWithOwner Synced phasing for bot {} with player {}", bot->GetName(), player->GetName());
+    }
+}
 

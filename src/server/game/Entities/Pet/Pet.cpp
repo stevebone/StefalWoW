@@ -396,7 +396,7 @@ bool Pet::LoadPetFromDB(Player* owner, uint32 petEntry, uint32 petnumber, bool c
         _LoadAuras(holder.GetPreparedResult(PetLoadQueryHolder::AURAS), holder.GetPreparedResult(PetLoadQueryHolder::AURA_EFFECTS), timediff);
 
         // load action bar, if data broken will fill later by default spells.
-        if (!isTemporarySummon)
+        if (!isTemporarySummon && !IsAnimalCompanion())
         {
             _LoadSpells(holder.GetPreparedResult(PetLoadQueryHolder::SPELLS));
             GetSpellHistory()->LoadFromDB<Pet>(holder.GetPreparedResult(PetLoadQueryHolder::COOLDOWNS), holder.GetPreparedResult(PetLoadQueryHolder::CHARGES));
@@ -408,20 +408,24 @@ bool Pet::LoadPetFromDB(Player* owner, uint32 petEntry, uint32 petnumber, bool c
             CastPetAuras(current);
         }
 
-        TC_LOG_DEBUG("entities.pet", "New Pet has {}", GetGUID().ToString());
-
-        uint16 specId = specializationId;
-        if (ChrSpecializationEntry const* petSpec = sChrSpecializationStore.LookupEntry(specId))
-            specId = sDB2Manager.GetChrSpecializationByIndex(owner->HasAuraType(SPELL_AURA_OVERRIDE_PET_SPECS) ? PET_SPEC_OVERRIDE_CLASS_INDEX : 0, petSpec->OrderIndex)->ID;
-
-        SetSpecialization(specId);
-
-        // The SetSpecialization function will run these functions if the pet's spec is not 0
-        if (!GetSpecialization())
+        //Animal Companion don't have any spell for player
+        if (!IsAnimalCompanion())
         {
-            CleanupActionBar();                                     // remove unknown spells from action bar after load
+            TC_LOG_DEBUG("entities.pet", "New Pet has {}", GetGUID().ToString());
 
-            owner->PetSpellInitialize();
+            uint16 specId = specializationId;
+            if (ChrSpecializationEntry const* petSpec = sChrSpecializationStore.LookupEntry(specId))
+                specId = sDB2Manager.GetChrSpecializationByIndex(owner->HasAuraType(SPELL_AURA_OVERRIDE_PET_SPECS) ? PET_SPEC_OVERRIDE_CLASS_INDEX : 0, petSpec->OrderIndex)->ID;
+
+            SetSpecialization(specId);
+
+            // The SetSpecialization function will run these functions if the pet's spec is not 0
+            if (!GetSpecialization())
+            {
+                CleanupActionBar();                                     // remove unknown spells from action bar after load
+
+                owner->PetSpellInitialize();
+            }
         }
 
         SetGroupUpdateFlag(GROUP_UPDATE_PET_FULL);
@@ -448,13 +452,19 @@ bool Pet::LoadPetFromDB(Player* owner, uint32 petEntry, uint32 petnumber, bool c
     return true;
 }
 
-void Pet::SavePetToDB(PetSaveMode mode)
+void Pet::SavePetToDB(PetSaveMode mode, bool stampeded /*= false*/)
 {
     if (!GetEntry())
         return;
 
     // save only fully controlled creature
     if (!isControlled())
+        return;
+
+    if (stampeded)
+        return;
+
+    if (IsInStampeded() || IsAnimalCompanion())
         return;
 
     // not save not player pets
@@ -648,7 +658,7 @@ void Pet::Update(uint32 diff)
 
             if (isControlled())
             {
-                if (owner->GetPetGUID() != GetGUID())
+                if (owner->GetPetGUID() != GetGUID() && !IsInStampeded() && !IsAnimalCompanion())
                 {
                     TC_LOG_ERROR("entities.pet", "Pet {} is not pet of owner {}, removed", GetEntry(), GetOwner()->GetName());
                     ASSERT(getPetType() != HUNTER_PET, "Unexpected unlinked pet found for owner %s", owner->GetSession()->GetPlayerInfo().c_str());
@@ -708,9 +718,9 @@ void Pet::Update(uint32 diff)
     Creature::Update(diff);
 }
 
-void Pet::Remove(PetSaveMode mode, bool returnreagent)
+void Pet::Remove(PetSaveMode mode, bool returnreagent, bool stampeded)
 {
-    GetOwner()->RemovePet(this, mode, returnreagent);
+    GetOwner()->RemovePet(this, mode, returnreagent, stampeded);
 }
 
 void Pet::GivePetXP(uint32 xp)
@@ -835,6 +845,14 @@ bool Pet::CreateBaseAtTamed(CreatureTemplate const* cinfo, Map* map)
     return true;
 }
 
+void Pet::SendNewlyTamed(bool playPingFx /*= true*/) const
+{
+    WorldPackets::Pet::PetNewlyTamed petNewlyTamed;
+    petNewlyTamed.UnitGUID = GetGUID();
+    petNewlyTamed.PlayPingFX = playPingFx;
+    SendMessageToSet(petNewlyTamed.Write(), true);
+}
+
 /// @todo Move stat mods code to pet passive auras
 bool Guardian::InitStatsForLevel(uint8 petlevel)
 {
@@ -905,7 +923,8 @@ bool Guardian::InitStatsForLevel(uint8 petlevel)
     {
         // remove elite bonuses included in DB values
         CreatureBaseStats const* stats = sObjectMgr->GetCreatureBaseStats(petlevel, cinfo->unit_class);
-        ApplyLevelScaling();
+        if (!m_Properties) // pet loaded from DB
+            ApplyLevelScaling(GetOwner()->m_unitData->ContentTuningID, GetOwner()->m_unitData->ScalingLevelDelta);
 
         CreatureDifficulty const* creatureDifficulty = GetCreatureDifficulty();
         SetCreateHealth(std::max(sDB2Manager.EvaluateExpectedStat(ExpectedStatType::CreatureHealth, petlevel, creatureDifficulty->GetHealthScalingExpansion(), m_unitData->ContentTuningID, Classes(cinfo->unit_class), 0) * creatureDifficulty->HealthModifier * GetHealthMod(cinfo->Classification), 1.0f));
@@ -1199,8 +1218,8 @@ void Pet::_LoadAuras(PreparedQueryResult auraResult, PreparedQueryResult effectR
 
                 AuraKey key{ casterGuid, itemGuid, fields[1].GetUInt32(), fields[2].GetUInt32() };
                 AuraLoadEffectInfo& info = effectInfo[key];
-                info.Amounts[effectIndex] = fields[4].GetInt32();
-                info.BaseAmounts[effectIndex] = fields[5].GetInt32();
+                info.Amounts[effectIndex] = fields[4].GetDouble();
+                info.BaseAmounts[effectIndex] = fields[5].GetDouble();
             }
         } while (effectResult->NextRow());
     }
@@ -1337,8 +1356,8 @@ void Pet::_SaveAuras(CharacterDatabaseTransaction trans)
             stmt->setUInt32(index++, key.SpellId);
             stmt->setUInt32(index++, key.EffectMask);
             stmt->setUInt8(index++, effect->GetEffIndex());
-            stmt->setInt32(index++, effect->GetAmount());
-            stmt->setInt32(index++, effect->GetBaseAmount());
+            stmt->setDouble(index++, effect->GetAmount());
+            stmt->setDouble(index++, effect->GetBaseAmount());
             trans->Append(stmt);
         }
     }
@@ -1685,7 +1704,6 @@ bool Pet::Create(ObjectGuid::LowType guidlow, Map* map, uint32 Entry, uint32 /*p
     // TODO: counter should be constructed as (summon_count << 32) | petNumber
     _Create(ObjectGuid::Create<HighGuid::Pet>(map->GetId(), Entry, guidlow));
 
-    m_spawnId = guidlow;
     m_originalEntry = Entry;
 
     if (!InitEntry(Entry))

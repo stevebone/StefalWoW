@@ -226,6 +226,18 @@ namespace WorldPackets
             int32 SpellID = 0;
         };
 
+        class SetPetSpecializationClient final : public ClientPacket
+        {
+        public:
+            explicit SetPetSpecializationClient(WorldPacket&& packet) : ClientPacket(CMSG_SET_PET_SPECIALIZATION, std::move(packet)) { }
+
+            void Read() override;
+
+            uint32 PetNumber = 0;
+            uint16 SpecID = 0;
+            ObjectGuid PetGUID;
+        };
+
         class SetPetSpecialization final : public ServerPacket
         {
         public:
@@ -258,6 +270,18 @@ namespace WorldPackets
             int32 Action = 0;
         };
 
+        class PetDismissSound final : public ServerPacket
+        {
+        public:
+            PetDismissSound() : ServerPacket(SMSG_PET_DISMISS_SOUND, 18 + 4 + 12) { }
+
+            WorldPacket const* Write() override;
+
+            ObjectGuid UnitGUID;
+            int32 CreatureDisplayInfoID = 0;
+            TaggedPosition<Position::XYZ> ModelPosition;
+        };
+
         class PetTameFailure final : public ServerPacket
         {
         public:
@@ -266,6 +290,17 @@ namespace WorldPackets
             WorldPacket const* Write() override;
 
             uint32 Result = 0;
+        };
+
+        class PetNewlyTamed final : public ServerPacket
+        {
+        public:
+            explicit PetNewlyTamed() : ServerPacket(SMSG_PET_NEWLY_TAMED, 16 + 1) { }
+
+            WorldPacket const* Write() override;
+
+            ObjectGuid UnitGUID;
+            bool PlayPingFX = false;
         };
 
         class PetMode final : public ServerPacket
@@ -279,6 +314,35 @@ namespace WorldPackets
             ReactStates ReactState = REACT_PASSIVE;
             CommandStates CommandState = COMMAND_STAY;
             uint8 Flag = 0;
+        };
+
+        class PetGuids final : public ServerPacket
+        {
+        public:
+            PetGuids() : ServerPacket(SMSG_PET_GUIDS, 4) { }
+
+            WorldPacket const* Write() override;
+
+            GuidVector PetGUIDs;
+        };
+
+        class PetClearSpells final : public ServerPacket
+        {
+        public:
+            PetClearSpells() : ServerPacket(SMSG_PET_CLEAR_SPELLS, 0) {}
+
+            WorldPacket const* Write() override { return &_worldPacket; }
+        };
+
+        class SetPetFavorite final : public ClientPacket
+        {
+        public:
+            explicit SetPetFavorite(WorldPacket&& packet) : ClientPacket(CMSG_SET_PET_FAVORITE, std::move(packet)) { }
+
+            void Read() override;
+
+            uint8 Slot = 0;
+            bool Favorite = false;
         };
     }
 }

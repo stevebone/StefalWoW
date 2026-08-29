@@ -68,4 +68,7 @@ void WhoListStorageMgr::Update()
             itr->second->GetClass(), itr->second->GetRace(), itr->second->GetZoneId(), itr->second->GetNativeGender(), itr->second->IsVisible(),
             itr->second->IsGameMaster(), widePlayerName, wideGuildName, playerName, guildName, guildGuid);
     }
+
+    if (_botCallback)
+        _botCallback(_whoListStorage);
 }

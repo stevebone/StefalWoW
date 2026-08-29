@@ -62,15 +62,16 @@ class TC_GAME_API Corpse final : public WorldObject, public GridObject<Corpse>
 
     public:
         void BuildValuesUpdateForPlayerWithMask(UpdateData* data, UF::ObjectData::Mask const& requestedObjectMask,
-            UF::CorpseData::Mask const& requestedCorpseMask, Player const* target) const;
+            UF::CorpseData::Mask const& requestedCorpseMask, Player const* target, bool ignoreNestedChangesMask) const;
 
         struct ValuesUpdateForPlayerWithMaskSender // sender compatible with MessageDistDeliverer
         {
-            explicit ValuesUpdateForPlayerWithMaskSender(Corpse const* owner) : Owner(owner) { }
+            explicit ValuesUpdateForPlayerWithMaskSender(Corpse const* owner) : Owner(owner), IgnoreNestedChangesMask(false) { }
 
             Corpse const* Owner;
             UF::ObjectData::Base ObjectMask;
             UF::CorpseData::Base CorpseMask;
+            bool IgnoreNestedChangesMask;
 
             void operator()(Player const* player) const;
         };
@@ -125,9 +126,6 @@ class TC_GAME_API Corpse final : public WorldObject, public GridObject<Corpse>
         void ResetGhostTime();
         CorpseType GetType() const { return m_type; }
 
-        CellCoord const& GetCellCoord() const { return _cellCoord; }
-        void SetCellCoord(CellCoord const& cellCoord) { _cellCoord = cellCoord; }
-
         std::unique_ptr<Loot> m_loot;
         Loot* GetLootForPlayer(Player const* /*player*/) const override { return m_loot.get(); }
 
@@ -140,6 +138,5 @@ class TC_GAME_API Corpse final : public WorldObject, public GridObject<Corpse>
     private:
         CorpseType m_type;
         time_t m_time;
-        CellCoord _cellCoord;
 };
 #endif

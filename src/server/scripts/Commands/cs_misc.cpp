@@ -49,7 +49,7 @@
 #include "World.h"
 #include "WorldSession.h"
 
-#if TRINITY_COMPILER == TRINITY_COMPILER_GNU
+#if TRINITY_COMPILER_IS_GCC
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
 
@@ -60,7 +60,7 @@ class misc_commandscript : public CommandScript
 public:
     misc_commandscript() : CommandScript("misc_commandscript") { }
 
-    ChatCommandTable GetCommands() const override
+    std::span<ChatCommandBuilder const> GetCommands() const override
     {
         static ChatCommandTable commandTable =
         {
@@ -115,6 +115,7 @@ public:
             { "unstuck",          HandleUnstuckCommand,          rbac::RBAC_PERM_COMMAND_UNSTUCK,          Console::Yes },
             { "wchange",          HandleChangeWeather,           rbac::RBAC_PERM_COMMAND_WCHANGE,          Console::No },
             { "mailbox",          HandleMailBoxCommand,          rbac::RBAC_PERM_COMMAND_MAILBOX,          Console::No },
+            { "chromietime",      HandleChromieTimeCommand,      rbac::RBAC_PERM_COMMAND_CHROMIE_TIME,     Console::No },
         };
         return commandTable;
     }
@@ -372,16 +373,6 @@ public:
                     handler->SetSentErrorMessage(true);
                     return false;
                 }
-                // if both players are in different bgs
-                else if (_player->GetBattlegroundId() && _player->GetBattlegroundId() != target->GetBattlegroundId())
-                    _player->LeaveBattleground(false); // Note: should be changed so _player gets no Deserter debuff
-
-                // all's well, set bg id
-                // when porting out from the bg, it will be reset to 0
-                _player->SetBattlegroundId(target->GetBattlegroundId(), target->GetBattlegroundTypeId(), BATTLEGROUND_QUEUE_NONE); // unsure
-                // remember current position as entry point for return at bg end teleportation
-                if (!_player->GetMap()->IsBattlegroundOrArena())
-                    _player->SetBattlegroundEntryPoint();
             }
             else if (map->IsDungeon())
             {
@@ -420,6 +411,19 @@ public:
 
             handler->PSendSysMessage(LANG_APPEARING_AT, chrNameLink.c_str());
 
+            if (_player->GetBattlegroundId() && _player->GetBattlegroundId() != target->GetBattlegroundId())
+                _player->LeaveBattleground(false, true);
+
+            if (map->IsBattlegroundOrArena())
+            {
+                // all's well, set bg id
+                // when porting out from the bg, it will be reset to 0
+                _player->SetBattlegroundId(target->GetBattlegroundId(), target->GetBattlegroundTypeId(), BATTLEGROUND_QUEUE_NONE);
+                // remember current position as entry point for return at bg end teleportation
+                if (!_player->GetMap()->IsBattlegroundOrArena())
+                    _player->SetBattlegroundEntryPoint();
+            }
+
             // stop flight if need
             if (_player->IsInFlight())
                 _player->FinishTaxiFlight();
@@ -450,6 +454,9 @@ public:
             bool in_flight;
             if (!Player::LoadPositionFromDB(map, x, y, z, o, in_flight, targetGuid))
                 return false;
+
+            if (_player->GetBattlegroundId())
+                _player->LeaveBattleground(false, true);
 
             // stop flight if need
             if (_player->IsInFlight())
@@ -505,16 +512,6 @@ public:
                     handler->SetSentErrorMessage(true);
                     return false;
                 }
-                // if both players are in different bgs
-                else if (target->GetBattlegroundId() && _player->GetBattlegroundId() != target->GetBattlegroundId())
-                    target->LeaveBattleground(false); // Note: should be changed so target gets no Deserter debuff
-
-                // all's well, set bg id
-                // when porting out from the bg, it will be reset to 0
-                target->SetBattlegroundId(_player->GetBattlegroundId(), _player->GetBattlegroundTypeId(), BATTLEGROUND_QUEUE_NONE); // unsure about this
-                // remember current position as entry point for return at bg end teleportation
-                if (!target->GetMap()->IsBattlegroundOrArena())
-                    target->SetBattlegroundEntryPoint();
             }
             else if (map->IsDungeon())
             {
@@ -544,6 +541,19 @@ public:
             handler->PSendSysMessage(LANG_SUMMONING, nameLink.c_str(), "");
             if (handler->needReportToTarget(target))
                 ChatHandler(target->GetSession()).PSendSysMessage(LANG_SUMMONED_BY, handler->playerLink(_player->GetName()).c_str());
+
+            if (target->GetBattlegroundId() && _player->GetBattlegroundId() != target->GetBattlegroundId())
+                target->LeaveBattleground(false, true);
+
+            if (map->IsBattlegroundOrArena())
+            {
+                // all's well, set bg id
+                // when porting out from the bg, it will be reset to 0
+                target->SetBattlegroundId(_player->GetBattlegroundId(), _player->GetBattlegroundTypeId(), BATTLEGROUND_QUEUE_NONE);
+                // remember current position as entry point for return at bg end teleportation
+                if (!target->GetMap()->IsBattlegroundOrArena())
+                    target->SetBattlegroundEntryPoint();
+            }
 
             // stop flight if need
             if (_player->IsInFlight())
@@ -1723,7 +1733,7 @@ public:
 
         // Output III. LANG_PINFO_BANNED if ban exists and is applied
         if (banTime >= 0)
-            handler->PSendSysMessage(LANG_PINFO_BANNED, banType.c_str(), banReason.c_str(), banTime > 0 ? secsToTimeString(banTime - GameTime::GetGameTime(), TimeFormat::ShortText).c_str() : handler->GetTrinityString(LANG_PERMANENTLY), bannedBy.c_str());
+            handler->PSendSysMessage(LANG_PINFO_BANNED, banType.c_str(), banReason.c_str(), banTime > 0 ? secsToTimeString(std::max<int64>(banTime - GameTime::GetGameTime(), 0), TimeFormat::ShortText).c_str() : handler->GetTrinityString(LANG_PERMANENTLY), bannedBy.c_str());
 
         // Output IV. LANG_PINFO_MUTED if mute is applied
         if (muteTime > 0)
@@ -2528,6 +2538,39 @@ public:
         Player* player = handler->GetSession()->GetPlayer();
 
         handler->GetSession()->SendShowMailBox(player->GetGUID());
+        return true;
+    }
+
+    // .chromietime [expansionId] - set Chromie Time expansion (0 = clear)
+    static bool HandleChromieTimeCommand(ChatHandler* handler, Optional<int32> expansionIdArg)
+    {
+        Player* target = handler->getSelectedPlayerOrSelf();
+        if (!target)
+        {
+            handler->SendSysMessage("No player selected.");
+            return false;
+        }
+
+        if (!expansionIdArg)
+        {
+            int32 currentExp = target->m_activePlayerData->UiChromieTimeExpansionID;
+            handler->PSendSysMessage("Chromie Time for %s: expansion %d", target->GetName().c_str(), currentExp);
+            return true;
+        }
+
+        int32 expansionId = *expansionIdArg;
+        // Chromie Time ids are UiChromieTimeExpansionInfo record ids (5-16 at 12.0.7), not Expansions
+        // enum values; validate against the store so ids without a row (which would leave
+        // ChromieTimeExpansionMask = 0, an inconsistent state) are rejected. 0 clears.
+        if (expansionId < 0 || (expansionId > 0 && !sUIChromieTimeExpansionInfoStore.LookupEntry(uint32(expansionId))))
+        {
+            handler->PSendSysMessage("Invalid Chromie Time expansion ID %d: must be 0 (clear) or a UiChromieTimeExpansionInfo record id.", expansionId);
+            return false;
+        }
+
+        target->SetChromieTime(expansionId);
+
+        handler->PSendSysMessage("Chromie Time for %s set to expansion %d.", target->GetName().c_str(), expansionId);
         return true;
     }
 };

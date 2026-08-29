@@ -20,6 +20,15 @@
 
 namespace WorldPackets::Pet
 {
+WorldPacket const* PetGuids::Write()
+{
+    _worldPacket << Size<uint32>(PetGUIDs);
+    for (ObjectGuid const& guid : PetGUIDs)
+        _worldPacket << guid;
+
+    return &_worldPacket;
+}
+
 WorldPacket const* PetSpells::Write()
 {
     _worldPacket << PetGUID;
@@ -180,6 +189,13 @@ void PetCancelAura::Read()
     _worldPacket >> SpellID;
 }
 
+void SetPetSpecializationClient::Read()
+{
+    _worldPacket >> PetNumber;
+    _worldPacket >> SpecID;
+    _worldPacket >> PetGUID;
+}
+
 WorldPacket const* SetPetSpecialization::Write()
 {
     _worldPacket << uint16(SpecID);
@@ -203,9 +219,27 @@ WorldPacket const* PetActionSound::Write()
     return &_worldPacket;
 }
 
+WorldPacket const* PetDismissSound::Write()
+{
+    _worldPacket << UnitGUID;
+    _worldPacket << int32(CreatureDisplayInfoID);
+    _worldPacket << ModelPosition;
+
+    return &_worldPacket;
+}
+
 WorldPacket const* PetTameFailure::Write()
 {
     _worldPacket << uint32(Result);
+
+    return &_worldPacket;
+}
+
+WorldPacket const* PetNewlyTamed::Write()
+{
+    _worldPacket << UnitGUID;
+    _worldPacket << Bits<1>(PlayPingFX);
+    _worldPacket.FlushBits();
 
     return &_worldPacket;
 }
@@ -218,5 +252,11 @@ WorldPacket const* PetMode::Write()
     _worldPacket << uint8(ReactState);
 
     return &_worldPacket;
+}
+
+void SetPetFavorite::Read()
+{
+    _worldPacket >> Slot;
+    _worldPacket >> Bits<1>(Favorite);
 }
 }

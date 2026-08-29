@@ -19,21 +19,15 @@
 #define _CHANNEL_H
 
 #include "Common.h"
+#include "Creature.h"
 #include "ObjectGuid.h"
 #include <ctime>
 #include <map>
+#include <unordered_map>
 #include <unordered_set>
 
 class Player;
 struct AreaTableEntry;
-
-namespace WorldPackets
-{
-    namespace Channel
-    {
-        class ChannelNotify;
-    }
-}
 
 // EnumUtils: DESCRIBE THIS
 enum ChatNotify : uint8
@@ -218,15 +212,23 @@ class TC_GAME_API Channel
         void UnsetMute(Player const* player, std::string const& newname) { SetMode(player, newname, false, false); }
         void SilenceAll(Player const* player, std::string const& name);
         void UnsilenceAll(Player const* player, std::string const& name);
-        void List(Player const* player);
+        void List(Player const* player) const;
         void Announce(Player const* player);
         void Say(ObjectGuid const& guid, std::string const& what, uint32 lang) const;
         void AddonSay(ObjectGuid const& guid, std::string const& prefix, std::string const& what, bool isLogged) const;
         void DeclineInvite(Player const* player);
         void Invite(Player const* player, std::string const& newp);
-        void JoinNotify(Player const* player);
-        void LeaveNotify(Player const* player);
+        void JoinNotify(ObjectGuid const& guid) const;
+        void LeaveNotify(ObjectGuid const& guid) const;
         void SetOwnership(bool ownership) { _ownershipEnabled = ownership; }
+
+        //FSB
+        void SendBotMessage(Creature* sender, std::string const& msg);
+        void JoinBot(Creature* bot);
+        void LeaveBot(Creature* bot);
+        void BotSay(Creature* bot, std::string const& msg);
+        bool IsBotOn(ObjectGuid const& guid) const { return _botsStore.find(guid) != _botsStore.end(); }
+        std::unordered_map<ObjectGuid, Creature*> const& GetBots() const { return _botsStore; }
 
     private:
         template <class Builder>
@@ -255,6 +257,7 @@ class TC_GAME_API Channel
 
         typedef std::map<ObjectGuid, PlayerInfo> PlayerContainer;
         typedef GuidUnorderedSet BannedContainer;
+        typedef std::unordered_map<ObjectGuid, Creature*> BotContainer;
 
         bool _isDirty; // whether the channel needs to be saved to DB
         time_t _nextActivityUpdateTime;
@@ -272,6 +275,7 @@ class TC_GAME_API Channel
         std::string _channelPassword;
         PlayerContainer _playersStore;
         BannedContainer _bannedStore;
+        BotContainer _botsStore;
 
         AreaTableEntry const* _zoneEntry;
 };

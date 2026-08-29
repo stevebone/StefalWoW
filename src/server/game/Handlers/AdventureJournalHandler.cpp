@@ -40,7 +40,12 @@ void WorldSession::HandleAdventureJournalOpenQuest(WorldPackets::AdventureJourna
         return;
 
     if (_player->CanTakeQuest(quest, true))
+    {
+        if (quest->IsAutoAccept() && _player->CanAddQuest(quest, true))
+            _player->AddQuestAndCheckCompletion(quest, _player);
+
         _player->PlayerTalkClass->SendQuestGiverQuestDetails(quest, _player->GetGUID(), true, false);
+    }
 }
 
 void WorldSession::HandleAdventureJournalUpdateSuggestions(WorldPackets::AdventureJournal::AdventureJournalUpdateSuggestions& updateSuggestions)

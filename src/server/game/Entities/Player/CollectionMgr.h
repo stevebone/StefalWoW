@@ -21,6 +21,7 @@
 #include "Define.h"
 #include "DatabaseEnvFwd.h"
 #include "EnumFlag.h"
+#include "FlatSet.h"
 #include "ObjectGuid.h"
 #include <boost/dynamic_bitset_fwd.hpp>
 #include <map>
@@ -117,6 +118,9 @@ public:
     static void LoadMountDefinitions();
     static void LoadWarbandSceneDefinitions();
 
+    void LoadCharacterData();
+    void SaveToDB(LoginDatabaseTransaction trans);
+
     // Account-wide toys
     void LoadToys();
     void LoadAccountToys(PreparedQueryResult result);
@@ -150,6 +154,7 @@ public:
     void LoadAccountMounts(PreparedQueryResult result);
     void SaveAccountMounts(LoginDatabaseTransaction trans);
     bool AddMount(uint32 spellId, MountStatusFlags flags, bool factionMount = false, bool learned = false);
+    void ClearMountFanfare(uint32 spellId);
     void MountSetFavorite(uint32 spellId, bool favorite);
     void SendSingleMountUpdate(std::pair<uint32, MountStatusFlags> mount);
     MountContainer const& GetAccountMounts() const { return _mounts; }
@@ -179,6 +184,12 @@ public:
     void AddTransmogIllusion(uint32 transmogIllusionId);
     bool HasTransmogIllusion(uint32 transmogIllusionId) const;
 
+    void LoadTransmogOutfits();
+    void LoadAccountTransmogOutfits(PreparedQueryResult unlockedTransmogOutfits);
+    void SaveAccountTransmogOutfits(LoginDatabaseTransaction trans);
+    void AddTransmogOutfit(int32 transmogOutfitId);
+    bool HasTransmogOutfit(int32 transmogOutfitId) const;
+
     // Warband Scenes
     void LoadWarbandScenes();
     void LoadAccountWarbandScenes(PreparedQueryResult knownWarbandScenes);
@@ -204,6 +215,7 @@ private:
     std::unordered_map<uint32, std::unordered_set<ObjectGuid>> _temporaryAppearances;
     std::unordered_map<uint32, CollectionItemState> _favoriteAppearances;
     std::unique_ptr<boost::dynamic_bitset<uint32>> _transmogIllusions;
+    Trinity::Containers::FlatSet<int32> _transmogOutfits;
     WarbandSceneCollectionContainer _warbandScenes;
 };
 

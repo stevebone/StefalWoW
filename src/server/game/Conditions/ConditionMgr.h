@@ -20,6 +20,7 @@
 
 #include "Define.h"
 #include "Hash.h"
+#include "StringFormatFwd.h"
 #include <array>
 #include <memory>
 #include <string>
@@ -118,6 +119,8 @@ enum ConditionTypes
     CONDITION_PRIVATE_OBJECT           = 57,                   // 0                      0              0                  true if entity is private object
     CONDITION_STRING_ID                = 58,
     CONDITION_LABEL                    = 59,                   // Label                  0              0                  true if creature/gameobject has specified Label in CreatureLabel.db2/GameObjectLabel.db2
+    CONDITION_GROUP_STATUS             = 60,                   // GroupStatus            0              0                  true if player group status is (0 = not in group, 1 = in group, 2 = in group but not in raid, 3 = in raid group, 4 = not in group or not in raid)
+    CONDITION_CHROMIE_TIME             = 61,                   // expansionId            0              0                  true if player has selected Chromie Time expansion (0 = any)
     CONDITION_MAX
 };
 
@@ -214,6 +217,15 @@ enum InstanceInfo
     INSTANCE_INFO_DATA64
 };
 
+enum class GroupStatusCondition : uint32
+{
+    NotInGroup              = 0,
+    InGroup                 = 1,
+    InGroupButNotInRaid     = 2,
+    InRaid                  = 3,
+    NotInGroupOrNotInRaid   = 4
+};
+
 enum MaxConditionTargets
 {
     MAX_CONDITION_TARGETS = 3
@@ -287,8 +299,13 @@ struct TC_GAME_API Condition
     uint32 GetSearcherTypeMaskForCondition() const;
     bool isLoaded() const { return ConditionType > CONDITION_NONE || ReferenceId || ScriptId; }
     uint32 GetMaxAvailableConditionTargets() const;
+};
 
-    std::string ToString(bool ext = false) const; /// For logging purpose
+template <>
+struct fmt::formatter<Condition, char, void> : Trinity::NoArgFormatterBase
+{
+    template <typename FormatContext>
+    static auto format(Condition const& condition, FormatContext& ctx) -> decltype(ctx.out());
 };
 
 typedef std::vector<Condition> ConditionContainer;
@@ -364,7 +381,7 @@ class TC_GAME_API ConditionMgr
         bool IsObjectMeetToConditionList(ConditionSourceInfo& sourceInfo, ConditionContainer const& conditions) const;
 
         static void LogUselessConditionValue(Condition const* cond, uint8 index, uint32 value);
-        static void LogUselessConditionValue(Condition const* cond, uint8 index, std::string_view value);
+        static void LogUselessConditionValue(Condition const* cond, uint8 index, std::string const& value);
 
         void Clean(); // free up resources
 

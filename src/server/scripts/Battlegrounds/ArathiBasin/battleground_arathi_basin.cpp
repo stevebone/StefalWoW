@@ -25,6 +25,7 @@
 #include "Log.h"
 #include "Map.h"
 #include "ScriptMgr.h"
+#include "ScriptHelpers.h"
 
 struct battleground_arathi_basin : BattlegroundScript
 {
@@ -89,8 +90,8 @@ struct battleground_arathi_basin : BattlegroundScript
         BG_AB_SOUND_NODE_CAPTURED_HORDE             = 8213,
         BG_AB_SOUND_NODE_ASSAULTED_ALLIANCE         = 8212,
         BG_AB_SOUND_NODE_ASSAULTED_HORDE            = 8174,
-        BG_AB_SOUND_NEAR_VICTORY_ALLIANCE           = 8456,
-        BG_AB_SOUND_NEAR_VICTORY_HORDE              = 8457
+        BG_AB_SOUND_NEAR_VICTORY_ALLIANCE           = 8457,
+        BG_AB_SOUND_NEAR_VICTORY_HORDE              = 8456
     };
 
     enum BroadcastTexts
@@ -569,6 +570,12 @@ struct battleground_arathi_basin : BattlegroundScript
             default:
                 break;
         }
+    }
+
+    void OnBuildPvPLogDataPacket(WorldPackets::Battleground::PVPMatchStatistics& pvpLogData) const override
+    {
+        BattlegroundScript::OnBuildPvPLogDataPacket(pvpLogData);
+        ScriptHelpers::AddBotsToPvPLogData(battlegroundMap, pvpLogData);
     }
 
     void OnEnd(Team winner) override

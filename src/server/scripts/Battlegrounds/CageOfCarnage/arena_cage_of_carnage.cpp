@@ -101,7 +101,7 @@ struct arena_cage_of_carnage : ArenaScript
         if (Creature const* creature = battlegroundMap->GetCreature(_naminzeGUID))
             creature->AI()->Talk(CageOfCarnage::Texts::Naminze::Start);
 
-        _scheduler.Schedule(5s, [&](TaskContext context)
+        _scheduler.Schedule(5s, [&](TaskContext& context)
         {
             battlegroundMap->DoOnPlayers([&](Player* player)
             {
@@ -254,7 +254,7 @@ class spell_undermine_arena_reaction_trigger : public AuraScript
     void HandleProc(ProcEventInfo const& eventInfo) const
     {
         if (ZoneScript* zonescript = GetTarget()->FindZoneScript())
-            zonescript->DoAction(CageOfCarnage::Actions::ReactionDead, eventInfo.GetActor(), eventInfo.GetProcTarget());
+            zonescript->DoAction(CageOfCarnage::Actions::ReactionDead, eventInfo.GetActor(), eventInfo.GetActionTarget());
     }
 
     void Register() override

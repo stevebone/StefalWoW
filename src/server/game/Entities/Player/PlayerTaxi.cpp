@@ -54,6 +54,14 @@ void PlayerTaxi::InitTaxiNodesForLevel(uint32 race, uint32 chrClass, uint8 level
         case RACE_DRAENEI:
         case RACE_WORGEN:
         case RACE_PANDAREN_ALLIANCE:
+        case RACE_VOID_ELF:
+        case RACE_LIGHTFORGED_DRAENEI:
+        case RACE_KUL_TIRAN:
+        case RACE_DARK_IRON_DWARF:
+        case RACE_MECHAGNOME:
+        case RACE_DRACTHYR_ALLIANCE:
+        case RACE_EARTHEN_DWARF_ALLIANCE:
+        case RACE_HARANIR_ALLIANCE:
             SetTaximaskNode(2);     // Stormwind, Elwynn
             SetTaximaskNode(6);     // Ironforge, Dun Morogh
             SetTaximaskNode(26);    // Lor'danel, Darkshore
@@ -75,6 +83,14 @@ void PlayerTaxi::InitTaxiNodesForLevel(uint32 race, uint32 chrClass, uint8 level
         case RACE_BLOODELF:
         case RACE_GOBLIN:
         case RACE_PANDAREN_HORDE:
+        case RACE_NIGHTBORNE:
+        case RACE_HIGHMOUNTAIN_TAUREN:
+        case RACE_ZANDALARI_TROLL:
+        case RACE_VULPERA:
+        case RACE_MAGHAR_ORC:
+        case RACE_DRACTHYR_HORDE:
+        case RACE_EARTHEN_DWARF_HORDE:
+        case RACE_HARANIR_HORDE:
             SetTaximaskNode(11);    // Undercity, Tirisfal
             SetTaximaskNode(22);    // Thunder Bluff, Mulgore
             SetTaximaskNode(23);    // Orgrimmar, Durotar
@@ -100,7 +116,7 @@ void PlayerTaxi::InitTaxiNodesForLevel(uint32 race, uint32 chrClass, uint8 level
     }
 
     // level dependent taxi hubs
-    if (level >= 68)
+    if (level >= 18)
         SetTaximaskNode(213);                               //Shattered Sun Staging Area
 }
 
@@ -125,6 +141,36 @@ bool PlayerTaxi::LoadTaxiMask(std::string const& data)
     }
     return !warn;
 }
+
+TaxiMask PlayerTaxi::LoadTaxiMaskFromString(std::string const& data)
+{
+    TaxiMask mask;
+    std::vector<std::string_view> tokens = Trinity::Tokenize(data, ' ', false);
+    for (size_t index = 0; (index < mask.size()) && (index < tokens.size()); ++index)
+    {
+        if (Optional<uint32> val = Trinity::StringTo<uint32>(tokens[index]))
+            mask[index] = sTaxiNodesMask[index] & *val;
+        else
+            mask[index] = 0;
+    }
+    return mask;
+}
+
+void PlayerTaxi::MergeAccountTaxiMask(TaxiMask const& accountMask)
+{
+    for (TaxiNodesEntry const* node : sTaxiNodesStore)
+    {
+        if (node->GetFlags().HasFlag(TaxiNodeFlags::NotAccountWide))
+            continue;
+
+        uint32 field = uint32((node->ID - 1) / (sizeof(TaxiMask::value_type) * 8));
+        TaxiMask::value_type submask = TaxiMask::value_type(1 << ((node->ID - 1) % (sizeof(TaxiMask::value_type) * 8)));
+
+        if (accountMask[field] & submask)
+            m_taximask[field] |= submask;
+    }
+}
+
 
 void PlayerTaxi::AppendTaximaskTo(WorldPackets::Taxi::ShowTaxiNodes& data, bool all)
 {
