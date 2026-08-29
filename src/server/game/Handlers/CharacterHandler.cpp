@@ -750,34 +750,38 @@ void WorldSession::HandleSetupWarbandGroups(WorldPackets::Character::SetupWarban
     stmt->setUInt32(0, battlenetAccountId);
     trans->Append(stmt);
 
-    // Insert new groups and members
-    for (auto const& group : setupWarbandGroups.Groups)
-    {
-        stmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_WARBAND_GROUP);
-        stmt->setUInt64(0, group.GroupID);
-        stmt->setUInt32(1, battlenetAccountId);
-        stmt->setUInt8(2, group.OrderIndex);
-        stmt->setUInt32(3, group.WarbandSceneID);
-        stmt->setUInt32(4, group.Flags);
-        stmt->setInt32(5, group.ContentSetID);
-        stmt->setString(6, group.Name);
-        trans->Append(stmt);
-
-        for (uint8 memberIdx = 0; memberIdx < group.Members.size(); ++memberIdx)
-        {
-            auto const& member = group.Members[memberIdx];
-
-            stmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_WARBAND_GROUP_MEMBER);
-            stmt->setUInt64(0, group.GroupID);
-            stmt->setUInt8(1, memberIdx);
-            stmt->setUInt64(2, member.Guid.GetCounter());
-            stmt->setUInt32(3, member.WarbandScenePlacementID);
-            stmt->setInt32(4, member.Type);
-            stmt->setInt32(5, member.ContentSetID);
-            trans->Append(stmt);
-        }
-    }
-
+	// Insert new groups and members  
+	for (auto const& group : setupWarbandGroups.Groups)  
+	{  
+		uint64 groupId = group.GroupID;  
+		if (groupId == 0)  
+			groupId = sObjectMgr->GenerateWarbandGroupId();     	// globally-unique id  
+  
+		stmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_WARBAND_GROUP);  
+		stmt->setUInt64(0, groupId);                             	// was group.GroupID  
+		stmt->setUInt32(1, battlenetAccountId);  
+		stmt->setUInt8(2, group.OrderIndex);  
+		stmt->setUInt32(3, group.WarbandSceneID);  
+		stmt->setUInt32(4, group.Flags);  
+		stmt->setInt32(5, group.ContentSetID);  
+		stmt->setString(6, group.Name);  
+		trans->Append(stmt);  
+  
+		for (uint8 memberIdx = 0; memberIdx < group.Members.size(); ++memberIdx)  
+		{  
+			auto const& member = group.Members[memberIdx];  
+  
+			stmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_WARBAND_GROUP_MEMBER);  
+			stmt->setUInt64(0, groupId);        					// was group.GroupID  
+			stmt->setUInt8(1, memberIdx);  
+			stmt->setUInt64(2, member.Guid.GetCounter());  
+			stmt->setUInt32(3, member.WarbandScenePlacementID);  
+			stmt->setInt32(4, member.Type);  
+			stmt->setInt32(5, member.ContentSetID);  
+			trans->Append(stmt);  
+		}  
+	}
+	
     CharacterDatabase.CommitTransaction(trans);
 }
 
