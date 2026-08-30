@@ -1371,7 +1371,7 @@ class TC_GAME_API ObjectMgr
         uint64 GenerateEquipmentSetGuid();
         uint64 GenerateMailID();
         uint32 GeneratePetNumber();
-		uint64 GenerateWarbandGroupId();
+        uint64 GenerateWarbandGroupId();
         ObjectGuid::LowType GenerateCreatureSpawnId();
         ObjectGuid::LowType GenerateGameObjectSpawnId();
 
@@ -1702,7 +1702,7 @@ class TC_GAME_API ObjectMgr
         // first free id for selected id type
         uint32 _auctionId;
         uint64 _equipmentSetGuid;
-		std::atomic<uint64> _warbandGroupId;
+        std::atomic<uint64> _warbandGroupId;
         std::atomic<uint64> _mailId;
         std::atomic<uint32> _hiPetNumber;
         ObjectGuid::LowType _creatureSpawnId;

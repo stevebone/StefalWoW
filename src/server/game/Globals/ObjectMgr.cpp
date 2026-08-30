@@ -221,6 +221,7 @@ bool SpellClickInfo::IsFitToRequirements(Unit const* clicker, Unit const* clicke
 ObjectMgr::ObjectMgr():
     _auctionId(1),
     _equipmentSetGuid(1),
+    _warbandGroupId(1),
     _mailId(1),
     _hiPetNumber(1),
     _creatureSpawnId(1),
@@ -7335,8 +7336,8 @@ void ObjectMgr::SetHighestGuids()
     if (result)
         _mailId = (*result)[0].GetUInt64()+1;
 
-    result = CharacterDatabase.Query("SELECT MAX(groupId) FROM character_warband_groups");  
-    if (result)  
+    result = CharacterDatabase.Query("SELECT MAX(groupId) FROM character_warband_groups");
+    if (result)
         _warbandGroupId = (*result)[0].GetUInt64() + 1;
 
     result = CharacterDatabase.Query("SELECT MAX(arenateamid) FROM arena_team");
@@ -7399,14 +7400,14 @@ uint64 ObjectMgr::GenerateMailID()
     return _mailId++;
 }
 
-uint64 ObjectMgr::GenerateWarbandGroupId()  
-{  
-    if (_warbandGroupId >= std::numeric_limits<uint64>::max())  
-    {  
-        TC_LOG_ERROR("misc", "Warband group id overflow!! Can't continue, shutting down server.");  
-        World::StopNow(ERROR_EXIT_CODE);  
-    }  
-    return _warbandGroupId++;  
+uint64 ObjectMgr::GenerateWarbandGroupId()
+{
+    if (_warbandGroupId >= UI64LIT(0xFFFFFFFFFFFFFFFE))
+    {
+        TC_LOG_ERROR("misc", "Warband group id overflow!! Can't continue, shutting down server.");
+        World::StopNow(ERROR_EXIT_CODE);
+    }
+    return _warbandGroupId++;
 }
 
 uint32 ObjectMgr::GeneratePetNumber()
