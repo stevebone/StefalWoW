@@ -623,6 +623,8 @@ void World::LoadConfigSettings(bool reload)
         { .Name = "AllFlightPaths"sv, .DefaultValue = false, .Index = CONFIG_ALL_TAXI_PATHS },
         { .Name = "InstantFlightPaths"sv, .DefaultValue = false, .Index = CONFIG_INSTANT_TAXI },
         { .Name = "Instance.IgnoreLevel"sv, .DefaultValue = false, .Index = CONFIG_INSTANCE_IGNORE_LEVEL },
+        { .Name = "DungeonFinder.IgnoreLevelRequirement"sv, .DefaultValue = false, .Index = CONFIG_LFG_IGNORE_LEVEL_REQUIREMENT },
+        { .Name = "DungeonFinder.IgnoreItemLevelRequirement"sv, .DefaultValue = false, .Index = CONFIG_LFG_IGNORE_ITEM_LEVEL_REQUIREMENT },
         { .Name = "Instance.IgnoreRaid"sv, .DefaultValue = false, .Index = CONFIG_INSTANCE_IGNORE_RAID },
         { .Name = "CastUnstuck"sv, .DefaultValue = true, .Index = CONFIG_CAST_UNSTUCK },
         { .Name = "GM.AllowInvite"sv, .DefaultValue = false, .Index = CONFIG_ALLOW_GM_GROUP },
