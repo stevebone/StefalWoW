@@ -58,6 +58,8 @@
 -- NPC: 43458 Keeshan (camp)
 -- NPC: 43462 Danforth (camp)
 -- NPC: 43461 Krakauer (camp)
+-- NPC: 43460 Jorgensen (camp)
+-- NPC: 43459 Messner (camp)
 
 -- Quest: 26512 Tuning The Gnomecorder
 -- Quest: 26545 Yowler Must Die!
@@ -72,6 +74,10 @@
 -- Quest: 26561 Krakauer
 -- Quest: 26562 And Last But Not Least... Danforth
 -- Quest: 26616 It's Never Over
+-- Quest: 26639 Point of Contact: Brubaker
+-- Quest: 26636 Bravo Company Field Kit: Camouflage
+-- Quest: 26637 Bravo Company Field Kit: Chloroform
+-- Quest: 26638 Hunting the Hunters
 
 -- Spell: 81003 Apply Quest Invis Zone 5
 -- Spell: 81004 Detect: Quest Invis Zone 5
@@ -140,11 +146,14 @@ UPDATE `quest_template_addon` SET `PrevQuestID` = 26607 WHERE `ID` = 26616;
 UPDATE `quest_template_addon` SET `ExclusiveGroup` = 0 WHERE `ID` = 26563;
 UPDATE `quest_template_addon` SET `ScriptName` = 'quest_26563_return_of_the_bravo_company' WHERE `ID` = 26563;
 
-DELETE FROM `quest_template_addon` WHERE `ID` IN (26567,26571,26586);
+DELETE FROM `quest_template_addon` WHERE `ID` IN (26567,26571,26586,26636,26637,26638);
 INSERT INTO `quest_template_addon` (`ID`, `PrevQuestID`) VALUES 
 (26571, 26568),
 (26567, 26545),
-(26586, 26573);
+(26586, 26573),
+(26636, 26616),
+(26637, 26616),
+(26638, 26616);
 
 -- Script Names
 UPDATE `creature_template` SET `ScriptName` = 'npc_guard_bateman' WHERE `entry` = 43081;
@@ -211,6 +220,7 @@ UPDATE creature_template_difficulty SET StaticFlags1 = StaticFlags1 | 0x20000000
 -- Creature Template Addons
 UPDATE `creature_template_addon` SET `auras` = '80815 393433' WHERE `Entry` = 43248;
 UPDATE `creature_template_addon` SET `auras` = '81201' WHERE `Entry` IN (43458,43459,43460,43461,43462);
+UPDATE `creature_template_addon` SET `StandState` = 8 WHERE `Entry` = 43458;
 
 -- SAI
 UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (147222);
@@ -242,148 +252,6 @@ INSERT INTO smart_scripts (entryorguid, source_type, id, link, Difficulties, eve
 UPDATE `smart_scripts` SET `target_type` = '7' WHERE `entryorguid` = 43341 AND `source_type` = 0 AND `id` = 0 AND `link` = 0;
 
 
--- Creature Text
-DELETE FROM `creature_text` WHERE `creatureID` IN (43081,712,43270,43300,43272,43305,43303,43302,43448,43449,43458,43462);
-DELETE FROM `creature_text` WHERE `creatureID` IN (426,430,580) AND `GroupID` = 1;
-INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `BroadcastTextId`, `TextRange`, `comment`) VALUES
-(43458, 0, 0, 'Danforth, report.', 12, 7, 100, 0, 0, 0, 43592, 0, 'Keeshan to Player'),
-
-(43462, 0, 0, 'The Blackrock orcs blew up the bridge leading to Stonewatch Keep. Frontal assault is out of the question.', 12, 7, 100, 0, 0, 0, 43593, 0, 'Danforth to Player'),
-
-(43448, 0, 0, 'You got it, Johnny!', 12, 7, 100, 0, 0, 0, 43525, 0, 'Messner to Player'),
-
-(43449, 0, 0, 'Take us out, Messner', 12, 7, 100, 0, 0, 0, 43524, 0, 'Keeshan to Player'),
-(43449, 1, 0, 'We''re here, everybody out!', 12, 7, 100, 22, 0, 0, 43526, 0, 'Keeshan to Player'),
-
-(43081, 0, 0, 'Outgoing, $c.', 12, 7, 100, 0, 0, 0, 42986, 0, 'Guard Bateman to Player'),
-(43081, 0, 1, 'Good hunting, $n!', 12, 7, 100, 0, 0, 0, 42987, 0, 'Guard Bateman to Player'),
-(43081, 0, 2, '$R departing Redridge!', 12, 7, 100, 0, 0, 0, 42988, 0, 'Guard Bateman to Player'),
-(43081, 0, 3, '$C departing Redridge!', 12, 7, 100, 0, 0, 0, 42989, 0, 'Guard Bateman to Player'),
-(43081, 0, 4, 'Good luck out there, $n!', 12, 7, 100, 0, 0, 0, 42990, 0, 'Guard Bateman to Player'),
-
-(712, 0, 0, 'More bones to gnaw on...', 12, 0, 100, 0, 0, 0, 1871, 0, 'Redridge Thrasher - Random Say on Aggro'),
-(712, 0, 1, 'Grrrr... fresh meat!', 12, 0, 100, 0, 0, 0, 1870, 0, 'Redridge Thrasher - Random Say on Aggro'),
-
-(426, 1, 0, '%s attempts to run away in fear!', 16, 0, 100, 0, 0, 0, 1150, 0, 'Redridge Brute - Flee Say 15 pct'),
-(430, 1, 0, '%s attempts to run away in fear!', 16, 0, 100, 0, 0, 0, 1150, 0, 'Redridge Mystic - Flee Say 15 pct'),
-(580, 1, 0, '%s attempts to run away in fear!', 16, 0, 100, 0, 0, 0, 1150, 0, 'Redridge Drudger - Flee Say 15 pct'),
-
-(43270, 0, 0, 'If I ever get out of here I''m gonna crap all over your head, you pig sucking orc.', 12, 7, 100, 5, 0, 0, 43294, 0, 'Messner to Player'),
-(43270, 1, 0, 'Where''s the rest of my crew??!', 12, 7, 100, 5, 0, 0, 43295, 0, 'Messner to Player'),
-(43270, 2, 0, 'You think these bars can hold me? HAH!', 12, 7, 100, 5, 0, 0, 43296, 0, 'Messner to Player'),
-
-(43300, 0, 0, 'Eat dirt you filthy mongrel!', 12, 7, 100, 0, 0, 0, 43427, 0, 'Bravo Company On Aggro'),
-(43300, 0, 1, 'Back to your maker!', 12, 7, 100, 0, 0, 0, 43428, 0, 'Bravo Company On Aggro'),
-(43300, 0, 2, 'No good piece of crap!', 12, 7, 100, 0, 0, 0, 43429, 0, 'Bravo Company On Aggro'),
-(43300, 0, 3, 'Nowhere to run!', 12, 7, 100, 0, 0, 0, 43430, 0, 'Bravo Company On Aggro'),
-(43300, 0, 4, 'You messed with the wrong soldier!', 12, 7, 100, 0, 0, 0, 43431, 0, 'Bravo Company On Aggro'),
-(43300, 0, 5, 'And keep the change you filthy animal!', 12, 7, 100, 0, 0, 0, 43432, 0, 'Bravo Company On Aggro'),
-(43300, 0, 6, 'I''m just gettin'' warmed up!', 12, 7, 100, 0, 0, 0, 43433, 0, 'Bravo Company On Aggro'),
-(43300, 0, 7, 'Is that the best you can do?', 12, 7, 100, 0, 0, 0, 43434, 0, 'Bravo Company On Aggro'),
-(43300, 0, 8, 'I don''t even have my gear on!', 12, 7, 100, 0, 0, 0, 43435, 0, 'Bravo Company On Aggro'),
-(43300, 0, 9, 'GET SOME!', 12, 7, 100, 0, 0, 0, 43436, 0, 'Bravo Company On Aggro'),
-(43300, 0, 10, 'And just like that, you''re dead!', 12, 7, 100, 0, 0, 0, 43437, 0, 'Bravo Company On Aggro'),
-(43300, 0, 11, 'HAH!', 12, 7, 100, 0, 0, 0, 43438, 0, 'Bravo Company On Aggro'),
-(43300, 0, 12, 'I''ve had tougher craps.', 12, 7, 100, 0, 0, 0, 43439, 0, 'Bravo Company On Aggro'),
-(43300, 0, 13, 'Welcome to hell!', 12, 7, 100, 0, 0, 0, 43440, 0, 'Bravo Company On Aggro'),
-(43300, 0, 14, 'Toe up...', 12, 7, 100, 0, 0, 0, 43441, 0, 'Bravo Company On Aggro'),
-(43300, 0, 15, 'Did you hear that crack?!', 12, 7, 100, 0, 0, 0, 43442, 0, 'Bravo Company On Aggro'),
-(43300, 0, 16, 'Revenge is a dish best served with a butt whompin''!', 12, 7, 100, 0, 0, 0, 43443, 0, 'Bravo Company On Aggro'),
-
-(43300, 1, 0, 'It''s an ugly word, you know? It''s a word I''d use to describe defecating. For example:', 12, 7, 100, 0, 0, 0, 43452, 0, 'Messner to Player'),
-(43300, 2, 0, 'After that Pilgrim''s Bounty dinner, I took a huge smelly orc.', 12, 7, 100, 0, 0, 0, 43453, 0, 'Messner to Player'),
-(43300, 3, 0, 'You know, I''ve always wondered why they call themselves orcs.', 12, 7, 100, 0, 0, 0, 43451, 0, 'Messner to Player'),
-(43300, 4, 0, 'They called us the Bravo Company. When things needed killin'', we did the spillin''... of blood.', 12, 7, 100, 0, 0, 0, 43458, 0, 'Messner to Player'),
-(43300, 5, 0, 'Jorgensen is real dainty, by the way. He''s a paladin, so be careful what you say around him or you''re liable to make him cry.', 12, 7, 100, 0, 0, 0, 43460, 0, 'Messner to Player'),
-(43300, 6, 0, 'So I hear Varian Wrynn is back. That true? Sorry, I''m a bit out of the loop.', 12, 7, 100, 0, 0, 0, 43461, 0, 'Messner to Player'),
-(43300, 7, 0, 'You ever notice how sarcastic the people living in Redridge are? Sometimes I feel like I just want to take a blow torch to that jackass Solomon''s town hall.', 12, 7, 100, 0, 0, 0, 43462, 0, 'Messner to Player'),
-(43300, 8, 0, 'We all owe our lives to Keeshan. He''s saved our hides a hundred times.', 12, 7, 100, 0, 0, 0, 43480, 0, 'Messner to Player'),
-(43300, 9, 0, 'Being a mage has its advantages, but the laundry bills are hell to pay.', 12, 7, 100, 0, 0, 0, 43481, 0, 'Messner to Player'),
-(43300, 10, 0, 'So what''s up with the bridge in Lakeshire? Oslow ever finish building it?', 12, 7, 100, 0, 0, 0, 43482, 0, 'Messner to Player'),
-(43300, 11, 0, 'I think I''m gonna go to Dalaran after this is over. Help ''em get that city up and floating.', 12, 7, 100, 0, 0, 0, 43483, 0, 'Messner to Player'),
-(43300, 12, 0, 'I need to use the restroom.', 12, 7, 100, 0, 0, 0, 43484, 0, 'Messner to Player'),
-(43300, 13, 0, 'These orcs are in for a rude awakening once Bravo Company is back up and running.', 12, 7, 100, 0, 0, 0, 43485, 0, 'Messner to Player'),
-
-(43272, 0, 0, 'You orcs are gonna be sorry when I get out of here.', 12, 7, 100, 5, 0, 0, 43405, 0, 'Jorgensen to Player'),
-(43272, 1, 0, 'Payback''s gonna hurt.', 12, 7, 100, 5, 0, 0, 43406, 0, 'Jorgensen to Player'),
-
-(43305, 0, 0, 'Eat dirt you filthy mongrel!', 12, 7, 100, 0, 0, 0, 43427, 0, 'Bravo Company On Aggro'),
-(43305, 0, 1, 'Back to your maker!', 12, 7, 100, 0, 0, 0, 43428, 0, 'Bravo Company On Aggro'),
-(43305, 0, 2, 'No good piece of crap!', 12, 7, 100, 0, 0, 0, 43429, 0, 'Bravo Company On Aggro'),
-(43305, 0, 3, 'Nowhere to run!', 12, 7, 100, 0, 0, 0, 43430, 0, 'Bravo Company On Aggro'),
-(43305, 0, 4, 'You messed with the wrong soldier!', 12, 7, 100, 0, 0, 0, 43431, 0, 'Bravo Company On Aggro'),
-(43305, 0, 5, 'And keep the change you filthy animal!', 12, 7, 100, 0, 0, 0, 43432, 0, 'Bravo Company On Aggro'),
-(43305, 0, 6, 'I''m just gettin'' warmed up!', 12, 7, 100, 0, 0, 0, 43433, 0, 'Bravo Company On Aggro'),
-(43305, 0, 7, 'Is that the best you can do?', 12, 7, 100, 0, 0, 0, 43434, 0, 'Bravo Company On Aggro'),
-(43305, 0, 8, 'I don''t even have my gear on!', 12, 7, 100, 0, 0, 0, 43435, 0, 'Bravo Company On Aggro'),
-(43305, 0, 9, 'GET SOME!', 12, 7, 100, 0, 0, 0, 43436, 0, 'Bravo Company On Aggro'),
-(43305, 0, 10, 'And just like that, you''re dead!', 12, 7, 100, 0, 0, 0, 43437, 0, 'Bravo Company On Aggro'),
-(43305, 0, 11, 'HAH!', 12, 7, 100, 0, 0, 0, 43438, 0, 'Bravo Company On Aggro'),
-(43305, 0, 12, 'I''ve had tougher craps.', 12, 7, 100, 0, 0, 0, 43439, 0, 'Bravo Company On Aggro'),
-(43305, 0, 13, 'Welcome to hell!', 12, 7, 100, 0, 0, 0, 43440, 0, 'Bravo Company On Aggro'),
-(43305, 0, 14, 'Toe up...', 12, 7, 100, 0, 0, 0, 43441, 0, 'Bravo Company On Aggro'),
-(43305, 0, 15, 'Did you hear that crack?!', 12, 7, 100, 0, 0, 0, 43442, 0, 'Bravo Company On Aggro'),
-(43305, 0, 16, 'Revenge is a dish best served with a butt whompin''!', 12, 7, 100, 0, 0, 0, 43443, 0, 'Bravo Company On Aggro'),
-
-(43305, 1, 0, 'Real funny, Danforth.', 12, 7, 100, 0, 0, 0, 43561, 0, 'Jorgensen to Player'),
-(43305, 2, 0, 'I feel weak. I mean weaker than normal. Like as if the Light is less powerful this week. Probably just something I ate. Orc food gives me the craps.', 12, 7, 100, 0, 0, 0, 43465, 0, 'Jorgensen to Player'),
-(43305, 3, 0, 'You ever seen Keeshan kill an orc? It''s a sight to behold, $g man:lady;.', 12, 7, 100, 0, 0, 0, 43466, 0, 'Jorgensen to Player'),
-(43305, 4, 0, 'Can''t believe we''re putting the old team back together. All thanks to you, $n.', 12, 7, 100, 0, 0, 0, 43468, 0, 'Jorgensen to Player'),
-(43305, 5, 0, 'So I heard Thrall left the Horde. That true?', 12, 7, 100, 0, 0, 0, 43469, 0, 'Jorgensen to Player'),
-(43305, 6, 0, 'You know, I kept hearing the Blackrock orcs talk about the return of Hellscream to the Horde. What''s that all about? Isn''t Hellscream dead?', 12, 7, 100, 0, 0, 0, 43470, 0, 'Jorgensen to Player'),
-(43305, 7, 0, 'I''m probably the most important member of this team, being a paladin and all.', 12, 7, 100, 0, 0, 0, 43471, 0, 'Jorgensen to Player'),
-(43305, 8, 0, 'My heals really don''t have the ''OOMPH'' that they used to, $n. You know what I''m saying?', 12, 7, 100, 0, 0, 0, 43658, 0, 'Jorgensen to Player'),
-(43305, 9, 0, 'Being a paladin is rough. The Light behaves so erratically. Some days I wake up and it feels like all of my powers have been weakened.', 12, 7, 100, 0, 0, 0, 43659, 0, 'Jorgensen to Player'),
-(43305, 10, 0, 'I don''t know, maybe the grass really is greener on the other side. You know? Krakauer and Danforth really kick butt as warriors. Maybe I should drop this paladin thing and try out being a warrior.', 12, 7, 100, 0, 0, 0, 43661, 0, 'Jorgensen to Player'),
-(43305, 11, 0, 'Messner kills bad guys so fast. I wish I could kill as fast as him. WHY can''t I shoot fireballs? What does the LIGHT have against fireballs?', 12, 7, 100, 0, 0, 0, 43663, 0, 'Jorgensen to Player'),
-(43305, 12, 0, 'One time, Keeshan told me that he could take on five of me at once. Why am I so weak?', 12, 7, 100, 0, 0, 0, 43668, 0, 'Jorgensen to Player'),
-
-(43302, 0, 0, 'Eat dirt you filthy mongrel!', 12, 7, 100, 0, 0, 0, 43427, 0, 'Bravo Company On Aggro'),
-(43302, 0, 1, 'Back to your maker!', 12, 7, 100, 0, 0, 0, 43428, 0, 'Bravo Company On Aggro'),
-(43302, 0, 2, 'No good piece of crap!', 12, 7, 100, 0, 0, 0, 43429, 0, 'Bravo Company On Aggro'),
-(43302, 0, 3, 'Nowhere to run!', 12, 7, 100, 0, 0, 0, 43430, 0, 'Bravo Company On Aggro'),
-(43302, 0, 4, 'You messed with the wrong soldier!', 12, 7, 100, 0, 0, 0, 43431, 0, 'Bravo Company On Aggro'),
-(43302, 0, 5, 'And keep the change you filthy animal!', 12, 7, 100, 0, 0, 0, 43432, 0, 'Bravo Company On Aggro'),
-(43302, 0, 6, 'I''m just gettin'' warmed up!', 12, 7, 100, 0, 0, 0, 43433, 0, 'Bravo Company On Aggro'),
-(43302, 0, 7, 'Is that the best you can do?', 12, 7, 100, 0, 0, 0, 43434, 0, 'Bravo Company On Aggro'),
-(43302, 0, 8, 'I don''t even have my gear on!', 12, 7, 100, 0, 0, 0, 43435, 0, 'Bravo Company On Aggro'),
-(43302, 0, 9, 'GET SOME!', 12, 7, 100, 0, 0, 0, 43436, 0, 'Bravo Company On Aggro'),
-(43302, 0, 10, 'And just like that, you''re dead!', 12, 7, 100, 0, 0, 0, 43437, 0, 'Bravo Company On Aggro'),
-(43302, 0, 11, 'HAH!', 12, 7, 100, 0, 0, 0, 43438, 0, 'Bravo Company On Aggro'),
-(43302, 0, 12, 'I''ve had tougher craps.', 12, 7, 100, 0, 0, 0, 43439, 0, 'Bravo Company On Aggro'),
-(43302, 0, 13, 'Welcome to hell!', 12, 7, 100, 0, 0, 0, 43440, 0, 'Bravo Company On Aggro'),
-(43302, 0, 14, 'Toe up...', 12, 7, 100, 0, 0, 0, 43441, 0, 'Bravo Company On Aggro'),
-(43302, 0, 15, 'Did you hear that crack?!', 12, 7, 100, 0, 0, 0, 43442, 0, 'Bravo Company On Aggro'),
-(43302, 0, 16, 'Revenge is a dish best served with a butt whompin''!', 12, 7, 100, 0, 0, 0, 43443, 0, 'Bravo Company On Aggro'),
-
-(43302, 1, 0, 'You know, Keeshan lost his wife to Blackrock orcs. He was never the same after that day. Was like the sun just set on his life. Darkness, $g man:lady;. Pure darkness.', 12, 7, 100, 0, 0, 0, 43457, 0, 'Danforth to Player'),
-(43302, 1, 1, 'I remember this one time, Keeshan and I were out fishing at the Lakeshire bridge and Keeshan farted. Don''t think Oslow ever forgave Keeshan for that one...', 12, 7, 100, 0, 0, 0, 43456, 0, 'Danforth to Player'),
-(43302, 1, 2, 'You ever seen Keeshan kill an orc? It''s a sight to behold, $g man:lady;.', 12, 7, 100, 0, 0, 0, 43466, 0, 'Danforth to Player'),
-
-(43303, 0, 0, 'Eat dirt you filthy mongrel!', 12, 7, 100, 0, 0, 0, 43427, 0, 'Bravo Company On Aggro'),
-(43303, 0, 1, 'Back to your maker!', 12, 7, 100, 0, 0, 0, 43428, 0, 'Bravo Company On Aggro'),
-(43303, 0, 2, 'No good piece of crap!', 12, 7, 100, 0, 0, 0, 43429, 0, 'Bravo Company On Aggro'),
-(43303, 0, 3, 'Nowhere to run!', 12, 7, 100, 0, 0, 0, 43430, 0, 'Bravo Company On Aggro'),
-(43303, 0, 4, 'You messed with the wrong soldier!', 12, 7, 100, 0, 0, 0, 43431, 0, 'Bravo Company On Aggro'),
-(43303, 0, 5, 'And keep the change you filthy animal!', 12, 7, 100, 0, 0, 0, 43432, 0, 'Bravo Company On Aggro'),
-(43303, 0, 6, 'I''m just gettin'' warmed up!', 12, 7, 100, 0, 0, 0, 43433, 0, 'Bravo Company On Aggro'),
-(43303, 0, 7, 'Is that the best you can do?', 12, 7, 100, 0, 0, 0, 43434, 0, 'Bravo Company On Aggro'),
-(43303, 0, 8, 'I don''t even have my gear on!', 12, 7, 100, 0, 0, 0, 43435, 0, 'Bravo Company On Aggro'),
-(43303, 0, 9, 'GET SOME!', 12, 7, 100, 0, 0, 0, 43436, 0, 'Bravo Company On Aggro'),
-(43303, 0, 10, 'And just like that, you''re dead!', 12, 7, 100, 0, 0, 0, 43437, 0, 'Bravo Company On Aggro'),
-(43303, 0, 11, 'HAH!', 12, 7, 100, 0, 0, 0, 43438, 0, 'Bravo Company On Aggro'),
-(43303, 0, 12, 'I''ve had tougher craps.', 12, 7, 100, 0, 0, 0, 43439, 0, 'Bravo Company On Aggro'),
-(43303, 0, 13, 'Welcome to hell!', 12, 7, 100, 0, 0, 0, 43440, 0, 'Bravo Company On Aggro'),
-(43303, 0, 14, 'Toe up...', 12, 7, 100, 0, 0, 0, 43441, 0, 'Bravo Company On Aggro'),
-(43303, 0, 15, 'Did you hear that crack?!', 12, 7, 100, 0, 0, 0, 43442, 0, 'Bravo Company On Aggro'),
-(43303, 0, 16, 'Revenge is a dish best served with a butt whompin''!', 12, 7, 100, 0, 0, 0, 43443, 0, 'Bravo Company On Aggro'),
-
-(43303, 1, 0, 'Keeshan''s a good man, $n. Any of us would give our lives for him.', 12, 7, 100, 0, 0, 0, 43477, 0, 'Krakauer to Player'),
-(43303, 1, 1, 'Wait''ll these orcs get a load of us. Bravo Company BACK IN BUSINESS!', 12, 7, 100, 0, 0, 0, 43472, 0, 'Krakauer to Player'),
-(43303, 1, 2, 'Messner is a master of fire magic. We invite him to all of our barbecues.', 12, 7, 100, 0, 0, 0, 43459, 0, 'Krakauer to Player'),
-(43303, 1, 3, 'When this is all over, I''m taking a vacation.', 12, 7, 100, 0, 0, 0, 43478, 0, 'Krakauer to Player'),
-(43303, 1, 4, 'It''s weird. My butt hurts. Not sure why.', 12, 7, 100, 0, 0, 0, 43475, 0, 'Krakauer to Player'),
-(43303, 1, 5, 'So whatever happened to that hot little number in Stormwind? Lady Prestor was her name.', 12, 7, 100, 0, 0, 0, 43474, 0, 'Krakauer to Player');
 
 -- Creatures
 SET @CGUID := 900000;

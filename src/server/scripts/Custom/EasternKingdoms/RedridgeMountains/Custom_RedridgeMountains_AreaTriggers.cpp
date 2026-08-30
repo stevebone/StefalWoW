@@ -21,6 +21,7 @@
  */
 
 #include "Creature.h"
+#include "CreatureAI.h"
 #include "DB2Stores.h"
 #include "ObjectAccessor.h"
 #include "Player.h"
@@ -94,17 +95,83 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
             if (!g_areaTriggerCooldown.CanTrigger(player, AreaTriggers::CampEverstill, 2min))
                 return false;
 
-            if (Creature* keeshan = player->FindNearestCreature(Creatures::KeeshanCamp, 20.f))
+            ObjectGuid playerGuid = player->GetGUID();
+
+            if (Creature* keeshan = player->FindNearestCreature(Creatures::KeeshanCamp, 10.f))
+            {
                 keeshan->AI()->Talk(0, player);
 
-            if (Creature* danforth = player->FindNearestCreature(Creatures::DanforthCamp, 20.f))
+                keeshan->m_Events.AddEventAtOffset([keeshan, playerGuid]()
+                    {
+                        if (Player* player = ObjectAccessor::GetPlayer(*keeshan, playerGuid))
+                            keeshan->AI()->Talk(1, player);
+                    }, 8s);
+
+                keeshan->m_Events.AddEventAtOffset([keeshan, playerGuid]()
+                    {
+                        if (Player* player = ObjectAccessor::GetPlayer(*keeshan, playerGuid))
+                            keeshan->AI()->Talk(2, player);
+                    }, 21s);
+
+                keeshan->m_Events.AddEventAtOffset([keeshan, playerGuid]()
+                    {
+                        if (Player* player = ObjectAccessor::GetPlayer(*keeshan, playerGuid))
+                            keeshan->AI()->Talk(3, player);
+                    }, 32s);
+
+                keeshan->m_Events.AddEventAtOffset([keeshan, playerGuid]()
+                    {
+                        if (Player* player = ObjectAccessor::GetPlayer(*keeshan, playerGuid))
+                            keeshan->AI()->Talk(4, player);
+                    }, 42s);
+
+                keeshan->m_Events.AddEventAtOffset([keeshan, playerGuid]()
+                    {
+                        if (Player* player = ObjectAccessor::GetPlayer(*keeshan, playerGuid))
+                            keeshan->AI()->Talk(5, player);
+                    }, 47s);
+            }
+
+            if (Creature* danforth = player->FindNearestCreature(Creatures::DanforthCamp, 10.f))
             {
-                ObjectGuid playerGuid = player->GetGUID();
                 danforth->m_Events.AddEventAtOffset([danforth, playerGuid]()
                 {
                     if (Player* player = ObjectAccessor::GetPlayer(*danforth, playerGuid))
                         danforth->AI()->Talk(0, player);
                 }, 3s);
+            }
+
+            if (Creature* krakauer = player->FindNearestCreature(Creatures::KrakauerCamp, 10.f))
+            {
+                krakauer->m_Events.AddEventAtOffset([krakauer, playerGuid]()
+                    {
+                        if (Player* player = ObjectAccessor::GetPlayer(*krakauer, playerGuid))
+                            krakauer->AI()->Talk(0, player);
+                    }, 11s);
+
+                krakauer->m_Events.AddEventAtOffset([krakauer, playerGuid]()
+                    {
+                        if (Player* player = ObjectAccessor::GetPlayer(*krakauer, playerGuid))
+                            krakauer->AI()->Talk(1, player);
+                    }, 16s);
+            }
+
+            if (Creature* jorgensen = player->FindNearestCreature(Creatures::JorgensenCamp, 10.f))
+            {
+                jorgensen->m_Events.AddEventAtOffset([jorgensen, playerGuid]()
+                    {
+                        if (Player* player = ObjectAccessor::GetPlayer(*jorgensen, playerGuid))
+                            jorgensen->AI()->Talk(0, player);
+                    }, 25s);
+            }
+
+            if (Creature* messner = player->FindNearestCreature(Creatures::MessnerCamp, 10.f))
+            {
+                messner->m_Events.AddEventAtOffset([messner, playerGuid]()
+                    {
+                        if (Player* player = ObjectAccessor::GetPlayer(*messner, playerGuid))
+                            messner->AI()->Talk(0, player);
+                    }, 37s);
             }
 
             return true;

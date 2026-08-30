@@ -59,6 +59,9 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
         static constexpr uint32 KeeshanBoat = 43449;
         static constexpr uint32 KeeshanCamp = 43458;
         static constexpr uint32 DanforthCamp = 43462;
+        static constexpr uint32 KrakauerCamp = 43461;
+        static constexpr uint32 JorgensenCamp = 43460;
+        static constexpr uint32 MessnerCamp = 43459;
     }
 
     namespace GameObjects
