@@ -31,6 +31,7 @@
 #include "SpellAuras.h"
 #include "ScriptMgr.h"
 #include "TemporarySummon.h"
+#include "MotionMaster.h"
 
 #include <queue>
 
