@@ -605,6 +605,7 @@ void WorldSession::HandleCharEnum(CharacterDatabaseQueryHolder const& holder)
             if (defaultSceneId != 0)
             {
                 WorldPackets::Character::WarbandGroup& defaultGroup = charEnum.WarbandGroups.emplace_back();
+                defaultGroup.GroupID = sObjectMgr->GenerateWarbandGroupId();
                 defaultGroup.OrderIndex = 0;
                 defaultGroup.WarbandSceneID = defaultSceneId;
                 defaultGroup.Flags = 0;
@@ -633,11 +634,11 @@ void WorldSession::HandleCharEnum(CharacterDatabaseQueryHolder const& holder)
                     defaultGroup.Members.push_back(member);
                 }
 
-                // Persist the default group asynchronously
+                // Persist the default group and its members asynchronously
                 CharacterDatabaseTransaction trans = CharacterDatabase.BeginTransaction();
 
                 CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_WARBAND_GROUP);
-                stmt->setUInt64(0, 0); // AUTO_INCREMENT - will be assigned by DB
+                stmt->setUInt64(0, defaultGroup.GroupID);
                 stmt->setUInt32(1, enumHolder.GetBattlenetAccountId());
                 stmt->setUInt8(2, 0); // orderIndex
                 stmt->setUInt32(3, defaultSceneId);
@@ -646,12 +647,21 @@ void WorldSession::HandleCharEnum(CharacterDatabaseQueryHolder const& holder)
                 stmt->setString(6, std::string());
                 trans->Append(stmt);
 
-                CharacterDatabase.CommitTransaction(trans);
+                for (uint8 memberIdx = 0; memberIdx < defaultGroup.Members.size(); ++memberIdx)
+                {
+                    WorldPackets::Character::WarbandGroupMember const& member = defaultGroup.Members[memberIdx];
 
-                // We need the auto-generated groupId for subsequent member inserts.
-                // Since we can't get LAST_INSERT_ID in an async transaction easily,
-                // we'll set a temporary GroupID of 0 in the packet (client doesn't send it back).
-                // The members will be properly persisted when the client sends CMSG_SETUP_WARBAND_GROUPS.
+                    stmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_WARBAND_GROUP_MEMBER);
+                    stmt->setUInt64(0, defaultGroup.GroupID);
+                    stmt->setUInt8(1, memberIdx);
+                    stmt->setUInt64(2, member.Guid.GetCounter());
+                    stmt->setUInt32(3, member.WarbandScenePlacementID);
+                    stmt->setInt32(4, member.Type);
+                    stmt->setInt32(5, member.ContentSetID);
+                    trans->Append(stmt);
+                }
+
+                CharacterDatabase.CommitTransaction(trans);
             }
         }
     }
@@ -753,8 +763,11 @@ void WorldSession::HandleSetupWarbandGroups(WorldPackets::Character::SetupWarban
     // Insert new groups and members
     for (auto const& group : setupWarbandGroups.Groups)
     {
+        // Client sends GroupID = 0 for newly created groups - generate a globally unique id server-side
+        uint64 groupId = group.GroupID ? group.GroupID : sObjectMgr->GenerateWarbandGroupId();
+
         stmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_WARBAND_GROUP);
-        stmt->setUInt64(0, group.GroupID);
+        stmt->setUInt64(0, groupId);
         stmt->setUInt32(1, battlenetAccountId);
         stmt->setUInt8(2, group.OrderIndex);
         stmt->setUInt32(3, group.WarbandSceneID);
@@ -768,7 +781,7 @@ void WorldSession::HandleSetupWarbandGroups(WorldPackets::Character::SetupWarban
             auto const& member = group.Members[memberIdx];
 
             stmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_WARBAND_GROUP_MEMBER);
-            stmt->setUInt64(0, group.GroupID);
+            stmt->setUInt64(0, groupId);
             stmt->setUInt8(1, memberIdx);
             stmt->setUInt64(2, member.Guid.GetCounter());
             stmt->setUInt32(3, member.WarbandScenePlacementID);

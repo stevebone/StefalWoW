@@ -17,6 +17,7 @@
 
 #include "CollectionMgr.h"
 #include "CollectionPackets.h"
+#include "Config.h"
 #include "DatabaseEnv.h"
 #include "DB2Stores.h"
 #include "Item.h"
@@ -25,11 +26,14 @@
 #include "MiscPackets.h"
 #include "ObjectMgr.h"
 #include "Player.h"
+#include "StringConvert.h"
 #include "Timer.h"
 #include "TransmogMgr.h"
 #include "TransmogrificationPackets.h"
+#include "Util.h"
 #include "WorldSession.h"
 #include <boost/dynamic_bitset.hpp>
+#include <cctype>
 
 namespace
 {
@@ -76,9 +80,50 @@ void CollectionMgr::LoadMountDefinitions()
 
 void CollectionMgr::LoadWarbandSceneDefinitions()
 {
+    uint32 oldMSTime = getMSTime();
+
+    DefaultWarbandScenes.clear();
+
     for (WarbandSceneEntry const* warbandScene : sWarbandSceneStore)
         if (warbandScene->GetFlags().HasFlag(WarbandSceneFlags::AwardedAutomatically))
             DefaultWarbandScenes.push_back(warbandScene->ID);
+
+    // Grant additional starter warband scenes to every account (config-driven)
+    // NOTE: once granted, scenes are saved permanently to the account collection - disabling this later will not revoke them
+    uint32 starterCount = 0;
+    if (sConfigMgr->GetBoolDefault("Warband.StarterScenes.Enable", false))
+    {
+        std::string sceneList = sConfigMgr->GetStringDefault("Warband.StarterScenes.List", "");
+        for (std::string_view token : Trinity::Tokenize(sceneList, ',', false))
+        {
+            while (!token.empty() && std::isspace(static_cast<unsigned char>(token.front())))
+                token.remove_prefix(1);
+            while (!token.empty() && std::isspace(static_cast<unsigned char>(token.back())))
+                token.remove_suffix(1);
+
+            Optional<uint32> sceneId = Trinity::StringTo<uint32>(token);
+            if (!sceneId)
+            {
+                TC_LOG_ERROR("server.loading", "Warband.StarterScenes.List contains invalid (non-numeric) entry '{}', skipped", token);
+                continue;
+            }
+
+            if (!sWarbandSceneStore.HasRecord(*sceneId))
+            {
+                TC_LOG_ERROR("server.loading", "Warband.StarterScenes.List references WarbandScene {} which does not exist in WarbandScene.db2, skipped", *sceneId);
+                continue;
+            }
+
+            if (std::ranges::find(DefaultWarbandScenes, *sceneId) == DefaultWarbandScenes.end())
+            {
+                DefaultWarbandScenes.push_back(*sceneId);
+                ++starterCount;
+            }
+        }
+    }
+
+    TC_LOG_INFO("server.loading", ">> Loaded {} default warband scene definitions ({} from config starter list) in {} ms",
+        DefaultWarbandScenes.size(), starterCount, GetMSTimeDiffToNow(oldMSTime));
 }
 
 namespace

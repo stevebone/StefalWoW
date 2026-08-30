@@ -1465,6 +1465,27 @@ FeatureSystem.CharacterUndelete.Enabled = 0
 FeatureSystem.CharacterUndelete.Cooldown = 2592000
 
 #
+#    Warband.StarterScenes.Enable
+#        Description: Automatically grant the warband scenes listed in Warband.StarterScenes.List
+#                     to every account, in addition to scenes flagged as awarded automatically
+#                     in WarbandScene.db2.
+#                     Note: granted scenes are saved permanently to the account collection.
+#                     Disabling this later will not revoke scenes that were already granted.
+#        Default:     0 - (Disabled)
+#                     1 - (Enabled)
+
+Warband.StarterScenes.Enable = 0
+
+#
+#    Warband.StarterScenes.List
+#        Description: Comma-separated list of WarbandScene IDs granted to every account
+#                     when Warband.StarterScenes.Enable is set.
+#        Example:     "1,4,5,7,25,29,119,145,146"
+#        Default:     ""
+
+Warband.StarterScenes.List = ""
+
+#
 #    AllowLoggingIPAddressesInDatabase
 #        Description: Specifies if IP addresses can be logged to the database
 #        Default:     1 - (Enabled)
