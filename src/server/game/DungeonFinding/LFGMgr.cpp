@@ -201,7 +201,7 @@ void LFGMgr::LoadLFGDungeons()
         if (!dungeon)
             continue;
 
-        if (!sDB2Manager.GetMapDifficultyData(dungeon->MapID, Difficulty(dungeon->DifficultyID)))
+        if (dungeon->TypeID != LFG_TYPE_RANDOM && !sDB2Manager.GetMapDifficultyData(dungeon->MapID, Difficulty(dungeon->DifficultyID)))
             continue;
 
         switch (dungeon->TypeID)
@@ -1754,12 +1754,15 @@ LfgLockMap LFGMgr::GetLockedDungeons(ObjectGuid guid)
                 return LFG_LOCKSTATUS_RAID_LOCKED;
             if (dungeon->expansion > expansion)
                 return LFG_LOCKSTATUS_INSUFFICIENT_EXPANSION;
-            if (DisableMgr::IsDisabledFor(DISABLE_TYPE_MAP, dungeon->map, player))
-                return LFG_LOCKSTATUS_NOT_IN_SEASON;
-            if (DisableMgr::IsDisabledFor(DISABLE_TYPE_LFG_MAP, dungeon->map, player))
-                return LFG_LOCKSTATUS_RAID_LOCKED;
-            if (sInstanceLockMgr.FindActiveInstanceLock(guid, { dungeon->map, Difficulty(dungeon->difficulty) }))
-                return LFG_LOCKSTATUS_RAID_LOCKED;
+            if (dungeon->map != uint32(-1))
+            {
+                if (DisableMgr::IsDisabledFor(DISABLE_TYPE_MAP, dungeon->map, player))
+                    return LFG_LOCKSTATUS_NOT_IN_SEASON;
+                if (DisableMgr::IsDisabledFor(DISABLE_TYPE_LFG_MAP, dungeon->map, player))
+                    return LFG_LOCKSTATUS_RAID_LOCKED;
+                if (sInstanceLockMgr.FindActiveInstanceLock(guid, { dungeon->map, Difficulty(dungeon->difficulty) }))
+                    return LFG_LOCKSTATUS_RAID_LOCKED;
+            }
             // Chromie Time timeline filter (retail parity P11): while chromie time is
             // active the finder only offers dungeons of eras inside the timeline's
             // ExpansionMask (bits are Expansions enum bits; e.g. Cata mask 0x9 includes
