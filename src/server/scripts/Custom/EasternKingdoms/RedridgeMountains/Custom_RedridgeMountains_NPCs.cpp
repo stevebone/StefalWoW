@@ -33,6 +33,7 @@
 #include "ScriptMgr.h"
 #include "TemporarySummon.h"
 #include "MotionMaster.h"
+#include "Map.h"
 
 #include <queue>
 
