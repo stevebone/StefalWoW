@@ -1771,17 +1771,21 @@ LfgLockMap LFGMgr::GetLockedDungeons(ObjectGuid guid)
             if (uint32 chromieTimeExpansionMask = uint32(player->m_playerData->CtrOptions->ChromieTimeExpansionMask))
                 if (!(chromieTimeExpansionMask & (1u << dungeon->expansion)))
                     return LFG_LOCKSTATUS_HAS_RESTRICTION;
-            if (Optional<ContentTuningLevels> levels = sDB2Manager.GetContentTuningData(dungeon->contentTuningId, player->m_playerData->CtrOptions->ConditionalFlags))
+            if (!sWorld->getBoolConfig(CONFIG_LFG_IGNORE_LEVEL_REQUIREMENT))
             {
-                if (levels->MinLevel > level)
-                    return LFG_LOCKSTATUS_TOO_LOW_LEVEL;
-                if (levels->MaxLevel < level)
-                    return LFG_LOCKSTATUS_TOO_HIGH_LEVEL;
+                if (Optional<ContentTuningLevels> levels = sDB2Manager.GetContentTuningData(dungeon->contentTuningId, player->m_playerData->CtrOptions->ConditionalFlags))
+                {
+                    if (levels->MinLevel > level)
+                        return LFG_LOCKSTATUS_TOO_LOW_LEVEL;
+                    if (levels->MaxLevel < level)
+                        return LFG_LOCKSTATUS_TOO_HIGH_LEVEL;
+                }
             }
             if (dungeon->seasonal && !IsSeasonActive(dungeon->id))
                 return LFG_LOCKSTATUS_NOT_IN_SEASON;
-            if (dungeon->requiredItemLevel > player->GetAverageItemLevel())
-                return LFG_LOCKSTATUS_TOO_LOW_GEAR_SCORE;
+            if (!sWorld->getBoolConfig(CONFIG_LFG_IGNORE_ITEM_LEVEL_REQUIREMENT))
+                if (dungeon->requiredItemLevel > player->GetAverageItemLevel())
+                    return LFG_LOCKSTATUS_TOO_LOW_GEAR_SCORE;
             if (AccessRequirement const* ar = sObjectMgr->GetAccessRequirement(dungeon->map, Difficulty(dungeon->difficulty)))
             {
                 if (ar->achievement && !player->HasAchieved(ar->achievement))

@@ -1406,6 +1406,22 @@ Command.LookupMaxResults = 0
 DungeonFinder.OptionsMask = 1
 
 #
+#    DungeonFinder.IgnoreLevelRequirement
+#        Description: Ignore character level requirement when queueing for dungeons via dungeon finder.
+#        Default:     0 - (Disabled, retail-like level restrictions apply)
+#                     1 - (Enabled, players can queue for any dungeon regardless of level)
+
+DungeonFinder.IgnoreLevelRequirement = 0
+
+#
+#    DungeonFinder.IgnoreItemLevelRequirement
+#        Description: Ignore item level requirement when queueing for dungeons via dungeon finder.
+#        Default:     0 - (Disabled, retail-like item level restrictions apply)
+#                     1 - (Enabled, players can queue regardless of item level)
+
+DungeonFinder.IgnoreItemLevelRequirement = 0
+
+#
 #   DBC.EnforceItemAttributes
 #        Description: Disallow overriding item attributes stored in DBC files with values from the
 #                     database.
