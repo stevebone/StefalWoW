@@ -39,6 +39,7 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
     {
         static constexpr uint32 LakeshireGraveyard = 6034;
         static constexpr uint32 LakeshireInn = 682;
+        static constexpr uint32 CampEverstill = 6079;
     }
 
     namespace Creatures
@@ -56,6 +57,8 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
         static constexpr uint32 KeeshanRiverboat = 43450;
         static constexpr uint32 MessnerBoat = 43448;
         static constexpr uint32 KeeshanBoat = 43449;
+        static constexpr uint32 KeeshanCamp = 43458;
+        static constexpr uint32 DanforthCamp = 43462;
     }
 
     namespace GameObjects

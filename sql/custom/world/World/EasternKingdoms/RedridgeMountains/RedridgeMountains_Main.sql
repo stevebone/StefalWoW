@@ -19,6 +19,7 @@
 -- NPC: 615 Blackrock Tracker
 -- NPC: 711 Ardo Dirtpaw
 -- NPC: 712 Redridge Thrasher
+-- NPC: 1083 Murlock Shorestriker
 -- NPC: 4064 Blackrock Scout
 -- NPC: 4463 Blackrock Summoner
 -- NPC: 14270 Squiddic
@@ -36,6 +37,7 @@
 -- NPC: 43350 Utroka the Keymistress
 -- NPC: 43363 Ritualist Tarak
 -- NPC: 43369 Overlord Barbarius
+-- NPC: 43532 Muckdweller
 -- NPC: 147222 Gnollfeaster
 
 -- NPC: 43081 Guard Bateman
@@ -54,6 +56,8 @@
 -- NPC: 43445 Danforth (boat)
 -- NPC: 43449 Keeshan (boat)
 -- NPC: 43458 Keeshan (camp)
+-- NPC: 43462 Danforth (camp)
+-- NPC: 43461 Krakauer (camp)
 
 -- Quest: 26512 Tuning The Gnomecorder
 -- Quest: 26545 Yowler Must Die!
@@ -167,19 +171,23 @@ DELETE FROM `areatrigger_scripts` WHERE `entry` = 682;
 INSERT INTO `areatrigger_scripts` (`entry`, `ScriptName`) VALUES
 (682, 'at_lakeshire_inn_682');
 
+DELETE FROM `areatrigger_scripts` WHERE `entry` = 6079;
+INSERT INTO `areatrigger_scripts` (`entry`, `ScriptName`) VALUES
+(6079, 'at_camp_everstill_6079');
+
 -- Creature Difficulties
 -- Remove incorrect records
 DELETE FROM `creature_template_difficulty` WHERE `DifficultyID` = 1 AND `Entry` IN (
-	345,422,423,426,428,430,437,442,445,446,518,545,547,578,580,584,615,711,712,4064,
-	4463,14270,14271,14273,43041,43083,43094,43183,43185,43327,43329,43340,43341,43350,
-	43363,43369,147222
+	345,422,423,426,428,430,437,442,445,446,518,545,547,578,580,584,615,711,712,1083,
+	4064,4463,14270,14271,14273,43041,43083,43094,43183,43185,43327,43329,43340,43341,
+	43350,43363,43369,43532,147222
 );
 
 -- Adjust Damage Modifier
 UPDATE `creature_template_difficulty` SET `DamageModifier` = 0.2 WHERE `Entry` IN (
-	345,422,423,426,428,430,437,442,445,446,518,545,547,578,580,584,615,711,712,4064,
-	4463,14270,14271,14273,43041,43083,43094,43183,43185,43327,43329,43340,43341,43350,
-	43363,43369,147222
+	345,422,423,426,428,430,437,442,445,446,518,545,547,578,580,584,615,711,712,1083,
+	4064,4463,14270,14271,14273,43041,43083,43094,43183,43185,43327,43329,43340,43341,
+	43350,43363,43369,43532,147222
 );
 
 -- Add missing loot ids
@@ -195,10 +203,10 @@ UPDATE `creature_template_difficulty` SET `LootID` = 43350, `GoldMin` = 600, `Go
 UPDATE `creature_template_difficulty` SET `LootID` = 43041 WHERE `Entry` = 43041;
 
 -- Swim flag
-UPDATE creature_template_difficulty SET StaticFlags1 = StaticFlags1 | 0x10000000 WHERE Entry IN (43183,43041);
+UPDATE creature_template_difficulty SET StaticFlags1 = StaticFlags1 | 0x10000000 WHERE Entry IN (43183,43041,43532);
 
 -- Floating flag
-UPDATE creature_template_difficulty SET StaticFlags1 = StaticFlags1 | 0x20000000 WHERE Entry IN (43450,43041);
+UPDATE creature_template_difficulty SET StaticFlags1 = StaticFlags1 | 0x20000000 WHERE Entry IN (43450,43041,43532);
 
 -- Creature Template Addons
 UPDATE `creature_template_addon` SET `auras` = '80815 393433' WHERE `Entry` = 43248;
@@ -235,10 +243,12 @@ UPDATE `smart_scripts` SET `target_type` = '7' WHERE `entryorguid` = 43341 AND `
 
 
 -- Creature Text
-DELETE FROM `creature_text` WHERE `creatureID` IN (43081,712,43270,43300,43272,43305,43303,43302,43448,43449,43458);
+DELETE FROM `creature_text` WHERE `creatureID` IN (43081,712,43270,43300,43272,43305,43303,43302,43448,43449,43458,43462);
 DELETE FROM `creature_text` WHERE `creatureID` IN (426,430,580) AND `GroupID` = 1;
 INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `BroadcastTextId`, `TextRange`, `comment`) VALUES
 (43458, 0, 0, 'Danforth, report.', 12, 7, 100, 0, 0, 0, 43592, 0, 'Keeshan to Player'),
+
+(43462, 0, 0, 'The Blackrock orcs blew up the bridge leading to Stonewatch Keep. Frontal assault is out of the question.', 12, 7, 100, 0, 0, 0, 43593, 0, 'Danforth to Player'),
 
 (43448, 0, 0, 'You got it, Johnny!', 12, 7, 100, 0, 0, 0, 43525, 0, 'Messner to Player'),
 
@@ -398,7 +408,7 @@ INSERT INTO `creature_addon` (`guid`, `emote`) VALUES
 UPDATE creature SET MovementType = 1, wander_distance = 8
 WHERE id IN (
     442,423,426,1083,548,422,547,424,7013,43535,
-    568,43084,433,429,712,43083,43183,578,545
+    568,43084,433,429,712,43083,43183,578,545,43532
 );
 
 UPDATE creature SET MovementType = 1, wander_distance = 3
