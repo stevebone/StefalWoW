@@ -164,6 +164,12 @@ public:
     {
         npc_big_earlAI(Creature* creature) : ScriptedAI(creature) { }
 
+        void Reset() override
+        {
+            me->SetReactState(REACT_PASSIVE);
+            me->AddAura(393433, me);
+        }
+
         void DamageTaken(Unit* who, uint32& damage, DamageEffectType /*damageType*/, SpellInfo const* /*spellInfo = nullptr*/) override
         {
             if ((!who || who->GetTypeId() == TYPEID_UNIT) && me->HealthBelowPctDamaged(82, damage))

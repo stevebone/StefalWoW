@@ -30,6 +30,8 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
         static constexpr uint32 TuningTheGnomecorder = 26512;
         static constexpr uint32 InSearchOfBravoCompany = 26586;
         static constexpr uint32 BreakingOutIsHardToDo = 26587;
+        static constexpr uint32 Jorgensen = 26560;
+        static constexpr uint32 AndLastButNotLeastDanforth = 26562;
     }
 
     namespace AreaTriggers
@@ -43,17 +45,48 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
         static constexpr uint32 Messner = 43270;
         static constexpr uint32 BlackrockScout = 4064;
         static constexpr uint32 BlackrockBattleWorg = 43340;
+        static constexpr uint32 SpawnedMessner = 43300;
+        static constexpr uint32 Jorgensen = 43272;
+        static constexpr uint32 SpawnedJorgensen = 43305;
+        static constexpr uint32 SpawnedKrakauer = 43303;
+        static constexpr uint32 Danforth = 43302;
+        static constexpr uint32 DanforthCaptured = 43275;
     }
 
     namespace GameObjects
     {
         static constexpr uint32 MessnersCage = 204383;
+        static constexpr uint32 JorgensensCage = 204393;
+        static constexpr uint32 ChainLever = 204403;
     }
 
     namespace Spells
     {
         static constexpr uint32 CosmeticSleep = 55701;
         static constexpr uint32 HuntersMark = 80016;
+        static constexpr uint32 MoltenArmor = 79849;
+        static constexpr uint32 BlastWave = 79857;
+        static constexpr uint32 FireBlast = 79855;
+        static constexpr uint32 Fireball = 79854;
+        static constexpr uint32 Flamestrike = 79856;
+        static constexpr uint32 SummonMessner = 80893;
+        static constexpr uint32 SummonJorgensen = 80940;
+        static constexpr uint32 SummonKrakauer = 80941;
+        static constexpr uint32 SummonDanforth = 80943;
+        static constexpr uint32 ConcentrationAura = 79963;
+        static constexpr uint32 SealOfRighteousness = 79962;
+        static constexpr uint32 Exorcism = 79964;
+        static constexpr uint32 HolyShock = 79961;
+        static constexpr uint32 HolyLight = 79960;
+        static constexpr uint32 BattleShout = 32064;
+        static constexpr uint32 Slam = 79881;
+        static constexpr uint32 CommandingShout = 80983;
+        static constexpr uint32 Charge = 22120;
+        static constexpr uint32 Shockwave = 79872;
+        static constexpr uint32 Thunderclap = 8078;
+        static constexpr uint32 CosmeticChainsRightHand = 88283;
+        static constexpr uint32 CosmeticChainsLeftHand = 88284;
+        static constexpr uint32 DetectInvis8 = 81080;
     }
 
     namespace Events
@@ -61,6 +94,24 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
         static constexpr uint32 GuardBatemanClearCooldown = 1;
         static constexpr uint32 MessnerTalk1 = 2;
         static constexpr uint32 MessnerClearTalkCooldown = 3;
+        static constexpr uint32 SpawnedMessnerRandomTalk = 4;
+        static constexpr uint32 SpawnedMessnerTalkSequence = 5;
+        static constexpr uint32 SpawnedMessnerMoltenArmor = 6;
+        static constexpr uint32 SpawnedMessnerCombatSpell = 7;
+        static constexpr uint32 JorgensenTalk1 = 8;
+        static constexpr uint32 JorgensenClearTalkCooldown = 9;
+        static constexpr uint32 SpawnedJorgensenRandomTalk = 10;
+        static constexpr uint32 SpawnedJorgensenSealOfRighteousness = 11;
+        static constexpr uint32 SpawnedJorgensenCombatSpell = 12;
+        static constexpr uint32 SpawnedJorgensenHeal = 13;
+        static constexpr uint32 DanforthInitChains = 14;
+        static constexpr uint32 SpawnedKrakauerRandomTalk = 15;
+        static constexpr uint32 SpawnedKrakauerBattleShout = 16;
+        static constexpr uint32 SpawnedKrakauerCombatSpell = 17;
+        static constexpr uint32 DanforthRelease = 18;
+        static constexpr uint32 SpawnedDanforthRandomTalk = 19;
+        static constexpr uint32 SpawnedDanforthCommandingShout = 20;
+        static constexpr uint32 SpawnedDanforthCombatSpell = 21;
     }
 
     namespace Talks
@@ -69,5 +120,13 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
         static constexpr uint32 MessnerSay00 = 0;
         static constexpr uint32 MessnerSay01 = 1;
         static constexpr uint32 MessnerSay02 = 2;
+        static constexpr uint32 JorgensenSay00 = 0;
+        static constexpr uint32 JorgensenSay01 = 1;
+    }
+
+    namespace Spawns
+    {
+        static constexpr uint32 DanforthChainDummyRight = 334866;
+        static constexpr uint32 DanforthChainDummyLeft = 334867;
     }
 }
