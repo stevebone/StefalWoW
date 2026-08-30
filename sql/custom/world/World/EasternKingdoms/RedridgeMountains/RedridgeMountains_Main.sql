@@ -24,6 +24,7 @@
 -- NPC: 14270 Squiddic
 -- NPC: 14271 Ribchaser
 -- NPC: 14273 Boulderheart
+-- NPC: 43041 Ol' Gummers
 -- NPC: 43083 Redridge Fox
 -- NPC: 43094 Canyon Ettin
 -- NPC: 43183 Freshwater Eel
@@ -46,6 +47,13 @@
 -- NPC: 43305 Jorgensen spawned
 -- NPC: 43303 Krakauer spawned
 -- NPC: 43302 Danforth spawned
+-- NPC: 43450 Keeshan Riverboat
+-- NPC: 43448 Messner (boat)
+-- NPC: 43447 Jorgensen (boat)
+-- NPC: 43446 Krakauer (boat)
+-- NPC: 43445 Danforth (boat)
+-- NPC: 43449 Keeshan (boat)
+-- NPC: 43458 Keeshan (camp)
 
 -- Quest: 26512 Tuning The Gnomecorder
 -- Quest: 26545 Yowler Must Die!
@@ -59,6 +67,7 @@
 -- Quest: 26560 Jorgensen
 -- Quest: 26561 Krakauer
 -- Quest: 26562 And Last But Not Least... Danforth
+-- Quest: 26616 It's Never Over
 
 -- Spell: 81003 Apply Quest Invis Zone 5
 -- Spell: 81004 Detect: Quest Invis Zone 5
@@ -72,17 +81,23 @@
 -- Spell: 81079 Apply Quest Invis Zone 8
 -- Spell: 81080 Detect: Quest Invis Zone 8
 -- Spell: 80943 Summon Danforth
+-- Spell: 81243 Summon Keeshan Riverboat
+-- Spell: 81265 Riverboat Quest Credit
+-- Spell: 81201 Apply Quest Invis Zone 9
+-- Spell: 81202 Detect: Quest Invis Zone 9
 
 -- Spell Area
 DELETE FROM `spell_area` WHERE `spell` = 81004 AND `area` = 97;
 DELETE FROM `spell_area` WHERE `spell` = 81010 AND `area` = 996;
 DELETE FROM `spell_area` WHERE `spell` = 81019 AND `area` = 998;
 DELETE FROM `spell_area` WHERE `spell` = 81080 AND `area` = 998;
+DELETE FROM `spell_area` WHERE `spell` = 81202 AND `area` = 5326;
 INSERT INTO `spell_area` (`spell`, `area`, `quest_start`, `quest_start_status`, `quest_end_status`, `quest_end`, `aura_spell`, `racemask`, `gender`, `flags`) VALUES
 (81004, 97, 0, 0, 43, 26587, 0, 0, 2, 3),
 (81010, 996, 26560, 10, 43, 26560, 0, 0, 2, 3),
 (81019, 998, 26561, 10, 43, 26561, 0, 0, 2, 3),
-(81080, 998, 26562, 10, 43, 26562, 0, 0, 2, 3);
+(81080, 998, 26562, 10, 43, 26562, 0, 0, 2, 3),
+(81202, 5326, 26616, 66, 0, 0, 0, 0, 2, 1); -- Quest 26616 complete and onwards
 
 DELETE FROM `spell_area` WHERE `spell` IN (80893,80940,80941,80943) AND `area` = 44;
 INSERT INTO `spell_area` (`spell`, `area`, `quest_start`, `quest_start_status`, `quest_end_status`, `quest_end`, `aura_spell`, `racemask`, `gender`, `flags`) VALUES
@@ -90,6 +105,31 @@ INSERT INTO `spell_area` (`spell`, `area`, `quest_start`, `quest_start_status`, 
 (80940, 44, 26560, 64, 43, 26563, 0, 0, 2, 3),
 (80941, 44, 26561, 64, 43, 26563, 0, 0, 2, 3),
 (80943, 44, 26562, 64, 43, 26563, 0, 0, 2, 3);
+
+-- Spell Position
+DELETE FROM `spell_target_position` WHERE `id` = 81243;
+INSERT INTO `spell_target_position` (`ID`, `EffectIndex`, `MapID`, `PositionX`, `PositionY`, `PositionZ`, `VerifiedBuild`) VALUES
+(81243, 0, 0, -9305.59, -2369.9, 56.1616, 24015);
+
+-- NPC Spell Click
+DELETE FROM `npc_spellclick_spells` WHERE `npc_entry` = 43450;
+INSERT INTO `npc_spellclick_spells` (`npc_entry`, `spell_id`, `cast_flags`, `user_type`) VALUES
+(43450, 46598, 1, 0);
+
+-- Vehicles
+DELETE FROM `vehicle_template_accessory` WHERE `entry` = 43450;
+INSERT INTO `vehicle_template_accessory` (`entry`, `accessory_entry`, `seat_id`, `minion`, `summontype`, `summontimer`, `RideSpellID`, `description`) VALUES
+(43450, 43448, 1, 1, 8, 0, NULL, 'Keeshan Riverboat - Messner'),
+(43450, 43449, 2, 1, 8, 0, NULL, 'Keeshan Riverboat - Keeshan'),
+(43450, 43447, 3, 1, 8, 0, NULL, 'Keeshan Riverboat - Jorgensen'),
+(43450, 43446, 4, 1, 8, 0, NULL, 'Keeshan Riverboat - Krakauer'),
+(43450, 43445, 5, 1, 8, 0, NULL, 'Keeshan Riverboat - Danforth');
+
+DELETE FROM `vehicle_seat_addon` WHERE `SeatEntry` IN (8216,8217,8218);
+INSERT INTO `vehicle_seat_addon` (`SeatEntry`, `SeatOrientation`, `ExitParamX`, `ExitParamY`, `ExitParamZ`, `ExitParamO`, `ExitParamValue`) VALUES
+(8216, 3.14159265, 0, 0, 0, 0, 0),
+(8217, 3.14159265, 0, 0, 0, 0, 0),
+(8218, 3.14159265, 0, 0, 0, 0, 0);
 
 -- Quest Template Addons
 UPDATE `quest_template_addon` SET `PrevQuestID` = 26607 WHERE `ID` = 26616;
@@ -112,24 +152,34 @@ UPDATE `creature_template` SET `ScriptName` = 'npc_spawned_jorgensen' WHERE `ent
 UPDATE `creature_template` SET `ScriptName` = 'npc_danforth_captured' WHERE `entry` = 43275;
 UPDATE `creature_template` SET `ScriptName` = 'npc_spawned_krakauer' WHERE `entry` = 43303;
 UPDATE `creature_template` SET `ScriptName` = 'npc_spawned_danforth' WHERE `entry` = 43302;
+UPDATE `creature_template` SET `ScriptName` = 'npc_keeshan_riverboat' WHERE `entry` = 43450;
 UPDATE `gameobject_template` SET `ScriptName` = 'go_chain_lever' WHERE `entry` = 204403;
+
+-- Template Fixes
+UPDATE `creature_template` SET `VehicleId` = 964, `IconName` = 'vehichleCursor', `npcflag` = 16777216 WHERE `Entry` = 43450;
 
 -- Area Trigger
 DELETE FROM `areatrigger_involvedrelation` WHERE `id` = 6034;
 INSERT INTO `areatrigger_involvedrelation` (`id`, `quest`) VALUES 
 (6034, 26512);
 
+DELETE FROM `areatrigger_scripts` WHERE `entry` = 682;
+INSERT INTO `areatrigger_scripts` (`entry`, `ScriptName`) VALUES
+(682, 'at_lakeshire_inn_682');
+
 -- Creature Difficulties
 -- Remove incorrect records
 DELETE FROM `creature_template_difficulty` WHERE `DifficultyID` = 1 AND `Entry` IN (
-	345,422,423,426,428,430,437,442,445,446,518,545,547,578,580,584,615,711,712,4064,4463,14270,14271,14273,43083,43094,
-	43183,43185,43327,43329,43340,43341,43350,43363,43369,147222
+	345,422,423,426,428,430,437,442,445,446,518,545,547,578,580,584,615,711,712,4064,
+	4463,14270,14271,14273,43041,43083,43094,43183,43185,43327,43329,43340,43341,43350,
+	43363,43369,147222
 );
 
 -- Adjust Damage Modifier
 UPDATE `creature_template_difficulty` SET `DamageModifier` = 0.2 WHERE `Entry` IN (
-	345,422,423,426,428,430,437,442,445,446,518,545,547,578,580,584,615,711,712,4064,4463,14270,14271,14273,43083,43094,
-	43183,43185,43327,43329,43340,43341,43350,43363,43369,147222
+	345,422,423,426,428,430,437,442,445,446,518,545,547,578,580,584,615,711,712,4064,
+	4463,14270,14271,14273,43041,43083,43094,43183,43185,43327,43329,43340,43341,43350,
+	43363,43369,147222
 );
 
 -- Add missing loot ids
@@ -142,12 +192,17 @@ UPDATE `creature_template_difficulty` SET `StaticFlags1` = 524288, `LootID` = 43
 UPDATE `creature_template_difficulty` SET `LootID` = 43363, `GoldMin` = 500, `GoldMax` = 600 WHERE `Entry` = 43363;
 UPDATE `creature_template_difficulty` SET `LootID` = 43369, `GoldMin` = 500, `GoldMax` = 600 WHERE `Entry` = 43369;
 UPDATE `creature_template_difficulty` SET `LootID` = 43350, `GoldMin` = 600, `GoldMax` = 700 WHERE `Entry` = 43350;
+UPDATE `creature_template_difficulty` SET `LootID` = 43041 WHERE `Entry` = 43041;
 
 -- Swim flag
-UPDATE creature_template_difficulty SET StaticFlags1 = StaticFlags1 | 0x10000000 WHERE Entry IN (43183);
+UPDATE creature_template_difficulty SET StaticFlags1 = StaticFlags1 | 0x10000000 WHERE Entry IN (43183,43041);
+
+-- Floating flag
+UPDATE creature_template_difficulty SET StaticFlags1 = StaticFlags1 | 0x20000000 WHERE Entry IN (43450,43041);
 
 -- Creature Template Addons
 UPDATE `creature_template_addon` SET `auras` = '80815 393433' WHERE `Entry` = 43248;
+UPDATE `creature_template_addon` SET `auras` = '81201' WHERE `Entry` IN (43458,43459,43460,43461,43462);
 
 -- SAI
 UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (147222);
@@ -180,9 +235,16 @@ UPDATE `smart_scripts` SET `target_type` = '7' WHERE `entryorguid` = 43341 AND `
 
 
 -- Creature Text
-DELETE FROM `creature_text` WHERE `creatureID` IN (43081,712,43270,43300,43272,43305,43303,43302);
+DELETE FROM `creature_text` WHERE `creatureID` IN (43081,712,43270,43300,43272,43305,43303,43302,43448,43449,43458);
 DELETE FROM `creature_text` WHERE `creatureID` IN (426,430,580) AND `GroupID` = 1;
 INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `BroadcastTextId`, `TextRange`, `comment`) VALUES
+(43458, 0, 0, 'Danforth, report.', 12, 7, 100, 0, 0, 0, 43592, 0, 'Keeshan to Player'),
+
+(43448, 0, 0, 'You got it, Johnny!', 12, 7, 100, 0, 0, 0, 43525, 0, 'Messner to Player'),
+
+(43449, 0, 0, 'Take us out, Messner', 12, 7, 100, 0, 0, 0, 43524, 0, 'Keeshan to Player'),
+(43449, 1, 0, 'We''re here, everybody out!', 12, 7, 100, 22, 0, 0, 43526, 0, 'Keeshan to Player'),
+
 (43081, 0, 0, 'Outgoing, $c.', 12, 7, 100, 0, 0, 0, 42986, 0, 'Guard Bateman to Player'),
 (43081, 0, 1, 'Good hunting, $n!', 12, 7, 100, 0, 0, 0, 42987, 0, 'Guard Bateman to Player'),
 (43081, 0, 2, '$R departing Redridge!', 12, 7, 100, 0, 0, 0, 42988, 0, 'Guard Bateman to Player'),
@@ -315,9 +377,15 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Lan
 
 -- Creatures
 SET @CGUID := 900000;
-DELETE FROM `creature` WHERE `guid` BETWEEN @CGUID+3294 AND @CGUID+3294;
+DELETE FROM `creature` WHERE `guid` BETWEEN @CGUID+3294 AND @CGUID+3299;
 INSERT INTO `creature` (`guid`, `id`, `map`, `zoneId`, `areaId`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `wander_distance`, `MovementType`) VALUES 
-(@CGUID+3294, 147222, 0, 44, 1001, 0, -9732.28, -2104.18, 59.7424, 5.13223, 3600, 0, 0);
+(@CGUID+3294, 147222, 0, 44, 1001, 0, -9732.28, -2104.18, 59.7424, 5.13223, 3600, 0, 0),
+
+(@CGUID+3295, 43458, 0, 44, 5326, 1, -9465.2, -2827.6, 65.2785, 0.65487, 180, 0, 0),
+(@CGUID+3296, 43459, 0, 44, 5326, 1, -9463.28, -2829.31, 65.2789, 2.10001, 180, 0, 0),
+(@CGUID+3297, 43460, 0, 44, 5326, 1, -9462.12, -2826.4, 65.2759, 3.32837, 180, 0, 0),
+(@CGUID+3298, 43461, 0, 44, 5326, 1, -9463.3, -2824.85, 65.2785, 4.32189, 180, 0, 0),
+(@CGUID+3299, 43462, 0, 44, 5326, 1, -9465.57, -2825.34, 65.2785, 5.5047, 180, 0, 0);
 
 -- Creature Spawn Fixes
 DELETE FROM `creature_addon` WHERE `guid` IN (334690,334613,334610,334572);

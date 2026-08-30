@@ -33,7 +33,9 @@
 #include "ScriptMgr.h"
 #include "TemporarySummon.h"
 #include "MotionMaster.h"
+#include "WaypointDefines.h"
 #include "Map.h"
+#include "Vehicle.h"
 
 #include <queue>
 
@@ -786,6 +788,100 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
     private:
         EventMap _events;
     };
+
+    /*######
+    ## 43450 Keeshan Riverboat
+    ######*/
+
+    WaypointPath const BoatPath(0, {
+        { 0, -9356.31f, -2414.29f, 56.f },
+        { 1, -9467.38f, -2563.55f, 56.f },
+        { 2, -9395.82f, -2813.74f, 56.f },
+        { 3, -9425.49f, -2836.49f, 56.1617f },
+    });
+
+    struct npc_keeshan_riverboat : public ScriptedAI
+    {
+        npc_keeshan_riverboat(Creature* creature) : ScriptedAI(creature) { }
+
+        void Reset() override
+        {
+            me->SetOrientation(3.818652f);
+            _events.Reset();
+            _playerGuid.Clear();
+        }
+
+        void PassengerBoarded(Unit* who, int8 /*seatId*/, bool apply) override
+        {
+            if (!apply || !who->IsPlayer())
+                return;
+
+            _playerGuid = who->GetGUID();
+            _events.ScheduleEvent(Events::RiverboatKeeshanTalk, 1s);
+            _events.ScheduleEvent(Events::RiverboatMessnerTalk, 3s);
+            _events.ScheduleEvent(Events::RiverboatMessnerEngine, 4s);
+            _events.ScheduleEvent(Events::RiverboatStartPath, 5s);
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _events.Update(diff);
+
+            while (uint32 eventId = _events.ExecuteEvent())
+            {
+                switch (eventId)
+                {
+                    case Events::RiverboatKeeshanTalk:
+                        if (Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid))
+                            if (Unit* keeshan = me->GetVehicleKit()->GetPassenger(2))
+                                if (keeshan->IsCreature())
+                                    keeshan->ToCreature()->AI()->Talk(0, player);
+                        break;
+                    case Events::RiverboatMessnerTalk:
+                        if (Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid))
+                            if (Unit* messner = me->GetVehicleKit()->GetPassenger(1))
+                                if (messner->IsCreature())
+                                    messner->ToCreature()->AI()->Talk(0, player);
+                        break;
+                    case Events::RiverboatMessnerEngine:
+                        if (Unit* messner = me->GetVehicleKit()->GetPassenger(1))
+                            messner->CastSpell(me, Spells::MessnerBoatEngine, true);
+                        break;
+                    case Events::RiverboatStartPath:
+                        me->GetMotionMaster()->MovePath(BoatPath, false, {}, 13.0f);
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+
+        void WaypointPathEnded(uint32 /*nodeId*/, uint32 /*pathId*/) override
+        {
+            if (Unit* messner = me->GetVehicleKit()->GetPassenger(1))
+                messner->RemoveAurasDueToSpell(Spells::MessnerBoatEngine);
+
+            if (Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid))
+            {
+                if (Unit* keeshan = me->GetVehicleKit()->GetPassenger(2))
+                    if (keeshan->IsCreature())
+                        keeshan->ToCreature()->AI()->Talk(1, player);
+
+                // Spell for quest credit requires player to be in seat 5?????
+                // me->CastSpell(player, Spells::RiverboatQuestCredit);
+                player->CompleteQuest(Quests::ItsNeverOver);
+            }
+
+            me->m_Events.AddEventAtOffset([this]()
+                {
+                    me->DespawnOrUnsummon(1s);
+                }, 1s);
+        }
+
+    private:
+        EventMap _events;
+        ObjectGuid _playerGuid;
+    };
 }
 
 void AddSC_custom_redridge_mountains_npcs()
@@ -801,4 +897,5 @@ void AddSC_custom_redridge_mountains_npcs()
     RegisterCreatureAI(npc_spawned_krakauer);
     RegisterCreatureAI(npc_danforth_captured);
     RegisterCreatureAI(npc_spawned_danforth);
+    RegisterCreatureAI(npc_keeshan_riverboat);
 }

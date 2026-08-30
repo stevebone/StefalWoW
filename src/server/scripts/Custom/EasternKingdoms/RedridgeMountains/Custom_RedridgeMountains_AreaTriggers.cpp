@@ -23,17 +23,37 @@
 #include "DB2Stores.h"
 #include "Player.h"
 #include "ScriptMgr.h"
+#include "TemporarySummon.h"
 
 #include "Custom_RedridgeMountains_Defines.h"
 
 namespace Scripts::EasternKingdoms::RedridgeMountains
 {
+    // 682 - Lakeshire Inn - Summon Keeshan Riverboat
+    class at_lakeshire_inn_682 : public AreaTriggerScript
+    {
+    public:
+        at_lakeshire_inn_682() : AreaTriggerScript("at_lakeshire_inn_682") { }
 
+        bool OnTrigger(Player* player, AreaTriggerEntry const* /*trigger*/) override
+        {
+            if (player->GetQuestStatus(Quests::ItsNeverOver) != QUEST_STATUS_INCOMPLETE)
+                return false;
+
+            std::list<TempSummon*> minions;
+            player->GetAllMinionsByEntry(minions, Creatures::KeeshanRiverboat);
+            if (!minions.empty())
+                return false;
+
+            player->CastSpell(player, Spells::SummonKeeshanRiverboat, true);
+            return true;
+        }
+    };
 }
 
 void AddSC_custom_redridge_mountains_at()
 {
     using namespace Scripts::EasternKingdoms::RedridgeMountains;
 
-    
+    new at_lakeshire_inn_682();
 }

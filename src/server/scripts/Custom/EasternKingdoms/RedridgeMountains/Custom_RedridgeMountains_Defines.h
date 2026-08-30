@@ -32,11 +32,13 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
         static constexpr uint32 BreakingOutIsHardToDo = 26587;
         static constexpr uint32 Jorgensen = 26560;
         static constexpr uint32 AndLastButNotLeastDanforth = 26562;
+        static constexpr uint32 ItsNeverOver = 26616;
     }
 
     namespace AreaTriggers
     {
         static constexpr uint32 LakeshireGraveyard = 6034;
+        static constexpr uint32 LakeshireInn = 682;
     }
 
     namespace Creatures
@@ -51,6 +53,9 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
         static constexpr uint32 SpawnedKrakauer = 43303;
         static constexpr uint32 Danforth = 43302;
         static constexpr uint32 DanforthCaptured = 43275;
+        static constexpr uint32 KeeshanRiverboat = 43450;
+        static constexpr uint32 MessnerBoat = 43448;
+        static constexpr uint32 KeeshanBoat = 43449;
     }
 
     namespace GameObjects
@@ -87,6 +92,9 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
         static constexpr uint32 CosmeticChainsRightHand = 88283;
         static constexpr uint32 CosmeticChainsLeftHand = 88284;
         static constexpr uint32 DetectInvis8 = 81080;
+        static constexpr uint32 MessnerBoatEngine = 81260;
+        static constexpr uint32 RiverboatQuestCredit = 81265;
+        static constexpr uint32 SummonKeeshanRiverboat = 81243;
     }
 
     namespace Events
@@ -112,6 +120,10 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
         static constexpr uint32 SpawnedDanforthRandomTalk = 19;
         static constexpr uint32 SpawnedDanforthCommandingShout = 20;
         static constexpr uint32 SpawnedDanforthCombatSpell = 21;
+        static constexpr uint32 RiverboatKeeshanTalk = 22;
+        static constexpr uint32 RiverboatMessnerTalk = 23;
+        static constexpr uint32 RiverboatMessnerEngine = 24;
+        static constexpr uint32 RiverboatStartPath = 25;
     }
 
     namespace Talks
