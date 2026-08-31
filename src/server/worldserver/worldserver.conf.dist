@@ -3321,6 +3321,15 @@ CharDelete.KeepDays = 30
 
 ###################################################################################################
 # CUSTOM SERVER OPTIONS
+
+#
+#    Extended.BackPackSlots
+#        Description: Enables additional slots for players with secure accounts flag.
+#        Default:     0 - (Disabled)
+#                     4 - (Enabled and adds 4 extra slots)
+
+Player.Extended.BackPackSlots = 4
+
 #
 #    PlayerStart.AllReputation
 #        Description: Players will start with most of the high level reputations that are needed
@@ -4855,3 +4864,25 @@ Season.PvpSeasonID = 39
 #                     0 - (Disabled)
 
 Season.WeeklyRewardChestsEnabled = 1
+
+#
+#    LogUnhandledOpcodes
+#        Description: Allows logging or not for not handled opcodes (networking) in the core.
+#                     For most users this is useless.
+#        Example:     1 - enabled
+#                     0 - disabled
+#        Default:     0 - disabled
+# 
+
+LogUnhandledOpcodes = 0
+
+#
+#    DBAutoFix.Enable
+#        Description: Attempts to fix DB Issues. It should ONLY be enabled one time.
+#                     Before the next server start please you should turn it off to avoid slowdowns.
+#        Example:     1 - enabled
+#                     0 - disabled
+#        Default:     0 - disabled
+# 
+
+DBAutoFix.Enable = 0
