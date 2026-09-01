@@ -129,10 +129,10 @@ INSERT INTO `smart_scripts` (`entryorguid`,`source_type`,`id`,`link`,`event_type
 -- Creature Texts
 DELETE FROM `creature_text` WHERE `CreatureID` = 646; -- Mr Smite
 INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Sound`, `BroadcastTextId`, `TextRange`, `comment`) VALUES 
-(646, 0, 0, 'You there! Check out that noise!', 14, 7, 100, 5775, 1148, 255, 'Mr Smite to Player'),
-(646, 1, 0, 'We''re under attack! Avast, ye swabs! Repel the invaders!', 14, 7, 100, 5777, 1149, 255, 'Mr Smite to Player'),
-(646, 2, 0, 'You landlubbers are tougher than I thought! I''ll have to improvise!', 14, 7, 100, 5778, 1344, 100, 'Mr Smite to Player'),
-(646, 3, 0, 'D''ah! Now you''re making me angry!', 14, 7, 100, 5779, 1345, 100, 'Mr Smite to Player');
+(646, 0, 0, 'You there! Check out that noise!', 14, 7, 100, 5775, 1148, 0, 'Mr Smite to Player'),
+(646, 1, 0, 'We''re under attack! Avast, ye swabs! Repel the invaders!', 14, 7, 100, 5777, 1149, 0, 'Mr Smite to Player'),
+(646, 2, 0, 'You landlubbers are tougher than I thought! I''ll have to improvise!', 14, 7, 100, 5778, 1344, 0, 'Mr Smite to Player'),
+(646, 3, 0, 'D''ah! Now you''re making me angry!', 14, 7, 100, 5779, 1345, 0, 'Mr Smite to Player');
 
 UPDATE `creature_text` SET `Language` = 7 WHERE `CreatureID` = 639 and `GroupID` IN (0, 1, 3, 4, 5); -- VanCleef text
 
