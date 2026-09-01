@@ -1754,6 +1754,25 @@ namespace WorldPackets
             std::vector<CharacterShipment> Shipments;
         };
 
+        // SMSG_SET_SHIPMENT_READY_RESPONSE (0x4F003A). No CMSG counterpart exists in this build's Opcodes.h
+        // (the family-0x4F dispatch case 5177402 is a bare inline reader, not a response to any client
+        // request) -- this is a server-initiated push. Wire (case 5177402): u32 Field0, then CharacterShipment
+        // (37 bytes, sub_7FF7816B20E0 -- identical reader used by GetShipmentInfoResponse/
+        // GetLandingPageShipmentsResponse). PLAN_B6.md #9. UNVERIFIED: Field0's exact meaning (candidates
+        // "Result" vs "ShipmentID" -- kept as Result to match the sibling CreateShipmentResponse/
+        // CompleteShipmentResponse convention of a trailing/leading generic status word); no sniff or WPP
+        // parser exists for this opcode (checked 2026-09-01, WowPacketParser has zero Shipment-family parsers).
+        class SetShipmentReadyResponse final : public ServerPacket
+        {
+        public:
+            explicit SetShipmentReadyResponse() : ServerPacket(SMSG_SET_SHIPMENT_READY_RESPONSE, 4 + 37) { }
+
+            WorldPacket const* Write() override;
+
+            uint32 Result = 0; // UNVERIFIED: see class comment
+            CharacterShipment Shipment;
+        };
+
         class OpenShipmentNpc final : public ClientPacket
         {
         public:

@@ -1458,6 +1458,21 @@ WorldPacket const* GetShipmentInfoResponse::Write()
     return &_worldPacket;
 }
 
+WorldPacket const* SetShipmentReadyResponse::Write()
+{
+    // Wire per PLAN_B6.md #9 (case 5177402, family-0x4F switch): u32 Field0 then the 37-byte
+    // CharacterShipment reader shared with GetShipmentInfoResponse/GetLandingPageShipmentsResponse.
+    _worldPacket << uint32(Result);
+    _worldPacket << uint32(Shipment.ShipmentRecID);
+    _worldPacket << uint64(Shipment.ShipmentID);
+    _worldPacket << uint64(Shipment.AssignedFollowerDBID);
+    _worldPacket << Shipment.CreationTime;
+    _worldPacket << uint64(uint32(Shipment.BuildingTypeID));
+    _worldPacket << uint8(Shipment.GarrTypeID);
+
+    return &_worldPacket;
+}
+
 void OpenShipmentNpc::Read()
 {
     _worldPacket >> NpcGUID;

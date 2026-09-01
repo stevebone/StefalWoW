@@ -542,6 +542,10 @@ public:
     std::vector<Shipment const*> GetAllShipments() const;
     void SendShipmentInfo(ObjectGuid npcGUID);
     void SendLandingPageShipments();
+    // #9 (SMSG_SET_SHIPMENT_READY_RESPONSE): mirrors the finishedMissions live-refresh pattern in Update() --
+    // IsReady() is otherwise only evaluated lazily on interaction, so a shipment that matures while the
+    // player is elsewhere never tells the open UI. Pushes exactly once per not-ready -> ready transition.
+    void SendReadyShipmentNotifications();
     uint32 GetBuildingTypeForPlot(uint32 plotInstanceId) const;
     uint32 FindPlotInstanceForNpc(ObjectGuid npcGUID) const;
 
@@ -696,6 +700,7 @@ private:
 
     // Shipments
     std::unordered_map<uint64 /*dbId*/, Shipment> _shipments;
+    std::unordered_set<uint64 /*dbId*/> _notifiedReadyShipments; // SMSG_SET_SHIPMENT_READY_RESPONSE dedupe, see SendReadyShipmentNotifications()
     std::unordered_map<uint32 /*containerId*/, uint8> _shownStandardContainers; // standards we've lit up, so they reset to base after collection
     std::unordered_map<uint32 /*containerId*/, ObjectGuid> _privateStandards;   // per-player private "standard" GOs showing THIS owner's order state
     std::unordered_map<uint32 /*garrTalentID*/, Talent> _talents;

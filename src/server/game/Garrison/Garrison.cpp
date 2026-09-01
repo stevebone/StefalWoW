@@ -891,6 +891,12 @@ void Garrison::Update(uint32 diff)
     // Keep each work-order crate's "filled with goods" display in sync with the orders on its plot.
     UpdateWorkOrderCrates();
 
+    // Push SMSG_SET_SHIPMENT_READY_RESPONSE the moment a work order matures, same rationale as the
+    // finishedMissions re-send below: IsReady() was otherwise only evaluated lazily on interaction (opening
+    // the NPC / crate), so a shipment that finished while the player was elsewhere stayed shown as "in
+    // progress" until the next interaction.
+    SendReadyShipmentNotifications();
+
     // Class-hall / order-hall work orders (plotless) are NOT auto-completed. Retail leaves each finished order
     // waiting at its container's "standard" GameObject (GAMEOBJECT_TYPE_GARRISON_SHIPMENT, e.g. "Training Troops"):
     // the player walks up and clicks it to pick up the recruited troop / produced good
@@ -4831,6 +4837,7 @@ void Garrison::CompleteShipment(uint64 dbId)
     response.Result = GARRISON_SUCCESS;
     _owner->SendDirectMessage(response.Write());
 
+    _notifiedReadyShipments.erase(dbId);
     _shipments.erase(itr);
 
     // Remove the persisted row immediately so a crash can't resurrect an already-collected order.
@@ -5276,6 +5283,37 @@ void Garrison::SendLandingPageShipments()
     }
 
     _owner->SendDirectMessage(response.Write());
+}
+
+void Garrison::SendReadyShipmentNotifications()
+{
+    // PLAN_B6.md #9 (SMSG_SET_SHIPMENT_READY_RESPONSE, case 5177402 in the family-0x4F switch): no CMSG
+    // requests this, so it can only be a server-initiated push. Field0/"Result" is UNVERIFIED by RE (see
+    // GarrisonPackets.h); the CharacterShipment payload and the ready-transition trigger are anchored --
+    // same live-refresh gap the finishedMissions counter above this closes for missions.
+    for (auto const& [dbId, shipment] : _shipments)
+    {
+        if (!shipment.IsReady())
+            continue;
+        if (!_notifiedReadyShipments.insert(dbId).second)
+            continue; // already notified for this maturation; cleared again on CompleteShipment
+
+        WorldPackets::Garrison::SetShipmentReadyResponse response;
+        response.Result = GARRISON_SUCCESS; // UNVERIFIED: see GarrisonPackets.h
+        WorldPackets::Garrison::CharacterShipment& packetShipment = response.Shipment;
+        packetShipment.ShipmentRecID = shipment.ShipmentRecID;
+        packetShipment.ShipmentID = shipment.DbID;
+        packetShipment.AssignedFollowerDBID = shipment.AssignedFollowerDBID;
+        packetShipment.CreationTime = shipment.CreationTime;
+        packetShipment.ShipmentDuration = shipment.Duration;
+        uint8 buildingType = GetBuildingTypeForPlot(shipment.PlotInstanceID);
+        packetShipment.BuildingTypeID = buildingType;
+        if (CharShipmentContainerEntry const* container = sGarrisonMgr.GetShipmentContainerForBuilding(buildingType, uint8(GetFaction())))
+            packetShipment.ContainerID = container->ID;
+        packetShipment.GarrTypeID = static_cast<uint8>(GetType());
+
+        _owner->SendDirectMessage(response.Write());
+    }
 }
 
 // ============================================================
