@@ -1,7 +1,12 @@
 -- Redridge Mountains Creature Text
-DELETE FROM `creature_text` WHERE `creatureID` IN (43081,712,43270,43300,43272,43305,43303,43302,43448,43449,43458,43462,43461,43460,43459);
+DELETE FROM `creature_text` WHERE `creatureID` IN (43081,712,43270,43300,43272,43305,43303,43302,43448,43449,43458,43462,43461,43460,43459,7013,43535);
 DELETE FROM `creature_text` WHERE `creatureID` IN (426,430,580) AND `GroupID` = 1;
 INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `BroadcastTextId`, `TextRange`, `comment`) VALUES
+(7013, 0, 0, 'Feel the power of the Blackrock Orcs!', 12, 1, 100, 0, 0, 0, 1874, 0, 'Blackrock Guard to Player'),
+(7013, 0, 1, 'You are no match for the Blackrock Orcs!', 12, 1, 100, 0, 0, 0, 1875, 0, 'Blackrock Guard to Player'),
+(43535, 0, 0, 'Feel the power of the Blackrock Orcs!', 12, 1, 100, 0, 0, 0, 1874, 0, 'Blackrock Guard to Player'),
+(43535, 0, 1, 'You are no match for the Blackrock Orcs!', 12, 1, 100, 0, 0, 0, 1875, 0, 'Blackrock Guard to Player'),
+
 (43458, 0, 0, 'Danforth, report.', 12, 7, 100, 0, 0, 0, 43592, 0, 'Keeshan to Player'),
 (43458, 1, 0, 'Krakauer?', 12, 7, 100, 0, 0, 0, 43594, 0, 'Keeshan to Player'),
 (43458, 2, 0, 'Jorgensen, what do you have on Render''s Valley?', 12, 7, 100, 0, 0, 0, 43597, 0, 'Keeshan to Player'),
