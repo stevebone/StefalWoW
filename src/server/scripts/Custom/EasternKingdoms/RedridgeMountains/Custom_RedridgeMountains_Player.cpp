@@ -21,6 +21,7 @@
  */
 
 #include "Player.h"
+#include "QuestDef.h"
 #include "ScriptMgr.h"
 
 #include "Custom_RedridgeMountains_Defines.h"
@@ -74,6 +75,18 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
                 player->CastSpell(player, Spells::SummonDanforth, true);
         }
     };
+
+    class player_summon_jorgensen_guardian_on_login : public PlayerScript
+    {
+    public:
+        player_summon_jorgensen_guardian_on_login() : PlayerScript("player_summon_jorgensen_guardian_on_login") { }
+
+        void OnLogin(Player* player, bool /*firstLogin*/) override
+        {
+            if (player->GetQuestStatus(Quests::PrisonersOfWar) == QUEST_STATUS_INCOMPLETE)
+                player->CastSpell(player, Spells::SummonPersonalGuardianJorgensen, CastSpellExtraArgs(TRIGGERED_FULL_MASK));
+        }
+    };
 }
 
 void AddSC_custom_redridge_mountains_player()
@@ -84,4 +97,5 @@ void AddSC_custom_redridge_mountains_player()
     new player_summon_jorgensen_on_relog();
     new player_summon_krakauer_on_relog();
     new player_summon_danforth_on_relog();
+    new player_summon_jorgensen_guardian_on_login();
 }

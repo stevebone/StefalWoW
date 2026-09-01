@@ -20,6 +20,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "CreatureAI.h"
 #include "Player.h"
 #include "ScriptMgr.h"
 #include "SpellScript.h"
@@ -59,7 +60,7 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
             for (TempSummon* minion : minions)
             {
                 // Am using SetData to trigger the broadcast
-                minion->AI()->SetData(1, 1);
+                minion->AI()->SetData(1, 0);
             }
         }
 
@@ -69,6 +70,27 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
             OnHit += SpellHitFn(spell_bravo_company_field_kit::HandleHit);
         }
     };
+
+    // 82578 - Distraction
+    class spell_distraction : public SpellScript
+    {
+        void HandleHit()
+        {
+            Player* player = GetCaster()->ToPlayer();
+            if (!player)
+                return;
+
+            std::list<TempSummon*> minions;
+            player->GetAllMinionsByEntry(minions, Creatures::JorgensenGuardian);
+            for (TempSummon* minion : minions)
+                minion->AI()->SetData(1, 6);
+        }
+
+        void Register() override
+        {
+            OnHit += SpellHitFn(spell_distraction::HandleHit);
+        }
+    };
 }
 
 void AddSC_custom_redridge_mountains_spells()
@@ -76,4 +98,5 @@ void AddSC_custom_redridge_mountains_spells()
     using namespace Scripts::EasternKingdoms::RedridgeMountains;
 
     RegisterSpellScript(spell_bravo_company_field_kit);
+    RegisterSpellScript(spell_distraction);
 }

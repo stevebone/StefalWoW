@@ -24,7 +24,11 @@
 #include "CreatureAI.h"
 #include "GameObject.h"
 #include "GameObjectAI.h"
+#include "Player.h"
 #include "ScriptMgr.h"
+
+#include <vector>
+#include <random>
 
 #include "Custom_RedridgeMountains_Defines.h"
 
@@ -46,6 +50,43 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
             return true;
         }
     };
+
+    /*######
+    ## 204441/204442/204435 Blackrock Holding Pen
+    ######*/
+
+    struct go_blackrock_holding_pen : public GameObjectAI
+    {
+        go_blackrock_holding_pen(GameObject* go) : GameObjectAI(go) { }
+
+        bool OnReportUse(Player* player) override
+        {
+            player->KilledMonsterCredit(Creatures::PrisonerOfWarKillCredit);
+
+            std::vector<Creature*> citizens;
+
+            std::list<Creature*> maleList;
+            me->GetCreatureListWithEntryInGrid(maleList, Creatures::KidnappedRedridgeCitizenMale, 5.0f);
+            for (Creature* creature : maleList)
+                citizens.push_back(creature);
+
+            std::list<Creature*> femaleList;
+            me->GetCreatureListWithEntryInGrid(femaleList, Creatures::KidnappedRedridgeCitizenFemale, 5.0f);
+            for (Creature* creature : femaleList)
+                citizens.push_back(creature);
+
+            for (Creature* creature : citizens)
+                creature->AI()->SetData(1, 1);
+
+            if (!citizens.empty())
+            {
+                size_t randomIndex = urand(0, citizens.size() - 1);
+                citizens[randomIndex]->AI()->SetData(2, 2);
+            }
+
+            return true;
+        }
+    };
 }
 
 void AddSC_custom_redridge_mountains_objects()
@@ -53,4 +94,5 @@ void AddSC_custom_redridge_mountains_objects()
     using namespace Scripts::EasternKingdoms::RedridgeMountains;
 
     RegisterGameObjectAI(go_chain_lever);
+    RegisterGameObjectAI(go_blackrock_holding_pen);
 }

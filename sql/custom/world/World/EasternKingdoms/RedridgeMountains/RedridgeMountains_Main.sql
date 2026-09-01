@@ -66,6 +66,10 @@
 -- NPC: 43460 Jorgensen (camp)
 -- NPC: 43459 Messner (camp)
 -- NPC: 43508 Brubaker
+-- NPC: 43827 Jorgensen (guardian spawned at camp)
+-- NPC: 43518 Wild Rat
+-- NPC: 43571 Kidnapped Redridge Citizen
+-- NPC: 43572 Kidnapped Redridge Citizen
 
 -- Quest: 26512 Tuning The Gnomecorder
 -- Quest: 26545 Yowler Must Die!
@@ -102,6 +106,7 @@
 -- Spell: 81201 Apply Quest Invis Zone 9
 -- Spell: 81202 Detect: Quest Invis Zone 9
 -- Spell: 75038 Freeze Anim
+-- Spell: 82005 Summon Personal Guardian (Jorgensen)
 
 -- Spell Area
 DELETE FROM `spell_area` WHERE `spell` = 81004 AND `area` = 97;
@@ -171,11 +176,15 @@ UPDATE `creature_template` SET `ScriptName` = 'npc_blackrock_battle_worg' WHERE 
 UPDATE `creature_template` SET `ScriptName` = 'npc_spawned_messner' WHERE `entry` = 43300;
 UPDATE `creature_template` SET `ScriptName` = 'npc_jorgensen' WHERE `entry` = 43272;
 UPDATE `creature_template` SET `ScriptName` = 'npc_spawned_jorgensen' WHERE `entry` = 43305;
+UPDATE `creature_template` SET `ScriptName` = 'npc_jorgensen_camp_guardian' WHERE `entry` = 43827;
 UPDATE `creature_template` SET `ScriptName` = 'npc_danforth_captured' WHERE `entry` = 43275;
 UPDATE `creature_template` SET `ScriptName` = 'npc_spawned_krakauer' WHERE `entry` = 43303;
 UPDATE `creature_template` SET `ScriptName` = 'npc_spawned_danforth' WHERE `entry` = 43302;
 UPDATE `creature_template` SET `ScriptName` = 'npc_keeshan_riverboat' WHERE `entry` = 43450;
+UPDATE `creature_template` SET `ScriptName` = 'npc_wild_rat' WHERE `entry` = 43518;
+UPDATE `creature_template` SET `ScriptName` = 'npc_kidnapped_redridge_citizen' WHERE `entry` IN (43572, 43571);
 UPDATE `gameobject_template` SET `ScriptName` = 'go_chain_lever' WHERE `entry` = 204403;
+UPDATE `gameobject_template` SET `ScriptName` = 'go_blackrock_holding_pen' WHERE `entry` IN (204441,204442,204435);
 
 -- Template Fixes
 UPDATE `creature_template` SET `VehicleId` = 964, `IconName` = 'vehichleCursor', `npcflag` = 16777216 WHERE `Entry` = 43450;
@@ -193,10 +202,20 @@ DELETE FROM `areatrigger_scripts` WHERE `entry` = 6079;
 INSERT INTO `areatrigger_scripts` (`entry`, `ScriptName`) VALUES
 (6079, 'at_camp_everstill_6079');
 
+DELETE FROM `areatrigger_scripts` WHERE `entry` IN (6082, 6083, 6084);
+INSERT INTO `areatrigger_scripts` (`entry`, `ScriptName`) VALUES
+(6082, 'at_camp_everstill_hill_6082'),
+(6083, 'at_renders_valley_entry_6083'),
+(6084, 'at_renders_valley_cavern_6084');
+
 -- Spell Scripts
 DELETE FROM `spell_script_names` WHERE `spell_id` = 82580 AND `ScriptName` = 'spell_bravo_company_field_kit';
 INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 (82580, 'spell_bravo_company_field_kit');
+
+DELETE FROM `spell_script_names` WHERE `spell_id` = 82578 AND `ScriptName` = 'spell_distraction';
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
+(82578, 'spell_distraction');
 
 -- Creature Difficulties
 -- Remove incorrect records
@@ -310,3 +329,12 @@ WHERE id IN (
     580,43185
 );
 
+-- Creature spawns that should be fixed
+UPDATE `creature` SET MovementType = 0, wander_distance = 0 WHERE `guid` IN (
+335383,335367,335368,335369,335313,335314,335317,335318,335288,335289,335372,335360);
+
+-- Creature spawns static flags
+DELETE FROM `creature_static_flags_override` WHERE `SpawnId` IN (335293,335294);
+INSERT INTO `creature_static_flags_override` (`SpawnId`,`DifficultyId`,`StaticFlags1`) VALUES
+(335293, 0, 524288),
+(335294, 0, 524288);

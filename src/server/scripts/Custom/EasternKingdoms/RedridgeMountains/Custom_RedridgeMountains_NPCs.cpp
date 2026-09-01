@@ -36,6 +36,7 @@
 #include "WaypointDefines.h"
 #include "Map.h"
 #include "Vehicle.h"
+#include "ScriptActions.h"
 
 #include <queue>
 
@@ -546,6 +547,169 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
     };
 
     /*######
+    ## 43827 Jorgensen (spawned at camp)
+    ######*/
+
+    struct npc_jorgensen_camp_guardian : public ScriptedAI
+    {
+        npc_jorgensen_camp_guardian(Creature* creature) : ScriptedAI(creature)
+        {
+            _talk0Done = false;
+            _talk1Done = false;
+            _talk2Done = false;
+            _talk4Done = false;
+            _talk5Done = false;
+            _talk6Done = false;
+
+            me->SetReactState(REACT_ASSIST);
+        }
+
+        Player* GetPlayerOwner() const
+        {
+            if (me->IsSummon())
+                if (Unit* owner = me->ToTempSummon()->GetOwner())
+                    return owner->ToPlayer();
+            return nullptr;
+        }
+
+        void Reset() override
+        {
+            _events.Reset();
+
+            _events.ScheduleEvent(Events::JorgensenGuardianRandomTalk, 40s, 60s);
+            _events.ScheduleEvent(Events::JorgensenGuardianSealOfRighteousness, 10min);
+
+            DoCastSelf(Spells::ConcentrationAura, CastSpellExtraArgs(TRIGGERED_FULL_MASK));
+
+            if (!me->HasAura(Spells::SealOfRighteousness))
+                DoCastSelf(Spells::SealOfRighteousness, CastSpellExtraArgs(TRIGGERED_FULL_MASK));
+        }
+
+        void SetData(uint32 id, uint32 value) override
+        {
+            if (id != 1)
+                return;
+
+            switch (value)
+            {
+                case 0:
+                    if (!_talk0Done)
+                    {
+                        Talk(0, GetPlayerOwner());
+                        _talk0Done = true;
+                    }
+                    break;
+                case 1:
+                    if (!_talk1Done)
+                    {
+                        Talk(1, GetPlayerOwner());
+                        _talk1Done = true;
+                    }
+                    break;
+                case 2:
+                    if (!_talk2Done)
+                    {
+                        Talk(2, GetPlayerOwner());
+                        _events.ScheduleEvent(Events::JorgensenGuardianTalk2Followup, 3s);
+                        _talk2Done = true;
+                    }
+                    break;
+                case 4:
+                    if (!_talk4Done)
+                    {
+                        Talk(4, GetPlayerOwner());
+                        _events.ScheduleEvent(Events::JorgensenGuardianTalk4Followup, 3s);
+                        _talk4Done = true;
+                    }
+                    break;
+                case 6:
+                    if (!_talk6Done)
+                    {
+                        Talk(6, GetPlayerOwner());
+                        _talk6Done = true;
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        void OnAuraApplied(AuraApplication const* aurApp) override
+        {
+            if (aurApp->GetBase()->GetId() == Spells::Camouflage && !_talk5Done)
+            {
+                Talk(5, GetPlayerOwner());
+                _talk5Done = true;
+            }
+        }
+
+        void JustEngagedWith(Unit* /*who*/) override
+        {
+            _events.ScheduleEvent(Events::JorgensenGuardianCombatSpell, 5s);
+            _events.ScheduleEvent(Events::JorgensenGuardianHeal, 5s);
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _events.Update(diff);
+
+            if (me->HasUnitState(UNIT_STATE_CASTING))
+                return;
+
+            while (uint32 eventId = _events.ExecuteEvent())
+            {
+                switch (eventId)
+                {
+                    case Events::JorgensenGuardianTalk2Followup:
+                        Talk(3, GetPlayerOwner());
+                        break;
+                    case Events::JorgensenGuardianTalk4Followup:
+                        Talk(8, GetPlayerOwner());
+                        break;
+                    case Events::JorgensenGuardianRandomTalk:
+                        if (roll_chance(30))
+                            Talk(7, GetPlayerOwner());
+                        _events.ScheduleEvent(Events::JorgensenGuardianRandomTalk, 40s, 60s);
+                        break;
+                    case Events::JorgensenGuardianSealOfRighteousness:
+                        if (!me->HasAura(Spells::SealOfRighteousness))
+                            DoCastSelf(Spells::SealOfRighteousness, CastSpellExtraArgs(TRIGGERED_FULL_MASK));
+                        _events.ScheduleEvent(Events::JorgensenGuardianSealOfRighteousness, 10min);
+                        break;
+                    case Events::JorgensenGuardianCombatSpell:
+                        DoCastVictim(RAND(Spells::Exorcism, Spells::HolyShock));
+                        _events.ScheduleEvent(Events::JorgensenGuardianCombatSpell, 5s);
+                        break;
+                    case Events::JorgensenGuardianHeal:
+                        if (me->HealthBelowPct(50))
+                            DoCastSelf(Spells::HolyLight);
+                        else if (Player* owner = GetPlayerOwner())
+                            if (owner->IsAlive() && owner->HealthBelowPct(50))
+                                DoCast(owner, Spells::HolyLight);
+                        _events.ScheduleEvent(Events::JorgensenGuardianHeal, 5s);
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            if (!UpdateVictim())
+                return;
+
+            me->DoMeleeAttackIfReady();
+        }
+
+    private:
+        EventMap _events;
+        bool _talk0Done = false;
+        bool _talk1Done = false;
+        bool _talk2Done = false;
+        bool _talk4Done = false;
+        bool _talk5Done = false;
+        bool _talk6Done = false;
+    };
+
+    /*######
     ## 43303 Spawned Krakauer
     ######*/
 
@@ -882,6 +1046,122 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
         EventMap _events;
         ObjectGuid _playerGuid;
     };
+
+    /*######
+    ## 43518 Wild Rat
+    ######*/
+
+    class WildRatKneelEvent : public BasicEvent
+    {
+    public:
+        WildRatKneelEvent(Creature* creature, std::shared_ptr<Scripting::v2::ActionResult<MovementStopReason>> const& action)
+            : _creature(creature), _action(action) { }
+
+        bool Execute(uint64 /*time*/, uint32 /*diff*/) override
+        {
+            if (!_action->IsReady())
+            {
+                _creature->m_Events.AddEventAtOffset(this, 500ms);
+                return false;
+            }
+
+            _creature->StopMoving();
+            _creature->GetMotionMaster()->Clear();
+            _creature->AddUnitState(UNIT_STATE_ROOT);
+            _creature->HandleEmoteCommand(EMOTE_ONESHOT_KNEEL);
+            _creature->m_Events.AddEventAtOffset([creature = _creature]()
+                {
+                    if (creature && creature->IsAlive())
+                    {
+                        creature->ClearUnitState(UNIT_STATE_ROOT);
+                        creature->GetMotionMaster()->MoveTargetedHome();
+                    }
+                }, 15s);
+
+            return true;
+        }
+
+    private:
+        Creature* _creature;
+        std::shared_ptr<Scripting::v2::ActionResult<MovementStopReason>> _action;
+    };
+
+    struct npc_wild_rat : public ScriptedAI
+    {
+        npc_wild_rat(Creature* creature) : ScriptedAI(creature) { }
+
+        void Reset() override
+        {
+            DoCastSelf(Spells::DistractionVisual, CastSpellExtraArgs(TRIGGERED_FULL_MASK));
+
+            static constexpr uint32 blackrockEntries[] =
+            {
+                Creatures::BlackrockHunter,
+                Creatures::BlackrockSummoner,
+                Creatures::BlackrockGuard,
+                Creatures::BlackrockDrakeRider,
+                Creatures::BlackrockWarden
+            };
+
+            for (uint32 entry : blackrockEntries)
+            {
+                std::list<Creature*> creatureList;
+                me->GetCreatureListWithEntryInGrid(creatureList, entry, 30.0f);
+                for (Creature* creature : creatureList)
+                {
+                    if (!creature->IsAlive())
+                        return;
+
+                    Position dest = me->GetNearPosition(1.0f, me->GetAbsoluteAngle(creature));
+                    std::shared_ptr<Scripting::v2::ActionResult<MovementStopReason>> action =
+                        std::make_shared<Scripting::v2::ActionResult<MovementStopReason>>();
+                    Scripting::v2::ActionResultSetter<MovementStopReason> actionResultSetter =
+                        Scripting::v2::ActionResult<MovementStopReason>::GetResultSetter(action);
+                    creature->GetMotionMaster()->MovePoint(1, dest, true, Optional<float>{}, 15.0f, MovementWalkRunSpeedSelectionMode::Default, Optional<float>{}, Optional<MovementFadeObject>{}, std::move(actionResultSetter));
+                    creature->m_Events.AddEventAtOffset(new WildRatKneelEvent(creature, action), 500ms);
+                }
+            }
+        }
+
+    };
+
+    /*######
+    ## 43572 / 43571 Kidnapped Redridge Citizen
+    ######*/
+
+    struct npc_kidnapped_redridge_citizen : public ScriptedAI
+    {
+        npc_kidnapped_redridge_citizen(Creature* creature) : ScriptedAI(creature) { }
+
+        void SetData(uint32 id, uint32 /*value*/) override
+        {
+            if (id == 1)
+            {
+                me->SetWalk(false);
+                me->GetMotionMaster()->MovePoint(1, Positions::CitizenFleePoint1);
+            }
+            else if (id == 2)
+                Talk(0);
+        }
+
+        void MovementInform(uint32 type, uint32 id) override
+        {
+            if (type != POINT_MOTION_TYPE)
+                return;
+
+            switch (id)
+            {
+                case 1:
+                    me->GetMotionMaster()->MovePoint(2, Positions::CitizenFleePoint2);
+                    break;
+                case 2:
+                    me->DespawnOrUnsummon(1s);
+                    break;
+                default:
+                    break;
+            }
+        }
+    };
 }
 
 void AddSC_custom_redridge_mountains_npcs()
@@ -894,8 +1174,11 @@ void AddSC_custom_redridge_mountains_npcs()
     RegisterCreatureAI(npc_spawned_messner);
     RegisterCreatureAI(npc_jorgensen);
     RegisterCreatureAI(npc_spawned_jorgensen);
+    RegisterCreatureAI(npc_jorgensen_camp_guardian);
     RegisterCreatureAI(npc_spawned_krakauer);
     RegisterCreatureAI(npc_danforth_captured);
     RegisterCreatureAI(npc_spawned_danforth);
     RegisterCreatureAI(npc_keeshan_riverboat);
+    RegisterCreatureAI(npc_wild_rat);
+    RegisterCreatureAI(npc_kidnapped_redridge_citizen);
 }

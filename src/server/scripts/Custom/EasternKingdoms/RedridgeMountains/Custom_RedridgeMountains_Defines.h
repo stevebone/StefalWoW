@@ -33,6 +33,7 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
         static constexpr uint32 Jorgensen = 26560;
         static constexpr uint32 AndLastButNotLeastDanforth = 26562;
         static constexpr uint32 ItsNeverOver = 26616;
+        static constexpr uint32 PrisonersOfWar = 26646;
     }
 
     namespace AreaTriggers
@@ -40,6 +41,9 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
         static constexpr uint32 LakeshireGraveyard = 6034;
         static constexpr uint32 LakeshireInn = 682;
         static constexpr uint32 CampEverstill = 6079;
+        static constexpr uint32 CampEverstillHill = 6082;
+        static constexpr uint32 RendersValleyEntry = 6083;
+        static constexpr uint32 RendersValleyCavern = 6084;
     }
 
     namespace Creatures
@@ -63,6 +67,15 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
         static constexpr uint32 JorgensenCamp = 43460;
         static constexpr uint32 MessnerCamp = 43459;
         static constexpr uint32 JorgensenGuardian = 43827;
+        static constexpr uint32 WildRat = 43518;
+        static constexpr uint32 BlackrockHunter = 4462;
+        static constexpr uint32 BlackrockSummoner = 4463;
+        static constexpr uint32 BlackrockGuard = 7013;
+        static constexpr uint32 BlackrockDrakeRider = 43533;
+        static constexpr uint32 BlackrockWarden = 43535;
+        static constexpr uint32 PrisonerOfWarKillCredit = 43574;
+        static constexpr uint32 KidnappedRedridgeCitizenMale = 43572;
+        static constexpr uint32 KidnappedRedridgeCitizenFemale = 43571;
     }
 
     namespace GameObjects
@@ -70,6 +83,7 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
         static constexpr uint32 MessnersCage = 204383;
         static constexpr uint32 JorgensensCage = 204393;
         static constexpr uint32 ChainLever = 204403;
+        static constexpr uint32 BlackrockHoldingPen = 204441;
     }
 
     namespace Spells
@@ -105,6 +119,10 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
         static constexpr uint32 BravoCompanyFieldKit = 82580;
         static constexpr uint32 CancelBravoCompanyFieldKit = 82591;
         static constexpr uint32 Showdown = 82010;
+        static constexpr uint32 Camouflage = 82577;
+        static constexpr uint32 DistractionVisual = 81370;
+        static constexpr uint32 Distraction = 82578;
+        static constexpr uint32 SummonPersonalGuardianJorgensen = 82005;
     }
 
     namespace Events
@@ -134,6 +152,13 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
         static constexpr uint32 RiverboatMessnerTalk = 23;
         static constexpr uint32 RiverboatMessnerEngine = 24;
         static constexpr uint32 RiverboatStartPath = 25;
+        static constexpr uint32 JorgensenGuardianTalk2Followup = 26;
+        static constexpr uint32 JorgensenGuardianTalk4Followup = 27;
+        static constexpr uint32 JorgensenGuardianRandomTalk = 28;
+        static constexpr uint32 JorgensenGuardianSealOfRighteousness = 29;
+        static constexpr uint32 JorgensenGuardianCombatSpell = 30;
+        static constexpr uint32 JorgensenGuardianHeal = 31;
+        static constexpr uint32 CitizenFleeToPoint2 = 32;
     }
 
     namespace Talks
@@ -150,5 +175,11 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
     {
         static constexpr uint32 DanforthChainDummyRight = 334866;
         static constexpr uint32 DanforthChainDummyLeft = 334867;
+    }
+
+    namespace Positions
+    {
+        static constexpr Position CitizenFleePoint1 = { -9535.30f, -3261.26f, 49.0533f };
+        static constexpr Position CitizenFleePoint2 = { -9595.788f, -3323.489f, 49.649f };
     }
 }

@@ -177,6 +177,57 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
             return true;
         }
     };
+
+    // 6082 - Camp Everstill Hill - Jorgensen Guardian Talk 1
+    class at_camp_everstill_hill_6082 : public AreaTriggerScript
+    {
+    public:
+        at_camp_everstill_hill_6082() : AreaTriggerScript("at_camp_everstill_hill_6082") { }
+
+        bool OnTrigger(Player* player, AreaTriggerEntry const* /*trigger*/) override
+        {
+            std::list<TempSummon*> minions;
+            player->GetAllMinionsByEntry(minions, Creatures::JorgensenGuardian);
+            for (TempSummon* minion : minions)
+                minion->AI()->SetData(1, 1);
+
+            return true;
+        }
+    };
+
+    // 6083 - Render's Valley Entry - Jorgensen Guardian Talk 2
+    class at_renders_valley_entry_6083 : public AreaTriggerScript
+    {
+    public:
+        at_renders_valley_entry_6083() : AreaTriggerScript("at_renders_valley_entry_6083") { }
+
+        bool OnTrigger(Player* player, AreaTriggerEntry const* /*trigger*/) override
+        {
+            std::list<TempSummon*> minions;
+            player->GetAllMinionsByEntry(minions, Creatures::JorgensenGuardian);
+            for (TempSummon* minion : minions)
+                minion->AI()->SetData(1, 2);
+
+            return true;
+        }
+    };
+
+    // 6084 - Render's Valley Cavern - Jorgensen Guardian Talk 4
+    class at_renders_valley_cavern_6084 : public AreaTriggerScript
+    {
+    public:
+        at_renders_valley_cavern_6084() : AreaTriggerScript("at_renders_valley_cavern_6084") { }
+
+        bool OnTrigger(Player* player, AreaTriggerEntry const* /*trigger*/) override
+        {
+            std::list<TempSummon*> minions;
+            player->GetAllMinionsByEntry(minions, Creatures::JorgensenGuardian);
+            for (TempSummon* minion : minions)
+                minion->AI()->SetData(1, 4);
+
+            return true;
+        }
+    };
 }
 
 void AddSC_custom_redridge_mountains_at()
@@ -185,4 +236,7 @@ void AddSC_custom_redridge_mountains_at()
 
     new at_lakeshire_inn_682();
     new at_camp_everstill_6079();
+    new at_camp_everstill_hill_6082();
+    new at_renders_valley_entry_6083();
+    new at_renders_valley_cavern_6084();
 }
