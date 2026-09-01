@@ -2,7 +2,11 @@
 
 -- Creatures
 SET @CGUID := 900000;
-Last GUID: @CGUID+3299
+Last GUID: @CGUID+3300
+
+-- BFA
+SET @CGUID := 70000000;
+Last GUID: @CGUID+32948
 
 -- Gameobjects
 SET @OGUID := 900000;
