@@ -67,6 +67,7 @@ void AddSC_custom_redridge_mountains_at();
 void AddSC_custom_redridge_mountains_player();
 void AddSC_custom_redridge_mountains_objects();
 void AddSC_custom_redridge_mountains_quests();
+void AddSC_custom_redridge_mountains_spells();
 
 // ==================== Followship Scripts ==================== //
 void AddSC_followship_bots();                // FSB main Script
@@ -173,6 +174,7 @@ void AddCustomScripts()
     AddSC_custom_redridge_mountains_player();
     AddSC_custom_redridge_mountains_objects();
     AddSC_custom_redridge_mountains_quests();
+    AddSC_custom_redridge_mountains_spells();
 
     AddSC_followship_bots();
     AddSC_followship_bots_player();

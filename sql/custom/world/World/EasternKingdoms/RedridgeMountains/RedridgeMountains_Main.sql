@@ -13,6 +13,7 @@
 -- NPC: 518 Yowler
 -- NPC: 545 Murloc Tidecaller
 -- NPC: 547 Great Goretusk
+-- NPC: 548 Murloc Minor Tidecaller
 -- NPC: 578 Murloc Scout
 -- NPC: 580 Redridge Drudger
 -- NPC: 584 Kazon
@@ -21,7 +22,9 @@
 -- NPC: 712 Redridge Thrasher
 -- NPC: 1083 Murlock Shorestriker
 -- NPC: 4064 Blackrock Scout
+-- NPC: 4462 Blackrock Hunter
 -- NPC: 4463 Blackrock Summoner
+-- NPC: 7013 Blackrock Guard
 -- NPC: 14270 Squiddic
 -- NPC: 14271 Ribchaser
 -- NPC: 14273 Boulderheart
@@ -38,6 +41,8 @@
 -- NPC: 43363 Ritualist Tarak
 -- NPC: 43369 Overlord Barbarius
 -- NPC: 43532 Muckdweller
+-- NPC: 43533 Blackrock Drake Rider
+-- NPC: 43535 Blackrock Warden
 -- NPC: 147222 Gnollfeaster
 
 -- NPC: 43081 Guard Bateman
@@ -60,6 +65,7 @@
 -- NPC: 43461 Krakauer (camp)
 -- NPC: 43460 Jorgensen (camp)
 -- NPC: 43459 Messner (camp)
+-- NPC: 43508 Brubaker
 
 -- Quest: 26512 Tuning The Gnomecorder
 -- Quest: 26545 Yowler Must Die!
@@ -95,6 +101,7 @@
 -- Spell: 81265 Riverboat Quest Credit
 -- Spell: 81201 Apply Quest Invis Zone 9
 -- Spell: 81202 Detect: Quest Invis Zone 9
+-- Spell: 75038 Freeze Anim
 
 -- Spell Area
 DELETE FROM `spell_area` WHERE `spell` = 81004 AND `area` = 97;
@@ -145,6 +152,8 @@ INSERT INTO `vehicle_seat_addon` (`SeatEntry`, `SeatOrientation`, `ExitParamX`, 
 UPDATE `quest_template_addon` SET `PrevQuestID` = 26607 WHERE `ID` = 26616;
 UPDATE `quest_template_addon` SET `ExclusiveGroup` = 0 WHERE `ID` = 26563;
 UPDATE `quest_template_addon` SET `ScriptName` = 'quest_26563_return_of_the_bravo_company' WHERE `ID` = 26563;
+UPDATE `quest_template_addon` SET `SourceSpellID` = 82005 WHERE `ID` = 26646;
+
 
 DELETE FROM `quest_template_addon` WHERE `ID` IN (26567,26571,26586,26636,26637,26638);
 INSERT INTO `quest_template_addon` (`ID`, `PrevQuestID`) VALUES 
@@ -184,19 +193,24 @@ DELETE FROM `areatrigger_scripts` WHERE `entry` = 6079;
 INSERT INTO `areatrigger_scripts` (`entry`, `ScriptName`) VALUES
 (6079, 'at_camp_everstill_6079');
 
+-- Spell Scripts
+DELETE FROM `spell_script_names` WHERE `spell_id` = 82580 AND `ScriptName` = 'spell_bravo_company_field_kit';
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
+(82580, 'spell_bravo_company_field_kit');
+
 -- Creature Difficulties
 -- Remove incorrect records
 DELETE FROM `creature_template_difficulty` WHERE `DifficultyID` = 1 AND `Entry` IN (
-	345,422,423,426,428,430,437,442,445,446,518,545,547,578,580,584,615,711,712,1083,
-	4064,4463,14270,14271,14273,43041,43083,43094,43183,43185,43327,43329,43340,43341,
-	43350,43363,43369,43532,147222
+	345,422,423,426,428,430,437,442,445,446,518,545,547,548,578,580,584,615,711,712,1083,
+	4064,4462,4463,7013,14270,14271,14273,43041,43083,43094,43183,43185,43327,43329,43340,43341,
+	43350,43363,43369,43532,43533,43535,147222
 );
 
 -- Adjust Damage Modifier
 UPDATE `creature_template_difficulty` SET `DamageModifier` = 0.2 WHERE `Entry` IN (
-	345,422,423,426,428,430,437,442,445,446,518,545,547,578,580,584,615,711,712,1083,
-	4064,4463,14270,14271,14273,43041,43083,43094,43183,43185,43327,43329,43340,43341,
-	43350,43363,43369,43532,147222
+	345,422,423,426,428,430,437,442,445,446,518,545,547,548,578,580,584,615,711,712,1083,
+	4064,4462,4463,7013,14270,14271,14273,43041,43083,43094,43183,43185,43327,43329,43340,43341,
+	43350,43363,43369,43532,43533,43535,147222
 );
 
 -- Add missing loot ids
@@ -209,31 +223,39 @@ UPDATE `creature_template_difficulty` SET `StaticFlags1` = 524288, `LootID` = 43
 UPDATE `creature_template_difficulty` SET `LootID` = 43363, `GoldMin` = 500, `GoldMax` = 600 WHERE `Entry` = 43363;
 UPDATE `creature_template_difficulty` SET `LootID` = 43369, `GoldMin` = 500, `GoldMax` = 600 WHERE `Entry` = 43369;
 UPDATE `creature_template_difficulty` SET `LootID` = 43350, `GoldMin` = 600, `GoldMax` = 700 WHERE `Entry` = 43350;
+UPDATE `creature_template_difficulty` SET `LootID` = 7013, `GoldMin` = 2000, `GoldMax` = 2500 WHERE `Entry` = 7013;
+UPDATE `creature_template_difficulty` SET `LootID` = 43535, `GoldMin` = 3000, `GoldMax` = 4000 WHERE `Entry` = 43535;
 UPDATE `creature_template_difficulty` SET `LootID` = 43041 WHERE `Entry` = 43041;
+UPDATE `creature_template_difficulty` SET `StaticFlags4` = 0 WHERE `Entry` = 43532;
+UPDATE `creature_template_difficulty` SET `StaticFlags1` = `StaticFlags1` | 0x20000100 WHERE `Entry` = 43508;
 
 -- Swim flag
-UPDATE creature_template_difficulty SET StaticFlags1 = StaticFlags1 | 0x10000000 WHERE Entry IN (43183,43041,43532);
+UPDATE `creature_template_difficulty` SET `StaticFlags1` = `StaticFlags1` | 0x10000000 WHERE `Entry` IN (43183,43041,43532);
 
 -- Floating flag
-UPDATE creature_template_difficulty SET StaticFlags1 = StaticFlags1 | 0x20000000 WHERE Entry IN (43450,43041,43532);
+UPDATE `creature_template_difficulty` SET `StaticFlags1` = `StaticFlags1` | 0x20000000 WHERE `Entry` IN (43450,43533);
 
 -- Creature Template Addons
 UPDATE `creature_template_addon` SET `auras` = '80815 393433' WHERE `Entry` = 43248;
 UPDATE `creature_template_addon` SET `auras` = '81201' WHERE `Entry` IN (43458,43459,43460,43461,43462);
 UPDATE `creature_template_addon` SET `StandState` = 8 WHERE `Entry` = 43458;
+-- this is not the right spell id/emote for Brubaker but close enough. May be done via an anim kit
+UPDATE `creature_template_addon` SET `auras` = '75038', `emote` = 420 WHERE `Entry` = 43508;
 
 -- SAI
 UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (147222);
 DELETE FROM smart_scripts WHERE entryorguid IN (147222) AND source_type = 0;
-DELETE FROM smart_scripts WHERE entryorguid IN (423) AND source_type = 0 AND id = 1;
 DELETE FROM smart_scripts WHERE entryorguid IN (426) AND source_type = 0 AND id IN (1,2);
-DELETE FROM smart_scripts WHERE entryorguid IN (430) AND source_type = 0 AND id IN (2,3);
-DELETE FROM smart_scripts WHERE entryorguid IN (445) AND source_type = 0 AND id = 1;
-DELETE FROM smart_scripts WHERE entryorguid IN (446) AND source_type = 0 AND id = 1;
-DELETE FROM smart_scripts WHERE entryorguid IN (580) AND source_type = 0 AND id IN (2,3);
+DELETE FROM smart_scripts WHERE entryorguid IN (430,580) AND source_type = 0 AND id IN (2,3);
+DELETE FROM smart_scripts WHERE entryorguid IN (445,446,423,712) AND source_type = 0 AND id = 1;
 DELETE FROM smart_scripts WHERE entryorguid IN (711) AND source_type = 0 AND id = 2;
-DELETE FROM smart_scripts WHERE entryorguid IN (712) AND source_type = 0 AND id = 1;
+DELETE FROM smart_scripts WHERE entryorguid IN (7013) AND source_type = 0 AND id = 4;
+DELETE FROM smart_scripts WHERE entryorguid IN (43535) AND source_type = 0 AND id = 5;
 INSERT INTO smart_scripts (entryorguid, source_type, id, link, Difficulties, event_type, event_phase_mask, event_chance, event_flags, event_param1, event_param2, event_param3, event_param4, event_param5, event_param_string, action_type, action_param1, action_param2, action_param3, action_param4, action_param5, action_param6, action_param7, action_param_string, target_type, target_param1, target_param2, target_param3, target_param4, target_param_string, target_x, target_y, target_z, target_o, comment) VALUES
+(7013, 0, 4, 0, '', 61, 0, 30, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 1, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Blackrock Guard - On Aggro - Say Line 0 (No Repeat)'),
+(43535, 0, 5, 0, '', 4, 0, 30, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 1, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Blackrock Warden - On Aggro - Say Line 0 (No Repeat)'),
+
+
 (147222, 0, 0, 0, '', 0, 0, 100, 0, 0, 1500, 3000, 5000, 0, '', 11, 265725, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Gnollfeaster - In combat (3/5 seconds) - Cast "Leeching Bite"'),
 (147222, 0, 1, 0, '', 0, 0, 100, 0, 0, 1500, 5000, 7000, 0, '', 11, 265723, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Gnollfeaster - In combat (5/7 seconds) - Cast "Web"'),
 (423, 0, 1, 0, '', 4, 0, 30, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 1, 0, 0, 0, 0, NULL, 1, 0, 0, 0, 0, NULL, 0, 0, 0, 0, 'Redridge Mongrel - On Aggro - Say Line 0 (No Repeat)'),
@@ -251,11 +273,13 @@ INSERT INTO smart_scripts (entryorguid, source_type, id, link, Difficulties, eve
 -- spell cast on aggro should target invoker not self... lol
 UPDATE `smart_scripts` SET `target_type` = '7' WHERE `entryorguid` = 43341 AND `source_type` = 0 AND `id` = 0 AND `link` = 0;
 
+UPDATE `smart_scripts` SET `link` = 4 WHERE `entryorguid` = 7013 AND `source_type` = 0 AND `id` = 3;
+
 
 
 -- Creatures
 SET @CGUID := 900000;
-DELETE FROM `creature` WHERE `guid` BETWEEN @CGUID+3294 AND @CGUID+3299;
+DELETE FROM `creature` WHERE `guid` BETWEEN @CGUID+3294 AND @CGUID+3300;
 INSERT INTO `creature` (`guid`, `id`, `map`, `zoneId`, `areaId`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `wander_distance`, `MovementType`) VALUES 
 (@CGUID+3294, 147222, 0, 44, 1001, 0, -9732.28, -2104.18, 59.7424, 5.13223, 3600, 0, 0),
 
@@ -263,7 +287,9 @@ INSERT INTO `creature` (`guid`, `id`, `map`, `zoneId`, `areaId`, `equipment_id`,
 (@CGUID+3296, 43459, 0, 44, 5326, 1, -9463.28, -2829.31, 65.2789, 2.10001, 180, 0, 0),
 (@CGUID+3297, 43460, 0, 44, 5326, 1, -9462.12, -2826.4, 65.2759, 3.32837, 180, 0, 0),
 (@CGUID+3298, 43461, 0, 44, 5326, 1, -9463.3, -2824.85, 65.2785, 4.32189, 180, 0, 0),
-(@CGUID+3299, 43462, 0, 44, 5326, 1, -9465.57, -2825.34, 65.2785, 5.5047, 180, 0, 0);
+(@CGUID+3299, 43462, 0, 44, 5326, 1, -9465.57, -2825.34, 65.2785, 5.5047, 180, 0, 0),
+
+(@CGUID+3300, 43508, 0, 44, 44, 0, -9676.09, -2842, 53.5381, 0.070987, 180, 0, 0);
 
 -- Creature Spawn Fixes
 DELETE FROM `creature_addon` WHERE `guid` IN (334690,334613,334610,334572);

@@ -62,6 +62,7 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
         static constexpr uint32 KrakauerCamp = 43461;
         static constexpr uint32 JorgensenCamp = 43460;
         static constexpr uint32 MessnerCamp = 43459;
+        static constexpr uint32 JorgensenGuardian = 43827;
     }
 
     namespace GameObjects
@@ -101,6 +102,9 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
         static constexpr uint32 MessnerBoatEngine = 81260;
         static constexpr uint32 RiverboatQuestCredit = 81265;
         static constexpr uint32 SummonKeeshanRiverboat = 81243;
+        static constexpr uint32 BravoCompanyFieldKit = 82580;
+        static constexpr uint32 CancelBravoCompanyFieldKit = 82591;
+        static constexpr uint32 Showdown = 82010;
     }
 
     namespace Events
