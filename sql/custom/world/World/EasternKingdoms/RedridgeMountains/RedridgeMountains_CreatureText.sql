@@ -1,7 +1,26 @@
 -- Redridge Mountains Creature Text
-DELETE FROM `creature_text` WHERE `creatureID` IN (43081,712,43270,43300,43272,43305,43303,43302,43448,43449,43458,43462,43461,43460,43459,7013,43535);
+DELETE FROM `creature_text` WHERE `creatureID` IN (43081,712,43270,43300,43272,43305,43303,43302,43448,43449,43458,43462,43461,43460,43459,7013,43535,43827);
+DELETE FROM `creature_text` WHERE `creatureID` IN (43571,43572);
 DELETE FROM `creature_text` WHERE `creatureID` IN (426,430,580) AND `GroupID` = 1;
 INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `BroadcastTextId`, `TextRange`, `comment`) VALUES
+(43571, 0, 0, 'We''re free! RUN FOR YOUR LIVES!', 14, 7, 100, 22, 0, 0, 43638, 0, 'Kidnapped Redridge Citizen to Player'),
+(43572, 0, 0, 'We''re free! RUN FOR YOUR LIVES!', 14, 7, 100, 22, 0, 0, 43638, 0, 'Kidnapped Redridge Citizen to Player'),
+
+(43827, 0, 0, 'Bravo Company Field Kit ACTIVE. New abilities are now available on your action bar.$BToggle Bravo Company Field Kit to DEACTIVATE.', 42, 0, 100, 0, 0, 0, 44418, 0, 'Jorgensen to Player'),
+(43827, 1, 0, 'Activate your Bravo Company Field Kit now.|TInterface\Icons\INV_MISC_ENGGIZMOS_20.BLP:16|t$BStealth your party using Camouflage.|TInterface\Icons\SPELL_NATURE_PROTECTIONFORMNATURE.BLP:16|t', 42, 0, 100, 0, 0, 0, 43652, 0, 'Jorgensen to Player'),
+(43827, 2, 0, 'We''re nearing Render''s Valley. These orcs are tough! Make sure you are camo''d!|TInterface\Icons\SPELL_NATURE_PROTECTIONFORMNATURE.BLP:16|t', 42, 0, 100, 0, 0, 0, 43653, 0, 'Jorgensen to Player'),
+(43827, 3, 0, 'Create a distraction so that you and Jorgensen can slip by unnoticed.|TInterface\Icons\ABILITY_ROGUE_BLOODYEYE.BLP:16|t', 42, 0, 100, 0, 0, 0, 43654, 0, 'Jorgensen to Player'),
+(43827, 4, 0, 'Sometimes you just need to take out one target. Use chloroform while behind the enemy!|TInterface\Icons\SPELL_NATURE_SLEEP.BLP:16|t', 42, 0, 100, 0, 0, 0, 43655, 0, 'Jorgensen to Player'),
+(43827, 5, 0, 'Once in a while we''ll come up against a lone orc that stands between us and victory. Chloroform is often best used in those situations. Just remember to apply chloroform we have to be behind the enemy.', 12, 7, 100, 1, 0, 0, 43678, 0, 'Jorgensen to Player'),
+(43827, 6, 0, 'Sometimes a distraction can backfire and cause the orcs to become suspicious. In those instances the orcs will actively search for us. It''s best to keep a good distance from any orc detecting stealth.', 12, 7, 100, 1, 0, 0, 43676, 0, 'Jorgensen to Player'),
+(43827, 7, 0, 'Messner kills bad guys so fast. I wish I could kill as fast as him. WHY can''t I shoot fireballs? What does the LIGHT have against fireballs?', 12, 7, 100, 0, 0, 0, 43663, 0, 'Jorgensen to Player'),
+(43827, 7, 1, 'My heals really don''t have the ''OOMPH'' that they used to, $n. You know what I''m saying?', 12, 7, 100, 0, 0, 0, 43658, 0, 'Jorgensen to Player'),
+(43827, 7, 2, 'Being a paladin is rough. The Light behaves so erratically. Some days I wake up and it feels like all of my powers have been weakened.', 12, 7, 100, 0, 0, 0, 43659, 0, 'Jorgensen to Player'),
+(43827, 7, 3, 'I don''t know, maybe the grass really is greener on the other side. You know? Krakauer and Danforth really kick butt as warriors. Maybe I should drop this paladin thing and try out being a warrior.', 12, 7, 100, 0, 0, 0, 43661, 0, 'Jorgensen to Player'),
+(43827, 7, 4, 'One time, Keeshan told me that he could take on five of me at once. Why am I so weak?', 12, 7, 100, 0, 0, 0, 43668, 0, 'Jorgensen to Player'),
+(43827, 8, 0, 'While camouflaged, we are harder to detect when we are BEHIND creatures.', 12, 7, 100, 1, 0, 0, 43674, 0, 'Jorgensen to Player'),
+(43827, 8, 1, 'Make sure we always have camouflage up. The orcs in Render''s Valley will kill us both if we''re spotted.', 12, 7, 100, 1, 0, 0, 43670, 0, 'Jorgensen to Player'),
+
 (7013, 0, 0, 'Feel the power of the Blackrock Orcs!', 12, 1, 100, 0, 0, 0, 1874, 0, 'Blackrock Guard to Player'),
 (7013, 0, 1, 'You are no match for the Blackrock Orcs!', 12, 1, 100, 0, 0, 0, 1875, 0, 'Blackrock Guard to Player'),
 (43535, 0, 0, 'Feel the power of the Blackrock Orcs!', 12, 1, 100, 0, 0, 0, 1874, 0, 'Blackrock Guard to Player'),
