@@ -588,6 +588,9 @@ INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `event_
 (-452193, 0, 3, 0, 58, 0, 100, 0, 6, 6085805, 0, 0, 0, 41, 0, 6, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Fleshripper - On WP Ended - Despawn'),
 (-452193, 0, 4, 0, 0, 0, 100, 0, 3000, 5000, 5000, 8000, 0, 11, 128533, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 'Deepscale Fleshripper - Update IC - Cast Rip Flesh');
 
+-- Clean no longer needed SAI
+DELETE FROM `smart_scripts` WHERE `entryorguid` IN (57874,57739);
+UPDATE `creature_template` SET `AIName` = '' WHERE `entry` = 57874;
 
 DELETE FROM `creature_template_difficulty` WHERE `entry` IN (60888, 60889, 60685, 60554, 65742, 55946, 56195, 56174,60848);
 INSERT INTO `creature_template_difficulty` VALUES

@@ -174,8 +174,13 @@ UPDATE `quest_template_addon` SET `PrevQuestID` = '6' WHERE (`ID` = '28765');
 UPDATE `quest_template_addon` SET `PrevQuestID` = '6' WHERE (`ID` = '28766');
 UPDATE `quest_template_addon` SET `PrevQuestID` = '6' WHERE (`ID` = '28767');
 UPDATE `quest_template_addon` SET `PrevQuestID` = '6' WHERE (`ID` = '31139');
+DELETE FROM `quest_template_addon` WHERE `ID` = 29078;
 INSERT INTO `quest_template_addon` (`ID`, `PrevQuestID`) VALUES ('29078', '6');
 
+-- Remove no longer removed SAI
+DELETE FROM `smart_scripts` WHERE `entryorguid` IN (
+	-280020,-280019,-280018,-280008,-280003,-280002,-280001,-279956,-279945,-279928,-279914,-279906,-279894,-279893,-279888
+);
 
 SET @CGUID := 900000;
 DELETE FROM `creature` WHERE `guid` BETWEEN @CGUID+1 AND @CGUID+124;
