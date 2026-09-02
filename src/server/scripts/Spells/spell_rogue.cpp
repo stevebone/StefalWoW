@@ -302,7 +302,7 @@ class spell_rog_blade_flurry : public AuraScript
     {
         DoCheckProc += AuraCheckProcFn(spell_rog_blade_flurry::CheckProc);
         if (m_scriptSpellId == SPELL_ROGUE_BLADE_FLURRY)
-            OnEffectProc += AuraEffectProcFn(spell_rog_blade_flurry::HandleProc, EFFECT_0, SPELL_AURA_MOD_POWER_REGEN_PERCENT);
+            OnEffectProc += AuraEffectProcFn(spell_rog_blade_flurry::HandleProc, EFFECT_0, SPELL_AURA_DUMMY);
         else
             OnEffectProc += AuraEffectProcFn(spell_rog_blade_flurry::HandleProc, EFFECT_0, SPELL_AURA_MOD_MELEE_HASTE);
     }
