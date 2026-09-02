@@ -237,7 +237,7 @@ void WorldSession::SendLfgPlayerLockInfo()
         {
             if (Quest const* quest = sObjectMgr->GetQuestTemplate(reward->firstQuest))
             {
-                playerDungeonInfo.FirstReward = !GetPlayer()->CanRewardQuest(quest, false);
+                playerDungeonInfo.FirstReward = GetPlayer()->CanRewardQuest(quest, false);
                 if (!playerDungeonInfo.FirstReward)
                     quest = sObjectMgr->GetQuestTemplate(reward->otherQuest);
 
