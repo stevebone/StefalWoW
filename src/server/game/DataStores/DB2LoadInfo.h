@@ -2649,7 +2649,7 @@ struct GarrFollowerLevelXPLoadInfo
     static constexpr DB2FieldMeta Fields[5] =
     {
         { .IsSigned = false, .Type = FT_INT, .Name = "ID" },
-        { .IsSigned = true, .Type = FT_BYTE, .Name = "GarrFollowerTypeID" },
+        { .IsSigned = false, .Type = FT_BYTE, .Name = "GarrFollowerTypeID" },
         { .IsSigned = false, .Type = FT_BYTE, .Name = "FollowerLevel" },
         { .IsSigned = false, .Type = FT_SHORT, .Name = "XpToNextLevel" },
         { .IsSigned = false, .Type = FT_SHORT, .Name = "ShipmentXP" },
@@ -2665,7 +2665,7 @@ struct GarrFollowerQualityLoadInfo
         { .IsSigned = false, .Type = FT_INT, .Name = "ID" },
         { .IsSigned = true, .Type = FT_INT, .Name = "XpThreshold" },
         { .IsSigned = false, .Type = FT_INT, .Name = "QualityItemID" },
-        { .IsSigned = true, .Type = FT_BYTE, .Name = "Quality" },
+        { .IsSigned = false, .Type = FT_BYTE, .Name = "Quality" }, // must be unsigned per client meta
         { .IsSigned = false, .Type = FT_BYTE, .Name = "AbilityCount" },
         { .IsSigned = false, .Type = FT_BYTE, .Name = "TraitCount" },
         { .IsSigned = false, .Type = FT_SHORT, .Name = "GarrFollowerTypeID" },
@@ -2730,7 +2730,7 @@ struct GarrItemLevelUpgradeDataLoadInfo
         { .IsSigned = true, .Type = FT_INT, .Name = "Operation" },
         { .IsSigned = true, .Type = FT_INT, .Name = "MinItemLevel" },
         { .IsSigned = true, .Type = FT_INT, .Name = "MaxItemLevel" },
-        { .IsSigned = true, .Type = FT_BYTE, .Name = "FollowerTypeID" },
+        { .IsSigned = false, .Type = FT_BYTE, .Name = "FollowerTypeID" },
     };
 
     static constexpr DB2LoadInfo Instance{ Fields, 5, &GarrItemLevelUpgradeDataMeta::Instance, HOTFIX_SEL_GARR_ITEM_LEVEL_UPGRADE_DATA };

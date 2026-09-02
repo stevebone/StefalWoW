@@ -2230,7 +2230,7 @@ struct GarrFollowerLevelXPEntry
     // These were previously declared in the reverse order, so every row loaded with the two bytes
     // swapped (FollowerLevel held the type value, GarrFollowerTypeID held the level) — GetFollowerLevelXP
     // then missed for every real (type, level) pair and follower mission XP was silently discarded.
-    int8 GarrFollowerTypeID;
+    uint8 GarrFollowerTypeID;
     uint8 FollowerLevel;
     uint16 XpToNextLevel;
     uint16 ShipmentXP;
@@ -2241,7 +2241,7 @@ struct GarrFollowerQualityEntry
     uint32 ID;
     int32 XpThreshold;
     uint32 QualityItemID;
-    int8 Quality;
+    uint8 Quality;                          // sign fixed (byte, must be unsigned per client meta)
     uint8 AbilityCount;
     uint8 TraitCount;
     uint16 GarrFollowerTypeID;
@@ -2310,7 +2310,7 @@ struct GarrItemLevelUpgradeDataEntry
     int32 Operation;
     int32 MinItemLevel;
     int32 MaxItemLevel;
-    int8 FollowerTypeID;
+    uint8 FollowerTypeID;
 };
 
 struct GarrMissionEntry
