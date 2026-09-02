@@ -331,10 +331,12 @@ WHERE id IN (
 
 -- Creature spawns that should be fixed
 UPDATE `creature` SET MovementType = 0, wander_distance = 0 WHERE `guid` IN (
-335383,335367,335368,335369,335313,335314,335317,335318,335288,335289,335372,335360);
+335383,335367,335368,335369,335313,335314,335317,335318,335288,335289,335372,335360,335269,335270);
 
 -- Creature spawns static flags
-DELETE FROM `creature_static_flags_override` WHERE `SpawnId` IN (335293,335294);
+DELETE FROM `creature_static_flags_override` WHERE `SpawnId` IN (335293,335294,335262,335324);
 INSERT INTO `creature_static_flags_override` (`SpawnId`,`DifficultyId`,`StaticFlags1`) VALUES
 (335293, 0, 524288),
+(335324, 0, 524288),
+(335262, 0, 524288),
 (335294, 0, 524288);
