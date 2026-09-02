@@ -1,7 +1,7 @@
 -- Scenario Poi data
 
 TRUNCATE `scenario_poi`;
-INSERT INTO `scenario_poi` (`CriteriaTreeID`, `BlobIndex`, `Idx`, `MapID`, `UiMapID`, `Priority`, `Flags`, `WorldEffectID`, `PlayerConditionID`, `NavigationPlayerConditionID`, `VerifiedBuild`) VALUES
+INSERT INTO `scenario_poi` (`CriteriaTreeID`, `BlobIndex`, `Idx1`, `MapID`, `UiMapID`, `Priority`, `Flags`, `WorldEffectID`, `PlayerConditionID`, `NavigationPlayerConditionID`, `VerifiedBuild`) VALUES
 (59962, 0, 0, 1760, 908, 0, 0, 0, 0, 0, 27219),
 (59963, 0, 0, 1760, 908, 0, 2, 0, 0, 0, 27219),
 (59963, 1, 1, 1760, 908, 0, 0, 0, 0, 0, 27219),
