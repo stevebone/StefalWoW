@@ -24,6 +24,7 @@
 #include "SpellAuraEffects.h"
 #include "SpellMgr.h"
 #include "SpellScript.h"
+#include "Unit.h"
 
 #include "Custom_Druid_Defines.h"
 
