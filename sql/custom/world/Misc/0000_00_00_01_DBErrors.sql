@@ -11,3 +11,5 @@ DELETE FROM `gameobject_loot_template` WHERE `entry` = 1734; -- gold vein has a 
 UPDATE creature_template SET unit_flags3 = unit_flags3 & ~0x00000001;
 UPDATE creature_template SET unit_flags2 = unit_flags2 & ~0x02000000;
 
+-- Remove non existing/used Waypoint Path
+DELETE FROM `waypoint_path` WHERE `PathId` IN (28545);

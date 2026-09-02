@@ -23,13 +23,13 @@ UPDATE `creature` SET `MovementType` = 2 WHERE `id` IN (828,840,887,468,576,495,
 
 DELETE FROM `waypoint_path` WHERE `PathId` IN (82800,46800,57600,84000,88700,49500,52200);
 INSERT INTO `waypoint_path` (`PathId`, `MoveType`, `Flags`, `Velocity`, `Comment`) VALUES
-(46800, 0, 0, 0, 'Duskwood - Town Crier'),
-(57600, 0, 0, 0, 'Duskwood - Watcher Ladimore'),
-(82800, 0, 0, 0, 'Duskwood - Watcher Petras'),
-(84000, 0, 0, 0, 'Duskwood - Watcher Backus'),
-(88700, 0, 0, 0, 'Duskwood - Watcher Jordan'),
-(49500, 0, 0, 0, 'Duskwood - Watcher Keefer'),
-(52200, 0, 0, 0, 'Duskwood - Morladim');
+(46800, 0, 0, NULL, 'Duskwood - Town Crier'),
+(57600, 0, 0, NULL, 'Duskwood - Watcher Ladimore'),
+(82800, 0, 0, NULL, 'Duskwood - Watcher Petras'),
+(84000, 0, 0, NULL, 'Duskwood - Watcher Backus'),
+(88700, 0, 0, NULL, 'Duskwood - Watcher Jordan'),
+(49500, 0, 0, NULL, 'Duskwood - Watcher Keefer'),
+(52200, 0, 0, NULL, 'Duskwood - Morladim');
 
 DELETE FROM `waypoint_path_node` WHERE `PathId` IN (82800,46800,57600,84000,88700,49500,52200);
 INSERT INTO `waypoint_path_node` (`PathId`, `NodeId`, `PositionX`, `PositionY`, `PositionZ`) VALUES
