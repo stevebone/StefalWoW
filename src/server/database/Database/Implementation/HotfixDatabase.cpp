@@ -718,7 +718,7 @@ void HotfixDatabaseConnection::DoPrepareStatements()
     PREPARE_MAX_ID_STMT(HOTFIX_SEL_GAMEOBJECT_LABEL, "SELECT MAX(ID) + 1 FROM gameobject_label", CONNECTION_SYNCH);
 
     // Gameobjects.db2
-    PrepareStatement(HOTFIX_SEL_GAMEOBJECTS, "SELECT Name, PosX, PosY, PosZ, Rot1, Rot2, Rot3, Rot4, ID, OwnerID, DisplayID, Scale, TypeID, "
+    PrepareStatement(HOTFIX_SEL_GAMEOBJECTS, "SELECT Name, PosX, PosY, PosZ, Rot1, Rot2, Rot3, Rot4, ID, OwnerID, DisplayID, Flags, Scale, TypeID, "
         "PhaseUseFlags, PhaseID, PhaseGroupID, Unknown1100, PropValue1, PropValue2, PropValue3, PropValue4, PropValue5, PropValue6, PropValue7, "
         "PropValue8 FROM gameobjects WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
     PREPARE_MAX_ID_STMT(HOTFIX_SEL_GAMEOBJECTS, "SELECT MAX(ID) + 1 FROM gameobjects", CONNECTION_SYNCH);
@@ -1429,12 +1429,12 @@ void HotfixDatabaseConnection::DoPrepareStatements()
     PREPARE_MAX_ID_STMT(HOTFIX_SEL_PHASE_X_PHASE_GROUP, "SELECT MAX(ID) + 1 FROM phase_x_phase_group", CONNECTION_SYNCH);
 
     // PlayerCompanionInfo.db2
-    PrepareStatement(HOTFIX_SEL_PLAYER_COMPANION_INFO, "SELECT UnlockDescription, ID, DelvesSeasonID, TraitTreeID, TraitNodeID_DPS, TraitNodeID_Heal, "
+    PrepareStatement(HOTFIX_SEL_PLAYER_COMPANION_INFO, "SELECT UnlockDescription, Field_001, ID, DelvesSeasonID, TraitTreeID, TraitNodeID_DPS, TraitNodeID_Heal, "
         "TraitSubTreeID_DPS, TraitSubTreeID_Heal, TraitSubTreeID_Tank, FactionID, CreatureDisplayInfoID, UiModelSceneID, "
-        "Field_011, Field_012, Field_014 FROM player_companion_info"
+        "Field_011, Field_012, FlavorNodeID, Field_014 FROM player_companion_info"
         " WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
     PREPARE_MAX_ID_STMT(HOTFIX_SEL_PLAYER_COMPANION_INFO, "SELECT MAX(ID) + 1 FROM player_companion_info", CONNECTION_SYNCH);
-    PREPARE_LOCALE_STMT(HOTFIX_SEL_PLAYER_COMPANION_INFO, "SELECT ID, UnlockDescription_lang FROM player_companion_info_locale"
+    PREPARE_LOCALE_STMT(HOTFIX_SEL_PLAYER_COMPANION_INFO, "SELECT ID, UnlockDescription_lang, Field_001_lang FROM player_companion_info_locale"
         " WHERE (`VerifiedBuild` > 0) = ? AND locale = ?", CONNECTION_SYNCH);
 
     // PlayerCondition.db2
@@ -1444,17 +1444,17 @@ void HotfixDatabaseConnection::DoPrepareStatements()
         "LifetimeMaxPVPRank, AchievementLogic, Gender, NativeGender, AreaLogic, LfgLogic, CurrencyLogic, QuestKillID, QuestKillLogic, "
         "MinExpansionLevel, MaxExpansionLevel, MinAvgItemLevel, MaxAvgItemLevel, MinAvgEquippedItemLevel, MaxAvgEquippedItemLevel, PhaseUseFlags, "
         "PhaseID, PhaseGroupID, Flags, ChrSpecializationIndex, ChrSpecializationRole, ModifierTreeID, PowerType, PowerTypeComp, PowerTypeValue, "
-        "WeaponSubclassMask, MaxGuildLevel, MinGuildLevel, MaxExpansionTier, MinExpansionTier, MinPVPRank, MaxPVPRank, ContentTuningID, CovenantID, "
-        "TraitNodeEntryLogic, SkillID1, SkillID2, SkillID3, SkillID4, MinSkill1, MinSkill2, MinSkill3, MinSkill4, MaxSkill1, MaxSkill2, MaxSkill3, "
-        "MaxSkill4, MinFactionID1, MinFactionID2, MinFactionID3, MinReputation1, MinReputation2, MinReputation3, PrevQuestID1, PrevQuestID2, "
-        "PrevQuestID3, PrevQuestID4, CurrQuestID1, CurrQuestID2, CurrQuestID3, CurrQuestID4, CurrentCompletedQuestID1, CurrentCompletedQuestID2, "
-        "CurrentCompletedQuestID3, CurrentCompletedQuestID4, SpellID1, SpellID2, SpellID3, SpellID4, ItemID1, ItemID2, ItemID3, ItemID4, ItemCount1, "
-        "ItemCount2, ItemCount3, ItemCount4, Explored1, Explored2, Time1, Time2, AuraSpellID1, AuraSpellID2, AuraSpellID3, AuraSpellID4, AuraStacks1, "
-        "AuraStacks2, AuraStacks3, AuraStacks4, Achievement1, Achievement2, Achievement3, Achievement4, AreaID1, AreaID2, AreaID3, AreaID4, "
-        "LfgStatus1, LfgStatus2, LfgStatus3, LfgStatus4, LfgCompare1, LfgCompare2, LfgCompare3, LfgCompare4, LfgValue1, LfgValue2, LfgValue3, "
-        "LfgValue4, CurrencyID1, CurrencyID2, CurrencyID3, CurrencyID4, CurrencyCount1, CurrencyCount2, CurrencyCount3, CurrencyCount4, "
-        "QuestKillMonster1, QuestKillMonster2, QuestKillMonster3, QuestKillMonster4, QuestKillMonster5, QuestKillMonster6, MovementFlags1, "
-        "MovementFlags2, RaceMask1, RaceMask2, TraitNodeEntryID1, TraitNodeEntryID2, TraitNodeEntryID3, TraitNodeEntryID4, TraitNodeEntryMinRank1, "
+        "MovementFlags, WeaponSubclassMask, MaxGuildLevel, MinGuildLevel, MaxExpansionTier, MinExpansionTier, MinPVPRank, MaxPVPRank, "
+        "ContentTuningID, CovenantID, TraitNodeEntryLogic, SkillID1, SkillID2, SkillID3, SkillID4, MinSkill1, MinSkill2, MinSkill3, MinSkill4, "
+        "MaxSkill1, MaxSkill2, MaxSkill3, MaxSkill4, MinFactionID1, MinFactionID2, MinFactionID3, MinReputation1, MinReputation2, MinReputation3, "
+        "PrevQuestID1, PrevQuestID2, PrevQuestID3, PrevQuestID4, CurrQuestID1, CurrQuestID2, CurrQuestID3, CurrQuestID4, CurrentCompletedQuestID1, "
+        "CurrentCompletedQuestID2, CurrentCompletedQuestID3, CurrentCompletedQuestID4, SpellID1, SpellID2, SpellID3, SpellID4, ItemID1, ItemID2, "
+        "ItemID3, ItemID4, ItemCount1, ItemCount2, ItemCount3, ItemCount4, Explored1, Explored2, Time1, Time2, AuraSpellID1, AuraSpellID2, "
+        "AuraSpellID3, AuraSpellID4, AuraStacks1, AuraStacks2, AuraStacks3, AuraStacks4, Achievement1, Achievement2, Achievement3, Achievement4, "
+        "AreaID1, AreaID2, AreaID3, AreaID4, LfgStatus1, LfgStatus2, LfgStatus3, LfgStatus4, LfgCompare1, LfgCompare2, LfgCompare3, LfgCompare4, "
+        "LfgValue1, LfgValue2, LfgValue3, LfgValue4, CurrencyID1, CurrencyID2, CurrencyID3, CurrencyID4, CurrencyCount1, CurrencyCount2, "
+        "CurrencyCount3, CurrencyCount4, QuestKillMonster1, QuestKillMonster2, QuestKillMonster3, QuestKillMonster4, QuestKillMonster5, "
+        "QuestKillMonster6, RaceMask1, RaceMask2, TraitNodeEntryID1, TraitNodeEntryID2, TraitNodeEntryID3, TraitNodeEntryID4, TraitNodeEntryMinRank1, "
         "TraitNodeEntryMinRank2, TraitNodeEntryMinRank3, TraitNodeEntryMinRank4, TraitNodeEntryMaxRank1, TraitNodeEntryMaxRank2, "
         "TraitNodeEntryMaxRank3, TraitNodeEntryMaxRank4 FROM player_condition WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
     PREPARE_MAX_ID_STMT(HOTFIX_SEL_PLAYER_CONDITION, "SELECT MAX(ID) + 1 FROM player_condition", CONNECTION_SYNCH);

@@ -1648,7 +1648,7 @@ void Player::Regenerate(Powers power)
     float addvalue = GetPowerRegen(power) * 0.001f * m_regenTimer;
 
     // Vigor regen scales with forward velocity during advanced flying
-    if (power == POWER_ALTERNATE_MOUNT && m_movementInfo.HasExtraMovementFlag2(MOVEMENTFLAG3_ADV_FLYING) && m_movementInfo.advFlying)
+    if (power == POWER_ALTERNATE_MOUNT && m_movementInfo.HasMovementFlag(MOVEMENTFLAG_ADV_FLYING) && m_movementInfo.advFlying)
     {
         if (FlightCapabilityEntry const* flightCapability = sFlightCapabilityStore.LookupEntry(GetFlightCapabilityID()))
         {
@@ -15479,19 +15479,23 @@ void Player::RewardQuestPackage(uint32 questPackageId, ItemContext context, uint
     {
         for (QuestPackageItemEntry const* questPackageItem : *questPackageItems)
         {
-            if (onlyItemId && questPackageItem->ItemID != int32(onlyItemId))
-                continue;
-
-            if (CanSelectQuestPackageItem(questPackageItem))
+            if (onlyItemId && questPackageItem->ItemID == int32(onlyItemId))
             {
-                hasFilteredQuestPackageReward = true;
-                ItemPosCountVec dest;
-                if (CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, questPackageItem->ItemID, questPackageItem->ItemQuantity) == EQUIP_ERR_OK)
+                if (CanSelectQuestPackageItem(questPackageItem))
                 {
-                    Item* item = StoreNewItem(dest, questPackageItem->ItemID, true, GenerateItemRandomBonusListId(questPackageItem->ItemID), {}, context);
-                    SendNewItem(item, questPackageItem->ItemQuantity, true, false);
+                    hasFilteredQuestPackageReward = true;
+                    ItemPosCountVec dest;
+                    if (CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, questPackageItem->ItemID, questPackageItem->ItemQuantity) == EQUIP_ERR_OK)
+                    {
+                        Item* item = StoreNewItem(dest, questPackageItem->ItemID, true, GenerateItemRandomBonusListId(questPackageItem->ItemID), {}, context);
+                        SendNewItem(item, questPackageItem->ItemQuantity, true, false);
+                        continue;
+                    }
                 }
             }
+
+            // Unlock the item appearance for the other reward items as well of possible
+            GetSession()->GetCollectionMgr()->AddItemAppearance(questPackageItem->ItemID);
         }
     }
 
@@ -15629,14 +15633,20 @@ void Player::RewardQuest(Quest const* quest, LootItemType rewardType, uint32 rew
             {
                 for (uint32 i = 0; i < QUEST_REWARD_CHOICES_COUNT; ++i)
                 {
-                    if (quest->RewardChoiceItemId[i] && quest->RewardChoiceItemType[i] == LootItemType::Item && quest->RewardChoiceItemId[i] == rewardId)
+                    if (quest->RewardChoiceItemId[i] && quest->RewardChoiceItemType[i] == LootItemType::Item)
                     {
-                        ItemPosCountVec dest;
-                        if (CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, rewardId, quest->RewardChoiceItemCount[i]) == EQUIP_ERR_OK)
+                        if (quest->RewardChoiceItemId[i] == rewardId)
                         {
-                            Item* item = StoreNewItem(dest, rewardId, true, GenerateItemRandomBonusListId(rewardId), {}, ItemContext::Quest_Reward);
-                            SendNewItem(item, quest->RewardChoiceItemCount[i], true, false);
+                            ItemPosCountVec dest;
+                            if (CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, rewardId, quest->RewardChoiceItemCount[i]) == EQUIP_ERR_OK)
+                            {
+                                Item* item = StoreNewItem(dest, rewardId, true, GenerateItemRandomBonusListId(rewardId), {}, ItemContext::Quest_Reward);
+                                SendNewItem(item, quest->RewardChoiceItemCount[i], true, false);
+                            }
                         }
+
+                        // Add the remaining item appearances for the quest if possible
+                        GetSession()->GetCollectionMgr()->AddItemAppearance(quest->RewardChoiceItemId[i]);
                     }
                 }
             }
@@ -20352,9 +20362,7 @@ void Player::_LoadQuestStatusRewarded(PreparedQueryResult result)
 
                 if (std::vector<QuestPackageItemEntry const*> const* questPackageItems = sDB2Manager.GetQuestPackageItems(quest->GetQuestPackageID()))
                     for (QuestPackageItemEntry const* questPackageItem : *questPackageItems)
-                        if (ItemTemplate const* rewardProto = sObjectMgr->GetItemTemplate(questPackageItem->ItemID))
-                            if (rewardProto->ItemSpecClassMask & GetClassMask())
-                                GetSession()->GetCollectionMgr()->AddItemAppearance(questPackageItem->ItemID);
+                        GetSession()->GetCollectionMgr()->AddItemAppearance(questPackageItem->ItemID);
 
                 if (quest->CanIncreaseRewardedQuestCounters())
                     m_RewardedQuests.insert(quest_id);
@@ -29014,7 +29022,7 @@ void Player::ResummonBattlePetTemporaryUnSummonedIfAny()
 
 bool Player::IsPetNeedBeTemporaryUnsummoned() const
 {
-    return !IsInWorld() || !IsAlive() || HasUnitMovementFlag(MOVEMENTFLAG_FLYING) || HasExtraUnitMovementFlag2(MOVEMENTFLAG3_ADV_FLYING);
+    return !IsInWorld() || !IsAlive() || HasUnitMovementFlag(MOVEMENTFLAG_FLYING) || HasUnitMovementFlag(MOVEMENTFLAG_ADV_FLYING);
 }
 
 bool Player::CanSeeGossipOn(Creature const* creature) const
@@ -31166,8 +31174,10 @@ void Player::SendPlayerChoice(ObjectGuid sender, int32 choiceId)
     displayPlayerChoice.HideWarboardHeader = playerChoice->HideWarboardHeader;
     displayPlayerChoice.KeepOpenAfterChoice = playerChoice->KeepOpenAfterChoice;
     displayPlayerChoice.ShowChoicesAsList = playerChoice->ShowChoicesAsList;
-    displayPlayerChoice.ForceDontShowChoicesAsList = playerChoice->ForceDontShowChoicesAsList;
     displayPlayerChoice.RequiresSelection = playerChoice->RequiresSelection;
+    displayPlayerChoice.ShowChoicesAsGrid = playerChoice->ShowChoicesAsGrid;
+    displayPlayerChoice.HideAnswerArt = playerChoice->HideAnswerArt;
+    displayPlayerChoice.ShowChoicesAsColumns = playerChoice->ShowChoicesAsColumns;
 
     for (std::size_t i = 0; i < playerChoice->Responses.size() && (!playerChoice->MaxResponses || displayPlayerChoice.Responses.size() < *playerChoice->MaxResponses); ++i)
     {
@@ -31251,6 +31261,8 @@ void Player::SendPlayerChoice(ObjectGuid sender, int32 choiceId)
             mawPower.Rarity = playerChoiceResponseTemplate.MawPower->Rarity;
             mawPower.SpellID = playerChoiceResponseTemplate.MawPower->SpellID;
             mawPower.MaxStacks = playerChoiceResponseTemplate.MawPower->MaxStacks;
+
+            displayPlayerChoice.HasPowerChoice = true;
         }
     }
 

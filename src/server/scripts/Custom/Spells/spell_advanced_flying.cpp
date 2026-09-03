@@ -56,7 +56,7 @@ static void SendFacingImpulse(Unit* caster, float speed)
 static SpellCastResult CheckSkyriding(SpellScript* script)
 {
     Unit* caster = script->GetCaster();
-    if (!caster->HasExtraUnitMovementFlag2(MOVEMENTFLAG3_CAN_ADV_FLY))
+    if (!caster->HasUnitMovementFlag(MOVEMENTFLAG_CAN_ADV_FLY))
     {
         script->SetCustomCastResultMessage(SPELL_CUSTOM_ERROR_REQUIRES_SKYRIDING);
         return SPELL_FAILED_CUSTOM_ERROR;
@@ -237,7 +237,7 @@ class spell_dragonriding_launch_boost_aura : public AuraScript
     {
         if (Unit* target = GetTarget())
         {
-            if (!target->HasExtraUnitMovementFlag2(MOVEMENTFLAG3_CAN_ADV_FLY))
+            if (!target->HasUnitMovementFlag(MOVEMENTFLAG_CAN_ADV_FLY))
                 return;
 
             SendFacingImpulse(target, 5.0f);

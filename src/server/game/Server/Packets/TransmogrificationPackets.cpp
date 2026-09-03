@@ -71,8 +71,8 @@ ByteBuffer& operator<<(ByteBuffer& data, TransmogOutfitDataInfo const& transmogO
 void TransmogOutfitNew::Read()
 {
     _worldPacket >> Npc;
-    _worldPacket >> As<uint8>(Source);
     _worldPacket >> Info;
+    _worldPacket >> As<uint8>(Source);
 }
 
 WorldPacket const* TransmogOutfitNewEntryAdded::Write()

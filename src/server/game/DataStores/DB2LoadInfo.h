@@ -1614,15 +1614,15 @@ struct CriteriaLoadInfo
         { .IsSigned = false, .Type = FT_INT, .Name = "ID" },
         { .IsSigned = true, .Type = FT_SHORT, .Name = "Type" },
         { .IsSigned = true, .Type = FT_INT, .Name = "Asset" },
-        { .IsSigned = false, .Type = FT_INT, .Name = "ModifierTreeId" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "ModifierTreeId" },
         { .IsSigned = true, .Type = FT_INT, .Name = "StartEvent" },
         { .IsSigned = true, .Type = FT_INT, .Name = "StartAsset" },
-        { .IsSigned = false, .Type = FT_SHORT, .Name = "StartTimer" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "StartTimer" },
         { .IsSigned = true, .Type = FT_INT, .Name = "FailEvent" },
         { .IsSigned = true, .Type = FT_INT, .Name = "FailAsset" },
         { .IsSigned = true, .Type = FT_INT, .Name = "Flags" },
-        { .IsSigned = true, .Type = FT_SHORT, .Name = "EligibilityWorldStateID" },
-        { .IsSigned = true, .Type = FT_BYTE, .Name = "EligibilityWorldStateValue" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "EligibilityWorldStateID" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "EligibilityWorldStateValue" },
     };
 
     static constexpr DB2LoadInfo Instance{ Fields, 12, &CriteriaMeta::Instance, HOTFIX_SEL_CRITERIA };
@@ -2197,7 +2197,7 @@ struct GameobjectLabelLoadInfo
 
 struct GameobjectsLoadInfo
 {
-    static constexpr DB2FieldMeta Fields[25] =
+    static constexpr DB2FieldMeta Fields[26] =
     {
         { .IsSigned = false, .Type = FT_STRING, .Name = "Name" },
         { .IsSigned = false, .Type = FT_FLOAT, .Name = "PosX" },
@@ -2210,6 +2210,7 @@ struct GameobjectsLoadInfo
         { .IsSigned = false, .Type = FT_INT, .Name = "ID" },
         { .IsSigned = false, .Type = FT_INT, .Name = "OwnerID" },
         { .IsSigned = true, .Type = FT_INT, .Name = "DisplayID" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "Flags" },
         { .IsSigned = false, .Type = FT_FLOAT, .Name = "Scale" },
         { .IsSigned = true, .Type = FT_INT, .Name = "TypeID" },
         { .IsSigned = true, .Type = FT_INT, .Name = "PhaseUseFlags" },
@@ -2226,7 +2227,7 @@ struct GameobjectsLoadInfo
         { .IsSigned = true, .Type = FT_INT, .Name = "PropValue8" },
     };
 
-    static constexpr DB2LoadInfo Instance{ Fields, 25, &GameObjectsMeta::Instance, HOTFIX_SEL_GAMEOBJECTS };
+    static constexpr DB2LoadInfo Instance{ Fields, 26, &GameObjectsMeta::Instance, HOTFIX_SEL_GAMEOBJECTS };
 };
 
 struct GarrAbilityLoadInfo
@@ -2237,7 +2238,7 @@ struct GarrAbilityLoadInfo
         { .IsSigned = false, .Type = FT_STRING, .Name = "Name" },
         { .IsSigned = false, .Type = FT_STRING, .Name = "Description" },
         { .IsSigned = false, .Type = FT_BYTE, .Name = "GarrAbilityCategoryID" },
-        { .IsSigned = true, .Type = FT_BYTE, .Name = "GarrFollowerTypeID" },
+        { .IsSigned = false, .Type = FT_BYTE, .Name = "GarrFollowerTypeID" },
         { .IsSigned = true, .Type = FT_INT, .Name = "IconFileDataID" },
         { .IsSigned = false, .Type = FT_SHORT, .Name = "FactionChangeGarrAbilityID" },
         { .IsSigned = true, .Type = FT_INT, .Name = "Flags" },
@@ -2321,7 +2322,7 @@ struct GarrFollowerLoadInfo
         { .IsSigned = false, .Type = FT_STRING, .Name = "AllianceSourceText" },
         { .IsSigned = false, .Type = FT_STRING, .Name = "TitleName" },
         { .IsSigned = true, .Type = FT_BYTE, .Name = "GarrTypeID" },
-        { .IsSigned = true, .Type = FT_BYTE, .Name = "GarrFollowerTypeID" },
+        { .IsSigned = false, .Type = FT_BYTE, .Name = "GarrFollowerTypeID" },
         { .IsSigned = true, .Type = FT_INT, .Name = "HordeCreatureID" },
         { .IsSigned = true, .Type = FT_INT, .Name = "AllianceCreatureID" },
         { .IsSigned = false, .Type = FT_BYTE, .Name = "HordeGarrFollRaceID" },
@@ -2383,7 +2384,7 @@ struct GarrMissionLoadInfo
         { .IsSigned = false, .Type = FT_FLOAT, .Name = "WorldPosY" },
         { .IsSigned = true, .Type = FT_BYTE, .Name = "GarrTypeID" },
         { .IsSigned = false, .Type = FT_BYTE, .Name = "GarrMissionTypeID" },
-        { .IsSigned = true, .Type = FT_BYTE, .Name = "GarrFollowerTypeID" },
+        { .IsSigned = false, .Type = FT_BYTE, .Name = "GarrFollowerTypeID" },
         { .IsSigned = false, .Type = FT_BYTE, .Name = "MaxFollowers" },
         { .IsSigned = false, .Type = FT_INT, .Name = "MissionCost" },
         { .IsSigned = false, .Type = FT_SHORT, .Name = "MissionCostCurrencyTypesID" },
@@ -2580,7 +2581,7 @@ struct GossipNpcOptionLoadInfo
         { .IsSigned = true, .Type = FT_INT, .Name = "GossipNpcOption" },
         { .IsSigned = true, .Type = FT_INT, .Name = "LFGDungeonsID" },
         { .IsSigned = true, .Type = FT_INT, .Name = "TrainerID" },
-        { .IsSigned = true, .Type = FT_BYTE, .Name = "GarrFollowerTypeID" },
+        { .IsSigned = false, .Type = FT_BYTE, .Name = "GarrFollowerTypeID" },
         { .IsSigned = true, .Type = FT_INT, .Name = "CharShipmentID" },
         { .IsSigned = true, .Type = FT_INT, .Name = "GarrTalentTreeID" },
         { .IsSigned = true, .Type = FT_INT, .Name = "UiMapID" },
@@ -4582,9 +4583,10 @@ struct PhaseXPhaseGroupLoadInfo
 
 struct PlayerCompanionInfoLoadInfo
 {
-    static constexpr DB2FieldMeta Fields[15] =
+    static constexpr DB2FieldMeta Fields[17] =
     {
         {.IsSigned = false, .Type = FT_STRING, .Name = "UnlockDescription" },
+        {.IsSigned = false, .Type = FT_STRING, .Name = "Field_001" },
         {.IsSigned = false, .Type = FT_INT,    .Name = "ID" },
         {.IsSigned = true,  .Type = FT_INT,    .Name = "DelvesSeasonID" },
         {.IsSigned = true,  .Type = FT_INT,    .Name = "TraitTreeID" },
@@ -4598,15 +4600,16 @@ struct PlayerCompanionInfoLoadInfo
         {.IsSigned = true,  .Type = FT_INT,    .Name = "UiModelSceneID" },
         {.IsSigned = true,  .Type = FT_INT,    .Name = "Field_011" },
         {.IsSigned = true,  .Type = FT_INT,    .Name = "Field_012" },
+        {.IsSigned = true,  .Type = FT_INT,    .Name = "FlavorNodeID" },
         {.IsSigned = false, .Type = FT_INT,    .Name = "Field_014" },
     };
 
-    static constexpr DB2LoadInfo Instance{ Fields, 15, &PlayerCompanionInfoMeta::Instance, HOTFIX_SEL_PLAYER_COMPANION_INFO };
+    static constexpr DB2LoadInfo Instance{ Fields, 17, &PlayerCompanionInfoMeta::Instance, HOTFIX_SEL_PLAYER_COMPANION_INFO };
 };
 
 struct PlayerConditionLoadInfo
 {
-    static constexpr DB2FieldMeta Fields[163] =
+    static constexpr DB2FieldMeta Fields[162] =
     {
         { .IsSigned = false, .Type = FT_INT, .Name = "ID" },
         { .IsSigned = false, .Type = FT_STRING, .Name = "FailureDescription" },
@@ -4657,6 +4660,7 @@ struct PlayerConditionLoadInfo
         { .IsSigned = true, .Type = FT_BYTE, .Name = "PowerType" },
         { .IsSigned = false, .Type = FT_BYTE, .Name = "PowerTypeComp" },
         { .IsSigned = true, .Type = FT_BYTE, .Name = "PowerTypeValue" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "MovementFlags" },
         { .IsSigned = true, .Type = FT_INT, .Name = "WeaponSubclassMask" },
         { .IsSigned = false, .Type = FT_BYTE, .Name = "MaxGuildLevel" },
         { .IsSigned = false, .Type = FT_BYTE, .Name = "MinGuildLevel" },
@@ -4755,8 +4759,6 @@ struct PlayerConditionLoadInfo
         { .IsSigned = false, .Type = FT_INT, .Name = "QuestKillMonster4" },
         { .IsSigned = false, .Type = FT_INT, .Name = "QuestKillMonster5" },
         { .IsSigned = false, .Type = FT_INT, .Name = "QuestKillMonster6" },
-        { .IsSigned = true, .Type = FT_INT, .Name = "MovementFlags1" },
-        { .IsSigned = true, .Type = FT_INT, .Name = "MovementFlags2" },
         { .IsSigned = true, .Type = FT_INT, .Name = "RaceMask1" },
         { .IsSigned = true, .Type = FT_INT, .Name = "RaceMask2" },
         { .IsSigned = true, .Type = FT_INT, .Name = "TraitNodeEntryID1" },
@@ -4773,7 +4775,7 @@ struct PlayerConditionLoadInfo
         { .IsSigned = false, .Type = FT_SHORT, .Name = "TraitNodeEntryMaxRank4" },
     };
 
-    static constexpr DB2LoadInfo Instance{ Fields, 163, &PlayerConditionMeta::Instance, HOTFIX_SEL_PLAYER_CONDITION };
+    static constexpr DB2LoadInfo Instance{ Fields, 162, &PlayerConditionMeta::Instance, HOTFIX_SEL_PLAYER_CONDITION };
 };
 
 struct PlayerDataElementAccountLoadInfo
@@ -5557,7 +5559,7 @@ struct SpellClassOptionsLoadInfo
         { .IsSigned = false, .Type = FT_INT, .Name = "ID" },
         { .IsSigned = true, .Type = FT_INT, .Name = "SpellID" },
         { .IsSigned = false, .Type = FT_INT, .Name = "ModalNextSpell" },
-        { .IsSigned = false, .Type = FT_BYTE, .Name = "SpellClassSet" },
+        { .IsSigned = true, .Type = FT_INT, .Name = "SpellClassSet" },
         { .IsSigned = true, .Type = FT_INT, .Name = "SpellClassMask1" },
         { .IsSigned = true, .Type = FT_INT, .Name = "SpellClassMask2" },
         { .IsSigned = true, .Type = FT_INT, .Name = "SpellClassMask3" },
