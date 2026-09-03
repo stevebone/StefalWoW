@@ -44,6 +44,9 @@ enum DeathKnightSpells
     SPELL_DK_ARMY_SPIKED_GHOUL_TRANSFORM        = 127525,
     SPELL_DK_ARMY_SUPER_ZOMBIE_TRANSFORM        = 127526,
     SPELL_DK_BLINDING_SLEET_SLOW                = 317898,
+    SPELL_DK_BLOOD_DRAW                         = 374598,
+    SPELL_DK_BLOOD_DRAW_DRAIN                   = 374606,
+    SPELL_DK_BLOOD_DRAW_ICD                     = 374609,
     SPELL_DK_BLOOD                              = 137008,
     SPELL_DK_BLOODDRINKER_DEBUFF                = 458687,
     SPELL_DK_BLOOD_BOND_PERIODIC                = 1267044,
@@ -324,6 +327,34 @@ class spell_dk_blinding_sleet : public AuraScript
     void Register() override
     {
         AfterEffectRemove += AuraEffectRemoveFn(spell_dk_blinding_sleet::HandleOnRemove, EFFECT_0, SPELL_AURA_MOD_CONFUSE, AURA_EFFECT_HANDLE_REAL);
+    }
+};
+
+// 374606 - Blood Draw (proc)
+// Apply the ICD debuff immediately so repeated threshold crossings cannot
+// re-trigger the talent before the delayed effect on this spell fires.
+class spell_dk_blood_draw : public SpellScript
+{
+    bool Validate(SpellInfo const* /*spellInfo*/) override
+    {
+        return ValidateSpellInfo({ SPELL_DK_BLOOD_DRAW_ICD });
+    }
+
+    void HandleCast()
+    {
+        Unit* caster = GetCaster();
+        if (!caster || caster->HasAura(SPELL_DK_BLOOD_DRAW_ICD))
+            return;
+
+        caster->CastSpell(caster, SPELL_DK_BLOOD_DRAW_ICD, CastSpellExtraArgsInit{
+            .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR,
+            .TriggeringSpell = GetSpell()
+        });
+    }
+
+    void Register() override
+    {
+        OnCast += SpellCastFn(spell_dk_blood_draw::HandleCast);
     }
 };
 
@@ -1501,6 +1532,7 @@ void AddSC_deathknight_spell_scripts()
     RegisterSpellScript(spell_dk_army_transform);
     RegisterSpellScript(spell_dk_birth);
     RegisterSpellScript(spell_dk_blinding_sleet);
+    RegisterSpellScript(spell_dk_blood_draw);
     RegisterSpellScript(spell_dk_blooddrinker);
     RegisterSpellScript(spell_dk_blood_boil);
     RegisterSpellScript(spell_dk_blood_bond_periodic);

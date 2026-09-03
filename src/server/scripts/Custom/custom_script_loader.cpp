@@ -225,4 +225,8 @@ void AddCustomScripts()
     // Misc
     AddSC_gm_fixer();
     AddSC_db_autofix();
+	
+    // RolePlayFunction/Display
+    AddSC_CustomDisplayHandler();
+    AddSC_CustomDisplayCommands();
 }

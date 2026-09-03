@@ -7698,8 +7698,14 @@ SpellCastResult Spell::CheckItems(int32* param1 /*= nullptr*/, int32* param2 /*=
                     if (!requiredLevel)
                         requiredLevel = targetItem->GetItemLevel(targetItem->GetOwner());
 
+                    // SFIX_LOWLEVEL_PERM - player-level-scaling items (e.g. heirlooms) have a low base
+                    // RequiredLevel but grow with the owner - fall back to their effective item level
                     if (requiredLevel < m_spellInfo->BaseLevel)
-                        return SPELL_FAILED_LOWLEVEL;
+                    {
+                        uint32 effectiveItemLevel = targetItem->GetItemLevel(targetItem->GetOwner());
+                        if (effectiveItemLevel < m_spellInfo->BaseLevel)
+                            return SPELL_FAILED_LOWLEVEL;
+                    }
                 }
                 if ((m_CastItem || spellEffectInfo.IsEffect(SPELL_EFFECT_ENCHANT_ITEM_PRISMATIC))
                     && m_spellInfo->MaxLevel > 0 && targetItem->GetItemLevel(targetItem->GetOwner()) > m_spellInfo->MaxLevel)
@@ -7775,8 +7781,14 @@ SpellCastResult Spell::CheckItems(int32* param1 /*= nullptr*/, int32* param2 /*=
                     if (!requiredLevel)
                         requiredLevel = item->GetItemLevel(item->GetOwner());
 
+                    // SFIX_LOWLEVEL_TEMP - player-level-scaling items (e.g. heirlooms) have a low base
+                    // RequiredLevel but grow with the owner - fall back to their effective item level
                     if (requiredLevel < m_spellInfo->BaseLevel)
-                        return SPELL_FAILED_LOWLEVEL;
+                    {
+                        uint32 effectiveItemLevel = item->GetItemLevel(item->GetOwner());
+                        if (effectiveItemLevel < m_spellInfo->BaseLevel)
+                            return SPELL_FAILED_LOWLEVEL;
+                    }
                 }
                 if (m_CastItem && m_spellInfo->MaxLevel > 0 && item->GetItemLevel(item->GetOwner()) > m_spellInfo->MaxLevel)
                     return SPELL_FAILED_HIGHLEVEL;

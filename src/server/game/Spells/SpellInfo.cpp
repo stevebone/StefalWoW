@@ -2956,8 +2956,13 @@ void SpellInfo::_LoadSpellSpecific()
                 break;
             }
             case SPELLFAMILY_DEATHKNIGHT:
-                if (Id == 48266 || Id == 48263 || Id == 48265)
-                    return SPELL_SPECIFIC_PRESENCE;
+                // Classic Blood/Frost/Unholy Presence spell IDs were recycled and must not
+                // share SPELL_SPECIFIC_PRESENCE exclusivity anymore:
+                // 48263 = Veteran of the Third War (passive talent)
+                // 48265 = Death's Advance
+                // 48266 = unrelated / unused for Presence
+                // Keeping the old check removed VotTW after relog when Death's Advance
+                // (or another recycled ID) was loaded from character_aura.
                 break;
         }
 

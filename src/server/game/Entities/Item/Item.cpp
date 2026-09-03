@@ -3013,6 +3013,11 @@ void BonusData::Initialize(WorldPackets::Item::ItemInstance const& itemInstance)
 
 void BonusData::AddBonusList(uint32 bonusListId)
 {
+    // SFIX_LEGACY_SCALING — ignore legacy player-level scaling lists (6657 -> 6656) even if
+    // already present on saved items or attached via vendor/quest data
+    if (bonusListId == 6656 || bonusListId == 6657)
+        return;
+
     for (ItemBonusEntry const* bonus : ItemBonusMgr::GetItemBonuses(bonusListId))
         AddBonus(bonus->Type, bonus->Value);
 }

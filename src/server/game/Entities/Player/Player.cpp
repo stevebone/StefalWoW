@@ -2799,6 +2799,20 @@ bool Player::AddSpell(uint32 spellId, bool active, bool learning, bool dependent
             if (!IsInWorld() && !learning)                   // explicitly load from DB and then exist in it already and set correctly
                 itr->second.state = PLAYERSPELL_UNCHANGED;
 
+            // FIX_DK_VOTTW_RELOG: attach Trait metadata when re-learning from config.
+            if (learning && trait && itr->second.Trait != trait)
+            {
+                if (itr->second.Trait)
+                    if (TraitDefinitionEntry const* traitDefinition = sTraitDefinitionStore.LookupEntry(itr->second.Trait->DefinitionId))
+                        RemoveOverrideSpell(traitDefinition->OverridesSpellID, spellId);
+
+                itr->second.Trait = trait;
+            }
+
+            // FIX_DK_VOTTW_RELOG: re-apply missing trait/passive auras after login.
+            if (learning && spellInfo->IsPassive() && !HasAura(spellId) && HandlePassiveSpellLearn(spellInfo))
+                CastSpell(this, spellId, true);
+
             return false;
         }
 

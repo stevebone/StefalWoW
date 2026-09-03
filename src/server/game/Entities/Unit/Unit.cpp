@@ -2265,19 +2265,27 @@ void Unit::DoMeleeAttackIfReady()
 
     if (!IsInFeralForm() && haveOffhandWeapon() && isAttackReady(OFF_ATTACK))
     {
-        Optional<AttackSwingErr> autoAttackError = getAutoAttackError();
-        if (!autoAttackError)
+        // FIX_PAL_CRUSADING_STRIKES_SKIP_OFFHAND: main-hand autoattack overrides
+        // (Crusading Strikes, etc.) fully replace the swing. Off-hand still did a
+        // normal white hit because MiscValue is 0 on those auras.
+        if (GetAuraEffectsByType(SPELL_AURA_OVERRIDE_AUTOATTACK_WITH_MELEE_SPELL).empty())
         {
-            // prevent base and off attack in same time, delay attack at 0.2 sec
-            if (getAttackTimer(BASE_ATTACK) < ATTACK_DISPLAY_DELAY)
-                setAttackTimer(BASE_ATTACK, ATTACK_DISPLAY_DELAY);
+            Optional<AttackSwingErr> autoAttackError = getAutoAttackError();
+            if (!autoAttackError)
+            {
+                // prevent base and off attack in same time, delay attack at 0.2 sec
+                if (getAttackTimer(BASE_ATTACK) < ATTACK_DISPLAY_DELAY)
+                    setAttackTimer(BASE_ATTACK, ATTACK_DISPLAY_DELAY);
 
-            // do attack
-            AttackerStateUpdate(victim, OFF_ATTACK);
-            resetAttackTimer(OFF_ATTACK);
+                // do attack
+                AttackerStateUpdate(victim, OFF_ATTACK);
+                resetAttackTimer(OFF_ATTACK);
+            }
+            else
+                setAttackTimer(OFF_ATTACK, 100);
         }
         else
-            setAttackTimer(OFF_ATTACK, 100);
+            resetAttackTimer(OFF_ATTACK);
     }
 }
 
@@ -2386,13 +2394,11 @@ void Unit::AttackerStateUpdate(Unit* victim, WeaponAttackType attType, bool extr
         }
         else
         {
+            // FIX_PAL_CRUSADING_STRIKES_NO_FAKE_SWING: replacement spell (e.g. Crusading
+            // Strikes 408385) is the only hit. Do not also send a 0-damage
+            // AttackerStateUpdate — clients show it as a second white swing/miss.
             CastSpell(victim, meleeAttackSpellId, true);
-
-            uint32 hitInfo = HITINFO_AFFECTS_VICTIM | HITINFO_NO_ANIMATION;
-            if (attType == OFF_ATTACK)
-                hitInfo |= HITINFO_OFFHAND;
-
-            SendAttackStateUpdate(hitInfo, victim, 0, GetMeleeDamageSchoolMask(), 0, 0, 0, VICTIMSTATE_HIT, 0, 0);
+            _lastDamagedTargetGuid = victim->GetGUID();
         }
     }
 }

@@ -455,6 +455,14 @@ std::vector<int32> GetBonusListsForItem(uint32 itemId, ItemBonusGenerationParams
             bonusListIDs.push_back(azeriteUnlockBonusListId);
     }
 
+    // SFIX_LEGACY_SCALING — strip legacy player-level scaling lists (old-item scaling:
+    // ItemScalingConfig + quality upgrade). They inflate displayed item level
+    // without adding any stats.
+    std::erase_if(bonusListIDs, [](int32 bonusListId)
+    {
+        return bonusListId == 6656 || bonusListId == 6657;
+    });
+
     return bonusListIDs;
 }
 
