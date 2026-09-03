@@ -124,6 +124,8 @@ void AddSC_advanced_flying_spell_scripts();
 void AddSC_gm_fixer();
 void AddSC_db_autofix();
 void AddSC_barber_scripts();
+void AddSC_CustomDisplayHandler();
+void AddSC_CustomDisplayCommands();
 
 // The name of this function should match:
 // void Add${NameOfDirectory}Scripts()
@@ -231,4 +233,8 @@ void AddCustomScripts()
     AddSC_gm_fixer();
     AddSC_db_autofix();
     AddSC_barber_scripts();
+
+    // RolePlay
+    AddSC_CustomDisplayHandler();
+    AddSC_CustomDisplayCommands();
 }
