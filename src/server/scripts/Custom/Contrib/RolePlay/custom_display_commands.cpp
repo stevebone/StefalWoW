@@ -3,6 +3,10 @@
 #include "Chat.h"
 #include "ChatCommand.h"
 #include "Common.h"
+#include "RBAC.h"
+#include "ScriptMgr.h"
+#include <cstring>
+#include <cstdlib>
 
 namespace RoleplayCore
 {

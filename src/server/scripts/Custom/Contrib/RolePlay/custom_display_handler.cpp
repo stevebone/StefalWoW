@@ -1,5 +1,8 @@
 #include "custom_display_handler.h"
+#include "DB2Stores.h"
+#include "ObjectMgr.h"
 #include "TransmogMgr.h"
+#include <algorithm>
 
 namespace RoleplayCore
 {

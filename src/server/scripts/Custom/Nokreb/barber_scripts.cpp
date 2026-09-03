@@ -13,6 +13,7 @@
 #include "ChatCommandTags.h"
 #include "ChatCommand.h"
 #include "MiscPackets.h"
+#include "Player.h"
 #include "ScriptMgr.h"
 #include "WorldSession.h"
 #include "RBAC.h"
