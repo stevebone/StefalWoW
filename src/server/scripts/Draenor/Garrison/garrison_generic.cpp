@@ -17,11 +17,32 @@
 
 #include "AreaTrigger.h"
 #include "AreaTriggerAI.h"
+#include "Chat.h"
+#include "Creature.h"
+#include "DB2Structure.h"
+#include "EventProcessor.h"
+#include "GameObject.h"
+#include "GameObjectAI.h"
 #include "Garrison.h"
+#include "GarrisonMap.h"
 #include "Map.h"
+#include "MotionMaster.h"
+#include "ObjectAccessor.h"
+#include "ObjectMgr.h"
 #include "Player.h"
+#include "QuestDef.h"
+#include "ScriptedCreature.h"
+#include "ScriptedGossip.h"
 #include "ScriptMgr.h"
+#include "TemporarySummon.h"
 #include "Unit.h"
+
+#include <cmath>
+#include <iterator>
+#include <algorithm>
+#include <mutex>
+#include <vector>
+#include <unordered_map>
 
 // XX - Garrison enter AreaTrigger
 struct at_garrison_enter : AreaTriggerAI
@@ -71,9 +92,167 @@ struct at_garrison_exit : AreaTriggerAI
     }
 };
 
+// Garrison resource cache: the WoD cache GameObject (types "Garrison Cache" / "Hefty" / "Full") accrues
+// Garrison Resources over time. Clicking it collects whatever has banked (Garrison::CollectGarrisonCache).
+// Retail gives only the currency-gain toast as confirmation, so we don't emit a system chat message.
+struct go_garrison_cache : GameObjectAI
+{
+    go_garrison_cache(GameObject* go) : GameObjectAI(go) { }
+
+    uint32 _displayTimer = 0;
+
+    Garrison* GetOwnerGarrison() const
+    {
+        if (Map* map = me->GetMap())
+            if (map->IsGarrison())
+                return static_cast<GarrisonMap*>(map)->GetGarrison();
+        return nullptr;
+    }
+
+    // The resource cache swaps its model as Garrison Resources bank up: Normal (< 200), Hefty (200-499),
+    // Full (>= 500, capped). DisplayInfoIDs are the per-faction Garrison Cache / Hefty / Full GO templates
+    // (Alliance 23775/23773/23777, Horde 23774/23772/23776). Collecting empties it back to the Normal model.
+    void RefreshDisplay()
+    {
+        Garrison* garrison = GetOwnerGarrison();
+        if (!garrison || garrison->GetType() != GARRISON_TYPE_GARRISON)
+            return;
+
+        uint32 const banked = garrison->GetPendingCacheResources();
+        bool const alliance = garrison->GetFaction() == GARRISON_FACTION_INDEX_ALLIANCE;
+
+        uint32 displayId;
+        if (banked >= 500)
+            displayId = alliance ? 23777 : 23776; // Full
+        else if (banked >= 200)
+            displayId = alliance ? 23773 : 23772; // Hefty
+        else
+            displayId = alliance ? 23775 : 23774; // Normal
+
+        if (me->GetDisplayId() != displayId)
+            me->SetDisplayId(displayId);
+    }
+
+    void UpdateAI(uint32 diff) override
+    {
+        _displayTimer += diff;
+        if (_displayTimer < 5000)
+            return;
+        _displayTimer = 0;
+        RefreshDisplay();
+    }
+
+    bool OnGossipHello(Player* player) override
+    {
+        Garrison* garrison = player->GetGarrison();
+        if (!garrison || garrison->GetType() != GARRISON_TYPE_GARRISON)
+            return false;
+
+        garrison->CollectGarrisonCache(); // grants the currency (client shows the standard gain toast)
+        me->SendCustomAnim(0);            // play the cache's use animation for loot feedback
+        RefreshDisplay();                 // banked resources reset to 0 -> revert to the empty (Normal) model
+        return true; // the cache is fully handled here — suppress the default goober behaviour
+    }
+};
+
+// NOTE: the building work-order crate (GAMEOBJECT_TYPE_GARRISON_SHIPMENT) is handled entirely in core
+// (GameObject::Use -> Garrison::SendOpenShipmentUI); it needs no GameObject script here.
+
+// WoD Shipyard unlock. The Blizzlike path: at garrison Tier 3 the "Garrison Campaign: War Council" pop-up chain
+// starts from the faction leader, runs out to the Iron Docks (We Need a Shipwright -> Derailment -> The Train Gang
+// -> Hook, Line, and... Sink Him! -> Nothing Remains) and ends with "All Hands on Deck" back at the garrison,
+// whose completion builds the shipyard (retail casts reward spell 186007 Alliance / 185915 Horde). We hook the
+// terminal quest's REWARDED status directly (verified quest ids) rather than the reward spell, so the trigger does
+// not depend on that spell's effect layout. CreateShipyard() itself re-checks the Tier-3 prerequisite.
+enum ShipyardIntroQuests
+{
+    QUEST_ALL_HANDS_ON_DECK_ALLIANCE = 38259,
+    QUEST_ALL_HANDS_ON_DECK_HORDE    = 38574
+};
+
+// Bound to quests 38259 / 38574 via quest_template.ScriptName = 'quest_garrison_shipyard_intro'.
+struct quest_garrison_shipyard_intro : QuestScript
+{
+    quest_garrison_shipyard_intro() : QuestScript("quest_garrison_shipyard_intro") { }
+
+    void OnQuestStatusChange(Player* player, Quest const* /*quest*/, QuestStatus /*oldStatus*/, QuestStatus newStatus) override
+    {
+        if (newStatus != QUEST_STATUS_REWARDED)
+            return;
+
+        if (Garrison* garrison = player->GetGarrison())
+            garrison->CreateShipyard(); // no-op unless it is a Tier-3 garrison with no shipyard yet
+    }
+};
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Garrison render-on-entry fix.
+//
+// The WoD garrison lives on its own instanced map, entered via a seamless (no-loading-screen) transfer. On a normal
+// login the client runs the garrison handshake (CMSG_GET_GARRISON_INFO + CMSG_GARRISON_GET_MAP_DATA) and renders the
+// plot buildings; on a seamless map transfer it does NOT, so although the building GameObjects are spawned the client
+// never receives the garrison state that drives the plot-building WMOs - the plots render empty while only each
+// building's interior/work-order spawns show. Relogging fixes it (full handshake); ".reload" cannot (it is server-side
+// only). We push the same responses the client would have requested. The push is deferred a moment because the map
+// change fires OnMapChanged from within Map::AddPlayerToMap, before the client has finished loading the new map -
+// sending immediately would arrive too early to stick (matching the observed "buildings flash then vanish" on
+// re-entry).
+class GarrisonRenderEvent : public BasicEvent
+{
+public:
+    explicit GarrisonRenderEvent(Player* player) : _player(player) { }
+
+    bool Execute(uint64 /*time*/, uint32 /*diff*/) override
+    {
+        if (_player->IsInWorld() && _player->GetMap()->IsGarrison())
+        {
+            for (auto const& [type, garrison] : _player->GetGarrisons())
+            {
+                GarrSiteLevelEntry const* site = garrison->GetSiteLevel();
+                if (site && site->MapID == _player->GetMapId())
+                {
+                    garrison->SendInfo();           // GetGarrisonInfoResult (+ mission/troop refresh) - the login snapshot
+                    garrison->SendMapData(_player);  // GarrisonMapDataResponse - drives the plot-building WMO rendering
+                    break;
+                }
+            }
+        }
+        return true;
+    }
+
+private:
+    Player* _player;
+};
+
+class garrison_render_on_enter : public PlayerScript
+{
+public:
+    garrison_render_on_enter() : PlayerScript("garrison_render_on_enter") { }
+
+    void OnMapChanged(Player* player) override
+    {
+        if (!player->GetMap()->IsGarrison())
+            return;
+
+        // Defer ~1.5s so the client has finished loading the garrison map before we push its render state.
+        player->m_Events.AddEventAtOffset(new GarrisonRenderEvent(player), 1500ms);
+    }
+};
+
 void AddSC_garrison_generic()
 {
     // AreaTrigger
     RegisterAreaTriggerAI(at_garrison_enter);
     RegisterAreaTriggerAI(at_garrison_exit);
+
+    // GameObject
+    RegisterGameObjectAI(go_garrison_cache);
+
+    // Creature
+
+    // Quest
+    new quest_garrison_shipyard_intro();
+
+    // Player
+    new garrison_render_on_enter();
 }
