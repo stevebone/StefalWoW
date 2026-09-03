@@ -121,6 +121,9 @@ void AddSC_advanced_flying_spell_scripts();
 // ==================== Misc Scripts ========================= //
 void AddSC_gm_fixer();
 void AddSC_db_autofix();
+void AddSC_barber_scripts();
+void AddSC_CustomDisplayHandler();
+void AddSC_CustomDisplayCommands();
 
 // The name of this function should match:
 // void Add${NameOfDirectory}Scripts()
