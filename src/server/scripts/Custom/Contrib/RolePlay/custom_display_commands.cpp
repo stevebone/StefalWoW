@@ -3,10 +3,9 @@
 #include "Chat.h"
 #include "ChatCommand.h"
 #include "Common.h"
+#include "Hyperlinks.h"
 #include "RBAC.h"
 #include "ScriptMgr.h"
-#include <cstring>
-#include <cstdlib>
 
 namespace RoleplayCore
 {
@@ -29,20 +28,20 @@ namespace RoleplayCore
             // with zero database setup.
             static ChatCommandTable displayCommandTable =
             {
-                { "head",      rbac::RBAC_PERM_COMMAND_GUILD, false, Display<DISPLAY_TYPE_HEAD>,            "" },
-                { "shoulders", rbac::RBAC_PERM_COMMAND_GUILD, false, Display<DISPLAY_TYPE_SHOULDERS>,       "" },
-                { "lshoulder", rbac::RBAC_PERM_COMMAND_GUILD, false, Display<DISPLAY_TYPE_SHOULDERS, true>, "" },
-                { "shirt",     rbac::RBAC_PERM_COMMAND_GUILD, false, Display<DISPLAY_TYPE_SHIRT>,           "" },
-                { "chest",     rbac::RBAC_PERM_COMMAND_GUILD, false, Display<DISPLAY_TYPE_CHEST>,           "" },
-                { "waist",     rbac::RBAC_PERM_COMMAND_GUILD, false, Display<DISPLAY_TYPE_WAIST>,           "" },
-                { "legs",      rbac::RBAC_PERM_COMMAND_GUILD, false, Display<DISPLAY_TYPE_PANTS>,           "" },
-                { "feet",      rbac::RBAC_PERM_COMMAND_GUILD, false, Display<DISPLAY_TYPE_BOOTS>,           "" },
-                { "wrists",    rbac::RBAC_PERM_COMMAND_GUILD, false, Display<DISPLAY_TYPE_WRISTS>,          "" },
-                { "hands",     rbac::RBAC_PERM_COMMAND_GUILD, false, Display<DISPLAY_TYPE_HANDS>,           "" },
-                { "back",      rbac::RBAC_PERM_COMMAND_GUILD, false, Display<DISPLAY_TYPE_BACK>,            "" },
-                { "tabard",    rbac::RBAC_PERM_COMMAND_GUILD, false, Display<DISPLAY_TYPE_TABARD>,          "" },
-                { "mainhand",  rbac::RBAC_PERM_COMMAND_GUILD, false, Display<DISPLAY_TYPE_MAIN>,            "" },
-                { "offhand",   rbac::RBAC_PERM_COMMAND_GUILD, false, Display<DISPLAY_TYPE_OFF>,             "" },
+                { "head",      Display<DISPLAY_TYPE_HEAD>,            rbac::RBAC_PERM_COMMAND_GUILD, Console::No },
+                { "shoulders", Display<DISPLAY_TYPE_SHOULDERS>,       rbac::RBAC_PERM_COMMAND_GUILD, Console::No },
+                { "lshoulder", Display<DISPLAY_TYPE_SHOULDERS, true>, rbac::RBAC_PERM_COMMAND_GUILD, Console::No },
+                { "shirt",     Display<DISPLAY_TYPE_SHIRT>,           rbac::RBAC_PERM_COMMAND_GUILD, Console::No },
+                { "chest",     Display<DISPLAY_TYPE_CHEST>,           rbac::RBAC_PERM_COMMAND_GUILD, Console::No },
+                { "waist",     Display<DISPLAY_TYPE_WAIST>,           rbac::RBAC_PERM_COMMAND_GUILD, Console::No },
+                { "legs",      Display<DISPLAY_TYPE_PANTS>,           rbac::RBAC_PERM_COMMAND_GUILD, Console::No },
+                { "feet",      Display<DISPLAY_TYPE_BOOTS>,           rbac::RBAC_PERM_COMMAND_GUILD, Console::No },
+                { "wrists",    Display<DISPLAY_TYPE_WRISTS>,          rbac::RBAC_PERM_COMMAND_GUILD, Console::No },
+                { "hands",     Display<DISPLAY_TYPE_HANDS>,           rbac::RBAC_PERM_COMMAND_GUILD, Console::No },
+                { "back",      Display<DISPLAY_TYPE_BACK>,            rbac::RBAC_PERM_COMMAND_GUILD, Console::No },
+                { "tabard",    Display<DISPLAY_TYPE_TABARD>,          rbac::RBAC_PERM_COMMAND_GUILD, Console::No },
+                { "mainhand",  Display<DISPLAY_TYPE_MAIN>,            rbac::RBAC_PERM_COMMAND_GUILD, Console::No },
+                { "offhand",   Display<DISPLAY_TYPE_OFF>,             rbac::RBAC_PERM_COMMAND_GUILD, Console::No },
             };
 
             static ChatCommandTable commandTable =
@@ -53,27 +52,20 @@ namespace RoleplayCore
             return commandTable;
         }
 
-        // Optimized template method for processing display commands
         template <DisplayType T, bool secondary = false>
-        static bool Display(ChatHandler* handler, char const* args)
+        static bool Display(ChatHandler* handler, Variant<Hyperlink<item>, uint32> itemArg, Optional<uint32> bonusArg)
         {
-            if (!handler || !args)
+            if (!handler)
                 return false;
 
-            char const* id = handler->extractKeyFromLink((char*)args, "Hitem");
-            if (!id)
-                return false;
+            uint32 itemId = 0;
+            if (Hyperlink<item> const* itemLinkData = std::get_if<Hyperlink<item>>(&itemArg))
+                itemId = (*itemLinkData)->Item->GetId();
+            else if (uint32 const* itemIdPtr = std::get_if<uint32>(&itemArg))
+                itemId = *itemIdPtr;
 
-            // Retrieve item ID
-            uint32 itemId = static_cast<uint32>(strtoul(id, nullptr, 10));
+            uint32 bonus = bonusArg.value_or(0);
 
-            // Retrieve the bonus, if specified
-            uint32 bonus = 0;
-            char* bonusStr = strtok(NULL, " ");
-            if (bonusStr)
-                bonus = strtol(bonusStr, NULL, 10);
-
-            // Call the display handler
             DisplayHandler::GetInstance().Display(handler, T, itemId, bonus, secondary);
             return true;
         }
