@@ -34,15 +34,44 @@
 
 #include "Custom_Warlock_Defines.h"
 
-class npc_pet_warlock_wild_imp : public CreatureScript
+namespace Scripts::Custom::Warlock
 {
-public:
-    npc_pet_warlock_wild_imp() : CreatureScript("npc_pet_warlock_wild_imp") { }
+    struct npc_warlock_dreadstalker : public ScriptedAI
+    {
+        npc_warlock_dreadstalker(Creature* creature) : ScriptedAI(creature) {}
+
+        bool firstTick = true;
+
+        void UpdateAI(uint32 /*diff*/) override
+        {
+            if (firstTick)
+            {
+                Unit* owner = me->GetOwner();
+                if (!me->GetOwner() || !me->GetOwner()->ToPlayer())
+                    return;
+
+                me->SetMaxHealth(owner->CountPctFromMaxHealth(40));
+                me->SetHealth(me->GetMaxHealth());
+
+                if (Unit* target = owner->ToPlayer()->GetSelectedUnit())
+                    me->CastSpell(target, Spells::DreadstalkersCharge, true);
+
+                firstTick = false;
+
+                me->CastSpell(me, Spells::SharpenedDreadfangs, true);
+            }
+
+            if (!UpdateVictim())
+                return;
+
+            me->DoMeleeAttackIfReady();
+        }
+    };
 
     // Wild Imp - 55659
-    struct npc_pet_warlock_wild_impAI : public PetAI
+    struct npc_pet_warlock_wild_imp : public PetAI
     {
-        npc_pet_warlock_wild_impAI(Creature* creature) : PetAI(creature)
+        npc_pet_warlock_wild_imp(Creature* creature) : PetAI(creature)
         {
             if (Unit* owner = me->GetOwner())
             {
@@ -98,11 +127,7 @@ public:
             {
                 if (Unit* owner = me->GetOwner())
                 {
-                    me->CastSpell(
-                        me,
-                        SPELL_WARLOCK_IMPLOSION_DAMAGE,
-                        CastSpellExtraArgs(TRIGGERED_FULL_MASK)
-                        .SetOriginalCaster(owner->GetGUID()));
+                    me->CastSpell(me, Spells::ImplosionDamage, CastSpellExtraArgs(TRIGGERED_FULL_MASK) .SetOriginalCaster(owner->GetGUID()));
                 }
 
                 UpdateOwnerAura(-1);
@@ -133,9 +158,7 @@ public:
             if (!target || !me->IsValidAttackTarget(target))
                 return;
 
-            me->CastSpell(target, SPELL_WARLOCK_FEL_FIREBOLT,
-                CastSpellExtraArgs(TRIGGERED_NONE)
-                .SetOriginalCaster(owner->GetGUID()));
+            me->CastSpell(target, Spells::FelFirebolt, CastSpellExtraArgs(TRIGGERED_NONE) .SetOriginalCaster(owner->GetGUID()));
         }
 
         void UpdateOwnerAura(int8 change)
@@ -144,14 +167,14 @@ public:
             {
                 if (change > 0)
                 {
-                    if (Aura* aura = owner->GetAura(SPELL_WARLOCK_WILD_IMP_COUNTER))
+                    if (Aura* aura = owner->GetAura(Spells::WildImpCounter))
                         aura->ModStackAmount(change);
                     else
-                        owner->CastSpell(owner, SPELL_WARLOCK_WILD_IMP_COUNTER, true); // apply first stack
+                        owner->CastSpell(owner, Spells::WildImpCounter, true); // apply first stack
                 }
                 else
                 {
-                    if (Aura* aura = owner->GetAura(SPELL_WARLOCK_WILD_IMP_COUNTER))
+                    if (Aura* aura = owner->GetAura(Spells::WildImpCounter))
                     {
                         if (aura->GetStackAmount() > 1)
                             aura->ModStackAmount(change);
@@ -163,21 +186,10 @@ public:
         }
     };
 
-    CreatureAI* GetAI(Creature* creature) const override
-    {
-        return new npc_pet_warlock_wild_impAI(creature);
-    }
-};
-
-class npc_pet_warlock_demonic_tyrant : public CreatureScript
-{
-public:
-    npc_pet_warlock_demonic_tyrant() : CreatureScript("npc_pet_warlock_demonic_tyrant") { }
-
     // Demonic Tyrant - 135002/250289 // new version added in Midnight
-    struct npc_pet_warlock_demonic_tyrantAI : public PetAI
+    struct npc_pet_warlock_demonic_tyrant : public PetAI
     {
-        npc_pet_warlock_demonic_tyrantAI(Creature* creature) : PetAI(creature)
+        npc_pet_warlock_demonic_tyrant(Creature* creature) : PetAI(creature)
         {
             if (Unit* owner = me->GetOwner())
             {
@@ -193,10 +205,10 @@ public:
             if (!owner)
                 return;
 
-            if (owner->HasAura(SPELL_WARLOCK_ANTORAN_ARMAMENTS) && me->GetEntry() == NPC_WARLOCK_DEMONIC_TYRANT1)
+            if (owner->HasAura(Spells::AntoranArmaments) && me->GetEntry() == Creatures::WarlockDemonicTyrant1)
                 me->DespawnOrUnsummon();
 
-            if (!owner->HasAura(SPELL_WARLOCK_ANTORAN_ARMAMENTS) && me->GetEntry() == NPC_WARLOCK_DEMONIC_TYRANT2)
+            if (!owner->HasAura(Spells::AntoranArmaments) && me->GetEntry() == Creatures::WarlockDemonicTyrant2)
                 me->DespawnOrUnsummon();
 
             uint32 impCount = 0;
@@ -204,7 +216,7 @@ public:
 
             if (owner)
             {
-                if (Aura* aura = owner->GetAura(SPELL_WARLOCK_WILD_IMP_COUNTER))
+                if (Aura* aura = owner->GetAura(Spells::WildImpCounter))
                     impCount = aura->GetStackAmount();
 
                 if (Player* player = owner->ToPlayer())
@@ -214,7 +226,7 @@ public:
                         if (!controlled)
                             continue;
 
-                        if (controlled->GetEntry() == NPC_WARLOCK_DREADSTALKER) // Dreadstalker
+                        if (controlled->GetEntry() == Creatures::WarlockDreadstalker) // Dreadstalker
                             dreadCount++;
                     }
                 }
@@ -224,7 +236,6 @@ public:
             me->SetStatPctModifier(UNIT_MOD_DAMAGE_MAINHAND, TOTAL_PCT, 1.0f + bonusPct / 100.0f);
 
             HandleDemonicConsumption();
-
             HandleReignOfTyrany();
 
             if (Unit* owner = me->GetOwner())
@@ -234,29 +245,13 @@ public:
             }
         }
 
-        void JustDied(Unit* /*killer*/) override
-        {
-        }
-
-        void OnDespawn() override
-        {
-        }
-
-        void JustEnteredCombat(Unit* /*who*/) override
-        {
-        }
-
-        void MovementInform(uint32 /*type*/, uint32 /*id*/) override
-        {
-        }
-
         void UpdateAI(uint32 /*diff*/) override
         {
             Unit* owner = me->GetOwner();
             if (!owner)
                 return;
 
-            uint32 spellId = SPELL_WARLOCK_TYRANT_DEMONFIRE;
+            uint32 spellId = Spells::TyrantsDemonfire;
 
             // Burning Cleave is currently not working
             //if (me->GetEntry() == NPC_WARLOCK_DEMONIC_TYRANT2)
@@ -279,9 +274,7 @@ public:
             if (!target || !me->IsValidAttackTarget(target))
                 return;
 
-            me->CastSpell(target, spellId,
-                CastSpellExtraArgs(TRIGGERED_NONE)
-                .SetOriginalCaster(owner->GetGUID()));
+            me->CastSpell(target, spellId, CastSpellExtraArgs(TRIGGERED_NONE) .SetOriginalCaster(owner->GetGUID()));
         }
 
         // Reign of Tyranny duration extension
@@ -291,15 +284,13 @@ public:
             if (!owner)
                 return;
 
-            if (owner->HasAura(SPELL_WARLOCK_REIGN_OF_TYRANNY))
+            if (owner->HasAura(Spells::ReignOfTyranny))
             {
                 if (TempSummon* summon = me->ToTempSummon())
                 {
                     auto remaining = summon->GetTimer(); // current despawn timer
-
                     summon->DespawnOrUnsummon(remaining + 5s);
-
-                    owner->CastSpell(owner, SPELL_WARLOCK_TYRANT_OBLATION);
+                    owner->CastSpell(owner, Spells::TyrantsOblation);
                 }
             }
         }
@@ -311,7 +302,7 @@ public:
                 return;
 
             // Talent check
-            if (!owner->HasAura(SPELL_WARLOCK_DEMONIC_CONSUMPTION)) // Demonic Consumption
+            if (!owner->HasAura(Spells::DemonicConsumption)) // Demonic Consumption
                 return;
 
             uint32 drainedHealth = 0;
@@ -332,7 +323,7 @@ public:
                     uint32 entry = demon->GetEntry();
 
                     // Skip doomguard and infernal
-                    if (entry == NPC_WARLOCK_INFERNAL || entry == NPC_WARLOCK_DOOMGUARD)
+                    if (entry == Creatures::WarlockInfernal || entry == Creatures::WarlockDoomguard)
                         continue;
 
                     uint32 hp = demon->GetHealth();
@@ -346,7 +337,6 @@ public:
 
                     // Drain HP
                     demon->ModifyHealth(-int32(drain));
-
                     drainedHealth += drain;
                 }
             }
@@ -354,27 +344,21 @@ public:
             if (drainedHealth == 0)
                 return;
 
-            owner->CastSpell(owner, SPELL_WARLOCK_DEMONIC_CONSUMPTION_BUFF);
+            owner->CastSpell(owner, Spells::DemonicConsumptionBuff);
 
             // Convert drained HP into Tyrant damage bonus
             float bonusPct = float(drainedHealth) / float(me->GetMaxHealth());
 
-            me->SetStatPctModifier(
-                UNIT_MOD_DAMAGE_MAINHAND,
-                TOTAL_PCT,
-                1.0f + bonusPct
-            );
+            me->SetStatPctModifier(UNIT_MOD_DAMAGE_MAINHAND, TOTAL_PCT, 1.0f + bonusPct);
         }
     };
-
-    CreatureAI* GetAI(Creature* creature) const override
-    {
-        return new npc_pet_warlock_demonic_tyrantAI(creature);
-    }
-};
+}
 
 void AddSC_custom_warlock_demon_npcs()
 {
-    new npc_pet_warlock_wild_imp();
-    new npc_pet_warlock_demonic_tyrant();
+    using namespace Scripts::Custom::Warlock;
+
+    RegisterCreatureAI(npc_warlock_dreadstalker);
+    RegisterCreatureAI(npc_pet_warlock_wild_imp);
+    RegisterCreatureAI(npc_pet_warlock_demonic_tyrant);
 }

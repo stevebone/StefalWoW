@@ -2104,72 +2104,6 @@ class spell_warl_corruption_effect : public AuraScript
     }
 };
 
-// 234153 - Drain Life
-class spell_warl_drain_life : public AuraScript
-{
-    bool Validate(SpellInfo const* /*spellInfo*/) override
-    {
-        return ValidateSpellInfo({ SPELL_WARLOCK_DEATHS_EMBRACE });
-    }
-
-    bool Load() override
-    {
-        _caster = GetCaster();
-        return _caster != nullptr;
-    }
-
-    void CalculateAmount(AuraEffect const* /*aurEff*/, SpellEffectValue& amount, bool& /*canBeRecalculated*/)
-    {
-        if (!_caster)
-            return;
-
-        amount = 5;
-    }
-
-    void HandlePeriodic(AuraEffect const* aurEff)
-    {
-        if (!_caster || !GetTarget())
-            return;
-
-        int32 damage = aurEff->GetAmount();
-        int32 baseHeal = damage * 5;
-        int32 additionalHeal = 0;
-
-        if (AuraEffect const* deathsEmbraceEffect = _caster->GetAuraEffect(SPELL_WARLOCK_DEATHS_EMBRACE, EFFECT_1))
-        {
-            if (_caster->HealthBelowPct(deathsEmbraceEffect->GetAmount()))
-            {
-                if (AuraEffect const* deathsEmbraceHealBonus = _caster->GetAuraEffect(SPELL_WARLOCK_DEATHS_EMBRACE, EFFECT_0))
-                {
-                    additionalHeal = CalculatePct(baseHeal, deathsEmbraceHealBonus->GetAmount());
-                }
-            }
-        }
-
-        if (additionalHeal > 0)
-        {
-            CastSpellExtraArgs args;
-            args.AddSpellBP0(additionalHeal);
-            args.SetTriggerFlags(TRIGGERED_FULL_MASK);
-            _caster->CastSpell(_caster, 63106, args);
-        }
-
-        if (Aura* aura = GetAura())
-        {
-            aura->SetNeedClientUpdateForTargets();
-        }
-    }
-
-    void Register() override
-    {
-        DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_warl_drain_life::CalculateAmount, EFFECT_0, SPELL_AURA_PERIODIC_LEECH);
-        OnEffectPeriodic += AuraEffectPeriodicFn(spell_warl_drain_life::HandlePeriodic, EFFECT_0, SPELL_AURA_PERIODIC_LEECH);
-    }
-
-private:
-    Unit* _caster = nullptr;
-};
-
 // 205246 - Phantomatic Singularity
 class aura_warl_phantomatic_singularity : public AuraScript
 {
@@ -2674,133 +2608,6 @@ public:
     {
         return new spell_warl_hand_of_guldan_damage_SpellScript();
     }
-};
-
-// 104316 - Call Dreadstalkers
-class spell_warlock_call_dreadstalkers : public SpellScriptLoader
-{
-public:
-    spell_warlock_call_dreadstalkers() : SpellScriptLoader("spell_warlock_call_dreadstalkers") {}
-
-    class spell_warlock_call_dreadstalkers_SpellScript : public SpellScript
-    {
-
-        void HandleHit(SpellEffIndex /*effIndex*/)
-        {
-            Unit* caster = GetCaster();
-            if (!caster)
-                return;
-
-            for (int32 i = 0; i < GetEffectValue(); ++i)
-                caster->CastSpell(caster, SPELL_WARLOCK_CALL_DREADSTALKERS_SUMMON, true);
-
-            Player* player = caster->ToPlayer();
-            if (!player)
-                return;
-
-            // Check if player has aura with ID 387485
-            if (Aura* aura = caster->GetAura(387485))
-            {
-                auto effect = aura->GetEffect(0);
-
-                if (roll_chance(effect->GetBaseAmount()))
-                    caster->CastSpell(caster, SPELL_WARLOCK_CALL_DREADSTALKERS_SUMMON, true);
-            }
-        }
-
-        std::vector<Creature*> _dreadstalkers;
-
-        void HandleSummon(SpellEffIndex /*effIndex*/)
-        {
-            if (Creature* summon = GetHitCreature())
-                _dreadstalkers.push_back(summon);
-        }
-
-        void HandleAfterCast()
-        {
-            Unit* caster = GetCaster();
-            Unit* target = GetExplTargetUnit();
-
-            if (!caster || !target)
-                return;
-
-            int index = 0;
-
-            for (Creature* dreadstalker : _dreadstalkers)
-            {
-                if (!dreadstalker)
-                    continue;
-
-                float angle = float(index % 8) * (M_PI / 4.0f);
-
-                Position pos = target->GetNearPosition(3.0f, angle);
-
-                dreadstalker->NearTeleportTo(pos, false);
-
-                dreadstalker->SetLevel(caster->GetLevel());
-                dreadstalker->SetMaxHealth(caster->GetMaxHealth() / 3);
-                dreadstalker->SetHealth(caster->GetHealth() / 3);
-
-                dreadstalker->AI()->AttackStart(target);
-
-                ++index;
-            }
-        }
-
-
-        void Register() override
-        {
-            OnEffectHit += SpellEffectFn(spell_warlock_call_dreadstalkers_SpellScript::HandleSummon, EFFECT_0, SPELL_EFFECT_SUMMON);
-            OnEffectHitTarget += SpellEffectFn(spell_warlock_call_dreadstalkers_SpellScript::HandleHit, EFFECT_0, SPELL_EFFECT_DUMMY);
-            AfterCast += SpellCastFn(spell_warlock_call_dreadstalkers_SpellScript::HandleAfterCast);
-        }
-    };
-
-    SpellScript* GetSpellScript() const override
-    {
-        return new spell_warlock_call_dreadstalkers_SpellScript();
-    }
-};
-
-// Dreadstalker - 98035
-class npc_warlock_dreadstalker : public CreatureScript
-{
-public:
-    npc_warlock_dreadstalker() : CreatureScript("npc_warlock_dreadstalker") {}
-
-    CreatureAI* GetAI(Creature* creature) const
-    {
-        return new npc_warlock_dreadstalkerAI(creature);
-    }
-
-    struct npc_warlock_dreadstalkerAI : public ScriptedAI
-    {
-        npc_warlock_dreadstalkerAI(Creature* creature) : ScriptedAI(creature) {}
-
-        bool firstTick = true;
-
-        void UpdateAI(uint32 /*diff*/) override
-        {
-            if (firstTick)
-            {
-                Unit* owner = me->GetOwner();
-                if (!me->GetOwner() || !me->GetOwner()->ToPlayer())
-                    return;
-
-                me->SetMaxHealth(owner->CountPctFromMaxHealth(40));
-                me->SetHealth(me->GetMaxHealth());
-
-                if (Unit* target = owner->ToPlayer()->GetSelectedUnit())
-                    me->CastSpell(target, SPELL_WARLOCK_DREADSTALKER_CHARGE, true);
-
-                firstTick = false;
-
-                me->CastSpell(me, SPELL_WARLOCK_SHARPENED_DREADFANGS_BUFF, true);
-            }
-
-            UpdateVictim();
-        }
-    };
 };
 
 // 264178 - Demonbolt
@@ -4176,24 +3983,6 @@ struct npc_warl_diabolic_imp : public ScriptedAI
     }
 };
 
-// 1245089 - Avatar of Destruction
-class spell_warl_avatar_of_destruction : public AuraScript
-{
-    bool CheckProc(ProcEventInfo& eventInfo)
-    {
-        SpellInfo const* spellInfo = eventInfo.GetSpellInfo();
-        if (!spellInfo)
-            return false;
-
-        return spellInfo->Id == SPELL_WARLOCK_SOUL_FIRE;
-    }
-
-    void Register() override
-    {
-        DoCheckProc += AuraCheckProcFn(spell_warl_avatar_of_destruction::CheckProc);
-    }
-};
-
 // 1280868 - Dimensional Rift (Passive Talent)
 class spell_warl_dimensional_rift_talent : public AuraScript
 {
@@ -4473,7 +4262,7 @@ void AddSC_warlock_spell_scripts()
     RegisterCreatureAI(npc_warl_avatar_of_destruction_overfiend);
 
     // Avatar of Destruction & Dimensional Rift
-    RegisterSpellScript(spell_warl_avatar_of_destruction);
+    
     RegisterSpellScript(spell_warl_dimensional_rift_talent);
     RegisterCreatureAI(npc_warl_dimensional_rift_unstable_tear);
     RegisterCreatureAI(npc_warl_dimensional_rift_chaos_tear);
@@ -4482,7 +4271,6 @@ void AddSC_warlock_spell_scripts()
     new spell_warl_fear();
     new spell_warl_fear_buff();
     RegisterSpellScript(spell_warl_corruption_effect);
-    RegisterSpellScript(spell_warl_drain_life);
     RegisterSpellScript(aura_warl_phantomatic_singularity);
     RegisterSpellScript(aura_warl_haunt);
     RegisterSpellScript(spell_warlock_summon_darkglare);
@@ -4493,8 +4281,6 @@ void AddSC_warlock_spell_scripts()
     new npc_warl_demonic_gateway();
     RegisterSpellScript(spell_warl_hand_of_guldan);
     new spell_warl_hand_of_guldan_damage();
-    new spell_warlock_call_dreadstalkers();
-    new npc_warlock_dreadstalker();
     new spell_warlock_demonbolt_new();
     new spell_warl_demonic_calling();
     new spell_warl_implosion();

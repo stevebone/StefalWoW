@@ -20,31 +20,44 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-enum Custom_Warlock_Demon_Generic_Spells
+namespace Scripts::Custom::Warlock
 {
-    SPELL_WARLOCK_IMPLOSION_DAMAGE = 196278,
-    SPELL_WARLOCK_FEL_FIREBOLT = 104318,
-    SPELL_WARLOCK_WILD_IMP_COUNTER = 296553,
+    namespace Spells
+    {
+        static constexpr uint32 AntoranArmaments = 1250921;
 
-    SPELL_WARLOCK_DEMONIC_CONSUMPTION = 267215, //Talent
-    SPELL_WARLOCK_REIGN_OF_TYRANNY = 1276748, //Talent
-    SPELL_WARLOCK_ANTORAN_ARMAMENTS = 1250921, //Talent
-    SPELL_WARLOCK_TYRANT_OBLATION = 1276767,
-    SPELL_WARLOCK_DEMONIC_CONSUMPTION_BUFF = 267972,
-    SPELL_WARLOCK_SUMMON_DEMONIC_TYRANT = 265187,
-    SPELL_WARLOCK_TYRANT_DEMONFIRE = 270481,
-    SPELL_WARLOCK_TYRANT_BURNING_CLEAVE = 1264093,
+        static constexpr uint32 CallDreadstalkers = 104316; // Main Spell Script
+        static constexpr uint32 RippedThroughThePortal = 387485;
+        static constexpr uint32 CallDreadstalkersSummon = 364750;
+        static constexpr uint32 DreadstalkersCharge = 194247;
+        static constexpr uint32 SharpenedDreadfangs = 215111;
 
-    
-};
+        static constexpr uint32 ImplosionDamage = 196278;
+        static constexpr uint32 WildImpCounter = 296553;
+        static constexpr uint32 FelFirebolt = 104318;
 
-// only for reference
-enum Custom_Warlock_Demon_Generic_NPCs
-{
-    NPC_WARLOCK_INFERNAL = 89,
-    NPC_WARLOCK_DOOMGUARD = 11859,
-    NPC_WARLOCK_WILD_IMP = 55659,
-    NPC_WARLOCK_DEMONIC_TYRANT1 = 135002,
-    NPC_WARLOCK_DEMONIC_TYRANT2 = 250289,
-    NPC_WARLOCK_DREADSTALKER = 98035,
-};
+        static constexpr uint32 DemonicConsumption = 267215;
+        static constexpr uint32 DemonicConsumptionBuff = 267972;
+
+        static constexpr uint32 SummonDemonicTyrant = 265187; // Main Spell Script
+        static constexpr uint32 TyrantsOblation = 1276767;
+        static constexpr uint32 ReignOfTyranny = 1276748;
+        static constexpr uint32 TyrantsDemonfire = 270481;
+        static constexpr uint32 TyrantsBurningCleave = 1264093;
+
+        static constexpr uint32 SummonOverfiend = 434587;
+        static constexpr uint32 SoulFire = 6353;
+
+        static constexpr uint32 FireAndBrimstone = 196408;
+    }
+
+    namespace Creatures
+    {
+        static constexpr uint32 WarlockDreadstalker = 98035;
+        static constexpr uint32 WarlockInfernal = 89;
+        static constexpr uint32 WarlockDoomguard = 11859;
+        static constexpr uint32 WarlockDemonicTyrant1 = 135002;
+        static constexpr uint32 WarlockDemonicTyrant2 = 250289;
+        static constexpr uint32 WildImp = 55659;
+    }
+}

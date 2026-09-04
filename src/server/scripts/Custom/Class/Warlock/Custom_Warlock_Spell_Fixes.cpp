@@ -29,69 +29,234 @@
 
 #include "Custom_Warlock_Defines.h"
 
- // 265187 - Summon Demonic Tyrant
-class spell_warlock_summon_demonic_tyrant : public SpellScript
+namespace Scripts::Custom::Warlock
 {
-    void HandleBeforeCast()
+    // 265187 - Summon Demonic Tyrant
+    class spell_warlock_summon_demonic_tyrant : public SpellScript
     {
-        TC_LOG_ERROR("scripts.ai.fsb", "DemonicTyrant: BeforeCast fired - script IS attached");
-    }
+        void HandleEffect0(SpellEffIndex effIndex)
+        {
+            Unit* caster = GetCaster();
 
-    void HandleEffect0(SpellEffIndex effIndex)
+            if (!caster)
+                return;
+
+            if (caster->HasAura(Spells::AntoranArmaments))
+            {
+                PreventHitEffect(effIndex);
+                PreventHitDefaultEffect(effIndex);
+            }
+        }
+
+        void HandleEffect3(SpellEffIndex effIndex)
+        {
+            Unit* caster = GetCaster();
+            if (!caster)
+                return;
+
+            if (!caster->HasAura(Spells::AntoranArmaments))
+            {
+                PreventHitEffect(effIndex);
+                PreventHitDefaultEffect(effIndex);
+            }
+        }
+
+        void Register() override
+        {
+            OnEffectHitTarget += SpellEffectFn(spell_warlock_summon_demonic_tyrant::HandleEffect0, EFFECT_0, SPELL_EFFECT_SUMMON);
+            OnEffectHitTarget += SpellEffectFn(spell_warlock_summon_demonic_tyrant::HandleEffect3, EFFECT_3, SPELL_EFFECT_SUMMON);
+        }
+    };
+
+    struct DreadstalkerCastContext
     {
-        Unit* caster = GetCaster();
-        TC_LOG_ERROR("scripts.ai.fsb", "DemonicTyrant: HandleEffect0 fired. effIndex=%u, caster=%s, hasArmaments=%u",
-            uint32(effIndex),
-            caster ? caster->GetName().c_str() : "NULL",
-            caster ? uint32(caster->HasAura(SPELL_WARLOCK_ANTORAN_ARMAMENTS)) : 0);
+        ObjectGuid TargetGuid;
+        uint8 SpawnIndex = 0;
+        uint32 ExistingDreadstalkers = 0;
+    };
 
-        if (!caster)
+    std::unordered_map<ObjectGuid, DreadstalkerCastContext> s_dreadstalkerCastContext;
+
+    void TeleportDreadstalkerToTarget(Unit* dreadstalker, Unit* target, uint8 spawnIndex)
+    {
+        if (!dreadstalker || !target)
             return;
 
-        if (caster->HasAura(SPELL_WARLOCK_ANTORAN_ARMAMENTS))
-        {
-            TC_LOG_ERROR("scripts.ai.fsb", "DemonicTyrant: BLOCKING EFFECT_0 (normal summon)");
-            PreventHitEffect(effIndex);
-            PreventHitDefaultEffect(effIndex);
-        }
-        else
-        {
-            TC_LOG_ERROR("scripts.ai.fsb", "DemonicTyrant: ALLOWING EFFECT_0 (normal summon)");
-        }
+        float const angle = float(spawnIndex % 8) * (M_PI / 4.0f) + frand(0.0f, float(M_PI / 4.0f));
+        Position const pos = target->GetNearPosition(3.0f, angle);
+        dreadstalker->NearTeleportTo(pos, false);
+
+        if (Creature* creature = dreadstalker->ToCreature())
+            if (creature->AI())
+                creature->AI()->AttackStart(target);
     }
 
-    void HandleEffect3(SpellEffIndex effIndex)
+    // 104316 - Call Dreadstalkers
+    class spell_warlock_call_dreadstalkers : public SpellScript
     {
-        Unit* caster = GetCaster();
-        TC_LOG_ERROR("scripts.ai.fsb", "DemonicTyrant: HandleEffect3 fired. effIndex=%u, caster=%s, hasArmaments=%u",
-            uint32(effIndex),
-            caster ? caster->GetName().c_str() : "NULL",
-            caster ? uint32(caster->HasAura(SPELL_WARLOCK_ANTORAN_ARMAMENTS)) : 0);
-
-        if (!caster)
-            return;
-
-        if (!caster->HasAura(SPELL_WARLOCK_ANTORAN_ARMAMENTS))
+        void HandleDummy(SpellEffIndex /*effIndex*/)
         {
-            TC_LOG_ERROR("scripts.ai.fsb", "DemonicTyrant: BLOCKING EFFECT_3 (empowered summon)");
-            PreventHitEffect(effIndex);
-            PreventHitDefaultEffect(effIndex);
-        }
-        else
-        {
-            TC_LOG_ERROR("scripts.ai.fsb", "DemonicTyrant: ALLOWING EFFECT_3 (empowered summon)");
-        }
-    }
+            Unit* caster = GetCaster();
+            if (!caster)
+                return;
 
-    void Register() override
+            for (int32 i = 0; i < GetEffectValue(); ++i)
+                caster->CastSpell(caster, Spells::CallDreadstalkersSummon, true);
+        }
+
+        void HandleCast()
+        {
+            Unit* caster = GetCaster();
+            Unit* target = GetExplTargetUnit();
+            if (!caster || !target)
+                return;
+
+            uint32 existingDreadstalkers = 0;
+            if (Player* player = caster->ToPlayer())
+            {
+                for (Unit* unit : player->m_Controlled)
+                    if (unit->GetEntry() == Creatures::WarlockDreadstalker)
+                        ++existingDreadstalkers;
+            }
+
+            s_dreadstalkerCastContext[caster->GetGUID()] = { target->GetGUID(), 0, existingDreadstalkers };
+        }
+
+        void HandleAfterCast()
+        {
+            Unit* caster = GetCaster();
+            Unit* target = GetExplTargetUnit();
+            if (!caster || !target)
+                return;
+
+            if (Aura* aura = caster->GetAura(Spells::RippedThroughThePortal))
+            {
+                if (AuraEffect const* effect = aura->GetEffect(0))
+                {
+                    if (roll_chance(effect->GetAmount()))
+                        caster->CastSpell(caster, Spells::CallDreadstalkersSummon, true);
+                }
+            }
+
+            ObjectGuid const casterGuid = caster->GetGUID();
+            ObjectGuid const targetGuid = target->GetGUID();
+            uint32 const existingDreadstalkers = s_dreadstalkerCastContext[casterGuid].ExistingDreadstalkers;
+
+            caster->m_Events.AddEventAtOffset([casterGuid, targetGuid, existingDreadstalkers]()
+                {
+                    Player* owner = ObjectAccessor::FindPlayer(casterGuid);
+                    if (!owner)
+                    {
+                        s_dreadstalkerCastContext.erase(casterGuid);
+                        return;
+                    }
+
+                    Unit* destTarget = ObjectAccessor::GetUnit(*owner, targetGuid);
+                    if (!destTarget)
+                    {
+                        s_dreadstalkerCastContext.erase(casterGuid);
+                        return;
+                    }
+
+                    uint8 index = 0;
+                    uint32 skipped = 0;
+                    for (Unit* unit : owner->m_Controlled)
+                    {
+                        if (unit->GetEntry() != Creatures::WarlockDreadstalker)
+                            continue;
+
+                        if (skipped < existingDreadstalkers)
+                        {
+                            ++skipped;
+                            continue;
+                        }
+
+                        TeleportDreadstalkerToTarget(unit, destTarget, index);
+                        ++index;
+                    }
+
+                    s_dreadstalkerCastContext.erase(casterGuid);
+                }, 50ms);
+        }
+
+        void Register() override
+        {
+            OnEffectHitTarget += SpellEffectFn(spell_warlock_call_dreadstalkers::HandleDummy, EFFECT_0, SPELL_EFFECT_DUMMY);
+            OnCast += SpellCastFn(spell_warlock_call_dreadstalkers::HandleCast);
+            AfterCast += SpellCastFn(spell_warlock_call_dreadstalkers::HandleAfterCast);
+        }
+    };
+
+    // 364750 - Call Dreadstalkers Summon
+    class spell_warlock_call_dreadstalkers_summon : public SpellScript
     {
-        BeforeCast += SpellCastFn(spell_warlock_summon_demonic_tyrant::HandleBeforeCast);
-        OnEffectHitTarget += SpellEffectFn(spell_warlock_summon_demonic_tyrant::HandleEffect0, EFFECT_0, SPELL_EFFECT_SUMMON);
-        OnEffectHitTarget += SpellEffectFn(spell_warlock_summon_demonic_tyrant::HandleEffect3, EFFECT_3, SPELL_EFFECT_SUMMON);
-    }
-};
+        void HandleSummon(SpellEffIndex /*effIndex*/)
+        {
+            Creature* summon = GetHitCreature();
+            Unit* owner = GetOriginalCaster();
+            if (!summon || !owner)
+                return;
+
+            auto itr = s_dreadstalkerCastContext.find(owner->GetGUID());
+            if (itr == s_dreadstalkerCastContext.end())
+                return;
+
+            Unit* target = ObjectAccessor::GetUnit(*owner, itr->second.TargetGuid);
+            if (!target)
+                return;
+
+            TeleportDreadstalkerToTarget(summon, target, itr->second.SpawnIndex);
+            ++itr->second.SpawnIndex;
+        }
+
+        void Register() override
+        {
+            OnEffectHit += SpellEffectFn(spell_warlock_call_dreadstalkers_summon::HandleSummon, EFFECT_0, SPELL_EFFECT_SUMMON);
+        }
+    };
+
+    // 1245089 - Avatar of Destruction
+    class spell_warl_avatar_of_destruction : public AuraScript
+    {
+        bool Validate(SpellInfo const* /*spellInfo*/) override
+        {
+            return ValidateSpellInfo({ Spells::SoulFire, Spells::SummonOverfiend });
+        }
+
+        bool CheckProc(ProcEventInfo& eventInfo)
+        {
+            SpellInfo const* spellInfo = eventInfo.GetSpellInfo();
+            if (!spellInfo)
+                return false;
+
+            return spellInfo->Id == Spells::SoulFire;
+        }
+
+        void HandleProc(ProcEventInfo& /*eventInfo*/)
+        {
+            Unit* caster = GetTarget();
+            if (!caster)
+                return;
+
+            caster->CastSpell(caster, Spells::SummonOverfiend, CastSpellExtraArgsInit{
+                .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR
+                });
+        }
+
+        void Register() override
+        {
+            DoCheckProc += AuraCheckProcFn(spell_warl_avatar_of_destruction::CheckProc);
+            OnProc += AuraProcFn(spell_warl_avatar_of_destruction::HandleProc);
+        }
+    };
+}
 
 void AddSC_custom_warlock_spell_fixes()
 {
-    new spell_warlock_summon_demonic_tyrant();
+    using namespace Scripts::Custom::Warlock;
+
+    RegisterSpellScript(spell_warl_avatar_of_destruction);
+    RegisterSpellScript(spell_warlock_call_dreadstalkers);
+    RegisterSpellScript(spell_warlock_call_dreadstalkers_summon);
+    RegisterSpellScript(spell_warlock_summon_demonic_tyrant);
 }
