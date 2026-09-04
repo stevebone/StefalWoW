@@ -21,12 +21,15 @@
  */
 
 #include "Log.h"
+#include "Pet.h"
+#include "Player.h"
 #include "ScriptMgr.h"
 #include "SpellAuras.h"
 #include "SpellScript.h"
 #include "Spell.h"
 #include "SpellInfo.h"
 #include "Unit.h"
+#include "ObjectAccessor.h"
 
 #include "Custom_Warlock_Defines.h"
 
@@ -251,27 +254,27 @@ namespace Scripts::Custom::Warlock
         }
     };
 
-    void AddSoulLeechAbsorb(Unit* unit, int32 addAbsorb, float maxPerc)
+    void AddSoulLeechAbsorb(Unit* unit, uint32 spellId, int32 addAbsorb, float maxPerc)
     {
         if (!unit || addAbsorb <= 0)
             return;
 
         float const maxAbsorb = float(unit->CountPctFromMaxHealth(maxPerc));
 
-        if (AuraEffect* auraEff = unit->GetAuraEffect(Spells::SoulburnDrainLifeAbsorb, EFFECT_0))
+        if (AuraEffect* auraEff = unit->GetAuraEffect(spellId, EFFECT_0))
         {
             float allAbsorb = float(auraEff->GetAmount()) + float(addAbsorb);
             if (allAbsorb > maxAbsorb)
                 allAbsorb = maxAbsorb;
 
             auraEff->SetAmount(int32(allAbsorb));
-            if (AuraApplication* app = unit->GetAuraApplication(Spells::SoulburnDrainLifeAbsorb))
+            if (AuraApplication* app = unit->GetAuraApplication(spellId))
                 app->ClientUpdate();
         }
         else
         {
             int32 bp0 = int32(std::min<float>(float(addAbsorb), maxAbsorb));
-            unit->CastSpell(unit, Spells::SoulburnDrainLifeAbsorb,
+            unit->CastSpell(unit, spellId,
                 CastSpellExtraArgs(TRIGGERED_FULL_MASK).AddSpellBP0(bp0));
         }
     }
@@ -332,7 +335,7 @@ namespace Scripts::Custom::Warlock
             if (!healInfo)
                 return;
 
-            AddSoulLeechAbsorb(GetTarget(), int32(healInfo->GetHeal()), float(Spells::SoulburnDrainLifeAbsorbMaxPct));
+            AddSoulLeechAbsorb(GetTarget(), Spells::SoulburnDrainLifeAbsorb, int32(healInfo->GetHeal()), float(Spells::SoulburnDrainLifeAbsorbMaxPct));
         }
 
         void Register() override
@@ -475,6 +478,120 @@ namespace Scripts::Custom::Warlock
             OnEffectApply += AuraEffectApplyFn(spell_warl_demonic_circle_teleport::HandleTeleport, EFFECT_0, SPELL_AURA_MECHANIC_IMMUNITY, AURA_EFFECT_HANDLE_REAL);
         }
     };
+
+    // 108370 - Soul Leech
+    class spell_warl_soul_leech : public AuraScript
+    {
+        bool Validate(SpellInfo const* /*spellInfo*/) override
+        {
+            return ValidateSpellInfo({ Spells::SoulLeechShield });
+        }
+
+        bool CheckProc(ProcEventInfo& eventInfo)
+        {
+            Unit* owner = GetTarget();
+            Unit* actor = eventInfo.GetActor();
+            if (!owner || !actor)
+                return false;
+
+            if (actor != owner && actor->GetOwnerGUID() != owner->GetGUID())
+                return false;
+
+            DamageInfo* damageInfo = eventInfo.GetDamageInfo();
+            if (!damageInfo || !damageInfo->GetDamage())
+                return false;
+
+            SpellInfo const* spellInfo = eventInfo.GetSpellInfo();
+            if (spellInfo && spellInfo->IsAffectingArea())
+                return false;
+
+            return true;
+        }
+
+        void HandleProc(AuraEffect const* aurEff, ProcEventInfo& eventInfo)
+        {
+            PreventDefaultAction();
+
+            Unit* target = GetTarget();
+            DamageInfo* damageInfo = eventInfo.GetDamageInfo();
+            if (!target || !damageInfo)
+                return;
+
+            Player* player = target->ToPlayer();
+            if (!player)
+                player = ObjectAccessor::FindPlayer(target->GetOwnerGUID());
+            if (!player)
+                return;
+
+            int32 const addAbsorb = CalculatePct(damageInfo->GetDamage(), aurEff->GetAmount());
+
+            float maxPerc = 5.0f;
+            if (AuraEffect const* capEff = GetAura()->GetEffect(EFFECT_1))
+                maxPerc = float(capEff->GetAmount());
+
+            AddSoulLeechAbsorb(player, Spells::SoulLeechShield, addAbsorb, maxPerc);
+
+            if (Pet* pet = player->GetPet())
+                AddSoulLeechAbsorb(pet, Spells::SoulLeechShield, addAbsorb, maxPerc);
+        }
+
+        void Register() override
+        {
+            DoCheckProc += AuraCheckProcFn(spell_warl_soul_leech::CheckProc);
+            OnEffectProc += AuraEffectProcFn(spell_warl_soul_leech::HandleProc, EFFECT_0, SPELL_AURA_DUMMY);
+        }
+    };
+
+    // 219272 - Demon Skin
+    class spell_warl_demon_skin : public AuraScript
+    {
+        bool Validate(SpellInfo const* /*spellInfo*/) override
+        {
+            return ValidateSpellInfo({ Spells::SoulLeech, Spells::SoulLeechShield });
+        }
+
+        void CalcPeriodic(AuraEffect const* /*aurEff*/, bool& isPeriodic, int32& amplitude)
+        {
+            isPeriodic = true;
+            if (amplitude <= 0)
+                amplitude = 1 * IN_MILLISECONDS;
+        }
+
+        void OnTick(AuraEffect const* aurEff)
+        {
+            Unit* target = GetTarget();
+            if (!target)
+                return;
+
+            Aura* soulLeech = target->GetAura(Spells::SoulLeech);
+            if (!soulLeech)
+                return;
+
+            Player* player = target->ToPlayer();
+            if (!player)
+                player = ObjectAccessor::FindPlayer(target->GetOwnerGUID());
+            if (!player)
+                return;
+
+            float const perc = float(aurEff->GetAmount()) / 10.0f;
+            int32 const addAbsorb = int32(CalculatePct(target->GetMaxHealth(), perc));
+
+            float maxPerc = 5.0f;
+            if (AuraEffect const* capEff = soulLeech->GetEffect(EFFECT_1))
+                maxPerc = float(capEff->GetAmount());
+
+            AddSoulLeechAbsorb(player, Spells::SoulLeechShield, addAbsorb, maxPerc);
+
+            if (Pet* pet = player->GetPet())
+                AddSoulLeechAbsorb(pet, Spells::SoulLeechShield, addAbsorb, maxPerc);
+        }
+
+        void Register() override
+        {
+            DoEffectCalcPeriodic += AuraEffectCalcPeriodicFn(spell_warl_demon_skin::CalcPeriodic, EFFECT_0, SPELL_AURA_PERIODIC_DUMMY);
+            OnEffectPeriodic += AuraEffectPeriodicFn(spell_warl_demon_skin::OnTick, EFFECT_0, SPELL_AURA_PERIODIC_DUMMY);
+        }
+    };
 }
 
 void AddSC_custom_warlock_spell_fixes()
@@ -490,4 +607,6 @@ void AddSC_custom_warlock_spell_fixes()
     RegisterSpellScript(spell_warl_drain_life_soulburn);
     RegisterSpellScript(spell_warl_demonic_gateway);
     RegisterSpellScript(spell_warl_demonic_circle_teleport);
+    RegisterSpellScript(spell_warl_soul_leech);
+    RegisterSpellScript(spell_warl_demon_skin);
 }

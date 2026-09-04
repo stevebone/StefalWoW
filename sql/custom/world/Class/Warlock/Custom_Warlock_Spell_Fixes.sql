@@ -183,6 +183,21 @@ DELETE FROM `spell_script_names` WHERE `spell_id` = 48020 AND `ScriptName` = 'sp
 INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 (48020, 'spell_warl_demonic_circle_teleport');
 
+-- Soul Leech
+DELETE FROM `spell_script_names` WHERE `spell_id` = 108370 AND `ScriptName` = 'spell_warl_soul_leech';
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
+(108370, 'spell_warl_soul_leech');
+
+-- Demon Skin
+DELETE FROM `spell_script_names` WHERE `spell_id` = 219272 AND `ScriptName` = 'spell_warl_demon_skin';
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
+(219272, 'spell_warl_demon_skin');
+
+-- spell_proc for 108370 (Soul Leech) - proc on damage dealt (melee + ability + spell + periodic), AoE filtered in script
+DELETE FROM `spell_proc` WHERE `SpellId` = 108370;
+INSERT INTO `spell_proc` (`SpellId`, `SchoolMask`, `SpellFamilyName`, `SpellFamilyMask0`, `SpellFamilyMask1`, `SpellFamilyMask2`, `SpellFamilyMask3`, `ProcFlags`, `ProcFlags2`, `SpellTypeMask`, `SpellPhaseMask`, `HitMask`, `AttributesMask`, `DisableEffectsMask`, `ProcsPerMinute`, `Chance`, `Cooldown`, `Charges`) VALUES
+(108370, 0, 0, 0, 0, 0, 0, 0x51014, 0, 1, 2, 0, 0, 0, 0, 100, 0, 0);
+
 -- spell_proc for 387630 (Soulburn: Drain Life hidden aura) - proc on helpful periodic heals
 DELETE FROM `spell_proc` WHERE `SpellId` = 387630;
 INSERT INTO `spell_proc` (`SpellId`, `SchoolMask`, `SpellFamilyName`, `SpellFamilyMask0`, `SpellFamilyMask1`, `SpellFamilyMask2`, `SpellFamilyMask3`, `ProcFlags`, `ProcFlags2`, `SpellTypeMask`, `SpellPhaseMask`, `HitMask`, `AttributesMask`, `DisableEffectsMask`, `ProcsPerMinute`, `Chance`, `Cooldown`, `Charges`) VALUES

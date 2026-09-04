@@ -21,6 +21,7 @@
  */
 
 #include "ScriptMgr.h"
+#include "ScriptedCreature.h"
 #include "CellImpl.h"
 #include "Creature.h"
 #include "CreatureAI.h"

@@ -76,6 +76,11 @@ namespace Scripts::Custom::Warlock
         static constexpr uint32 DemonicCircleSummon = 48018;
         static constexpr uint32 SoulburnDemonicCircle = 387633;
 
+        // Soul Leech
+        static constexpr uint32 SoulLeech = 108370;
+        static constexpr uint32 SoulLeechShield = 108366;
+        static constexpr uint32 DemonSkin = 219272;
+
         // Misc
         static constexpr uint32 ArenaPreparation = 32727;
     }
