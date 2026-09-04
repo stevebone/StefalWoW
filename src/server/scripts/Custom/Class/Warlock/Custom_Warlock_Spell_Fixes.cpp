@@ -20,6 +20,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "CreatureAI.h"
 #include "Log.h"
 #include "Pet.h"
 #include "Player.h"
