@@ -2281,209 +2281,10 @@ public:
     SpellScript* GetSpellScript() const override
     {
         return new spell_warlock_unending_breath_SpellScript();
-    }
-};
-
-// 111771 - Demonic Gateway
-class spell_warl_demonic_gateway : public SpellScriptLoader
-{
-public:
-    spell_warl_demonic_gateway() : SpellScriptLoader("spell_warl_demonic_gateway") { }
-
-    class spell_warl_demonic_gateway_SpellScript : public SpellScript
-    {
-        void HandleLaunch(SpellEffIndex /*effIndex*/)
-        {
-            Unit* caster = GetCaster();
-            if (!caster)
-                return;
-
-            // Collect gateways owned by this caster
-            std::vector<Creature*> gateways;
-            GetOwnedGateways(caster, gateways);
-
-            for (Creature* gateway : gateways)
-            {
-                if (gateway->IsInWorld())
-                    gateway->DespawnOrUnsummon(100ms);
-            }
-
-
-            // Spawn new gateways
-            if (WorldLocation const* dest = GetExplTargetDest())
-            {
-                Position pos = dest->GetPosition();
-                caster->CastSpell(caster, SPELL_WARLOCK_DEMONIC_GATEWAY_SUMMON_PURPLE, true);
-                caster->CastSpell(pos, SPELL_WARLOCK_DEMONIC_GATEWAY_SUMMON_GREEN, true);
-            }
-        }
-
-        SpellCastResult CheckRequirement()
-        {
-            Unit* caster = GetCaster();
-            if (!caster)
-                return SPELL_FAILED_DONT_REPORT;
-
-            if (caster->HasAura(SPELL_ARENA_PREPARATION))
-                return SPELL_FAILED_CANT_DO_THAT_RIGHT_NOW;
-
-            Spell* spell = GetSpell();
-            if (spell->m_targets.HasDst())
-            {
-                Position pos = spell->m_targets.GetDst()->_position.GetPosition();
-                if (caster->GetPositionZ() + 6.0f < pos.GetPositionZ() ||
-                    caster->GetPositionZ() - 6.0f > pos.GetPositionZ())
-                    return SPELL_FAILED_NOPATH;
-            }
-
-            return SPELL_CAST_OK;
-        }
-
-        void HandleVisual(SpellEffIndex /*effIndex*/)
-        {
-            Unit* caster = GetCaster();
-            WorldLocation const* dest = GetExplTargetDest();
-            if (!caster || !dest)
-                return;
-
-            caster->SendPlaySpellVisual(dest->GetPosition(), 63644, 0, 0, 2.0f);
-        }
-
-        void Register() override
-        {
-            OnEffectLaunch += SpellEffectFn(spell_warl_demonic_gateway_SpellScript::HandleVisual, EFFECT_0, SPELL_EFFECT_SUMMON);
-            OnEffectLaunch += SpellEffectFn(spell_warl_demonic_gateway_SpellScript::HandleLaunch, EFFECT_1, SPELL_EFFECT_DUMMY);
-            OnCheckCast += SpellCheckCastFn(spell_warl_demonic_gateway_SpellScript::CheckRequirement);
-        }
-
-        static void GetOwnedGateways(Unit* owner, std::vector<Creature*>& out)
-        {
-            Trinity::AnyUnitInObjectRangeCheck checker(owner, 200.f);
-            Trinity::CreatureListSearcher<Trinity::AnyUnitInObjectRangeCheck> searcher(owner, out, checker);
-            Cell::VisitAllObjects(owner, searcher, 200.0f);
-
-            out.erase(
-                std::remove_if(out.begin(), out.end(),
-                    [owner](Creature* c)
-                    {
-                        return !c ||
-                            (c->GetEntry() != NPC_WARLOCK_DEMONIC_GATEWAY_GREEN &&
-                                c->GetEntry() != NPC_WARLOCK_DEMONIC_GATEWAY_PURPLE) ||
-                            c->GetOwnerGUID() != owner->GetGUID();
-                    }),
-                out.end());
-        }
-    };
-
-    SpellScript* GetSpellScript() const override
-    {
-        return new spell_warl_demonic_gateway_SpellScript();
-    }
-};
-
-
-
-class npc_warl_demonic_gateway : public CreatureScript
-{
-public:
-    npc_warl_demonic_gateway() : CreatureScript("npc_warl_demonic_gateway") { }
-
-    CreatureAI* GetAI(Creature* creature) const override
-    {
-        return new npc_warl_demonic_gatewayAI(creature);
-    }
-
-    struct npc_warl_demonic_gatewayAI : public CreatureAI
-    {
-        npc_warl_demonic_gatewayAI(Creature* creature) : CreatureAI(creature) {}
-
-        bool firstTick = true;
-
-        void UpdateAI(uint32 /*diff*/) override
-        {
-            if (firstTick && me->IsInWorld())
-            {
-                me->CastSpell(me, SPELL_WARLOCK_DEMONIC_GATEWAY_VISUAL, true);
-                me->SetUnitFlag(UNIT_FLAG_NON_ATTACKABLE);
-                me->SetNpcFlag(UNIT_NPC_FLAG_SPELLCLICK);
-                me->SetReactState(REACT_PASSIVE);
-                me->SetControlled(true, UNIT_STATE_ROOT);
-
-                firstTick = false;
-            }
-        }
-
-        void OnSpellClick(Unit* player, bool /*result*/) override
-        {
-            if (!player)
-                return;
-
-            // Block if player has specific auras
-            uint32 aurasToCheck[4] = { 121164, 121175, 121176, 121177 };
-            for (uint32 auraId : aurasToCheck)
-                if (player->HasAura(auraId))
-                    return;
-
-            TeleportTarget(player, true);
-        }
-
-        void TeleportTarget(Unit* target, bool allowAnywhere)
-        {
-            if (!target)
-                return;
-
-            Unit* owner = me->GetOwner();
-            if (!owner)
-                return;
-
-            if (!allowAnywhere && me->GetDistance2d(target) > 3.0f)
-                return;
-            if (target->HasAura(SPELL_WARLOCK_DEMONIC_GATEWAY_DEBUFF))
-                return;
-            if (!target->IsInRaidWith(owner) && target != owner)
-                return;
-            if (!target->CanFreeMove())
-                return;
-
-            uint32 otherGatewayEntry = me->GetEntry() == NPC_WARLOCK_DEMONIC_GATEWAY_GREEN
-                ? NPC_WARLOCK_DEMONIC_GATEWAY_PURPLE
-                : NPC_WARLOCK_DEMONIC_GATEWAY_GREEN;
-            uint32 teleportSpell = me->GetEntry() == NPC_WARLOCK_DEMONIC_GATEWAY_GREEN
-                ? SPELL_WARLOCK_DEMONIC_GATEWAY_JUMP_GREEN
-                : SPELL_WARLOCK_DEMONIC_GATEWAY_JUMP_PURPLE;
-
-            std::vector<Creature*> gateways;
-            GetOwnedGateways(owner, gateways);
-
-            for (Creature* gateway : gateways)
-            {
-                if (gateway->GetEntry() != otherGatewayEntry)
-                    continue;
-
-                target->CastSpell(gateway, teleportSpell, true);
-                break;
-            }
-        }
-
-        static void GetOwnedGateways(Unit* owner, std::vector<Creature*>& out)
-        {
-            Trinity::AnyUnitInObjectRangeCheck checker(owner, 200.f);
-            Trinity::CreatureListSearcher<Trinity::AnyUnitInObjectRangeCheck> searcher(owner, out, checker);
-            Cell::VisitAllObjects(owner, searcher, 200.0f);
-
-            out.erase(
-                std::remove_if(out.begin(), out.end(),
-                    [owner](Creature* c)
-                    {
-                        return !c ||
-                            (c->GetEntry() != NPC_WARLOCK_DEMONIC_GATEWAY_GREEN &&
-                                c->GetEntry() != NPC_WARLOCK_DEMONIC_GATEWAY_PURPLE) ||
-                            c->GetOwnerGUID() != owner->GetGUID();
-                    }),
-                out.end());
-        }
     };
 };
+
+
 
 // 105174 - Hand of Gul'Dan
 class spell_warl_hand_of_guldan : public SpellScript
@@ -4200,13 +4001,13 @@ void AddSC_warlock_spell_scripts()
     RegisterSpellScript(spell_warl_deaths_embrace_drain_life);
     RegisterSpellScript(spell_warl_demonbolt);
     RegisterSpellScript(spell_warl_demonic_circle_summon);
-    RegisterSpellScript(spell_warl_demonic_circle_teleport);
+    // RegisterSpellScript(spell_warl_demonic_circle_teleport); // Replaced in Custom_Warlock_Spell_Fixes.cpp
     RegisterSpellScript(spell_warl_devour_magic);
     RegisterSpellScript(spell_warl_doom);
     RegisterSpellScript(spell_warl_drain_soul);
     RegisterSpellScript(spell_warl_haunt);
     RegisterSpellScript(spell_warl_health_funnel);
-    RegisterSpellScript(spell_warl_healthstone_heal);
+    // RegisterSpellScript(spell_warl_healthstone_heal); // Replaced by spell_warl_healthstone_soulburn in Custom_Warlock_Spell_Fixes.cpp
     RegisterSpellScript(spell_warl_immolate);
     RegisterSpellScript(spell_warl_perpetual_unstability);
     RegisterSpellScript(spell_warl_pyrogenics);
@@ -4277,8 +4078,6 @@ void AddSC_warlock_spell_scripts()
     RegisterCreatureAI(npc_pet_warlock_darkglare);
     RegisterSpellScript(spell_warl_darkglare_eye_laser);
     new spell_warlock_unending_breath();
-    new spell_warl_demonic_gateway();
-    new npc_warl_demonic_gateway();
     RegisterSpellScript(spell_warl_hand_of_guldan);
     new spell_warl_hand_of_guldan_damage();
     new spell_warlock_demonbolt_new();

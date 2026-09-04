@@ -49,6 +49,35 @@ namespace Scripts::Custom::Warlock
         static constexpr uint32 SoulFire = 6353;
 
         static constexpr uint32 FireAndBrimstone = 196408;
+
+        // Soulburn
+        static constexpr uint32 Soulburn = 385899;
+        static constexpr uint32 SoulburnBuff = 387626;
+        static constexpr uint32 SoulburnDrainLifeBuff = 387630;
+        static constexpr uint32 SoulburnDrainLifeAbsorb = 394810;
+        static constexpr uint32 SoulburnHealthstoneBuff = 387636;
+        static constexpr uint32 DrainLife = 234153;
+        static constexpr uint32 Healthstone = 6262;
+
+        static constexpr uint32 SoulburnDrainLifeAbsorbMaxPct = 30;
+        static constexpr uint32 SoulburnHealthstoneHealPct = 30;
+
+        // Demonic Gateway
+        static constexpr uint32 DemonicGateway = 111771;
+        static constexpr uint32 DemonicGatewaySummonGreen = 113886;
+        static constexpr uint32 DemonicGatewaySummonPurple = 113890;
+        static constexpr uint32 DemonicGatewayJumpGreen = 113896;
+        static constexpr uint32 DemonicGatewayJumpPurple = 120729;
+        static constexpr uint32 DemonicGatewayVisual = 113900;
+        static constexpr uint32 DemonicGatewayDebuff = 113942;
+
+        // Demonic Circle
+        static constexpr uint32 DemonicCircleTeleport = 48020;
+        static constexpr uint32 DemonicCircleSummon = 48018;
+        static constexpr uint32 SoulburnDemonicCircle = 387633;
+
+        // Misc
+        static constexpr uint32 ArenaPreparation = 32727;
     }
 
     namespace Creatures
@@ -59,5 +88,7 @@ namespace Scripts::Custom::Warlock
         static constexpr uint32 WarlockDemonicTyrant1 = 135002;
         static constexpr uint32 WarlockDemonicTyrant2 = 250289;
         static constexpr uint32 WildImp = 55659;
+        static constexpr uint32 DemonicGatewayGreen = 59262;
+        static constexpr uint32 DemonicGatewayPurple = 59271;
     }
 }

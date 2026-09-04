@@ -21,8 +21,10 @@
  */
 
 #include "ScriptMgr.h"
+#include "CellImpl.h"
 #include "Creature.h"
 #include "CreatureAI.h"
+#include "GridNotifiersImpl.h"
 #include "Player.h"
 #include "SpellAuraEffects.h"
 #include "MotionMaster.h"
@@ -352,6 +354,96 @@ namespace Scripts::Custom::Warlock
             me->SetStatPctModifier(UNIT_MOD_DAMAGE_MAINHAND, TOTAL_PCT, 1.0f + bonusPct);
         }
     };
+
+    struct npc_warl_demonic_gateway : public CreatureAI
+    {
+        npc_warl_demonic_gateway(Creature* creature) : CreatureAI(creature) {}
+
+        bool firstTick = true;
+
+        void UpdateAI(uint32 /*diff*/) override
+        {
+            if (firstTick && me->IsInWorld())
+            {
+                me->CastSpell(me, Spells::DemonicGatewayVisual, true);
+                me->SetUnitFlag(UNIT_FLAG_NON_ATTACKABLE);
+                me->SetNpcFlag(UNIT_NPC_FLAG_SPELLCLICK);
+                me->SetReactState(REACT_PASSIVE);
+                me->SetControlled(true, UNIT_STATE_ROOT);
+
+                firstTick = false;
+            }
+        }
+
+        void OnSpellClick(Unit* player, bool /*result*/) override
+        {
+            if (!player)
+                return;
+
+            uint32 aurasToCheck[4] = { 121164, 121175, 121176, 121177 };
+            for (uint32 auraId : aurasToCheck)
+                if (player->HasAura(auraId))
+                    return;
+
+            TeleportTarget(player, true);
+        }
+
+        void TeleportTarget(Unit* target, bool allowAnywhere)
+        {
+            if (!target)
+                return;
+
+            Unit* owner = me->GetOwner();
+            if (!owner)
+                return;
+
+            if (!allowAnywhere && me->GetDistance2d(target) > 3.0f)
+                return;
+            if (target->HasAura(Spells::DemonicGatewayDebuff))
+                return;
+            if (!target->IsInRaidWith(owner) && target != owner)
+                return;
+            if (!target->CanFreeMove())
+                return;
+
+            uint32 otherGatewayEntry = me->GetEntry() == Creatures::DemonicGatewayGreen
+                ? Creatures::DemonicGatewayPurple
+                : Creatures::DemonicGatewayGreen;
+            uint32 teleportSpell = me->GetEntry() == Creatures::DemonicGatewayGreen
+                ? Spells::DemonicGatewayJumpGreen
+                : Spells::DemonicGatewayJumpPurple;
+
+            std::vector<Creature*> gateways;
+            GetOwnedGateways(owner, gateways);
+
+            for (Creature* gateway : gateways)
+            {
+                if (gateway->GetEntry() != otherGatewayEntry)
+                    continue;
+
+                target->CastSpell(gateway, teleportSpell, true);
+                break;
+            }
+        }
+
+        static void GetOwnedGateways(Unit* owner, std::vector<Creature*>& out)
+        {
+            Trinity::AnyUnitInObjectRangeCheck checker(owner, 200.f);
+            Trinity::CreatureListSearcher<Trinity::AnyUnitInObjectRangeCheck> searcher(owner, out, checker);
+            Cell::VisitAllObjects(owner, searcher, 200.0f);
+
+            out.erase(
+                std::remove_if(out.begin(), out.end(),
+                    [owner](Creature* c)
+                    {
+                        return !c ||
+                            (c->GetEntry() != Creatures::DemonicGatewayGreen &&
+                                c->GetEntry() != Creatures::DemonicGatewayPurple) ||
+                            c->GetOwnerGUID() != owner->GetGUID();
+                    }),
+                out.end());
+        }
+    };
 }
 
 void AddSC_custom_warlock_demon_npcs()
@@ -361,4 +453,5 @@ void AddSC_custom_warlock_demon_npcs()
     RegisterCreatureAI(npc_warlock_dreadstalker);
     RegisterCreatureAI(npc_pet_warlock_wild_imp);
     RegisterCreatureAI(npc_pet_warlock_demonic_tyrant);
+    RegisterCreatureAI(npc_warl_demonic_gateway);
 }

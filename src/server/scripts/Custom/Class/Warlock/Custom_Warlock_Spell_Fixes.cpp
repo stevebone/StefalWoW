@@ -22,6 +22,7 @@
 
 #include "Log.h"
 #include "ScriptMgr.h"
+#include "SpellAuras.h"
 #include "SpellScript.h"
 #include "Spell.h"
 #include "SpellInfo.h"
@@ -249,6 +250,231 @@ namespace Scripts::Custom::Warlock
             OnProc += AuraProcFn(spell_warl_avatar_of_destruction::HandleProc);
         }
     };
+
+    void AddSoulLeechAbsorb(Unit* unit, int32 addAbsorb, float maxPerc)
+    {
+        if (!unit || addAbsorb <= 0)
+            return;
+
+        float const maxAbsorb = float(unit->CountPctFromMaxHealth(maxPerc));
+
+        if (AuraEffect* auraEff = unit->GetAuraEffect(Spells::SoulburnDrainLifeAbsorb, EFFECT_0))
+        {
+            float allAbsorb = float(auraEff->GetAmount()) + float(addAbsorb);
+            if (allAbsorb > maxAbsorb)
+                allAbsorb = maxAbsorb;
+
+            auraEff->SetAmount(int32(allAbsorb));
+            if (AuraApplication* app = unit->GetAuraApplication(Spells::SoulburnDrainLifeAbsorb))
+                app->ClientUpdate();
+        }
+        else
+        {
+            int32 bp0 = int32(std::min<float>(float(addAbsorb), maxAbsorb));
+            unit->CastSpell(unit, Spells::SoulburnDrainLifeAbsorb,
+                CastSpellExtraArgs(TRIGGERED_FULL_MASK).AddSpellBP0(bp0));
+        }
+    }
+
+    // 6262 - Healthstone (Soulburn empowerment)
+    class spell_warl_healthstone_soulburn : public SpellScript
+    {
+        bool _empowered = false;
+
+        bool Load() override
+        {
+            if (Unit* caster = GetCaster())
+                _empowered = caster->HasAura(Spells::SoulburnBuff);
+            return true;
+        }
+
+        void HandleOnHit()
+        {
+            Unit* caster = GetCaster();
+            if (!caster)
+                return;
+
+            int32 heal = int32(CalculatePct(caster->GetCreateHealth(), GetHitHeal()));
+
+            if (_empowered)
+            {
+                AddPct(heal, Spells::SoulburnHealthstoneHealPct);
+                caster->CastSpell(caster, Spells::SoulburnHealthstoneBuff, CastSpellExtraArgs(TRIGGERED_FULL_MASK));
+            }
+
+            SetHitHeal(heal);
+        }
+
+        void Register() override
+        {
+            OnHit += SpellHitFn(spell_warl_healthstone_soulburn::HandleOnHit);
+        }
+    };
+
+    // 387630 - Soulburn: Drain Life (hidden proc aura)
+    class spell_warl_soulburn_drain_life_absorb : public AuraScript
+    {
+        bool CheckProc(ProcEventInfo& eventInfo)
+        {
+            HealInfo* healInfo = eventInfo.GetHealInfo();
+            if (!healInfo || !healInfo->GetHeal())
+                return false;
+
+            SpellInfo const* spellInfo = eventInfo.GetSpellInfo();
+            return spellInfo && spellInfo->Id == Spells::DrainLife;
+        }
+
+        void HandleProc(AuraEffect const* /*aurEff*/, ProcEventInfo& eventInfo)
+        {
+            PreventDefaultAction();
+
+            HealInfo* healInfo = eventInfo.GetHealInfo();
+            if (!healInfo)
+                return;
+
+            AddSoulLeechAbsorb(GetTarget(), int32(healInfo->GetHeal()), float(Spells::SoulburnDrainLifeAbsorbMaxPct));
+        }
+
+        void Register() override
+        {
+            DoCheckProc += AuraCheckProcFn(spell_warl_soulburn_drain_life_absorb::CheckProc);
+            OnEffectProc += AuraEffectProcFn(spell_warl_soulburn_drain_life_absorb::HandleProc, EFFECT_0, SPELL_AURA_ANY);
+        }
+    };
+
+    // 234153 - Drain Life (Soulburn empowerment)
+    class spell_warl_drain_life_soulburn : public SpellScript
+    {
+        bool _empowered = false;
+
+        bool Load() override
+        {
+            if (Unit* caster = GetCaster())
+                _empowered = caster->HasAura(Spells::SoulburnBuff);
+            return true;
+        }
+
+        void HandleOnCast()
+        {
+            Unit* caster = GetCaster();
+            if (!caster || !_empowered)
+                return;
+
+            caster->CastSpell(caster, Spells::SoulburnDrainLifeBuff, CastSpellExtraArgs(TRIGGERED_FULL_MASK));
+        }
+
+        void Register() override
+        {
+            OnCast += SpellCastFn(spell_warl_drain_life_soulburn::HandleOnCast);
+        }
+    };
+
+    // 111771 - Demonic Gateway
+    class spell_warl_demonic_gateway : public SpellScript
+    {
+        int32 CalcCastTime(int32 castTime) override
+        {
+            if (castTime <= 0)
+                return castTime;
+
+            Unit* caster = GetCaster();
+            if (caster && caster->HasAura(Spells::SoulburnBuff))
+                return 0;
+
+            return castTime;
+        }
+
+        SpellCastResult CheckRequirement()
+        {
+            Unit* caster = GetCaster();
+            if (!caster)
+                return SPELL_FAILED_DONT_REPORT;
+
+            if (caster->HasAura(Spells::ArenaPreparation))
+                return SPELL_FAILED_CANT_DO_THAT_RIGHT_NOW;
+
+            Spell* spell = GetSpell();
+            if (spell->m_targets.HasDst())
+            {
+                Position pos = spell->m_targets.GetDst()->_position.GetPosition();
+                if (caster->GetPositionZ() + 6.0f < pos.GetPositionZ() ||
+                    caster->GetPositionZ() - 6.0f > pos.GetPositionZ())
+                    return SPELL_FAILED_NOPATH;
+            }
+
+            return SPELL_CAST_OK;
+        }
+
+        void HandleVisual(SpellEffIndex /*effIndex*/)
+        {
+            Unit* caster = GetCaster();
+            WorldLocation const* dest = GetExplTargetDest();
+            if (!caster || !dest)
+                return;
+
+            caster->SendPlaySpellVisual(dest->GetPosition(), 63644, 0, 0, 2.0f);
+        }
+
+        void HandleLaunch(SpellEffIndex /*effIndex*/)
+        {
+            Unit* caster = GetCaster();
+            if (!caster)
+                return;
+
+            std::vector<Creature*> gateways;
+            caster->GetCreatureListWithEntryInGrid(gateways, Creatures::DemonicGatewayGreen, 200.0f);
+
+            std::vector<Creature*> purpleGateways;
+            caster->GetCreatureListWithEntryInGrid(purpleGateways, Creatures::DemonicGatewayPurple, 200.0f);
+            gateways.insert(gateways.end(), purpleGateways.begin(), purpleGateways.end());
+
+            for (Creature* gateway : gateways)
+            {
+                if (gateway->IsInWorld() && gateway->GetOwnerGUID() == caster->GetGUID())
+                    gateway->DespawnOrUnsummon(100ms);
+            }
+
+            if (WorldLocation const* dest = GetExplTargetDest())
+            {
+                Position pos = dest->GetPosition();
+                caster->CastSpell(caster, Spells::DemonicGatewaySummonPurple, true);
+                caster->CastSpell(pos, Spells::DemonicGatewaySummonGreen, true);
+            }
+        }
+
+        void Register() override
+        {
+            OnEffectLaunch += SpellEffectFn(spell_warl_demonic_gateway::HandleVisual, EFFECT_0, SPELL_EFFECT_SUMMON);
+            OnEffectLaunch += SpellEffectFn(spell_warl_demonic_gateway::HandleLaunch, EFFECT_1, SPELL_EFFECT_DUMMY);
+            OnCheckCast += SpellCheckCastFn(spell_warl_demonic_gateway::CheckRequirement);
+        }
+    };
+
+    // 48020 - Demonic Circle: Teleport
+    class spell_warl_demonic_circle_teleport : public AuraScript
+    {
+        void HandleTeleport(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+        {
+            Player* player = GetTarget()->ToPlayer();
+            if (!player)
+                return;
+
+            GameObject* circle = player->GetGameObject(Spells::DemonicCircleSummon);
+            if (!circle)
+                return;
+
+            player->NearTeleportTo(circle->GetPositionX(), circle->GetPositionY(), circle->GetPositionZ(), circle->GetOrientation());
+            player->RemoveMovementImpairingAuras(false);
+
+            if (player->HasAura(Spells::SoulburnBuff))
+                player->CastSpell(player, Spells::SoulburnDemonicCircle, CastSpellExtraArgs(TRIGGERED_FULL_MASK));
+        }
+
+        void Register() override
+        {
+            OnEffectApply += AuraEffectApplyFn(spell_warl_demonic_circle_teleport::HandleTeleport, EFFECT_0, SPELL_AURA_MECHANIC_IMMUNITY, AURA_EFFECT_HANDLE_REAL);
+        }
+    };
 }
 
 void AddSC_custom_warlock_spell_fixes()
@@ -259,4 +485,9 @@ void AddSC_custom_warlock_spell_fixes()
     RegisterSpellScript(spell_warlock_call_dreadstalkers);
     RegisterSpellScript(spell_warlock_call_dreadstalkers_summon);
     RegisterSpellScript(spell_warlock_summon_demonic_tyrant);
+    RegisterSpellScript(spell_warl_healthstone_soulburn);
+    RegisterSpellScript(spell_warl_soulburn_drain_life_absorb);
+    RegisterSpellScript(spell_warl_drain_life_soulburn);
+    RegisterSpellScript(spell_warl_demonic_gateway);
+    RegisterSpellScript(spell_warl_demonic_circle_teleport);
 }

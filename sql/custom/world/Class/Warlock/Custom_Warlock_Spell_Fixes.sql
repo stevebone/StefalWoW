@@ -168,6 +168,26 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 -- Remove previously applied scripts
 DELETE FROM `spell_script_names` WHERE `ScriptName` IN ('spell_warl_drain_life');
 
+-- Soulburn: Drain Life & Healthstone
+DELETE FROM `spell_script_names` WHERE `ScriptName` IN ('spell_warl_healthstone_soulburn', 'spell_warl_soulburn_drain_life_absorb', 'spell_warl_drain_life_soulburn');
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
+(6262, 'spell_warl_healthstone_soulburn'),
+(387630, 'spell_warl_soulburn_drain_life_absorb'),
+(234153, 'spell_warl_drain_life_soulburn');
+
+-- Remove old healthstone script registration if present
+DELETE FROM `spell_script_names` WHERE `spell_id` = 6262 AND `ScriptName` = 'spell_warl_healthstone_heal';
+
+-- Soulburn: Demonic Circle Teleport
+DELETE FROM `spell_script_names` WHERE `spell_id` = 48020 AND `ScriptName` = 'spell_warl_demonic_circle_teleport';
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
+(48020, 'spell_warl_demonic_circle_teleport');
+
+-- spell_proc for 387630 (Soulburn: Drain Life hidden aura) - proc on helpful periodic heals
+DELETE FROM `spell_proc` WHERE `SpellId` = 387630;
+INSERT INTO `spell_proc` (`SpellId`, `SchoolMask`, `SpellFamilyName`, `SpellFamilyMask0`, `SpellFamilyMask1`, `SpellFamilyMask2`, `SpellFamilyMask3`, `ProcFlags`, `ProcFlags2`, `SpellTypeMask`, `SpellPhaseMask`, `HitMask`, `AttributesMask`, `DisableEffectsMask`, `ProcsPerMinute`, `Chance`, `Cooldown`, `Charges`) VALUES
+(387630, 0, 0, 0, 0, 0, 0, 0x200000, 0, 2, 2, 0, 0, 0, 0, 100, 0, 0);
+
 
 REPLACE INTO `npc_spellclick_spells` VALUES (59262, 113902, 0, 0);
 REPLACE INTO `npc_spellclick_spells` VALUES (59271, 113902, 0, 0);
