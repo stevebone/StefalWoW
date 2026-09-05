@@ -81,6 +81,11 @@ namespace Scripts::Custom::Warlock
         static constexpr uint32 SoulLeechShield = 108366;
         static constexpr uint32 DemonSkin = 219272;
 
+        // Soul Link
+        static constexpr uint32 SoulLink = 108415;
+        static constexpr uint32 SoulLinkPetBuff = 108446;
+        static constexpr uint32 GrimoireOfSacrificeBuff = 196099;
+
         // Misc
         static constexpr uint32 ArenaPreparation = 32727;
     }

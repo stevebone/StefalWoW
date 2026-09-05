@@ -13,3 +13,6 @@ UPDATE creature_template SET unit_flags2 = unit_flags2 & ~0x02000000;
 
 -- Remove non existing/used Waypoint Path
 DELETE FROM `waypoint_path` WHERE `PathId` IN (28545);
+
+-- Remove Removed Spell Auras from Creature Addons
+UPDATE `creature_addon` SET `auras` = '' WHERE `auras` = '131700';
