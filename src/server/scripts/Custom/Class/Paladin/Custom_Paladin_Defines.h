@@ -44,6 +44,48 @@ namespace Scripts::Custom::Paladin
         static constexpr uint32 ConsecratedBladeOverride  = 462970;
         static constexpr uint32 ConsecratedBladeICD       = 407475;
         static constexpr uint32 ConsecratedBladeArtOfWar  = 382275;
+
+        // Divine Storm
+        static constexpr uint32 DivineStorm               = 53385;
+        static constexpr uint32 DivineStormDamage         = 224239;
+        static constexpr uint32 VisualKitDivineStorm      = 73892;
+
+        // Empyrean Power
+        static constexpr uint32 EmpyreanPower             = 326732;
+        static constexpr uint32 EmpyreanPowerBuff         = 326733;
+
+        // Tempest of the Lightbringer
+        static constexpr uint32 TempestOfTheLightbringer   = 383396;
+        static constexpr uint32 TempestOfTheLightbringerAT = 383427;
+
+        // Empyrean Legacy
+        static constexpr uint32 EmpyreanLegacy            = 387170;
+        static constexpr uint32 EmpyreanLegacyBuff        = 387178;
+        static constexpr uint32 EmpyreanLegacyICD         = 387441;
+
+        // Second Sunrise
+        static constexpr uint32 SecondSunrise             = 431474;
+        static constexpr uint32 LightOfDawn               = 85222;
+        static constexpr uint32 HammerOfWrath             = 1241413;
+        static constexpr uint32 HammerOfWrathLegacy       = 24275;
+
+        // Crusader Strike family (for Empyrean Power proc)
+        static constexpr uint32 CrusaderStrike            = 35395;
+        static constexpr uint32 CrusadingStrikesTalent    = 404542;
+        static constexpr uint32 CrusadingStrikesDamage    = 408385;
+        static constexpr uint32 TemplarStrikesTalent      = 406646;
+        static constexpr uint32 TemplarStrike             = 407480;
+        static constexpr uint32 TemplarSlash              = 406647;
+
+        // Holy Shock (for Second Sunrise CustomArg forwarding)
+        static constexpr uint32 HolyShock                 = 20473;
+        static constexpr uint32 HolyShockDamage           = 25912;
+        static constexpr uint32 HolyShockHealing          = 25914;
+
+        // Single-target HP spenders (for Empyrean Legacy)
+        static constexpr uint32 TemplarsVerdict           = 85256;
+        static constexpr uint32 FinalVerdictCast          = 383328;
+        static constexpr uint32 JusticarsVengeance        = 215661;
     }
 }
 
