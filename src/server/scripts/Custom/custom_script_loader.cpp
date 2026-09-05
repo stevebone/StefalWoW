@@ -23,6 +23,7 @@ void AddSC_custom_player_mails();
 void AddSC_custom_player_chromie();
 
 // ==================== Class Scripts ========================= //
+void AddSC_custom_deathknight_spell_fixes();
 void AddSC_custom_demonhunter_spell_fixes();
 void AddSC_custom_evoker_spell_fixes();
 void AddSC_custom_hunter_spell_fixes();
@@ -135,6 +136,7 @@ void AddCustomScripts()
     AddSC_custom_player_mails();
     AddSC_custom_player_chromie();
 
+    AddSC_custom_deathknight_spell_fixes();
     AddSC_custom_demonhunter_spell_fixes();
     AddSC_custom_evoker_spell_fixes();
     AddSC_custom_hunter_spell_fixes();
