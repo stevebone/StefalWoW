@@ -31,6 +31,7 @@
 #include "MotionMaster.h"
 #include "ObjectAccessor.h"
 #include "PetAI.h"
+#include "SpellHistory.h"
 #include "TemporarySummon.h"
 #include "Spell.h"
 #include <cmath>
@@ -445,6 +446,54 @@ namespace Scripts::Custom::Warlock
                 out.end());
         }
     };
+
+    // 103673 - Darkglare
+    struct npc_pet_warlock_darkglare : public PetAI
+    {
+        npc_pet_warlock_darkglare(Creature* creature) : PetAI(creature) {}
+
+        void UpdateAI(uint32 diff) override
+        {
+            PetAI::UpdateAI(diff);
+
+            if (me->HasUnitState(UNIT_STATE_CASTING))
+                return;
+
+            if (me->GetSpellHistory()->HasCooldown(Spells::EyeLaser))
+                return;
+
+            Unit* owner = me->GetOwner();
+            if (!owner)
+                return;
+
+            Unit* target = nullptr;
+
+            ObjectGuid targetGuid = owner->GetTarget();
+            if (!targetGuid.IsEmpty())
+            {
+                target = ObjectAccessor::GetUnit(*me, targetGuid);
+
+                if (!target || !owner->IsValidAttackTarget(target) || !me->IsWithinDistInMap(target, 100.0f))
+                    target = nullptr;
+            }
+
+            if (!target)
+            {
+                std::list<Unit*> targets;
+
+                Trinity::AnyUnfriendlyUnitInObjectRangeCheck u_check(me, me, 100.0f);
+                Trinity::UnitListSearcher<Trinity::AnyUnfriendlyUnitInObjectRangeCheck> searcher(me, targets, u_check);
+
+                Cell::VisitAllObjects(me, searcher, 100.0f);
+
+                if (!targets.empty())
+                    target = targets.front();
+            }
+
+            if (target)
+                me->CastSpell(target, Spells::EyeLaser);
+        }
+    };
 }
 
 void AddSC_custom_warlock_demon_npcs()
@@ -455,4 +504,5 @@ void AddSC_custom_warlock_demon_npcs()
     RegisterCreatureAI(npc_pet_warlock_wild_imp);
     RegisterCreatureAI(npc_pet_warlock_demonic_tyrant);
     RegisterCreatureAI(npc_warl_demonic_gateway);
+    RegisterCreatureAI(npc_pet_warlock_darkglare);
 }

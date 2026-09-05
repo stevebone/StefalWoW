@@ -86,6 +86,10 @@ namespace Scripts::Custom::Warlock
         static constexpr uint32 SoulLinkPetBuff = 108446;
         static constexpr uint32 GrimoireOfSacrificeBuff = 196099;
 
+        // Darkglare
+        static constexpr uint32 SummonDarkglare = 205180;
+        static constexpr uint32 EyeLaser = 205231;
+
         // Misc
         static constexpr uint32 ArenaPreparation = 32727;
     }
@@ -100,5 +104,6 @@ namespace Scripts::Custom::Warlock
         static constexpr uint32 WildImp = 55659;
         static constexpr uint32 DemonicGatewayGreen = 59262;
         static constexpr uint32 DemonicGatewayPurple = 59271;
+        static constexpr uint32 Darkglare = 103673;
     }
 }

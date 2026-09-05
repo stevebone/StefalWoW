@@ -166,7 +166,7 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 (364750, 'spell_warlock_call_dreadstalkers_summon');
 
 -- Remove previously applied scripts
-DELETE FROM `spell_script_names` WHERE `ScriptName` IN ('spell_warl_drain_life');
+DELETE FROM `spell_script_names` WHERE `ScriptName` IN ('spell_warl_drain_life', 'spell_warl_deaths_embrace_drain_life', 'spell_warl_deaths_embrace');
 
 -- Soulburn: Drain Life & Healthstone
 DELETE FROM `spell_script_names` WHERE `ScriptName` IN ('spell_warl_healthstone_soulburn', 'spell_warl_soulburn_drain_life_absorb', 'spell_warl_drain_life_soulburn');

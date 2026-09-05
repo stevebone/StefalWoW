@@ -132,7 +132,6 @@ enum WarlockSpells
     SPELL_WARLOCK_PHANTOMATIC_SINGULARITY_DAMAGE = 205246,
     SPELL_WARLOCK_HAUNT = 48181,
     SPELL_WARLOCK_DOOM = 603,
-    SPELL_WARLOCK_EYE_LASER = 205231,
     SPELL_WARLOCK_SOULBURN = 74434,
     SPELL_WARLOCK_SOULBURN_UNENDING_BREATH = 104242,
     SPELL_WARLOCK_DEMONIC_GATEWAY_PERIODIC_CHARGE = 113901,
@@ -2137,123 +2136,6 @@ class aura_warl_haunt : public AuraScript
     }
 };
 
-// 205180 - Summon Darkglare
-class spell_warlock_summon_darkglare : public SpellScript
-{
-    void HandleOnHitTarget(SpellEffIndex /*effIndex*/)
-    {
-        if (Unit* target = GetHitUnit())
-        {
-            std::vector<AuraEffect*> effects;
-
-            for (AuraEffect* aurEff : target->GetAuraEffectsByType(SPELL_AURA_PERIODIC_DAMAGE))
-            {
-                if (aurEff)
-                    effects.push_back(aurEff);
-            }
-
-            for (AuraEffect* effect : effects)
-            {
-                if (!effect)
-                    continue;
-
-                Aura* aura = effect->GetBase();
-                if (!aura)
-                    continue;
-
-                if (aura->GetCasterGUID() == GetCaster()->GetGUID())
-                {
-                    aura->SetDuration(aura->GetDuration() + 8 * IN_MILLISECONDS);
-                }
-            }
-        }
-    }
-
-    void Register() override
-    {
-        OnEffectHitTarget += SpellEffectFn(spell_warlock_summon_darkglare::HandleOnHitTarget, EFFECT_1, SPELL_EFFECT_SCRIPT_EFFECT);
-    }
-};
-
-// 103673 - Darkglare
-struct npc_pet_warlock_darkglare : public PetAI
-{
-    npc_pet_warlock_darkglare(Creature* creature) : PetAI(creature) {}
-
-    void UpdateAI(uint32 diff) override
-    {
-        PetAI::UpdateAI(diff);
-
-        if (me->HasUnitState(UNIT_STATE_CASTING))
-            return;
-
-        if (me->GetSpellHistory()->HasCooldown(SPELL_WARLOCK_EYE_LASER))
-            return;
-
-        Unit* owner = me->GetOwner();
-        if (!owner)
-            return;
-
-        Unit* target = nullptr;
-
-        ObjectGuid targetGuid = owner->GetTarget();
-        if (!targetGuid.IsEmpty())
-        {
-            target = ObjectAccessor::GetUnit(*me, targetGuid);
-
-            if (!target || !owner->IsValidAttackTarget(target) || !me->IsWithinDistInMap(target, 100.0f))
-                target = nullptr;
-        }
-
-        if (!target)
-        {
-            std::list<Unit*> targets;
-
-            Trinity::AnyUnfriendlyUnitInObjectRangeCheck u_check(me, me, 100.0f);
-            Trinity::UnitListSearcher<Trinity::AnyUnfriendlyUnitInObjectRangeCheck> searcher(me, targets, u_check);
-
-            Cell::VisitAllObjects(me, searcher, 100.0f);
-
-            if (!targets.empty())
-                target = targets.front();
-        }
-
-        if (target)
-        {
-            me->CastSpell(target, SPELL_WARLOCK_EYE_LASER, true);
-        }
-    }
-};
-
-// 205231 - Eye Laser (Darkglare damage spell)
-class spell_warl_darkglare_eye_laser : public SpellScript
-{
-    void HandleDamage(SpellEffIndex /*effIndex*/)
-    {
-        Unit* caster = GetCaster();
-        Unit* owner = caster->GetOwner();
-
-        if (!owner)
-            return;
-
-        SpellEffectInfo const& effect = GetEffectInfo(EFFECT_0);
-
-        int32 damage = effect.CalcValue(owner);
-
-        float bonusCoefficient = effect.BonusCoefficient;
-        int32 spellPower = owner->SpellBaseDamageBonusDone(SPELL_SCHOOL_MASK_SHADOW);
-
-        damage += int32(bonusCoefficient * spellPower);
-
-        SetHitDamage(damage);
-    }
-
-    void Register() override
-    {
-        OnEffectHitTarget += SpellEffectFn(spell_warl_darkglare_eye_laser::HandleDamage, EFFECT_0, SPELL_EFFECT_SCHOOL_DAMAGE);
-    }
-};
-
 // 5697 - Unending Breath
 class spell_warlock_unending_breath : public SpellScriptLoader
 {
@@ -3996,9 +3878,9 @@ void AddSC_warlock_spell_scripts()
     RegisterSpellScript(spell_warl_conflagrate);
     RegisterSpellScript(spell_warl_create_healthstone);
     RegisterSpellScript(spell_warl_dark_pact);
-    RegisterSpellScript(spell_warl_deaths_embrace);
+    // RegisterSpellScript(spell_warl_deaths_embrace); // Deaths Embrace no longer affects Malefic Rapture
     RegisterSpellScript(spell_warl_deaths_embrace_dots);
-    RegisterSpellScript(spell_warl_deaths_embrace_drain_life);
+    // RegisterSpellScript(spell_warl_deaths_embrace_drain_life); // Deaths Embrace no longer affects Drain Life
     RegisterSpellScript(spell_warl_demonbolt);
     RegisterSpellScript(spell_warl_demonic_circle_summon);
     // RegisterSpellScript(spell_warl_demonic_circle_teleport); // Replaced in Custom_Warlock_Spell_Fixes.cpp
@@ -4074,9 +3956,6 @@ void AddSC_warlock_spell_scripts()
     RegisterSpellScript(spell_warl_corruption_effect);
     RegisterSpellScript(aura_warl_phantomatic_singularity);
     RegisterSpellScript(aura_warl_haunt);
-    RegisterSpellScript(spell_warlock_summon_darkglare);
-    RegisterCreatureAI(npc_pet_warlock_darkglare);
-    RegisterSpellScript(spell_warl_darkglare_eye_laser);
     new spell_warlock_unending_breath();
     RegisterSpellScript(spell_warl_hand_of_guldan);
     new spell_warl_hand_of_guldan_damage();

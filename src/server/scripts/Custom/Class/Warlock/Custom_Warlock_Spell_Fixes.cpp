@@ -646,6 +646,77 @@ namespace Scripts::Custom::Warlock
             AfterEffectRemove += AuraEffectRemoveFn(spell_warl_soul_link_pet_buff::RecalculateOwnerStamina, EFFECT_0, SPELL_AURA_SPLIT_DAMAGE_PCT, AURA_EFFECT_HANDLE_REAL);
         }
     };
+
+    // 205180 - Summon Darkglare
+    // EFFECT_3: +20% shadow damage done while Darkglare is active
+    class spell_warlock_summon_darkglare : public AuraScript
+    {
+        void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+        {
+            if (Player* player = GetTarget()->ToPlayer())
+                player->ApplyModDamageDonePercent(SPELL_SCHOOL_SHADOW, 20.0f, true);
+        }
+
+        void HandleRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+        {
+            if (Player* player = GetTarget()->ToPlayer())
+                player->ApplyModDamageDonePercent(SPELL_SCHOOL_SHADOW, 20.0f, false);
+        }
+
+        void Register() override
+        {
+            AfterEffectApply += AuraEffectApplyFn(spell_warlock_summon_darkglare::HandleApply, EFFECT_3, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL);
+            AfterEffectRemove += AuraEffectRemoveFn(spell_warlock_summon_darkglare::HandleRemove, EFFECT_3, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL);
+        }
+    };
+
+    // 205231 - Eye Laser (Darkglare damage spell)
+    class spell_warl_darkglare_eye_laser : public SpellScript
+    {
+        void HandleDamage(SpellEffIndex /*effIndex*/)
+        {
+            Unit* caster = GetCaster();
+            Unit* owner = caster->GetOwner();
+
+            if (!owner)
+                return;
+
+            SpellEffectInfo const& effect = GetEffectInfo(EFFECT_0);
+
+            int32 damage = effect.CalcValue(owner);
+
+            float bonusCoefficient = effect.BonusCoefficient;
+            int32 spellPower = owner->SpellBaseDamageBonusDone(SPELL_SCHOOL_MASK_SHADOW);
+
+            damage += int32(bonusCoefficient * spellPower);
+
+            // EFFECT_2 of Summon Darkglare: +10% damage per DoT on target
+            if (Unit* target = GetHitUnit())
+            {
+                int32 bonusPerDot = 10;
+                if (Aura const* darkglareAura = owner->GetAura(Spells::SummonDarkglare))
+                    if (AuraEffect const* eff2 = darkglareAura->GetEffect(EFFECT_2))
+                        bonusPerDot = eff2->GetAmount();
+
+                int32 dotCount = 0;
+                for (AuraEffect const* aurEff : target->GetAuraEffectsByType(SPELL_AURA_PERIODIC_DAMAGE))
+                {
+                    if (Aura const* aura = aurEff->GetBase())
+                        if (aura->GetCasterGUID() == owner->GetGUID())
+                            ++dotCount;
+                }
+
+                AddPct(damage, bonusPerDot * dotCount);
+            }
+
+            SetHitDamage(damage);
+        }
+
+        void Register() override
+        {
+            OnEffectHitTarget += SpellEffectFn(spell_warl_darkglare_eye_laser::HandleDamage, EFFECT_0, SPELL_EFFECT_SCHOOL_DAMAGE);
+        }
+    };
 }
 
 void AddSC_custom_warlock_spell_fixes()
@@ -665,4 +736,6 @@ void AddSC_custom_warlock_spell_fixes()
     RegisterSpellScript(spell_warl_demon_skin);
     RegisterSpellScript(spell_warl_soul_link);
     RegisterSpellScript(spell_warl_soul_link_pet_buff);
+    RegisterSpellScript(spell_warlock_summon_darkglare);
+    RegisterSpellScript(spell_warl_darkglare_eye_laser);
 }
