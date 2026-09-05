@@ -166,7 +166,7 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 (364750, 'spell_warlock_call_dreadstalkers_summon');
 
 -- Remove previously applied scripts
-DELETE FROM `spell_script_names` WHERE `ScriptName` IN ('spell_warl_drain_life', 'spell_warl_deaths_embrace_drain_life', 'spell_warl_deaths_embrace');
+DELETE FROM `spell_script_names` WHERE `ScriptName` IN ('spell_warl_drain_life', 'spell_warl_deaths_embrace_drain_life', 'spell_warl_deaths_embrace', 'spell_warl_aftermath');
 
 -- Soulburn: Drain Life & Healthstone
 DELETE FROM `spell_script_names` WHERE `ScriptName` IN ('spell_warl_healthstone_soulburn', 'spell_warl_soulburn_drain_life_absorb', 'spell_warl_drain_life_soulburn');
@@ -217,3 +217,20 @@ INSERT INTO `spell_proc` (`SpellId`, `SchoolMask`, `SpellFamilyName`, `SpellFami
 
 REPLACE INTO `npc_spellclick_spells` VALUES (59262, 113902, 0, 0);
 REPLACE INTO `npc_spellclick_spells` VALUES (59271, 113902, 0, 0);
+
+-- Unstable Affliction: update from old 316099 to new 1259790
+DELETE FROM `spell_script_names` WHERE `ScriptName` IN ('spell_warl_unstable_affliction', 'spell_warl_perpetual_unstability');
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
+(1259790, 'spell_warl_unstable_affliction'),
+(1259790, 'spell_warl_perpetual_unstability');
+
+-- Death's Embrace (234876)
+DELETE FROM `spell_script_names` WHERE `ScriptName` IN ('spell_warl_deaths_embrace_dots', 'spell_warl_deaths_embrace_shadow_bolt');
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
+(980, 'spell_warl_deaths_embrace_dots'),
+(146739, 'spell_warl_deaths_embrace_dots'),
+(445474, 'spell_warl_deaths_embrace_dots'),
+(1259790, 'spell_warl_deaths_embrace_dots'),
+(27243, 'spell_warl_deaths_embrace_dots'),
+(198590, 'spell_warl_deaths_embrace_dots'),
+(232670, 'spell_warl_deaths_embrace_shadow_bolt');

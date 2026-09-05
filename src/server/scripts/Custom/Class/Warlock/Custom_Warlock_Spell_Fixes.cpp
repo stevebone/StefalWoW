@@ -717,6 +717,126 @@ namespace Scripts::Custom::Warlock
             OnEffectHitTarget += SpellEffectFn(spell_warl_darkglare_eye_laser::HandleDamage, EFFECT_0, SPELL_EFFECT_SCHOOL_DAMAGE);
         }
     };
+
+    // 234876 - Death's Embrace
+    // Called by Agony (980), Corruption (146739), Wither (445474), Unstable Affliction (1259790),
+    // Seed of Corruption (27243), Drain Soul (198590)
+    class spell_warl_deaths_embrace_dots : public AuraScript
+    {
+        void CalculateDamage(AuraEffect const* /*aurEff*/, Unit const* victim, int32& /*damage*/, int32& /*flatMod*/, float& pctMod) const
+        {
+            Unit const* caster = GetCaster();
+            if (!caster)
+                return;
+
+            Aura const* deathsEmbrace = caster->GetAura(Spells::DeathsEmbrace);
+            if (!deathsEmbrace)
+                return;
+
+            AuraEffect const* maxPctEff = deathsEmbrace->GetEffect(EFFECT_0);
+            AuraEffect const* thresholdEff = deathsEmbrace->GetEffect(EFFECT_1);
+            if (!maxPctEff || !thresholdEff)
+                return;
+
+            float maxPct = maxPctEff->GetAmount();
+            float threshold = thresholdEff->GetAmount();
+
+            float healthPct = victim->GetHealthPct();
+            if (healthPct >= threshold)
+                return;
+
+            float bonus = maxPct * (threshold - healthPct) / threshold;
+            AddPct(pctMod, bonus);
+        }
+
+        void Register() override
+        {
+            DoEffectCalcDamageAndHealing += AuraEffectCalcDamageFn(spell_warl_deaths_embrace_dots::CalculateDamage, EFFECT_ALL, SPELL_AURA_PERIODIC_DAMAGE);
+        }
+    };
+
+    // 234876 - Death's Embrace
+    // Called by Shadow Bolt (232670)
+    class spell_warl_deaths_embrace_shadow_bolt : public SpellScript
+    {
+        void HandleDamageCalculation(SpellEffectInfo const& /*spellEffectInfo*/, Unit const* victim, int32 const& /*damage*/, int32 const& /*flatMod*/, float& pctMod) const
+        {
+            Unit const* caster = GetCaster();
+            if (!caster)
+                return;
+
+            Aura const* deathsEmbrace = caster->GetAura(Spells::DeathsEmbrace);
+            if (!deathsEmbrace)
+                return;
+
+            AuraEffect const* maxPctEff = deathsEmbrace->GetEffect(EFFECT_0);
+            AuraEffect const* thresholdEff = deathsEmbrace->GetEffect(EFFECT_1);
+            if (!maxPctEff || !thresholdEff)
+                return;
+
+            float maxPct = maxPctEff->GetAmount();
+            float threshold = thresholdEff->GetAmount();
+
+            float healthPct = victim->GetHealthPct();
+            if (healthPct >= threshold)
+                return;
+
+            float bonus = maxPct * (threshold - healthPct) / threshold;
+            AddPct(pctMod, bonus);
+        }
+
+        void Register() override
+        {
+            CalcDamage += SpellCalcDamageFn(spell_warl_deaths_embrace_shadow_bolt::HandleDamageCalculation);
+        }
+    };
+
+    // 1259790 - Unstable Affliction
+    class spell_warl_unstable_affliction : public AuraScript
+    {
+        bool Validate(SpellInfo const* /*spellInfo*/) override
+        {
+            return ValidateSpellInfo({ Spells::UnstableAfflictionDamage, Spells::UnstableAfflictionEnergize });
+        }
+
+        void HandleDispel(DispelInfo const* dispelInfo) const
+        {
+            Unit* caster = GetCaster();
+            if (!caster)
+                return;
+
+            AuraEffect const* removedEffect = GetEffect(EFFECT_1);
+            if (!removedEffect)
+                return;
+
+            SpellEffectValue damage = GetEffectInfo(EFFECT_0).CalcValue(caster, nullptr, GetUnitOwner()) / 100.0 * *removedEffect->CalculateEstimatedAmount(caster, removedEffect->GetAmount());
+
+            // Stacking bonus: EFFECT_2 (15/stack, stacking) and EFFECT_3 (15, constant)
+            // Formula: damage *= (1 + (EFFECT_2 - EFFECT_3) / 100) * EFFECT_3 / EFFECT_2
+            AuraEffect const* stackEff = GetEffect(EFFECT_2);
+            AuraEffect const* constEff = GetEffect(EFFECT_3);
+            if (stackEff && constEff && stackEff->GetAmount() > 0)
+                damage *= (1.0 + (stackEff->GetAmount() - constEff->GetAmount()) / 100.0) * constEff->GetAmount() / stackEff->GetAmount();
+
+            caster->CastSpell(dispelInfo->GetDispeller(), Spells::UnstableAfflictionDamage, CastSpellExtraArgs()
+                .AddSpellMod(SPELLVALUE_BASE_POINT0, damage)
+                .SetTriggerFlags(TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR));
+        }
+
+        void HandleRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/) const
+        {
+            if (GetTargetApplication()->GetRemoveMode() != AURA_REMOVE_BY_DEATH)
+                return;
+
+            GetCaster()->CastSpell(GetCaster(), Spells::UnstableAfflictionEnergize, true);
+        }
+
+        void Register() override
+        {
+            AfterDispel += AuraDispelFn(spell_warl_unstable_affliction::HandleDispel);
+            OnEffectRemove += AuraEffectRemoveFn(spell_warl_unstable_affliction::HandleRemove, EFFECT_1, SPELL_AURA_PERIODIC_DAMAGE, AURA_EFFECT_HANDLE_REAL);
+        }
+    };
 }
 
 void AddSC_custom_warlock_spell_fixes()
@@ -738,4 +858,7 @@ void AddSC_custom_warlock_spell_fixes()
     RegisterSpellScript(spell_warl_soul_link_pet_buff);
     RegisterSpellScript(spell_warlock_summon_darkglare);
     RegisterSpellScript(spell_warl_darkglare_eye_laser);
+    RegisterSpellScript(spell_warl_deaths_embrace_dots);
+    RegisterSpellScript(spell_warl_deaths_embrace_shadow_bolt);
+    RegisterSpellScript(spell_warl_unstable_affliction);
 }

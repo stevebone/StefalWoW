@@ -90,6 +90,13 @@ namespace Scripts::Custom::Warlock
         static constexpr uint32 SummonDarkglare = 205180;
         static constexpr uint32 EyeLaser = 205231;
 
+        // Death's Embrace
+        static constexpr uint32 DeathsEmbrace = 234876;
+
+        // Unstable Affliction
+        static constexpr uint32 UnstableAfflictionDamage = 196364;
+        static constexpr uint32 UnstableAfflictionEnergize = 31117;
+
         // Misc
         static constexpr uint32 ArenaPreparation = 32727;
     }

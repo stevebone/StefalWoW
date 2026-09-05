@@ -734,7 +734,7 @@ class spell_warl_deaths_embrace : public SpellScript
     }
 };
 
-// Called by 980 - Agony, 146739 - Corruption and 316099 - Unstable Affliction
+// Called by 980 - Agony, 146739 - Corruption and 1259790 - Unstable Affliction
 class spell_warl_deaths_embrace_dots : public AuraScript
 {
     bool Validate(SpellInfo const* /*spellInfo*/) override
@@ -1059,7 +1059,7 @@ class spell_warl_immolate : public SpellScript
     }
 };
 
-// Called by 316099 - Unstable Affliction
+// Called by 1259790 - Unstable Affliction
 // 459376 - Perpetual Unstability
 class spell_warl_perpetual_unstability : public SpellScript
 {
@@ -1853,7 +1853,7 @@ class spell_warl_t4_2p_bonus : public AuraScript
     }
 };
 
-// 316099 - Unstable Affliction
+// 1259790 - Unstable Affliction
 class spell_warl_unstable_affliction : public AuraScript
 {
     bool Validate(SpellInfo const* /*spellInfo*/) override
@@ -3879,7 +3879,7 @@ void AddSC_warlock_spell_scripts()
     RegisterSpellScript(spell_warl_create_healthstone);
     RegisterSpellScript(spell_warl_dark_pact);
     // RegisterSpellScript(spell_warl_deaths_embrace); // Deaths Embrace no longer affects Malefic Rapture
-    RegisterSpellScript(spell_warl_deaths_embrace_dots);
+    // RegisterSpellScript(spell_warl_deaths_embrace_dots); // Replaced in Custom_Warlock_Spell_Fixes.cpp
     // RegisterSpellScript(spell_warl_deaths_embrace_drain_life); // Deaths Embrace no longer affects Drain Life
     RegisterSpellScript(spell_warl_demonbolt);
     RegisterSpellScript(spell_warl_demonic_circle_summon);
@@ -3916,7 +3916,7 @@ void AddSC_warlock_spell_scripts()
     RegisterSpellScript(spell_warl_summon_sayaad);
     RegisterSpellScriptWithArgs(spell_warl_t4_2p_bonus<SPELL_WARLOCK_FLAMESHADOW>, "spell_warl_t4_2p_bonus_shadow");
     RegisterSpellScriptWithArgs(spell_warl_t4_2p_bonus<SPELL_WARLOCK_SHADOWFLAME>, "spell_warl_t4_2p_bonus_fire");
-    RegisterSpellScript(spell_warl_unstable_affliction);
+    // RegisterSpellScript(spell_warl_unstable_affliction); // Replaced in Custom_Warlock_Spell_Fixes.cpp
     RegisterSpellScript(spell_warl_vile_taint);
     RegisterSpellScript(spell_warl_volatile_agony);
 
