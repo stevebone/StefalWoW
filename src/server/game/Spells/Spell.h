@@ -480,6 +480,25 @@ class TC_GAME_API Spell
         void EffectObliterateItem();
         void EffectCorpseLoot();
         void EffectSurvey();
+        void EffectThreatAll();
+        void EffectCompleteAndRewardWorldQuest();
+        void EffectAllowControlPet();
+        void EffectDespawnPersistentAreaAura();
+        void EffectDespawnSummon();
+        void EffectApplyAreaAura();
+        void EffectUpdateAreatrigger();
+        void EffectSummonStabledPetAsGuardian();
+        void EffectAlterItem();
+        void EffectRepairItem();
+        void EffectRemoveGem();
+        void EffectConvertItemsToCurrency();
+        void EffectCancelAllPrivateConversations();
+        void EffectAddSocketBonus();
+        void EffectSetMaxBattlePetCount();
+        void EffectStartPetBattle();
+        void EffectSetCovenant();
+        void EffectLearnSoulbindConduit();
+        void EffectLearnGarrTalent();
 
         typedef std::unordered_set<Aura*> UsedSpellMods;
 
