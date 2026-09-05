@@ -14444,6 +14444,7 @@ void Player::PrepareGossipMenu(WorldObject* source, uint32 menuId, bool showQues
                 case GossipOptionNpc::Transmogrify:
                 case GossipOptionNpc::AzeriteRespec:
                 case GossipOptionNpc::PersonalTabardVendor:
+                case GossipOptionNpc::PerksProgramVendor:
                     break;                                         // No checks
                 case GossipOptionNpc::CemeterySelect:
                     canTalk = false;                               // Deprecated
@@ -14643,6 +14644,10 @@ void Player::OnGossipSelect(WorldObject* source, int32 gossipOptionId, uint32 me
         case GossipOptionNpc::ProfessionsCustomerOrder: // NYI
             break;
         case GossipOptionNpc::BarbersChoice: // NYI - unknown if needs sending
+            break;
+        case GossipOptionNpc::PerksProgramVendor:
+            PlayerTalkClass->SendCloseGossip();
+            GetSession()->SendPerksProgramVendorList(guid);
             break;
         default:
             handled = false;
