@@ -21,6 +21,7 @@
  */
 
 #include "CreatureAI.h"
+#include "GameObject.h"
 #include "Log.h"
 #include "Pet.h"
 #include "Player.h"
