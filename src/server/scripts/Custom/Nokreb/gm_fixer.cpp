@@ -45,6 +45,15 @@
  *                              (HTTPS fetch via boost::beast; same CAST layout
  *                              as .fix spellA / .fix spellCB). No npcId = use
  *                              the selected creature's entry as the Wowhead id.
+ *   .fix wowinfo [id]       - compare the Wowhead page of the given NPC (or the
+ *                             selected creature) against this DB: spells, drops,
+ *                             pickpocketing. Prints a diff ([+]/[-]/[?]). Read-only.
+ *   .fix lootwow [id]       - replace creature_loot_template with Wowhead drops
+ *                             (DELETE + INSERT) for the given NPC / selected creature.
+ *   .fix pickpocketwow [id] - replace pickpocketing_loot_template with Wowhead
+ *                             pickpocketing (DELETE + INSERT).
+ *   .fix wowall [id]        - apply all three sections at once: spells + drops
+ *                             + pickpocketing.
  *   .fix spellclear         - delete ALL smart_scripts CAST (action_type=11) rows
  *                             of the selected NPC (every spell it casts via SmartAI)
  *   .fix spelldel <N>       - delete the Nth CAST row of the selected NPC
@@ -98,14 +107,14 @@
 #include <algorithm>
 #include <cctype>
 
- // HTTP(S) fetch for .fix spellwow (Wowhead NPC page).
- // This fork does NOT link libcurl - like NpcLLM / PlayerBotLLM it uses
- // boost::asio + boost::beast (+ boost::asio::ssl for HTTPS). SNI is required
- // for CloudFront-backed hosts like www.wowhead.com.
- //
- // OpenSSL headers are needed directly for the TLS-fingerprint hardening
- // (SSL_set_cipher_list / SSL_set_ciphersuites / SSL_set_alpn_protos) and for
- // OPENSSL_VERSION_NUMBER version gating.
+// HTTP(S) fetch for .fix spellwow (Wowhead NPC page).
+// This fork does NOT link libcurl - like NpcLLM / PlayerBotLLM it uses
+// boost::asio + boost::beast (+ boost::asio::ssl for HTTPS). SNI is required
+// for CloudFront-backed hosts like www.wowhead.com.
+//
+// OpenSSL headers are needed directly for the TLS-fingerprint hardening
+// (SSL_set_cipher_list / SSL_set_ciphersuites / SSL_set_alpn_protos) and for
+// OPENSSL_VERSION_NUMBER version gating.
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
 #include <boost/beast/core.hpp>
@@ -128,6 +137,16 @@ namespace
     //  movement flags in creature_template_difficulty.StaticFlags1)
     constexpr uint32 STATIC_FLAG_WALK = 268435456u;  // 0x10000000
     constexpr uint32 STATIC_FLAG_FLY = 536870912u;  // 0x20000000
+
+    // Full dead-flag combination for .fix gdead / .fix cdead.
+    constexpr uint32 DEAD_FLAGS1 = 537133568;
+    constexpr uint32 DEAD_FLAGS2 = 2049;
+    constexpr uint32 DEAD_FLAGS3 = 8192;
+
+    // Alive (clear) flags for .fix galive / .fix calive - inverse of dead.
+    constexpr uint32 ALIVE_FLAGS1 = 0;
+    constexpr uint32 ALIVE_FLAGS2 = 0;
+    constexpr uint32 ALIVE_FLAGS3 = 0;
 
     // Log channel name for TC_LOG_INFO, etc.
     static constexpr char const* LOG_CHAN = "scripts.gm_fixer";
@@ -397,9 +416,9 @@ namespace
             if (c == ' ' || c == '\t' || c == '\'')
                 ch = '_';
             else if ((c >= 'A' && c <= 'Z') ||
-                (c >= 'a' && c <= 'z') ||
-                (c >= '0' && c <= '9') ||
-                c == '-' || c == '(' || c == ')')
+                     (c >= 'a' && c <= 'z') ||
+                     (c >= '0' && c <= '9') ||
+                     c == '-' || c == '(' || c == ')')
                 ch = c;
             else
                 ch = '_'; // invalid filename char or non-ASCII -> separator
@@ -440,7 +459,7 @@ namespace
      * be resolved, falls back to "unknown_zone.sql".
      */
     static void AppendToZoneSql(ChatHandler* h, std::string const& sql,
-        std::string const& fixType, std::string const& what)
+                                std::string const& fixType, std::string const& what)
     {
         namespace fs = std::filesystem;
 
@@ -480,19 +499,19 @@ namespace
 #endif
             std::ostringstream stamp;
             stamp << std::setfill('0')
-                << std::setw(2) << tm.tm_mday << "."
-                << std::setw(2) << (tm.tm_mon + 1) << "."
-                << (tm.tm_year + 1900) << " "
-                << std::setw(2) << tm.tm_hour << ":"
-                << std::setw(2) << tm.tm_min << ":"
-                << std::setw(2) << tm.tm_sec;
+                  << std::setw(2) << tm.tm_mday  << "."
+                  << std::setw(2) << (tm.tm_mon + 1) << "."
+                  << (tm.tm_year + 1900) << " "
+                  << std::setw(2) << tm.tm_hour << ":"
+                  << std::setw(2) << tm.tm_min  << ":"
+                  << std::setw(2) << tm.tm_sec;
 
             if (!what.empty())
                 os << "-- [" << stamp.str() << "] " << fixType << ": " << what << "\n"
-                << sql << "\n\n";
+                   << sql << "\n\n";
             else
                 os << "-- [" << stamp.str() << "] " << fixType << "\n"
-                << sql << "\n\n";
+                   << sql << "\n\n";
         }
         catch (std::exception const& e)
         {
@@ -510,7 +529,7 @@ namespace
      * and are written by their own handlers.)
      */
     static void AppendFixLog(ChatHandler* h, std::string const& sql,
-        std::string const& fixType, std::string const& what = "")
+                             std::string const& fixType, std::string const& what = "")
     {
         AppendToDailySql(sql, fixType, what);
         AppendToZoneSql(h, sql, fixType, what);
@@ -702,7 +721,7 @@ namespace
             }
             outHtml = body;
             return true;
-            };
+        };
 
         for (char const* pyBin : pyBins)
         {
@@ -767,9 +786,9 @@ namespace
                 if (res.result_int() == 403 || res.result_int() == 429)
                 {
                     outError = "HTTP 403 - Wowhead WAF blocked the request. "
-                        "Make sure wh_fetch.py runs: put it next to "
-                        "worldserver.exe and install curl-cffi:\n"
-                        "  pip install curl-cffi";
+                               "Make sure wh_fetch.py runs: put it next to "
+                               "worldserver.exe and install curl-cffi:\n"
+                               "  pip install curl-cffi";
                     return false;
                 }
                 if (res.result_int() != 200)
@@ -840,13 +859,13 @@ namespace
                 char n = blob[i + 1];
                 switch (n)
                 {
-                case '"':  out += '"';  ++i; continue;
-                case '\\': out += '\\'; ++i; continue;
-                case '/':  out += '/';  ++i; continue;
-                case 'n':  out += '\n'; ++i; continue;
-                case 't':  out += '\t'; ++i; continue;
-                case 'r':  out += '\r'; ++i; continue;
-                default:   out += c;        continue;
+                    case '"':  out += '"';  ++i; continue;
+                    case '\\': out += '\\'; ++i; continue;
+                    case '/':  out += '/';  ++i; continue;
+                    case 'n':  out += '\n'; ++i; continue;
+                    case 't':  out += '\t'; ++i; continue;
+                    case 'r':  out += '\r'; ++i; continue;
+                    default:   out += c;        continue;
                 }
             }
             if (c == '"')
@@ -870,7 +889,7 @@ namespace
         while (i < s.size())
         {
             // skip <!-- ... -->
-            if (i + 3 < s.size() && s[i] == '<' && s[i + 1] == '!' && s[i + 2] == '-' && s[i + 3] == '-')
+            if (i + 3 < s.size() && s[i] == '<' && s[i+1] == '!' && s[i+2] == '-' && s[i+3] == '-')
             {
                 size_t end = s.find("-->", i + 4);
                 if (end == std::string::npos) break;
@@ -913,7 +932,7 @@ namespace
     // One parsed ability from Wowhead.
     struct GmFixer_WowheadAbility
     {
-        uint32      spellId;
+        uint32      spellId = 0;
         std::string name;
         std::string description;
         std::string icon;
@@ -925,7 +944,7 @@ namespace
     // This block is present even in the "lite" (non-JS-rendered) HTML we receive,
     // so it's our primary spell source.
     static void GmFixer_ParseGathererSpells(std::string const& html,
-        std::vector<GmFixer_WowheadAbility>& out)
+                                            std::vector<GmFixer_WowheadAbility>& out)
     {
         std::string const sig = "WH.Gatherer.addData(6,";
         size_t from = 0;
@@ -974,9 +993,9 @@ namespace
                 GmFixer_WowheadAbility a;
                 try { a.spellId = std::stoul(key); }
                 catch (...) { i = oe + 1; continue; }
-                a.name = GmFixer_ExtractJsonString(inner, "name_enus");
+                a.name        = GmFixer_ExtractJsonString(inner, "name_enus");
                 a.description = GmFixer_CleanTooltip(GmFixer_ExtractJsonString(inner, "description_enus"));
-                a.icon = GmFixer_ExtractJsonString(inner, "icon");
+                a.icon        = GmFixer_ExtractJsonString(inner, "icon");
                 out.push_back(std::move(a));
 
                 i = oe + 1;
@@ -992,15 +1011,15 @@ namespace
     {
         std::string n = name, d = desc;
         std::transform(n.begin(), n.end(), n.begin(),
-            [](unsigned char c) { return std::tolower(c); });
+                       [](unsigned char c){ return std::tolower(c); });
         std::transform(d.begin(), d.end(), d.begin(),
-            [](unsigned char c) { return std::tolower(c); });
+                       [](unsigned char c){ return std::tolower(c); });
 
-        if (n.find("enrage") != std::string::npos ||
-            n.find("frenzy") != std::string::npos ||
-            n.find("berserk") != std::string::npos ||
+        if (n.find("enrage")   != std::string::npos ||
+            n.find("frenzy")   != std::string::npos ||
+            n.find("berserk")  != std::string::npos ||
             n.find("bloodlust") != std::string::npos ||
-            d.find("the caster's") != std::string::npos ||
+            d.find("the caster's")    != std::string::npos ||
             d.find("increases the caster") != std::string::npos)
             return 1; // SELF
 
@@ -1015,6 +1034,311 @@ namespace
         // Default: in-combat periodic. Could be extended for OOC buffs.
         (void)name; (void)desc;
         return 0; // UPDATE_IC
+    }
+
+    // ---- loot / pickpocketing parsing (.fix lootwow / pickpocketwow / wowinfo) ----
+
+    // One parsed item from a Wowhead NPC drops / pickpocketing Listview.
+    //   count  - how many times this item dropped (sampled on Wowhead)
+    //   outof  - total kills sampled on Wowhead
+    //   chance = count/outof*100
+    struct GmFixer_WowheadItem
+    {
+        uint32      itemId;
+        std::string name;
+        uint32      count;
+        uint32      outof;
+        uint32      stackMin;
+        uint32      stackMax;
+        int32       classs; // item class; 12 == quest item -> QuestRequired
+    };
+
+    // Extract a uint32 value for `key` from a small JSON object blob.
+    // e.g. blob has "count":23 -> returns 23. Missing key -> def.
+    static uint32 GmFixer_ExtractJsonUInt(std::string const& blob, std::string const& key, uint32 def)
+    {
+        std::string needle = "\"" + key + "\":";
+        size_t k = blob.find(needle);
+        if (k == std::string::npos)
+            return def;
+        size_t v = k + needle.size();
+        // skip optional sign
+        bool neg = false;
+        if (v < blob.size() && (blob[v] == '-' || blob[v] == '+'))
+        {
+            neg = (blob[v] == '-');
+            ++v;
+        }
+        char* end = nullptr;
+        unsigned long val = std::strtoul(blob.c_str() + v, &end, 10);
+        if (end == blob.c_str() + v)
+            return def;
+        return neg ? 0u : uint32(val);
+    }
+
+    // Extract the two-element numeric array `key`: [min,max] from a JSON blob.
+    static void GmFixer_ExtractJsonUIntPair(std::string const& blob, std::string const& key,
+                                            uint32& outA, uint32& outB)
+    {
+        std::string needle = "\"" + key + "\":[";
+        size_t k = blob.find(needle);
+        if (k == std::string::npos) return;
+        size_t v = k + needle.size();
+        char* end = nullptr;
+        unsigned long a = std::strtoul(blob.c_str() + v, &end, 10);
+        if (end == blob.c_str() + v) return;
+        outA = uint32(a);
+        if (*end != ',') { outB = outA; return; }
+        char* end2 = nullptr;
+        unsigned long b = std::strtoul(end + 1, &end2, 10);
+        if (end2 == end + 1) { outB = outA; return; }
+        outB = uint32(b);
+    }
+
+    // Parse a Wowhead "new Listview({template:'item', id:'<listId>', ... data:[...]})"
+    // block into a list of items. Used for both 'drops' (creature_loot_template)
+    // and 'pickpocketing' (pickpocketing_loot_template).
+    static void GmFixer_ParseListviewItems(std::string const& html, std::string const& listId,
+                                           std::vector<GmFixer_WowheadItem>& out)
+    {
+        // Find the Listview call whose id matches listId.
+        size_t from = 0;
+        while (true)
+        {
+            size_t lv = html.find("new Listview(", from);
+            if (lv == std::string::npos) break;
+            from = lv + 1;
+
+            // Bound this Listview call by matching its outer '(' ... ')'.
+            // (Cheap scan: track paren depth, respecting strings.)
+            size_t open = html.find('(', lv);
+            if (open == std::string::npos) break;
+            int depth = 0;
+            bool inStr = false; char sc = 0; bool esc = false;
+            size_t end = std::string::npos;
+            for (size_t i = open; i < html.size(); ++i)
+            {
+                char c = html[i];
+                if (inStr)
+                {
+                    if (esc) esc = false;
+                    else if (c == '\\') esc = true;
+                    else if (c == sc) inStr = false;
+                }
+                else
+                {
+                    if (c == '"' || c == '\'') { inStr = true; sc = c; }
+                    else if (c == '(') depth++;
+                    else if (c == ')') { depth--; if (depth == 0) { end = i; break; } }
+                }
+            }
+            if (end == std::string::npos) break;
+            std::string callBody = html.substr(open, end - open + 1);
+
+            // Does this call match the wanted listId? ("id:'<listId>'")
+            std::string idNeedle = "id:'" + listId + "'";
+            if (callBody.find(idNeedle) == std::string::npos)
+                continue;
+
+            // Find the data:[ ... ] array inside this call.
+            size_t dataPos = callBody.find("data:[");
+            if (dataPos == std::string::npos) break;
+            size_t arrStart = callBody.find('[', dataPos);
+            if (arrStart == std::string::npos) break;
+
+            // Match the balanced [...] array.
+            int d = 0; bool ins = false; char qc = 0; bool es = false;
+            size_t arrEnd = std::string::npos;
+            for (size_t i = arrStart; i < callBody.size(); ++i)
+            {
+                char c = callBody[i];
+                if (ins)
+                {
+                    if (es) es = false;
+                    else if (c == '\\') es = true;
+                    else if (c == qc) ins = false;
+                }
+                else
+                {
+                    if (c == '"' || c == '\'') { ins = true; qc = c; }
+                    else if (c == '[') d++;
+                    else if (c == ']') { d--; if (d == 0) { arrEnd = i; break; } }
+                }
+            }
+            if (arrEnd == std::string::npos) break;
+
+            // Walk the array body and pick up every {...} object.
+            std::string arr = callBody.substr(arrStart + 1, arrEnd - arrStart - 1);
+            size_t i = 0;
+            while (i < arr.size())
+            {
+                size_t ob = arr.find('{', i);
+                if (ob == std::string::npos) break;
+                size_t oe = GmFixer_MatchBrace(arr, ob);
+                if (oe == std::string::npos) break;
+                std::string inner = arr.substr(ob, oe - ob + 1);
+
+                GmFixer_WowheadItem it{};
+                it.itemId = GmFixer_ExtractJsonUInt(inner, "id", 0);
+                if (it.itemId != 0)
+                {
+                    it.name    = GmFixer_ExtractJsonString(inner, "name_enus");
+                    if (it.name.empty())
+                        it.name = GmFixer_ExtractJsonString(inner, "name");
+                    it.count   = GmFixer_ExtractJsonUInt(inner, "count", 0);
+                    it.outof   = GmFixer_ExtractJsonUInt(inner, "outof", 0);
+                    it.classs  = int32(GmFixer_ExtractJsonUInt(inner, "classs", 0));
+                    // stack:[min,max]
+                    it.stackMin = 1; it.stackMax = 1;
+                    GmFixer_ExtractJsonUIntPair(inner, "stack", it.stackMin, it.stackMax);
+                    if (it.stackMin == 0) it.stackMin = 1;
+                    if (it.stackMax < it.stackMin) it.stackMax = it.stackMin;
+                    out.push_back(std::move(it));
+                }
+                i = oe + 1;
+            }
+            break; // only one matching Listview per page
+        }
+    }
+
+    // Resolve the target creature entry for the wow*/loot*/pickpocket* commands:
+    // explicit npcId if given, else the selected creature's entry.
+    static bool GmFixer_ResolveNpcEntry(ChatHandler* h, Optional<uint32> const& npcIdOpt,
+                                        uint32& outEntry, Creature*& outC)
+    {
+        if (npcIdOpt)
+        {
+            outEntry = *npcIdOpt;
+            outC = nullptr;
+            if (outEntry == 0)
+            {
+                h->SendSysMessage("[gm_fixer] npcId must be > 0.");
+                return false;
+            }
+            return true;
+        }
+        // Fall back to the selected creature (also return the pointer so the
+        // spellwow path can keep using SmartAI checks on the live object).
+        return GetSelectedCreature(h, outC, outEntry);
+    }
+
+    // Fetch a Wowhead NPC page once, resolving the target entry first.
+    // Returns true and fills outHtml on success; sends an error to the GM on
+    // failure. Shared by .fix wowinfo / lootwow / pickpocketwow / wowall.
+    static bool GmFixer_FetchWowheadAll(ChatHandler* h, Optional<uint32> const& npcIdOpt,
+                                        uint32& outEntry, std::string& outHtml)
+    {
+        Creature* c = nullptr;
+        if (!GmFixer_ResolveNpcEntry(h, npcIdOpt, outEntry, c))
+            return false;
+
+        if (npcIdOpt)
+            h->SendSysMessage(Trinity::StringFormat(
+                "[gm_fixer] fetching Wowhead NPC {} ...", outEntry));
+        else
+            h->SendSysMessage(Trinity::StringFormat(
+                "[gm_fixer] no npcId given, using selected creature entry {} ...", outEntry));
+
+        std::string err;
+        if (!FetchWowheadNpcHtml(outEntry, outHtml, err))
+        {
+            h->SendSysMessage(Trinity::StringFormat(
+                "[gm_fixer] Wowhead fetch failed: {}", err));
+            h->SendSysMessage(Trinity::StringFormat(
+                "  Open https://www.wowhead.com/npc={} in a browser to check manually.", outEntry));
+            TC_LOG_INFO(LOG_CHAN, "[gm_fixer] fetch failed for NPC {}: {}", outEntry, err);
+            return false;
+        }
+        h->SendSysMessage(Trinity::StringFormat(
+            "[gm_fixer] fetched {} bytes from Wowhead.", outHtml.size()));
+        return true;
+    }
+
+    // SQL-escape single quotes for a comment string.
+    static std::string GmFixer_EscapeSqlComment(std::string const& s)
+    {
+        std::string out;
+        out.reserve(s.size() + 4);
+        for (char c : s)
+        {
+            if (c == '\'') out += "''";
+            else out += c;
+        }
+        return out;
+    }
+
+    // Apply a full Wowhead drop list to a loot template table (DELETE + INSERT).
+    //   entry     - loot Entry (= creature entry in this codebase's convention)
+    //   tableName - "creature_loot_template" or "pickpocketing_loot_template"
+    //   items     - parsed from Wowhead
+    //   fixTag    - short tag for the SQL-log header + messages
+    // Returns the number of rows inserted.
+    static uint32 GmFixer_ApplyLoot(ChatHandler* h, uint32 entry, char const* tableName,
+                                    std::vector<GmFixer_WowheadItem> const& items,
+                                    char const* fixTag)
+    {
+        if (items.empty())
+        {
+            h->SendSysMessage(Trinity::StringFormat(
+                "[gm_fixer] {}: no items parsed from Wowhead; nothing changed.", fixTag));
+            return 0;
+        }
+
+        // Full replace: delete all rows for this entry, then insert the Wowhead set.
+        std::string sqlDel = Trinity::StringFormat(
+            "DELETE FROM `{}` WHERE `Entry` = {};", tableName, entry);
+
+        // Build one multi-row INSERT.
+        std::string sqlIns = Trinity::StringFormat(
+            "INSERT INTO `{}` "
+            "(`Entry`, `ItemType`, `Item`, `Chance`, `QuestRequired`, `LootMode`, "
+            " `GroupId`, `MinCount`, `MaxCount`, `Comment`) VALUES ", tableName);
+
+        uint32 n = 0;
+        for (size_t i = 0; i < items.size(); ++i)
+        {
+            GmFixer_WowheadItem const& it = items[i];
+            // chance = count / outof * 100, rounded to 2 decimals.
+            // outof==0 -> treat as guaranteed (100%). Quest items -> 100%.
+            double chance = 100.0;
+            if (it.classs != 12 && it.outof > 0)
+                chance = (double)it.count / (double)it.outof * 100.0;
+            // clamp tiny non-zero chances up to a floor so the row actually drops
+            if (chance > 0.0 && chance < 0.01) chance = 0.01;
+            int questReq = (it.classs == 12) ? 1 : 0;
+
+            char chbuf[32];
+            std::snprintf(chbuf, sizeof(chbuf), "%.2f", chance);
+
+            sqlIns += Trinity::StringFormat(
+                "({}, 0, {}, {}, {}, 1, 0, {}, {}, '{}')",
+                entry, it.itemId, chbuf, questReq,
+                it.stackMin, it.stackMax,
+                GmFixer_EscapeSqlComment(it.name));
+            sqlIns += (i + 1 < items.size()) ? ", " : ";";
+            ++n;
+
+            // Send a per-item line for visibility.
+            h->SendSysMessage(Trinity::StringFormat(
+                "  [{}] item {} {} {}% x{}-{}{}",
+                fixTag, it.itemId, it.name, chbuf, it.stackMin, it.stackMax,
+                questReq ? " (quest)" : ""));
+        }
+
+        // Execute (DirectExecute does not support multi-statement in one call).
+        WorldDatabase.DirectExecute(sqlDel.c_str());
+        WorldDatabase.DirectExecute(sqlIns.c_str());
+
+        std::string fullSql = sqlDel + "\n" + sqlIns;
+        std::string what = Trinity::StringFormat(
+            "{}: {} item(s) -> {} Entry {} (DELETE+INSERT)",
+            fixTag, n, tableName, entry);
+        AppendFixLog(h, fullSql, fixTag, what);
+
+        h->SendSysMessage(Trinity::StringFormat("[gm_fixer] {} -> OK", what));
+        h->SendSysMessage("  Apply in-game: .reload <table> (or restart)");
+        TC_LOG_INFO(LOG_CHAN, "[gm_fixer] {} | SQL: {}", what, fullSql);
+        return n;
     }
 }
 
@@ -1044,6 +1368,11 @@ public:
             {"queststart", HandleFixQuestStart,        rbac::RBAC_PERM_COMMAND_GM, Console::No},
             {"ct",         HandleFixContentTuning,     rbac::RBAC_PERM_COMMAND_GM, Console::No},
             {"hp",         HandleFixHealth,            rbac::RBAC_PERM_COMMAND_GM, Console::No},
+            {"hp1",        HandleFixHealth1,           rbac::RBAC_PERM_COMMAND_GM, Console::No},
+            {"hp2",        HandleFixHealth2,           rbac::RBAC_PERM_COMMAND_GM, Console::No},
+            {"hp3",        HandleFixHealth3,           rbac::RBAC_PERM_COMMAND_GM, Console::No},
+            {"hp4",        HandleFixHealth4,           rbac::RBAC_PERM_COMMAND_GM, Console::No},
+            {"hp5",        HandleFixHealth5,           rbac::RBAC_PERM_COMMAND_GM, Console::No},
             {"diff",       HandleFixDifficulty,        rbac::RBAC_PERM_COMMAND_GM, Console::No},
             {"diff1",      HandleFixDifficulty1,       rbac::RBAC_PERM_COMMAND_GM, Console::No},
             {"diff2",      HandleFixDifficulty2,       rbac::RBAC_PERM_COMMAND_GM, Console::No},
@@ -1060,6 +1389,8 @@ public:
             {"cstate",     HandleFixCState,            rbac::RBAC_PERM_COMMAND_GM, Console::No},
             {"gdead",      HandleFixGDead,             rbac::RBAC_PERM_COMMAND_GM, Console::No},
             {"cdead",      HandleFixCDead,             rbac::RBAC_PERM_COMMAND_GM, Console::No},
+            {"galive",     HandleFixGAlive,            rbac::RBAC_PERM_COMMAND_GM, Console::No},
+            {"calive",     HandleFixCAlive,            rbac::RBAC_PERM_COMMAND_GM, Console::No},
             {"gnpcflag",   HandleFixGNpcFlag,          rbac::RBAC_PERM_COMMAND_GM, Console::No},
             {"cnpcflag",   HandleFixCNpcFlag,          rbac::RBAC_PERM_COMMAND_GM, Console::No},
             {"guflags",    HandleFixGUnitFlags,        rbac::RBAC_PERM_COMMAND_GM, Console::No},
@@ -1144,6 +1475,17 @@ public:
              //                        - copy every CAST line from donor entry to
              //                         recipient entry (new ids, skips duplicate spells)
              {"spellcopy", HandleFixSpellCopy,          rbac::RBAC_PERM_COMMAND_GM, Console::No},
+             //   wowinfo [id]         - compare Wowhead spells/drops/pickpocket of the
+             //                         given NPC (or selected creature) vs the DB (diff, read-only)
+             {"wowinfo",       HandleFixWowInfo,        rbac::RBAC_PERM_COMMAND_GM, Console::No},
+             //   lootwow [id]         - replace creature_loot_template with Wowhead drops
+             //                         (DELETE + INSERT) for the given NPC / selected creature
+             {"lootwow",       HandleFixLootWow,        rbac::RBAC_PERM_COMMAND_GM, Console::No},
+             //   pickpocketwow [id]   - replace pickpocketing_loot_template with Wowhead
+             //                         pickpocketing (DELETE + INSERT)
+             {"pickpocketwow", HandleFixPickpocketWow,  rbac::RBAC_PERM_COMMAND_GM, Console::No},
+             //   wowall [id]          - apply all three: spells + drops + pickpocketing
+             {"wowall",        HandleFixWowAll,         rbac::RBAC_PERM_COMMAND_GM, Console::No},
         };
         static ChatCommandTable commandTable = {
             {"fix", fixTable},
@@ -1322,7 +1664,7 @@ private:
             return true;
         }
         uint32 goEntry = data->id;
-        uint32 mapId = data->mapId;
+        uint32 mapId   = data->mapId;
 
         // Canonical delete: despawns across all maps + removes the DB row.
         if (!GameObject::DeleteFromDB(spawnId))
@@ -1363,9 +1705,9 @@ private:
     // We still also write a portable UPDATE to the DB and the audit files - that
     // covers spawns not loaded on the GM's map and gives a reviewable SQL log.
     static bool GmFixer_ApplyGoPhase(ChatHandler* h, GameObject* go, uint32 phaseId,
-        char const* fixTag,
-        ObjectGuid::LowType spawnId = 0,
-        GameObjectData const* data = nullptr)
+                                     char const* fixTag,
+                                     ObjectGuid::LowType spawnId = 0,
+                                     GameObjectData const* data = nullptr)
     {
         // Resolve entry / spawnId / map for the message regardless of the path.
         uint32 goEntry;
@@ -1374,14 +1716,14 @@ private:
         {
             goEntry = go->GetEntry();
             spawnId = go->GetSpawnId();
-            mapId = go->GetMapId();
+            mapId   = go->GetMapId();
         }
         else
         {
             // gophaseid path with a non-loaded spawn - data must have been
             // resolved by the caller.
             goEntry = data->id;
-            mapId = data->mapId;
+            mapId   = data->mapId;
         }
 
         if (phaseId == 0)
@@ -1623,9 +1965,8 @@ private:
     }
 
     // ----- .fix hp <HealthModifier> -----
-    // Changes the creature's HealthModifier (hit point multiplier).
-    // Not all entries have a row in creature_template_difficulty - if missing,
-    // create one using the same template as in .fix ct.
+    // Changes HealthModifier on ALL rows in creature_template_difficulty for the entry.
+    // For a single difficulty row use .fix hp<N> (same ordering as .fix diff<N>).
     static bool HandleFixHealth(ChatHandler* h, double hpMod)
     {
         if (hpMod <= 0.0)
@@ -1638,21 +1979,25 @@ private:
         if (!GetSelectedCreature(h, c, entry)) return true;
 
         QueryResult res = WorldDatabase.PQuery(
-            "SELECT 1 FROM creature_template_difficulty WHERE Entry = {} LIMIT 1", entry);
+            "SELECT COUNT(*) FROM creature_template_difficulty WHERE Entry = {}", entry);
+
+        uint32 rowCount = 0;
+        if (res)
+            rowCount = res->Fetch()[0].GetUInt32();
 
         std::string sql;
         std::string what;
-        if (res)
+        if (rowCount > 0)
         {
             sql = Trinity::StringFormat(
                 "UPDATE creature_template_difficulty SET HealthModifier = {} "
                 "WHERE Entry = {};", hpMod, entry);
             what = Trinity::StringFormat(
-                "HealthModifier -> {} (entry {}, UPDATE)", hpMod, entry);
+                "HealthModifier -> {} (entry {}, UPDATE all {} row(s))",
+                hpMod, entry, rowCount);
         }
         else
         {
-            // INSERT with defaults like in .fix ct, but with our HealthModifier.
             sql = Trinity::StringFormat(
                 "INSERT INTO creature_template_difficulty "
                 "(Entry, DifficultyID, LevelScalingDeltaMin, LevelScalingDeltaMax, "
@@ -1669,6 +2014,84 @@ private:
         }
         return ApplyFix(h, sql, "hp", what.c_str());
     }
+
+    // ----- .fix hp<N> <HealthModifier>  (N = 1..5) -----
+    // Updates HealthModifier on the Nth row in order in creature_template_difficulty.
+    // If the Nth row doesn't exist - INSERT a new one (DifficultyID chosen like .fix ct).
+    static bool ApplyFixHealthAt(ChatHandler* h, double hpMod, uint32 rowIndex, char const* fixTag)
+    {
+        if (hpMod <= 0.0)
+        {
+            h->SendSysMessage("[gm_fixer] HealthModifier must be > 0.");
+            return true;
+        }
+
+        Creature* c = nullptr; uint32 entry = 0;
+        if (!GetSelectedCreature(h, c, entry)) return true;
+
+        QueryResult fullRes = WorldDatabase.PQuery(
+            "SELECT DifficultyID FROM creature_template_difficulty "
+            "WHERE Entry = {} ORDER BY DifficultyID", entry);
+
+        std::vector<uint32> existingDiffs;
+        if (fullRes)
+        {
+            do
+            {
+                existingDiffs.push_back(fullRes->Fetch()[0].GetUInt32());
+            } while (fullRes->NextRow());
+        }
+
+        std::string sql;
+        std::string what;
+
+        if (rowIndex < existingDiffs.size())
+        {
+            uint32 oldDiffId = existingDiffs[rowIndex];
+            sql = Trinity::StringFormat(
+                "UPDATE creature_template_difficulty SET HealthModifier = {} "
+                "WHERE Entry = {} AND DifficultyID = {};",
+                hpMod, entry, oldDiffId);
+            what = Trinity::StringFormat(
+                "HealthModifier row {} -> {} (entry {}, UPDATE DifficultyID={})",
+                rowIndex + 1, hpMod, entry, oldDiffId);
+        }
+        else
+        {
+            uint32 newDiffId;
+            if (existingDiffs.empty())
+                newDiffId = (rowIndex == 0) ? 0 : rowIndex;
+            else
+            {
+                uint32 maxDiff = 0;
+                for (uint32 d : existingDiffs)
+                    if (d > maxDiff) maxDiff = d;
+                newDiffId = maxDiff + 1;
+            }
+
+            sql = Trinity::StringFormat(
+                "INSERT INTO creature_template_difficulty "
+                "(Entry, DifficultyID, LevelScalingDeltaMin, LevelScalingDeltaMax, "
+                " ContentTuningID, HealthScalingExpansion, HealthModifier, ManaModifier, "
+                " ArmorModifier, DamageModifier, CreatureDifficultyID, TypeFlags, TypeFlags2, "
+                " TypeFlags3, LootID, PickPocketLootID, SkinLootID, GoldMin, GoldMax, "
+                " StaticFlags1, StaticFlags2, StaticFlags3, StaticFlags4, StaticFlags5, "
+                " StaticFlags6, StaticFlags7, StaticFlags8, VerifiedBuild) "
+                "VALUES ({}, {}, 0, 0, 0, 0, {}, 1, 1, 1, 1, 0, 0, 0, 0, {}, {}, 0, 167, 167, "
+                " 268435456, 0, 0, 0, 0, 0, 0, 0, 61609);",
+                entry, newDiffId, hpMod, entry, entry);
+            what = Trinity::StringFormat(
+                "HealthModifier row {} -> {} (entry {}, INSERT DifficultyID={})",
+                rowIndex + 1, hpMod, entry, newDiffId);
+        }
+        return ApplyFix(h, sql, fixTag, what.c_str());
+    }
+
+    static bool HandleFixHealth1(ChatHandler* h, double hpMod) { return ApplyFixHealthAt(h, hpMod, 0, "hp1"); }
+    static bool HandleFixHealth2(ChatHandler* h, double hpMod) { return ApplyFixHealthAt(h, hpMod, 1, "hp2"); }
+    static bool HandleFixHealth3(ChatHandler* h, double hpMod) { return ApplyFixHealthAt(h, hpMod, 2, "hp3"); }
+    static bool HandleFixHealth4(ChatHandler* h, double hpMod) { return ApplyFixHealthAt(h, hpMod, 3, "hp4"); }
+    static bool HandleFixHealth5(ChatHandler* h, double hpMod) { return ApplyFixHealthAt(h, hpMod, 4, "hp5"); }
 
     // ----- .fix eflag <flags_extra> -----
     // Changes the creature's flags_extra in creature_template.
@@ -2081,10 +2504,6 @@ private:
         }
 
         // Full dead-flag combination for per-spawn creature columns.
-        constexpr uint32 DEAD_FLAGS1 = 537133568;
-        constexpr uint32 DEAD_FLAGS2 = 2049;
-        constexpr uint32 DEAD_FLAGS3 = 8192;
-
         // Read old values for the message.
         uint32 oldF1 = 0, oldF2 = 0, oldF3 = 0;
         if (QueryResult r = WorldDatabase.PQuery(
@@ -2105,27 +2524,105 @@ private:
     }
 
     // ----- .fix cdead -----
-    // Sets DEAD status (unit_flags3 = 8193) for all spawns of an entry.
+    // Sets DEAD status for all spawns of an entry by stamping the same full
+    // dead-flag combination as .fix gdead on creature_template:
+    //   unit_flags  = 537133568
+    //   unit_flags2 = 2049
+    //   unit_flags3 = 8192
     //
     // SQL (per-template):
-    //   UPDATE creature_template SET unit_flags3 = 8193 WHERE entry = <entry>;
+    //   UPDATE creature_template SET unit_flags = 537133568, unit_flags2 = 2049,
+    //                                unit_flags3 = 8192 WHERE entry = <entry>;
     static bool HandleFixCDead(ChatHandler* h)
     {
         Creature* c = nullptr; uint32 entry = 0;
         if (!GetSelectedCreature(h, c, entry)) return true;
 
-        constexpr uint32 DEAD_FLAG = 8193;
-
-        // Read old value
-        uint32 oldVal = 0;
-        if (QueryResult r = WorldDatabase.PQuery("SELECT unit_flags3 FROM creature_template WHERE entry = {}", entry))
-            oldVal = r->Fetch()[0].GetUInt32();
+        // Read old values for the message.
+        uint32 oldF1 = 0, oldF2 = 0, oldF3 = 0;
+        if (QueryResult r = WorldDatabase.PQuery(
+            "SELECT unit_flags, unit_flags2, unit_flags3 FROM creature_template WHERE entry = {}", entry))
+        {
+            Field* f = r->Fetch();
+            oldF1 = f[0].GetUInt32();
+            oldF2 = f[1].GetUInt32();
+            oldF3 = f[2].GetUInt32();
+        }
 
         std::string sql = Trinity::StringFormat(
-            "UPDATE creature_template SET unit_flags3 = {} WHERE entry = {};",
-            DEAD_FLAG, entry);
+            "UPDATE creature_template SET unit_flags = {}, unit_flags2 = {}, unit_flags3 = {} WHERE entry = {};",
+            DEAD_FLAGS1, DEAD_FLAGS2, DEAD_FLAGS3, entry);
         return ApplyFix(h, sql, "cdead",
-            Trinity::StringFormat("unit_flags3: {} -> {} DEAD (entry {})", oldVal, DEAD_FLAG, entry).c_str());
+            Trinity::StringFormat("DEAD: unit_flags {}->{} / unit_flags2 {}->{} / unit_flags3 {}->{} (entry {})",
+                oldF1, DEAD_FLAGS1, oldF2, DEAD_FLAGS2, oldF3, DEAD_FLAGS3, entry).c_str());
+    }
+
+    // ----- .fix galive -----
+    // Clears DEAD status for a specific spawn (inverse of .fix gdead):
+    //   unit_flags / unit_flags2 / unit_flags3 = 0
+    //   curHealthPct = NULL  (full HP; 0 is treated as invalid by the core)
+    //
+    // SQL (per-spawn, via creature):
+    //   UPDATE creature SET unit_flags = 0, unit_flags2 = 0, unit_flags3 = 0,
+    //                       curHealthPct = NULL WHERE guid = <spawnId>;
+    static bool HandleFixGAlive(ChatHandler* h)
+    {
+        Creature* c = nullptr; uint32 entry = 0;
+        if (!GetSelectedCreature(h, c, entry)) return true;
+
+        uint64 spawnId = c->GetSpawnId();
+        if (spawnId == 0)
+        {
+            h->SendSysMessage("[gm_fixer] Selected creature has no SpawnId (probably a temporary summon).");
+            return true;
+        }
+
+        uint32 oldF1 = 0, oldF2 = 0, oldF3 = 0;
+        if (QueryResult r = WorldDatabase.PQuery(
+            "SELECT unit_flags, unit_flags2, unit_flags3 FROM creature WHERE guid = {}", spawnId))
+        {
+            Field* f = r->Fetch();
+            oldF1 = f[0].GetUInt32();
+            oldF2 = f[1].GetUInt32();
+            oldF3 = f[2].GetUInt32();
+        }
+
+        std::string sql = Trinity::StringFormat(
+            "UPDATE creature SET unit_flags = {}, unit_flags2 = {}, unit_flags3 = {}, curHealthPct = NULL WHERE guid = {};",
+            ALIVE_FLAGS1, ALIVE_FLAGS2, ALIVE_FLAGS3, spawnId);
+        return ApplyFix(h, sql, "galive",
+            Trinity::StringFormat("ALIVE: unit_flags {}->{} / unit_flags2 {}->{} / unit_flags3 {}->{}, curHealthPct -> NULL (spawn guid {})",
+                oldF1, ALIVE_FLAGS1, oldF2, ALIVE_FLAGS2, oldF3, ALIVE_FLAGS3, spawnId).c_str());
+    }
+
+    // ----- .fix calive -----
+    // Clears DEAD status for all spawns of an entry (inverse of .fix cdead):
+    //   unit_flags / unit_flags2 / unit_flags3 = 0
+    //
+    // SQL (per-template):
+    //   UPDATE creature_template SET unit_flags = 0, unit_flags2 = 0,
+    //                                unit_flags3 = 0 WHERE entry = <entry>;
+    static bool HandleFixCAlive(ChatHandler* h)
+    {
+        Creature* c = nullptr; uint32 entry = 0;
+        if (!GetSelectedCreature(h, c, entry)) return true;
+
+        uint32 oldF1 = 0, oldF2 = 0, oldF3 = 0;
+        if (QueryResult r = WorldDatabase.PQuery(
+            "SELECT unit_flags, unit_flags2, unit_flags3 FROM creature_template WHERE entry = {}", entry))
+        {
+            Field* f = r->Fetch();
+            oldF1 = f[0].GetUInt32();
+            oldF2 = f[1].GetUInt32();
+            oldF3 = f[2].GetUInt32();
+        }
+
+        std::string sql = Trinity::StringFormat(
+            "UPDATE creature_template SET unit_flags = {}, unit_flags2 = {}, unit_flags3 = {} WHERE entry = {};",
+            ALIVE_FLAGS1, ALIVE_FLAGS2, ALIVE_FLAGS3, entry);
+        return ApplyFix(h, sql, "calive",
+            Trinity::StringFormat("ALIVE: unit_flags {}->{} / unit_flags2 {}->{} / unit_flags3 {}->{} (entry {})",
+                oldF1, ALIVE_FLAGS1, oldF2, ALIVE_FLAGS2, oldF3, ALIVE_FLAGS3, entry).c_str());
     }
 
     // ----- .fix gnpcflag <npcflag> -----
@@ -3571,10 +4068,10 @@ private:
         {
             Field* f = res->Fetch();
             uint64 guid = f[0].GetUInt64();
-            uint32 map = f[1].GetUInt32();
-            float  x = f[2].GetFloat();
-            float  y = f[3].GetFloat();
-            float  z = f[4].GetFloat();
+            uint32 map  = f[1].GetUInt32();
+            float  x    = f[2].GetFloat();
+            float  y    = f[3].GetFloat();
+            float  z    = f[4].GetFloat();
             h->SendSysMessage(Trinity::StringFormat(
                 "  guid {} | map {} | ({:.1f}, {:.1f}, {:.1f})", guid, map, x, y, z));
             ++count;
@@ -3939,21 +4436,21 @@ private:
             uint32 i3 = 0, a3 = 0, v3 = 0;
             switch (slot)
             {
-            case 1:
-                if (fieldCol == "ItemID")           i1 = value;
-                else if (fieldCol == "AppearanceModID") a1 = value;
-                else                                 v1 = value;
-                break;
-            case 2:
-                if (fieldCol == "ItemID")           i2 = value;
-                else if (fieldCol == "AppearanceModID") a2 = value;
-                else                                 v2 = value;
-                break;
-            case 3:
-                if (fieldCol == "ItemID")           i3 = value;
-                else if (fieldCol == "AppearanceModID") a3 = value;
-                else                                 v3 = value;
-                break;
+                case 1:
+                    if (fieldCol == "ItemID")           i1 = value;
+                    else if (fieldCol == "AppearanceModID") a1 = value;
+                    else                                 v1 = value;
+                    break;
+                case 2:
+                    if (fieldCol == "ItemID")           i2 = value;
+                    else if (fieldCol == "AppearanceModID") a2 = value;
+                    else                                 v2 = value;
+                    break;
+                case 3:
+                    if (fieldCol == "ItemID")           i3 = value;
+                    else if (fieldCol == "AppearanceModID") a3 = value;
+                    else                                 v3 = value;
+                    break;
             }
 
             sql = Trinity::StringFormat(
@@ -4027,9 +4524,9 @@ private:
             uint32 i3 = 0, a3 = 0, v3 = 0;
             switch (slot)
             {
-            case 1: i1 = itemId; break;
-            case 2: i2 = itemId; break;
-            case 3: i3 = itemId; break;
+                case 1: i1 = itemId; break;
+                case 2: i2 = itemId; break;
+                case 3: i3 = itemId; break;
             }
             sql = Trinity::StringFormat(
                 "INSERT INTO `creature_equip_template` "
@@ -4112,11 +4609,11 @@ private:
         do
         {
             Field* f = res->Fetch();
-            uint32 id = f[0].GetUInt32();
-            uint32 i1 = f[1].GetUInt32(); uint32 a1 = f[2].GetUInt32(); uint32 v1 = f[3].GetUInt32();
-            uint32 i2 = f[4].GetUInt32(); uint32 a2 = f[5].GetUInt32(); uint32 v2 = f[6].GetUInt32();
-            uint32 i3 = f[7].GetUInt32(); uint32 a3 = f[8].GetUInt32(); uint32 v3 = f[9].GetUInt32();
-            int32  vb = f[10].GetInt32();
+            uint32 id  = f[0].GetUInt32();
+            uint32 i1  = f[1].GetUInt32(); uint32 a1 = f[2].GetUInt32(); uint32 v1 = f[3].GetUInt32();
+            uint32 i2  = f[4].GetUInt32(); uint32 a2 = f[5].GetUInt32(); uint32 v2 = f[6].GetUInt32();
+            uint32 i3  = f[7].GetUInt32(); uint32 a3 = f[8].GetUInt32(); uint32 v3 = f[9].GetUInt32();
+            int32  vb  = f[10].GetInt32();
             char const* mark = (id == uint32(curSet)) ? " *" : "";
             h->SendSysMessage(Trinity::StringFormat(
                 "  set {}{}: slot1={}/{}/{}, slot2={}/{}/{}, slot3={}/{}/{}, VerifiedBuild={}",
@@ -4489,7 +4986,7 @@ private:
         // is NOT baked into the file.
         std::string logSql;
         logSql += "-- pool_template + pool_members for entry " + std::to_string(entry) +
-            " (" + safeName + ")\n";
+                  " (" + safeName + ")\n";
         logSql += "SET @POOLID := (SELECT IFNULL(MAX(entry), 0) + 1 FROM pool_template);\n";
         logSql += Trinity::StringFormat(
             "INSERT INTO pool_template (entry, max_limit, description) "
@@ -4791,8 +5288,8 @@ private:
     //   maxRepeatMs   - max interval between casts (ms)
     //   tag           - short label for the comment / log ("spellA", "spellCB", "spellB")
     static bool ApplyFixSpellCast(ChatHandler* h, uint32 spellId, uint8 eventType,
-        uint8 targetType, uint32 minRepeatMs, uint32 maxRepeatMs,
-        char const* tag)
+                                  uint8 targetType, uint32 minRepeatMs, uint32 maxRepeatMs,
+                                  char const* tag)
     {
         Creature* c = nullptr; uint32 entry = 0;
         if (!GetSelectedCreature(h, c, entry)) return true;
@@ -4991,65 +5488,65 @@ private:
         //   param1/param2 = initial delay min/max (ms)
         //   param3/param4 = REPEAT interval min/max (ms)  <- the actual recast rate
         auto fmtTiming = [](uint32 p1, uint32 p2, uint32 p3, uint32 p4) -> std::string
+        {
+            std::ostringstream os;
+            // REPEAT interval (this is what makes the NPC recast).
+            double rMin = p3 / 1000.0;
+            double rMax = p4 / 1000.0;
+            if (p3 == 0 && p4 == 0)
+                os << "repeat NEVER (param3/4=0 - NPC will cast once)";
+            else if (p3 == p4)
+                os << Trinity::StringFormat("every {:.1f}s", rMin);
+            else
+                os << Trinity::StringFormat("every {:.1f}-{:.1f}s", rMin, rMax);
+            // Initial delay before the first cast.
+            if (p1 > 0 || p2 > 0)
             {
-                std::ostringstream os;
-                // REPEAT interval (this is what makes the NPC recast).
-                double rMin = p3 / 1000.0;
-                double rMax = p4 / 1000.0;
-                if (p3 == 0 && p4 == 0)
-                    os << "repeat NEVER (param3/4=0 - NPC will cast once)";
-                else if (p3 == p4)
-                    os << Trinity::StringFormat("every {:.1f}s", rMin);
+                if (p1 == p2)
+                    os << Trinity::StringFormat(", first cast after {:.1f}s", p1 / 1000.0);
                 else
-                    os << Trinity::StringFormat("every {:.1f}-{:.1f}s", rMin, rMax);
-                // Initial delay before the first cast.
-                if (p1 > 0 || p2 > 0)
-                {
-                    if (p1 == p2)
-                        os << Trinity::StringFormat(", first cast after {:.1f}s", p1 / 1000.0);
-                    else
-                        os << Trinity::StringFormat(", first cast after {:.1f}-{:.1f}s", p1 / 1000.0, p2 / 1000.0);
-                }
-                return os.str();
-            };
+                    os << Trinity::StringFormat(", first cast after {:.1f}-{:.1f}s", p1 / 1000.0, p2 / 1000.0);
+            }
+            return os.str();
+        };
 
         // Helper: event_type -> when the CAST happens.
         auto fmtEvent = [](uint32 et) -> char const*
+        {
+            switch (et)
             {
-                switch (et)
-                {
                 case 0:  return "in combat";
                 case 1:  return "always (IC+OOC)";
                 case 2:  return "out of combat";
                 case 60: return "UPDATE (periodic)";
                 default: return "other";
-                }
-            };
+            }
+        };
 
         // Helper: target_type -> who is cast on.
         auto fmtTarget = [](uint32 tt) -> char const*
+        {
+            switch (tt)
             {
-                switch (tt)
-                {
                 case 0:  return "none";
                 case 1:  return "self";
                 case 2:  return "victim";
                 default: return "other";
-                }
-            };
+            }
+        };
 
         uint32 count = 0;
         do
         {
             Field* f = res->Fetch();
-            uint32 id = f[0].GetUInt32();
-            uint32 et = f[1].GetUInt32();
-            uint32 p1 = f[2].GetUInt32();
-            uint32 p2 = f[3].GetUInt32();
-            uint32 p3 = f[4].GetUInt32();
-            uint32 p4 = f[5].GetUInt32();
-            uint32 spellId = f[6].GetUInt32();
-            uint32 tt = f[7].GetUInt32();
+            uint32 id       = f[0].GetUInt32();
+            uint32 et       = f[1].GetUInt32();
+            uint32 p1       = f[2].GetUInt32();
+            uint32 p2       = f[3].GetUInt32();
+            uint32 p3       = f[4].GetUInt32();
+            uint32 p4       = f[5].GetUInt32();
+            uint32 spellId  = f[6].GetUInt32();
+            uint32 tt       = f[7].GetUInt32();
             std::string comment = f[8].GetString();
 
             // Resolve the spell name for readability.
@@ -5171,8 +5668,8 @@ private:
     // is given, the selected creature's entry is used as the Wowhead NPC id
     // (handy for copying the "canonical" abilities of that exact creature).
     static bool HandleFixSpellWow(ChatHandler* h, Optional<uint32> npcIdOpt,
-        Optional<std::string_view> repeatOpt,
-        Optional<std::string_view> tagOpt)
+                                  Optional<std::string_view> repeatOpt,
+                                  Optional<std::string_view> tagOpt)
     {
         Creature* c = nullptr; uint32 entry = 0;
         if (!GetSelectedCreature(h, c, entry)) return true;
@@ -5270,7 +5767,7 @@ private:
 
         // ----- 4. For each spell: validate + insert a CAST row -----
         uint32 inserted = 0;
-        uint32 skipped = 0;
+        uint32 skipped  = 0;
 
         for (auto const& a : abilities)
         {
@@ -5292,7 +5789,7 @@ private:
             if (maxRes)
                 nextId = maxRes->Fetch()[0].GetUInt32();
 
-            uint8 eventType = GmFixer_GuessEventType(a.name, a.description);
+            uint8 eventType  = GmFixer_GuessEventType(a.name, a.description);
             uint8 targetType = GmFixer_GuessTargetType(a.name, a.description);
 
             // Build the INSERT. Format mirrors ApplyFixSpellCast() exactly:
@@ -5329,7 +5826,7 @@ private:
                 if (ch == '|') ch = '/';
 
             char const* tgtStr = (targetType == 1) ? "SELF" :
-                (targetType == 2) ? "VICTIM" : "OTHER";
+                                 (targetType == 2) ? "VICTIM" : "OTHER";
             h->SendSysMessage(Trinity::StringFormat(
                 "  [+#{} {}] id={} evt={} tgt={} ({}ms)",
                 a.spellId, dispName, nextId, uint32(eventType), tgtStr, repeatMs));
@@ -5468,7 +5965,7 @@ private:
             return true;
         }
 
-        uint32 targetId = rows[ordinal - 1].first;
+        uint32 targetId    = rows[ordinal - 1].first;
         uint32 targetSpell = rows[ordinal - 1].second;
 
         std::string spellName = "<unknown>";
@@ -5571,9 +6068,9 @@ private:
         // Spells the recipient already casts (to skip duplicates).
         std::set<uint32> recipientSpells;
         if (QueryResult rRes = WorldDatabase.PQuery(
-            "SELECT action_param1 FROM smart_scripts "
-            "WHERE entryorguid = {} AND source_type = 0 AND action_type = 11",
-            recipientEntry))
+                "SELECT action_param1 FROM smart_scripts "
+                "WHERE entryorguid = {} AND source_type = 0 AND action_type = 11",
+                recipientEntry))
         {
             do
                 recipientSpells.insert(rRes->Fetch()[0].GetUInt32());
@@ -5597,8 +6094,8 @@ private:
         // value every time and collide on the PK (entryorguid, source_type, id).
         uint32 nextId = 0;
         if (QueryResult maxRes = WorldDatabase.PQuery(
-            "SELECT IFNULL(MAX(id), -1) + 1 FROM smart_scripts "
-            "WHERE entryorguid = {} AND source_type = 0", recipientEntry))
+                "SELECT IFNULL(MAX(id), -1) + 1 FROM smart_scripts "
+                "WHERE entryorguid = {} AND source_type = 0", recipientEntry))
             nextId = maxRes->Fetch()[0].GetUInt32();
 
         std::vector<std::string> stmts;
@@ -5616,7 +6113,7 @@ private:
         // smart_scripts loader (see .fix follow), so every column of the donor row
         // (Difficulties, event_param5, *_param_string, comment ...) is preserved.
         uint32 inserted = 0;
-        uint32 skipped = 0;
+        uint32 skipped  = 0;
         for (auto const& dr : donorRows)
         {
             uint32 donorId = dr.first;
@@ -5697,6 +6194,167 @@ private:
         h->SendSysMessage(Trinity::StringFormat("[gm_fixer] {} -> OK", what));
         h->SendSysMessage("  Apply in-game: .reload smart_scripts (or .respawn the recipient)");
         TC_LOG_INFO(LOG_CHAN, "[gm_fixer] {} | SQL: {}", what, sqlLog);
+        return true;
+    }
+
+    // ===== Wowhead loot / pickpocket / compare / all-in-one =====
+
+    // ----- .fix wowinfo [id] -----
+    // Compares the Wowhead page (spells, drops, pickpocketing) of the given NPC
+    // (or the selected creature) against THIS server's database and prints a
+    // diff. No DB changes. Diff legend:
+    //   [+] in Wowhead AND in DB
+    //   [-] in Wowhead only (missing from DB)
+    //   [?] in DB only (custom / not on Wowhead)
+    static bool HandleFixWowInfo(ChatHandler* h, Optional<uint32> npcIdOpt)
+    {
+        uint32 entry = 0;
+        std::string html;
+        if (!GmFixer_FetchWowheadAll(h, npcIdOpt, entry, html))
+            return true;
+
+        // Parse all three categories from the fetched HTML.
+        std::vector<GmFixer_WowheadAbility> abilities;
+        GmFixer_ParseGathererSpells(html, abilities);
+        std::vector<GmFixer_WowheadItem> drops, pickpocket;
+        GmFixer_ParseListviewItems(html, "drops", drops);
+        GmFixer_ParseListviewItems(html, "pickpocketing", pickpocket);
+
+        // --- SPELLS: Wowhead spell IDs vs smart_scripts CAST lines ---
+        std::set<uint32> whSpells;
+        for (auto const& a : abilities) whSpells.insert(a.spellId);
+        std::set<uint32> dbSpells;
+        if (QueryResult r = WorldDatabase.PQuery(
+            "SELECT action_param1 FROM smart_scripts "
+            "WHERE entryorguid = {} AND source_type = 0 AND action_type = 11", entry))
+        {
+            do dbSpells.insert(r->Fetch()[0].GetUInt32()); while (r->NextRow());
+        }
+
+        h->SendSysMessage(Trinity::StringFormat(
+            "[gm_fixer] wowinfo: NPC {} | SPELLS (Wowhead {}, DB {})",
+            entry, uint32(whSpells.size()), uint32(dbSpells.size())));
+        for (auto const& a : abilities)
+        {
+            char const* mark = dbSpells.count(a.spellId) ? "[+]" : "[-]";
+            h->SendSysMessage(Trinity::StringFormat(
+                "  {} {} {}", mark, a.spellId, a.name.empty() ? std::string("(no name)") : a.name));
+        }
+        for (uint32 s : dbSpells)
+            if (!whSpells.count(s))
+            {
+                std::string nm = "<unknown>";
+                if (SpellInfo const* si = sSpellMgr->GetSpellInfo(s, DIFFICULTY_NONE))
+                    if (si->SpellName) nm = si->SpellName->Str[DEFAULT_LOCALE];
+                h->SendSysMessage(Trinity::StringFormat("  [?] {} {} (in DB only)", s, nm));
+            }
+
+        // --- DROPS: Wowhead drops vs creature_loot_template ---
+        GmFixer_PrintItemDiff(h, "DROPS", drops, "creature_loot_template", entry);
+
+        // --- PICKPOCKETING: vs pickpocketing_loot_template ---
+        GmFixer_PrintItemDiff(h, "PICKPOCKETING", pickpocket, "pickpocketing_loot_template", entry);
+
+        return true;
+    }
+
+    // Helper used by wowinfo: print a diff of Wowhead items vs a loot table.
+    static void GmFixer_PrintItemDiff(ChatHandler* h, char const* title,
+                                      std::vector<GmFixer_WowheadItem> const& whItems,
+                                      char const* tableName, uint32 entry)
+    {
+        std::set<uint32> whIds;
+        for (auto const& it : whItems) whIds.insert(it.itemId);
+        std::set<uint32> dbIds;
+        if (QueryResult r = WorldDatabase.PQuery(
+            "SELECT `Item` FROM `{}` WHERE `Entry` = {} AND `ItemType` = 0", tableName, entry))
+        {
+            do dbIds.insert(r->Fetch()[0].GetUInt32()); while (r->NextRow());
+        }
+
+        h->SendSysMessage(Trinity::StringFormat(
+            "[gm_fixer] wowinfo: NPC {} | {} (Wowhead {}, DB {})",
+            entry, title, uint32(whIds.size()), uint32(dbIds.size())));
+        for (auto const& it : whItems)
+        {
+            char const* mark = dbIds.count(it.itemId) ? "[+]" : "[-]";
+            double chance = (it.classs == 12 || it.outof == 0) ? 100.0
+                : (double)it.count / (double)it.outof * 100.0;
+            h->SendSysMessage(Trinity::StringFormat(
+                "  {} item {} {} {:.2f}%{}",
+                mark, it.itemId, it.name.empty() ? std::string("(no name)") : it.name,
+                chance, it.classs == 12 ? " (quest)" : ""));
+        }
+        for (uint32 id : dbIds)
+            if (!whIds.count(id))
+                h->SendSysMessage(Trinity::StringFormat(
+                    "  [?] item {} (in DB only)", id));
+    }
+
+    // ----- .fix lootwow [id] -----
+    // Replaces creature_loot_template for the given NPC (or the selected
+    // creature) with the Wowhead drops list (DELETE + INSERT).
+    static bool HandleFixLootWow(ChatHandler* h, Optional<uint32> npcIdOpt)
+    {
+        uint32 entry = 0;
+        std::string html;
+        if (!GmFixer_FetchWowheadAll(h, npcIdOpt, entry, html))
+            return true;
+
+        std::vector<GmFixer_WowheadItem> drops;
+        GmFixer_ParseListviewItems(html, "drops", drops);
+        GmFixer_ApplyLoot(h, entry, "creature_loot_template", drops, "lootwow");
+        return true;
+    }
+
+    // ----- .fix pickpocketwow [id] -----
+    // Replaces pickpocketing_loot_template for the given NPC (or the selected
+    // creature) with the Wowhead pickpocketing list (DELETE + INSERT).
+    static bool HandleFixPickpocketWow(ChatHandler* h, Optional<uint32> npcIdOpt)
+    {
+        uint32 entry = 0;
+        std::string html;
+        if (!GmFixer_FetchWowheadAll(h, npcIdOpt, entry, html))
+            return true;
+
+        std::vector<GmFixer_WowheadItem> pickpocket;
+        GmFixer_ParseListviewItems(html, "pickpocketing", pickpocket);
+        GmFixer_ApplyLoot(h, entry, "pickpocketing_loot_template", pickpocket, "pickpocketwow");
+        return true;
+    }
+
+    // ----- .fix wowall [id] -----
+    // Applies all three sections from Wowhead to the given NPC (or the selected
+    // creature): smart_scripts CAST rows (via .fix spellwow logic), creature
+    // drops, and pickpocketing loot. One fetch, three applies.
+    static bool HandleFixWowAll(ChatHandler* h, Optional<uint32> npcIdOpt)
+    {
+        uint32 entry = 0;
+        std::string html;
+        if (!GmFixer_FetchWowheadAll(h, npcIdOpt, entry, html))
+            return true;
+
+        // 1) Spells - delegate to the spellwow handler so the SmartAI enable +
+        //    CAST-row INSERT + logging stay identical to .fix spellwow.
+        //    spellwow fetches again internally; that's one extra page load but
+        //    keeps the code paths unified and tested.
+        h->SendSysMessage("[gm_fixer] wowall: === SPELLS ===");
+        HandleFixSpellWow(h, npcIdOpt, /*repeat*/ std::nullopt, /*tag*/ std::nullopt);
+
+        // 2) Drops.
+        h->SendSysMessage("[gm_fixer] wowall: === DROPS ===");
+        std::vector<GmFixer_WowheadItem> drops;
+        GmFixer_ParseListviewItems(html, "drops", drops);
+        GmFixer_ApplyLoot(h, entry, "creature_loot_template", drops, "wowall/loot");
+
+        // 3) Pickpocketing.
+        h->SendSysMessage("[gm_fixer] wowall: === PICKPOCKETING ===");
+        std::vector<GmFixer_WowheadItem> pickpocket;
+        GmFixer_ParseListviewItems(html, "pickpocketing", pickpocket);
+        GmFixer_ApplyLoot(h, entry, "pickpocketing_loot_template", pickpocket, "wowall/pickpocket");
+
+        h->SendSysMessage(Trinity::StringFormat(
+            "[gm_fixer] wowall: NPC {} done (spells+loot+pickpocket). Reload smart_scripts + loot tables.", entry));
         return true;
     }
 };

@@ -85,7 +85,7 @@ struct BonusData
     int16 PvpItemLevelBonus;
     uint32 ItemLevelOffsetCurveId;
     uint32 ItemLevelOffsetItemLevel;
-    uint32 ItemLevelOffset;
+    int32 ItemLevelOffset;
     uint32 ItemSquishEraID;
     std::array<ItemEffectEntry const*, 13> Effects;
     std::size_t EffectCount;

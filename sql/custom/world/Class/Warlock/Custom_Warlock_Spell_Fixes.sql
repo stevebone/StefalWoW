@@ -130,7 +130,7 @@ VALUES
     (900271, 1, 3282, 0, 0, 0, 0, 0, 0, -1, 0, 0, 124503, 30000, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, '', 66263),
     (900272, 1, 36050, 0, 0, 0, 0, 0, 0, -1, 0, 0, 452225, 2000, 0, 0, 1, 5, 1.5, 5, 5, 1.5, 5, 0, 0, '', 66263);
 	
-DELETE FROM `spell_script_names` WHERE `ScriptName` IN ('spell_warlock_summon_demonic_tyrant', 'spell_warl_darkglare_eye_laser', 'spell_warl_hand_of_guldan', 'spell_warl_fear', 'spell_warl_fear_buff', 'spell_warl_corruption_effect', 'spell_warl_drain_life', 
+DELETE FROM `spell_script_names` WHERE `ScriptName` IN ('spell_warlock_summon_demonic_tyrant', 'spell_warl_darkglare_eye_laser', 'spell_warl_hand_of_guldan', 'spell_warl_fear', 'spell_warl_fear_buff', 'spell_warl_corruption_effect',
 'aura_warl_phantomatic_singularity', 'aura_warl_haunt', 'spell_warlock_summon_darkglare', 'spell_warlock_unending_breath', 'spell_warl_demonic_gateway', 'spell_warl_hand_of_guldan_damage', 'spell_warlock_call_dreadstalkers', 
 'spell_warlock_demonbolt_new', 'spell_warl_demonic_calling', 'spell_warl_implosion', 'spell_warlock_doom', 'spell_warlock_soul_fire', 'spell_warl_soul_conduit', 'spell_warr_shadowbolt_affliction', 
 'spell_warlock_fel_firebolt_wild_imp', 'spell_warlock_inquisitors_gaze', 'spell_warl_incinerate', 'spell_warlock_agony', 'spell_warlock_imp_firebolt');
@@ -140,7 +140,6 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 (5782, 'spell_warl_fear'),
 (204730, 'spell_warl_fear_buff'),
 (146739, 'spell_warl_corruption_effect'),
-(234153, 'spell_warl_drain_life'),
 (205246, 'aura_warl_phantomatic_singularity'),
 (48181, 'aura_warl_haunt'),
 (205180, 'spell_warlock_summon_darkglare'),
@@ -161,6 +160,49 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 (3110, 'spell_warlock_imp_firebolt'),
 (86040, 'spell_warl_hand_of_guldan_damage'),
 (105174, 'spell_warl_hand_of_guldan');
+
+DELETE FROM `spell_script_names` WHERE `ScriptName` IN ('spell_warlock_call_dreadstalkers_summon');
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
+(364750, 'spell_warlock_call_dreadstalkers_summon');
+
+-- Remove previously applied scripts
+DELETE FROM `spell_script_names` WHERE `ScriptName` IN ('spell_warl_drain_life');
+
+-- Soulburn: Drain Life & Healthstone
+DELETE FROM `spell_script_names` WHERE `ScriptName` IN ('spell_warl_healthstone_soulburn', 'spell_warl_soulburn_drain_life_absorb', 'spell_warl_drain_life_soulburn');
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
+(6262, 'spell_warl_healthstone_soulburn'),
+(387630, 'spell_warl_soulburn_drain_life_absorb'),
+(234153, 'spell_warl_drain_life_soulburn');
+
+-- Remove old healthstone script registration if present
+DELETE FROM `spell_script_names` WHERE `spell_id` = 6262 AND `ScriptName` = 'spell_warl_healthstone_heal';
+
+-- Soulburn: Demonic Circle Teleport
+DELETE FROM `spell_script_names` WHERE `spell_id` = 48020 AND `ScriptName` = 'spell_warl_demonic_circle_teleport';
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
+(48020, 'spell_warl_demonic_circle_teleport');
+
+-- Soul Leech
+DELETE FROM `spell_script_names` WHERE `spell_id` = 108370 AND `ScriptName` = 'spell_warl_soul_leech';
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
+(108370, 'spell_warl_soul_leech');
+
+-- Demon Skin
+DELETE FROM `spell_script_names` WHERE `spell_id` = 219272 AND `ScriptName` = 'spell_warl_demon_skin';
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
+(219272, 'spell_warl_demon_skin');
+
+-- spell_proc for 108370 (Soul Leech) - proc on damage dealt (melee + ability + spell + periodic), AoE filtered in script
+DELETE FROM `spell_proc` WHERE `SpellId` = 108370;
+INSERT INTO `spell_proc` (`SpellId`, `SchoolMask`, `SpellFamilyName`, `SpellFamilyMask0`, `SpellFamilyMask1`, `SpellFamilyMask2`, `SpellFamilyMask3`, `ProcFlags`, `ProcFlags2`, `SpellTypeMask`, `SpellPhaseMask`, `HitMask`, `AttributesMask`, `DisableEffectsMask`, `ProcsPerMinute`, `Chance`, `Cooldown`, `Charges`) VALUES
+(108370, 0, 0, 0, 0, 0, 0, 0x51014, 0, 1, 2, 0, 0, 0, 0, 100, 0, 0);
+
+-- spell_proc for 387630 (Soulburn: Drain Life hidden aura) - proc on helpful periodic heals
+DELETE FROM `spell_proc` WHERE `SpellId` = 387630;
+INSERT INTO `spell_proc` (`SpellId`, `SchoolMask`, `SpellFamilyName`, `SpellFamilyMask0`, `SpellFamilyMask1`, `SpellFamilyMask2`, `SpellFamilyMask3`, `ProcFlags`, `ProcFlags2`, `SpellTypeMask`, `SpellPhaseMask`, `HitMask`, `AttributesMask`, `DisableEffectsMask`, `ProcsPerMinute`, `Chance`, `Cooldown`, `Charges`) VALUES
+(387630, 0, 0, 0, 0, 0, 0, 0x200000, 0, 2, 2, 0, 0, 0, 0, 100, 0, 0);
+
 
 REPLACE INTO `npc_spellclick_spells` VALUES (59262, 113902, 0, 0);
 REPLACE INTO `npc_spellclick_spells` VALUES (59271, 113902, 0, 0);

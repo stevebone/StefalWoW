@@ -841,7 +841,8 @@ void CollectionMgr::AddItemAppearance(ItemModifiedAppearanceEntry const* itemMod
         if (IsSetCompleted(set->ID))
         {
             if (Quest const* quest = sObjectMgr->GetQuestTemplate(set->TrackingQuestID))
-                owner->RewardQuest(quest, LootItemType::Item, 0, owner, false);
+                if (!owner->GetQuestRewardStatus(quest->GetQuestId()))
+                    owner->RewardQuest(quest, LootItemType::Item, 0, owner, false);
 
             owner->UpdateCriteria(CriteriaType::CollectTransmogSetFromGroup, set->TransmogSetGroupID);
         }
