@@ -33,6 +33,17 @@ namespace Scripts::Custom::Paladin
         static constexpr uint32 ArtOfWar          = 406064;
         static constexpr uint32 ArtOfWarTriggered = 231843;
         static constexpr uint32 BladeOfJustice    = 184575;
+
+        // Righteous Cause
+        static constexpr uint32 RighteousCause    = 402912;
+        static constexpr uint32 BladeOfJusticeAoE = 404358;
+
+        // Consecrated Blade
+        static constexpr uint32 Consecration              = 26573;
+        static constexpr uint32 ConsecratedBlade          = 404834;
+        static constexpr uint32 ConsecratedBladeOverride  = 462970;
+        static constexpr uint32 ConsecratedBladeICD       = 407475;
+        static constexpr uint32 ConsecratedBladeArtOfWar  = 382275;
     }
 }
 
