@@ -595,6 +595,57 @@ namespace Scripts::Custom::Warlock
             OnEffectPeriodic += AuraEffectPeriodicFn(spell_warl_demon_skin::OnTick, EFFECT_0, SPELL_AURA_PERIODIC_DUMMY);
         }
     };
+
+    // 108415 - Soul Link (talent passive)
+    // Stamina bonus (EFFECT_2) only applies while the warlock has an active pet.
+    // Pet aura 108446 is linked through spell_pet_auras (effect 0).
+    class spell_warl_soul_link : public AuraScript
+    {
+        bool Validate(SpellInfo const* /*spellInfo*/) override
+        {
+            return ValidateSpellInfo({ Spells::SoulLinkPetBuff });
+        }
+
+        void CalcStamina(AuraEffect const* /*aurEff*/, SpellEffectValue& amount, bool& canBeRecalculated)
+        {
+            canBeRecalculated = true;
+
+            Player* player = Object::ToPlayer(GetUnitOwner());
+            if (!player || !player->GetPet())
+                amount = 0;
+        }
+
+        void Register() override
+        {
+            DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_warl_soul_link::CalcStamina, EFFECT_2, SPELL_AURA_MOD_TOTAL_STAT_PERCENTAGE);
+        }
+    };
+
+    // 108446 - Soul Link (pet buff, propagated to owner via APPLY_AREA_AURA_OWNER)
+    // Recalculates the Soul Link stamina bonus on the owner when the pet buff is applied/removed.
+    class spell_warl_soul_link_pet_buff : public AuraScript
+    {
+        bool Validate(SpellInfo const* /*spellInfo*/) override
+        {
+            return ValidateSpellInfo({ Spells::SoulLink });
+        }
+
+        void RecalculateOwnerStamina(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+        {
+            Unit* target = GetTarget();
+            if (!target->IsPlayer())
+                return;
+
+            if (AuraEffect* staminaEff = target->GetAuraEffect(Spells::SoulLink, EFFECT_2))
+                staminaEff->RecalculateAmount();
+        }
+
+        void Register() override
+        {
+            AfterEffectApply += AuraEffectApplyFn(spell_warl_soul_link_pet_buff::RecalculateOwnerStamina, EFFECT_0, SPELL_AURA_SPLIT_DAMAGE_PCT, AURA_EFFECT_HANDLE_REAL);
+            AfterEffectRemove += AuraEffectRemoveFn(spell_warl_soul_link_pet_buff::RecalculateOwnerStamina, EFFECT_0, SPELL_AURA_SPLIT_DAMAGE_PCT, AURA_EFFECT_HANDLE_REAL);
+        }
+    };
 }
 
 void AddSC_custom_warlock_spell_fixes()
@@ -612,4 +663,6 @@ void AddSC_custom_warlock_spell_fixes()
     RegisterSpellScript(spell_warl_demonic_circle_teleport);
     RegisterSpellScript(spell_warl_soul_leech);
     RegisterSpellScript(spell_warl_demon_skin);
+    RegisterSpellScript(spell_warl_soul_link);
+    RegisterSpellScript(spell_warl_soul_link_pet_buff);
 }

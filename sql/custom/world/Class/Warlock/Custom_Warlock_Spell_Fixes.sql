@@ -193,6 +193,17 @@ DELETE FROM `spell_script_names` WHERE `spell_id` = 219272 AND `ScriptName` = 's
 INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 (219272, 'spell_warl_demon_skin');
 
+-- Soul Link
+DELETE FROM `spell_script_names` WHERE `ScriptName` IN ('spell_warl_soul_link', 'spell_warl_soul_link_pet_buff');
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
+(108415, 'spell_warl_soul_link'),
+(108446, 'spell_warl_soul_link_pet_buff');
+
+-- Soul Link talent (108415, dummy effect 0) casts 108446 on the warlock's pet; 108446 propagates SPLIT_DAMAGE_PCT to the owner via APPLY_AREA_AURA_OWNER
+DELETE FROM `spell_pet_auras` WHERE `spell` = 108415 AND `effectId` = 0;
+INSERT INTO `spell_pet_auras` (`spell`, `effectId`, `pet`, `aura`) VALUES
+(108415, 0, 0, 108446);
+
 -- spell_proc for 108370 (Soul Leech) - proc on damage dealt (melee + ability + spell + periodic), AoE filtered in script
 DELETE FROM `spell_proc` WHERE `SpellId` = 108370;
 INSERT INTO `spell_proc` (`SpellId`, `SchoolMask`, `SpellFamilyName`, `SpellFamilyMask0`, `SpellFamilyMask1`, `SpellFamilyMask2`, `SpellFamilyMask3`, `ProcFlags`, `ProcFlags2`, `SpellTypeMask`, `SpellPhaseMask`, `HitMask`, `AttributesMask`, `DisableEffectsMask`, `ProcsPerMinute`, `Chance`, `Cooldown`, `Charges`) VALUES
