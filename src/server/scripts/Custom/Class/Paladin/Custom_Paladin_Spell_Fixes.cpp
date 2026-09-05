@@ -423,7 +423,7 @@ namespace Scripts::Custom::Paladin
             if (chance <= 0)
                 return false;
 
-            // AoE / multi-hit: only one roll per cast. White swings have no cast id — roll each swing.
+            // AoE / multi-hit: only one roll per cast. White swings have no cast id - roll each swing.
             if (procSpell)
             {
                 if (procSpell->m_castId == _lastAttemptCastId)
@@ -462,8 +462,11 @@ namespace Scripts::Custom::Paladin
         {
             switch (spellId)
             {
-                case 31884:  // Avenging Wrath
-                case 389593: // Avenging Wrath (Ret version)
+                case Spells::AvengingWrath:  // Avenging Wrath
+                case Spells::AvengingWrathRet: // Avenging Wrath (Ret version)
+                case Spells::AvengingWrath2:
+                case Spells::AvengingWrath3:
+                case Spells::AvengingWrath4:
                     return true;
                 default:
                     return false;

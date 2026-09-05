@@ -86,6 +86,13 @@ namespace Scripts::Custom::Paladin
         static constexpr uint32 TemplarsVerdict           = 85256;
         static constexpr uint32 FinalVerdictCast          = 383328;
         static constexpr uint32 JusticarsVengeance        = 215661;
+
+        // Avenging Wrath
+        static constexpr uint32 AvengingWrath = 31884;
+        static constexpr uint32 AvengingWrath2 = 384376;
+        static constexpr uint32 AvengingWrath3 = 454351;
+        static constexpr uint32 AvengingWrath4 = 454373;
+        static constexpr uint32 AvengingWrathRet = 231895;
     }
 }
 
