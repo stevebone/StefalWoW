@@ -6228,7 +6228,8 @@ void AuraEffect::HandleProcTriggerSpellAuraProc(AuraApplication* aurApp, ProcEve
     uint32 triggerSpellId = GetSpellEffectInfo().TriggerSpell;
     if (triggerSpellId == 0)
     {
-        TC_LOG_WARN("spells.aura.effect.nospell", "AuraEffect::HandleProcTriggerSpellAuraProc: Spell {} [EffectIndex: {}] does not have triggered spell.", GetId(), GetEffIndex());
+        if (GetAuraType() != SPELL_AURA_DUMMY)
+            TC_LOG_WARN("spells.aura.effect.nospell", "AuraEffect::HandleProcTriggerSpellAuraProc: Spell {} [EffectIndex: {}] does not have triggered spell.", GetId(), GetEffIndex());
         return;
     }
 
