@@ -517,6 +517,41 @@ namespace Scripts::Custom::Paladin
         }
     };
 
+    // 408385 - Crusading Strikes (damage)
+    // EFFECT_1 (DUMMY): generates 1 Holy Power every other attack.
+    // Uses 406833 as a marker aura - first attack applies it, second attack consumes it.
+    class spell_pal_crusading_strikes_damage : public SpellScript
+    {
+        bool Validate(SpellInfo const* /*spellInfo*/) override
+        {
+            return ValidateSpellInfo({ Spells::CrusadingStrikesProc, Spells::CrusadingStrikesEnergize });
+        }
+
+        void HandleDummy(SpellEffIndex /*effIndex*/)
+        {
+            Unit* caster = GetCaster();
+            if (!caster)
+                return;
+
+            if (caster->HasAura(Spells::CrusadingStrikesProc))
+            {
+                caster->CastSpell(caster, Spells::CrusadingStrikesEnergize, CastSpellExtraArgsInit{
+                    .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR
+                });
+                caster->RemoveAura(Spells::CrusadingStrikesProc);
+            }
+            else
+                caster->CastSpell(caster, Spells::CrusadingStrikesProc, CastSpellExtraArgsInit{
+                    .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR
+                });
+        }
+
+        void Register() override
+        {
+            OnEffectHit += SpellEffectFn(spell_pal_crusading_strikes_damage::HandleDummy, EFFECT_1, SPELL_EFFECT_DUMMY);
+        }
+    };
+
     // =========================================================================
     // Empyrean Legacy
     // =========================================================================
@@ -2292,6 +2327,129 @@ namespace Scripts::Custom::Paladin
 
         Optional<SpellPowerCost> _baseHolyPowerCost;
     };
+
+    // =========================================================================
+    // Divine Toll (375576)
+    // Holy:     Cast Holy Shock on up to 5 targets (enemies + allies) in 30y.
+    // Protection: Cast Avenger's Shield on up to 5 enemies in 30y.
+    // Retribution: Cast Judgment on up to 5 enemies in 30y with +50% damage.
+    // DBC EFFECT_1: DUMMY, DEST_CASTER -> UNIT_DEST_AREA_ENEMY (enemies in 30y)
+    // DBC EFFECT_2: DUMMY, DEST_CASTER -> UNIT_DEST_AREA_ALLY (allies in 30y)
+    // DBC EFFECT_5: DUMMY, BP=50 (Ret damage bonus percent)
+    // =========================================================================
+
+    // 375576 - Divine Toll
+    class spell_pal_divine_toll : public SpellScript
+    {
+        bool Validate(SpellInfo const* /*spellInfo*/) override
+        {
+            return ValidateSpellInfo({ Spells::HolyShock, Spells::AvengersShield,
+                Spells::Judgment, Spells::JudgmentProt, Spells::JudgmentHoly });
+        }
+
+        void FilterEnemies(std::list<WorldObject*>& targets)
+        {
+            Trinity::Containers::RandomResize(targets, 5);
+            _enemyCount = uint8(targets.size());
+        }
+
+        void FilterAllies(std::list<WorldObject*>& targets)
+        {
+            if (!GetCaster()->IsPlayer())
+            {
+                targets.clear();
+                return;
+            }
+
+            auto spec = GetCaster()->ToPlayer()->GetPrimarySpecialization();
+            if (spec == ChrSpecialization::PaladinHoly)
+                Trinity::Containers::RandomResize(targets, 5 - _enemyCount);
+            else
+                targets.clear();
+        }
+
+        void HandleEnemyHit(SpellEffIndex /*effIndex*/)
+        {
+            Unit* caster = GetCaster();
+            Unit* target = GetHitUnit();
+            if (!caster || !target)
+                return;
+
+            Player* player = caster->ToPlayer();
+            if (!player)
+                return;
+
+            uint32 spellToCast = 0;
+            Optional<int32> damageBonus;
+
+            switch (player->GetPrimarySpecialization())
+            {
+                case ChrSpecialization::PaladinHoly:
+                    spellToCast = Spells::HolyShock;
+                    break;
+                case ChrSpecialization::PaladinProtection:
+                    spellToCast = Spells::AvengersShield;
+                    break;
+                case ChrSpecialization::PaladinRetribution:
+                    spellToCast = Spells::Judgment;
+                    damageBonus = GetSpellInfo()->GetEffect(EFFECT_5).CalcValueAsInt(caster);
+                    break;
+                default:
+                    spellToCast = Spells::HolyShock;
+                    break;
+            }
+
+            CastSpellExtraArgs args;
+            args.TriggerFlags = TRIGGERED_FULL_MASK;
+            args.TriggeringSpell = GetSpell();
+
+            if (damageBonus)
+                args.CustomArg = *damageBonus;
+
+            caster->CastSpell(target, spellToCast, args);
+        }
+
+        void HandleAllyHit(SpellEffIndex /*effIndex*/)
+        {
+            Unit* caster = GetCaster();
+            Unit* target = GetHitUnit();
+            if (!caster || !target)
+                return;
+
+            caster->CastSpell(target, Spells::HolyShock, CastSpellExtraArgsInit{
+                .TriggerFlags = TRIGGERED_FULL_MASK,
+                .TriggeringSpell = GetSpell()
+            });
+        }
+
+        void Register() override
+        {
+            OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_pal_divine_toll::FilterEnemies, EFFECT_1, TARGET_UNIT_DEST_AREA_ENEMY);
+            OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_pal_divine_toll::FilterAllies, EFFECT_2, TARGET_UNIT_DEST_AREA_ALLY);
+            OnEffectHitTarget += SpellEffectFn(spell_pal_divine_toll::HandleEnemyHit, EFFECT_1, SPELL_EFFECT_DUMMY);
+            OnEffectHitTarget += SpellEffectFn(spell_pal_divine_toll::HandleAllyHit, EFFECT_2, SPELL_EFFECT_DUMMY);
+        }
+
+        uint8 _enemyCount = 0;
+    };
+
+    // Applies Divine Toll's +50% damage bonus to Judgment casts.
+    // Registered for all Judgment spell IDs (20271, 275779, 275773).
+    // Only activates when CustomArg is present (i.e. cast from Divine Toll).
+    class spell_pal_divine_toll_judgment : public SpellScript
+    {
+        void HandleDamage(SpellEffectInfo const& /*spellEffectInfo*/, Unit const* /*victim*/,
+                          int32& /*damage*/, int32& /*flatMod*/, float& pctMod) const
+        {
+            if (int32 const* bonusPct = std::any_cast<int32>(&GetSpell()->m_customArg))
+                AddPct(pctMod, *bonusPct);
+        }
+
+        void Register() override
+        {
+            CalcDamage += SpellCalcDamageFn(spell_pal_divine_toll_judgment::HandleDamage);
+        }
+    };
 }
 
 void AddSC_custom_paladin_spell_fixes()
@@ -2340,4 +2498,7 @@ void AddSC_custom_paladin_spell_fixes()
     RegisterSpellScript(spell_pal_walk_into_light_avenging_wrath);
     RegisterSpellScript(spell_pal_walk_into_light_hammer_of_wrath);
     RegisterSpellScript(spell_pal_walk_into_light_infusion);
+    RegisterSpellScript(spell_pal_divine_toll);
+    RegisterSpellScript(spell_pal_divine_toll_judgment);
+    RegisterSpellScript(spell_pal_crusading_strikes_damage);
 }

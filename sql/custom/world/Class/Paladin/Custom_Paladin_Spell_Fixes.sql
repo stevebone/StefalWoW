@@ -310,3 +310,25 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 (1241413, 'spell_pal_walk_into_light_hammer_of_wrath'),
 (24275, 'spell_pal_walk_into_light_hammer_of_wrath'),
 (53576, 'spell_pal_walk_into_light_infusion');
+
+-- =========================================================================
+-- Divine Toll (375576)
+-- Holy: Holy Shock on up to 5 targets; Prot: Avenger's Shield on up to 5 enemies;
+-- Ret: Judgment on up to 5 enemies with +50% damage.
+-- =========================================================================
+DELETE FROM `spell_script_names` WHERE `ScriptName`='spell_pal_divine_toll';
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
+(375576, 'spell_pal_divine_toll');
+
+DELETE FROM `spell_script_names` WHERE `ScriptName`='spell_pal_divine_toll_judgment';
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
+(20271, 'spell_pal_divine_toll_judgment'),
+(275779, 'spell_pal_divine_toll_judgment'),
+(275773, 'spell_pal_divine_toll_judgment');
+
+-- =========================================================================
+-- Crusading Strikes (408385) - EFFECT_1 DUMMY: generate 1 Holy Power every other attack
+-- =========================================================================
+DELETE FROM `spell_script_names` WHERE `ScriptName`='spell_pal_crusading_strikes_damage';
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
+(408385, 'spell_pal_crusading_strikes_damage');

@@ -73,6 +73,8 @@ namespace Scripts::Custom::Paladin
         static constexpr uint32 CrusaderStrike            = 35395;
         static constexpr uint32 CrusadingStrikesTalent    = 404542;
         static constexpr uint32 CrusadingStrikesDamage    = 408385;
+        static constexpr uint32 CrusadingStrikesProc      = 406833;
+        static constexpr uint32 CrusadingStrikesEnergize  = 406834;
         static constexpr uint32 TemplarStrikesTalent      = 406646;
         static constexpr uint32 TemplarStrike             = 407480;
         static constexpr uint32 TemplarSlash              = 406647;
