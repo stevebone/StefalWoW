@@ -2250,19 +2250,24 @@ void Unit::DoMeleeAttackIfReady()
 
     if (!IsInFeralForm() && haveOffhandWeapon() && isAttackReady(OFF_ATTACK))
     {
-        Optional<AttackSwingErr> autoAttackError = getAutoAttackError();
-        if (!autoAttackError)
+        if (GetAuraEffectsByType(SPELL_AURA_OVERRIDE_AUTOATTACK_WITH_MELEE_SPELL).empty())
         {
-            // prevent base and off attack in same time, delay attack at 0.2 sec
-            if (getAttackTimer(BASE_ATTACK) < ATTACK_DISPLAY_DELAY)
-                setAttackTimer(BASE_ATTACK, ATTACK_DISPLAY_DELAY);
+            Optional<AttackSwingErr> autoAttackError = getAutoAttackError();
+            if (!autoAttackError)
+            {
+                // prevent base and off attack in same time, delay attack at 0.2 sec
+                if (getAttackTimer(BASE_ATTACK) < ATTACK_DISPLAY_DELAY)
+                    setAttackTimer(BASE_ATTACK, ATTACK_DISPLAY_DELAY);
 
-            // do attack
-            AttackerStateUpdate(victim, OFF_ATTACK);
-            resetAttackTimer(OFF_ATTACK);
+                // do attack
+                AttackerStateUpdate(victim, OFF_ATTACK);
+                resetAttackTimer(OFF_ATTACK);
+            }
+            else
+                setAttackTimer(OFF_ATTACK, 100);
         }
         else
-            setAttackTimer(OFF_ATTACK, 100);
+            resetAttackTimer(OFF_ATTACK);
     }
 }
 
@@ -2372,12 +2377,7 @@ void Unit::AttackerStateUpdate(Unit* victim, WeaponAttackType attType, bool extr
         else
         {
             CastSpell(victim, meleeAttackSpellId, true);
-
-            uint32 hitInfo = HITINFO_AFFECTS_VICTIM | HITINFO_NO_ANIMATION;
-            if (attType == OFF_ATTACK)
-                hitInfo |= HITINFO_OFFHAND;
-
-            SendAttackStateUpdate(hitInfo, victim, 0, GetMeleeDamageSchoolMask(), 0, 0, 0, VICTIMSTATE_HIT, 0, 0);
+            _lastDamagedTargetGuid = victim->GetGUID();
         }
     }
 }
