@@ -262,3 +262,51 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 DELETE FROM `spell_proc` WHERE `SpellId` = 1253174;
 INSERT INTO `spell_proc` (`SpellId`, `SchoolMask`, `SpellFamilyName`, `SpellFamilyMask0`, `SpellFamilyMask1`, `SpellFamilyMask2`, `SpellFamilyMask3`, `ProcFlags`, `ProcFlags2`, `SpellTypeMask`, `SpellPhaseMask`, `HitMask`, `AttributesMask`, `DisableEffectsMask`, `ProcsPerMinute`, `Chance`, `Cooldown`, `Charges`) VALUES
 (1253174, 0, 0, 0, 0, 0, 0, 0, 0x4, 0, 1, 0, 0, 0, 0, 100, 0, 0);
+
+-- =========================================================================
+-- Righteous Protector (204074) - fixed aura hook mismatch
+-- =========================================================================
+DELETE FROM `spell_proc` WHERE `SpellId` = 204074;
+INSERT INTO `spell_proc` (`SpellId`, `SchoolMask`, `SpellFamilyName`, `SpellFamilyMask0`, `SpellFamilyMask1`, `SpellFamilyMask2`, `SpellFamilyMask3`, `ProcFlags`, `ProcFlags2`, `SpellTypeMask`, `SpellPhaseMask`, `HitMask`, `AttributesMask`, `DisableEffectsMask`, `ProcsPerMinute`, `Chance`, `Cooldown`, `Charges`) VALUES
+(204074, 0, 0, 0, 0, 0, 0, 0, 0x4, 0, 1, 0, 0x4, 0, 0, 100, 0, 0);
+
+DELETE FROM `spell_script_names` WHERE `ScriptName`='spell_pal_righteous_protector';
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
+(204074, 'spell_pal_righteous_protector');
+
+-- Fix Native Scripts Registration
+-- Heartfire heal has incorrect spell id in script registration
+UPDATE `spell_script_names` SET `spell_id` = 408461 WHERE `ScriptName` = 'spell_pal_t30_2p_protection_bonus_heal' AND `spell_id` = 410530;
+
+-- =========================================================================
+-- Execution Sentence (343527) — moved from core, fixed proc filters
+-- 1260251 - Radiate tracking aura on blast-affected enemies
+-- =========================================================================
+DELETE FROM `spell_script_names` WHERE `ScriptName`='spell_pal_execution_sentence_radiate';
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
+(1260251, 'spell_pal_execution_sentence_radiate');
+
+DELETE FROM `spell_proc` WHERE `SpellId` = 1260251;
+INSERT INTO `spell_proc` (`SpellId`, `SchoolMask`, `SpellFamilyName`, `SpellFamilyMask0`, `SpellFamilyMask1`, `SpellFamilyMask2`, `SpellFamilyMask3`, `ProcFlags`, `ProcFlags2`, `SpellTypeMask`, `SpellPhaseMask`, `HitMask`, `AttributesMask`, `DisableEffectsMask`, `ProcsPerMinute`, `Chance`, `Cooldown`, `Charges`) VALUES
+(1260251, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100, 0, 0);
+
+-- =========================================================================
+-- Walk Into Light (1263782) — Herald of the Sun talent
+-- Ret: AW → Blessing of An'she + 2 HP; HoW → BoJ during wings.
+-- Holy: Infusion of Light procs 2x during AW.
+-- =========================================================================
+DELETE FROM `spell_script_names` WHERE `ScriptName` IN (
+    'spell_pal_walk_into_light',
+    'spell_pal_walk_into_light_avenging_wrath',
+    'spell_pal_walk_into_light_hammer_of_wrath',
+    'spell_pal_walk_into_light_infusion'
+);
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
+(1263782, 'spell_pal_walk_into_light'),
+(31884, 'spell_pal_walk_into_light_avenging_wrath'),
+(231895, 'spell_pal_walk_into_light_avenging_wrath'),
+(454351, 'spell_pal_walk_into_light_avenging_wrath'),
+(454373, 'spell_pal_walk_into_light_avenging_wrath'),
+(1241413, 'spell_pal_walk_into_light_hammer_of_wrath'),
+(24275, 'spell_pal_walk_into_light_hammer_of_wrath'),
+(53576, 'spell_pal_walk_into_light_infusion');

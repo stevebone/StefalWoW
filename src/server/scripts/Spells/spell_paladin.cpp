@@ -1855,7 +1855,7 @@ void AddSC_paladin_spell_scripts()
     RegisterSpellScript(spell_pal_divine_steed);
     // RegisterSpellScript(spell_pal_divine_storm); // Script has now override in the custom cpp
     RegisterSpellAndAuraScriptPair(spell_pal_eternal_flame, spell_pal_eternal_flame_aura);
-    RegisterSpellAndAuraScriptPair(spell_pal_execution_sentence, spell_pal_execution_sentence_aura);
+    // RegisterSpellAndAuraScriptPair(spell_pal_execution_sentence, spell_pal_execution_sentence_aura); // Moved to Custom_Paladin_Spell_Fixes.cpp
     RegisterSpellScript(spell_pal_eye_for_an_eye);
     RegisterSpellScript(spell_pal_final_verdict);
     RegisterSpellScript(spell_pal_fist_of_justice);
@@ -1878,7 +1878,7 @@ void AddSC_paladin_spell_scripts()
     RegisterSpellScript(spell_pal_light_s_beacon);
     RegisterSpellScript(spell_pal_light_hammer_init_summon);
     RegisterSpellScript(spell_pal_light_hammer_periodic);
-    RegisterSpellScript(spell_pal_righteous_protector);
+    // RegisterSpellScript(spell_pal_righteous_protector); // moved to Custom_Paladin_Spell_Fixes.cpp
     RegisterSpellScript(spell_pal_righteous_verdict);
     RegisterSpellScript(spell_pal_selfless_healer);
     RegisterSpellScript(spell_pal_shield_of_the_righteous);

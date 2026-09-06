@@ -162,6 +162,16 @@ namespace Scripts::Custom::Paladin
         static constexpr uint32 JudgeJuryExecutioner    = 406157;
         static constexpr uint32 JudgeJuryExecutionerBuff = 1253174;
         static constexpr uint32 ExecutionSentence       = 343527;
+        static constexpr uint32 ExecutionSentenceRadiate = 1260251;
+
+        // Righteous Protector
+        static constexpr uint32 RighteousProtector          = 204074;
+        static constexpr uint32 GuardianOfAncientKings      = 86659;
+
+        // Walk Into Light (Herald of the Sun)
+        static constexpr uint32 WalkIntoLight               = 1263782;
+        static constexpr uint32 BlessingOfAnshe             = 445206;
+        static constexpr uint32 InfusionOfLightTalent       = 53576;
     }
 }
 

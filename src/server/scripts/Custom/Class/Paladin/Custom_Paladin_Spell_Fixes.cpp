@@ -1489,6 +1489,326 @@ namespace Scripts::Custom::Paladin
     };
 
     // =========================================================================
+    // Walk Into Light (1263782) — Herald of the Sun talent
+    // Holy: Infusion of Light occurs 100% more often during Avenging Wrath.
+    // Ret: 100% chance to gain Blessing of An'she and generate 2 Holy Power
+    //       after casting Avenging Wrath. During Avenging Wrath, Hammer of
+    //       Wrath casts Blade of Justice at 100% effectiveness.
+    // =========================================================================
+
+    namespace PaladinWalkIntoLight
+    {
+        static bool HasTalent(Unit const* unit)
+        {
+            return unit && unit->HasAura(Spells::WalkIntoLight);
+        }
+
+        static bool HasWings(Unit const* unit)
+        {
+            if (!unit)
+                return false;
+
+            return unit->HasAura(Spells::AvengingWrath)
+                || unit->HasAura(Spells::AvengingWrathRet)
+                || unit->HasAura(Spells::AvengingWrath3)
+                || unit->HasAura(Spells::AvengingWrath4);
+        }
+
+        static void OnWingsApplied(Unit* caster)
+        {
+            if (!HasTalent(caster))
+                return;
+
+            Player* player = caster->ToPlayer();
+            if (!player)
+                return;
+
+            if (player->GetPrimarySpecialization() != ChrSpecialization::PaladinRetribution)
+                return;
+
+            int32 chance = 100;
+            if (AuraEffect const* chanceEff = caster->GetAuraEffect(Spells::WalkIntoLight, EFFECT_0))
+                chance = chanceEff->GetAmountAsInt();
+
+            if (roll_chance(chance))
+            {
+                caster->CastSpell(caster, Spells::BlessingOfAnshe, CastSpellExtraArgsInit
+                {
+                    .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR
+                });
+
+                int32 holyPower = 2;
+                if (AuraEffect const* hpEff = caster->GetAuraEffect(Spells::WalkIntoLight, EFFECT_1))
+                    if (hpEff->GetAmountAsInt() > 0)
+                        holyPower = hpEff->GetAmountAsInt();
+
+                caster->ModifyPower(POWER_HOLY_POWER, holyPower);
+            }
+        }
+    }
+
+    // 1263782 - Walk Into Light (passive talent aura: swallow DBC proc)
+    class spell_pal_walk_into_light : public AuraScript
+    {
+        bool CheckProc(ProcEventInfo& /*eventInfo*/)
+        {
+            return false;
+        }
+
+        void Register() override
+        {
+            DoCheckProc += AuraCheckProcFn(spell_pal_walk_into_light::CheckProc);
+        }
+    };
+
+    // Avenging Wrath aura hooks — Ret: grant Blessing of An'she + 2 HP on AW apply
+    class spell_pal_walk_into_light_avenging_wrath : public AuraScript
+    {
+        void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+        {
+            PaladinWalkIntoLight::OnWingsApplied(GetTarget());
+        }
+
+        void Register() override
+        {
+            AfterEffectApply += AuraEffectApplyFn(spell_pal_walk_into_light_avenging_wrath::HandleApply, EFFECT_FIRST_FOUND, SPELL_AURA_ANY, AURA_EFFECT_HANDLE_REAL);
+        }
+    };
+
+    // Hammer of Wrath — Ret: cast Blade of Justice at scaled effectiveness during wings
+    class spell_pal_walk_into_light_hammer_of_wrath : public SpellScript
+    {
+        bool Validate(SpellInfo const* /*spellInfo*/) override
+        {
+            return ValidateSpellInfo({ Spells::WalkIntoLight, Spells::BladeOfJustice });
+        }
+
+        void HandleAfterHit()
+        {
+            if (_bojFired)
+                return;
+
+            Unit* caster = GetCaster();
+            Unit* target = GetHitUnit();
+            if (!caster || !target)
+                return;
+
+            if (!PaladinWalkIntoLight::HasTalent(caster) || !PaladinWalkIntoLight::HasWings(caster))
+                return;
+
+            Player* player = caster->ToPlayer();
+            if (!player || player->GetPrimarySpecialization() != ChrSpecialization::PaladinRetribution)
+                return;
+
+            _bojFired = true;
+
+            int32 effectivenessPct = 100;
+            if (AuraEffect const* eff = caster->GetAuraEffect(Spells::WalkIntoLight, EFFECT_2))
+                if (eff->GetAmountAsInt() > 0)
+                    effectivenessPct = eff->GetAmountAsInt();
+
+            CastSpellExtraArgs args(TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR | TRIGGERED_IGNORE_SPELL_AND_CATEGORY_CD);
+            args.SetTriggeringSpell(GetSpell());
+
+            if (effectivenessPct != 100)
+            {
+                SpellInfo const* bojInfo = sSpellMgr->GetSpellInfo(Spells::BladeOfJustice, caster->GetMap()->GetDifficultyID());
+                if (bojInfo)
+                {
+                    for (SpellEffectInfo const& effect : bojInfo->GetEffects())
+                    {
+                        if (!effect.IsEffect())
+                            continue;
+
+                        SpellEffectValue const base = effect.CalcValue(caster, nullptr, target);
+                        args.AddSpellMod(SpellValueModFloat(uint8(SPELLVALUE_BASE_POINT0) + effect.EffectIndex), CalculatePct(base, effectivenessPct));
+                    }
+                }
+            }
+
+            caster->CastSpell(target, Spells::BladeOfJustice, args);
+        }
+
+        void Register() override
+        {
+            AfterHit += SpellHitFn(spell_pal_walk_into_light_hammer_of_wrath::HandleAfterHit);
+        }
+
+        bool _bojFired = false;
+    };
+
+    // 53576 - Infusion of Light (talent aura: Holy — double proc frequency during wings)
+    class spell_pal_walk_into_light_infusion : public AuraScript
+    {
+        bool Validate(SpellInfo const* spellInfo) override
+        {
+            return ValidateSpellEffect({ { spellInfo->Id, EFFECT_0 } })
+                && spellInfo->GetEffect(EFFECT_0).TriggerSpell;
+        }
+
+        void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& eventInfo)
+        {
+            Unit* actor = eventInfo.GetActor();
+            if (!actor || !PaladinWalkIntoLight::HasTalent(actor) || !PaladinWalkIntoLight::HasWings(actor))
+                return;
+
+            Player* player = actor->ToPlayer();
+            if (!player || player->GetPrimarySpecialization() != ChrSpecialization::PaladinHoly)
+                return;
+
+            uint32 const infusionBuff = GetSpellInfo()->GetEffect(EFFECT_0).TriggerSpell;
+            actor->CastSpell(actor, infusionBuff, CastSpellExtraArgsInit
+            {
+                .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR,
+                .TriggeringSpell = eventInfo.GetProcSpell()
+            });
+        }
+
+        void Register() override
+        {
+            AfterEffectProc += AuraEffectProcFn(spell_pal_walk_into_light_infusion::HandleProc, EFFECT_0, SPELL_AURA_DUMMY);
+        }
+    };
+
+    // =========================================================================
+    // Execution Sentence (343527) — moved from spell_paladin.cpp
+    // Fixes: HandleProc now filters for Holy damage from the caster only.
+    // Adds: spell_pal_execution_sentence_radiate for 1260251 secondary target tracking.
+    // =========================================================================
+
+    static constexpr uint32 SPELL_PALADIN_EXECUTION_SENTENCE_DAMAGE     = 387113;
+    static constexpr uint32 SPELL_PALADIN_EXECUTION_SENTENCE_11_SECONDS = 406919;
+    static constexpr uint32 SPELL_PALADIN_EXECUTION_SENTENCE_8_SECONDS  = 386579;
+    static constexpr uint32 SPELL_PALADIN_EXECUTIONERS_WILL             = 406940;
+
+    // 343527 - Execution Sentence
+    class spell_pal_execution_sentence : public SpellScript
+    {
+        bool Validate(SpellInfo const* /*spellInfo*/) override
+        {
+            return ValidateSpellInfo(
+            {
+                SPELL_PALADIN_EXECUTION_SENTENCE_DAMAGE,
+                SPELL_PALADIN_EXECUTIONERS_WILL,
+                SPELL_PALADIN_EXECUTION_SENTENCE_11_SECONDS,
+                SPELL_PALADIN_EXECUTION_SENTENCE_8_SECONDS
+            });
+        }
+
+        void HandleVisual(SpellEffIndex /*effIndex*/) const
+        {
+            uint32 visualSpellId = GetCaster()->HasAura(SPELL_PALADIN_EXECUTIONERS_WILL)
+                ? SPELL_PALADIN_EXECUTION_SENTENCE_11_SECONDS
+                : SPELL_PALADIN_EXECUTION_SENTENCE_8_SECONDS;
+            GetCaster()->CastSpell(GetHitUnit(), visualSpellId,
+                CastSpellExtraArgsInit{
+                    .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR,
+                    .TriggeringSpell = GetSpell()
+                });
+        }
+
+        void Register() override
+        {
+            OnEffectHitTarget += SpellEffectFn(spell_pal_execution_sentence::HandleVisual, EFFECT_0, SPELL_EFFECT_APPLY_AURA);
+        }
+    };
+
+    class spell_pal_execution_sentence_aura : public AuraScript
+    {
+        bool Validate(SpellInfo const* spellInfo) override
+        {
+            return ValidateSpellEffect({ { spellInfo->Id, EFFECT_1 } })
+                && spellInfo->GetEffect(EFFECT_1).IsAura();
+        }
+
+        void HandleProc(AuraEffect* aurEff, ProcEventInfo const& eventInfo) const
+        {
+            DamageInfo const* damageInfo = eventInfo.GetDamageInfo();
+            if (!damageInfo)
+                return;
+
+            if (!(damageInfo->GetSchoolMask() & SPELL_SCHOOL_MASK_HOLY))
+                return;
+
+            if (damageInfo->GetAttacker() != GetCaster())
+                return;
+
+            aurEff->ChangeAmount(aurEff->GetAmount() + CalculatePct(damageInfo->GetDamage(), GetEffect(EFFECT_1)->GetAmount()));
+        }
+
+        void AfterRemove(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/) const
+        {
+            SpellEffectValue amount = aurEff->GetAmount();
+            if (!amount || GetTargetApplication()->GetRemoveMode() != AURA_REMOVE_BY_EXPIRE)
+                return;
+
+            if (Unit* caster = GetCaster())
+                caster->CastSpell(GetTarget(), SPELL_PALADIN_EXECUTION_SENTENCE_DAMAGE, CastSpellExtraArgsInit{
+                    .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR,
+                    .TriggeringAura = aurEff,
+                    .SpellValueOverrides = { { SPELLVALUE_BASE_POINT0, amount } }
+                });
+        }
+
+        void Register() override
+        {
+            OnEffectProc += AuraEffectProcFn(spell_pal_execution_sentence_aura::HandleProc, EFFECT_0, SPELL_AURA_DUMMY);
+            AfterEffectRemove += AuraEffectRemoveFn(spell_pal_execution_sentence_aura::AfterRemove, EFFECT_0, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL);
+        }
+    };
+
+    // 1260251 - Execution Sentence Radiate: tracking aura on blast-affected enemies.
+    // Procs when the paladin deals Holy damage to this target, feeding 20% back to the ES main target accumulator.
+    class spell_pal_execution_sentence_radiate : public AuraScript
+    {
+        bool CheckEffectProc(AuraEffect const* /*aurEff*/, ProcEventInfo& eventInfo) const
+        {
+            DamageInfo const* damageInfo = eventInfo.GetDamageInfo();
+            if (!damageInfo)
+                return false;
+
+            if (!(damageInfo->GetSchoolMask() & SPELL_SCHOOL_MASK_HOLY))
+                return false;
+
+            if (damageInfo->GetAttacker() != GetCaster())
+                return false;
+
+            return true;
+        }
+
+        void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo const& eventInfo) const
+        {
+            DamageInfo const* damageInfo = eventInfo.GetDamageInfo();
+            if (!damageInfo)
+                return;
+
+            Unit* caster = GetCaster();
+            if (!caster)
+                return;
+
+            Unit::AuraList const& scAuras = caster->GetSingleCastAuras();
+            for (Aura* aura : scAuras)
+            {
+                if (aura->GetId() != Spells::ExecutionSentence)
+                    continue;
+
+                AuraEffect* esEff = aura->GetEffect(EFFECT_0);
+                if (!esEff)
+                    return;
+
+                esEff->ChangeAmount(esEff->GetAmount() + CalculatePct(damageInfo->GetDamage(), GetEffect(EFFECT_1)->GetAmount()));
+                return;
+            }
+        }
+
+        void Register() override
+        {
+            DoCheckEffectProc += AuraCheckEffectProcFn(spell_pal_execution_sentence_radiate::CheckEffectProc, EFFECT_1, SPELL_AURA_DUMMY);
+            OnEffectProc += AuraEffectProcFn(spell_pal_execution_sentence_radiate::HandleProc, EFFECT_1, SPELL_AURA_DUMMY);
+        }
+    };
+
+    // =========================================================================
     // Judge, Jury and Executioner (406157)
     // EFFECT_0 (+5% spender damage) is DBC spellmod (aura 108).
     // EFFECT_1 PROC_TRIGGER_SPELL -> 1253174 has unreliable ProcTypeMask on our core;
@@ -1927,6 +2247,51 @@ namespace Scripts::Custom::Paladin
             OnEffectProc += AuraEffectProcFn(spell_pal_grand_crusader_custom::HandleEffectProc, EFFECT_0, SPELL_AURA_DUMMY);
         }
     };
+
+    // =========================================================================
+    // Righteous Protector (204074) - fixed aura hook mismatch
+    // DBC EFFECT_0 is SPELL_AURA_ADD_PCT_MODIFIER (108), not SPELL_AURA_DUMMY.
+    // Use aura-level hooks (DoCheckProc/OnProc) instead of effect-level.
+    // =========================================================================
+
+    // 204074 - Righteous Protector
+    class spell_pal_righteous_protector : public AuraScript
+    {
+        bool Validate(SpellInfo const* /*spellInfo*/) override
+        {
+            return ValidateSpellInfo({ Spells::AvengingWrath, Spells::GuardianOfAncientKings });
+        }
+
+        bool CheckProc(ProcEventInfo& eventInfo)
+        {
+            if (SpellInfo const* procSpell = eventInfo.GetSpellInfo())
+                _baseHolyPowerCost = procSpell->CalcPowerCost(POWER_HOLY_POWER, false, eventInfo.GetActor(), eventInfo.GetSchoolMask());
+            else
+                _baseHolyPowerCost.reset();
+
+            return _baseHolyPowerCost.has_value();
+        }
+
+        void HandleProc(ProcEventInfo& /*eventInfo*/)
+        {
+            AuraEffect const* aurEff = GetEffect(EFFECT_0);
+            if (!aurEff || !_baseHolyPowerCost)
+                return;
+
+            int32 value = aurEff->GetAmountAsInt() * 100 * _baseHolyPowerCost->Amount;
+
+            GetTarget()->GetSpellHistory()->ModifyCooldown(Spells::AvengingWrath, Milliseconds(-value));
+            GetTarget()->GetSpellHistory()->ModifyCooldown(Spells::GuardianOfAncientKings, Milliseconds(-value));
+        }
+
+        void Register() override
+        {
+            DoCheckProc += AuraCheckProcFn(spell_pal_righteous_protector::CheckProc);
+            OnProc += AuraProcFn(spell_pal_righteous_protector::HandleProc);
+        }
+
+        Optional<SpellPowerCost> _baseHolyPowerCost;
+    };
 }
 
 void AddSC_custom_paladin_spell_fixes()
@@ -1965,7 +2330,14 @@ void AddSC_custom_paladin_spell_fixes()
     RegisterSpellScript(spell_pal_radiant_glory);
     RegisterSpellScript(spell_pal_grand_crusader_custom);
     RegisterSpellScript(spell_pal_holy_prism_selector);
+    RegisterSpellAndAuraScriptPair(spell_pal_execution_sentence, spell_pal_execution_sentence_aura);
+    RegisterSpellScript(spell_pal_execution_sentence_radiate);
     RegisterSpellScript(spell_pal_judge_jury_executioner);
     RegisterSpellScript(spell_pal_judge_jury_execution_sentence);
     RegisterSpellScript(spell_pal_judge_jury_executioner_buff);
+    RegisterSpellScript(spell_pal_righteous_protector);
+    RegisterSpellScript(spell_pal_walk_into_light);
+    RegisterSpellScript(spell_pal_walk_into_light_avenging_wrath);
+    RegisterSpellScript(spell_pal_walk_into_light_hammer_of_wrath);
+    RegisterSpellScript(spell_pal_walk_into_light_infusion);
 }
