@@ -332,3 +332,30 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 DELETE FROM `spell_script_names` WHERE `ScriptName`='spell_pal_crusading_strikes_damage';
 INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 (408385, 'spell_pal_crusading_strikes_damage');
+
+-- =========================================================================
+-- Light of the Titans (378405) - procs on Word of Glory, heals target as HoT
+-- =========================================================================
+DELETE FROM `spell_script_names` WHERE `ScriptName`='spell_pal_light_of_the_titans';
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
+(378405, 'spell_pal_light_of_the_titans');
+
+-- Light of the Titans HoT (378412) - dynamic amount (canBeRecalculated = false)
+DELETE FROM `spell_script_names` WHERE `ScriptName`='spell_pal_light_of_the_titans_hot';
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
+(378412, 'spell_pal_light_of_the_titans_hot');
+
+-- =========================================================================
+-- Holy Ritual (199422) - attached to Blessing of Sacrifice (6940) and Blessing of Protection (1022)
+-- =========================================================================
+DELETE FROM `spell_script_names` WHERE `ScriptName`='spell_pal_holy_ritual';
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
+(6940, 'spell_pal_holy_ritual'),
+(1022, 'spell_pal_holy_ritual');
+
+-- =========================================================================
+-- Judgment of Justice (403495) - attached to Judgment (20271)
+-- =========================================================================
+DELETE FROM `spell_script_names` WHERE `ScriptName`='spell_pal_judgment_of_justice';
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
+(20271, 'spell_pal_judgment_of_justice');

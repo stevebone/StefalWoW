@@ -174,6 +174,22 @@ namespace Scripts::Custom::Paladin
         static constexpr uint32 WalkIntoLight               = 1263782;
         static constexpr uint32 BlessingOfAnshe             = 445206;
         static constexpr uint32 InfusionOfLightTalent       = 53576;
+
+        // Light of the Titans
+        static constexpr uint32 LightOfTheTitans            = 378405;
+        static constexpr uint32 LightOfTheTitansHot         = 378412;
+        static constexpr uint32 WordOfGlory                 = 85673;
+
+        // Holy Ritual
+        static constexpr uint32 HolyRitualTalent            = 199422;
+        static constexpr uint32 HolyRitualHeal              = 199423;
+
+        // Judgment of Justice
+        static constexpr uint32 JudgmentOfJusticeTalent     = 403495;
+        static constexpr uint32 JudgmentOfJustice           = 408383;
+
+        // Light's Conviction (Holy Shock mana refund)
+        static constexpr uint32 LightsConviction            = 414073;
     }
 }
 

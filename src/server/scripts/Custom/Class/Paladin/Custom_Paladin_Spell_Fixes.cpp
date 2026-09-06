@@ -889,7 +889,8 @@ namespace Scripts::Custom::Paladin
             ({
                 Spells::HolyShock,
                 Spells::HolyShockHealing,
-                Spells::HolyShockDamage
+                Spells::HolyShockDamage,
+                Spells::LightsConviction
             });
         }
 
@@ -930,6 +931,13 @@ namespace Scripts::Custom::Paladin
                     .TriggeringSpell = GetSpell(),
                     .CustomArg = GetSpell()->m_customArg
                 });
+            }
+
+            if (caster->HasAura(Spells::LightsConviction))
+            {
+                int32 manaCost = GetSpell()->GetPowerTypeCostAmount(POWER_MANA).value_or(0);
+                if (manaCost > 0)
+                    caster->ModifyPower(POWER_MANA, CalculatePct(manaCost, 50));
             }
         }
 
@@ -2450,6 +2458,150 @@ namespace Scripts::Custom::Paladin
             CalcDamage += SpellCalcDamageFn(spell_pal_divine_toll_judgment::HandleDamage);
         }
     };
+
+    // 378405 - Light of the Titans
+    class spell_pal_light_of_the_titans : public AuraScript
+    {
+        bool Validate(SpellInfo const* spellInfo) override
+        {
+            return ValidateSpellInfo({ Spells::LightOfTheTitansHot })
+                && ValidateSpellEffect({ { Spells::LightOfTheTitansHot, EFFECT_0 }, { spellInfo->Id, EFFECT_1 } })
+                && sSpellMgr->AssertSpellInfo(Spells::LightOfTheTitansHot, DIFFICULTY_NONE)->GetEffect(EFFECT_0).GetPeriodicTickCount() > 0;
+        }
+
+        bool CheckEffectProc(AuraEffect const* /*aurEff*/, ProcEventInfo& eventInfo)
+        {
+            if (SpellInfo const* procSpell = eventInfo.GetSpellInfo())
+                return procSpell->Id == Spells::WordOfGlory;
+            return false;
+        }
+
+        void HandleEffect0Proc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+        {
+            PreventDefaultAction();
+
+            Unit* caster = eventInfo.GetActor();
+            Unit* target = eventInfo.GetActionTarget();
+            if (!caster || !target)
+                return;
+
+            SpellEffectValue healPct = GetEffectInfo(EFFECT_0).CalcValue(caster) / 100.0;
+            SpellEffectValue totalHeal = healPct * target->GetMaxHealth();
+
+            if (caster == target)
+            {
+                Unit::AuraEffectList const& periodicDamage = caster->GetAuraEffectsByType(SPELL_AURA_PERIODIC_DAMAGE);
+                if (!periodicDamage.empty())
+                {
+                    SpellEffectValue bonusPct = GetEffectInfo(EFFECT_1).CalcValue(caster);
+                    AddPct(totalHeal, bonusPct);
+                }
+            }
+
+            uint32 ticks = sSpellMgr->AssertSpellInfo(Spells::LightOfTheTitansHot, DIFFICULTY_NONE)->GetEffect(EFFECT_0).GetPeriodicTickCount();
+            SpellEffectValue healPerTick = totalHeal / ticks;
+
+            caster->CastSpell(target, Spells::LightOfTheTitansHot, CastSpellExtraArgsInit{
+                .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR,
+                .TriggeringAura = aurEff,
+                .SpellValueOverrides = { { SPELLVALUE_BASE_POINT0, healPerTick } }
+            });
+        }
+
+        void HandleEffect1Proc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
+        {
+            PreventDefaultAction();
+        }
+
+        void Register() override
+        {
+            DoCheckEffectProc += AuraCheckEffectProcFn(spell_pal_light_of_the_titans::CheckEffectProc, EFFECT_0, SPELL_AURA_DUMMY);
+            DoCheckEffectProc += AuraCheckEffectProcFn(spell_pal_light_of_the_titans::CheckEffectProc, EFFECT_1, SPELL_AURA_DUMMY);
+            OnEffectProc += AuraEffectProcFn(spell_pal_light_of_the_titans::HandleEffect0Proc, EFFECT_0, SPELL_AURA_DUMMY);
+            OnEffectProc += AuraEffectProcFn(spell_pal_light_of_the_titans::HandleEffect1Proc, EFFECT_1, SPELL_AURA_DUMMY);
+        }
+    };
+
+    // 378412 - Light of the Titans (HoT)
+    class spell_pal_light_of_the_titans_hot : public AuraScript
+    {
+        bool Validate(SpellInfo const* spellInfo) override
+        {
+            return ValidateSpellEffect({ { spellInfo->Id, EFFECT_0 } });
+        }
+
+        void CalculateAmount(AuraEffect const* /*aurEff*/, SpellEffectValue& /*amount*/, bool& canBeRecalculated)
+        {
+            canBeRecalculated = false;
+        }
+
+        void Register() override
+        {
+            DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_pal_light_of_the_titans_hot::CalculateAmount, EFFECT_0, SPELL_AURA_PERIODIC_HEAL);
+        }
+    };
+
+    // 199422 - Holy Ritual (attached to 6940 - Blessing of Sacrifice and 1022 - Blessing of Protection)
+    class spell_pal_holy_ritual : public AuraScript
+    {
+        bool Validate(SpellInfo const* /*spellInfo*/) override
+        {
+            return ValidateSpellInfo({ Spells::HolyRitualTalent, Spells::HolyRitualHeal });
+        }
+
+        bool Load() override
+        {
+            return GetCaster()->HasAura(Spells::HolyRitualTalent);
+        }
+
+        void HandleHeal(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/) const
+        {
+            if (Unit* caster = GetCaster())
+                caster->CastSpell(GetTarget(), Spells::HolyRitualHeal, CastSpellExtraArgsInit{
+                    .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR,
+                    .TriggeringAura = aurEff
+                });
+        }
+
+        void Register() override
+        {
+            AfterEffectApply += AuraEffectApplyFn(spell_pal_holy_ritual::HandleHeal, EFFECT_1, SPELL_AURA_ANY, AURA_EFFECT_HANDLE_REAL);
+        }
+    };
+
+    // 403495 - Judgment of Justice (attached to 20271 - Judgment)
+    class spell_pal_judgment_of_justice : public SpellScript
+    {
+        bool Validate(SpellInfo const* spellInfo) override
+        {
+            return ValidateSpellInfo({ Spells::JudgmentOfJusticeTalent, Spells::JudgmentOfJustice })
+                && ValidateSpellEffect({ { spellInfo->Id, EFFECT_1 } })
+                && spellInfo->GetEffect(EFFECT_1).IsEffect(SPELL_EFFECT_APPLY_AURA);
+        }
+
+        void PreventSpeed(WorldObject*& target) const
+        {
+            if (!GetCaster()->HasAura(Spells::JudgmentOfJusticeTalent))
+                target = nullptr;
+        }
+
+        void HandleDummy(SpellEffIndex /*effIndex*/) const
+        {
+            Unit* caster = GetCaster();
+
+            if (caster->HasAura(Spells::JudgmentOfJusticeTalent))
+                caster->CastSpell(GetHitUnit(), Spells::JudgmentOfJustice, CastSpellExtraArgsInit{
+                    .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR,
+                    .TriggeringSpell = GetSpell()
+                });
+        }
+
+        void Register() override
+        {
+            OnObjectTargetSelect += SpellObjectTargetSelectFn(spell_pal_judgment_of_justice::PreventSpeed, EFFECT_1, TARGET_UNIT_CASTER);
+            OnEffectHitTarget += SpellEffectFn(spell_pal_judgment_of_justice::HandleDummy, EFFECT_0, SPELL_EFFECT_SCHOOL_DAMAGE);
+        }
+    };
 }
 
 void AddSC_custom_paladin_spell_fixes()
@@ -2501,4 +2653,8 @@ void AddSC_custom_paladin_spell_fixes()
     RegisterSpellScript(spell_pal_divine_toll);
     RegisterSpellScript(spell_pal_divine_toll_judgment);
     RegisterSpellScript(spell_pal_crusading_strikes_damage);
+    RegisterSpellScript(spell_pal_light_of_the_titans);
+    RegisterSpellScript(spell_pal_light_of_the_titans_hot);
+    RegisterSpellScript(spell_pal_holy_ritual);
+    RegisterSpellScript(spell_pal_judgment_of_justice);
 }
