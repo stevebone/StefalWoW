@@ -1868,7 +1868,7 @@ void AddSC_paladin_spell_scripts()
     RegisterSpellScript(spell_pal_judgment);
     RegisterSpellScript(spell_pal_justicars_vengeance);
     RegisterSpellScript(spell_pal_holy_prism);
-    RegisterSpellScript(spell_pal_holy_prism_selector);
+    // RegisterSpellScript(spell_pal_holy_prism_selector); // moved to Custom_Paladin_Spell_Fixes.cpp
     RegisterSpellScript(spell_pal_holy_shock);
     RegisterSpellScript(spell_pal_holy_shock_damage_visual);
     RegisterSpellScript(spell_pal_holy_shock_heal_visual);

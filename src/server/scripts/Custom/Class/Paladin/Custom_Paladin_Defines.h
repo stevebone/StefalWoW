@@ -118,6 +118,14 @@ namespace Scripts::Custom::Paladin
         static constexpr uint32 WillOfTheDawnBurst      = 431752;
         static constexpr uint32 WillOfTheDawnIcd        = 456779;
 
+        // Sun's Avatar (Herald of the Sun hero talent)
+        static constexpr uint32 SunsAvatar              = 431425;
+        static constexpr uint32 SunsAvatarLink          = 431907;
+        static constexpr uint32 SunsAvatarSelfLink      = 463073;
+        static constexpr uint32 SunsAvatarDamage        = 431911;
+        static constexpr uint32 SunsAvatarHeal          = 431939;
+        static constexpr uint32 SunsAvatarSelfDamage    = 463075;
+
         // Dawnlight trigger spells
         static constexpr uint32 HolyPrism               = 114165;
         static constexpr uint32 DivineToll              = 375576;
@@ -144,6 +152,16 @@ namespace Scripts::Custom::Paladin
         static constexpr uint32 Judgment                = 20271;
         static constexpr uint32 JudgmentProt            = 275779;
         static constexpr uint32 JudgmentHoly            = 275773;
+
+        // Holy Prism
+        static constexpr uint32 HolyPrismBeamVisual     = 121551;
+        static constexpr uint32 HolyPrismTargetAlly     = 114871;
+        static constexpr uint32 HolyPrismTargetEnemy    = 114852;
+
+        // Judge, Jury and Executioner
+        static constexpr uint32 JudgeJuryExecutioner    = 406157;
+        static constexpr uint32 JudgeJuryExecutionerBuff = 1253174;
+        static constexpr uint32 ExecutionSentence       = 343527;
     }
 }
 

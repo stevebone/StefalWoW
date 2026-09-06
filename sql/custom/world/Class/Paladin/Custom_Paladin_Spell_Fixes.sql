@@ -212,3 +212,53 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 DELETE FROM `spell_proc` WHERE `SpellId` = 85043;
 INSERT INTO `spell_proc` (`SpellId`,`SchoolMask`,`SpellFamilyName`,`SpellFamilyMask0`,`SpellFamilyMask1`,`SpellFamilyMask2`,`SpellFamilyMask3`,`ProcFlags`,`ProcFlags2`,`SpellTypeMask`,`SpellPhaseMask`,`HitMask`,`AttributesMask`,`DisableEffectsMask`,`ProcsPerMinute`,`Chance`,`Cooldown`,`Charges`) VALUES
 (85043, 0, 0, 0, 0, 0, 0, 0x38, 0, 0, 0, 0x2077, 0, 0, 0, 100, 0, 0);
+
+-- =========================================================================
+-- Holy Prism (114852/114871) - fixed EFFECT_2 target mismatch
+-- =========================================================================
+DELETE FROM `spell_script_names` WHERE `ScriptName`='spell_pal_holy_prism_selector';
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
+(114852, 'spell_pal_holy_prism_selector'),
+(114871, 'spell_pal_holy_prism_selector');
+
+-- =========================================================================
+-- Sun's Avatar (431425): beam linking to Dawnlights
+-- =========================================================================
+DELETE FROM `spell_script_names` WHERE `ScriptName`='spell_pal_suns_avatar_link';
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
+(431907, 'spell_pal_suns_avatar_link');
+
+DELETE FROM `spell_script_names` WHERE `ScriptName`='spell_pal_suns_avatar_self_link';
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
+(463073, 'spell_pal_suns_avatar_self_link');
+
+DELETE FROM `spell_script_names` WHERE `ScriptName`='spell_pal_suns_avatar_damage';
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
+(431911, 'spell_pal_suns_avatar_damage');
+
+DELETE FROM `spell_script_names` WHERE `ScriptName`='spell_pal_suns_avatar_heal';
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
+(431939, 'spell_pal_suns_avatar_heal');
+
+DELETE FROM `spell_script_names` WHERE `ScriptName`='spell_pal_suns_avatar_self_damage';
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
+(463075, 'spell_pal_suns_avatar_self_damage');
+
+-- =========================================================================
+-- Judge, Jury and Executioner (406157)
+-- =========================================================================
+DELETE FROM `spell_script_names` WHERE `ScriptName`='spell_pal_judge_jury_executioner';
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
+(406157, 'spell_pal_judge_jury_executioner');
+
+DELETE FROM `spell_script_names` WHERE `ScriptName`='spell_pal_judge_jury_execution_sentence';
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
+(343527, 'spell_pal_judge_jury_execution_sentence');
+
+DELETE FROM `spell_script_names` WHERE `ScriptName`='spell_pal_judge_jury_executioner_buff';
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
+(1253174, 'spell_pal_judge_jury_executioner_buff');
+
+DELETE FROM `spell_proc` WHERE `SpellId` = 1253174;
+INSERT INTO `spell_proc` (`SpellId`, `SchoolMask`, `SpellFamilyName`, `SpellFamilyMask0`, `SpellFamilyMask1`, `SpellFamilyMask2`, `SpellFamilyMask3`, `ProcFlags`, `ProcFlags2`, `SpellTypeMask`, `SpellPhaseMask`, `HitMask`, `AttributesMask`, `DisableEffectsMask`, `ProcsPerMinute`, `Chance`, `Cooldown`, `Charges`) VALUES
+(1253174, 0, 0, 0, 0, 0, 0, 0, 0x4, 0, 1, 0, 0, 0, 0, 100, 0, 0);

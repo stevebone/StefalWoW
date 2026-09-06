@@ -21,6 +21,8 @@
  */
 
 #include "CellImpl.h"
+#include "CommonPredicates.h"
+#include "Containers.h"
 #include "DB2Stores.h"
 #include "GridNotifiers.h"
 #include "ObjectAccessor.h"
@@ -146,6 +148,71 @@ namespace Scripts::Custom::Paladin
             DoCheckEffectProc += AuraCheckEffectProcFn(spell_pal_righteous_cause_custom::CheckProc, EFFECT_0, SPELL_AURA_PROC_TRIGGER_SPELL);
             OnEffectProc += AuraEffectProcFn(spell_pal_righteous_cause_custom::HandleProc, EFFECT_0, SPELL_AURA_PROC_TRIGGER_SPELL);
         }
+    };
+
+    // 114852 - Holy Prism (Damage)
+    // 114871 - Holy Prism (Heal)
+    // Fixed: EFFECT_2 target type must match DBC (ENTRY for 114852, ENEMY for 114871)
+    class spell_pal_holy_prism_selector : public SpellScript
+    {
+        bool Validate(SpellInfo const* /*spellInfo*/) override
+        {
+            return ValidateSpellInfo({ Spells::HolyPrismTargetAlly, Spells::HolyPrismBeamVisual });
+        }
+
+        void SaveTargetGuid(SpellEffIndex /*effIndex*/)
+        {
+            _targetGUID = GetHitUnit()->GetGUID();
+        }
+
+        void FilterTargets(std::list<WorldObject*>& targets)
+        {
+            uint8 const maxTargets = 5;
+
+            if (targets.size() > maxTargets)
+            {
+                if (GetSpellInfo()->Id == Spells::HolyPrismTargetAlly)
+                {
+                    targets.sort(Trinity::Predicates::HealthPctOrderPred());
+                    targets.resize(maxTargets);
+                }
+                else
+                    Trinity::Containers::RandomResize(targets, maxTargets);
+            }
+
+            _sharedTargets = targets;
+        }
+
+        void ShareTargets(std::list<WorldObject*>& targets)
+        {
+            targets = _sharedTargets;
+        }
+
+        void HandleScript(SpellEffIndex /*effIndex*/)
+        {
+            if (Unit* initialTarget = ObjectAccessor::GetUnit(*GetCaster(), _targetGUID))
+                initialTarget->CastSpell(GetHitUnit(), Spells::HolyPrismBeamVisual, true);
+        }
+
+        void Register() override
+        {
+            if (m_scriptSpellId == Spells::HolyPrismTargetEnemy)
+                OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_pal_holy_prism_selector::FilterTargets, EFFECT_1, TARGET_UNIT_DEST_AREA_ALLY);
+            else if (m_scriptSpellId == Spells::HolyPrismTargetAlly)
+                OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_pal_holy_prism_selector::FilterTargets, EFFECT_1, TARGET_UNIT_DEST_AREA_ENEMY);
+
+            if (m_scriptSpellId == Spells::HolyPrismTargetEnemy)
+                OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_pal_holy_prism_selector::ShareTargets, EFFECT_2, TARGET_UNIT_DEST_AREA_ENTRY);
+            else if (m_scriptSpellId == Spells::HolyPrismTargetAlly)
+                OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_pal_holy_prism_selector::ShareTargets, EFFECT_2, TARGET_UNIT_DEST_AREA_ENEMY);
+
+            OnEffectHitTarget += SpellEffectFn(spell_pal_holy_prism_selector::SaveTargetGuid, EFFECT_0, SPELL_EFFECT_ANY);
+            OnEffectHitTarget += SpellEffectFn(spell_pal_holy_prism_selector::HandleScript, EFFECT_2, SPELL_EFFECT_SCRIPT_EFFECT);
+        }
+
+    private:
+        std::list<WorldObject*> _sharedTargets;
+        ObjectGuid _targetGUID;
     };
 
     // Called by 184575 - Blade of Justice
@@ -863,6 +930,26 @@ namespace Scripts::Custom::Paladin
                 return std::max(eff->GetAmountAsInt(), 1);
             return 5;
         }
+
+        // Get Sun's Avatar soft cap: 5 Holy, 8 Retribution
+        static int32 GetSoftCap(Unit* caster)
+        {
+            if (caster && caster->IsPlayer())
+            {
+                auto spec = caster->ToPlayer()->GetPrimarySpecialization();
+                if (spec == ChrSpecialization::PaladinRetribution)
+                    return 8;
+            }
+            return 5;
+        }
+
+        // Get Sun's Avatar link range from 431425 EFFECT_7 (default 30 yards)
+        static float GetLinkRange(Unit* caster)
+        {
+            if (AuraEffect const* eff = caster->GetAuraEffect(Spells::SunsAvatar, EFFECT_7))
+                return float(eff->GetAmountAsInt());
+            return 30.0f;
+        }
     }
 
     // 431522 - Dawnlight (charges aura)
@@ -1056,7 +1143,8 @@ namespace Scripts::Custom::Paladin
         void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
         {
             Unit* caster = GetCaster();
-            if (!caster)
+            Unit* target = GetTarget();
+            if (!caster || !target)
                 return;
 
             if (Aura* morningStar = caster->GetAura(Spells::MorningStarBuff))
@@ -1064,6 +1152,11 @@ namespace Scripts::Custom::Paladin
                 _morningStarStacks = morningStar->GetStackAmount();
                 caster->RemoveAura(Spells::MorningStarBuff);
             }
+
+            if (caster->HasAura(Spells::SunsAvatar))
+                caster->CastSpell(target, Spells::SunsAvatarLink, CastSpellExtraArgsInit{
+                    .TriggerFlags = TRIGGERED_FULL_MASK
+                });
         }
 
         void CalcDamageAndHealing(AuraEffect const* /*aurEff*/, Unit const* /*victim*/, int32& /*damageOrHealing*/, int32& /*flatMod*/, float& pctMod)
@@ -1108,13 +1201,26 @@ namespace Scripts::Custom::Paladin
         void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
         {
             Unit* caster = GetCaster();
-            if (!caster)
+            Unit* target = GetTarget();
+            if (!caster || !target)
                 return;
 
             if (Aura* morningStar = caster->GetAura(Spells::MorningStarBuff))
             {
                 _morningStarStacks = morningStar->GetStackAmount();
                 caster->RemoveAura(Spells::MorningStarBuff);
+            }
+
+            if (caster->HasAura(Spells::SunsAvatar))
+            {
+                if (target == caster)
+                    caster->CastSpell(caster, Spells::SunsAvatarSelfLink, CastSpellExtraArgsInit{
+                        .TriggerFlags = TRIGGERED_FULL_MASK
+                    });
+                else
+                    caster->CastSpell(target, Spells::SunsAvatarLink, CastSpellExtraArgsInit{
+                        .TriggerFlags = TRIGGERED_FULL_MASK
+                    });
             }
         }
 
@@ -1221,6 +1327,256 @@ namespace Scripts::Custom::Paladin
         {
             OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_pal_dawnlight_radiation_heal_custom::FilterTargets, EFFECT_0, TARGET_UNIT_DEST_AREA_ALLY);
             CalcHealing += SpellCalcHealingFn(spell_pal_dawnlight_radiation_heal_custom::HandleHealing);
+        }
+    };
+
+    // =========================================================================
+    // Sun's Avatar (Herald of the Sun hero talent)
+    // =========================================================================
+
+    // 431907 - Sun's Avatar Link (applied to each Dawnlight target)
+    // On each 0.5s tick, casts beam damage/heal from caster to this target's position.
+    // Self-removes when Dawnlight expires or caster moves out of range.
+    class spell_pal_suns_avatar_link : public AuraScript
+    {
+        bool Validate(SpellInfo const* /*spellInfo*/) override
+        {
+            return ValidateSpellInfo({
+                Spells::SunsAvatarDamage,
+                Spells::SunsAvatarHeal,
+                Spells::DawnlightDamage,
+                Spells::DawnlightHeal
+            });
+        }
+
+        void HandlePeriodic(AuraEffect const* /*aurEff*/)
+        {
+            Unit* target = GetTarget();
+            Unit* caster = GetCaster();
+            if (!target || !caster)
+            {
+                Remove();
+                return;
+            }
+
+            float linkRange = PaladinDawnlight::GetLinkRange(caster);
+            if (!caster->IsWithinDist(target, linkRange))
+                return;
+
+            ObjectGuid casterGuid = caster->GetGUID();
+            if (!target->HasAura(Spells::DawnlightDamage, casterGuid) &&
+                !target->HasAura(Spells::DawnlightHeal, casterGuid))
+            {
+                Remove();
+                return;
+            }
+
+            caster->CastSpell({ target->GetPosition() }, Spells::SunsAvatarDamage, CastSpellExtraArgsInit{
+                .TriggerFlags = TRIGGERED_FULL_MASK
+            });
+            caster->CastSpell({ target->GetPosition() }, Spells::SunsAvatarHeal, CastSpellExtraArgsInit{
+                .TriggerFlags = TRIGGERED_FULL_MASK
+            });
+        }
+
+        void Register() override
+        {
+            OnEffectPeriodic += AuraEffectPeriodicFn(spell_pal_suns_avatar_link::HandlePeriodic, EFFECT_0, SPELL_AURA_PERIODIC_DUMMY);
+        }
+    };
+
+    // 463073 - Sun's Avatar Self Link (applied to caster when Dawnlight is on self)
+    // On each 0.5s tick, casts 5-yard AoE damage around caster.
+    // Self-removes when self-cast Dawnlight expires.
+    class spell_pal_suns_avatar_self_link : public AuraScript
+    {
+        bool Validate(SpellInfo const* /*spellInfo*/) override
+        {
+            return ValidateSpellInfo({
+                Spells::SunsAvatarSelfDamage,
+                Spells::DawnlightHeal
+            });
+        }
+
+        void HandlePeriodic(AuraEffect const* /*aurEff*/)
+        {
+            Unit* target = GetTarget();
+            Unit* caster = GetCaster();
+            if (!target || !caster || target != caster)
+            {
+                Remove();
+                return;
+            }
+
+            if (!caster->HasAura(Spells::DawnlightHeal, caster->GetGUID()))
+            {
+                Remove();
+                return;
+            }
+
+            caster->CastSpell(caster, Spells::SunsAvatarSelfDamage, CastSpellExtraArgsInit{
+                .TriggerFlags = TRIGGERED_FULL_MASK
+            });
+        }
+
+        void Register() override
+        {
+            OnEffectPeriodic += AuraEffectPeriodicFn(spell_pal_suns_avatar_self_link::HandlePeriodic, EFFECT_0, SPELL_AURA_PERIODIC_DUMMY);
+        }
+    };
+
+    // 431911 - Sun's Avatar Beam Damage
+    // Line damage to enemies in beam from caster to Dawnlight target. Soft cap 5/8 targets.
+    class spell_pal_suns_avatar_damage : public SpellScript
+    {
+        void FilterTargets(std::list<WorldObject*>& targets)
+        {
+            Unit* caster = GetCaster();
+            if (!caster)
+                return;
+
+            int32 maxTargets = PaladinDawnlight::GetSoftCap(caster);
+            if (int32(targets.size()) > maxTargets)
+                targets.resize(maxTargets);
+        }
+
+        void Register() override
+        {
+            OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_pal_suns_avatar_damage::FilterTargets, EFFECT_0, TARGET_UNIT_LINE_CASTER_TO_DEST_ENEMY);
+        }
+    };
+
+    // 431939 - Sun's Avatar Beam Heal
+    // Line healing to allies in beam from caster to Dawnlight target. Soft cap 5/8 targets.
+    class spell_pal_suns_avatar_heal : public SpellScript
+    {
+        void FilterTargets(std::list<WorldObject*>& targets)
+        {
+            Unit* caster = GetCaster();
+            if (!caster)
+                return;
+
+            int32 maxTargets = PaladinDawnlight::GetSoftCap(caster);
+            if (int32(targets.size()) > maxTargets)
+                targets.resize(maxTargets);
+        }
+
+        void Register() override
+        {
+            OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_pal_suns_avatar_heal::FilterTargets, EFFECT_0, TARGET_UNIT_LINE_CASTER_TO_DEST_ALLY);
+        }
+    };
+
+    // 463075 - Sun's Avatar Self Radiate Damage
+    // 5-yard AoE damage around caster. Soft cap 5/8 targets.
+    class spell_pal_suns_avatar_self_damage : public SpellScript
+    {
+        void FilterTargets(std::list<WorldObject*>& targets)
+        {
+            Unit* caster = GetCaster();
+            if (!caster)
+                return;
+
+            int32 maxTargets = PaladinDawnlight::GetSoftCap(caster);
+            if (int32(targets.size()) > maxTargets)
+                targets.resize(maxTargets);
+        }
+
+        void Register() override
+        {
+            OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_pal_suns_avatar_self_damage::FilterTargets, EFFECT_0, TARGET_UNIT_DEST_AREA_ENEMY);
+        }
+    };
+
+    // =========================================================================
+    // Judge, Jury and Executioner (406157)
+    // EFFECT_0 (+5% spender damage) is DBC spellmod (aura 108).
+    // EFFECT_1 PROC_TRIGGER_SPELL -> 1253174 has unreliable ProcTypeMask on our core;
+    // grant the buff from Execution Sentence cast, then refund on next HP spender.
+    // =========================================================================
+
+    // 406157 - talent: swallow DBC proc (we drive the buff from ES cast).
+    class spell_pal_judge_jury_executioner : public AuraScript
+    {
+        bool CheckProc(ProcEventInfo& /*eventInfo*/)
+        {
+            return false;
+        }
+
+        void Register() override
+        {
+            DoCheckProc += AuraCheckProcFn(spell_pal_judge_jury_executioner::CheckProc);
+        }
+    };
+
+    // 343527 - Execution Sentence: grant refund buff when JJ&E is talented.
+    class spell_pal_judge_jury_execution_sentence : public SpellScript
+    {
+        bool Validate(SpellInfo const* /*spellInfo*/) override
+        {
+            return ValidateSpellInfo({ Spells::JudgeJuryExecutioner, Spells::JudgeJuryExecutionerBuff });
+        }
+
+        void HandleAfterCast()
+        {
+            Unit* caster = GetCaster();
+            if (!caster || !caster->HasAura(Spells::JudgeJuryExecutioner))
+                return;
+
+            caster->CastSpell(caster, Spells::JudgeJuryExecutionerBuff, CastSpellExtraArgsInit{
+                .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR,
+                .TriggeringSpell = GetSpell()
+            });
+        }
+
+        void Register() override
+        {
+            AfterCast += SpellCastFn(spell_pal_judge_jury_execution_sentence::HandleAfterCast);
+        }
+    };
+
+    // 1253174 - JJ&E buff: next Holy Power ability refunds its cost (1 charge).
+    class spell_pal_judge_jury_executioner_buff : public AuraScript
+    {
+        bool CheckProc(AuraEffect const* /*aurEff*/, ProcEventInfo& eventInfo)
+        {
+            Spell const* procSpell = eventInfo.GetProcSpell();
+            if (!procSpell || !procSpell->HasPowerTypeCost(POWER_HOLY_POWER))
+                return false;
+
+            SpellInfo const* info = procSpell->GetSpellInfo();
+            if (!info)
+                return false;
+
+            Optional<SpellPowerCost> cost = info->CalcPowerCost(POWER_HOLY_POWER, false, eventInfo.GetActor(), eventInfo.GetSchoolMask());
+            return cost && cost->Amount > 0;
+        }
+
+        void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& eventInfo)
+        {
+            PreventDefaultAction();
+
+            Unit* actor = eventInfo.GetActor();
+            Spell const* procSpell = eventInfo.GetProcSpell();
+            if (!actor || !procSpell)
+                return;
+
+            SpellInfo const* info = procSpell->GetSpellInfo();
+            if (!info)
+                return;
+
+            Optional<SpellPowerCost> cost = info->CalcPowerCost(POWER_HOLY_POWER, false, actor, eventInfo.GetSchoolMask());
+            if (!cost || cost->Amount <= 0)
+                return;
+
+            actor->ModifyPower(POWER_HOLY_POWER, cost->Amount);
+            Remove();
+        }
+
+        void Register() override
+        {
+            DoCheckEffectProc += AuraCheckEffectProcFn(spell_pal_judge_jury_executioner_buff::CheckProc, EFFECT_0, SPELL_AURA_DUMMY);
+            OnEffectProc += AuraEffectProcFn(spell_pal_judge_jury_executioner_buff::HandleProc, EFFECT_0, SPELL_AURA_DUMMY);
         }
     };
 
@@ -1597,10 +1953,19 @@ void AddSC_custom_paladin_spell_fixes()
     RegisterSpellScript(spell_pal_dawnlight_heal_custom);
     RegisterSpellScript(spell_pal_dawnlight_radiation_damage_custom);
     RegisterSpellScript(spell_pal_dawnlight_radiation_heal_custom);
+    RegisterSpellScript(spell_pal_suns_avatar_link);
+    RegisterSpellScript(spell_pal_suns_avatar_self_link);
+    RegisterSpellScript(spell_pal_suns_avatar_damage);
+    RegisterSpellScript(spell_pal_suns_avatar_heal);
+    RegisterSpellScript(spell_pal_suns_avatar_self_damage);
     RegisterSpellScript(spell_pal_light_s_beacon_custom);
     RegisterSpellScript(spell_pal_expurgation_custom);
     RegisterSpellScript(spell_pal_hammer_of_wrath_avenging_wrath);
     RegisterSpellScript(spell_pal_hammer_of_wrath_talent);
     RegisterSpellScript(spell_pal_radiant_glory);
     RegisterSpellScript(spell_pal_grand_crusader_custom);
+    RegisterSpellScript(spell_pal_holy_prism_selector);
+    RegisterSpellScript(spell_pal_judge_jury_executioner);
+    RegisterSpellScript(spell_pal_judge_jury_execution_sentence);
+    RegisterSpellScript(spell_pal_judge_jury_executioner_buff);
 }
