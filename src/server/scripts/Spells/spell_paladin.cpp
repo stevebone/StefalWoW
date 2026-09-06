@@ -1860,7 +1860,7 @@ void AddSC_paladin_spell_scripts()
     RegisterSpellScript(spell_pal_final_verdict);
     RegisterSpellScript(spell_pal_fist_of_justice);
     RegisterSpellScript(spell_pal_glyph_of_holy_light);
-    RegisterSpellScript(spell_pal_grand_crusader);
+    //RegisterSpellScript(spell_pal_grand_crusader); // replaced by spell_pal_grand_crusader_custom in Custom_Paladin_Spell_Fixes.cpp
     RegisterSpellScript(spell_pal_hammer_of_the_righteous);
     RegisterSpellScript(spell_pal_hand_of_sacrifice);
     RegisterSpellScript(spell_pal_infusion_of_light);

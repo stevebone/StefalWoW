@@ -145,8 +145,6 @@ namespace Scripts::Custom::Paladin
         {
             DoCheckEffectProc += AuraCheckEffectProcFn(spell_pal_righteous_cause_custom::CheckProc, EFFECT_0, SPELL_AURA_PROC_TRIGGER_SPELL);
             OnEffectProc += AuraEffectProcFn(spell_pal_righteous_cause_custom::HandleProc, EFFECT_0, SPELL_AURA_PROC_TRIGGER_SPELL);
-            DoCheckEffectProc += AuraCheckEffectProcFn(spell_pal_righteous_cause_custom::CheckProc, EFFECT_0, SPELL_AURA_DUMMY);
-            OnEffectProc += AuraEffectProcFn(spell_pal_righteous_cause_custom::HandleProc, EFFECT_0, SPELL_AURA_DUMMY);
         }
     };
 
@@ -464,7 +462,6 @@ namespace Scripts::Custom::Paladin
             {
                 case Spells::AvengingWrath:  // Avenging Wrath
                 case Spells::AvengingWrathRet: // Avenging Wrath (Ret version)
-                case Spells::AvengingWrath2:
                 case Spells::AvengingWrath3:
                 case Spells::AvengingWrath4:
                     return true;
@@ -546,7 +543,7 @@ namespace Scripts::Custom::Paladin
         void Register() override
         {
             DoCheckProc += AuraCheckProcFn(spell_pal_empyrean_legacy_custom::CheckProc);
-            OnEffectProc += AuraEffectProcFn(spell_pal_empyrean_legacy_custom::HandleProc, EFFECT_0, SPELL_AURA_DUMMY);
+            OnEffectProc += AuraEffectProcFn(spell_pal_empyrean_legacy_custom::HandleProc, EFFECT_0, SPELL_AURA_PROC_TRIGGER_SPELL);
         }
     };
 
@@ -747,14 +744,23 @@ namespace Scripts::Custom::Paladin
         }
     };
 
-    // Applies Second Sunrise echo effectiveness to damage/healing spells.
-    class spell_pal_second_sunrise_effectiveness_custom : public SpellScript
+    // Applies Second Sunrise echo effectiveness to damage spells.
+    class spell_pal_second_sunrise_effectiveness_damage : public SpellScript
     {
         void HandleDamage(SpellEffectInfo const& /*spellEffectInfo*/, Unit const* /*victim*/, int32& /*damage*/, int32& /*flatMod*/, float& pctMod) const
         {
             PaladinSecondSunrise::ApplyEffectiveness(GetSpell(), pctMod);
         }
 
+        void Register() override
+        {
+            CalcDamage += SpellCalcDamageFn(spell_pal_second_sunrise_effectiveness_damage::HandleDamage);
+        }
+    };
+
+    // Applies Second Sunrise echo effectiveness to healing spells.
+    class spell_pal_second_sunrise_effectiveness_healing : public SpellScript
+    {
         void HandleHealing(SpellEffectInfo const& /*spellEffectInfo*/, Unit const* /*victim*/, int32& /*healing*/, int32& /*flatMod*/, float& pctMod) const
         {
             PaladinSecondSunrise::ApplyEffectiveness(GetSpell(), pctMod);
@@ -762,8 +768,7 @@ namespace Scripts::Custom::Paladin
 
         void Register() override
         {
-            CalcDamage += SpellCalcDamageFn(spell_pal_second_sunrise_effectiveness_custom::HandleDamage);
-            CalcHealing += SpellCalcHealingFn(spell_pal_second_sunrise_effectiveness_custom::HandleHealing);
+            CalcHealing += SpellCalcHealingFn(spell_pal_second_sunrise_effectiveness_healing::HandleHealing);
         }
     };
 
@@ -832,6 +837,740 @@ namespace Scripts::Custom::Paladin
             OnEffectHitTarget += SpellEffectFn(spell_pal_holy_shock_custom::HandleDummy, EFFECT_0, SPELL_EFFECT_DUMMY);
         }
     };
+
+    // =========================================================================
+    // Dawnlight (Herald of the Sun hero talent)
+    // =========================================================================
+
+    namespace PaladinDawnlight
+    {
+        // Get radiation percentage based on spec: 8% Holy, 4% Retribution
+        static int32 GetRadiationPct(Unit* caster)
+        {
+            if (caster && caster->IsPlayer())
+            {
+                auto spec = caster->ToPlayer()->GetPrimarySpecialization();
+                if (spec == ChrSpecialization::PaladinRetribution)
+                    return 4;
+            }
+            return 8;
+        }
+
+        // Get max targets before split reduction from 431581 EFFECT_1
+        static int32 GetMaxTargets(Unit* caster)
+        {
+            if (AuraEffect const* eff = caster->GetAuraEffect(Spells::DawnlightRadiateMeta, EFFECT_1))
+                return std::max(eff->GetAmountAsInt(), 1);
+            return 5;
+        }
+    }
+
+    // 431522 - Dawnlight (charges aura)
+    // Procs on Holy Power spending abilities at HIT phase. Applies Dawnlight DoT/HoT to target.
+    // Also applies 431581 (radiate meta) when charges are gained, since nothing natively casts it.
+    class spell_pal_dawnlight_charges : public AuraScript
+    {
+        bool CheckEffectProc(AuraEffect const* /*aurEff*/, ProcEventInfo& eventInfo)
+        {
+            Spell const* procSpell = eventInfo.GetProcSpell();
+            if (!procSpell || !procSpell->HasPowerTypeCost(POWER_HOLY_POWER))
+                return false;
+
+            if (!eventInfo.GetActionTarget())
+                return false;
+
+            return true;
+        }
+
+        void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& eventInfo)
+        {
+            Unit* caster = eventInfo.GetActor();
+            Unit* target = eventInfo.GetActionTarget();
+            if (!caster || !target)
+                return;
+
+            if (caster->IsValidAttackTarget(target))
+                caster->CastSpell(target, Spells::DawnlightDamage, CastSpellExtraArgsInit{
+                    .TriggerFlags = TRIGGERED_FULL_MASK,
+                    .TriggeringSpell = eventInfo.GetProcSpell()
+                });
+            else
+                caster->CastSpell(target, Spells::DawnlightHeal, CastSpellExtraArgsInit{
+                    .TriggerFlags = TRIGGERED_FULL_MASK,
+                    .TriggeringSpell = eventInfo.GetProcSpell()
+                });
+
+            GetAura()->ModStackAmount(-1);
+        }
+
+        void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+        {
+            Unit* target = GetTarget();
+            if (!target)
+                return;
+
+            target->CastSpell(target, Spells::DawnlightRadiateMeta, CastSpellExtraArgsInit{
+                .TriggerFlags = TRIGGERED_FULL_MASK
+            });
+        }
+
+        void HandleRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+        {
+            Unit* target = GetTarget();
+            if (!target)
+                return;
+
+            target->RemoveAura(Spells::DawnlightRadiateMeta);
+        }
+
+        void Register() override
+        {
+            DoCheckEffectProc += AuraCheckEffectProcFn(spell_pal_dawnlight_charges::CheckEffectProc, EFFECT_FIRST_FOUND, SPELL_AURA_DUMMY);
+            OnEffectProc += AuraEffectProcFn(spell_pal_dawnlight_charges::HandleProc, EFFECT_FIRST_FOUND, SPELL_AURA_DUMMY);
+            AfterEffectApply += AuraEffectApplyFn(spell_pal_dawnlight_charges::HandleApply, EFFECT_FIRST_FOUND, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL);
+            AfterEffectRemove += AuraEffectRemoveFn(spell_pal_dawnlight_charges::HandleRemove, EFFECT_FIRST_FOUND, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL);
+        }
+    };
+
+    // 431482 - Morning Star (Herald of the Sun)
+    // Every 5s, stacks Morning Star buff (431539) on caster. 2x rate out of combat.
+    class spell_pal_morning_star : public AuraScript
+    {
+        bool Validate(SpellInfo const* /*spellInfo*/) override
+        {
+            return ValidateSpellInfo({ Spells::MorningStarBuff });
+        }
+
+        void HandlePeriodic(AuraEffect const* /*aurEff*/)
+        {
+            Unit* target = GetTarget();
+            if (!target)
+                return;
+
+            target->CastSpell(target, Spells::MorningStarBuff, CastSpellExtraArgsInit{
+                .TriggerFlags = TRIGGERED_FULL_MASK
+            });
+
+            if (!target->IsInCombat())
+                target->CastSpell(target, Spells::MorningStarBuff, CastSpellExtraArgsInit{
+                    .TriggerFlags = TRIGGERED_FULL_MASK
+                });
+        }
+
+        void Register() override
+        {
+            OnEffectPeriodic += AuraEffectPeriodicFn(spell_pal_morning_star::HandlePeriodic, EFFECT_0, SPELL_AURA_PERIODIC_DUMMY);
+        }
+    };
+
+    // 431406 - Will of the Dawn (Herald of the Sun)
+    // 5% movement speed above 80% HP, 40% burst for 5s when brought below 35% HP (1min ICD).
+    // Native EFFECT_2/3 PROC_TRIGGER_SPELL fire from everything, so block them and drive from 1s tick.
+    class spell_pal_will_of_the_dawn : public AuraScript
+    {
+        bool _wasAbovePanicThreshold = true;
+
+        bool Validate(SpellInfo const* /*spellInfo*/) override
+        {
+            return ValidateSpellInfo({
+                Spells::WillOfTheDawnSpeed,
+                Spells::WillOfTheDawnBurst,
+                Spells::WillOfTheDawnIcd
+            });
+        }
+
+        void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+        {
+            Unit* target = GetTarget();
+            if (!target)
+                return;
+
+            int32 const abovePct = GetEffect(EFFECT_0) ? GetEffect(EFFECT_0)->GetAmountAsInt() : 80;
+            if (target->HealthAbovePct(abovePct))
+                target->CastSpell(target, Spells::WillOfTheDawnSpeed, CastSpellExtraArgsInit{
+                    .TriggerFlags = TRIGGERED_FULL_MASK
+                });
+
+            int32 const panicPct = GetEffect(EFFECT_2) ? GetEffect(EFFECT_2)->GetAmountAsInt() : 35;
+            _wasAbovePanicThreshold = !target->HealthBelowPct(panicPct);
+        }
+
+        void HandleRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+        {
+            if (Unit* target = GetTarget())
+                target->RemoveAurasDueToSpell(Spells::WillOfTheDawnSpeed);
+        }
+
+        bool CheckProc(ProcEventInfo& /*eventInfo*/)
+        {
+            return false;
+        }
+
+        void HandlePeriodic(AuraEffect const* /*aurEff*/)
+        {
+            Unit* target = GetTarget();
+            if (!target)
+                return;
+
+            int32 const abovePct = GetEffect(EFFECT_0) ? GetEffect(EFFECT_0)->GetAmountAsInt() : 80;
+            if (target->HealthAbovePct(abovePct))
+            {
+                if (!target->HasAura(Spells::WillOfTheDawnSpeed))
+                    target->CastSpell(target, Spells::WillOfTheDawnSpeed, CastSpellExtraArgsInit{
+                        .TriggerFlags = TRIGGERED_FULL_MASK
+                    });
+            }
+            else if (target->HasAura(Spells::WillOfTheDawnSpeed))
+                target->RemoveAurasDueToSpell(Spells::WillOfTheDawnSpeed);
+
+            int32 const panicPct = GetEffect(EFFECT_2) ? GetEffect(EFFECT_2)->GetAmountAsInt() : 35;
+            bool const nowBelow = target->HealthBelowPct(panicPct);
+            if (_wasAbovePanicThreshold && nowBelow && !target->HasAura(Spells::WillOfTheDawnIcd))
+            {
+                target->CastSpell(target, Spells::WillOfTheDawnBurst, CastSpellExtraArgsInit{
+                    .TriggerFlags = TRIGGERED_FULL_MASK
+                });
+                target->CastSpell(target, Spells::WillOfTheDawnIcd, CastSpellExtraArgsInit{
+                    .TriggerFlags = TRIGGERED_FULL_MASK
+                });
+            }
+            _wasAbovePanicThreshold = !nowBelow;
+        }
+
+        void Register() override
+        {
+            AfterEffectApply += AuraEffectApplyFn(spell_pal_will_of_the_dawn::HandleApply, EFFECT_0, SPELL_AURA_PERIODIC_DUMMY, AURA_EFFECT_HANDLE_REAL);
+            AfterEffectRemove += AuraEffectRemoveFn(spell_pal_will_of_the_dawn::HandleRemove, EFFECT_0, SPELL_AURA_PERIODIC_DUMMY, AURA_EFFECT_HANDLE_REAL);
+            OnEffectPeriodic += AuraEffectPeriodicFn(spell_pal_will_of_the_dawn::HandlePeriodic, EFFECT_0, SPELL_AURA_PERIODIC_DUMMY);
+            DoCheckProc += AuraCheckProcFn(spell_pal_will_of_the_dawn::CheckProc);
+        }
+    };
+
+    // 431380 - Dawnlight (damage DoT)
+    // On periodic tick, radiates a percentage of damage to nearby enemies.
+    // Morning Star buff is consumed on apply and increases damage by 5% per stack.
+    class spell_pal_dawnlight_damage_custom : public AuraScript
+    {
+        int32 _morningStarStacks = 0;
+
+        void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+        {
+            Unit* caster = GetCaster();
+            if (!caster)
+                return;
+
+            if (Aura* morningStar = caster->GetAura(Spells::MorningStarBuff))
+            {
+                _morningStarStacks = morningStar->GetStackAmount();
+                caster->RemoveAura(Spells::MorningStarBuff);
+            }
+        }
+
+        void CalcDamageAndHealing(AuraEffect const* /*aurEff*/, Unit const* /*victim*/, int32& /*damageOrHealing*/, int32& /*flatMod*/, float& pctMod)
+        {
+            pctMod *= (1.0f + _morningStarStacks * 0.05f);
+        }
+
+        void HandlePeriodic(AuraEffect const* aurEff)
+        {
+            Unit* caster = GetCaster();
+            Unit* target = GetTarget();
+            if (!caster || !target)
+                return;
+
+            int32 radiationPct = PaladinDawnlight::GetRadiationPct(caster);
+            double tickAmount = aurEff->GetAmount();
+            double morningStarMod = 1.0 + _morningStarStacks * 0.05;
+            double radiationAmount = tickAmount * radiationPct / 100.0 * morningStarMod;
+
+            caster->CastSpell(target, Spells::DawnlightRadiationDamage, CastSpellExtraArgsInit{
+                .TriggerFlags = TRIGGERED_FULL_MASK,
+                .TriggeringSpell = nullptr,
+                .CustomArg = radiationAmount
+            });
+        }
+
+        void Register() override
+        {
+            AfterEffectApply += AuraEffectApplyFn(spell_pal_dawnlight_damage_custom::HandleApply, EFFECT_0, SPELL_AURA_PERIODIC_DAMAGE, AURA_EFFECT_HANDLE_REAL);
+            DoEffectCalcDamageAndHealing += AuraEffectCalcDamageFn(spell_pal_dawnlight_damage_custom::CalcDamageAndHealing, EFFECT_0, SPELL_AURA_PERIODIC_DAMAGE);
+            OnEffectPeriodic += AuraEffectPeriodicFn(spell_pal_dawnlight_damage_custom::HandlePeriodic, EFFECT_0, SPELL_AURA_PERIODIC_DAMAGE);
+        }
+    };
+
+    // 431381 - Dawnlight (healing HoT)
+    // On periodic tick, radiates a percentage of healing to nearby allies.
+    // Morning Star buff is consumed on apply and increases healing by 5% per stack.
+    class spell_pal_dawnlight_heal_custom : public AuraScript
+    {
+        int32 _morningStarStacks = 0;
+
+        void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+        {
+            Unit* caster = GetCaster();
+            if (!caster)
+                return;
+
+            if (Aura* morningStar = caster->GetAura(Spells::MorningStarBuff))
+            {
+                _morningStarStacks = morningStar->GetStackAmount();
+                caster->RemoveAura(Spells::MorningStarBuff);
+            }
+        }
+
+        void CalcDamageAndHealing(AuraEffect const* /*aurEff*/, Unit const* /*victim*/, int32& /*damageOrHealing*/, int32& /*flatMod*/, float& pctMod)
+        {
+            pctMod *= (1.0f + _morningStarStacks * 0.05f);
+        }
+
+        void HandlePeriodic(AuraEffect const* aurEff)
+        {
+            Unit* caster = GetCaster();
+            Unit* target = GetTarget();
+            if (!caster || !target)
+                return;
+
+            int32 radiationPct = PaladinDawnlight::GetRadiationPct(caster);
+            double tickAmount = aurEff->GetAmount();
+            double morningStarMod = 1.0 + _morningStarStacks * 0.05;
+            double radiationAmount = tickAmount * radiationPct / 100.0 * morningStarMod;
+
+            caster->CastSpell(target, Spells::DawnlightRadiationHeal, CastSpellExtraArgsInit{
+                .TriggerFlags = TRIGGERED_FULL_MASK,
+                .TriggeringSpell = nullptr,
+                .CustomArg = radiationAmount
+            });
+        }
+
+        void Register() override
+        {
+            AfterEffectApply += AuraEffectApplyFn(spell_pal_dawnlight_heal_custom::HandleApply, EFFECT_0, SPELL_AURA_PERIODIC_HEAL, AURA_EFFECT_HANDLE_REAL);
+            DoEffectCalcDamageAndHealing += AuraEffectCalcHealingFn(spell_pal_dawnlight_heal_custom::CalcDamageAndHealing, EFFECT_0, SPELL_AURA_PERIODIC_HEAL);
+            OnEffectPeriodic += AuraEffectPeriodicFn(spell_pal_dawnlight_heal_custom::HandlePeriodic, EFFECT_0, SPELL_AURA_PERIODIC_HEAL);
+        }
+    };
+
+    // 431399 - Dawnlight (damage radiation)
+    // AoE damage to enemies in 12 yards. Amount from m_customArg, split beyond 5 targets.
+    class spell_pal_dawnlight_radiation_damage_custom : public SpellScript
+    {
+        void FilterTargets(std::list<WorldObject*>& targets)
+        {
+            Unit* caster = GetCaster();
+            if (!caster)
+                return;
+
+            int32 maxTargets = PaladinDawnlight::GetMaxTargets(caster);
+            if (int32(targets.size()) > maxTargets)
+                targets.resize(maxTargets);
+        }
+
+        void HandleDamage(SpellEffectInfo const& /*spellEffectInfo*/, Unit const* /*victim*/, int32& damage, int32& /*flatMod*/, float& /*pctMod*/) const
+        {
+            double const* radiationAmount = std::any_cast<double>(&GetSpell()->m_customArg);
+            if (!radiationAmount)
+                return;
+
+            damage = int32(*radiationAmount);
+        }
+
+        void Register() override
+        {
+            OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_pal_dawnlight_radiation_damage_custom::FilterTargets, EFFECT_0, TARGET_UNIT_DEST_AREA_ENEMY);
+            CalcDamage += SpellCalcDamageFn(spell_pal_dawnlight_radiation_damage_custom::HandleDamage);
+        }
+    };
+
+    // 431382 - Dawnlight (heal radiation)
+    // AoE heal to allies in 12 yards. Amount from m_customArg, split beyond 5 targets.
+    // Excludes targets with Beacon of Light from the caster.
+    class spell_pal_dawnlight_radiation_heal_custom : public SpellScript
+    {
+        void FilterTargets(std::list<WorldObject*>& targets)
+        {
+            Unit* caster = GetCaster();
+            if (!caster)
+                return;
+
+            ObjectGuid casterGuid = caster->GetGUID();
+            targets.remove_if([&casterGuid](WorldObject* obj)
+            {
+                Unit* unit = obj->ToUnit();
+                if (!unit)
+                    return true;
+                if (unit->HasAura(Spells::BeaconOfLight, casterGuid))
+                    return true;
+                return false;
+            });
+
+            int32 maxTargets = PaladinDawnlight::GetMaxTargets(caster);
+            if (int32(targets.size()) > maxTargets)
+                targets.resize(maxTargets);
+        }
+
+        void HandleHealing(SpellEffectInfo const& /*spellEffectInfo*/, Unit const* /*victim*/, int32& heal, int32& /*flatMod*/, float& /*pctMod*/) const
+        {
+            double const* radiationAmount = std::any_cast<double>(&GetSpell()->m_customArg);
+            if (!radiationAmount)
+                return;
+
+            heal = int32(*radiationAmount);
+        }
+
+        void Register() override
+        {
+            OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_pal_dawnlight_radiation_heal_custom::FilterTargets, EFFECT_0, TARGET_UNIT_DEST_AREA_ALLY);
+            CalcHealing += SpellCalcHealingFn(spell_pal_dawnlight_radiation_heal_custom::HandleHealing);
+        }
+    };
+
+    // 53651 - Light's Beacon (Beacon of Light) override
+    // Prevents Dawnlight healing (431381, 431382) from transferring to Beacon of Light target.
+    class spell_pal_light_s_beacon_custom : public AuraScript
+    {
+        bool Validate(SpellInfo const* /*spellInfo*/) override
+        {
+            return ValidateSpellInfo({ Spells::BeaconOfLight, Spells::BeaconOfLightHeal });
+        }
+
+        bool CheckProc(ProcEventInfo& eventInfo)
+        {
+            if (!eventInfo.GetActionTarget())
+                return false;
+
+            if (eventInfo.GetActionTarget()->HasAura(Spells::BeaconOfLight, eventInfo.GetActor()->GetGUID()))
+                return false;
+
+            SpellInfo const* procSpell = eventInfo.GetSpellInfo();
+            if (procSpell && (procSpell->Id == Spells::DawnlightHeal || procSpell->Id == Spells::DawnlightRadiationHeal))
+                return false;
+
+            HealInfo* healInfo = eventInfo.GetHealInfo();
+            return healInfo && healInfo->GetHeal();
+        }
+
+        void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+        {
+            PreventDefaultAction();
+
+            SpellEffectValue heal = CalculatePct(eventInfo.GetHealInfo()->GetHeal(), aurEff->GetAmount());
+
+            Unit::AuraList const& auras = GetCaster()->GetSingleCastAuras();
+            for (Unit::AuraList::const_iterator itr = auras.begin(); itr != auras.end(); ++itr)
+            {
+                if ((*itr)->GetId() == Spells::BeaconOfLight)
+                {
+                    std::vector<AuraApplication*> applications;
+                    (*itr)->GetApplicationVector(applications);
+                    if (!applications.empty())
+                    {
+                        CastSpellExtraArgs args(aurEff);
+                        args.AddSpellMod(SPELLVALUE_BASE_POINT0, heal);
+                        eventInfo.GetActor()->CastSpell(applications.front()->GetTarget(), Spells::BeaconOfLightHeal, args);
+                    }
+                    return;
+                }
+            }
+        }
+
+        void Register() override
+        {
+            DoCheckProc += AuraCheckProcFn(spell_pal_light_s_beacon_custom::CheckProc);
+            OnEffectProc += AuraEffectProcFn(spell_pal_light_s_beacon_custom::HandleProc, EFFECT_0, SPELL_AURA_DUMMY);
+        }
+    };
+
+    // 383344 - Expurgation
+    // Passive aura that should only proc from Blade of Justice (184575) and its AOE (404358).
+    // DB2 EffectSpellClassMask is 0, so the auto-generated proc entry has no family filter.
+    // spell_proc Chance=100 + CheckProc filters by exact spell ID.
+    class spell_pal_expurgation_custom : public AuraScript
+    {
+        bool CheckProc(ProcEventInfo& eventInfo)
+        {
+            SpellInfo const* procSpell = eventInfo.GetSpellInfo();
+            if (!procSpell)
+                return false;
+
+            return procSpell->Id == Spells::BladeOfJustice
+                || procSpell->Id == Spells::BladeOfJusticeAoE;
+        }
+
+        void Register() override
+        {
+            DoCheckProc += AuraCheckProcFn(spell_pal_expurgation_custom::CheckProc);
+        }
+    };
+
+    // =========================================================================
+    // Hammer of Wrath Talent (1241288)
+    // Passive talent: replaces Judgment with Hammer of Wrath during Avenging Wrath.
+    // Spec -> Judgment -> HoW mapping (from DB2 override auras 1241410 + 1277026):
+    //   Ret (20271)  -> 24275
+    //   Prot (275779) -> 1241413
+    //   Holy (275773) -> 1241413
+    // =========================================================================
+
+    namespace PaladinHammerOfWrath
+    {
+        static uint32 GetJudgmentSpellId(Player const* player)
+        {
+            switch (player->GetPrimarySpecialization())
+            {
+                case ChrSpecialization::PaladinRetribution: return Spells::Judgment;
+                case ChrSpecialization::PaladinProtection:  return Spells::JudgmentProt;
+                case ChrSpecialization::PaladinHoly:         return Spells::JudgmentHoly;
+                default:                                     return 0;
+            }
+        }
+
+        static uint32 GetHammerOfWrathSpellId(Player const* player)
+        {
+            if (player->GetPrimarySpecialization() == ChrSpecialization::PaladinRetribution)
+                return Spells::HammerOfWrathLegacy;  // 24275
+            return Spells::HammerOfWrath;            // 1241413
+        }
+
+        static bool HasAvengingWrathAura(Unit const* unit)
+        {
+            return unit->HasAura(Spells::AvengingWrath)
+                || unit->HasAura(Spells::AvengingWrathRet)
+                || unit->HasAura(Spells::AvengingWrath3)
+                || unit->HasAura(Spells::AvengingWrath4);
+        }
+
+        static void ApplyOverride(Player* player)
+        {
+            uint32 judgmentSpell = GetJudgmentSpellId(player);
+            uint32 howSpell = GetHammerOfWrathSpellId(player);
+            if (!judgmentSpell || !howSpell)
+                return;
+
+            player->AddTemporarySpell(howSpell);
+            player->AddOverrideSpell(judgmentSpell, howSpell);
+            player->SendSupercededSpell(judgmentSpell, howSpell);
+
+            SpellHistory* history = player->GetSpellHistory();
+            history->ResetCooldown(howSpell, true);
+            if (SpellInfo const* howInfo = sSpellMgr->GetSpellInfo(howSpell, DIFFICULTY_NONE))
+                if (howInfo->ChargeCategoryId)
+                    history->RestoreCharge(howInfo->ChargeCategoryId);
+        }
+
+        static void RemoveOverride(Player* player)
+        {
+            uint32 judgmentSpell = GetJudgmentSpellId(player);
+            uint32 howSpell = GetHammerOfWrathSpellId(player);
+            if (!judgmentSpell || !howSpell)
+                return;
+
+            player->RemoveOverrideSpell(judgmentSpell, howSpell);
+            player->SendSupercededSpell(howSpell, judgmentSpell);
+            player->RemoveTemporarySpell(howSpell);
+        }
+    }
+
+    // Avenging Wrath aura hooks — apply/remove Judgment override when AW is cast/expired.
+    class spell_pal_hammer_of_wrath_avenging_wrath : public AuraScript
+    {
+        void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+        {
+            Player* player = GetTarget()->ToPlayer();
+            if (!player)
+                return;
+
+            if (!player->HasAura(Spells::HammerOfWrathTalent))
+                return;
+
+            PaladinHammerOfWrath::ApplyOverride(player);
+        }
+
+        void HandleRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+        {
+            Player* player = GetTarget()->ToPlayer();
+            if (!player)
+                return;
+
+            if (!player->HasAura(Spells::HammerOfWrathTalent))
+                return;
+
+            PaladinHammerOfWrath::RemoveOverride(player);
+        }
+
+        void Register() override
+        {
+            AfterEffectApply += AuraEffectApplyFn(spell_pal_hammer_of_wrath_avenging_wrath::HandleApply, EFFECT_FIRST_FOUND, SPELL_AURA_ANY, AURA_EFFECT_HANDLE_REAL);
+            AfterEffectRemove += AuraEffectRemoveFn(spell_pal_hammer_of_wrath_avenging_wrath::HandleRemove, EFFECT_FIRST_FOUND, SPELL_AURA_ANY, AURA_EFFECT_HANDLE_REAL);
+        }
+    };
+
+    // Hammer of Wrath talent passive aura hooks — apply/remove override if AW is active
+    // when the talent is learned or unlearned.
+    class spell_pal_hammer_of_wrath_talent : public AuraScript
+    {
+        void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+        {
+            Player* player = GetTarget()->ToPlayer();
+            if (!player)
+                return;
+
+            if (!PaladinHammerOfWrath::HasAvengingWrathAura(player))
+                return;
+
+            PaladinHammerOfWrath::ApplyOverride(player);
+        }
+
+        void HandleRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+        {
+            Player* player = GetTarget()->ToPlayer();
+            if (!player)
+                return;
+
+            if (!PaladinHammerOfWrath::HasAvengingWrathAura(player))
+                return;
+
+            PaladinHammerOfWrath::RemoveOverride(player);
+        }
+
+        void Register() override
+        {
+            AfterEffectApply += AuraEffectApplyFn(spell_pal_hammer_of_wrath_talent::HandleApply, EFFECT_FIRST_FOUND, SPELL_AURA_ANY, AURA_EFFECT_HANDLE_REAL);
+            AfterEffectRemove += AuraEffectRemoveFn(spell_pal_hammer_of_wrath_talent::HandleRemove, EFFECT_FIRST_FOUND, SPELL_AURA_ANY, AURA_EFFECT_HANDLE_REAL);
+        }
+    };
+
+    // =========================================================================
+    // Radiant Glory
+    // =========================================================================
+
+    // 458359 - Radiant Glory: casting Wake of Ashes activates Avenging Wrath (or Crusade).
+    class spell_pal_radiant_glory : public AuraScript
+    {
+        bool Validate(SpellInfo const* /*spellInfo*/) override
+        {
+            return ValidateSpellInfo({
+                Spells::AvengingWrath3,
+                Spells::AvengingWrath4
+            });
+        }
+
+        bool CheckProc(ProcEventInfo& eventInfo)
+        {
+            SpellInfo const* spellInfo = eventInfo.GetSpellInfo();
+            if (!spellInfo || spellInfo->Id != Spells::WakeOfAshes)
+                return false;
+
+            return true;
+        }
+
+        void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& eventInfo)
+        {
+            PreventDefaultAction();
+
+            Unit* caster = eventInfo.GetActor();
+            if (!caster)
+                return;
+
+            // Crusade (231895 Ret variant or 384392 non-Ret variant) -> cast 454373
+            // Otherwise -> cast Avenging Wrath 454351
+            uint32 awSpell = Spells::AvengingWrath3;
+            if (caster->HasSpell(Spells::AvengingWrathRet) || caster->HasSpell(Spells::CrusadeVariant))
+                awSpell = Spells::AvengingWrath4;
+
+            caster->CastSpell(caster, awSpell, CastSpellExtraArgsInit{
+                .TriggerFlags = TRIGGERED_IGNORE_GCD | TRIGGERED_IGNORE_POWER_COST | TRIGGERED_IGNORE_CAST_IN_PROGRESS
+                    | TRIGGERED_DONT_REPORT_CAST_ERROR | TRIGGERED_IGNORE_SPELL_AND_CATEGORY_CD,
+                .TriggeringSpell = eventInfo.GetProcSpell()
+            });
+        }
+
+        void Register() override
+        {
+            DoCheckProc += AuraCheckProcFn(spell_pal_radiant_glory::CheckProc);
+            OnEffectProc += AuraEffectProcFn(spell_pal_radiant_glory::HandleProc, EFFECT_FIRST_FOUND, SPELL_AURA_ANY);
+        }
+    };
+
+    // =========================================================================
+    // Grand Crusader
+    // =========================================================================
+
+    // 85043 - Grand Crusader
+    // Procs on avoided melee attacks (dodge/parry/miss/block) or on
+    // Crusader Strike / Hammer of the Righteous / Blessed Hammer cast.
+    // 15% chance to reset Avenger's Shield cooldown.
+    // Native script has wrong aura type (PROC_TRIGGER_SPELL vs DUMMY) and
+    // no hit-mask / spell-family filtering, so it never fires correctly.
+    class spell_pal_grand_crusader_custom : public AuraScript
+    {
+        static bool IsGrandCrusaderTriggerSpell(SpellInfo const* spellInfo)
+        {
+            if (!spellInfo || spellInfo->SpellFamilyName != SPELLFAMILY_PALADIN)
+                return false;
+
+            // Crusader Strike family (all variants): Mask_1=0x8000, Mask_2=0x2
+            if ((spellInfo->SpellFamilyFlags[1] & 0x8000) && (spellInfo->SpellFamilyFlags[2] & 0x2))
+                return true;
+
+            // Hammer of the Righteous: Mask_1=0x40000, Mask_2=0x2
+            if ((spellInfo->SpellFamilyFlags[1] & 0x40000) && (spellInfo->SpellFamilyFlags[2] & 0x2))
+                return true;
+
+            // Blessed Hammer damage: Mask_2=0x2, Mask_3=0x200000
+            if ((spellInfo->SpellFamilyFlags[2] & 0x2) && (spellInfo->SpellFamilyFlags[3] & 0x200000))
+                return true;
+
+            // Templar Strike / Templar Slash (completely different mask)
+            if (spellInfo->Id == Spells::TemplarStrike || spellInfo->Id == Spells::TemplarSlash)
+                return true;
+
+            return false;
+        }
+
+        bool Validate(SpellInfo const* /*spellInfo*/) override
+        {
+            return ValidateSpellInfo({ Spells::AvengersShield });
+        }
+
+        bool CheckProc(AuraEffect const* aurEff, ProcEventInfo& eventInfo)
+        {
+            if (GetTarget()->GetTypeId() != TYPEID_PLAYER)
+                return false;
+
+            // Avoided melee attacks: only proc on dodge/parry/miss/block/full_block
+            if (eventInfo.GetTypeMask() & TAKEN_HIT_PROC_FLAG_MASK)
+            {
+                uint32 hitMask = eventInfo.GetHitMask();
+                if (!(hitMask & (PROC_HIT_DODGE | PROC_HIT_PARRY | PROC_HIT_MISS | PROC_HIT_BLOCK | PROC_HIT_FULL_BLOCK)))
+                    return false;
+            }
+
+            // Done melee abilities: only proc on Crusader Strike / HoTR / Blessed Hammer / Templar Strike
+            if (eventInfo.GetTypeMask() & DONE_HIT_PROC_FLAG_MASK)
+            {
+                if (eventInfo.GetSpellPhaseMask() != PROC_SPELL_PHASE_HIT)
+                    return false;
+
+                if (!IsGrandCrusaderTriggerSpell(eventInfo.GetSpellInfo()))
+                    return false;
+            }
+
+            return roll_chance(aurEff->GetAmount());
+        }
+
+        void HandleEffectProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
+        {
+            PreventDefaultAction();
+            GetTarget()->CastSpell(GetTarget(), Spells::GrandCrusaderBuff, true);
+            GetTarget()->GetSpellHistory()->ResetCooldown(Spells::AvengersShield, true);
+        }
+
+        void Register() override
+        {
+            DoCheckEffectProc += AuraCheckEffectProcFn(spell_pal_grand_crusader_custom::CheckProc, EFFECT_0, SPELL_AURA_DUMMY);
+            OnEffectProc += AuraEffectProcFn(spell_pal_grand_crusader_custom::HandleEffectProc, EFFECT_0, SPELL_AURA_DUMMY);
+        }
+    };
 }
 
 void AddSC_custom_paladin_spell_fixes()
@@ -848,6 +1587,20 @@ void AddSC_custom_paladin_spell_fixes()
     RegisterSpellScript(spell_pal_empyrean_legacy_buff_custom);
     RegisterSpellScript(spell_pal_empyrean_legacy_spender_custom);
     RegisterSpellScript(spell_pal_second_sunrise_custom);
-    RegisterSpellScript(spell_pal_second_sunrise_effectiveness_custom);
+    RegisterSpellScript(spell_pal_second_sunrise_effectiveness_damage);
+    RegisterSpellScript(spell_pal_second_sunrise_effectiveness_healing);
     RegisterSpellScript(spell_pal_holy_shock_custom);
+    RegisterSpellScript(spell_pal_dawnlight_charges);
+    RegisterSpellScript(spell_pal_morning_star);
+    RegisterSpellScript(spell_pal_will_of_the_dawn);
+    RegisterSpellScript(spell_pal_dawnlight_damage_custom);
+    RegisterSpellScript(spell_pal_dawnlight_heal_custom);
+    RegisterSpellScript(spell_pal_dawnlight_radiation_damage_custom);
+    RegisterSpellScript(spell_pal_dawnlight_radiation_heal_custom);
+    RegisterSpellScript(spell_pal_light_s_beacon_custom);
+    RegisterSpellScript(spell_pal_expurgation_custom);
+    RegisterSpellScript(spell_pal_hammer_of_wrath_avenging_wrath);
+    RegisterSpellScript(spell_pal_hammer_of_wrath_talent);
+    RegisterSpellScript(spell_pal_radiant_glory);
+    RegisterSpellScript(spell_pal_grand_crusader_custom);
 }

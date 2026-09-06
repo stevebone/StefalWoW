@@ -93,6 +93,57 @@ namespace Scripts::Custom::Paladin
         static constexpr uint32 AvengingWrath3 = 454351;
         static constexpr uint32 AvengingWrath4 = 454373;
         static constexpr uint32 AvengingWrathRet = 231895;
+
+        // Radiant Glory (Retribution talent)
+        static constexpr uint32 RadiantGlory = 458359;
+        static constexpr uint32 CrusadeVariant = 384392;
+
+        // Dawnlight (Herald of the Sun hero talent)
+        static constexpr uint32 Dawnlight               = 431377;
+        static constexpr uint32 DawnlightEmpower        = 431460;
+        static constexpr uint32 DawnlightCharges        = 431522;
+        static constexpr uint32 DawnlightDamage         = 431380;
+        static constexpr uint32 DawnlightHeal           = 431381;
+        static constexpr uint32 DawnlightRadiationHeal  = 431382;
+        static constexpr uint32 DawnlightRadiationDamage = 431399;
+        static constexpr uint32 DawnlightRadiateMeta    = 431581;
+
+        // Morning Star (Herald of the Sun hero talent)
+        static constexpr uint32 MorningStar             = 431482;
+        static constexpr uint32 MorningStarBuff         = 431539;
+
+        // Will of the Dawn (Herald of the Sun hero talent)
+        static constexpr uint32 WillOfTheDawn           = 431406;
+        static constexpr uint32 WillOfTheDawnSpeed      = 431462;
+        static constexpr uint32 WillOfTheDawnBurst      = 431752;
+        static constexpr uint32 WillOfTheDawnIcd        = 456779;
+
+        // Dawnlight trigger spells
+        static constexpr uint32 HolyPrism               = 114165;
+        static constexpr uint32 DivineToll              = 375576;
+        static constexpr uint32 WakeOfAshes             = 255937;
+
+        // Beacon of Light (for Dawnlight exclusion)
+        static constexpr uint32 BeaconOfLight           = 53563;
+        static constexpr uint32 BeaconOfLightHeal       = 53652;
+        static constexpr uint32 LightsBeacon            = 53651;
+
+        // Expurgation
+        static constexpr uint32 Expurgation             = 383344;
+        static constexpr uint32 ExpurgationDamage       = 383346;
+
+        // Grand Crusader
+        static constexpr uint32 GrandCrusader           = 85043;
+        static constexpr uint32 GrandCrusaderBuff       = 85416;
+        static constexpr uint32 AvengersShield          = 31935;
+        static constexpr uint32 HammerOfTheRighteous    = 53595;
+        static constexpr uint32 BlessedHammer           = 204301;
+
+        // Hammer of Wrath Talent
+        static constexpr uint32 HammerOfWrathTalent     = 1241288;
+        static constexpr uint32 Judgment                = 20271;
+        static constexpr uint32 JudgmentProt            = 275779;
+        static constexpr uint32 JudgmentHoly            = 275773;
     }
 }
 
