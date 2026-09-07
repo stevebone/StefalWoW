@@ -1,4 +1,12 @@
+-- Dazar'Alor Main Fixes
+
+-- NPC: 133407 Ambassador Blackguard
+-- NPC: 150953 Rastari Portal Keeper
+
+-- Quest: 55137 For the Horde
+
 -- =====================================================================
+-- Fixes for Quest: 55137 For the Horde
 -- Dazar'alor - Rastari Portal Keeper (150953) + Portal to Orgrimmar (78687)
 -- Keeper channels the portal; clicking it teleports to the Gates of
 -- Orgrimmar and credits quest 55137 objective 388745 (via go script).

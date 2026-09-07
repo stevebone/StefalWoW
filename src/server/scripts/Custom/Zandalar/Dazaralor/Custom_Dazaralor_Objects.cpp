@@ -31,33 +31,22 @@
 namespace Scripts::Custom::Dazaralor  
 {  
     // GO 78687 - Portal to Orgrimmar (quest 55137 "The Throne of Zuldazar")  
-    class go_dazaralor_orgrimmar_portal : public GameObjectScript  
+    struct go_dazaralor_orgrimmar_portal : public GameObjectAI  
     {  
-    public:  
-        go_dazaralor_orgrimmar_portal() : GameObjectScript("go_dazaralor_orgrimmar_portal") { }  
+        go_dazaralor_orgrimmar_portal(GameObject* go) : GameObjectAI(go) { }  
   
-        struct go_dazaralor_orgrimmar_portalAI : public GameObjectAI  
+        bool OnReportUse(Player* player) override  
         {  
-            go_dazaralor_orgrimmar_portalAI(GameObject* go) : GameObjectAI(go) { }  
+            if (!player)  
+                return false;  
   
-            bool OnReportUse(Player* player) override  
-            {  
-                if (!player)  
-                    return false;  
+            if (player->GetQuestStatus(Quests::TheThroneOfZuldazar) == QUEST_STATUS_INCOMPLETE)  
+                player->UpdateQuestObjectiveProgress(QUEST_OBJECTIVE_CRITERIA_TREE, Objectives::PortalToOrgrimmarTaken, 1);  
   
-                if (player->GetQuestStatus(Quests::TheThroneOfZuldazar) == QUEST_STATUS_INCOMPLETE)  
-                    player->UpdateQuestObjectiveProgress(QUEST_OBJECTIVE_CRITERIA_TREE, Objectives::PortalToOrgrimmarTaken, 1);  
+            // Teleport to the Gates of Orgrimmar  
+            player->CastSpell(player, Spells::PortalOrgrimmar, true);  
   
-                // Teleport to the Gates of Orgrimmar  
-                player->CastSpell(player, Spells::PortalOrgrimmar, true);  
-  
-                return true;  
-            }  
-        };  
-  
-        GameObjectAI* GetAI(GameObject* go) const override  
-        {  
-            return new go_dazaralor_orgrimmar_portalAI(go);  
+            return true;  
         }  
     };  
 }  
@@ -66,5 +55,5 @@ void AddSC_custom_dazaralor_objects()
 {  
     using namespace Scripts::Custom::Dazaralor;  
   
-    new go_dazaralor_orgrimmar_portal();  
+    RegisterGameObjectAI(go_dazaralor_orgrimmar_portal);  
 }
