@@ -40,7 +40,7 @@ namespace Scripts::Custom::Dazaralor
             if (!player)  
                 return false;  
   
-            if (player->GetQuestStatus(Quests::TheThroneOfZuldazar) == QUEST_STATUS_INCOMPLETE)  
+            if (player->GetQuestStatus(Quests::ForTheHorde) == QUEST_STATUS_INCOMPLETE)
                 player->UpdateQuestObjectiveProgress(QUEST_OBJECTIVE_CRITERIA_TREE, Objectives::PortalToOrgrimmarTaken, 1);  
   
             // Teleport to the Gates of Orgrimmar  

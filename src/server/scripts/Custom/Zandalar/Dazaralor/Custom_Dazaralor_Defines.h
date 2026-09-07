@@ -25,7 +25,7 @@ namespace Scripts::Custom::Dazaralor
 {  
     namespace Quests  
     {  
-        static constexpr uint32 TheThroneOfZuldazar = 55137;  
+        static constexpr uint32 ForTheHorde = 55137;  
     }  
   
     namespace Objectives  
