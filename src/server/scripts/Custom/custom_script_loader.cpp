@@ -72,6 +72,8 @@ void AddSC_custom_redridge_mountains_objects();
 void AddSC_custom_redridge_mountains_quests();
 void AddSC_custom_redridge_mountains_spells();
 
+void AddSC_custom_dazaralor_objects();
+
 // ==================== Followship Scripts ==================== //
 void AddSC_followship_bots();                // FSB main Script
 void AddSC_followship_bots_player();                // FSB Player Scripts
@@ -184,6 +186,8 @@ void AddCustomScripts()
     AddSC_custom_redridge_mountains_objects();
     AddSC_custom_redridge_mountains_quests();
     AddSC_custom_redridge_mountains_spells();
+	
+	AddSC_custom_dazaralor_objects();
 
     AddSC_followship_bots();
     AddSC_followship_bots_player();
