@@ -2602,6 +2602,139 @@ namespace Scripts::Custom::Paladin
             OnEffectHitTarget += SpellEffectFn(spell_pal_judgment_of_justice::HandleDummy, EFFECT_0, SPELL_EFFECT_SCHOOL_DAMAGE);
         }
     };
+
+    // 403530 - Punishment
+    // EFFECT_0: DUMMY (APPLY_AREA_AURA_PARTY) - trigger aura, handles the extra cast
+    // EFFECT_1: PROC_TRIGGER_SPELL - trigger aura, TriggerSpell=0 (warning suppressed by script)
+    // Procs on successful Rebuke or Avenger's Shield interrupt. Casts an extra
+    // Blessed Hammer / Hammer of the Righteous / Holy Shock / Crusader Strike based on spec.
+    class spell_pal_punishment : public AuraScript
+    {
+        bool Validate(SpellInfo const* /*spellInfo*/) override
+        {
+            return ValidateSpellInfo({
+                Spells::Rebuke,
+                Spells::AvengersShield,
+                Spells::CrusaderStrike,
+                Spells::HolyShock,
+                Spells::HammerOfTheRighteous,
+                Spells::BlessedHammer,
+                Spells::BlessedHammerTalent
+            });
+        }
+
+        bool CheckEffectProc(AuraEffect const* /*aurEff*/, ProcEventInfo& eventInfo)
+        {
+            if (SpellInfo const* procSpell = eventInfo.GetSpellInfo())
+                return procSpell->Id == Spells::Rebuke || procSpell->Id == Spells::AvengersShield;
+            return false;
+        }
+
+        void HandleDummyProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+        {
+            PreventDefaultAction();
+
+            Unit* caster = eventInfo.GetActor();
+            Unit* target = eventInfo.GetActionTarget();
+            if (!caster || !target)
+                return;
+
+            uint32 spellToCast = Spells::CrusaderStrike;
+            if (Player* player = caster->ToPlayer())
+            {
+                auto spec = player->GetPrimarySpecialization();
+                if (spec == ChrSpecialization::PaladinProtection)
+                {
+                    if (player->HasSpell(Spells::BlessedHammerTalent) || caster->HasAura(Spells::BlessedHammerTalent))
+                        spellToCast = Spells::BlessedHammer;
+                    else
+                        spellToCast = Spells::HammerOfTheRighteous;
+                }
+                else if (spec == ChrSpecialization::PaladinHoly)
+                    spellToCast = Spells::HolyShock;
+            }
+
+            caster->CastSpell(target, spellToCast, CastSpellExtraArgsInit{
+                .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR,
+                .TriggeringAura = aurEff
+            });
+        }
+
+        void HandleProcTriggerProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
+        {
+            PreventDefaultAction();
+        }
+
+        void Register() override
+        {
+            DoCheckEffectProc += AuraCheckEffectProcFn(spell_pal_punishment::CheckEffectProc, EFFECT_0, SPELL_AURA_DUMMY);
+            DoCheckEffectProc += AuraCheckEffectProcFn(spell_pal_punishment::CheckEffectProc, EFFECT_1, SPELL_AURA_PROC_TRIGGER_SPELL);
+            OnEffectProc += AuraEffectProcFn(spell_pal_punishment::HandleDummyProc, EFFECT_0, SPELL_AURA_DUMMY);
+            OnEffectProc += AuraEffectProcFn(spell_pal_punishment::HandleProcTriggerProc, EFFECT_1, SPELL_AURA_PROC_TRIGGER_SPELL);
+        }
+    };
+
+    // 404357 - Guided Prayer
+    // EFFECT_0: PROC_TRIGGER_SPELL - BasePoints=25 (health % threshold), TriggerSpell=0 (warning suppressed)
+    // EFFECT_1: DUMMY - BasePoints=60 (Word of Glory effectiveness %)
+    // When health drops below 25%, cast free Word of Glory at 60% effectiveness on self.
+    class spell_pal_guided_prayer : public AuraScript
+    {
+        bool Validate(SpellInfo const* spellInfo) override
+        {
+            return ValidateSpellInfo({ Spells::WordOfGlory })
+                && ValidateSpellEffect({ { spellInfo->Id, EFFECT_0 }, { spellInfo->Id, EFFECT_1 } });
+        }
+
+        bool CheckEffectProc(AuraEffect const* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
+        {
+            return GetTarget()->HealthBelowPct(GetEffectInfo(EFFECT_0).CalcValueAsInt(GetTarget()));
+        }
+
+        void HandleProcTriggerProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
+        {
+            PreventDefaultAction();
+        }
+
+        void HandleDummyProc(AuraEffect* aurEff, ProcEventInfo& /*eventInfo*/)
+        {
+            PreventDefaultAction();
+
+            Unit* target = GetTarget();
+
+            int32 effectivenessPct = GetEffectInfo(EFFECT_1).CalcValueAsInt(target);
+
+            CastSpellExtraArgs args(aurEff);
+            args.SetTriggerFlags(TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR
+                | TRIGGERED_IGNORE_SPELL_AND_CATEGORY_CD);
+
+            if (effectivenessPct != 100)
+            {
+                SpellInfo const* wogInfo = sSpellMgr->GetSpellInfo(Spells::WordOfGlory, target->GetMap()->GetDifficultyID());
+                if (wogInfo)
+                {
+                    for (SpellEffectInfo const& effect : wogInfo->GetEffects())
+                    {
+                        if (!effect.IsEffect() || effect.EffectIndex != EFFECT_0)
+                            continue;
+
+                        SpellEffectValue const base = effect.CalcValue(target, nullptr, target);
+                        args.AddSpellMod(SpellValueModFloat(uint8(SPELLVALUE_BASE_POINT0) + effect.EffectIndex), CalculatePct(base, effectivenessPct));
+                    }
+                }
+            }
+
+            target->CastSpell(target, Spells::WordOfGlory, args);
+        }
+
+        void Register() override
+        {
+            DoCheckEffectProc += AuraCheckEffectProcFn(spell_pal_guided_prayer::CheckEffectProc, EFFECT_0, SPELL_AURA_PROC_TRIGGER_SPELL);
+            DoCheckEffectProc += AuraCheckEffectProcFn(spell_pal_guided_prayer::CheckEffectProc, EFFECT_1, SPELL_AURA_DUMMY);
+            OnEffectProc += AuraEffectProcFn(spell_pal_guided_prayer::HandleProcTriggerProc, EFFECT_0, SPELL_AURA_PROC_TRIGGER_SPELL);
+            OnEffectProc += AuraEffectProcFn(spell_pal_guided_prayer::HandleDummyProc, EFFECT_1, SPELL_AURA_DUMMY);
+        }
+    };
 }
 
 void AddSC_custom_paladin_spell_fixes()
@@ -2657,4 +2790,6 @@ void AddSC_custom_paladin_spell_fixes()
     RegisterSpellScript(spell_pal_light_of_the_titans_hot);
     RegisterSpellScript(spell_pal_holy_ritual);
     RegisterSpellScript(spell_pal_judgment_of_justice);
+    RegisterSpellScript(spell_pal_punishment);
+    RegisterSpellScript(spell_pal_guided_prayer);
 }

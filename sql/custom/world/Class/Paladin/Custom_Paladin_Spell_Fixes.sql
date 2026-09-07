@@ -359,3 +359,30 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 DELETE FROM `spell_script_names` WHERE `ScriptName`='spell_pal_judgment_of_justice';
 INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 (20271, 'spell_pal_judgment_of_justice');
+
+-- =========================================================================
+-- Punishment (403530) - procs on Rebuke/Avenger's Shield interrupt
+-- EFFECT_0 DUMMY: casts extra Blessed Hammer/HoTR/Holy Shock/Crusader Strike
+-- EFFECT_1 PROC_TRIGGER_SPELL: TriggerSpell=0, suppressed by PreventDefaultAction
+-- =========================================================================
+DELETE FROM `spell_script_names` WHERE `ScriptName`='spell_pal_punishment';
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
+(403530, 'spell_pal_punishment');
+
+-- =========================================================================
+-- Guided Prayer (404357) - procs when health drops below 25%
+-- EFFECT_0 PROC_TRIGGER_SPELL: TriggerSpell=0, suppressed by PreventDefaultAction
+-- EFFECT_1 DUMMY: casts Word of Glory at 60% effectiveness on self
+-- =========================================================================
+DELETE FROM `spell_script_names` WHERE `ScriptName`='spell_pal_guided_prayer';
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
+(404357, 'spell_pal_guided_prayer');
+
+-- =========================================================================
+-- Crusading Strikes marker aura (406833) - suppress proc warning
+-- EFFECT_0 PROC_TRIGGER_SPELL: TriggerSpell=0, used only as marker by script
+-- DisableEffectsMask=1 prevents the proc from firing, suppressing the warning
+-- =========================================================================
+DELETE FROM `spell_proc` WHERE `SpellId` = 406833;
+INSERT INTO `spell_proc` (`SpellId`, `SchoolMask`, `SpellFamilyName`, `SpellFamilyMask0`, `SpellFamilyMask1`, `SpellFamilyMask2`, `SpellFamilyMask3`, `ProcFlags`, `ProcFlags2`, `SpellTypeMask`, `SpellPhaseMask`, `HitMask`, `AttributesMask`, `DisableEffectsMask`, `ProcsPerMinute`, `Chance`, `Cooldown`, `Charges`) VALUES
+(406833, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0);

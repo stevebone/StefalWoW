@@ -190,6 +190,14 @@ namespace Scripts::Custom::Paladin
 
         // Light's Conviction (Holy Shock mana refund)
         static constexpr uint32 LightsConviction            = 414073;
+
+        // Punishment (interrupt proc talent)
+        static constexpr uint32 Punishment                  = 403530;
+        static constexpr uint32 Rebuke                      = 96231;
+        static constexpr uint32 BlessedHammerTalent         = 204019;
+
+        // Guided Prayer (low health Word of Glory proc)
+        static constexpr uint32 GuidedPrayer                = 404357;
     }
 }
 
