@@ -4,10 +4,6 @@
 SET @CGUID := 900000;
 Last GUID: @CGUID+3300
 
--- BFA
-SET @CGUID := 70000000;
-Last GUID: @CGUID+32948
-
 -- Gameobjects
 SET @OGUID := 900000;
 Last GUID: @OGUID+225
@@ -15,3 +11,13 @@ Last GUID: @OGUID+225
 -- Spawn Pools
 SET @POOLID := 900000;
 Last PoolID: @POOLID+23
+
+-- Reference Loot Templates
+Last Entry: 35
+
+-- BFA
+SET @CGUID := 70000000;
+Last GUID: @CGUID+32948
+
+SET @OGUID := 70000000;
+Last GUID: @OGUID+4525

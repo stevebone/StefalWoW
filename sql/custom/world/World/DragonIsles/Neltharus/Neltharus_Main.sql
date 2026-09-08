@@ -2,3 +2,6 @@
 
 -- Spawn Fixes
 UPDATE `creature` SET `spawnDifficulties` = '1,2,8,23,24,205' WHERE `map` = 2519;
+
+-- GO Spawn Fixes
+UPDATE `gameobject` SET `spawnDifficulties` = '1,2,8,23,24,205' WHERE `map` = 2519;
