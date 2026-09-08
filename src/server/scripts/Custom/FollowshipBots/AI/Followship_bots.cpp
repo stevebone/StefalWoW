@@ -514,15 +514,10 @@ public:
 
                     FSBParty::PeriodicPartyNeededCheck(me);
 
+                    // Shared 10s throttle lives in PeriodicBattlegroundRaidUpdate
+                    // (one broadcast per BG team, not per bot).
                     if (me->GetMap()->IsBattleground())
-                    {
-                        uint32 nowMs = getMSTime();
-                        if (nowMs >= _bgRaidUpdateMs)
-                        {
-                            _bgRaidUpdateMs = nowMs + 10000;
-                            FSBParty::PeriodicBattlegroundRaidUpdate(me);
-                        }
-                    }
+                        FSBParty::PeriodicBattlegroundRaidUpdate(me);
 
                     FSBChatMgr::Get()->UpdateBotChannels(me);
 
@@ -661,7 +656,6 @@ public:
 
             uint32 _5secondsCheckMs = 0;
             uint32 _1secondsCheckMs = 0;
-            uint32 _bgRaidUpdateMs = 0;
     };
 
     

@@ -48,6 +48,7 @@
 
 #include <algorithm>
 #include <random>
+#include <unordered_set>
 #include <string>
 #include <unordered_map>
 
@@ -573,34 +574,74 @@ namespace FSBBattleground
         if (!battlegroundMap)
             return bots;
 
-        for (auto const& [guid, creature] : battlegroundMap->GetObjectsStore().Data.Head)
+        auto tryAdd = [&](Creature* creature)
         {
-            if (!creature || !creature->IsBot())
-                continue;
+            if (!creature || !creature->IsBot() || !creature->IsInWorld())
+                return false;
 
             FSB_Race race = FSBMgr::Get()->GetBotRaceForEntry(creature->GetEntry());
             if (FSBUtils::GetTeamFromFSBRace(race) != team)
-                continue;
+                return false;
 
             // Skip bots that would produce malformed roster/member-state packets.
             if (creature->GetGUID().IsEmpty() || creature->GetName().empty())
             {
                 TC_LOG_WARN("scripts.fsb.battleground", "FSBBattleground::CollectBotsOnTeam: skipping bot entry {} with empty GUID or name", creature->GetEntry());
-                continue;
+                return false;
             }
 
             FSB_Class botClass = FSBMgr::Get()->GetBotClassForEntry(creature->GetEntry());
             if (FSBUtils::BotRaceToTC(race) == RACE_NONE || FSBUtils::FSBToTCClass(botClass) == CLASS_NONE)
             {
                 TC_LOG_WARN("scripts.fsb.battleground", "FSBBattleground::CollectBotsOnTeam: skipping bot entry {} with invalid race/class mapping", creature->GetEntry());
-                continue;
+                return false;
             }
 
             bots.push_back(creature);
+            return bots.size() >= MAX_RAID_SIZE;
+        };
 
-            // Defensive cap: a client raid roster cannot exceed MAX_RAID_SIZE members.
-            if (bots.size() >= MAX_RAID_SIZE)
-                break;
+        std::unordered_set<ObjectGuid> seen;
+
+        // Prefer the spawn list over a full map object-store scan (the store
+        // includes every GO/creature and was the BG 10s world-thread hitch).
+        for (ObjectGuid const& guid : GetSpawnedBotGuids(battlegroundMap))
+        {
+            if (!seen.insert(guid).second)
+                continue;
+
+            if (Creature* creature = battlegroundMap->GetCreature(guid))
+            {
+                if (tryAdd(creature))
+                    return bots;
+            }
+        }
+
+        Battleground* bg = battlegroundMap->GetBG();
+        if (!bg)
+            return bots;
+
+        for (auto const& [playerGuid, _] : bg->GetPlayers())
+        {
+            Player* player = ObjectAccessor::GetPlayer(battlegroundMap, playerGuid);
+            if (!player)
+                continue;
+
+            auto* botsPtr = FSBMgr::Get()->GetPersistentBotsForPlayer(player);
+            if (!botsPtr)
+                continue;
+
+            for (auto const& botData : *botsPtr)
+            {
+                if (botData.runtimeGuid.IsEmpty() || !seen.insert(botData.runtimeGuid).second)
+                    continue;
+
+                if (Creature* hired = ObjectAccessor::GetCreatureOrPetOrVehicle(*player, botData.runtimeGuid))
+                {
+                    if (tryAdd(hired))
+                        return bots;
+                }
+            }
         }
 
         return bots;
