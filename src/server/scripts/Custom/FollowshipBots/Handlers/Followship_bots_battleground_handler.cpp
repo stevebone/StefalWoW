@@ -120,8 +120,6 @@ namespace FSBBattleground
 
     void SpawnBotsForTeams(Battleground* battleground, uint32 maxTeamSize, Player* triggeringPlayer)
     {
-        FSBBattleground::ClearSpawnedBotGuids(battleground->GetBgMap());
-
         // Count real players from GetPlayers() instead of GetPlayersCountByTeam(),
         // because the triggering player may not yet be registered in the BG's team count.
         uint32 alliancePlayers = 0;

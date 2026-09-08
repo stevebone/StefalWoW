@@ -51,63 +51,60 @@
 
 namespace FSBParty
 {
-    namespace
+    struct PartyThrottleState
     {
-        struct PartyThrottleState
+        uint32 compositionHash = 0;
+        bool hadBots = false;
+    };
+
+    struct BgRaidThrottleState
+    {
+        uint32 nextSliceMs = 0;
+        uint32 nextBotIndex = 0;
+        std::unordered_map<ObjectGuid::LowType, uint32> rosterHashByPlayer;
+    };
+
+    static constexpr uint32 BG_MEMBER_SLICES = 10;
+
+    // Per-owner throttle for party frame packets. Map updates for a
+    // player+bots are same-map / same-thread in normal TC usage.
+    static std::unordered_map<ObjectGuid::LowType, PartyThrottleState> s_partyThrottle;
+
+    // One raid-frame broadcast per BG instance + team, not per bot.
+    static std::unordered_map<uint64, BgRaidThrottleState> s_bgRaidThrottle;
+
+    static uint32 HashActiveBots(std::vector<Creature*> const& bots)
+    {
+        uint32 hash = static_cast<uint32>(bots.size());
+        for (Creature const* b : bots)
         {
-            uint32 compositionHash = 0;
-            bool hadBots = false;
-        };
-
-        struct BgRaidThrottleState
-        {
-            uint32 nextSliceMs = 0;
-            uint32 nextBotIndex = 0;
-            std::unordered_map<ObjectGuid::LowType, uint32> rosterHashByPlayer;
-        };
-
-        constexpr uint32 BG_MEMBER_SLICES = 10;
-
-        // Per-owner throttle for party frame packets. Map updates for a
-        // player+bots are same-map / same-thread in normal TC usage.
-        std::unordered_map<ObjectGuid::LowType, PartyThrottleState> s_partyThrottle;
-
-        // One raid-frame broadcast per BG instance + team, not per bot.
-        std::unordered_map<uint64, BgRaidThrottleState> s_bgRaidThrottle;
-
-        uint32 HashActiveBots(std::vector<Creature*> const& bots)
-        {
-            uint32 hash = static_cast<uint32>(bots.size());
-            for (Creature const* b : bots)
-            {
-                if (!b)
-                    continue;
-                uint32 c = static_cast<uint32>(b->GetGUID().GetCounter());
-                hash ^= c + 0x9e3779b9u + (hash << 6) + (hash >> 2);
-            }
-            return hash;
+            if (!b)
+                continue;
+            uint32 c = static_cast<uint32>(b->GetGUID().GetCounter());
+            hash ^= c + 0x9e3779b9u + (hash << 6) + (hash >> 2);
         }
+        return hash;
+    }
 
-        // Only one bot per owner should drive party packets, otherwise N bots
-        // each fire PeriodicPartyNeededCheck every 1s → N full PartyUpdates/s.
-        bool IsPartyUpdateDriver(Creature* bot, std::vector<Creature*> const& activeBots)
+    // Only one bot per owner should drive party packets, otherwise N bots
+    // each fire PeriodicPartyNeededCheck every 1s → N full PartyUpdates/s.
+    static bool IsPartyUpdateDriver(Creature* bot, std::vector<Creature*> const& activeBots)
+    {
+        if (!bot || activeBots.empty())
+            return false;
+
+        ObjectGuid minGuid = activeBots.front()->GetGUID();
+        for (Creature const* b : activeBots)
         {
-            if (!bot || activeBots.empty())
-                return false;
-
-            ObjectGuid minGuid = activeBots.front()->GetGUID();
-            for (Creature const* b : activeBots)
-            {
-                if (b && b->GetGUID() < minGuid)
-                    minGuid = b->GetGUID();
-            }
-            return bot->GetGUID() == minGuid;
+            if (b && b->GetGUID() < minGuid)
+                minGuid = b->GetGUID();
         }
+        return bot->GetGUID() == minGuid;
+    }
 
-        uint64 MakeBgRaidThrottleKey(BattlegroundMap const* bgMap, Team team)
-        {
-            return (uint64(bgMap->GetInstanceId()) << 32) ^ (uint64(bgMap->GetId()) << 16) ^ uint64(team);
-        }
+    static uint64 MakeBgRaidThrottleKey(BattlegroundMap const* bgMap, Team team)
+    {
+        return (uint64(bgMap->GetInstanceId()) << 32) ^ (uint64(bgMap->GetId()) << 16) ^ uint64(team);
     }
 
     static uint8 GetLfgRoleForBot(Creature* bot)
