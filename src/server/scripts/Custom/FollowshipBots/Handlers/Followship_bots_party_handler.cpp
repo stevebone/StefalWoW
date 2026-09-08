@@ -45,10 +45,68 @@
 #include "Followship_bots_party_handler.h"
 #include "Followship_bots_pet_handler.h"
 
+#include "Timer.h"
 
+#include <unordered_map>
 
 namespace FSBParty
 {
+    struct PartyThrottleState
+    {
+        uint32 compositionHash = 0;
+        bool hadBots = false;
+    };
+
+    struct BgRaidThrottleState
+    {
+        uint32 nextSliceMs = 0;
+        uint32 nextBotIndex = 0;
+        std::unordered_map<ObjectGuid::LowType, uint32> rosterHashByPlayer;
+    };
+
+    static constexpr uint32 BG_MEMBER_SLICES = 10;
+
+    // Per-owner throttle for party frame packets. Map updates for a
+    // player+bots are same-map / same-thread in normal TC usage.
+    static std::unordered_map<ObjectGuid::LowType, PartyThrottleState> s_partyThrottle;
+
+    // One raid-frame broadcast per BG instance + team, not per bot.
+    static std::unordered_map<uint64, BgRaidThrottleState> s_bgRaidThrottle;
+
+    static uint32 HashActiveBots(std::vector<Creature*> const& bots)
+    {
+        uint32 hash = static_cast<uint32>(bots.size());
+        for (Creature const* b : bots)
+        {
+            if (!b)
+                continue;
+            uint32 c = static_cast<uint32>(b->GetGUID().GetCounter());
+            hash ^= c + 0x9e3779b9u + (hash << 6) + (hash >> 2);
+        }
+        return hash;
+    }
+
+    // Only one bot per owner should drive party packets, otherwise N bots
+    // each fire PeriodicPartyNeededCheck every 1s → N full PartyUpdates/s.
+    static bool IsPartyUpdateDriver(Creature* bot, std::vector<Creature*> const& activeBots)
+    {
+        if (!bot || activeBots.empty())
+            return false;
+
+        ObjectGuid minGuid = activeBots.front()->GetGUID();
+        for (Creature const* b : activeBots)
+        {
+            if (b && b->GetGUID() < minGuid)
+                minGuid = b->GetGUID();
+        }
+        return bot->GetGUID() == minGuid;
+    }
+
+    static uint64 MakeBgRaidThrottleKey(BattlegroundMap const* bgMap, Team team)
+    {
+        return (uint64(bgMap->GetInstanceId()) << 32) ^ (uint64(bgMap->GetId()) << 16) ^ uint64(team);
+    }
+
     static uint8 GetLfgRoleForBot(Creature* bot)
     {
         FSB_Roles role = FSBMgr::Get()->GetRole(bot);
@@ -235,7 +293,7 @@ namespace FSBParty
             player->GetName(), safeBots.size());
     }
 
-    void SendBotMemberState(Player* player, Creature* bot)
+    void SendBotMemberState(Player* player, Creature* bot, bool includeAuras)
     {
         if (!player || !player->GetSession() || !player->IsInWorld() || player->IsBeingTeleportedNear() || player->IsBeingTeleported() || player->IsBeingTeleportedFar())
             return;
@@ -261,8 +319,9 @@ namespace FSBParty
         float positionY = bot->GetPositionY();
         float positionZ = bot->GetPositionZ();
 
-        // Get aura spell IDs
-        std::vector<uint32> auraSpellIds = GetBotAppliedAuras(bot);
+        std::vector<uint32> auraSpellIds;
+        if (includeAuras)
+            auraSpellIds = GetBotAppliedAuras(bot);
 
         TC_LOG_DEBUG("scripts.fsb.party", "FSB: SendBotMemberState Bot {} sending {} auras", bot->GetEntry(), auraSpellIds.size());
 
@@ -282,36 +341,61 @@ namespace FSBParty
         if (!bot || !bot->IsInWorld())
             return;
 
-        if (Player* owner = FSBMgr::Get()->GetBotOwner(bot))
+        Player* owner = FSBMgr::Get()->GetBotOwner(bot);
+        if (!owner || !owner->GetSession() || owner->IsBeingTeleportedNear() || owner->IsBeingTeleported() || owner->IsBeingTeleportedFar() || !owner->IsInWorld())
+            return;
+
+        // In battlegrounds the raid-frame update handles all bots centrally; skip the capped party update here.
+        if (owner->GetMap()->IsBattleground())
+            return;
+
+        std::vector<Creature*> activeBots = CollectActiveBots(owner);
+
+        // Cheap: keep partyBots cache warm on the calling bot even if it is
+        // not the packet driver.
+        if (auto* baseAI = dynamic_cast<FSB_BaseAI*>(bot->GetAI()))
+            baseAI->partyBots = activeBots;
+
+        if (activeBots.empty())
         {
-            if (!owner || !owner->GetSession() || owner->IsBeingTeleportedNear() || owner->IsBeingTeleported() || owner->IsBeingTeleportedFar() || !owner->IsInWorld())
-                return;
-
-            // In battlegrounds the raid-frame update handles all bots centrally; skip the capped party update here.
-            if (owner->GetMap()->IsBattleground())
-                return;
-
-            // Build a single activeBots list for this owner
-            std::vector<Creature*> activeBots = CollectActiveBots(owner);
-
-            if (!activeBots.empty())
+            ObjectGuid::LowType ownerKey = owner->GetGUID().GetCounter();
+            auto it = s_partyThrottle.find(ownerKey);
+            if (it == s_partyThrottle.end() || it->second.hadBots)
             {
-                auto baseAI = dynamic_cast<FSB_BaseAI*>(bot->GetAI());
-                if (!baseAI)
-                    return;
-
-                baseAI->partyBots = activeBots;
-
-                // Use the same activeBots for both packets
-                SendFakePartyUpdate(owner, bot);
-                SendBotMemberState(owner, bot);
-            }
-            else
-            {
-                // No active bots: do NOT send member states
                 SendClearFakeParty(owner);
+                s_partyThrottle[ownerKey] = PartyThrottleState{};
             }
+            return;
         }
+
+        // One driver bot per owner — avoids N× PartyUpdate spam / second.
+        if (!IsPartyUpdateDriver(bot, activeBots))
+            return;
+
+        for (Creature* b : activeBots)
+        {
+            if (auto* ai = dynamic_cast<FSB_BaseAI*>(b->GetAI()))
+                ai->partyBots = activeBots;
+        }
+
+        ObjectGuid::LowType ownerKey = owner->GetGUID().GetCounter();
+        PartyThrottleState& throttle = s_partyThrottle[ownerKey];
+        uint32 hash = HashActiveBots(activeBots);
+
+        // Full PartyUpdate only when the bot roster changes. Rebuilding the
+        // client party frame every second is what hitching the main thread /
+        // client FPS on the 1s cadence.
+        if (!throttle.hadBots || throttle.compositionHash != hash)
+        {
+            SendFakePartyUpdate(owner, bot);
+            throttle.compositionHash = hash;
+            throttle.hadBots = true;
+        }
+
+        // HP/mana/position/auras — once per owner per maintenance tick
+        // (driver only), covering every active bot.
+        for (Creature* b : activeBots)
+            SendBotMemberState(owner, b);
     }
 
     void PeriodicBattlegroundRaidUpdate(Creature* bot)
@@ -329,6 +413,30 @@ namespace FSBParty
         if (botTeam != ALLIANCE && botTeam != HORDE)
             return;
 
+        uint64 const key = MakeBgRaidThrottleKey(bgMap, botTeam);
+        uint32 const nowMs = getMSTime();
+        BgRaidThrottleState& throttle = s_bgRaidThrottle[key];
+        if (nowMs < throttle.nextSliceMs)
+            return;
+
+        // One shared 1s slice per team. Spreads HP updates and avoids a 10s
+        // burst of SMSG_PARTY_UPDATE (full raid-frame rebuild on the client).
+        throttle.nextSliceMs = nowMs + 1000;
+
+        std::vector<Creature*> bots = FSBBattleground::CollectBotsOnTeam(bgMap, botTeam);
+        if (bots.empty())
+        {
+            s_bgRaidThrottle.erase(key);
+            return;
+        }
+
+        uint32 const hash = HashActiveBots(bots);
+
+        uint32 const sliceCount = std::max<uint32>(1, (uint32(bots.size()) + BG_MEMBER_SLICES - 1) / BG_MEMBER_SLICES);
+        if (throttle.nextBotIndex >= bots.size())
+            throttle.nextBotIndex = 0;
+        uint32 const sliceStart = throttle.nextBotIndex;
+
         for (auto const& [guid, _] : bg->GetPlayers())
         {
             Player* player = ObjectAccessor::GetPlayer(bgMap, guid);
@@ -344,12 +452,23 @@ namespace FSBParty
             if (player->GetTeam() != botTeam)
                 continue;
 
-            std::vector<Creature*> bots = FSBBattleground::CollectBotsOnTeam(bgMap, botTeam);
-            if (!bots.empty())
+            ObjectGuid::LowType const playerKey = player->GetGUID().GetCounter();
+            uint32& sentHash = throttle.rosterHashByPlayer[playerKey];
+            if (sentHash != hash)
+            {
                 SendBattlegroundRaidUpdate(player, bots);
+                sentHash = hash;
+            }
 
-            SendBotMemberState(player, bot);
+            for (uint32 i = 0; i < sliceCount; ++i)
+            {
+                Creature* teamBot = bots[(sliceStart + i) % bots.size()];
+                bool const includeAuras = FSBMgr::Get()->GetBotOwner(teamBot) == player;
+                SendBotMemberState(player, teamBot, includeAuras);
+            }
         }
+
+        throttle.nextBotIndex = (sliceStart + sliceCount) % uint32(bots.size());
     }
 
     void OnMemberAdd(Group* group, ObjectGuid guid)

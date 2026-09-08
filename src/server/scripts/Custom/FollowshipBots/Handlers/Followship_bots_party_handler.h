@@ -51,7 +51,7 @@ namespace FSBParty
 
     // Sends SMSG_PARTY_MEMBER_FULL_STATE for a single bot creature to the owner
     // This updates health, mana, position etc. on the party frame
-    void SendBotMemberState(Player* player, Creature* bot);
+    void SendBotMemberState(Player* player, Creature* bot, bool includeAuras = true);
 
     // Sends an empty party update to clear the fake group (on dismiss/logout)
     void SendClearFakeParty(Player* player);
