@@ -47,3 +47,8 @@ UPDATE `creature_template` SET `unit_flags` = `unit_flags` & ~0x8000 WHERE `entr
 	21806, 21812, 21865, 21873, 21875, 21958, 22009, 22055, 22056, 32893, 32897, 32900, 32901, 32941, 32946,
 	32948, 32950, 33325, 33326, 33327, 33328, 33330, 33331, 33332, 33333, 122967
 );
+
+-- Fix curHealth for spawns
+UPDATE `creature` SET `curHealthPct` = NULL WHERE `curHealthPct` IS NOT NULL AND `id` IN (
+    SELECT `entry` FROM `creature_template` WHERE `RegenHealth` = 1
+);
