@@ -31670,7 +31670,8 @@ SpellInfo const* Player::GetCastSpellInfo(SpellInfo const* spellInfo, TriggerCas
         for (uint32 spellId : overrides->second)
             if (context->AddSpell(spellId))
                 if (SpellInfo const* newInfo = sSpellMgr->GetSpellInfo(spellId, GetMap()->GetDifficultyID()))
-                    return GetCastSpellInfo(newInfo, triggerFlag, context);
+                    if (!newInfo->IsPassive())
+                        return GetCastSpellInfo(newInfo, triggerFlag, context);
 
     return Unit::GetCastSpellInfo(spellInfo, triggerFlag, context);
 }
@@ -32627,6 +32628,12 @@ void Player::ExecutePendingSpellCastRequest()
 
     // check known spell or raid marker spell (which not requires player to know it)
     SpellInfo const* spellInfo = sSpellMgr->AssertSpellInfo(_pendingSpellCastRequest->CastRequest.SpellID, GetMap()->GetDifficultyID());
+
+    // Check possible spell cast overrides (must be before HasActiveSpell check so override spells pass the known spell check)
+    auto [overrideSpellInfo, overrideTriggerFlag] = castingUnit->GetCastSpellInfo(spellInfo);
+    spellInfo = overrideSpellInfo;
+    triggerFlag |= overrideTriggerFlag;
+
     Player* plrCaster = castingUnit->ToPlayer();
     if (plrCaster && !plrCaster->HasActiveSpell(spellInfo->Id) && !spellInfo->HasAttribute(SPELL_ATTR8_SKIP_IS_KNOWN_CHECK))
     {
@@ -32651,10 +32658,6 @@ void Player::ExecutePendingSpellCastRequest()
         }
     }
 
-    // Check possible spell cast overrides
-    auto [overrideSpellInfo, overrideTriggerFlag] = castingUnit->GetCastSpellInfo(spellInfo);
-    spellInfo = overrideSpellInfo;
-    triggerFlag |= overrideTriggerFlag;
     if (spellInfo->IsPassive())
     {
         CancelPendingCastRequest();
