@@ -386,3 +386,14 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 DELETE FROM `spell_proc` WHERE `SpellId` = 406833;
 INSERT INTO `spell_proc` (`SpellId`, `SchoolMask`, `SpellFamilyName`, `SpellFamilyMask0`, `SpellFamilyMask1`, `SpellFamilyMask2`, `SpellFamilyMask3`, `ProcFlags`, `ProcFlags2`, `SpellTypeMask`, `SpellPhaseMask`, `HitMask`, `AttributesMask`, `DisableEffectsMask`, `ProcsPerMinute`, `Chance`, `Cooldown`, `Charges`) VALUES
 (406833, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0);
+
+-- =========================================================================
+-- Empyreal Ward (387791) - restrict proc to Lay on Hands only
+-- EFFECT_0 PROC_TRIGGER_SPELL: TriggerSpell=387792 (armor buff)
+-- Auto-generated proc has SpellFamilyName=0 (no filter), so it procs on any
+-- spell including Avenging Wrath. Restrict to Paladin SpellFamilyMask0=0x8000
+-- (Lay on Hands) with ProcFlags2=CAST_SUCCESSFUL, SpellPhaseMask=CAST.
+-- =========================================================================
+DELETE FROM `spell_proc` WHERE `SpellId` = 387791;
+INSERT INTO `spell_proc` (`SpellId`, `SchoolMask`, `SpellFamilyName`, `SpellFamilyMask0`, `SpellFamilyMask1`, `SpellFamilyMask2`, `SpellFamilyMask3`, `ProcFlags`, `ProcFlags2`, `SpellTypeMask`, `SpellPhaseMask`, `HitMask`, `AttributesMask`, `DisableEffectsMask`, `ProcsPerMinute`, `Chance`, `Cooldown`, `Charges`) VALUES
+(387791, 0, 10, 0x8000, 0, 0, 0, 0, 0x4, 0, 1, 0, 0, 0, 0, 100, 0, 0);
