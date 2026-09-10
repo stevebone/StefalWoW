@@ -688,7 +688,13 @@ CREATE TABLE `character_garrison_ember_court` (
   `guid`           BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'Character GUID',
   `guestIndex`     TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '0-15, CriteriaTree 87983 child OrderIndex',
   `timesHosted`    INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'courts this guest has attended',
-  `highestMood`    TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'high-water mark on the unpublished mood scale;
+  `highestMood`    TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'high-water mark on the unpublished mood scale',
+  `lastHostedTime` BIGINT NOT NULL DEFAULT 0 COMMENT 'unix time this guest was last hosted',
+  `invited`        TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'guest is on the invite list for the next court',
+  `courtsHeld`     INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'owner-wide courts held, denormalised onto every guest row',
+  `lastCourtTime`  BIGINT NOT NULL DEFAULT 0 COMMENT 'owner-wide unix time of the last court, denormalised onto every guest row',
+  PRIMARY KEY (`guid`,`guestIndex`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Ember Court guest roster state per character';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
