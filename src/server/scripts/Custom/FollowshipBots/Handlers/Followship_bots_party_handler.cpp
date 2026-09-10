@@ -87,7 +87,7 @@ namespace FSBParty
     }
 
     // Only one bot per owner should drive party packets, otherwise N bots
-    // each fire PeriodicPartyNeededCheck every 1s → N full PartyUpdates/s.
+    // each fire PeriodicPartyNeededCheck every 1s - N full PartyUpdates/s.
     static bool IsPartyUpdateDriver(Creature* bot, std::vector<Creature*> const& activeBots)
     {
         if (!bot || activeBots.empty())
@@ -368,7 +368,7 @@ namespace FSBParty
             return;
         }
 
-        // One driver bot per owner — avoids N× PartyUpdate spam / second.
+        // One driver bot per owner - avoids N PartyUpdate spam / second.
         if (!IsPartyUpdateDriver(bot, activeBots))
             return;
 
@@ -392,7 +392,7 @@ namespace FSBParty
             throttle.hadBots = true;
         }
 
-        // HP/mana/position/auras — once per owner per maintenance tick
+        // HP/mana/position/auras - once per owner per maintenance tick
         // (driver only), covering every active bot.
         for (Creature* b : activeBots)
             SendBotMemberState(owner, b);
