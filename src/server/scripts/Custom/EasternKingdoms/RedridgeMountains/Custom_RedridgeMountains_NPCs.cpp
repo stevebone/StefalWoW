@@ -560,6 +560,9 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
             _talk4Done = false;
             _talk5Done = false;
             _talk6Done = false;
+            _talk9Done = false;
+            _talk10Done = false;
+            _talk11Done = false;
 
             me->SetReactState(REACT_ASSIST);
         }
@@ -627,6 +630,27 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
                     {
                         Talk(6, GetPlayerOwner());
                         _talk6Done = true;
+                    }
+                    break;
+                case 9:
+                    if (!_talk9Done)
+                    {
+                        Talk(9, GetPlayerOwner());
+                        _talk9Done = true;
+                    }
+                    break;
+                case 10:
+                    if (!_talk10Done)
+                    {
+                        Talk(10, GetPlayerOwner());
+                        _talk10Done = true;
+                    }
+                    break;
+                case 11:
+                    if (!_talk11Done)
+                    {
+                        Talk(11, GetPlayerOwner());
+                        _talk11Done = true;
                     }
                     break;
                 default:
@@ -707,6 +731,9 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
         bool _talk4Done = false;
         bool _talk5Done = false;
         bool _talk6Done = false;
+        bool _talk9Done = false;
+        bool _talk10Done = false;
+        bool _talk11Done = false;
     };
 
     /*######
@@ -958,9 +985,9 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
     ######*/
 
     WaypointPath const BoatPath(0, {
-        { 0, -9356.31f, -2414.29f, 56.f },
-        { 1, -9467.38f, -2563.55f, 56.f },
-        { 2, -9395.82f, -2813.74f, 56.f },
+        { 0, -9356.31f, -2414.29f, 55.5f },
+        { 1, -9467.38f, -2563.55f, 55.5f },
+        { 2, -9395.82f, -2813.74f, 55.5f },
         { 3, -9425.49f, -2836.49f, 56.1617f },
     });
 
@@ -1110,7 +1137,10 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
                 for (Creature* creature : creatureList)
                 {
                     if (!creature->IsAlive())
-                        return;
+                        continue;
+
+                    if (!me->IsWithinLOSInMap(creature))
+                        continue;
 
                     Position dest = me->GetNearPosition(1.0f, me->GetAbsoluteAngle(creature));
                     std::shared_ptr<Scripting::v2::ActionResult<MovementStopReason>> action =
@@ -1162,6 +1192,55 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
             }
         }
     };
+
+    /*######
+    ## 43611 Keeshan (Canyon)
+    ######*/
+
+    struct npc_keeshan_canyon : public ScriptedAI
+    {
+        npc_keeshan_canyon(Creature* creature) : ScriptedAI(creature) { }
+
+        void OnQuestAccept(Player* player, Quest const* quest) override
+        {
+            if (quest->GetQuestId() != Quests::Detonation)
+                return;
+
+            // Temporary hack to complete quest since scene is not yet implemented
+            player->CastSpell(player, Spells::TeleportToShalewindCanyon, true);
+        }
+
+        void OnQuestReward(Player* player, Quest const* quest, LootItemType /*type*/, uint32 /*opt*/) override
+        {
+            if (quest->GetQuestId() != Quests::Detonation)
+                return;
+
+            if (Creature* messner = me->FindNearestCreature(Creatures::MessnerCanyon, 10.0f))
+                messner->AI()->Talk(Talks::MessnerCanyonSay00, player);
+
+            _talkPlayerGuid = player->GetGUID();
+            _events.ScheduleEvent(Events::KeeshanCanyonTalk, 5s);
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _events.Update(diff);
+
+            while (uint32 eventId = _events.ExecuteEvent())
+            {
+                if (eventId == Events::KeeshanCanyonTalk)
+                {
+                    Player* player = ObjectAccessor::GetPlayer(*me, _talkPlayerGuid);
+                    if (player)
+                        Talk(Talks::KeeshanCanyonSay00, player);
+                }
+            }
+        }
+
+    private:
+        EventMap _events;
+        ObjectGuid _talkPlayerGuid;
+    };
 }
 
 void AddSC_custom_redridge_mountains_npcs()
@@ -1181,4 +1260,5 @@ void AddSC_custom_redridge_mountains_npcs()
     RegisterCreatureAI(npc_keeshan_riverboat);
     RegisterCreatureAI(npc_wild_rat);
     RegisterCreatureAI(npc_kidnapped_redridge_citizen);
+    RegisterCreatureAI(npc_keeshan_canyon);
 }

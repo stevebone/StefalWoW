@@ -1,8 +1,11 @@
 -- Redridge Mountains Creature Text
 DELETE FROM `creature_text` WHERE `creatureID` IN (43081,712,43270,43300,43272,43305,43303,43302,43448,43449,43458,43462,43461,43460,43459,7013,43535,43827);
-DELETE FROM `creature_text` WHERE `creatureID` IN (43571,43572);
+DELETE FROM `creature_text` WHERE `creatureID` IN (43571,43572,43610,43611);
 DELETE FROM `creature_text` WHERE `creatureID` IN (426,430,580) AND `GroupID` = 1;
 INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `BroadcastTextId`, `TextRange`, `comment`) VALUES
+(43610, 0, 0, 'Johnny, you do realize that we just blew up half of Redridge, right?', 12, 7, 100, 0, 0, 0, 43784, 0, 'Messner to Player'),
+(43611, 0, 0, 'Redridge''ll heal, but them orcs sure won''t...', 12, 7, 100, 0, 0, 0, 43786, 0, 'Keeshan to Player'),
+
 (43571, 0, 0, 'We''re free! RUN FOR YOUR LIVES!', 14, 7, 100, 22, 0, 0, 43638, 0, 'Kidnapped Redridge Citizen to Player'),
 (43572, 0, 0, 'We''re free! RUN FOR YOUR LIVES!', 14, 7, 100, 22, 0, 0, 43638, 0, 'Kidnapped Redridge Citizen to Player'),
 
@@ -20,6 +23,9 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Lan
 (43827, 7, 4, 'One time, Keeshan told me that he could take on five of me at once. Why am I so weak?', 12, 7, 100, 0, 0, 0, 43668, 0, 'Jorgensen to Player'),
 (43827, 8, 0, 'While camouflaged, we are harder to detect when we are BEHIND creatures.', 12, 7, 100, 1, 0, 0, 43674, 0, 'Jorgensen to Player'),
 (43827, 8, 1, 'Make sure we always have camouflage up. The orcs in Render''s Valley will kill us both if we''re spotted.', 12, 7, 100, 1, 0, 0, 43670, 0, 'Jorgensen to Player'),
+(43827, 9, 0, 'Bravo Company Field Kit ACTIVE. Plant Seaforium is now available on your action bar.$BToggle Bravo Company Field Kit to DEACTIVATE.', 42, 0, 100, 0, 0, 0, 44419, 0, 'Jorgensen to Player'),
+(43827, 10, 0, 'You have successfully planted the seaforium at the munitions hut.', 42, 0, 100, 0, 0, 0, 43646, 0, 'Jorgensen to Player'),
+(43827, 11, 0, 'You have successfully planted the seaforium at the Blackrock tower.', 42, 0, 100, 0, 0, 0, 43647, 0, 'Jorgensen to Player'),
 
 (7013, 0, 0, 'Feel the power of the Blackrock Orcs!', 12, 1, 100, 0, 0, 0, 1874, 0, 'Blackrock Guard to Player'),
 (7013, 0, 1, 'You are no match for the Blackrock Orcs!', 12, 1, 100, 0, 0, 0, 1875, 0, 'Blackrock Guard to Player'),

@@ -70,6 +70,13 @@
 -- NPC: 43518 Wild Rat
 -- NPC: 43571 Kidnapped Redridge Citizen
 -- NPC: 43572 Kidnapped Redridge Citizen
+-- NPC: 43589 Munitions Dump
+-- NPC: 43590 Blackrock Tower
+-- NPC: 43607 Danforth (Canyon)
+-- NPC: 43608 Krakauer (Canyon)
+-- NPC: 43609 Jorgensen (Canyon)
+-- NPC: 43610 Messner (Canyon)
+-- NPC: 43611 Keeshan (Canyon)
 
 -- Quest: 26512 Tuning The Gnomecorder
 -- Quest: 26545 Yowler Must Die!
@@ -88,6 +95,10 @@
 -- Quest: 26636 Bravo Company Field Kit: Camouflage
 -- Quest: 26637 Bravo Company Field Kit: Chloroform
 -- Quest: 26638 Hunting the Hunters
+-- Quest: 26646 Prisoners of War
+-- Quest: 26651 To Win A War You Gotta Become War
+-- Quest: 26668 Detonation
+-- Quest: 26693 The Dark Tower
 
 -- Spell: 81003 Apply Quest Invis Zone 5
 -- Spell: 81004 Detect: Quest Invis Zone 5
@@ -105,8 +116,21 @@
 -- Spell: 81265 Riverboat Quest Credit
 -- Spell: 81201 Apply Quest Invis Zone 9
 -- Spell: 81202 Detect: Quest Invis Zone 9
+-- Spell: 84710 Apply Quest Invis Zone 9 (2)
 -- Spell: 75038 Freeze Anim
 -- Spell: 82005 Summon Personal Guardian (Jorgensen)
+-- Spell: 81240 Apply Quest Invis Zone 10
+-- Spell: 81241 Detect: Quest Invis Zone 10
+-- Spell: 81663 Smokey Screen Effect
+-- Spell: 81607 Render's Valley Camera
+-- Spell: 81619 Render's Valley Camera (Ride Aura)
+-- Spell: 81631 Render's Valley Explosion (BIG)
+-- Spell: 81639 Render's Valley Explosion (NUKE)
+-- Spell: 81620 Detonation Quest Credit
+-- Spell: 81621 Teleport to Shalewind Canyon
+
+-- Object: 204447 Seaforium (actual bomb)
+-- Object: 204448 Plant Seaforium Here (SpellFocus)
 
 -- Spell Area
 DELETE FROM `spell_area` WHERE `spell` = 81004 AND `area` = 97;
@@ -114,12 +138,14 @@ DELETE FROM `spell_area` WHERE `spell` = 81010 AND `area` = 996;
 DELETE FROM `spell_area` WHERE `spell` = 81019 AND `area` = 998;
 DELETE FROM `spell_area` WHERE `spell` = 81080 AND `area` = 998;
 DELETE FROM `spell_area` WHERE `spell` = 81202 AND `area` = 5326;
+DELETE FROM `spell_area` WHERE `spell` = 81241 AND `area` = 5324;
 INSERT INTO `spell_area` (`spell`, `area`, `quest_start`, `quest_start_status`, `quest_end_status`, `quest_end`, `aura_spell`, `racemask`, `gender`, `flags`) VALUES
 (81004, 97, 0, 0, 43, 26587, 0, 0, 2, 3),
 (81010, 996, 26560, 10, 43, 26560, 0, 0, 2, 3),
 (81019, 998, 26561, 10, 43, 26561, 0, 0, 2, 3),
 (81080, 998, 26562, 10, 43, 26562, 0, 0, 2, 3),
-(81202, 5326, 26616, 66, 0, 0, 0, 0, 2, 1); -- Quest 26616 complete and onwards
+(81202, 5326, 26616, 66, 43, 26646, 0, 0, 2, 3), -- Quest 26616 complete, removed when 26646 rewarded
+(81241, 5324, 26646, 66, 43, 26693, 0, 0, 2, 3); -- Quest 26646 complete, removed when 26693 rewarded
 
 DELETE FROM `spell_area` WHERE `spell` IN (80893,80940,80941,80943) AND `area` = 44;
 INSERT INTO `spell_area` (`spell`, `area`, `quest_start`, `quest_start_status`, `quest_end_status`, `quest_end`, `aura_spell`, `racemask`, `gender`, `flags`) VALUES
@@ -158,16 +184,45 @@ UPDATE `quest_template_addon` SET `PrevQuestID` = 26607 WHERE `ID` = 26616;
 UPDATE `quest_template_addon` SET `ExclusiveGroup` = 0 WHERE `ID` = 26563;
 UPDATE `quest_template_addon` SET `ScriptName` = 'quest_26563_return_of_the_bravo_company' WHERE `ID` = 26563;
 UPDATE `quest_template_addon` SET `SourceSpellID` = 82005 WHERE `ID` = 26646;
+UPDATE `quest_template_addon` SET `PrevQuestID` = 26651 WHERE `ID` = 26668;
 
-
-DELETE FROM `quest_template_addon` WHERE `ID` IN (26567,26571,26586,26636,26637,26638);
+DELETE FROM `quest_template_addon` WHERE `ID` IN (26567,26571,26586,26636,26637,26638,26693,26692);
 INSERT INTO `quest_template_addon` (`ID`, `PrevQuestID`) VALUES 
 (26571, 26568),
 (26567, 26545),
 (26586, 26573),
 (26636, 26616),
 (26637, 26616),
-(26638, 26616);
+(26638, 26616),
+(26692, 26668);
+
+INSERT INTO `quest_template_addon` (`ID`, `PrevQuestID`, `NextQuestID`) VALUES
+(26693, 26668, 26694);
+
+-- This makes 26646 require ALL THREE to be completed before it becomes available
+DELETE FROM conditions WHERE SourceTypeOrReferenceId = 19 AND SourceEntry = 26646;
+INSERT INTO conditions (SourceTypeOrReferenceId, SourceGroup, SourceEntry, SourceId, ElseGroup, ConditionTypeOrReference, ConditionTarget, ConditionValue1, ConditionValue2, ConditionValue3, NegativeCondition, ErrorType, ErrorTextId, ScriptName, Comment)
+VALUES
+(19, 0, 26646, 0, 0, 8, 0, 26637, 0, 0, 0, 0, 0, '', 'Prisoners of War requires Bravo Company Field Kit: Chloroform'),
+(19, 0, 26646, 0, 0, 8, 0, 26636, 0, 0, 0, 0, 0, '', 'Prisoners of War requires Bravo Company Field Kit: Camouflage'),
+(19, 0, 26646, 0, 0, 8, 0, 26638, 0, 0, 0, 0, 0, '', 'Prisoners of War requires Hunting the Hunters');
+
+-- This makes Jorgensen NPCs not be visible when player is on quest with Jorgensen guardian
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 32 AND `SourceGroup` = 5 AND `SourceEntry` IN (43609, 43460);
+INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `NegativeCondition`, `ErrorType`, `ErrorTextId`, `ScriptName`, `Comment`) VALUES
+(32, 5, 43609, 0, 0, 8, 0, 26651, 0, 0, 0, 0, 0, '', 'Jorgensen (Canyon) visible when quest 26651 To Win A War You Gotta Become War is rewarded'),
+(32, 5, 43460, 0, 0, 14, 0, 26646, 0, 0, 0, 0, 0, '', 'Jorgensen (camp) visible when quest 26646 Prisoners of War is NOT taken');
+
+-- Condition: terrain swap 751 active when in area 5324 AND quest 26668 is complete
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 25 AND `SourceEntry` = 751;
+INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `NegativeCondition`, `ErrorType`, `ErrorTextId`, `ScriptName`, `Comment`) VALUES
+(25, 0, 751, 0, 0, 23, 0, 997, 0, 0, 0, 0, 0, '', 'TerrainSwap 751 active when in area 997 Render''s Valley'),
+(25, 0, 751, 0, 0, 8, 0, 26668, 0, 0, 0, 0, 0, '', 'TerrainSwap 751 active when quest 26668 Detonation is complete');
+
+-- Register terrain swap 751 on map 0 (Eastern Kingdoms)
+DELETE FROM `terrain_swap_defaults` WHERE `MapId` = 0 AND `TerrainSwapMap` = 751;
+INSERT INTO `terrain_swap_defaults` (`MapId`, `TerrainSwapMap`, `Comment`) VALUES 
+(0, 751, 'Eastern Kingdoms - Redridge - Orc Bomb');
 
 -- Script Names
 UPDATE `creature_template` SET `ScriptName` = 'npc_guard_bateman' WHERE `entry` = 43081;
@@ -183,6 +238,7 @@ UPDATE `creature_template` SET `ScriptName` = 'npc_spawned_danforth' WHERE `entr
 UPDATE `creature_template` SET `ScriptName` = 'npc_keeshan_riverboat' WHERE `entry` = 43450;
 UPDATE `creature_template` SET `ScriptName` = 'npc_wild_rat' WHERE `entry` = 43518;
 UPDATE `creature_template` SET `ScriptName` = 'npc_kidnapped_redridge_citizen' WHERE `entry` IN (43572, 43571);
+UPDATE `creature_template` SET `ScriptName` = 'npc_keeshan_canyon' WHERE `entry` = 43611;
 UPDATE `gameobject_template` SET `ScriptName` = 'go_chain_lever' WHERE `entry` = 204403;
 UPDATE `gameobject_template` SET `ScriptName` = 'go_blackrock_holding_pen' WHERE `entry` IN (204441,204442,204435);
 
@@ -210,12 +266,14 @@ INSERT INTO `areatrigger_scripts` (`entry`, `ScriptName`) VALUES
 
 -- Spell Scripts
 DELETE FROM `spell_script_names` WHERE `spell_id` = 82580 AND `ScriptName` = 'spell_bravo_company_field_kit';
-INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
-(82580, 'spell_bravo_company_field_kit');
-
+DELETE FROM `spell_script_names` WHERE `spell_id` = 82587 AND `ScriptName` = 'spell_bravo_company_field_kit2';
 DELETE FROM `spell_script_names` WHERE `spell_id` = 82578 AND `ScriptName` = 'spell_distraction';
+DELETE FROM `spell_script_names` WHERE `spell_id` = 82585 AND `ScriptName` = 'spell_plant_seaforium';
 INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
-(82578, 'spell_distraction');
+(82580, 'spell_bravo_company_field_kit'),
+(82587, 'spell_bravo_company_field_kit2'),
+(82578, 'spell_distraction'),
+(82585, 'spell_plant_seaforium');
 
 -- Creature Difficulties
 -- Remove incorrect records
@@ -261,6 +319,15 @@ UPDATE `creature_template_addon` SET `StandState` = 8 WHERE `Entry` = 43458;
 -- this is not the right spell id/emote for Brubaker but close enough. May be done via an anim kit
 UPDATE `creature_template_addon` SET `auras` = '75038', `emote` = 420 WHERE `Entry` = 43508;
 
+DELETE FROM `creature_template_addon` WHERE `entry` IN (43607,43608,43609,43610,43611);
+INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `MountCreatureID`, 
+`StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES
+(43607, 0, 0, 0, 0, 0, 0, 1, 1, 45, 0, 0, 0, 0, '81240'),
+(43608, 0, 0, 0, 0, 0, 0, 1, 1, 45, 0, 0, 0, 0, '81240'),
+(43609, 0, 0, 0, 0, 0, 0, 1, 1, 45, 0, 0, 0, 0, '81240'), 
+(43610, 0, 0, 0, 0, 0, 0, 1, 1, 45, 0, 0, 0, 0, '81240'),
+(43611, 0, 0, 0, 0, 0, 0, 2, 1, 45, 0, 0, 0, 0, '81240');
+
 -- SAI
 UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (147222);
 DELETE FROM smart_scripts WHERE entryorguid IN (147222) AND source_type = 0;
@@ -298,7 +365,7 @@ UPDATE `smart_scripts` SET `link` = 4 WHERE `entryorguid` = 7013 AND `source_typ
 
 -- Creatures
 SET @CGUID := 900000;
-DELETE FROM `creature` WHERE `guid` BETWEEN @CGUID+3294 AND @CGUID+3300;
+DELETE FROM `creature` WHERE `guid` BETWEEN @CGUID+3294 AND @CGUID+3313;
 INSERT INTO `creature` (`guid`, `id`, `map`, `zoneId`, `areaId`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `wander_distance`, `MovementType`) VALUES 
 (@CGUID+3294, 147222, 0, 44, 1001, 0, -9732.28, -2104.18, 59.7424, 5.13223, 3600, 0, 0),
 
@@ -308,15 +375,40 @@ INSERT INTO `creature` (`guid`, `id`, `map`, `zoneId`, `areaId`, `equipment_id`,
 (@CGUID+3298, 43461, 0, 44, 5326, 1, -9463.3, -2824.85, 65.2785, 4.32189, 180, 0, 0),
 (@CGUID+3299, 43462, 0, 44, 5326, 1, -9465.57, -2825.34, 65.2785, 5.5047, 180, 0, 0),
 
-(@CGUID+3300, 43508, 0, 44, 44, 0, -9676.09, -2842, 53.5381, 0.070987, 180, 0, 0);
+(@CGUID+3300, 43508, 0, 44, 44, 0, -9676.09, -2842, 53.5381, 0.070987, 180, 0, 0),
+(@CGUID+3301, 43611, 0, 44, 5324, 2, -9638.4, -3473.14, 121.843, 1.79314, 180, 0, 0),
+(@CGUID+3302, 43610, 0, 44, 5324, 1, -9641.01, -3473.21, 121.805, 1.34201, 180, 0, 0),
+(@CGUID+3303, 43608, 0, 44, 5324, 1, -9645.09, -3473.53, 122.049, 1.73785, 180, 0, 0),
+(@CGUID+3304, 43607, 0, 44, 5324, 1, -9635.58, -3472.87, 121.929, 1.78922, 180, 0, 0),
+(@CGUID+3305, 43609, 0, 44, 5324, 1, -9632.63, -3472.2, 121.758, 2.03893, 180, 0, 0),
+
+(@CGUID+3306, 43222, 0, 44, 5324, 0, -9625.72, -3483.12, 121.957, 4.75327, 300, 0, 0),
+(@CGUID+3307, 43222, 0, 44, 5324, 0, -9624.64, -3483.68, 121.957, 3.30641, 300, 0, 0),
+(@CGUID+3308, 43222, 0, 44, 5324, 0, -9605.37, -3494.47, 121.956, 0.224995, 300, 0, 0),
+(@CGUID+3309, 43222, 0, 44, 5324, 0, -9601.48, -3496.29, 121.956, 2.31796, 300, 0, 0),
+(@CGUID+3310, 43222, 0, 44, 5324, 0, -9601.65, -3493.69, 121.956, 3.67116, 300, 0, 0),
+(@CGUID+3311, 43247, 0, 44, 5324, 0, -9626.29, -3484.53, 121.957, 0.899735, 300, 0, 0),
+(@CGUID+3312, 43247, 0, 44, 5324, 0, -9619.16, -3487.82, 121.957, 1.26784, 300, 0, 0),
+(@CGUID+3313, 43247, 0, 44, 5324, 0, -9603.82, -3492.5, 121.956, 4.71805, 300, 0, 0);
 
 -- Creature Spawn Fixes
-DELETE FROM `creature_addon` WHERE `guid` IN (334690,334613,334610,334572);
+DELETE FROM `creature_addon` WHERE `guid` IN (334690,334613,334610,334572,
+@CGUID+3306,@CGUID+3307,@CGUID+3308,@CGUID+3309,@CGUID+3310,@CGUID+3311,@CGUID+3312,@CGUID+3313);
 INSERT INTO `creature_addon` (`guid`, `emote`) VALUES 
 (334572, 455),
 (334690, 455),
 (334613, 455),
 (334610, 455);
+
+INSERT INTO `creature_addon` (`guid`, `StandState`, `auras`) VALUES 
+(@CGUID+3306, 0, '81240'),
+(@CGUID+3307, 0, '81240'),
+(@CGUID+3308, 0, '81240'),
+(@CGUID+3309, 1, '81240'),
+(@CGUID+3310, 0, '81240'),
+(@CGUID+3311, 0, '81240'),
+(@CGUID+3312, 1, '81240'),
+(@CGUID+3313, 0, '81240');
 
 UPDATE creature SET MovementType = 1, wander_distance = 8
 WHERE id IN (
@@ -326,17 +418,25 @@ WHERE id IN (
 
 UPDATE creature SET MovementType = 1, wander_distance = 3
 WHERE id IN (
-    580,43185
+    580,43185,335475,335476
 );
 
 -- Creature spawns that should be fixed
 UPDATE `creature` SET MovementType = 0, wander_distance = 0 WHERE `guid` IN (
-335383,335367,335368,335369,335313,335314,335317,335318,335288,335289,335372,335360,335269,335270);
+335383,335367,335368,335369,335313,335314,335317,335318,335288,335289,335372,335360,335269,335270,335316,335319);
 
 -- Creature spawns static flags
-DELETE FROM `creature_static_flags_override` WHERE `SpawnId` IN (335293,335294,335262,335324);
+DELETE FROM `creature_static_flags_override` WHERE `SpawnId` IN (335293,335294,335262,335324,335285);
 INSERT INTO `creature_static_flags_override` (`SpawnId`,`DifficultyId`,`StaticFlags1`) VALUES
 (335293, 0, 524288),
 (335324, 0, 524288),
 (335262, 0, 524288),
-(335294, 0, 524288);
+(335294, 0, 524288),
+(335285, 0, 524288);
+
+-- Gameobjects
+SET @OGUID := 900000;
+DELETE FROM `gameobject` WHERE `guid` BETWEEN @OGUID+226 AND @OGUID+227;
+INSERT INTO `gameobject` (`guid`, `id`, `map`, `zoneId`, `areaId`, `position_x`, `position_y`, `position_z`, `orientation`, `rotation0`, `rotation1`, `rotation2`, `rotation3`, `spawntimesecs`, `animprogress`, `state`) VALUES 
+(@OGUID+226, 204448, 0, 44, 997, -9722.81, -3117.12, 59.8467, 5.52537, -0, -0, -0.369906, 0.929069, 300, 255, 1),
+(@OGUID+227, 204448, 0, 44, 997, -9739.12, -3185.09, 81.9956, 0.0451181, -0, -0, -0.0225567, -0.999746, 300, 255, 1);

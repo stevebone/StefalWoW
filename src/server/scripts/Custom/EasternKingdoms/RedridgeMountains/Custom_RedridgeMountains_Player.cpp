@@ -83,7 +83,8 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
 
         void OnLogin(Player* player, bool /*firstLogin*/) override
         {
-            if (player->GetQuestStatus(Quests::PrisonersOfWar) == QUEST_STATUS_INCOMPLETE)
+            if (player->GetQuestStatus(Quests::PrisonersOfWar) == QUEST_STATUS_INCOMPLETE ||
+                (player->IsActiveQuest(Quests::ToWinAWarYouGottaBecomeWar) && player->GetQuestStatus(Quests::ToWinAWarYouGottaBecomeWar) != QUEST_STATUS_REWARDED))
                 player->CastSpell(player, Spells::SummonPersonalGuardianJorgensen, CastSpellExtraArgs(TRIGGERED_FULL_MASK));
         }
     };

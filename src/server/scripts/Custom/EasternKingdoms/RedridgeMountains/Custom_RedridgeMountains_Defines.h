@@ -34,6 +34,8 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
         static constexpr uint32 AndLastButNotLeastDanforth = 26562;
         static constexpr uint32 ItsNeverOver = 26616;
         static constexpr uint32 PrisonersOfWar = 26646;
+        static constexpr uint32 ToWinAWarYouGottaBecomeWar = 26651;
+        static constexpr uint32 Detonation = 26668;
     }
 
     namespace AreaTriggers
@@ -74,8 +76,12 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
         static constexpr uint32 BlackrockDrakeRider = 43533;
         static constexpr uint32 BlackrockWarden = 43535;
         static constexpr uint32 PrisonerOfWarKillCredit = 43574;
+        static constexpr uint32 MunitionsDump = 43589;
+        static constexpr uint32 BlackrockTower = 43590;
         static constexpr uint32 KidnappedRedridgeCitizenMale = 43572;
         static constexpr uint32 KidnappedRedridgeCitizenFemale = 43571;
+        static constexpr uint32 KeeshanCanyon = 43611;
+        static constexpr uint32 MessnerCanyon = 43610;
     }
 
     namespace GameObjects
@@ -84,6 +90,9 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
         static constexpr uint32 JorgensensCage = 204393;
         static constexpr uint32 ChainLever = 204403;
         static constexpr uint32 BlackrockHoldingPen = 204441;
+        static constexpr uint32 PlantSeaforiumHere = 204448;
+        static constexpr uint32 SeaforiumBomb = 204447;
+        static constexpr uint32 BlackrockExplosiveDevice = 204444;
     }
 
     namespace Spells
@@ -123,6 +132,9 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
         static constexpr uint32 DistractionVisual = 81370;
         static constexpr uint32 Distraction = 82578;
         static constexpr uint32 SummonPersonalGuardianJorgensen = 82005;
+        static constexpr uint32 BravoCompanyFieldKit2 = 82587;
+        static constexpr uint32 CancelBravoCompanyFieldKit2 = 82592;
+        static constexpr uint32 TeleportToShalewindCanyon = 81621;
     }
 
     namespace Events
@@ -159,6 +171,7 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
         static constexpr uint32 JorgensenGuardianCombatSpell = 30;
         static constexpr uint32 JorgensenGuardianHeal = 31;
         static constexpr uint32 CitizenFleeToPoint2 = 32;
+        static constexpr uint32 KeeshanCanyonTalk = 33;
     }
 
     namespace Talks
@@ -169,6 +182,8 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
         static constexpr uint32 MessnerSay02 = 2;
         static constexpr uint32 JorgensenSay00 = 0;
         static constexpr uint32 JorgensenSay01 = 1;
+        static constexpr uint32 KeeshanCanyonSay00 = 0;
+        static constexpr uint32 MessnerCanyonSay00 = 0;
     }
 
     namespace Spawns

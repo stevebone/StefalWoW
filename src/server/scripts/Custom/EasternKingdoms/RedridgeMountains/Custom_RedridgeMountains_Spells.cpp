@@ -21,6 +21,8 @@
  */
 
 #include "CreatureAI.h"
+#include "GameObject.h"
+#include "ObjectAccessor.h"
 #include "Player.h"
 #include "ScriptMgr.h"
 #include "SpellScript.h"
@@ -91,6 +93,95 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
             OnHit += SpellHitFn(spell_distraction::HandleHit);
         }
     };
+
+    // 82587 - Bravo Company Field Kit
+    class spell_bravo_company_field_kit2 : public SpellScript
+    {
+        SpellCastResult CheckCast()
+        {
+            Unit* caster = GetCaster();
+            if (!caster)
+                return SPELL_FAILED_DONT_REPORT;
+
+            if (caster->HasAura(Spells::BravoCompanyFieldKit2))
+            {
+                caster->CastSpell(caster, Spells::CancelBravoCompanyFieldKit2, true);
+                return SPELL_FAILED_DONT_REPORT;
+            }
+
+            return SPELL_CAST_OK;
+        }
+
+        void HandleHit()
+        {
+            Player* player = GetCaster()->ToPlayer();
+            if (!player)
+                return;
+
+            std::list<TempSummon*> minions;
+            player->GetAllMinionsByEntry(minions, Creatures::JorgensenGuardian);
+            for (TempSummon* minion : minions)
+            {
+                // Am using SetData to trigger the broadcast
+                minion->AI()->SetData(1, 9);
+            }
+        }
+
+        void Register() override
+        {
+            OnCheckCast += SpellCheckCastFn(spell_bravo_company_field_kit2::CheckCast);
+            OnHit += SpellHitFn(spell_bravo_company_field_kit2::HandleHit);
+        }
+    };
+
+    // 82585 - Plant Seaforium
+    class spell_plant_seaforium : public SpellScript
+    {
+        void HandleAfterCast()
+        {
+            Player* player = GetCaster()->ToPlayer();
+            if (!player)
+                return;
+
+            GameObject* focusGO = player->FindNearestGameObject(GameObjects::PlantSeaforiumHere, 10.0f);
+            if (!focusGO)
+                return;
+
+            if (GameObject* bombGO = player->SummonGameObject(GameObjects::SeaforiumBomb, focusGO->GetPosition(),
+                QuaternionData::fromEulerAnglesZYX(focusGO->GetOrientation(), 0.0f, 0.0f), 0s))
+            {
+                ObjectGuid playerGuid = player->GetGUID();
+                bombGO->m_Events.AddEventAtOffset([playerGuid, bombGO]()
+                    {
+                        Player* player = ObjectAccessor::FindPlayer(playerGuid);
+                        if (player)
+                        {
+                            bombGO->Use(player);
+                            bombGO->DespawnOrUnsummon(2min);
+                        }
+                    }, 1s);
+            }
+
+            GameObject* explosiveDevice = player->FindNearestGameObject(GameObjects::BlackrockExplosiveDevice, 10.0f);
+            if (explosiveDevice)
+            {
+                player->KilledMonsterCredit(Creatures::MunitionsDump);
+                if (Creature* jorgensen = player->FindNearestCreature(Creatures::JorgensenGuardian, 10.0f))
+                    jorgensen->AI()->SetData(1, 10);
+            }
+            else
+            {
+                player->KilledMonsterCredit(Creatures::BlackrockTower);
+                if (Creature* jorgensen = player->FindNearestCreature(Creatures::JorgensenGuardian, 10.0f))
+                    jorgensen->AI()->SetData(1, 11);
+            }
+        }
+
+        void Register() override
+        {
+            AfterCast += SpellCastFn(spell_plant_seaforium::HandleAfterCast);
+        }
+    };
 }
 
 void AddSC_custom_redridge_mountains_spells()
@@ -99,4 +190,6 @@ void AddSC_custom_redridge_mountains_spells()
 
     RegisterSpellScript(spell_bravo_company_field_kit);
     RegisterSpellScript(spell_distraction);
+    RegisterSpellScript(spell_bravo_company_field_kit2);
+    RegisterSpellScript(spell_plant_seaforium);
 }
