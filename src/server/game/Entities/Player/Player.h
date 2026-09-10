@@ -64,6 +64,7 @@ struct PvpTalentEntry;
 struct QuestPackageItemEntry;
 struct RewardPackEntry;
 struct SkillRaceClassInfoEntry;
+struct SoulbindEntry;
 struct SpellCastRequest;
 struct TalentEntry;
 struct TrainerSpell;
@@ -79,6 +80,7 @@ class CinematicMgr;
 class Creature;
 class DynamicObject;
 class Garrison;
+enum GarrisonType : int32;
 class Group;
 class Guild;
 class Item;
@@ -1019,11 +1021,23 @@ enum PlayerLoginQueryIndex
     PLAYER_LOGIN_QUERY_LOAD_GARRISON_BUILDINGS,
     PLAYER_LOGIN_QUERY_LOAD_GARRISON_FOLLOWERS,
     PLAYER_LOGIN_QUERY_LOAD_GARRISON_FOLLOWER_ABILITIES,
+    PLAYER_LOGIN_QUERY_LOAD_GARRISON_MISSIONS,
+    PLAYER_LOGIN_QUERY_LOAD_GARRISON_SPECIALIZATIONS,
+    PLAYER_LOGIN_QUERY_LOAD_GARRISON_SHIPMENTS,
+    PLAYER_LOGIN_QUERY_LOAD_GARRISON_TALENTS,
+    PLAYER_LOGIN_QUERY_LOAD_GARRISON_TROPHIES,
+    PLAYER_LOGIN_QUERY_LOAD_GARRISON_ARCHIVED_MISSIONS,
     PLAYER_LOGIN_QUERY_LOAD_TRAIT_ENTRIES,
     PLAYER_LOGIN_QUERY_LOAD_TRAIT_CONFIGS,
     PLAYER_LOGIN_QUERY_LOAD_DATA_ELEMENTS,
     PLAYER_LOGIN_QUERY_LOAD_DATA_FLAGS,
     PLAYER_LOGIN_QUERY_LOAD_BANK_TAB_SETTINGS,
+    PLAYER_LOGIN_QUERY_LOAD_COVENANT,
+    PLAYER_LOGIN_QUERY_LOAD_SOULBIND_CONDUITS,
+    PLAYER_LOGIN_QUERY_LOAD_SOULBIND_CONDUIT_SOCKETS,
+    PLAYER_LOGIN_QUERY_LOAD_RENOWN_REWARDS,
+    PLAYER_LOGIN_QUERY_LOAD_COVENANT_CALLINGS,
+    PLAYER_LOGIN_QUERY_LOAD_COVENANT_SOULBINDS,
     MAX_PLAYER_LOGIN_QUERY
 };
 
@@ -1281,7 +1295,7 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         void ToggleDND();
         bool isAFK() const { return HasPlayerFlag(PLAYER_FLAGS_AFK); }
         bool isDND() const { return HasPlayerFlag(PLAYER_FLAGS_DND); }
-        uint16 GetChatFlags() const;
+        uint32 GetChatFlags() const;
         std::string autoReplyMsg;
 
         int64 GetBarberShopCost(Trinity::IteratorPair<UF::ChrCustomizationChoice const*> newCustomizations) const;
@@ -2378,6 +2392,9 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         void LearnSkillRewardedSpells(uint32 skillId, uint32 skillValue, Races race);
         int32 GetProfessionSlotFor(uint32 skillId) const;
         int32 FindEmptyProfessionSlotFor(uint32 skillId) const;
+        // Releases or reassigns one of the two primary profession tool slots. Needed by skills that are
+        // SkillCategory 11 without being a primary profession (e.g. the covenant tradeskill Abominable Stitching).
+        void SetProfessionSkillLine(uint32 pos, int32 skillLineId) { SetUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::ProfessionSkillLine, pos), skillLineId); }
         uint16 GetSkillLineIdByPos(uint32 pos) const { return m_activePlayerData->Skill->SkillLineID[pos]; }
         void SetSkillLineId(uint32 pos, uint16 skillLineId) { SetUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::Skill).ModifyValue(&UF::SkillInfo::SkillLineID, pos), skillLineId); }
         uint16 GetSkillStepByPos(uint32 pos) const { return m_activePlayerData->Skill->SkillStep[pos]; }
@@ -2880,8 +2897,133 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         void UnlockReagentBank() { SetPlayerFlagEx(PLAYER_FLAGS_EX_REAGENT_BANK_UNLOCKED); }
 
         void CreateGarrison(uint32 garrSiteId);
-        void DeleteGarrison();
-        Garrison* GetGarrison() const { return _garrison.get(); }
+        void DeleteGarrison(GarrisonType type = GarrisonType(2) /*GARRISON_TYPE_GARRISON*/);
+        Garrison* GetGarrison() const { return GetGarrison(GarrisonType(2) /*GARRISON_TYPE_GARRISON*/); }
+        Garrison* GetGarrison(GarrisonType type) const;
+        // The player's garrison (of ANY type) currently holding the mission with this recID, or nullptr. Lets the
+        // mission opcode handlers act on the right garrison (WoD / class order hall / covenant) instead of always
+        // defaulting to the WoD garrison.
+        Garrison* GetGarrisonWithMission(uint32 missionRecID) const;
+        // Same idea for followers. Follower DbIDs come from a single generator (GarrisonMgr) and are therefore
+        // unique across every garrison a character owns, so a DbID alone identifies exactly one garrison. Handlers
+        // that receive only a FollowerDBID must use this instead of the no-arg GetGarrison(), which resolves the
+        // WoD garrison and silently no-ops for order hall / covenant followers.
+        Garrison* GetGarrisonWithFollower(uint64 followerDbID) const;
+        std::unordered_map<int32, std::unique_ptr<Garrison>> const& GetGarrisons() const { return _garrisons; }
+
+        // Covenant / Soulbind
+        uint32 GetActiveCovenant() const { return m_activeCovenantId; }
+        uint32 GetActiveSoulbind() const { return m_activeSoulbindId; }
+        void ActivateSoulbind(SoulbindEntry const* soulbind);   // validates + persists; reapplies conduit effects
+
+        // Soulbind conduit collection (server-authoritative: conduitId -> owned RankIndex)
+        bool HasConduit(uint32 conduitId) const { return m_soulbindConduits.find(conduitId) != m_soulbindConduits.end(); }
+        int32 GetConduitRank(uint32 conduitId) const;
+        // Read-only view of the whole conduit collection. Used by ModifierTreeType
+        // PlayerSoulbindConduitCountAtRankEqualOrGreaterThan (309), which counts conduits at a minimum rank.
+        std::unordered_map<uint32 /*conduitId*/, uint32 /*rankIndex*/> const& GetSoulbindConduits() const { return m_soulbindConduits; }
+        bool CollectConduit(uint32 conduitId, int32 rankIndex = -1);   // grant/upgrade; rankIndex < 0 => lowest defined rank
+        // SPELL_EFFECT_SET_COVENANT. Joins, switches or (covenantId 0 - spell 338503 "Reset Covenant") leaves a
+        // covenant. Never destroys anything belonging to a covenant the character may return to; see the function.
+        void SetActiveCovenant(uint32 covenantId);
+        void ApplyCovenantSkillLines();                         // grant the active covenant's SkillLine, strip the other three (idempotent)
+
+        // Covenant switching / reset (retail spell 338503 "Reset Covenant": SPELL_EFFECT_SET_COVENANT with
+        // MiscValue 0 + SPELL_EFFECT_QUEST_FAIL on all four covenant-choice quests 56066-56069).
+        //
+        // Highest renown level the character has reached on ANY covenant (0 when it has none anywhere).
+        uint32 GetHighestCovenantRenownLevel() const;
+        // Renown level at which a covenant's track is full: CurrencyTypes 1829-1832 MaxQty 79 + 1 = Renown 80.
+        static uint32 GetMaxCovenantRenownLevel();
+        // The 9.1.5 rule: once any covenant has reached max renown (80) switching is free and unpenalised.
+        bool IsCovenantSwitchUnlocked() const;
+        // True when the character may leave its current covenant for a different one right now. Trivially true for
+        // a character that has not pledged yet.
+        bool CanChangeCovenant() const;
+        // Soulbind the character last had active for a covenant (0 when it never picked one). Remembered per
+        // covenant so returning to a covenant restores the soulbind - and with it its conduits and traits.
+        uint32 GetRememberedCovenantSoulbind(uint32 covenantId) const;
+        // True when the character has pledged to this covenant at least once before.
+        bool HasEverJoinedCovenant(uint32 covenantId) const;
+        // True when the character has pledged to any covenant at least once before.
+        bool HasEverJoinedAnyCovenant() const { return !m_covenantSoulbinds.empty(); }
+        void TryCollectConduitFromItem(Item* item);                    // auto-collect when a conduit item is acquired (SoulbindConduitItem)
+        // Socketed conduits for a soulbind tree: GarrTalent node id -> conduitId
+        bool SocketConduit(uint32 garrTalentTreeId, uint32 garrTalentId, uint32 conduitId);   // validates ownership + covenant, persists, applies spell
+        void RemoveConduitSocket(uint32 garrTalentId);
+        void ApplyConduitSpells();      // (re)apply spells for all currently-socketed conduits of the active soulbind
+        void RemoveConduitSpells();     // strip conduit spells (on soulbind switch)
+        int32 GetConduitSpell(uint32 conduitId) const;   // owned rank -> SoulbindConduitRank.SpellID (0 if none)
+        // Non-conduit soulbind trait nodes (GarrTalentRank.PerkSpellID on the 12 soulbind GarrTalentTrees). All 12
+        // trees live in the same GarrType 111 garrison, so like conduits these are scoped to the ACTIVE soulbind.
+        void ApplySoulbindTraitSpells();
+        void RemoveSoulbindTraitSpells();
+
+        // Covenant renown.
+        //
+        // There are two renown engines and Covenant.db2 feeds both:
+        //  - Dragonflight and later major factions (Covenant.db2 rows 12+) run on renown REPUTATION: their
+        //    Faction row publishes RenownCurrencyID, ReputationMgr::IsRenownReputation is true and
+        //    ReputationMgr::GetRenownLevel returns the level. UpdateRenownRewards(FactionEntry const*) serves those.
+        //  - The four Shadowlands covenants (1-4) do NOT. Factions 2407/2410/2413/2465 publish
+        //    RenownCurrencyID = 0 and RenownFactionID = 0, so IsRenownReputation is false for them and the
+        //    reputation path can never fire for a covenant. Their renown is the per-covenant currency named by
+        //    Covenant.db2 CurrencyTypesID (1829 Kyrian / 1830 Venthyr / 1831 Night Fae / 1832 Necrolord).
+        //    That is also why one character can hold four independent renown tracks.
+        // Both paths converge on GrantRenownRewardsUpTo(), which grants each RenownRewards row exactly once.
+        void UpdateRenownRewards(FactionEntry const* renownFaction);
+        void UpdateAllRenownRewards();   // login catch-up: grant any renown rewards earned before this feature existed
+
+        // The currency a Shadowlands covenant stores its renown in, or nullptr for any covenant whose renown is
+        // reputation-driven (and therefore not handled here).
+        static CurrencyTypesEntry const* GetCovenantRenownCurrency(uint32 covenantId);
+        // Inverse lookup: which Shadowlands covenant owns this currency id (0 if none).
+        static uint32 GetCovenantIdForRenownCurrency(uint32 currencyId);
+        // Renown level of a Shadowlands covenant (defaults to the active one). 0 when the covenant has no
+        // currency-driven renown; otherwise >= 1, because currency quantity 0 is Renown 1.
+        uint32 GetCovenantRenownLevel(uint32 covenantId = 0) const;
+        // Grant the RenownRewards rows unlocked by the covenant's current currency-driven renown level.
+        void UpdateCovenantRenownRewards(uint32 covenantId);
+        // Keep the shared display currency (1822 "Renown") equal to the ACTIVE covenant's track. The client's
+        // renown UI and every renown PlayerCondition/ModifierTree in the build read 1822, never 1829-1832.
+        void SyncCovenantRenownDisplayCurrency();
+        // Whether accelerated renown catch-up is currently running for this player
+        // (answers SMSG_COVENANT_RENOWN_SEND_CATCHUP_STATE).
+        bool IsCovenantRenownCatchupActive() const;
+
+        // The reservoir anima track of a Shadowlands covenant (CurrencyTypes 1859-1862), or nullptr for a
+        // covenant that has none. See Player::SyncCovenantAnimaDisplayCurrency for why 1813 is only a view.
+        static CurrencyTypesEntry const* GetCovenantAnimaCurrency(uint32 covenantId);
+        // Inverse lookup: which Shadowlands covenant owns this reservoir-anima currency id (0 if none).
+        static uint32 GetCovenantIdForAnimaCurrency(uint32 currencyId);
+        // Keep the shared display currency (1813 "Reservoir Anima") equal to the ACTIVE covenant's track.
+        void SyncCovenantAnimaDisplayCurrency();
+        // One-shot, non-destructive: hand any anima held only on the 1813 view to the active covenant's track.
+        void MigrateLegacyReservoirAnima();
+
+        // Covenant Callings (the daily bounty board answered by CMSG_REQUEST_COVENANT_CALLINGS).
+        //
+        // A calling board is per covenant and holds exactly CovenantCallings::MaxSlots slots. A slot either
+        // holds a bounty (with the moment it expires) or is empty (with the daily reset at which it refills).
+        // Everything is anchored on daily-reset boundaries so the board rolls over exactly at reset and is a
+        // pure function of stored timestamps - it needs no scheduler and survives a restart untouched.
+        struct CovenantCallingSlot
+        {
+            uint32 BountyID = 0;        // 0 = empty slot
+            time_t ExpireTime = 0;      // occupied slot: when the offer lapses (always a reset boundary + 3 days)
+            time_t RefillTime = 0;      // empty slot: the reset boundary at which a new bounty is issued
+        };
+
+        // Are callings unlocked for the active covenant (BountySet.VisiblePlayerConditionID)?
+        bool AreCovenantCallingsUnlocked() const;
+        // Run the board's lifecycle (expire, schedule, issue) up to "now". Cheap and idempotent.
+        void UpdateCovenantCallings();
+        // The bounty ids currently offered, in slot order (empty slots omitted).
+        std::vector<int32> GetCovenantCallingBountyIDs() const;
+        // Send SMSG_COVENANT_CALLINGS_AVAILABILITY_RESPONSE with the current board.
+        void SendCovenantCallingsUpdate();
+        // A calling quest was turned in - free its slot so the next daily reset issues a replacement.
+        void OnCovenantCallingCompleted(uint32 questId);
 
         bool IsAdvancedCombatLoggingEnabled() const { return _advancedCombatLoggingEnabled; }
         void SetAdvancedCombatLogging(bool enabled) { _advancedCombatLoggingEnabled = enabled; }
@@ -3130,6 +3272,21 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         void _LoadMail(PreparedQueryResult mailsResult, PreparedQueryResult mailItemsResult, PreparedQueryResult artifactResult, PreparedQueryResult azeriteItemResult,
             PreparedQueryResult azeriteItemMilestonePowersResult, PreparedQueryResult azeriteItemUnlockedEssencesResult, PreparedQueryResult azeriteEmpoweredItemResult);
         static Item* _LoadMailedItem(ObjectGuid const& playerGuid, Player* player, uint64 mailId, Mail* mail, Field* fields, ItemAdditionalLoadInfo* addionalData);
+        void _LoadCovenant(PreparedQueryResult result);
+        void _LoadCovenantSoulbinds(PreparedQueryResult result);
+        // Record (and persist) the soulbind a covenant was last using, so a switch away from it can be undone.
+        void RememberCovenantSoulbind(uint32 covenantId, uint32 soulbindId);
+        void _LoadSoulbindConduits(PreparedQueryResult result);
+        void _LoadSoulbindConduitSockets(PreparedQueryResult result);
+        void _LoadRenownRewards(PreparedQueryResult result);
+        void _LoadCovenantCallings(PreparedQueryResult result);
+        void _SaveCovenantCallings(CharacterDatabaseTransaction trans);
+        // Pick a bounty for one empty slot out of the covenant's BountySet pool (0 when nothing is eligible).
+        uint32 RollCovenantCalling(uint32 covenantId, uint8 slot, time_t issueTime) const;
+        void GrantRenownReward(RenownRewardsEntry const* reward);
+        // Shared tail of both renown engines: grant every not-yet-granted RenownRewards row up to currentLevel
+        // for this covenant, then persist the new high-water mark to character_covenant_renown.
+        void GrantRenownRewardsUpTo(uint32 covenantId, int32 currentLevel);
         void _LoadQuestStatus(PreparedQueryResult result);
         void _LoadQuestStatusObjectives(PreparedQueryResult result);
         void _LoadQuestStatusObjectiveSpawnTrackings(PreparedQueryResult result);
@@ -3365,6 +3522,24 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
 
         MapReference m_mapRef;
 
+        // Covenant / soulbind (server-authoritative; the client already knows its own active soulbind choice).
+        uint32 m_activeCovenantId = 0;
+        uint32 m_activeSoulbindId = 0;
+        std::unordered_map<uint32 /*covenantId*/, uint32 /*grantedRenownLevel*/> m_renownRewardsGranted;
+        // Last soulbind used per covenant (character_covenant_soulbind). A row exists for every covenant the
+        // character has ever pledged to, even with soulbindId 0, so this doubles as the "covenants ever joined"
+        // set that tells a switch apart from a first pledge.
+        std::unordered_map<uint32 /*covenantId*/, uint32 /*soulbindId*/> m_covenantSoulbinds;
+        std::unordered_map<uint32 /*conduitId*/, uint32 /*rankIndex*/> m_soulbindConduits;
+        // garrTalent node id -> (conduitId, garrTalentTreeID); tree id lets us apply only the active soulbind's sockets
+        std::unordered_map<uint32 /*garrTalentId*/, std::pair<uint32 /*conduitId*/, uint32 /*treeId*/>> m_soulbindConduitSockets;
+        // Calling boards, one per covenant the character has ever had callings for (a covenant switch must not
+        // discard the other covenant's board - the per-covenant currencies prove Blizzard keeps all four tracks).
+        std::unordered_map<uint32 /*covenantId*/, std::vector<CovenantCallingSlot>> m_covenantCallings;
+        bool m_covenantCallingsChanged = false;
+        // Re-entrancy latch for the 1813 <-> 1859-1862 reservoir-anima mirror; see Player::CurrencyChanged.
+        bool m_covenantAnimaSyncing = false;
+
         uint32 m_lastFallTime;
         float  m_lastFallZ;
 
@@ -3401,7 +3576,7 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
 
         uint32 _activeCheats;
 
-        std::unique_ptr<Garrison> _garrison;
+        std::unordered_map<int32 /*GarrisonType*/, std::unique_ptr<Garrison>> _garrisons;
 
         bool _advancedCombatLoggingEnabled;
 

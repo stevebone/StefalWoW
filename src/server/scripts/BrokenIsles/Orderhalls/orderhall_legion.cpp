@@ -1,0 +1,255 @@
+/*
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 2 of the License, or (at your
+ * option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+// Legion class order halls + the Beast Mastery Hunter artifact quest ("Stolen Thunder" -> Titanstrike). Class-quest
+// content lives here under BrokenIsles/Orderhalls (matching zone_orderhall_warrior.cpp), NOT in the WoD garrison core.
+#include "Creature.h"
+#include "DB2Structure.h"
+#include "EventProcessor.h"
+#include "GameObject.h"
+#include "GameObjectAI.h"
+#include "Garrison.h"
+#include "MotionMaster.h"
+#include "ObjectAccessor.h"
+#include "ObjectMgr.h"
+#include "Player.h"
+#include "QuestDef.h"
+#include "ScriptedCreature.h"
+#include "ScriptedGossip.h"
+#include "ScriptMgr.h"
+#include "SharedDefines.h"
+#include "TemporarySummon.h"
+#include "Unit.h"
+
+#include <algorithm>
+#include <cmath>
+#include <iterator>
+#include <mutex>
+#include <unordered_map>
+#include <vector>
+
+// ============================================================
+// Legion Class Order Halls (GarrType 3)
+// ============================================================
+// A class order hall is a GarrType-3 garrison. The GarrSite is per FACTION, not per class (matches the client /
+// AshamaneCore): Alliance = 161, Horde = 163. The class-specific content (physical hall, champions) is keyed by the
+// player's class. Each class has a QuestInfoID-107 intro chain given by its hall leader; retail establishes the hall
+// and recruits champions via SPELL_EFFECT_CREATE_GARRISON / follower-grant spells. We hook the two key quests'
+// REWARDED status per class so the trigger is independent of that (offline-unavailable) spell-effect layout.
+enum ClassOrderHallSites
+{
+    GARR_SITE_CLASS_HALL_ALLIANCE = 161,
+    GARR_SITE_CLASS_HALL_HORDE    = 163
+};
+
+// Per-class order-hall data. EstablishQuest creates the hall + recruits the leader (Champions[0]); ChampionQuest
+// recruits the remaining champions + seeds the mission board. Champions are GarrFollower ids (GarrType 3), leader
+// first. Add one row per class as its data is verified, and bind BOTH of that class's quests to ScriptName
+// 'quest_class_order_hall' in quest_template_addon.
+struct ClassOrderHallInfo
+{
+    // The "Rise, Champions"-style unlock quest(s). Completing one creates the hall (if needed) and recruits the full
+    // champion roster. Demon Hunter has two loyalty variants (Illidari vs Altruis).
+    std::vector<uint32> Quests;
+    // Champion GarrFollower ids (GarrType 3, this class per GarrFollower.ChrClassID), leader first.
+    std::vector<uint32> Champions;
+};
+
+// Keyed by class id (Classes enum). Verified vs GarrFollower.db2 (ChrClassID = column 28) + the class order-hall
+// questlines.
+static std::unordered_map<uint8 /*Classes*/, ClassOrderHallInfo> const ClassOrderHalls =
+{
+    { CLASS_WARRIOR,      { { 42598 },        { 708, 709, 710, 711, 712, 713, 714, 715, 989 } } },  // Skyhold (Valarjar)
+    { CLASS_PALADIN,      { { 39696 },        { 478, 479, 480, 755, 756, 757, 758, 759, 1000 } } },  // Sanctum of Light
+    { CLASS_HUNTER,       { { 40954, 40955 }, { 593, 742, 743, 744, 745, 746, 747, 748, 996 } } },  // Trueshot Lodge (Unseen Path)
+    { CLASS_ROGUE,        { { 42139 },        { 591, 778, 779, 780, 890, 891, 892, 893, 988 } } },  // Hall of Shadows (Uncrowned)
+    { CLASS_PRIEST,       { { 43270 },        { 856, 857, 870, 871, 872, 873, 874, 875, 1002 } } },  // Netherlight Temple
+    { CLASS_MONK,         { { 42187 },        { 596, 588, 602, 603, 604, 605, 606, 607, 998 } } },  // Temple of Five Dawns
+    { CLASS_DRUID,        { { 42583 },        { 639, 640, 641, 642, 643, 644, 645, 646, 999 } } },  // The Dreamgrove
+    { CLASS_DEMON_HUNTER, { { 42671, 42670 }, { 595, 498, 722, 721, 499, 594, 807, 718, 719, 720 } } },  // The Fel Hammer (loyalty)
+    { CLASS_DEATH_KNIGHT, { { 43264 },        { 855, 584, 586, 838, 839, 599, 853, 854, 1003 } } },  // Acherus (Ebon Blade)
+    { CLASS_SHAMAN,       { { 42383 },        { 611, 608, 609, 610, 612, 614, 613, 615, 992 } } },  // The Maelstrom (Earthen Ring)
+    { CLASS_MAGE,         { { 42663 },        { 761, 716, 717, 725, 723, 726, 762, 724, 597, 994 } } },  // Hall of the Guardian (Tirisgarde)
+    { CLASS_WARLOCK,      { { 40823, 42608 }, { 589, 619, 617, 618, 620, 621, 616, 590, 997 } } },  // Dreadscar Rift (Black Harvest)
+};
+
+// Bound to every class order hall's unlock quest(s) via quest_template_addon.ScriptName = 'quest_class_order_hall'.
+struct quest_class_order_hall : QuestScript
+{
+    quest_class_order_hall() : QuestScript("quest_class_order_hall") { }
+
+    void OnQuestStatusChange(Player* player, Quest const* quest, QuestStatus /*oldStatus*/, QuestStatus newStatus) override
+    {
+        if (newStatus != QUEST_STATUS_REWARDED)
+            return;
+
+        auto itr = ClassOrderHalls.find(player->GetClass());
+        if (itr == ClassOrderHalls.end())
+            return;
+
+        ClassOrderHallInfo const& info = itr->second;
+        if (std::find(info.Quests.begin(), info.Quests.end(), quest->GetQuestId()) == info.Quests.end())
+            return;
+
+        // Establish the faction's class hall if the player has none, then recruit the class's champions. AddFollower
+        // is idempotent (a duplicate is a no-op), so completing another of the class's unlock quests is harmless.
+        if (!player->GetGarrison(GARRISON_TYPE_CLASS_ORDER))
+            player->CreateGarrison(player->GetTeamId() == TEAM_ALLIANCE ? GARR_SITE_CLASS_HALL_ALLIANCE : GARR_SITE_CLASS_HALL_HORDE);
+
+        Garrison* hall = player->GetGarrison(GARRISON_TYPE_CLASS_ORDER);
+        if (!hall)
+            return;
+
+        for (uint32 champion : info.Champions)
+            hall->AddFollower(champion);
+
+        hall->GenerateAvailableMissions();
+    }
+};
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Class order hall on-ramp - the "class messenger".
+//
+// In retail, once a character arrives in Legion Dalaran the class-hall intro chain's first quest is offered by a
+// class-specific NPC who seeks the player out. In our world DB that NPC's static spawn sits in a scenario/staging area
+// the arriving player never walks through (e.g. Hunter: Vereesa Windrunner 100190 is spawned far below floating
+// Dalaran, in zone 7543 at z~26), so the otherwise-intact chain is effectively unreachable. We reproduce the retail
+// behaviour by summoning a personal copy of the messenger next to an eligible player in Dalaran; the messenger walks
+// up to the player and follows until the root quest is engaged, from which the class-hall chain (culminating in the
+// hall-unlock quest handled by quest_class_order_hall above) plays out normally.
+//
+// Data-driven per class. Only classes whose intro chain is verified walkable through to the unlock quest are listed;
+// add a class here as its chain links are repaired. (Hunter's chain 40400 -> 40419 -> 40952 -> 40953 -> 40954 -> 40955
+// is intact today; the other classes' Prev/Next links dead-end mid-campaign and need repair before they belong here.)
+enum { DALARAN_LEGION_ZONE = 7502 };
+
+struct ClassHallMessengerInfo
+{
+    uint32 MessengerEntry;   // the class's intro quest giver (creature_template entry, kept as a personal summon)
+    uint32 RootQuest;        // the first quest of that class's order-hall chain
+};
+
+static std::unordered_map<uint8 /*Classes*/, ClassHallMessengerInfo> const ClassHallMessengers =
+{
+    { CLASS_HUNTER, { 100190 /*Vereesa Windrunner*/, 40400 /*Clandestine Operation*/ } },
+};
+
+class class_hall_messenger : public PlayerScript
+{
+public:
+    class_hall_messenger() : PlayerScript("class_hall_messenger") { }
+
+    void OnUpdateZone(Player* player, uint32 newZone, uint32 /*newArea*/) override
+    {
+        if (newZone != DALARAN_LEGION_ZONE)
+        {
+            Dismiss(player);            // left Dalaran - remove any pending messenger
+            return;
+        }
+
+        TrySummonMessenger(player);
+    }
+
+    void OnQuestStatusChange(Player* player, uint32 questId) override
+    {
+        // Once the player engages (accepts) the root quest, the messenger has done its job.
+        auto itr = ClassHallMessengers.find(player->GetClass());
+        if (itr != ClassHallMessengers.end() && itr->second.RootQuest == questId)
+            Dismiss(player);
+    }
+
+    void OnLogout(Player* player) override
+    {
+        _messengers.erase(player->GetGUID());   // the personal summon despawns with the player / on its own timer
+    }
+
+private:
+    // player GUID -> currently-summoned messenger GUID; prevents duplicates and allows an early despawn. A given
+    // player is only ever touched from its own map-update thread, but different players run on different map threads,
+    // so the shared container is guarded against concurrent structural modification.
+    std::unordered_map<ObjectGuid, ObjectGuid> _messengers;
+    std::mutex _messengersLock;
+
+    void TrySummonMessenger(Player* player)
+    {
+        auto itr = ClassHallMessengers.find(player->GetClass());
+        if (itr == ClassHallMessengers.end())
+            return;
+
+        ClassHallMessengerInfo const& info = itr->second;
+
+        // Already handled: player has the class hall, or is already on/past the intro chain.
+        if (player->GetGarrison(GARRISON_TYPE_CLASS_ORDER))
+            return;
+        if (player->GetQuestStatus(info.RootQuest) != QUEST_STATUS_NONE)
+            return;
+
+        // Only seek the player out if they can actually accept the quest (level/prerequisites/faction).
+        Quest const* root = sObjectMgr->GetQuestTemplate(info.RootQuest);
+        if (!root || !player->CanTakeQuest(root, false))
+            return;
+
+        // One messenger at a time.
+        {
+            std::lock_guard<std::mutex> guard(_messengersLock);
+            if (_messengers.count(player->GetGUID()))
+                return;
+        }
+
+        // Summon a personal copy a few yards behind the player and have it walk up and follow until spoken to. The
+        // summon keeps the template's quest-giver flag + creature_queststarter, so the player can accept the root quest
+        // from it directly. Private to the summoner so other players don't see a stray Vereesa in Dalaran.
+        Position pos = player->GetFirstCollisionPosition(10.0f, float(M_PI));
+        TempSummon* messenger = player->SummonCreature(info.MessengerEntry, pos, TEMPSUMMON_TIMED_DESPAWN, Minutes(5), 0, 0, player->GetGUID());
+        if (!messenger)
+            return;
+
+        messenger->GetMotionMaster()->MoveFollow(player, 2.0f);
+
+        std::lock_guard<std::mutex> guard(_messengersLock);
+        _messengers[player->GetGUID()] = messenger->GetGUID();
+    }
+
+    void Dismiss(Player* player)
+    {
+        ObjectGuid summonGuid;
+        {
+            std::lock_guard<std::mutex> guard(_messengersLock);
+            auto itr = _messengers.find(player->GetGUID());
+            if (itr == _messengers.end())
+                return;
+            summonGuid = itr->second;
+            _messengers.erase(itr);
+        }
+
+        if (Creature* messenger = ObjectAccessor::GetCreature(*player, summonGuid))
+            messenger->DespawnOrUnsummon();
+    }
+};
+
+void AddSC_orderhall_legion()
+{
+    // Quest
+    new quest_class_order_hall();
+
+    // Player
+    new class_hall_messenger();
+
+    // Creature
+
+    // GameObject
+}

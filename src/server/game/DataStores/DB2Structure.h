@@ -545,6 +545,23 @@ struct BattlemasterListXMapEntry
     uint32 BattlemasterListID;
 };
 
+struct BountyEntry
+{
+    uint32 ID;
+    int32 QuestID;
+    uint16 FactionID;
+    uint32 IconFileDataID;
+    uint32 TurninPlayerConditionID;
+    int32 BountySetID;
+};
+
+struct BountySetEntry
+{
+    uint32 ID;
+    uint32 VisiblePlayerConditionID;
+    int32 LockedQuestID;
+};
+
 #define MAX_BROADCAST_TEXT_EMOTES 3
 
 struct BroadcastTextEntry
@@ -669,6 +686,46 @@ struct CharacterLoadoutItemEntry
     uint32 ID;
     uint16 CharacterLoadoutID;
     uint32 ItemID;
+};
+
+struct CharShipmentEntry
+{
+    // Field order matches the 12.0.7 client db2 layout 0x91BEA68A (byte-decoded from the client
+    // CharShipment.db2). The tail is physically Flags, GarrFollowerID, MaxShipments - NOT
+    // MaxShipments/.../Flags. The previous order read the Flags bitmask (512/513) into MaxShipments and
+    // MaxShipments (0) into Flags, so the server saw Flags=0 for every shipment and could not tell the
+    // quest/tutorial row (Flags 0x1 set, Duration 0) from the regular row (Duration 14400).
+    uint32 ID;
+    uint16 ContainerID;
+    uint32 DummyItemID;
+    uint32 TreasureID;
+    int32 SpellID;
+    uint32 OnCompleteSpellID;
+    int32 Duration;
+    int32 Flags;
+    uint16 GarrFollowerID;
+    uint8 MaxShipments;
+};
+
+struct CharShipmentContainerEntry
+{
+    uint32 ID;
+    LocalizedString Description;
+    LocalizedString PendingText;
+    uint16 UiTextureKitID;
+    int8 GarrTypeID;
+    uint8 GarrBuildingType;
+    uint8 BaseCapacity;
+    uint16 SmallDisplayInfoID;
+    uint16 MediumDisplayInfoID;
+    uint16 LargeDisplayInfoID;
+    int32 WorkingSpellVisualID;
+    uint32 CompleteSpellVisualID;
+    uint32 WorkingDisplayInfoID;
+    uint8 MediumThreshold;
+    uint8 LargeThreshold;
+    int8 Faction;
+    uint16 CrossFactionID;
 };
 
 struct ChatChannelsEntry
@@ -1034,6 +1091,17 @@ struct ContentTuningXLabelEntry
     uint32 ContentTuningID;
 };
 
+struct ContributionEntry
+{
+    uint32 ID;
+    LocalizedString Description;
+    LocalizedString Name;
+    int32 ManagedWorldStateInputID;
+    int32 OrderIndex;
+    int32 ContributionStyleContainer;
+    std::array<int32, 4> UiTextureAtlasMemberID;
+};
+
 struct ConversationLineEntry
 {
     uint32 ID;
@@ -1057,6 +1125,45 @@ struct CorruptionEffectsEntry
     int32 Flags;
 };
 
+struct RenownRewardsEntry
+{
+    uint32 ID;
+    LocalizedString Name;
+    LocalizedString Description;
+    LocalizedString ToastDescription;
+    int32 CovenantID;
+    int32 Level;
+    int32 Icon;
+    int32 Flags;
+    int32 UiOrder;
+    int32 ItemID;
+    int32 SpellID;
+    int32 MountID;
+    int32 TransmogID;
+    int32 TransmogSetID;
+    int32 CharTitlesID;
+    int32 GarrFollowerID;
+    int32 TransmogIllusionID;
+    int32 Field_12_0_0_63534_016;
+    int32 QuestID;
+    int32 PlayerConditionID;
+};
+
+struct CovenantEntry
+{
+    uint32 ID;
+    LocalizedString Name;
+    LocalizedString Description;
+    int32 BountySetID;
+    int32 SkillLineID;
+    int32 DeathTeleportSpellID;
+    int32 Field_9_0_2_36165_006;
+    int32 Field_9_0_2_36165_007;
+    int32 FactionID;
+    int32 CurrencyTypesID;
+    int32 RequiredPlayerConditionID;
+};
+
 struct CraftingQualityEntry
 {
     uint32 ID;
@@ -1074,6 +1181,13 @@ struct CraftingQualityEntry
 //    int32 Flags[9];
 //    uint32 CreatureID;
 //};
+
+struct CreatureXContributionEntry
+{
+    uint32 ID;
+    int32 ContributionID;
+    int32 CreatureID;
+};
 
 struct CreatureDisplayInfoEntry
 {
@@ -1397,15 +1511,15 @@ struct CriteriaEntry
         // CriteriaType::LearnTaxiNode                              = 262
         int32 TaxiNodesID;
     } Asset;
-    uint32 ModifierTreeId;
+    int32 ModifierTreeId;
     int32 StartEvent;
     int32 StartAsset;
-    uint16 StartTimer;
+    int32 StartTimer;
     int32 FailEvent;
     int32 FailAsset;
     int32 Flags;
-    int16 EligibilityWorldStateID;
-    int8 EligibilityWorldStateValue;
+    int32 EligibilityWorldStateID;
+    int32 EligibilityWorldStateValue;
 
     EnumFlag<CriteriaFlags> GetFlags() const { return static_cast<CriteriaFlags>(Flags); }
 };
@@ -1847,6 +1961,7 @@ struct GameObjectsEntry
     uint32 ID;
     uint32 OwnerID;
     int32 DisplayID;
+    int32 Flags;
     float Scale;
     int32 TypeID;
     int32 PhaseUseFlags;
@@ -1862,10 +1977,101 @@ struct GarrAbilityEntry
     LocalizedString Name;
     LocalizedString Description;
     uint8 GarrAbilityCategoryID;
-    int8 GarrFollowerTypeID;
+    uint8 GarrFollowerTypeID;
     int32 IconFileDataID;
     uint16 FactionChangeGarrAbilityID;
     int32 Flags;
+};
+
+struct GarrAbilityCategoryEntry
+{
+    uint32 ID;
+    LocalizedString Name;
+};
+
+struct GarrAbilityEffectEntry
+{
+    uint32 ID;
+    uint16 GarrAbilityID;
+    uint8 EffectType;
+    uint8 TargetMask;
+    int32 Amount;
+    float CombatWeightBase;
+    float CombatWeightMax;
+    float ActionValueFlat;
+    uint8 AbilityAction;
+    uint8 MiscValueA;
+    int32 ActionHours;
+    int32 ActionRecordID;
+};
+
+// GarrAutoCombatant.db2, layout 0x6ADAF487 (12.0.7.68275, WoWDBDefs). The statline is a level
+// curve, not a flat block. There is no BoardIndex column here (board position lives on
+// GarrMissionXEncounter) and no back-reference to an encounter (GarrEncounter.AutoCombatantID
+// points this way instead). Role values per the DBD: 0 None, 1 Melee, 2 RangedPhysical,
+// 3 RangedMagic, 4 HealSupport, 5 Tank - see AutoCombatRole.
+struct GarrAutoCombatantEntry
+{
+    uint32 ID;
+    int32 HealthBase;
+    int32 HealthGainPerLevel;
+    int32 AttackBase;
+    int32 AttackGainPerLevel;
+    int32 AttackSpellID;
+    int32 AbilitySpellID;
+    int32 AbilitySpellID2;
+    int32 PassiveSpellID;
+    int32 Role;
+};
+
+// GarrAutoSpell.db2, layout 0x8067D16A (12.0.7.68275, WoWDBDefs). The three trailing columns used to
+// be declared SchoolMask/SpellVisualID/Flags, which is the order of no build: the file order is
+// Flags, SchoolMask, IconFileDataID, so SchoolMask was being read out of Flags. Confirmed against the
+// shipped rows - GarrAutoSpell 4 "Double Strike ... Physical damage" carries 1 in this column,
+// 6 "Blood Explosion ... Shadow damage" carries 32, 10 "Starbranch Crush ... Frost damage" carries 16.
+struct GarrAutoSpellEntry
+{
+    uint32 ID;
+    LocalizedString Name;
+    LocalizedString Description;
+    int32 Cooldown;
+    int32 Duration;
+    int32 Flags;
+    int32 SchoolMask;
+    int32 IconFileDataID;
+};
+
+// GarrAutoSpellEffect.db2, layout 0xACEA7666 (12.0.7.68275, WoWDBDefs). The middle columns used to be
+// declared EffectType/Targets/Amount/MiscType/MiscValue, one position off the real file order: what
+// was read as "EffectType" is the row's EffectIndex, what was read as "Targets" is the Effect kind,
+// and what was read as "MiscType" is the TargetType mask. Effect values per the DBD: 1 DealAutoDamage,
+// 2 Heal, 3 DealDamage, 4 Heal, 7 Dot, 8 Hot, 10 taunt, 12 damage-dealt multiplier,
+// 14 damage-taken multiplier, 18 increase max health (0/5/6/9/11/13/15..17 undocumented or test-only,
+// and 19/20 occur in the data without a DBD entry at all).
+struct GarrAutoSpellEffectEntry
+{
+    uint32 ID;
+    int32 GarrAutoSpellID;
+    uint8 EffectIndex;
+    uint8 Effect;
+    float Points;
+    uint8 TargetType;
+    int32 Flags;
+    int32 Period;
+};
+
+struct GarrEncounterSetXEncounterEntry
+{
+    uint32 ID;
+    uint32 GarrEncounterID;
+    int32 GarrEncounterSetID;
+};
+
+struct GarrFollowerSetXFollowerEntry
+{
+    uint32 ID;
+    int32 GarrFollowerID;
+    int32 GarrFollowerSetID;
 };
 
 struct GarrBuildingEntry
@@ -1897,6 +2103,16 @@ struct GarrBuildingEntry
     int32 Flags;
 };
 
+struct GarrBuildingDoodadSetEntry
+{
+    uint32 ID;
+    uint8 GarrBuildingID;
+    uint8 HordeDoodadSetID;
+    uint8 AllianceDoodadSetID;
+    uint8 HordeAltDoodadSetID;
+    uint8 AllianceAltDoodadSetID;
+};
+
 struct GarrBuildingPlotInstEntry
 {
     DBCPosition2D MapOffset;
@@ -1918,6 +2134,39 @@ struct GarrClassSpecEntry
     int32 Flags;
 };
 
+struct GarrClassSpecPlayerCondEntry
+{
+    uint32 ID;
+    LocalizedString ClassSpec;
+    uint32 OrderIndex;
+    uint32 GarrClassSpecID;
+    int32 PlayerConditionID;
+    int32 GarrStringID;
+    uint8 Flags;
+};
+
+// GarrEncounter.db2, layout 0x90365AF7 (12.0.7.68275, WoWDBDefs).
+struct GarrEncounterEntry
+{
+    uint32 ID;
+    LocalizedString Name;
+    int32 CreatureID;
+    int32 PortraitFileDataID;
+    uint32 UiTextureKitID;
+    float UiAnimScale;
+    float UiAnimHeight;
+    int32 Flags;
+    int32 AutoCombatantID;
+};
+
+struct GarrEncounterXMechanicEntry
+{
+    uint32 ID;
+    int32 GarrMechanicID;
+    uint8 GarrMechanicSetID;
+    int32 GarrEncounterID;
+};
+
 struct GarrFollowerEntry
 {
     uint32 ID;
@@ -1925,7 +2174,7 @@ struct GarrFollowerEntry
     LocalizedString AllianceSourceText;
     LocalizedString TitleName;
     int8 GarrTypeID;
-    int8 GarrFollowerTypeID;
+    uint8 GarrFollowerTypeID;
     int32 HordeCreatureID;
     int32 AllianceCreatureID;
     uint8 HordeGarrFollRaceID;
@@ -1956,6 +2205,61 @@ struct GarrFollowerEntry
     int32 CovenantID;
 };
 
+struct GarrFollItemSetMemberEntry
+{
+    uint32 ID;
+    int32 GarrFollItemSetID;
+    uint8 ItemSlot;
+    uint16 ItemModifiedAppearanceID;
+    int32 GarrFollowerID;
+};
+
+struct GarrFollSupportSpellEntry
+{
+    uint32 ID;
+    int32 HordeSpellID;
+    int32 AllianceSpellID;
+    uint8 OrderIndex;
+    int32 GarrFollowerID;
+};
+
+struct GarrFollowerLevelXPEntry
+{
+    uint32 ID;
+    // 68275 db2 layout (WoWDBDefs LAYOUT 83953EF8): GarrFollowerTypeID comes BEFORE FollowerLevel.
+    // These were previously declared in the reverse order, so every row loaded with the two bytes
+    // swapped (FollowerLevel held the type value, GarrFollowerTypeID held the level) — GetFollowerLevelXP
+    // then missed for every real (type, level) pair and follower mission XP was silently discarded.
+    int8 GarrFollowerTypeID;
+    uint8 FollowerLevel;
+    uint16 XpToNextLevel;
+    uint16 ShipmentXP;
+};
+
+struct GarrFollowerQualityEntry
+{
+    uint32 ID;
+    int32 XpThreshold;
+    uint32 QualityItemID;
+    int8 Quality;
+    uint8 AbilityCount;
+    uint8 TraitCount;
+    uint16 GarrFollowerTypeID;
+    uint32 ClassSpecID;
+};
+
+struct GarrFollowerTypeEntry
+{
+    uint32 ID;
+    int8 GarrTypeID;
+    uint8 MaxFollowers;
+    uint8 MaxFollowerBuildingType;
+    uint16 MaxItemLevel;
+    uint8 LevelRangeBias;
+    uint8 ItemLevelRangeBias;
+    int32 Flags;
+};
+
 struct GarrFollowerXAbilityEntry
 {
     uint32 ID;
@@ -1963,6 +2267,50 @@ struct GarrFollowerXAbilityEntry
     uint8 FactionIndex;
     uint16 GarrAbilityID;
     uint32 GarrFollowerID;
+};
+
+struct GarrFollowerUICreatureEntry
+{
+    uint32 ID;
+    uint8 Race;
+    int8 Gender;
+    int32 CreatureID;
+    float Scale;
+    int32 FileDataID;
+    int32 GarrFollowerID;
+};
+
+struct GarrMechanicEntry
+{
+    uint32 ID;
+    int32 GarrMechanicTypeID;
+    float Factor;
+    int32 GarrAbilityID;
+};
+
+struct GarrMechanicTypeEntry
+{
+    uint32 ID;
+    LocalizedString Name;
+    LocalizedString Description;
+    int32 GarrAbilityCategoryID;
+    uint8 Category;
+};
+
+struct GarrMechanicSetXMechanicEntry
+{
+    uint32 ID;
+    int32 GarrMechanicID;
+    int32 GarrMechanicSetID;
+};
+
+struct GarrItemLevelUpgradeDataEntry
+{
+    uint32 ID;
+    int32 Operation;
+    int32 MinItemLevel;
+    int32 MaxItemLevel;
+    int8 FollowerTypeID;
 };
 
 struct GarrMissionEntry
@@ -1975,7 +2323,7 @@ struct GarrMissionEntry
     DBCPosition2D WorldPos;
     int8 GarrTypeID;
     uint8 GarrMissionTypeID;
-    int8 GarrFollowerTypeID;
+    uint8 GarrFollowerTypeID;
     uint8 MaxFollowers;
     uint32 MissionCost;
     uint16 MissionCostCurrencyTypesID;
@@ -1999,6 +2347,63 @@ struct GarrMissionEntry
     float AutoMissionScalar;
     int32 AutoMissionScalarCurveID;
     int32 AutoCombatantEnvCasterID;
+};
+
+struct GarrMissionSetEntry
+{
+    uint32 ID;
+    int8 GarrTypeID;
+    int32 MissionCostCurrencyTypesID;
+    int32 ContentTuningID;
+    int32 MapID;
+    int32 Flags;
+    int32 Priority;
+};
+
+struct GarrMissionTypeEntry
+{
+    uint32 ID;
+    LocalizedString Name;
+    uint16 UiTextureAtlasMemberID;
+    uint16 UiTextureKitID;
+};
+
+struct GarrMissionTextureEntry
+{
+    uint32 ID;
+    std::array<float, 2> Pos;
+    uint16 UiTextureAtlasMemberID;
+};
+
+// GarrMissionXEncounter.db2, layout 0x08428AE4 (12.0.7.68275, WoWDBDefs). BoardIndex is the
+// enemy's slot on the Adventures board (-1 for the pre-Shadowlands rows that have no board).
+struct GarrMissionXEncounterEntry
+{
+    uint32 ID;
+    uint32 GarrEncounterID;
+    uint32 GarrEncounterSetID;
+    uint8 OrderIndex;
+    int8 BoardIndex;
+    int32 GarrMissionID;
+};
+
+struct GarrMissionXFollowerEntry
+{
+    uint32 ID;
+    int32 GarrFollowerID;
+    int32 GarrFollowerTypeID;
+    int8 BoardIndex;
+    int32 GarrMissionID;
+};
+
+struct GarrMssnBonusAbilityEntry
+{
+    uint32 ID;
+    uint8 GarrMssnBonusAbilityType;
+    uint8 MssnSort;
+    uint16 GarrAbilityID;
+    float Modifier;
+    int32 MissionSetID;
 };
 
 struct GarrPlotEntry
@@ -2026,6 +2431,13 @@ struct GarrPlotInstanceEntry
     uint8 GarrPlotID;
 };
 
+struct GarrPlotUICategoryEntry
+{
+    uint32 ID;
+    LocalizedString Name;
+    uint8 PlotType;
+};
+
 struct GarrSiteLevelEntry
 {
     uint32 ID;
@@ -2049,6 +2461,24 @@ struct GarrSiteLevelPlotInstEntry
     uint8 UiMarkerSize;
 };
 
+struct GarrSpecializationEntry
+{
+    uint32 ID;
+    LocalizedString Name;
+    LocalizedString Description;
+    uint8 GarrTypeID;
+    int32 IconFileDataID;
+    uint8 GarrFollowerTypeID;
+    int32 Param;
+    std::array<float, 2> Bonus;
+};
+
+struct GarrStringEntry
+{
+    uint32 ID;
+    LocalizedString Text;
+};
+
 struct GarrTalentTreeEntry
 {
     uint32 ID;
@@ -2064,6 +2494,153 @@ struct GarrTalentTreeEntry
     uint8 FeatureTypeIndex;
     uint8 FeatureSubtypeIndex;
     int32 CurrencyID;
+};
+
+struct GarrTalentEntry
+{
+    LocalizedString Name;
+    LocalizedString Description;
+    uint32 ID;
+    uint32 GarrTalentTreeID;
+    int8 Tier;
+    int8 UiOrder;
+    int32 IconFileDataID;
+    uint32 PlayerConditionID;
+    uint32 GarrAbilityID;
+    int32 Flags;
+    int32 TalentType;
+    int32 PrerequisiteTalentID;
+    int32 ResearchCostSource;
+    int32 ActiveDurationSecs;
+    int32 GarrTalentSocketPropertiesID;
+};
+
+struct GarrTalentRankEntry
+{
+    uint32 ID;
+    int32 Rank;
+    int32 PerkSpellID;
+    int32 PerkPlayerConditionID;
+    float Points;
+    int32 ResearchCost;
+    int32 ResearchCostCurrencyTypesID;
+    int32 ResearchGoldCost;
+    int32 ResearchDurationSecs;
+    int32 RespecCost;
+    int32 RespecCostCurrencyTypesID;
+    int32 RespecGoldCost;
+    int32 RespecDurationSecs;
+    int32 AlternateResearchCost;
+    int32 AlternateResearchCostCurrencyTypesID;
+    int32 AlternateResearchGoldCost;
+    int32 AlternateResearchDurationSecs;
+    uint32 GarrTalentID;
+};
+
+struct GarrTalentCostEntry
+{
+    uint64 MoneyQuantity;
+    uint32 ID;
+    uint32 GarrTalentTreeID;
+    int32 GarrTalentID;
+    int32 RankIndex;
+    int32 GarrTalentRankID;
+    int32 CostType;
+    int32 CurrencyTypesID;
+    int32 CurrencyQuantity;
+};
+
+struct GarrTalentResearchEntry
+{
+    uint32 ID;
+    int32 GoldCost;
+    int32 CurrencyTypesID;
+    int32 CurrencyTypesCost;
+    int32 DurationSecs;
+    int32 RespecGoldCost;
+    int32 RespecCurrencyTypesID;
+    int32 RespecCurrencyTypesCost;
+    int32 RespecDurationSecs;
+};
+
+struct GarrTalentSocketPropertiesEntry
+{
+    uint32 ID;
+    int32 GarrTalentSocketType;
+    int32 GarrTalentSocketSubtype;
+};
+
+struct GarrTalentMapPOIEntry
+{
+    uint32 ID;
+    std::array<float, 2> Position;
+    int32 GarrTalentID;
+};
+
+struct GarrTalentRankGroupEntryEntry
+{
+    uint32 ID;
+    int32 GarrTalentRankGroupID;
+    uint32 GarrTalentRankID;
+};
+
+struct GarrTalentRankGroupResearchModEntry
+{
+    uint32 ID;
+    int32 ModifierType;
+    int32 PlayerConditionID;
+    float ModifierValue;
+    uint32 GarrTalentRankGroupID;
+};
+
+struct GarrTalTreeXGarrTalResearchEntry
+{
+    uint32 ID;
+    int32 GarrTalentTreeID;
+    int32 GarrTalentResearchID;
+    int32 OrderIndex;
+};
+
+struct GarrTypeEntry
+{
+    int8 ID;
+    uint32 PrimaryCurrencyTypeID;
+    uint32 SecondaryCurrencyTypeID;
+    uint32 ExpansionID;
+    int32 Flags;
+    float AutoFollowerHealRate;
+    int32 MissionCostCurveID;
+    float AutoFollowerHealCostMult;
+    std::array<int32, 2> MapIDs;
+};
+
+struct GarrUiAnimClassInfoEntry
+{
+    uint32 ID;
+    int32 ClassID;
+    uint8 IsFemale;
+    float WalkSpeed;
+    uint32 RunAnimID;
+    uint32 WalkAnimID;
+    uint32 IdleAnimID;
+};
+
+struct GarrUiAnimRaceInfoEntry
+{
+    uint32 ID;
+    uint8 RaceID;
+    float RunSpeedModifier;
+    float RunAnimSpeedModifier;
+    float WalkAnimSpeedModifier;
+    float IdleAnimSpeedModifier;
+    float PortraitScale;
+    float PortraitHeight;
+    float PortraitFieldOfView;
+    float PortraitCameraPositionX;
+    float PortraitCameraPositionY;
+    float PortraitCameraPositionZ;
+    float PortraitCameraTargetX;
+    float PortraitCameraTargetY;
 };
 
 struct GemPropertiesEntry
@@ -2103,13 +2680,20 @@ struct GlyphRequiredSpecEntry
     uint32 GlyphPropertiesID;
 };
 
+struct GossipXGarrTalentTreesEntry
+{
+    uint32 ID;
+    int32 GarrTalentTreeID;
+    int32 GossipID;
+};
+
 struct GossipNPCOptionEntry
 {
     uint32 ID;
     int32 GossipNpcOption;
     int32 LFGDungeonsID;
     int32 TrainerID;
-    int8 GarrFollowerTypeID;
+    uint8 GarrFollowerTypeID;
     int32 CharShipmentID;
     int32 GarrTalentTreeID;
     int32 UiMapID;
@@ -2894,6 +3478,38 @@ struct MailTemplateEntry
     LocalizedString Body;
 };
 
+struct ManagedWorldStateEntry
+{
+    uint32 ID;
+    int32 CurrentStageWorldStateID;
+    int32 ProgressWorldStateID;
+    uint32 UpTimeSecs;
+    uint32 DownTimeSecs;
+    int32 AccumulationStateTargetValue;
+    int32 DepletionStateTargetValue;
+    int32 AccumulationAmountPerMinute;
+    int32 DepletionAmountPerMinute;
+    int8 Field_8_1_5_29418_009;
+    std::array<int32, 4> OccurrencesWorldStateID;
+};
+
+struct ManagedWorldStateInputEntry
+{
+    uint32 ID;
+    int32 ManagedWorldStateID;
+    int32 QuestID;
+    int32 ValidInputConditionID;
+};
+
+struct ManagedWorldStateBuffEntry
+{
+    uint32 ID;
+    int32 BuffSpellID;
+    uint32 PlayerConditionID;
+    uint32 OccurrenceValue;
+    int32 ManagedWorldStateID;
+};
+
 struct MapEntry
 {
     uint32 ID;
@@ -3310,6 +3926,7 @@ struct PlayerConditionEntry
     int8 PowerType;
     uint8 PowerTypeComp;
     int8 PowerTypeValue;
+    int32 MovementFlags;
     int32 WeaponSubclassMask;
     uint8 MaxGuildLevel;
     uint8 MinGuildLevel;
@@ -3343,7 +3960,6 @@ struct PlayerConditionEntry
     std::array<uint32, 4> CurrencyID;
     std::array<uint32, 4> CurrencyCount;
     std::array<uint32, 6> QuestKillMonster;
-    std::array<int32, 2> MovementFlags;
     Trinity::RaceMask<int32, 2> RaceMask;
     std::array<int32, 4> TraitNodeEntryID;
     std::array<uint16, 4> TraitNodeEntryMinRank;
@@ -3737,6 +4353,33 @@ struct SkillRaceClassInfoEntry
     Trinity::RaceMask<int32, 2> RaceMask;
 };
 
+struct SoulbindEntry
+{
+    uint32 ID;
+    LocalizedString Name;
+    int32 CovenantID;
+    int32 GarrTalentTreeID;
+    int32 CreatureID;
+    int32 GarrFollowerID;
+    int32 PlayerConditionID;
+};
+
+struct SoulbindConduitEntry
+{
+    uint32 ID;
+    uint8 ConduitType;
+    int32 CovenantID;
+    int32 SpecSetID;
+    int32 Flags;
+};
+
+struct SoulbindConduitItemEntry
+{
+    uint32 ID;
+    int32 ItemID;
+    int32 ConduitID;
+};
+
 struct SoulbindConduitRankEntry
 {
     uint32 ID;
@@ -3744,6 +4387,14 @@ struct SoulbindConduitRankEntry
     int32 SpellID;
     float AuraPointsOverride;
     uint32 SoulbindConduitID;
+};
+
+struct SoulbindConduitRankPropertiesEntry
+{
+    uint32 ID;
+    int32 Rank;
+    int32 ItemLevel;
+    int8 QualityID;
 };
 
 struct SoundKitEntry
@@ -3868,7 +4519,7 @@ struct SpellClassOptionsEntry
     uint32 ID;
     int32 SpellID;
     uint32 ModalNextSpell;
-    uint8 SpellClassSet;
+    int32 SpellClassSet;
     flag128 SpellClassMask;
 };
 
@@ -4834,6 +5485,20 @@ struct TransportRotationEntry
     std::array<float, 4> Rot;
     uint32 TimeIndex;
     uint32 GameObjectsID;
+};
+
+// Trophy.db2 (FileDataId 975024, layout 0xA17123C5). The catalogue of garrison monument trophies: the statue
+// appearances a WoD garrison Monument Base (GAMEOBJECT_TYPE_GARRISON_MONUMENT) can be set to display.
+// TrophyTypeID is the same id the monument gameobject carries in its Data0, so it partitions the catalogue by
+// monument - in the 68275 client 3 = Horde/Frostwall, 4 = Alliance/Lunarfall, 0 = NoValue (not displayable).
+// PlayerConditionID is the unlock gate; see WorldSession::HandleGetTrophyList for what it resolves to today.
+struct TrophyEntry
+{
+    uint32 ID;
+    LocalizedString Name;
+    uint8 TrophyTypeID;
+    int32 GameObjectDisplayInfoID;
+    uint32 PlayerConditionID;
 };
 
 struct UiMapEntry

@@ -23,10 +23,6 @@
 
 void WorldSession::HandleCheckIsAdventureMapPoiValid(WorldPackets::AdventureMap::CheckIsAdventureMapPoiValid& checkIsAdventureMapPoiValid)
 {
-    AdventureMapPOIEntry const* entry = sAdventureMapPOIStore.LookupEntry(checkIsAdventureMapPoiValid.AdventureMapPoiID);
-    if (!entry)
-        return;
-
     auto sendIsPoiValid = [this](uint32 adventureMapPoiId, bool isVisible) -> void
     {
         WorldPackets::AdventureMap::PlayerIsAdventureMapPoiValid isMapPoiValid;
@@ -34,6 +30,15 @@ void WorldSession::HandleCheckIsAdventureMapPoiValid(WorldPackets::AdventureMap:
         isMapPoiValid.IsVisible = isVisible;
         SendPacket(isMapPoiValid.Write());
     };
+
+    // The client re-sends this for every POI until it gets an answer; an unanswered query (unknown POI id) makes it
+    // flood the opcode and AntiDOS kicks the player. Always reply - unknown/ineligible POIs are simply not visible.
+    AdventureMapPOIEntry const* entry = sAdventureMapPOIStore.LookupEntry(checkIsAdventureMapPoiValid.AdventureMapPoiID);
+    if (!entry)
+    {
+        sendIsPoiValid(checkIsAdventureMapPoiValid.AdventureMapPoiID, false);
+        return;
+    }
 
     Quest const* quest = sObjectMgr->GetQuestTemplate(entry->QuestID);
     if (!quest)

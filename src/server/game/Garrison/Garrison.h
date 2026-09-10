@@ -18,25 +18,66 @@
 #ifndef Garrison_h__
 #define Garrison_h__
 
+#include "AbominationFactory.h"
 #include "Define.h"
 #include "DatabaseEnvFwd.h"
+#include "EmberCourt.h"
+#include "GarrisonAutoCombat.h"
 #include "GarrisonPackets.h"
 #include "Optional.h"
+#include "PathOfAscension.h"
+#include "QueensConservatory.h"
 #include "QuaternionData.h"
 #include "SharedDefines.h"
+#include <algorithm>
 #include <unordered_map>
 
 class GameObject;
 class Map;
 class Player;
+struct GarrBuildingEntry;
+struct GarrItemLevelUpgradeDataEntry;
+struct GarrMissionEntry;
 struct GarrSiteLevelEntry;
 
-enum GarrisonType
+enum GarrisonType : int32
 {
     GARRISON_TYPE_GARRISON      = 2,
     GARRISON_TYPE_CLASS_ORDER   = 3,
     GARRISON_TYPE_WAR_CAMPAIGN  = 9,
     GARRISON_TYPE_COVENANT      = 111
+};
+
+// Known GarrSite ids. GarrSite.db2 (GarrSiteID -> GarrTypeID) is not shipped in 12.0.x, so the ids the core creates
+// garrisons with are named here; GetGarrisonTypeFromSiteId (Garrison.cpp) maps them back to a GarrisonType.
+enum GarrisonSiteId : uint32
+{
+    GARR_SITE_COVENANT_SANCTUM  = 296   // Shadowlands covenant sanctum (GarrSiteLevel 837/838/839 -> maps 2222/2162/2236)
+};
+
+// GarrTalentTree.FeatureTypeIndex. For the covenant sanctum (GarrTypeID 111) this says which sanctum feature a
+// tree belongs to, and FeatureSubtypeIndex is then the CovenantID. Every non-covenant garrison type publishes
+// index 0 only, so these are safe to test on any tree.
+enum GarrTalentTreeFeatureType : uint8
+{
+    GARR_TALENT_FEATURE_ABILITIES           = 0,    // covenant class + signature abilities (trees 393/396/397/395)
+    GARR_TALENT_FEATURE_ANIMA_CONDUCTOR     = 1,    // trees 312/314/311/313
+    GARR_TALENT_FEATURE_TRANSPORT_NETWORK   = 2,    // trees 308/309/307/310
+    GARR_TALENT_FEATURE_COMMAND_TABLE       = 3,    // trees 316/317/315/318
+    GARR_TALENT_FEATURE_RESERVOIR           = 4,    // trees 327/326/328/329
+    GARR_TALENT_FEATURE_UNIQUE              = 5,    // trees 320/324/319/321
+    GARR_TALENT_FEATURE_SOULBIND            = 6,    // the 12 soulbind trees
+    GARR_TALENT_FEATURE_CHANNEL_ANIMA       = 7     // trees 345/348/346/347
+};
+
+// GarrAbilityEffect.AbilityAction values the covenant sanctum talent layer consumes. A GarrTalent that carries a
+// GarrAbilityID publishes its effect through GarrAbilityEffect rows (12.0.7.68887: effect 1844 = ability 1274
+// 'Forward Planning' action 14 ActionValueFlat 1.25; effect 1843 = ability 1273 'Strategic Genius' action 17
+// ActionValueFlat 0.75). The names below describe what the published ActionValueFlat multiplies.
+enum GarrAbilityActionType : uint8
+{
+    GARR_ABILITY_ACTION_COMPANION_HEAL_RATE = 14,   // multiplies companion (follower type 123) health recovery rate
+    GARR_ABILITY_ACTION_MISSION_TRAVEL_TIME = 17    // multiplies adventure travel duration
 };
 
 enum GarrisonFactionIndex
@@ -60,7 +101,7 @@ enum GarrisonFollowerType
     FOLLOWER_TYPE_GARRISON      = 1,
     FOLLOWER_TYPE_SHIPYARD      = 2,
     FOLLOWER_TYPE_CLASS_ORDER   = 4,
-    FOLLOWER_TYPE_WAR_CAMPAIGN  = 11,
+    FOLLOWER_TYPE_WAR_CAMPAIGN  = 22,
     FOLLOWER_TYPE_COVENANT      = 123
 };
 
@@ -181,6 +222,10 @@ enum GarrisonFollowerStatus
     FOLLOWER_STATUS_NO_XP_GAIN  = 0x10
 };
 
+// Charge count minted onto a recruited class-hall/order-hall troop. CharShipment carries no charge field;
+// Legion troops are created with 3 charges (each mission use spends one).
+enum : uint32 { GARRISON_TROOP_DEFAULT_DURABILITY = 3 };
+
 class TC_GAME_API Garrison
 {
 public:
@@ -215,23 +260,82 @@ public:
         WorldPackets::Garrison::GarrisonFollower PacketInfo;
     };
 
+    struct Mission
+    {
+        WorldPackets::Garrison::GarrisonMission PacketInfo;
+        std::vector<uint64> CurrentFollowerDBIDs;
+        // Outcome is rolled once at CMSG_GARRISON_COMPLETE_MISSION and reused when the mission is
+        // finalized (CMSG_GARRISON_MISSION_BONUS_ROLL on success / at complete-time on failure), so the
+        // result shown to the player matches the result used to grant rewards. Runtime-only: a mission
+        // caught mid-completion by a restart is re-rolled once at finalize (see FinalizeMission).
+        bool ResultDetermined = false;
+        bool Succeeded = false;
+        // Auto-combat replay produced when the outcome was rolled. The Adventures complete screen walks
+        // this round by round (Blizzard_AdventuresCompleteScreen.lua GetReplayRound/GetNumReplayRounds),
+        // so an empty log leaves the screen with nothing to play. Runtime-only like ResultDetermined:
+        // a mission caught mid-completion by a restart re-simulates at finalize.
+        AutoCombatResult CombatResult;
+    };
+
+    struct Shipment
+    {
+        uint64 DbID = 0;
+        uint32 ShipmentRecID = 0;
+        uint32 PlotInstanceID = 0;
+        time_t CreationTime = 0;
+        int32 Duration = 0;
+        uint64 AssignedFollowerDBID = 0;
+
+        bool IsReady() const;
+    };
+
+    // Bit values for Garrison::Talent::Flags. Exact wire bits unverified by sniff;
+    // the Temporary bit is server-only and routed back into the wire Flags value.
+    enum GarrisonTalentFlags : int32
+    {
+        GARRISON_TALENT_FLAG_NONE       = 0x0,
+        // Legion class-hall one-shot/temporary talent. In a covenant sanctum (GarrType 111) this bit means
+        // exactly one thing: an Anima Conductor channel bought with reservoir anima rather than permanently
+        // reinforced with Channeled Anima. Garrison::LearnTalent refuses to set it on any other type-111 talent,
+        // which is what lets World::DailyReset expire all of them with a single flag test.
+        GARRISON_TALENT_FLAG_TEMPORARY  = 0x1,
+    };
+
+    struct Talent
+    {
+        uint32 GarrTalentID = 0;
+        int32 Rank = 0;
+        time_t ResearchStartTime = 0;
+        int32 Flags = 0;
+        int32 SoulbindConduitID = 0;
+        int32 SoulbindConduitRank = 0;
+
+        bool IsResearching() const;
+        bool IsResearchComplete() const;
+        bool IsTemporary() const { return (Flags & GARRISON_TALENT_FLAG_TEMPORARY) != 0; }
+    };
+
     explicit Garrison(Player* owner);
 
     bool LoadFromDB(PreparedQueryResult garrison, PreparedQueryResult blueprints, PreparedQueryResult buildings,
-        PreparedQueryResult followers, PreparedQueryResult abilities);
+        PreparedQueryResult followers, PreparedQueryResult abilities, PreparedQueryResult missions,
+        PreparedQueryResult specializations, PreparedQueryResult shipments, PreparedQueryResult talents,
+        PreparedQueryResult trophies, PreparedQueryResult archivedMissions);
     void SaveToDB(CharacterDatabaseTransaction trans);
+    static void DeleteFromDB(ObjectGuid::LowType ownerGuid, GarrisonType garrType, CharacterDatabaseTransaction trans);
     static void DeleteFromDB(ObjectGuid::LowType ownerGuid, CharacterDatabaseTransaction trans);
 
     bool Create(uint32 garrSiteId);
     void Delete();
     void Upgrade();
 
+    void Update(uint32 diff);
     void Enter() const;
     void Leave() const;
 
     static constexpr GarrisonFactionIndex GetFaction(Team team) { return team == HORDE ? GARRISON_FACTION_INDEX_HORDE : GARRISON_FACTION_INDEX_ALLIANCE; }
     GarrisonFactionIndex GetFaction() const;
-    GarrisonType GetType() const { return GARRISON_TYPE_GARRISON; }
+    GarrisonType GetType() const { return _garrType; }
     GarrSiteLevelEntry const* GetSiteLevel() const { return _siteLevel; }
 
     // Plots
@@ -245,11 +349,53 @@ public:
     bool HasBlueprint(uint32 garrBuildingId) const { return _knownBuildings.find(garrBuildingId) != _knownBuildings.end(); }
     void PlaceBuilding(uint32 garrPlotInstanceId, uint32 garrBuildingId);
     void CancelBuildingConstruction(uint32 garrPlotInstanceId);
+
+    // WoD Shipyard. Unlike normal buildings it has no architect plot (no GarrBuildingPlotInst entry) and lives
+    // on the naval map; we track only its tier. CreateShipyard builds/upgrades it (gated on garrison level 3).
+    void CreateShipyard();
+    bool HasShipyard() const { return _shipyardBuilding != 0; }
+    uint32 GetShipyardBuildingId() const { return _shipyardBuilding; }
+    // Whether missions/followers of the given GarrFollowerType are available to this garrison: the garrison's own
+    // primary type always is; the shipyard (naval) type only once the shipyard is built. Gates naval mission offers.
+    bool IsMissionFollowerTypeAvailable(int8 followerTypeId) const;
+    // Whether the owner's active covenant may hold this follower. GarrFollower.CovenantID is 0 for followers that
+    // belong to no covenant (every WoD/Legion/War-Campaign follower, plus 41 of the 138 Shadowlands companions) and
+    // 1-4 for a covenant-exclusive companion, which only that covenant's sanctum may recruit.
+    bool IsFollowerCovenantAllowed(GarrFollowerEntry const* followerEntry) const;
+    // Full health of a follower at the given level, taken from its GarrAutoCombatant statline.
+    // 0 when the follower publishes no statline (all WoD/Legion/War-Campaign followers).
+    static int32 GetFollowerMaxHealth(GarrFollowerEntry const* followerEntry, uint32 followerLevel);
+    // Build a ship (a GarrFollowerType-2 GarrFollower) at the shipyard. Validates the shipyard exists, the id is a
+    // real ship, it is not already owned, and the ship soft-cap is not exceeded, then adds it as a follower.
+    GarrisonError BuildShip(uint32 garrFollowerId);
+    uint32 GetShipCount() const;
+    static constexpr uint32 SHIPYARD_FOLLOWER_SOFT_CAP = 6;
     void ActivateBuilding(uint32 garrPlotInstanceId);
+    void SwapBuildings(uint32 plotId1, uint32 plotId2);
+
+    // Specializations
+    void LearnSpecialization(uint32 garrSpecId);
+    bool HasSpecialization(uint32 garrSpecId) const { return _knownSpecializations.find(garrSpecId) != _knownSpecializations.end(); }
+    // Sets (or clears, with garrSpecId 0) a building's active specialization. Answers the client on every
+    // path with SMSG_GARRISON_BUILDING_SET_ACTIVE_SPECIALIZATION_RESULT and returns the same code, so a
+    // caller (today: the .garrison building spec GM command) can report it too. NOTE: the 12.0.7 client has
+    // no request opcode for this - C_Garrison.SetBuildingSpecialization is a legacy Lua stub and
+    // CMSG_GARRISON_SET_BUILDING_ACTIVE carries only a plot id - so this is a pure server push.
+    GarrisonError SetBuildingSpecialization(uint32 garrPlotInstanceId, uint32 garrSpecId);
 
     // Followers
     void AddFollower(uint32 garrFollowerId);
+    void AddTroop(uint32 garrFollowerId, uint32 durability);
     Follower const* GetFollower(uint64 dbId) const;
+    Follower* GetFollower(uint64 dbId);
+    Follower const* GetFollowerByEntry(uint32 garrFollowerId) const;
+    void RemoveFollower(uint64 dbId);
+    void SetFollowerFavorite(uint64 dbId, bool favorite);
+    void SetFollowerInactive(uint64 dbId, bool inactive);
+    void RenameFollower(uint64 dbId, std::string const& name);
+    void AssignFollowerToBuilding(uint64 dbId, uint32 plotInstanceId);
+    void RemoveFollowerFromBuilding(uint64 dbId);
+    std::unordered_map<uint64, Follower> const& GetFollowerMap() const { return _followers; }
     template<typename Predicate>
     uint32 CountFollowers(Predicate&& predicate) const
     {
@@ -261,26 +407,316 @@ public:
         return count;
     }
 
+    // Missions
+    // Target size of the offered-mission board. The board is topped up toward this cap over several
+    // periodic ticks (see GenerateAvailableMissions); the command-table open handler uses it to detect a
+    // full pool (nothing new to generate) and re-send the existing offers so the table is not empty.
+    static constexpr uint32 MAX_AVAILABLE_MISSIONS = 15;
+
+    void AddMission(uint32 garrMissionId);
+    void SendOfferedMissions() const;
+    // Covenant Adventures gate: the command table only operates once the tier-0 'Tactical Insight' talent of the
+    // covenant's Command Table tree (1074 Night Fae / 1077 Kyrian / 1080 Venthyr / 1083 Necrolord, trees
+    // 315/316/317/318) is researched. Always true for every non-covenant garrison type - their tables have no
+    // such talent. Enforced at mission generation, board re-send and mission start; the client UI gates itself
+    // with the same talent, so an un-researched table simply shows an empty board.
+    bool IsMissionBoardUnlocked() const;
+    // Whether the offered-mission board is already at MAX_AVAILABLE_MISSIONS (GenerateAvailableMissions
+    // would add nothing, so no ADD_MISSION packets would otherwise reach the client on open).
+    bool IsOfferPoolFull() const;
+    Mission const* GetMission(uint64 dbId) const;
+    Mission* GetMission(uint64 dbId);
+    Mission const* GetMissionByRecID(uint32 missionRecID) const;
+    Mission* GetMissionByRecID(uint32 missionRecID);
+    // boardIndexes is parallel to followerDBIDs and carries the ally board slot the Adventures client
+    // placed each companion in (GarrAutoBoardIndex; -1/None from the boardless WoD & Legion UIs, which
+    // then get the retail auto-assignment order). May be shorter/empty - missing entries are treated as
+    // None. See AssignMissionBoardIndexes.
+    GarrisonError StartMission(uint32 missionRecID, std::vector<uint64> const& followerDBIDs,
+        std::vector<int32> const& boardIndexes = {});
+    GarrisonError CompleteMission(uint32 missionRecID);
+    GarrisonError ClaimMissionReward(uint32 missionRecID);
+    GarrisonError MissionBonusRoll(uint32 missionRecID);
+    // Grants rewards (if the stored outcome succeeded) + follower XP (always) + frees followers + removes
+    // the mission. Called from the opcodes the WoD client actually sends: BONUS_ROLL on success, and
+    // COMPLETE on failure (the client sends no bonus roll for a failed mission).
+    GarrisonError FinalizeMission(uint32 missionRecID, bool grantOvermax);
+    // Takes the mission by reference because an auto-combat mission also stores its full round-by-round
+    // replay (mission.CombatResult) - the client needs that log, not just the win/lose bit.
+    bool RollMissionOutcome(Mission& mission, uint32 missionRecID);
+    // Fills every assigned follower's PacketInfo.BoardIndex for one mission. Client-supplied ally slots
+    // (GarrAutoBoardIndex 0..4) are honoured when they are valid and unique; anything else falls back to
+    // retail's own auto-assignment order.
+    void AssignMissionBoardIndexes(Mission const& mission, std::vector<int32> const& boardIndexes);
+    // Writes the per-companion outcome and the auto-combat replay into a mission-complete response.
+    void BuildMissionCompleteResult(Mission const& mission,
+        WorldPackets::Garrison::GarrisonCompleteMissionResult& result) const;
+    void RemoveMission(uint32 missionRecID);
+    void GenerateAvailableMissions();
+    uint64 GenerateMissionDbId();
+    int32 CalculateSuccessChance(uint32 missionRecID, std::vector<uint64> const& followerDBIDs) const;
+    void PopulateMissionData(Mission& mission, GarrMissionEntry const* missionEntry) const;
+    bool IsAutoCombatMission(Mission const& mission) const;
+    void RemoveExpiredMissions();
+    uint32 GetAndIncrementSessionMissionCount() { return _sessionMissionCount++; }
+    void SendDeleteExpiredMissionsResult() const;
+    // Read-only views used by the criteria/PlayerCondition modifier evaluators (ModifierTreeType 141/177/186/195).
+    std::unordered_map<uint64 /*dbId*/, Mission> const& GetAllMissions() const { return _missions; }
+    // GarrMission record ids of every mission this garrison has finalized (success or failure).
+    std::vector<int32> const& GetArchivedMissions() const { return _archivedMissions; }
+    bool HasCompletedMission(uint32 garrMissionRecID) const
+    {
+        return std::find(_archivedMissions.begin(), _archivedMissions.end(), int32(garrMissionRecID)) != _archivedMissions.end();
+    }
+
+    // Recruitment
+    void SetRecruitmentPreferences(uint32 abilityId, uint32 traitId);
+    void GenerateRecruits(uint32 faction);
+    GarrisonError RecruitFollower(uint32 garrFollowerID);
+    std::vector<WorldPackets::Garrison::GarrisonFollower> const& GetAvailableRecruits() const { return _availableRecruits; }
+    uint32 GetRecruitmentPreferenceAbilityId() const { return _recruitmentPreferenceAbilityId; }
+    uint32 GetRecruitmentPreferenceTraitId() const { return _recruitmentPreferenceTraitId; }
+
+    // Follower healing
+    // PAID rush-heal of one follower to full (SRV-G2), for the C_Garrison.RushHealFollower UI button.
+    // Returns GARRISON_SUCCESS when healed (or already full - no charge), GARRISON_ERROR_NOT_ENOUGH_CURRENCY
+    // when the owner cannot pay (no health change, no deduction), or GARRISON_ERROR_INVALID_FOLLOWER for an
+    // unknown dbId.
+    GarrisonError HealFollower(uint64 followerDbId);
+    // PAID rush-heal of every wounded follower (C_Garrison.RushHealAllFollowers UI button): charges per
+    // follower via HealFollower and stops once the owner runs out of currency, leaving the remainder wounded
+    // rather than healing them for free.
+    void RushHealAllFollowers();
+    // FREE full restore of every follower - the primitive behind the script/spell-driven vitality restore
+    // (SPELL_EFFECT_RESTORE_GARRISON_TROOP_VITALITY), where the spell itself is the cost. NOT the UI button;
+    // that path is RushHealAllFollowers and must charge.
+    void HealAllFollowers();
+    void SendAllFollowerUpdates();
+
+    // Spell-driven operations
+    void FinishMission(uint32 garrMissionRecID);
+    void FinishShipment(uint32 plotInstanceId);
+    void SetFollowerQuality(uint64 dbId, uint32 quality);
+    void SetFollowerLevel(uint64 dbId, uint32 level);
+    void AddFollowerXP(uint64 dbId, uint32 xp);
+    void LearnFollowerAbility(uint64 dbId, uint32 abilityId);
+    // Mirror of LearnFollowerAbility. Refuses abilities the data marks GARRISON_ABILITY_FLAG_CANNOT_REMOVE
+    // (GarrAbility.Flags 0x10) so a caller cannot strip a follower's authored innate trait. Answers with
+    // SMSG_GARRISON_REMOVE_FOLLOWER_ABILITY_RESULT (which carries the whole follower) on success.
+    GarrisonError RemoveFollowerAbility(uint64 dbId, uint32 abilityId);
+    void RandomizeFollowerAbilities(uint64 dbId);
+    // Finishes an in-progress construction immediately (SPELL_EFFECT_END_GARRISON_BUILDING_CONSTRUCTION and
+    // the .garrison building complete dev command). Answers on every path with
+    // SMSG_GARRISON_COMPLETE_BUILDING_CONSTRUCTION_RESULT and returns the same code.
+    GarrisonError EndBuildingConstruction(uint32 garrPlotInstanceId);
+    // GM/dev only: force a mission's wire state (0 offered / 1 in progress / 2 completed) and answer with
+    // SMSG_GARRISON_UPDATE_MISSION_CHEAT_RESULT. Backs the .garrison mission update command.
+    GarrisonError SetMissionStateCheat(uint32 garrMissionRecID, uint32 newState);
+    void SetGarrisonCacheSize(uint32 size);
+
+    // Garrison resource cache: the WoD cache GameObject accrues Garrison Resources (currency 824) over
+    // time (1 per CACHE_RESOURCE_INTERVAL, up to _garrisonCacheSize) and is collected when the player
+    // clicks it. GetPendingCacheResources reports what is currently banked; CollectGarrisonCache grants
+    // it, advancing the timer by the whole intervals consumed so sub-interval progress is not lost.
+    uint32 GetPendingCacheResources() const;
+    uint32 CollectGarrisonCache();
+    Follower* GetFollowerByGarrFollowerID(uint32 garrFollowerID);
+    GarrisonError UpgradeFollowerItemLevel(uint64 dbId, int32 amount, int32 slot, GarrItemLevelUpgradeDataEntry const* upgradeData = nullptr);
+
+    // Building-specific helpers
+    GarrBuildingEntry const* GetActiveBuildingByType(uint32 buildingType) const;
+    uint32 GetBonusFollowerSlots() const;
+
+    // Shipments (work orders)
+    GarrisonError CreateShipment(ObjectGuid npcGUID, uint32 count);
+    GarrisonError CreateTroopShipment(ObjectGuid npcGUID, uint32 count); // order-hall/class-hall troop work order (plotless)
+    void CompleteShipment(uint64 dbId);
+    void CollectReadyShipments(uint32 plotInstanceId);
+    void CollectReadyShipmentsForContainer(uint32 containerId); // plotless orders: picked up at the container's "standard" GO
+    void UpdateOrderHallStandards(); // sync each plotless container's "standard" GO display to the owner's orders (working/ready/empty)
+    void SendOpenShipmentUI(ObjectGuid npcGuid);
+    // Swap each building's work-order crate GO display to the "filled" model (CharShipmentContainer
+    // Small/Medium/Large DisplayInfoID by order count) while it holds orders, base model when empty.
+    void UpdateWorkOrderCrates();
+    std::vector<Shipment const*> GetShipmentsForPlot(uint32 plotInstanceId) const;
+    std::vector<Shipment const*> GetAllShipments() const;
+    void SendShipmentInfo(ObjectGuid npcGUID);
+    void SendLandingPageShipments();
+    uint32 GetBuildingTypeForPlot(uint32 plotInstanceId) const;
+    uint32 FindPlotInstanceForNpc(ObjectGuid npcGUID) const;
+
+    // Talent system
+    uint32 LearnTalent(uint32 garrTalentID, bool isTemporary);
+    uint32 ResearchTalent(uint32 garrTalentID);
+    uint32 SocketTalent(uint32 garrTalentID, int32 soulbindConduitID, int32 soulbindConduitRank);
+    // Wipes every talent in one tree (server-driven respec) and pushes the removal to the client.
+    uint32 ResetTalentTree(uint32 garrTalentTreeID);
+    Talent const* GetTalent(uint32 garrTalentID) const;
+    std::unordered_map<uint32, Talent> const& GetAllTalents() const { return _talents; }
+    void CompleteAllTalentResearch(bool sendUpdate = false);
+    // (Re)apply GarrTalentRank.PerkSpellID for every rank this garrison has already completed. Called on login,
+    // after the garrisons and the covenant/soulbind state are both loaded.
+    void ApplyAllTalentPerks();
+    // Covenant switching. Every covenant-scoped tree of the sanctum publishes its owner as
+    // GarrTalentTree.FeatureSubtypeIndex (= Covenant.db2 id), so the researched talents of the four covenants are
+    // already stored as disjoint sets and NOTHING here ever deletes a talent row - only the perks a row grants are
+    // scoped to the covenant currently being served. Strips the PerkSpellID of every covenant-scoped tree that is
+    // not the player's active covenant and (re)applies the active one's. Idempotent; safe with no covenant at all
+    // (everything covenant-scoped is stripped). A no-op for every garrison type except the covenant sanctum.
+    void RefreshCovenantTalentPerks();
+    // Seat the 14 talents of a covenant's ability tree (GarrTalentTree.FeatureTypeIndex 0). All four ability trees
+    // are authored cost 0 / gold 0 / duration 0 with no prerequisites, so LearnTalent puts each straight at rank 1
+    // and the class filtering happens through GarrTalentRank.PerkPlayerConditionID - i.e. this is exactly what the
+    // retail class + signature grant spells do, without hardcoding their ids. Already-known talents are skipped.
+    void GrantCovenantAbilityTalents(uint32 covenantId);
+
+    // Product of GarrAbilityEffect.ActionValueFlat over every effect with the given AbilityAction reachable from
+    // a researched (rank >= 1) talent of this garrison that carries a GarrTalent.GarrAbilityID - the generic
+    // dispatch for talent-published ability modifiers (the Command Table tiers 'Forward Planning' / 'Strategic
+    // Genius' today; any future GarrAbility-carrying talent for free). Covenant-scoped trees only count while
+    // their covenant is the player's active one, mirroring the PerkSpellID layer. Returns 1.0 when nothing
+    // applies.
+    float GetTalentAbilityActionMultiplier(uint8 abilityAction) const;
+
+    // Trophy system. This is a SELECTION, not an inventory: which trophies a character may pick from is never
+    // stored, it is computed from Trophy.db2 filtered by the monument's TrophyTypeID and gated on each row's
+    // PlayerConditionID (see WorldSession::HandleGetTrophyList). What persists is only "which statue is on
+    // which monument".
+    //
+    // Keyed by TrophyInstanceID - the identity of one physical monument (its gameobject Data1; the six spawned
+    // Monument Bases use 1, 2 and 6 on each side). This is the key the client itself uses: the monument tooltip
+    // builder scans SMSG_GARRISON_UPDATE_GARRISON_MONUMENT_SELECTIONS for the entry matching the monument's own
+    // TrophyInstanceID. Keying by TrophyTypeID instead would make all three monuments in a garrison show the
+    // same statue.
+    void SetSelectedTrophy(uint32 trophyInstanceID, uint32 trophyID);
+    void ClearSelectedTrophy(uint32 trophyInstanceID);
+    uint32 GetSelectedTrophy(uint32 trophyInstanceID) const;
+    std::unordered_map<uint32, uint32> const& GetTrophies() const { return _trophies; }
+
+    // Queen's Conservatory - the Night Fae unique sanctum feature (GarrTalentTree 319). Only meaningful on a
+    // GARRISON_TYPE_COVENANT garrison owned by a Night Fae character; it reports zero plots for anything else.
+    QueensConservatory& GetConservatory() { return _conservatory; }
+    QueensConservatory const& GetConservatory() const { return _conservatory; }
+
+    // Abomination Factory - the Necrolord unique sanctum feature (GarrTalentTree 321). Only meaningful on a
+    // GARRISON_TYPE_COVENANT garrison owned by a Necrolord character; it reports rank 0 for anything else.
+    AbominationFactory& GetAbominationFactory() { return _abominationFactory; }
+    AbominationFactory const& GetAbominationFactory() const { return _abominationFactory; }
+
+    // Path of Ascension - the Kyrian unique sanctum feature (GarrTalentTree 320). Only meaningful on a
+    // GARRISON_TYPE_COVENANT garrison owned by a Kyrian character; it reports zero researched tiers otherwise.
+    PathOfAscension& GetPathOfAscension() { return _pathOfAscension; }
+    PathOfAscension const& GetPathOfAscension() const { return _pathOfAscension; }
+
+    // The Ember Court - the Venthyr unique sanctum feature (GarrTalentTree 324). Only meaningful on a
+    // GARRISON_TYPE_COVENANT garrison owned by a Venthyr character; it reports zero guest slots otherwise.
+    EmberCourt& GetEmberCourt() { return _emberCourt; }
+    EmberCourt const& GetEmberCourt() const { return _emberCourt; }
+
     void BuildInfoPacket(WorldPackets::Garrison::GarrisonInfo& garrison) const;
     void SendRemoteInfo() const;
+    void SendInfo() const;
     void SendBlueprintAndSpecializationData();
     void SendMapData(Player* receiver) const;
+    void SendMissionStartConditionUpdate() const;
+    void SendTroopQualityRefresh() const;
 
     void ResetFollowerActivationLimit() { _followerActivationsRemainingToday = 1; }
+    uint32 GetFollowerActivationsRemaining() const { return _followerActivationsRemainingToday; }
+
+    // Anima Conductor channels bought with reservoir anima last until the daily reset; drop the lapsed ones and
+    // tell the client. A no-op for every garrison type except the covenant sanctum. Called from Player::DailyReset.
+    void ExpireTemporaryChannelAnima();
 
 private:
     Map* FindMap() const;
+
+    // GarrTalentRank.PerkSpellID plumbing. A rank index is the 0-based index into the talent's rank list; a talent
+    // sitting at Rank N has completed rank indices [0, N).
+    void ApplyTalentRankPerk(uint32 garrTalentID, int32 rankIndex);
+    void RemoveTalentRankPerks(uint32 garrTalentID, int32 completedRanks);
+    // Transport Network (FeatureTypeIndex 2): the researched tier's authored teleport/taxi capability
+    // (world table `garrison_transport_network` - the client publishes no effect fields for these talents).
+    // Taxi-teach spells are cast once; verified teleport spells are learned/unlearned like rank perks.
+    void ApplyTransportNetworkPerks(uint32 garrTalentID);
+    void RemoveTransportNetworkPerks(uint32 garrTalentID);
+    // Evaluates the talent's published GarrTalent.PlayerConditionID for the covenant sanctum research trees
+    // (Channel Anima tiers, tier-0 level+covenant gates, Reservoir renown/covenant gates). Returns true for
+    // talents without a condition, for non-covenant garrison types, and for the documented exemptions
+    // (ability + soulbind trees) - see the implementation for the full rationale.
+    bool IsTalentAvailableForPlayer(GarrTalentEntry const* talentEntry) const;
+    // True for the six Anima Conductor destinations of a covenant (GarrTalentTree.FeatureTypeIndex 7).
+    static bool IsChannelAnimaTalent(GarrTalentEntry const* talentEntry);
+    // Charge one Channel Anima selection and take the previous temporary channel down. Returns a GARRISON_*
+    // result; on success the caller may seat the talent.
+    uint32 TakeChannelAnimaCost(GarrTalentEntry const* talentEntry, bool permanent);
+    // Drop one channel, strip its perks, tell the client and delete its row.
+    void RemoveChannelAnimaTalent(uint32 garrTalentID);
+    // Covenant-scoped sanctum trees (GarrTalentTree.FeatureSubtypeIndex = CovenantID) may only be touched by a
+    // member of that covenant. Returns true for every tree that is not covenant-scoped.
+    bool IsTalentTreeOwnedByPlayerCovenant(GarrTalentTreeEntry const* treeEntry) const;
     void InitializePlots();
     GarrisonError CheckBuildingPlacement(uint32 garrPlotInstanceId, uint32 garrBuildingId) const;
     GarrisonError CheckBuildingRemoval(uint32 garrPlotInstanceId) const;
     Player* _owner;
+    GarrisonType _garrType;
     GarrSiteLevelEntry const* _siteLevel;
     uint32 _followerActivationsRemainingToday;
+    uint32 _updateTimer = 0;
+    uint32 _garrisonCacheSize = 500;
+    time_t _cacheLastUsed = 0; // last time the resource cache was collected (advances by whole intervals)
+    uint32 _shipyardBuilding = 0; // WoD Shipyard tier: GarrBuilding 205/206/207 (L1/L2/L3), 0 = not built
+    static constexpr uint32 GARRISON_UPDATE_INTERVAL = 60000; // 60 seconds
+    static constexpr uint32 CACHE_RESOURCE_INTERVAL = 600;    // WoD rate: 1 Garrison Resource per 10 minutes
+    static constexpr uint32 CURRENCY_GARRISON_RESOURCES = 824;
+    // WoD Shipyard building tiers (GarrBuilding "Lunarfall/Frostwall Shipyard", BuildingType 9), verified in 12.0.7
+    static constexpr uint32 GARRISON_SHIPYARD_BUILDING_L1 = 205;
+    static constexpr uint32 GARRISON_SHIPYARD_BUILDING_L2 = 206;
+    static constexpr uint32 GARRISON_SHIPYARD_BUILDING_L3 = 207;
 
     std::unordered_map<uint32 /*garrPlotInstanceId*/, Plot> _plots;
     std::unordered_set<uint32 /*garrBuildingId*/> _knownBuildings;
+    std::unordered_set<uint32 /*garrSpecId*/> _knownSpecializations;
     std::unordered_map<uint64 /*dbId*/, Follower> _followers;
     std::unordered_set<uint32> _followerIds;
+    std::unordered_map<uint64 /*dbId*/, Mission> _missions;
+    uint64 _missionDbIdGenerator = 1;
+    time_t _lastMissionGenerationTime = 0;
+    uint32 _lastFinishedMissionCount = 0; // #17: re-sends garrison info when a mission's timer completes so the report refreshes
+    std::unordered_set<uint32 /*missionRecID*/> _activeMissionRecIDs;
+    uint32 _sessionMissionCount = 0;
+    uint32 _missionsStartedToday = 0;
+    uint32 _lastMissionStartDay = 0; // days since epoch, for daily reset detection
+    std::vector<int32> _archivedMissions;
+
+    // Recruitment
+    std::vector<WorldPackets::Garrison::GarrisonFollower> _availableRecruits;
+    uint32 _recruitmentPreferenceAbilityId = 0;
+    uint32 _recruitmentPreferenceTraitId = 0;
+
+    // Shipments
+    std::unordered_map<uint64 /*dbId*/, Shipment> _shipments;
+    std::unordered_map<uint32 /*containerId*/, uint8> _shownStandardContainers; // standards we've lit up, so they reset to base after collection
+    std::unordered_map<uint32 /*containerId*/, ObjectGuid> _privateStandards;   // per-player private "standard" GOs showing THIS owner's order state
+    std::unordered_map<uint32 /*garrTalentID*/, Talent> _talents;
+
+    // Trophies
+    std::unordered_map<uint32 /*trophyInstanceID*/, uint32 /*trophyID*/> _trophies;
+
+    // Night Fae unique sanctum feature; inert for every other garrison type.
+    QueensConservatory _conservatory;
+
+    // Necrolord unique sanctum feature; inert for every other garrison type.
+    AbominationFactory _abominationFactory;
+
+    // Kyrian unique sanctum feature; inert for every other garrison type.
+    PathOfAscension _pathOfAscension;
+
+    // Venthyr unique sanctum feature; inert for every other garrison type.
+    EmberCourt _emberCourt;
+
+    // Temporary storage for BuildInfoPacket (mission copies with cleared inline rewards)
+    mutable std::vector<WorldPackets::Garrison::GarrisonMission> _infoMissions;
 };
 
 #endif // Garrison_h__

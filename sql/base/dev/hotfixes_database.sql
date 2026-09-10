@@ -2420,6 +2420,30 @@ CREATE TABLE `corruption_effects` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `covenant`
+--
+
+DROP TABLE IF EXISTS `covenant`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `covenant` (
+  `ID` int unsigned NOT NULL DEFAULT '0',
+  `Name` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `Description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `BountySetID` int NOT NULL DEFAULT '0',
+  `SkillLineID` int NOT NULL DEFAULT '0',
+  `DeathTeleportSpellID` int NOT NULL DEFAULT '0',
+  `Field_9_0_2_36165_006` int NOT NULL DEFAULT '0',
+  `Field_9_0_2_36165_007` int NOT NULL DEFAULT '0',
+  `FactionID` int NOT NULL DEFAULT '0',
+  `CurrencyTypesID` int NOT NULL DEFAULT '0',
+  `RequiredPlayerConditionID` int NOT NULL DEFAULT '0',
+  `VerifiedBuild` int NOT NULL DEFAULT '0',
+  PRIMARY KEY (`ID`,`VerifiedBuild`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `crafting_quality`
 --
 
@@ -8350,6 +8374,110 @@ CREATE TABLE `skill_race_class_info` (
   `Availability` int NOT NULL DEFAULT '0',
   `MinLevel` tinyint NOT NULL DEFAULT '0',
   `SkillTierID` smallint NOT NULL DEFAULT '0',
+  `VerifiedBuild` int NOT NULL DEFAULT '0',
+  PRIMARY KEY (`ID`,`VerifiedBuild`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `soulbind`
+--
+
+DROP TABLE IF EXISTS `soulbind`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `soulbind` (
+  `ID` int unsigned NOT NULL DEFAULT '0',
+  `Name` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `CovenantID` int NOT NULL DEFAULT '0',
+  `GarrTalentTreeID` int NOT NULL DEFAULT '0',
+  `CreatureID` int NOT NULL DEFAULT '0',
+  `GarrFollowerID` int NOT NULL DEFAULT '0',
+  `PlayerConditionID` int NOT NULL DEFAULT '0',
+  `VerifiedBuild` int NOT NULL DEFAULT '0',
+  PRIMARY KEY (`ID`,`VerifiedBuild`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `soulbind_conduit`
+--
+
+DROP TABLE IF EXISTS `soulbind_conduit`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `soulbind_conduit` (
+  `ID` int unsigned NOT NULL DEFAULT '0',
+  `ConduitType` tinyint unsigned NOT NULL DEFAULT '0',
+  `CovenantID` int NOT NULL DEFAULT '0',
+  `SpecSetID` int NOT NULL DEFAULT '0',
+  `Flags` int NOT NULL DEFAULT '0',
+  `VerifiedBuild` int NOT NULL DEFAULT '0',
+  PRIMARY KEY (`ID`,`VerifiedBuild`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `soulbind_conduit_item`
+--
+
+DROP TABLE IF EXISTS `soulbind_conduit_item`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `soulbind_conduit_item` (
+  `ID` int unsigned NOT NULL DEFAULT '0',
+  `ItemID` int NOT NULL DEFAULT '0',
+  `ConduitID` int NOT NULL DEFAULT '0',
+  `VerifiedBuild` int NOT NULL DEFAULT '0',
+  PRIMARY KEY (`ID`,`VerifiedBuild`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `soulbind_conduit_rank_properties`
+--
+
+DROP TABLE IF EXISTS `soulbind_conduit_rank_properties`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `soulbind_conduit_rank_properties` (
+  `ID` int unsigned NOT NULL DEFAULT '0',
+  `Rank` int NOT NULL DEFAULT '0',
+  `ItemLevel` int NOT NULL DEFAULT '0',
+  `QualityID` tinyint NOT NULL DEFAULT '0',
+  `VerifiedBuild` int NOT NULL DEFAULT '0',
+  PRIMARY KEY (`ID`,`VerifiedBuild`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `renown_rewards`
+--
+
+DROP TABLE IF EXISTS `renown_rewards`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `renown_rewards` (
+  `ID` int unsigned NOT NULL DEFAULT '0',
+  `Name` text,
+  `Description` text,
+  `ToastDescription` text,
+  `CovenantID` int NOT NULL DEFAULT '0',
+  `Level` int NOT NULL DEFAULT '0',
+  `Icon` int NOT NULL DEFAULT '0',
+  `Flags` int NOT NULL DEFAULT '0',
+  `UiOrder` int NOT NULL DEFAULT '0',
+  `ItemID` int NOT NULL DEFAULT '0',
+  `SpellID` int NOT NULL DEFAULT '0',
+  `MountID` int NOT NULL DEFAULT '0',
+  `TransmogID` int NOT NULL DEFAULT '0',
+  `TransmogSetID` int NOT NULL DEFAULT '0',
+  `CharTitlesID` int NOT NULL DEFAULT '0',
+  `GarrFollowerID` int NOT NULL DEFAULT '0',
+  `TransmogIllusionID` int NOT NULL DEFAULT '0',
+  `Field_12_0_0_63534_016` int NOT NULL DEFAULT '0',
+  `QuestID` int NOT NULL DEFAULT '0',
+  `PlayerConditionID` int NOT NULL DEFAULT '0',
   `VerifiedBuild` int NOT NULL DEFAULT '0',
   PRIMARY KEY (`ID`,`VerifiedBuild`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

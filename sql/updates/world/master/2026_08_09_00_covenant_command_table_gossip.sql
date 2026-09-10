@@ -1,0 +1,128 @@
+--
+-- Covenant sanctum Command Table ("Adventures") - the gossip option is inert
+-- =========================================================================
+--
+-- BUG
+-- ---
+-- Clicking the Command Table at a covenant sanctum opens the gossip window, and selecting its single
+-- option does nothing at all. The four covenant tables (identified by where they are actually spawned in
+-- this world DB, map 2222) and their menus:
+--
+--   creature 154527 "Command Table" (-1594.32, -5752.79, 6842.61)  Elysian Hold, Bastion  KYRIAN     -> menu 25583
+--   creature 166143 "Command Table" (-1958.20,  7634.21, 4192.26)  Sinfall, Revendreth    VENTHYR    -> menu 25440
+--   creature 172400 "Command Table" (-6873.43,  1069.99, 5671.26)  Heart of the Forest    NIGHT FAE  -> menu 26161
+--   creature 175136 "Command Table" ( 1792.16, -2473.46, 3394.81)  Seat of the Primus     NECROLORD  -> menu 25583
+--   (menu 26339 carries the same option but no Command Table creature links to it here)
+--
+-- Every one of those menu rows looks like this - one option, right OptionNpc, NULL GossipNpcOptionID:
+--   25583  OptionID 0  GossipOptionID 0  OptionNpc 31  "The news!"                                VerifiedBuild 44730
+--   25440  OptionID 0  GossipOptionID 0  OptionNpc 31  "Show me what missions you have prepared."  VerifiedBuild 46597
+--   26161  OptionID 0  GossipOptionID 0  OptionNpc 31  "Show me what missions you have prepared."  VerifiedBuild 37474
+--   26339  OptionID 0  GossipOptionID 0  OptionNpc 31  "Show me what missions you have prepared."  VerifiedBuild 46549
+-- Checked in every world DB on this box (integ_world, wc_world, wc_test_world, wowc_world): all four
+-- menus, all four NULL. These rows come from 9.0/9.1-era sniffs that predate the column being captured.
+--
+-- WHY A NULL `GossipNpcOptionID` MAKES THE OPTION INERT
+-- ----------------------------------------------------
+-- `Player::OnGossipSelect` has no case for GossipOptionNpc::AdventureMap (31), so it falls through to the
+-- generic immersive-interaction path, which takes one of two branches:
+--   * `GossipNpcOptionID` set  -> SMSG_GOSSIP_OPTION_NPC_INTERACTION{GossipNpcOptionID}
+--   * `GossipNpcOptionID` NULL -> SMSG_NPC_INTERACTION_OPEN_RESULT{PlayerInteractionType} (here AdventureMap, 28)
+-- Only the first can work. SMSG_NPC_INTERACTION_OPEN_RESULT feeds the client's PlayerInteractionManager,
+-- and `InteractionManagerFrameInfo` in Blizzard_UIPanels_Game/Shared/PlayerInteractionFrameManager.lua has
+-- NO entry for AdventureMap (28), GarrMission (32), GarrRecruitment (34) or GarrTalent (35);
+-- `ShowFrame()` does `local frameInfo = ...; if not frameInfo then return; end` - a silent no-op. That is
+-- literally "clicking does nothing", and it is exactly the trap the GossipOptionNpc::GarrisonMissionNpc
+-- comment in Player.cpp already warns about. Corroborated on the wire: SMSG_NPC_INTERACTION_OPEN_RESULT
+-- occurs ZERO times in the entire C:\sniff corpus.
+--
+-- The Adventures UI is raised by a dedicated event instead - Blizzard_UIParent/Mainline/UIParent.lua:
+--     elseif ( event == "ADVENTURE_MAP_OPEN" ) then
+--         Garrison_LoadUI();
+--         local followerTypeID = ...;
+--         ...
+--         elseif ( followerTypeID == Enum.GarrisonFollowerType.FollowerType_9_0_GarrisonFollower ) then
+--             ShowUIPanel(CovenantMissionFrame);
+-- and on this build the ONLY server->client trigger for it is SMSG_GOSSIP_OPTION_NPC_INTERACTION carrying
+-- a GossipNpcOptionID the client resolves in GossipNPCOption.db2. The 9.x opcode that used to do this
+-- directly, SMSG_ADVENTURE_MAP_OPEN_NPC{NpcGUID, UiMapID}, NO LONGER EXISTS at 12.0.7 (whole-binary
+-- catalogue OPCODES_MASTER_12_0_7_68275.json, 2408 named opcodes: no adventure-map / talent-npc /
+-- anima-diversion open SMSG at all). CMSG_OPEN_MISSION_NPC is the client's follow-up once the frame is
+-- already open (WorldSession::HandleOpenMissionNpc), not the opener.
+--
+-- WIRE EVIDENCE (sniffs)
+-- ----------------------
+-- 9.2.7.45745, C:\sniff\tazavsh m+ sniff\<sl_3>.pkt packets #21157-#21233 - a NIGHT FAE Command Table:
+--     #21157 SMSG_GOSSIP_MESSAGE   GossipGUID entry 172400, GossipID 26161, 1 option, OptionNPC 31 (AdventureMap)
+--     #21176 CMSG_GOSSIP_SELECT_OPTION  MenuID 26161, OptionID 0
+--     #21177 SMSG_ADVENTURE_MAP_OPEN_NPC  NpcGUID(172400), UiMapID 1565      <- Ardenweald, the covenant's zone map
+--     #21178 CMSG_OPEN_MISSION_NPC        NpcGUID, FollowerType 123 (CovenantSanctumFollower)
+--     then CMSG_CHECK_IS_ADVENTURE_MAP_POI_VALID..., #21233 SMSG_GOSSIP_COMPLETE
+-- 12.0.1.66102 + 12.0.7.68275 (alliance_wod_garrison / "garrison and hall of class table quest.pkt"):
+--     the same select now answers SMSG_GOSSIP_OPTION_NPC_INTERACTION{GossipNpcOptionID}, e.g. 30323 for
+--     the WoD table (menu 18757) and 30377 for the Legion class-hall table (menu 18747, OptionNPC 31,
+--     GossipNPCOption 30377 = {type 31, UiMapID 993}).
+--
+-- WHICH ROW - WHAT IS PROVEN AND WHAT IS NOT
+-- ------------------------------------------
+-- GossipNPCOption.db2 @12.0.7 (WOWSTATIC_12_0_7_67808, layout hash 0x5247127B = TrinityCore's) has exactly
+-- 23 rows of type 31. The Shadowlands-map ones are ALL of these and no others:
+--     31197 UiMapID 1645 "Torghast"        GossipOptionID 51702
+--     31205 UiMapID 1525 "Revendreth"      GossipOptionID 51787
+--     31206 UiMapID 1525 "Revendreth"      GossipOptionID 51788
+--     31295 UiMapID 1550 "The Shadowlands" GossipOptionID 53000   (System 0 - the world map)
+--     31320 UiMapID 1565 "Ardenweald"      GossipOptionID 53394
+--     31385 UiMapID 1647 "The Shadowlands" GossipOptionID 54058   (System 2 - the mission-map system)
+--     42341 UiMapID 1647 "The Shadowlands" GossipOptionID 107403  (Dragonflight id block; its neighbour
+--                                                                  42342/107405 is the already-wired
+--                                                                  "<Choose which part of the Dragon Isles
+--                                                                  to explore.>" on menu 30037)
+-- There is NO type-31 row - in fact no GossipNPCOption row of ANY type - with UiMapID 1533 "Bastion" or
+-- 1536 "Maldraxxus". (Control for that negative: the same scan finds 1525/1550/1565/1645/1647 rows, and
+-- 1565 is the sniff-proven Night Fae value.) The three hotfix stores on this box (integ_hotfixes,
+-- wc_hotfixes, wowc_hotfixes) hold exactly 1 gossip_npc_option row each and none of them matches.
+--
+-- PROVEN: menu 26161 (Night Fae, creature 172400) = GossipNpcOptionID 31320. The sniff shows that exact
+-- menu on that exact creature opening UiMapID 1565, and 31320 is the unique type-31 row for UiMapID 1565.
+--
+-- NOT PROVEN, and declared as such: Kyrian (1533) and Necrolord (1536) have no zone-matched row in this
+-- build's client file, and Revendreth (1525) has two indistinguishable candidates (31205/31206). For those
+-- three menus this file uses 31385 - UiMapID 1647, the only Shadowlands UiMap whose `UiMap.System` is 2,
+-- i.e. the mission-map system that every already-wired, known-working adventure-map option points at
+-- (30377 -> 993 "Broken Isles" System 2, 30888/31003 -> 1011 "Zandalar" System 2, 30917/31010 -> 1014
+-- "Kul Tiras" System 2, 58756 -> 2561 "Quel'Thalas" System 2). Any Shadowlands UiMapID makes the client
+-- resolve followerTypeID 123 and open CovenantMissionFrame, which is what unsticks the option; the UiMapID
+-- only additionally selects the map the Adventures UI draws behind the missions.
+--
+-- UNBLOCK: one retail sniff of a Kyrian / Venthyr / Necrolord Command Table. SMSG_GOSSIP_MESSAGE gives the
+-- menu's real GossipOptionID and SMSG_GOSSIP_OPTION_NPC_INTERACTION gives the real GossipNpcOptionID. If it
+-- differs, change the value in the second statement below and nothing else. The obvious alternative to try
+-- first if 31385 draws the wrong map is 31295 (UiMapID 1550 "The Shadowlands", the continent map).
+--
+-- `GossipOptionID` is deliberately LEFT AT 0 on all four rows. It is a per-option global id, so the four
+-- menus cannot share one, and which of the un-sourced menus owns 53394/54058 is exactly what is not
+-- derivable. TC handles 0 by synthesising -(MenuID*100 + OrderIndex) in GossipMenu::AddMenuItem and the
+-- client echoes it back, so the select round-trip is unaffected. `GossipNpcOptionID` may legitimately be
+-- shared between menus - TDB itself already shares 31003 between menus 22141 and 23395.
+--
+-- ALREADY OK, VERIFIED SEPARATELY (no change needed)
+-- --------------------------------------------------
+--   * The server-side Adventures gate passes for a researched sanctum: Garrison::IsMissionBoardUnlocked
+--     wants the tier-0 talent of the active covenant's Command Table tree (Kyrian tree 316 tier 0 =
+--     GarrTalent 1077 "Tactical Insight"); character 1 (Agathunt) holds 1077 at rank 1.
+--   * The SMSG_DELETE_EXPIRED_MISSIONS_RESULT follow-up already fires for GarrType 111 -
+--     WorldSession::HandleOpenMissionNpc and HandleGetGarrisonInfo both iterate _player->GetGarrisons()
+--     and call SendDeleteExpiredMissionsResult() per garrison. No WoD-only no-arg GetGarrison() is on that
+--     path (the remaining no-arg call sites are the WoD-only architect/blueprint/map-data/follower ones).
+--   * gossip_menu 25583 keeps both its TextIDs (27278 / 100003) - untouched.
+--
+-- Idempotent. Reversible by setting the column back to NULL.
+--
+
+-- Night Fae - sniff-proven.
+UPDATE `gossip_menu_option` SET `GossipNpcOptionID` = 31320
+  WHERE `MenuID` = 26161 AND `OptionID` = 0 AND `OptionNpc` = 31;
+
+-- Kyrian / Venthyr / Necrolord - see "NOT PROVEN" above.
+UPDATE `gossip_menu_option` SET `GossipNpcOptionID` = 31385
+  WHERE `MenuID` IN (25583, 25440, 26339) AND `OptionID` = 0 AND `OptionNpc` = 31;

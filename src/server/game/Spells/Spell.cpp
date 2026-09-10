@@ -35,6 +35,8 @@
 #include "DynamicObject.h"
 #include "G3DPosition.hpp"
 #include "GameObjectAI.h"
+#include "Garrison.h"
+#include "GarrisonMgr.h"
 #include "GridNotifiersImpl.h"
 #include "Guild.h"
 #include "InstanceLockMgr.h"
@@ -1536,7 +1538,7 @@ void Spell::SelectImplicitCasterDestTargets(SpellEffectInfo const& spellEffectIn
             {
                 angle = [&]()
                 {
-                    switch (m_caster->m_movementInfo.GetMovementFlags() & (MOVEMENTFLAG_FORWARD | MOVEMENTFLAG_BACKWARD | MOVEMENTFLAG_STRAFE_LEFT | MOVEMENTFLAG_STRAFE_RIGHT))
+                    switch (uint64(m_caster->m_movementInfo.GetMovementFlags() & (MOVEMENTFLAG_FORWARD | MOVEMENTFLAG_BACKWARD | MOVEMENTFLAG_STRAFE_LEFT | MOVEMENTFLAG_STRAFE_RIGHT)))
                     {
                         case MOVEMENTFLAG_NONE:
                         case MOVEMENTFLAG_FORWARD:
@@ -3849,6 +3851,14 @@ void Spell::_cast(bool skipCheck)
         player->FailCriteria(CriteriaFailEvent::CastSpell, m_spellInfo->Id);
         player->StartCriteria(CriteriaStartEvent::CastSpell, m_spellInfo->Id);
         player->UpdateCriteria(CriteriaType::CastSpell, m_spellInfo->Id);
+
+        // Abominable Stitching (Necrolord covenant sanctum, GarrTalentTree 321): a "Construct Body: X" recipe is
+        // an ordinary reagent-consuming cast, so this is where the sanctum records the new construct in the
+        // owner's stable. The membership test is one hash lookup against a set that is empty on any build whose
+        // client data does not publish SkillLine 2787.
+        if (sGarrisonMgr.IsAbominationConstructRecipe(m_spellInfo->Id))
+            if (Garrison* sanctum = player->GetGarrison(GARRISON_TYPE_COVENANT))
+                sanctum->GetAbominationFactory().BuildConstruct(m_spellInfo->Id);
     }
 
     // Spells that don't create items can have this attribute - handle here

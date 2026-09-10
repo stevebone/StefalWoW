@@ -1788,8 +1788,10 @@ uint32 WorldSession::DosProtection::GetMaxPacketCounterAllowed(uint32 opcode) co
         }
         case CMSG_CHECK_IS_ADVENTURE_MAP_POI_VALID:     // not profiled
         {
-            // 12.0.1: all entries of the db2 are sent
-            maxPacketCounterAllowed = sAdventureMapPOIStore.GetNumRows();
+            // 12.0.1: the client sends one check per entry in ITS AdventureMapPOI.db2 on map open. Basing the burst
+            // limit on the SERVER store size (GetNumRows) kicks the player when the server's db2 is a subset of the
+            // client's (BfA war-campaign map -> flood -> AntiDOS kick). Allow the client's full burst.
+            maxPacketCounterAllowed = std::max<uint32>(sAdventureMapPOIStore.GetNumRows(), 4096u);
             break;
         }
         default:

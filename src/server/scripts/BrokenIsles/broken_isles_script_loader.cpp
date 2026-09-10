@@ -43,6 +43,21 @@ void AddSC_instance_eye_of_azshara();
 // Orderhalls
 void AddSC_orderhall_warrior();
 void AddSC_orderhall_rogue();
+void AddSC_orderhall_hunter();
+void AddSC_orderhall_legion();   // generic class-hall framework (unlock + Dalaran class messenger)
+
+// Legion artifact acquisitions (per class, all specs)
+void AddSC_artifact_warrior();
+void AddSC_artifact_paladin();
+void AddSC_artifact_deathknight();
+void AddSC_artifact_shaman();
+void AddSC_artifact_mage();
+void AddSC_artifact_warlock();
+void AddSC_artifact_monk();
+void AddSC_artifact_druid();
+void AddSC_artifact_rogue();
+void AddSC_artifact_priest();
+void AddSC_artifact_demonhunter();
 
 // The name of this function should match:
 // void Add${NameOfDirectory}Scripts()
@@ -74,4 +89,19 @@ void AddBrokenIslesScripts()
     // Orderhalls
     AddSC_orderhall_warrior();
     AddSC_orderhall_rogue();
+    AddSC_orderhall_hunter();    // BM Hunter artifact ("Stolen Thunder" / Titanstrike) + MM/SV
+    AddSC_orderhall_legion();    // generic class-hall framework (unlock + Dalaran class messenger)
+
+    // Legion artifact acquisitions (per class, all specs)
+    AddSC_artifact_warrior();
+    AddSC_artifact_paladin();
+    AddSC_artifact_deathknight();
+    AddSC_artifact_shaman();
+    AddSC_artifact_mage();
+    AddSC_artifact_warlock();
+    AddSC_artifact_monk();
+    AddSC_artifact_druid();
+    AddSC_artifact_rogue();
+    AddSC_artifact_priest();
+    AddSC_artifact_demonhunter();
 }
