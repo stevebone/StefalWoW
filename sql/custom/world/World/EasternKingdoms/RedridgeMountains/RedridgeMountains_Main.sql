@@ -179,6 +179,9 @@ INSERT INTO `vehicle_seat_addon` (`SeatEntry`, `SeatOrientation`, `ExitParamX`, 
 (8217, 3.14159265, 0, 0, 0, 0, 0),
 (8218, 3.14159265, 0, 0, 0, 0, 0);
 
+-- Quest Templates
+UPDATE `quest_template` SET `Flags` = `Flags` | 0x00400000 WHERE `ID` = 26668;
+
 -- Quest Template Addons
 UPDATE `quest_template_addon` SET `PrevQuestID` = 26607 WHERE `ID` = 26616;
 UPDATE `quest_template_addon` SET `ExclusiveGroup` = 0 WHERE `ID` = 26563;
@@ -213,16 +216,27 @@ INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry
 (32, 5, 43609, 0, 0, 8, 0, 26651, 0, 0, 0, 0, 0, '', 'Jorgensen (Canyon) visible when quest 26651 To Win A War You Gotta Become War is rewarded'),
 (32, 5, 43460, 0, 0, 14, 0, 26646, 0, 0, 0, 0, 0, '', 'Jorgensen (camp) visible when quest 26646 Prisoners of War is NOT taken');
 
--- Condition: terrain swap 751 active when in area 5324 AND quest 26668 is complete
+-- Condition: terrain swap 751 active when in area 44 AND quest 26668 is complete
 DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 25 AND `SourceEntry` = 751;
+-- Condition: phase switch 241
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceEntry` = 241;
 INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `NegativeCondition`, `ErrorType`, `ErrorTextId`, `ScriptName`, `Comment`) VALUES
-(25, 0, 751, 0, 0, 23, 0, 997, 0, 0, 0, 0, 0, '', 'TerrainSwap 751 active when in area 997 Render''s Valley'),
-(25, 0, 751, 0, 0, 8, 0, 26668, 0, 0, 0, 0, 0, '', 'TerrainSwap 751 active when quest 26668 Detonation is complete');
+(25, 0, 751, 0, 0, 23, 0, 44, 0, 0, 0, 0, 0, '', 'TerrainSwap 751 active when in area/zone 44 Redridge Mountains'),
+(25, 0, 751, 0, 0, 47, 0, 26668, 66, 0, 0, 0, 0, '', 'TerrainSwap 751 active when quest 26668 Detonation is complete'),
+(26, 0, 241, 0, 0, 47, 0, 26668, 66, 0, 0, 0, 0, '', 'Phase 241 Render Valley Post Explosion active when quest 26668 Detonation is complete');
 
 -- Register terrain swap 751 on map 0 (Eastern Kingdoms)
 DELETE FROM `terrain_swap_defaults` WHERE `MapId` = 0 AND `TerrainSwapMap` = 751;
 INSERT INTO `terrain_swap_defaults` (`MapId`, `TerrainSwapMap`, `Comment`) VALUES 
 (0, 751, 'Eastern Kingdoms - Redridge - Orc Bomb');
+
+DELETE FROM `phase_area` WHERE `PhaseId` = 241;
+INSERT INTO `phase_area` (`AreaId`, `PhaseId`, `Comment`) VALUES
+(997, 241, 'Redridge Mountains - Renders Valley - Post Bombt'),
+(5347, 241, 'Redridge Mountains - Renders Crater - Post Bombt');
+
+-- Set some creatures to be visible still in the 241 phase
+UPDATE `creature` SET `phaseuseflags` = 1 WHERE `id` IN (49996,52146,428,4462,43083);
 
 -- Script Names
 UPDATE `creature_template` SET `ScriptName` = 'npc_guard_bateman' WHERE `entry` = 43081;
