@@ -29,9 +29,11 @@ class player_extended_backpack_slots : public PlayerScript
 public:
     player_extended_backpack_slots() : PlayerScript("player_extended_backpack_slots") {}
 
-    void OnLogin(Player* player, bool firstLogin) override
+    void OnLogin(Player* player, bool /*firstLogin*/) override
     {
-        if (player && firstLogin)
+        // the flag is NOT persistent so we need to apply it on every login
+        // perhaps the flag needs to be on account level instead of player
+        if (player)
             player->SetAccountSecured(true);
     }
 };
