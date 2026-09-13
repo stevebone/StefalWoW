@@ -82,6 +82,8 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
         static constexpr uint32 KidnappedRedridgeCitizenFemale = 43571;
         static constexpr uint32 KeeshanCanyon = 43611;
         static constexpr uint32 MessnerCanyon = 43610;
+        static constexpr uint32 GrandMagusDoane = 397;
+        static constexpr uint32 MinionOfDoaneEntry = 2531;
     }
 
     namespace GameObjects
@@ -135,6 +137,11 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
         static constexpr uint32 BravoCompanyFieldKit2 = 82587;
         static constexpr uint32 CancelBravoCompanyFieldKit2 = 82592;
         static constexpr uint32 TeleportToShalewindCanyon = 81621;
+        static constexpr uint32 DemonArmor = 13787;
+        static constexpr uint32 MinionOfDoane = 3611;
+        static constexpr uint32 DoaneFireball = 20811;
+        static constexpr uint32 TeleportVisualOnly = 51347;
+        static constexpr uint32 DoaneCredit = 81791;
     }
 
     namespace Events
@@ -172,6 +179,8 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
         static constexpr uint32 JorgensenGuardianHeal = 31;
         static constexpr uint32 CitizenFleeToPoint2 = 32;
         static constexpr uint32 KeeshanCanyonTalk = 33;
+        static constexpr uint32 DoaneDemonArmorCheck = 34;
+        static constexpr uint32 DoaneFireballCombat = 35;
     }
 
     namespace Talks
@@ -184,6 +193,9 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
         static constexpr uint32 JorgensenSay01 = 1;
         static constexpr uint32 KeeshanCanyonSay00 = 0;
         static constexpr uint32 MessnerCanyonSay00 = 0;
+        static constexpr uint32 DoaneSay00 = 0;
+        static constexpr uint32 DoaneSay01 = 1;
+        static constexpr uint32 DoaneSay02 = 2;
     }
 
     namespace Spawns

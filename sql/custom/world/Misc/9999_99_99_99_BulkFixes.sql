@@ -52,3 +52,7 @@ UPDATE `creature_template` SET `unit_flags` = `unit_flags` & ~0x8000 WHERE `entr
 UPDATE `creature` SET `curHealthPct` = NULL WHERE `curHealthPct` IS NOT NULL AND `id` IN (
     SELECT `entry` FROM `creature_template` WHERE `RegenHealth` = 1
 );
+
+-- Remove Invalid SAI
+DELETE FROM `smart_scripts` WHERE `entryorguid` = 0;
+

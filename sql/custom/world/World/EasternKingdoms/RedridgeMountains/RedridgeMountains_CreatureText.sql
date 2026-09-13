@@ -1,7 +1,7 @@
 -- Redridge Mountains Creature Text
 DELETE FROM `creature_text` WHERE `creatureID` IN (43081,712,43270,43300,43272,43305,43303,43302,43448,43449,43458,43462,43461,43460,43459,7013,43535,43827);
-DELETE FROM `creature_text` WHERE `creatureID` IN (43571,43572,43610,43611);
-DELETE FROM `creature_text` WHERE `creatureID` IN (426,430,580) AND `GroupID` = 1;
+DELETE FROM `creature_text` WHERE `creatureID` IN (43571,43572,43610,43611,703,397);
+DELETE FROM `creature_text` WHERE `creatureID` IN (426,429,430,431,568,580) AND `GroupID` = 1;
 INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `BroadcastTextId`, `TextRange`, `comment`) VALUES
 (43610, 0, 0, 'Johnny, you do realize that we just blew up half of Redridge, right?', 12, 7, 100, 0, 0, 0, 43784, 0, 'Messner to Player'),
 (43611, 0, 0, 'Redridge''ll heal, but them orcs sure won''t...', 12, 7, 100, 0, 0, 0, 43786, 0, 'Keeshan to Player'),
@@ -59,11 +59,20 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Lan
 (43081, 0, 3, '$C departing Redridge!', 12, 7, 100, 0, 0, 0, 42989, 0, 'Guard Bateman to Player'),
 (43081, 0, 4, 'Good luck out there, $n!', 12, 7, 100, 0, 0, 0, 42990, 0, 'Guard Bateman to Player'),
 
+(703, 0, 0, 'More bones to gnaw on...', 12, 0, 100, 0, 0, 0, 1871, 0, 'General Fangore - Random Say on Aggro'),
+(703, 0, 1, 'Grrrr... fresh meat!', 12, 0, 100, 0, 0, 0, 1870, 0, 'General Fangore - Random Say on Aggro'),
 (712, 0, 0, 'More bones to gnaw on...', 12, 0, 100, 0, 0, 0, 1871, 0, 'Redridge Thrasher - Random Say on Aggro'),
 (712, 0, 1, 'Grrrr... fresh meat!', 12, 0, 100, 0, 0, 0, 1870, 0, 'Redridge Thrasher - Random Say on Aggro'),
 
+(397, 0, 0, 'The pathway to damnation awaits...', 12, 0, 100, 0, 0, 0, 43800, 0, 'Grand Magus Doane - Random Say on Aggro'),
+(397, 1, 0, 'MINION, to my aid!', 14, 0, 100, 0, 0, 0, 43806, 0, 'Grand Magus Doane - Summon Say on 60 pct'),
+(397, 2, 0, 'You realize not the error of your ways, but soon you will cower before Darkblaze.', 12, 0, 100, 0, 0, 0, 43801, 0, 'Grand Magus Doane - Despawn Say on 10 pct'),
+
 (426, 1, 0, '%s attempts to run away in fear!', 16, 0, 100, 0, 0, 0, 1150, 0, 'Redridge Brute - Flee Say 15 pct'),
+(429, 1, 0, '%s attempts to run away in fear!', 16, 0, 100, 0, 0, 0, 1150, 0, 'Shadowhide Darkweaver - Flee Say 15 pct'),
 (430, 1, 0, '%s attempts to run away in fear!', 16, 0, 100, 0, 0, 0, 1150, 0, 'Redridge Mystic - Flee Say 15 pct'),
+(431, 1, 0, '%s becomes enraged!', 16, 0, 100, 0, 0, 0, 10677, 0, 'Shadowhide Slayer - Enraged Say 30 pct'),
+(568, 1, 0, '%s attempts to run away in fear!', 16, 0, 100, 0, 0, 0, 1150, 0, 'Shadowhide Warrior - Flee Say 15 pct'),
 (580, 1, 0, '%s attempts to run away in fear!', 16, 0, 100, 0, 0, 0, 1150, 0, 'Redridge Drudger - Flee Say 15 pct'),
 
 (43270, 0, 0, 'If I ever get out of here I''m gonna crap all over your head, you pig sucking orc.', 12, 7, 100, 5, 0, 0, 43294, 0, 'Messner to Player'),

@@ -1,23 +1,30 @@
 -- Redridge Mountains Fixes
 
 -- NPC: 345 Bellygrub
+-- NPC: 397 Grand Magus Doane
 -- NPC: 422 Murloc Flesheater
 -- NPC: 423 Redridge Mongrel
 -- NPC: 426 Redridge Brute
 -- NPC: 428 Dire Condor
+-- NPC: 429 Shadowhide Darkweaver
 -- NPC: 430 Redridge Mystic
+-- NPC: 431 Shadowhide Slayer
+-- NPC: 432 Shadowhide Brute
 -- NPC: 437 Blackrock Renegade
 -- NPC: 442 Tarantula
 -- NPC: 445 Redridge Alpha
 -- NPC: 446 Redridge Basher
 -- NPC: 518 Yowler
+-- NPC: 544 Murloc Nightcrawler
 -- NPC: 545 Murloc Tidecaller
 -- NPC: 547 Great Goretusk
 -- NPC: 548 Murloc Minor Tidecaller
+-- NPC: 568 Shadowhide Warrior
 -- NPC: 578 Murloc Scout
 -- NPC: 580 Redridge Drudger
 -- NPC: 584 Kazon
 -- NPC: 615 Blackrock Tracker
+-- NPC: 703 General Fangore
 -- NPC: 711 Ardo Dirtpaw
 -- NPC: 712 Redridge Thrasher
 -- NPC: 1083 Murlock Shorestriker
@@ -30,6 +37,7 @@
 -- NPC: 14273 Boulderheart
 -- NPC: 43041 Ol' Gummers
 -- NPC: 43083 Redridge Fox
+-- NPC: 43084 Forest Stalker
 -- NPC: 43094 Canyon Ettin
 -- NPC: 43183 Freshwater Eel
 -- NPC: 43185 Blackrock Overseer
@@ -219,11 +227,11 @@ INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry
 -- Condition: terrain swap 751 active when in area 44 AND quest 26668 is complete
 DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 25 AND `SourceEntry` = 751;
 -- Condition: phase switch 241
-DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceEntry` = 241;
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` = 241;
 INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `NegativeCondition`, `ErrorType`, `ErrorTextId`, `ScriptName`, `Comment`) VALUES
 (25, 0, 751, 0, 0, 23, 0, 44, 0, 0, 0, 0, 0, '', 'TerrainSwap 751 active when in area/zone 44 Redridge Mountains'),
 (25, 0, 751, 0, 0, 47, 0, 26668, 66, 0, 0, 0, 0, '', 'TerrainSwap 751 active when quest 26668 Detonation is complete'),
-(26, 0, 241, 0, 0, 47, 0, 26668, 66, 0, 0, 0, 0, '', 'Phase 241 Render Valley Post Explosion active when quest 26668 Detonation is complete');
+(26, 241, 0, 0, 0, 47, 0, 26668, 66, 0, 0, 0, 0, '', 'Phase 241 Render Valley Post Explosion active when quest 26668 Detonation is complete');
 
 -- Register terrain swap 751 on map 0 (Eastern Kingdoms)
 DELETE FROM `terrain_swap_defaults` WHERE `MapId` = 0 AND `TerrainSwapMap` = 751;
@@ -232,8 +240,8 @@ INSERT INTO `terrain_swap_defaults` (`MapId`, `TerrainSwapMap`, `Comment`) VALUE
 
 DELETE FROM `phase_area` WHERE `PhaseId` = 241;
 INSERT INTO `phase_area` (`AreaId`, `PhaseId`, `Comment`) VALUES
-(997, 241, 'Redridge Mountains - Renders Valley - Post Bombt'),
-(5347, 241, 'Redridge Mountains - Renders Crater - Post Bombt');
+(997, 241, 'Redridge Mountains - Renders Valley - Post Bomb'),
+(5347, 241, 'Redridge Mountains - Renders Crater - Post Bomb');
 
 -- Set some creatures to be visible still in the 241 phase
 UPDATE `creature` SET `phaseuseflags` = 1 WHERE `id` IN (49996,52146,428,4462,43083);
@@ -253,6 +261,7 @@ UPDATE `creature_template` SET `ScriptName` = 'npc_keeshan_riverboat' WHERE `ent
 UPDATE `creature_template` SET `ScriptName` = 'npc_wild_rat' WHERE `entry` = 43518;
 UPDATE `creature_template` SET `ScriptName` = 'npc_kidnapped_redridge_citizen' WHERE `entry` IN (43572, 43571);
 UPDATE `creature_template` SET `ScriptName` = 'npc_keeshan_canyon' WHERE `entry` = 43611;
+UPDATE `creature_template` SET `ScriptName` = 'npc_grand_magus_doane' WHERE `entry` = 397;
 UPDATE `gameobject_template` SET `ScriptName` = 'go_chain_lever' WHERE `entry` = 204403;
 UPDATE `gameobject_template` SET `ScriptName` = 'go_blackrock_holding_pen' WHERE `entry` IN (204441,204442,204435);
 
@@ -292,20 +301,21 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 -- Creature Difficulties
 -- Remove incorrect records
 DELETE FROM `creature_template_difficulty` WHERE `DifficultyID` = 1 AND `Entry` IN (
-	345,422,423,426,428,430,437,442,445,446,518,545,547,548,578,580,584,615,711,712,1083,
-	4064,4462,4463,7013,14270,14271,14273,43041,43083,43094,43183,43185,43327,43329,43340,43341,
+	345,397,422,423,426,428,429,430,431,432,437,442,445,446,518,544,545,547,548,568,578,580,584,615,703,711,712,1083,
+	4064,4462,4463,7013,14270,14271,14273,43041,43083,43084,43094,43183,43185,43327,43329,43340,43341,
 	43350,43363,43369,43532,43533,43535,147222
 );
 
 -- Adjust Damage Modifier
 UPDATE `creature_template_difficulty` SET `DamageModifier` = 0.2 WHERE `Entry` IN (
-	345,422,423,426,428,430,437,442,445,446,518,545,547,548,578,580,584,615,711,712,1083,
-	4064,4462,4463,7013,14270,14271,14273,43041,43083,43094,43183,43185,43327,43329,43340,43341,
+	345,397,422,423,426,428,429,430,431,432,437,442,445,446,518,544,545,547,548,568,578,580,584,615,703,711,712,1083,
+	4064,4462,4463,7013,14270,14271,14273,43041,43083,43084,43094,43183,43185,43327,43329,43340,43341,
 	43350,43363,43369,43532,43533,43535,147222
 );
 
 -- Add missing loot ids
 UPDATE `creature_template_difficulty` SET `LootID` = 43083 WHERE `Entry` = 43083;
+UPDATE `creature_template_difficulty` SET `LootID` = 43084 WHERE `Entry` = 43084;
 UPDATE `creature_template_difficulty` SET `LootID` = 147222 WHERE `Entry` = 147222;
 UPDATE `creature_template_difficulty` SET `LootID` = 43183 WHERE `Entry` = 43183;
 UPDATE `creature_template_difficulty` SET `LootID` = 14270 WHERE `Entry` = 14270;
@@ -346,15 +356,21 @@ INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `MountCreatur
 UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (147222);
 DELETE FROM smart_scripts WHERE entryorguid IN (147222) AND source_type = 0;
 DELETE FROM smart_scripts WHERE entryorguid IN (426) AND source_type = 0 AND id IN (1,2);
-DELETE FROM smart_scripts WHERE entryorguid IN (430,580) AND source_type = 0 AND id IN (2,3);
-DELETE FROM smart_scripts WHERE entryorguid IN (445,446,423,712) AND source_type = 0 AND id = 1;
-DELETE FROM smart_scripts WHERE entryorguid IN (711) AND source_type = 0 AND id = 2;
+DELETE FROM smart_scripts WHERE entryorguid IN (430,580,429) AND source_type = 0 AND id IN (2,3);
+DELETE FROM smart_scripts WHERE entryorguid IN (432,445,446,423,712) AND source_type = 0 AND id = 1;
+DELETE FROM smart_scripts WHERE entryorguid IN (703,711) AND source_type = 0 AND id = 2;
+DELETE FROM smart_scripts WHERE entryorguid IN (431,568) AND source_type = 0 AND id = 3;
 DELETE FROM smart_scripts WHERE entryorguid IN (7013) AND source_type = 0 AND id = 4;
 DELETE FROM smart_scripts WHERE entryorguid IN (43535) AND source_type = 0 AND id = 5;
 INSERT INTO smart_scripts (entryorguid, source_type, id, link, Difficulties, event_type, event_phase_mask, event_chance, event_flags, event_param1, event_param2, event_param3, event_param4, event_param5, event_param_string, action_type, action_param1, action_param2, action_param3, action_param4, action_param5, action_param6, action_param7, action_param_string, target_type, target_param1, target_param2, target_param3, target_param4, target_param_string, target_x, target_y, target_z, target_o, comment) VALUES
 (7013, 0, 4, 0, '', 61, 0, 30, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 1, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Blackrock Guard - On Aggro - Say Line 0 (No Repeat)'),
 (43535, 0, 5, 0, '', 4, 0, 30, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 1, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Blackrock Warden - On Aggro - Say Line 0 (No Repeat)'),
-
+(429, 0, 2, 0, '', 4, 0, 30, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 1, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Shadowhide Darkweaver - On Aggro - Say Line 0 (No Repeat)'),
+(429, 0, 3, 0, '', 2, 0, 100, 1, 0, 15, 0, 0, 0, '', 1, 1, 0, 0, 0, 0, 0, 0, NULL, 1, 0, 0, 0, 0, NULL, 0, 0, 0, 0, 'Shadowhide Darkweaver - Flee at 15% HP'),
+(431, 0, 3, 0, '', 2, 0, 100, 1, 0, 30, 0, 0, 0, '', 1, 1, 0, 0, 0, 0, 0, 0, NULL, 1, 0, 0, 0, 0, NULL, 0, 0, 0, 0, 'Shadowhide Slayer - Enrage Say at 30% HP'),
+(432, 0, 1, 0, '', 4, 0, 30, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 1, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Shadowhide Brute - On Aggro - Say Line 0 (No Repeat)'),
+(703, 0, 2, 0, '', 4, 0, 30, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 1, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'General Fangore - On Aggro - Say Line 0 (No Repeat)'),
+(568, 0, 3, 0, '', 2, 0, 100, 1, 0, 15, 0, 0, 0, '', 1, 1, 0, 0, 0, 0, 0, 0, NULL, 1, 0, 0, 0, 0, NULL, 0, 0, 0, 0, 'Shadowhide Warrior - Flee at 15% HP'),
 
 (147222, 0, 0, 0, '', 0, 0, 100, 0, 0, 1500, 3000, 5000, 0, '', 11, 265725, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Gnollfeaster - In combat (3/5 seconds) - Cast "Leeching Bite"'),
 (147222, 0, 1, 0, '', 0, 0, 100, 0, 0, 1500, 5000, 7000, 0, '', 11, 265723, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Gnollfeaster - In combat (5/7 seconds) - Cast "Web"'),
@@ -375,6 +391,9 @@ UPDATE `smart_scripts` SET `target_type` = '7' WHERE `entryorguid` = 43341 AND `
 
 UPDATE `smart_scripts` SET `link` = 4 WHERE `entryorguid` = 7013 AND `source_type` = 0 AND `id` = 3;
 
+-- Update Say Events to 30% as that is more blizzlike
+UPDATE `smart_scripts` SET `event_chance` = 30 WHERE `entryorguid` = 431 AND `source_type` = 0 AND `id` = 2;
+UPDATE `smart_scripts` SET `event_chance` = 30 WHERE `entryorguid` = 568 AND `source_type` = 0 AND `id` = 0;
 
 
 -- Creatures

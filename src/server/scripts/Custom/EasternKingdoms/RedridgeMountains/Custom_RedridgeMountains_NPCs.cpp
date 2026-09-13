@@ -26,6 +26,7 @@
 #include "GameObject.h"
 #include "ObjectAccessor.h"
 #include "ObjectGuid.h"
+#include "PhasingHandler.h"
 #include "Player.h"
 #include "ScriptedCreature.h"
 #include "Unit.h"
@@ -1208,6 +1209,7 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
 
             // Temporary hack to complete quest since scene is not yet implemented
             player->CastSpell(player, Spells::TeleportToShalewindCanyon, true);
+            PhasingHandler::OnConditionChange(player, true);
         }
 
         void OnQuestReward(Player* player, Quest const* quest, LootItemType /*type*/, uint32 /*opt*/) override
@@ -1241,6 +1243,124 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
         EventMap _events;
         ObjectGuid _talkPlayerGuid;
     };
+
+    /*######
+    ## 397 Grand Magus Doane
+    ######*/
+
+    struct npc_grand_magus_doane : public ScriptedAI
+    {
+        npc_grand_magus_doane(Creature* creature) : ScriptedAI(creature) { }
+
+        void Reset() override
+        {
+            _events.Reset();
+            _summonedMinion = false;
+            _despawning = false;
+            _minionGuid.Clear();
+
+            if (!me->HasAura(Spells::DemonArmor))
+                DoCastSelf(Spells::DemonArmor);
+
+            _events.ScheduleEvent(Events::DoaneDemonArmorCheck, 10min);
+        }
+
+        void JustEngagedWith(Unit* who) override
+        {
+            if (Player* player = who->ToPlayer())
+            {
+                _playerGuid = player->GetGUID();
+                Talk(Talks::DoaneSay00, player);
+            }
+
+            _events.ScheduleEvent(Events::DoaneFireballCombat, 3s, 5s);
+        }
+
+        void JustSummoned(Creature* summon) override
+        {
+            if (summon->GetEntry() == Creatures::MinionOfDoaneEntry)
+                _minionGuid = summon->GetGUID();
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _events.Update(diff);
+
+            if (me->HasUnitState(UNIT_STATE_CASTING))
+                return;
+
+            while (uint32 eventId = _events.ExecuteEvent())
+            {
+                switch (eventId)
+                {
+                    case Events::DoaneDemonArmorCheck:
+                        if (!me->HasAura(Spells::DemonArmor))
+                            DoCastSelf(Spells::DemonArmor);
+                        _events.ScheduleEvent(Events::DoaneDemonArmorCheck, 10min);
+                        break;
+                    case Events::DoaneFireballCombat:
+                        DoCastVictim(Spells::DoaneFireball);
+                        _events.ScheduleEvent(Events::DoaneFireballCombat, 3s, 5s);
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            if (_despawning)
+                return;
+
+            if (!_summonedMinion && me->HealthBelowPct(60))
+            {
+                _summonedMinion = true;
+                if (Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid))
+                    Talk(Talks::DoaneSay01, player);
+                DoCastSelf(Spells::MinionOfDoane);
+            }
+
+            if (me->HealthBelowPct(10))
+            {
+                _despawning = true;
+                me->SetImmuneToAll(true);
+                me->SetUnkillable(true);
+
+                // Detach the minion so it survives Doane's despawn
+                if (!_minionGuid.IsEmpty())
+                {
+                    if (Creature* minion = ObjectAccessor::GetCreature(*me, _minionGuid))
+                    {
+                        if (TempSummon* summon = minion->ToTempSummon())
+                        {
+                            if (summon->HasUnitTypeMask(UNIT_MASK_MINION))
+                                me->SetMinion(static_cast<Minion*>(summon), false);
+                        }
+                    }
+                }
+
+                if (Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid))
+                {
+                    Talk(Talks::DoaneSay02, player);
+                    me->CastSpell(player, Spells::DoaneCredit, true);
+                }
+
+                DoCastSelf(Spells::TeleportVisualOnly);
+                me->DespawnOrUnsummon(1s);
+                return;
+            }
+
+            if (!UpdateVictim())
+                return;
+
+            me->DoMeleeAttackIfReady();
+        }
+
+    private:
+        EventMap _events;
+        ObjectGuid _playerGuid;
+        ObjectGuid _minionGuid;
+        bool _summonedMinion = false;
+        bool _despawning = false;
+    };
 }
 
 void AddSC_custom_redridge_mountains_npcs()
@@ -1261,4 +1381,5 @@ void AddSC_custom_redridge_mountains_npcs()
     RegisterCreatureAI(npc_wild_rat);
     RegisterCreatureAI(npc_kidnapped_redridge_citizen);
     RegisterCreatureAI(npc_keeshan_canyon);
+    RegisterCreatureAI(npc_grand_magus_doane);
 }

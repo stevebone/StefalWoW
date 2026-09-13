@@ -1,5 +1,56 @@
 -- Redridge Mountains Loot tables
 
+DELETE FROM `creature_loot_template` WHERE `Entry` = 703 AND `item` = 59522;
+INSERT INTO `creature_loot_template` (`Entry`, `Item`, `ItemType`, `Chance`, `QuestRequired`, `LootMode`, `GroupId`, `MinCount`, `MaxCount`, `Comment`) VALUES
+(703, 59522, 0, 100, 1, 1, 0, 1, 1, 'Key of Ilgalar');
+
+DELETE FROM `creature_loot_template` WHERE `Entry` = 43084;
+INSERT INTO `creature_loot_template` (`Entry`, `Item`, `ItemType`, `Chance`, `QuestRequired`, `LootMode`, `GroupId`, `MinCount`, `MaxCount`, `Comment`) VALUES
+(43084, 1179, 0, 0.1294, 0, 1, 0, 1, 1, 'Ice Cold Milk'),
+(43084, 1210, 0, 0.405452, 0, 1, 0, 1, 1, 'Shadowgem'),
+(43084, 1738, 0, 0.138026, 0, 1, 0, 1, 1, 'Laced Mail Belt'),
+(43084, 1764, 0, 0.15528, 0, 1, 0, 1, 1, 'Canvas Shoes'),
+(43084, 1767, 0, 0.181159, 0, 1, 0, 1, 1, 'Canvas Gloves'),
+(43084, 1768, 0, 0.138026, 0, 1, 0, 1, 1, 'Canvas Pants'),
+(43084, 1769, 0, 0.207039, 0, 1, 0, 1, 1, 'Canvas Shoulderpads'),
+(43084, 1770, 0, 0.189786, 0, 1, 0, 1, 1, 'Canvas Vest'),
+(43084, 1789, 0, 0.10352, 0, 1, 0, 1, 1, 'Patched Leather Bracers'),
+(43084, 1791, 0, 0.112146, 0, 1, 0, 1, 1, 'Patched Leather Gloves'),
+(43084, 1792, 0, 0.112146, 0, 1, 0, 1, 1, 'Patched Leather Pants'),
+(43084, 1793, 0, 0.138026, 0, 1, 0, 1, 1, 'Patched Leather Shoulderpads'),
+(43084, 1794, 0, 0.181159, 0, 1, 0, 1, 1, 'Patched Leather Jerkin'),
+(43084, 1811, 0, 0.163906, 0, 1, 0, 1, 1, 'Blunt Claymore'),
+(43084, 1812, 0, 0.207039, 0, 1, 0, 1, 1, 'Short-Handled Battle Axe'),
+(43084, 1813, 0, 0.207039, 0, 1, 0, 1, 1, 'Chipped Quarterstaff'),
+(43084, 1814, 0, 0.267426, 0, 1, 0, 1, 1, 'Battered Mallet'),
+(43084, 1815, 0, 0.163906, 0, 1, 0, 1, 1, 'Ornamental Mace'),
+(43084, 1816, 0, 0.112146, 0, 1, 0, 1, 1, 'Unbalanced Axe'),
+(43084, 1817, 0, 0.293306, 0, 1, 0, 1, 1, 'Stock Shortsword'),
+(43084, 2216, 0, 0.310559, 0, 1, 0, 1, 1, 'Simple Buckler'),
+(43084, 2217, 0, 0.146653, 0, 1, 0, 1, 1, 'Rectangular Shield'),
+(43084, 2589, 0, 0.414079, 0, 1, 0, 1, 2, 'Linen Cloth'),
+(43084, 2592, 0, 0.543478, 0, 1, 0, 1, 2, 'Wool Cloth'),
+(43084, 2780, 0, 0.146653, 0, 1, 0, 1, 1, 'Light Hunting Bow'),
+(43084, 2781, 0, 0.491718, 0, 1, 0, 1, 1, 'Dirty Blunderbuss'),
+(43084, 2984, 0, 0.112146, 0, 1, 0, 1, 1, 'Seer''s Gloves'),
+(43084, 3299, 0, 1.5873, 0, 1, 0, 1, 1, 'Fractured Canine'),
+(43084, 3300, 0, 0.491718, 0, 1, 0, 1, 1, 'Rabbit''s Foot'),
+(43084, 3301, 0, 23, 0, 1, 0, 1, 1, 'Sharp Canine'),
+(43084, 3376, 0, 0.138026, 0, 1, 0, 1, 1, 'Canvas Belt'),
+(43084, 3377, 0, 0.120773, 0, 1, 0, 1, 1, 'Canvas Bracers'),
+(43084, 3402, 0, 2, 0, 1, 0, 1, 1, 'Soft Patch of Fur'),
+(43084, 4582, 0, 0.810904, 0, 1, 0, 1, 1, 'Soft Bushy Tail'),
+(43084, 4865, 0, 10.3951, 0, 1, 0, 1, 1, 'Ruined Pelt'),
+(43084, 5212, 0, 0.10352, 0, 1, 0, 1, 1, 'Blazing Wand'),
+(43084, 7073, 0, 2.58799, 0, 1, 0, 1, 1, 'Broken Fang'),
+(43084, 7074, 0, 56.5821, 0, 1, 0, 1, 1, 'Chipped Claw'),
+(43084, 9779, 0, 0.15528, 0, 1, 0, 1, 1, 'Bandit Cloak'),
+(43084, 25421, 0, 0.767771, 0, 1, 0, 1, 1, 'Gnarled Claw'),
+(43084, 33546, 0, 0.457212, 0, 1, 0, 1, 1, 'Vicious Fang'),
+(43084, 33547, 0, 0.345066, 0, 1, 0, 1, 1, 'Hardened Claw'),
+(43084, 60576, 0, 0.534852, 0, 1, 0, 1, 1, 'Rending Fang'),
+(43084, 60577, 0, 0.15528, 0, 1, 0, 1, 1, 'Fire-Scorched Claw');
+
 DELETE FROM `creature_loot_template` WHERE `Entry` = 43369;
 INSERT INTO `creature_loot_template` (`Entry`, `ItemType`, `Item`, `Chance`, `QuestRequired`, `LootMode`, `GroupId`, `MinCount`, `MaxCount`, `Comment`) VALUES
 (43369, 0, 818, 0.237736, 0, 1, 0, 1, 1, 'Tigerseye'),
