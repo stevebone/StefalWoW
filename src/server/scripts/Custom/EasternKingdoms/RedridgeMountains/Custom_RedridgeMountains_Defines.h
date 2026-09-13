@@ -83,7 +83,7 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
         static constexpr uint32 KeeshanCanyon = 43611;
         static constexpr uint32 MessnerCanyon = 43610;
         static constexpr uint32 GrandMagusDoane = 397;
-        static constexpr uint32 MinionOfDoaneEntry = 2531;
+        static constexpr uint32 MinionOfDoane = 2531;
     }
 
     namespace GameObjects

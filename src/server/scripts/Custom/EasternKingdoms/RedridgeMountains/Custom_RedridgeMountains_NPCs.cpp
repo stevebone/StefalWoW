@@ -1278,8 +1278,49 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
 
         void JustSummoned(Creature* summon) override
         {
-            if (summon->GetEntry() == Creatures::MinionOfDoaneEntry)
+            if (summon->GetEntry() == Creatures::MinionOfDoane)
                 _minionGuid = summon->GetGUID();
+        }
+
+        void DamageTaken(Unit* /*attacker*/, uint32& damage, DamageEffectType /*damageType*/, SpellInfo const* /*spellInfo*/) override
+        {
+            // Once the despawn sequence has started, Doane must not die before the 1s despawn fires.
+            if (_despawning)
+            {
+                damage = 0;
+                return;
+            }
+
+            // At <= 10% HP, freeze health and trigger the despawn sequence.
+            // Setting damage = 0 prevents death without needing SetImmuneToAll/SetUnkillable,
+            // which would otherwise break the Doane Credit spell's AoE enemy-target search.
+            if (me->HealthBelowPctDamaged(10, damage))
+            {
+                _despawning = true;
+                damage = 0;
+
+                // Detach the minion so it survives Doane's despawn
+                if (!_minionGuid.IsEmpty())
+                {
+                    if (Creature* minion = ObjectAccessor::GetCreature(*me, _minionGuid))
+                    {
+                        if (TempSummon* summon = minion->ToTempSummon())
+                        {
+                            if (summon->HasUnitTypeMask(UNIT_MASK_MINION))
+                                me->SetMinion(static_cast<Minion*>(summon), false);
+                        }
+                    }
+                }
+
+                if (Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid))
+                {
+                    Talk(Talks::DoaneSay02, player);
+                    me->CastSpell(player, Spells::DoaneCredit, true);
+                }
+
+                me->CastSpell(me, Spells::TeleportVisualOnly, true);
+                me->DespawnOrUnsummon(1s);
+            }
         }
 
         void UpdateAI(uint32 diff) override
@@ -1316,36 +1357,6 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
                 if (Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid))
                     Talk(Talks::DoaneSay01, player);
                 DoCastSelf(Spells::MinionOfDoane);
-            }
-
-            if (me->HealthBelowPct(10))
-            {
-                _despawning = true;
-                me->SetImmuneToAll(true);
-                me->SetUnkillable(true);
-
-                // Detach the minion so it survives Doane's despawn
-                if (!_minionGuid.IsEmpty())
-                {
-                    if (Creature* minion = ObjectAccessor::GetCreature(*me, _minionGuid))
-                    {
-                        if (TempSummon* summon = minion->ToTempSummon())
-                        {
-                            if (summon->HasUnitTypeMask(UNIT_MASK_MINION))
-                                me->SetMinion(static_cast<Minion*>(summon), false);
-                        }
-                    }
-                }
-
-                if (Player* player = ObjectAccessor::GetPlayer(*me, _playerGuid))
-                {
-                    Talk(Talks::DoaneSay02, player);
-                    me->CastSpell(player, Spells::DoaneCredit, true);
-                }
-
-                DoCastSelf(Spells::TeleportVisualOnly);
-                me->DespawnOrUnsummon(1s);
-                return;
             }
 
             if (!UpdateVictim())
