@@ -2341,12 +2341,7 @@ uint32 Item::GetItemLevel(ItemTemplate const* itemTemplate, BonusData const& bon
         itemLevel += bonusData.ItemLevelBonus;
     }
     else
-    {
-        uint32 curveInput = bonusData.ItemLevelOffsetItemLevel;
-        if (!curveInput && bonusData.ItemLevelOffset < 0)
-            curveInput = itemTemplate->GetBaseItemLevel();
-        itemLevel = std::max(int32(MIN_ITEM_LEVEL), bonusData.ItemLevelOffset + int32(std::round(sDB2Manager.GetCurveValueAt(bonusData.ItemLevelOffsetCurveId, curveInput))));
-    }
+        itemLevel = bonusData.ItemLevelOffset + uint32(std::round(sDB2Manager.GetCurveValueAt(bonusData.ItemLevelOffsetCurveId, bonusData.ItemLevelOffsetItemLevel)));
 
     for (uint32 i = 0; i < MAX_ITEM_PROTO_SOCKETS; ++i)
         itemLevel += bonusData.GemItemLevelBonus[i];
