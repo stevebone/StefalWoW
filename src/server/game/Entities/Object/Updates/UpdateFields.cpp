@@ -6393,6 +6393,7 @@ void ActivePlayerData::WriteUpdate(Mask const& changesMask, ByteBuffer& data, Pl
             else
                 WriteCompleteDynamicFieldUpdateMask(AccountBankTabSettings.size(), data, 3);
         }
+        data.FlushBits();
         if (changesMask[48])
         {
             for (uint32 i = 0; i < CharacterBankTabSettings.size(); ++i)
