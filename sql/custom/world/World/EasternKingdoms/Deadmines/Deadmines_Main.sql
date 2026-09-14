@@ -604,7 +604,7 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 (87897, 'spell_glubtok_generic_proc'),
 (87900, 'spell_glubtok_generic_proc'),
 (89732, 'spell_captain_cookie_nauseated'),
-(89267, 'spell_captain_cookie_setiated'),
+(89267, 'spell_captain_cookie_satiated'),
 (89250, 'spell_captain_cookie_summon_cauldron');
 
 DELETE FROM `creature_template_spell` WHERE `CreatureID` IN (48266,49208,47403,47404);
