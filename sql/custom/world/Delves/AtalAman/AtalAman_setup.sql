@@ -14,9 +14,9 @@ UPDATE creature_template SET ScriptName = 'npc_enter_delve' WHERE entry = 212407
 UPDATE gameobject_template SET ScriptName = 'go_leave_delve' WHERE entry = 408227;
 
 -- spell_script_names: Register the Delve entry teleport spell
-INSERT INTO spell_script_names (spell_id, ScriptName)
-VALUES (1260942, 'spell_delve_entry')
-ON DUPLICATE KEY UPDATE ScriptName = 'spell_delve_entry';
+-- INSERT INTO spell_script_names (spell_id, ScriptName)
+-- VALUES (1260942, 'spell_delve_entry')
+-- ON DUPLICATE KEY UPDATE ScriptName = 'spell_delve_entry';
 
 -- gossip_menu_addon: LfgDungeonsID drives the tier-selection UI (from 12.0.1 sniff)
 DELETE FROM gossip_menu_addon WHERE MenuID = 39751;

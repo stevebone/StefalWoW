@@ -74,8 +74,9 @@ DELETE FROM gameobject_template_addon WHERE entry = 579108;
 INSERT INTO gameobject_template_addon (entry, faction, flags, WorldEffectID, AIAnimKitID) VALUES (579108, 0, 0x40000, 0, 0);
 
 -- Spell Script Names
-INSERT INTO spell_script_names (spell_id, ScriptName) VALUES (1260942, 'spell_delve_entry')
-ON DUPLICATE KEY UPDATE ScriptName=VALUES(ScriptName);
+DELETE FROM `spell_script_names` WHERE `ScriptName` = 'spell_delve_entry';
+-- INSERT INTO spell_script_names (spell_id, ScriptName) VALUES (1260942, 'spell_delve_entry')
+-- ON DUPLICATE KEY UPDATE ScriptName=VALUES(ScriptName);
 
 
 
