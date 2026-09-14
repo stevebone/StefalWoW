@@ -97,6 +97,18 @@ namespace Scripts::Custom::Warlock
         static constexpr uint32 UnstableAfflictionDamage = 196364;
         static constexpr uint32 UnstableAfflictionEnergize = 31117;
 
+        // Shard Instability
+        static constexpr uint32 ShardInstabilityProc = 1260264;
+        static constexpr uint32 ShardInstability      = 1260269;
+
+        // Cull the Weak
+        static constexpr uint32 CullTheWeak           = 1259886;
+        static constexpr uint32 DarkHarvest           = 1257052;
+
+        // Cunning Cruelty
+        static constexpr uint32 CunningCruelty        = 453172;
+        static constexpr uint32 ShadowboltVolleyArea  = 453176;
+
         // Misc
         static constexpr uint32 ArenaPreparation = 32727;
     }

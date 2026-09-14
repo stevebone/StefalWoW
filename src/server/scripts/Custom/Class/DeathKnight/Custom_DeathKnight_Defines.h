@@ -34,6 +34,14 @@ namespace Scripts::Custom::DeathKnight
         static constexpr uint32 BloodDrawDrain = 374606;
         static constexpr uint32 BloodDrawBuff  = 454871;
         static constexpr uint32 BloodDrawIcd   = 374609;
+
+        // Vestigial Shell
+        static constexpr uint32 AntiMagicShell       = 48707;
+        static constexpr uint32 VestigialShellTalent = 454851;
+        static constexpr uint32 VestigialShell        = 454863;
+
+        // March of Darkness
+        static constexpr uint32 MarchOfDarkness = 391546;
     }
 }
 

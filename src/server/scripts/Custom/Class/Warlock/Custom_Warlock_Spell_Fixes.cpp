@@ -30,6 +30,7 @@
 #include "SpellAuraEffects.h"
 #include "SpellScript.h"
 #include "Spell.h"
+#include "SpellHistory.h"
 #include "SpellInfo.h"
 #include "Unit.h"
 #include "ObjectAccessor.h"
@@ -837,6 +838,74 @@ namespace Scripts::Custom::Warlock
             OnEffectRemove += AuraEffectRemoveFn(spell_warl_unstable_affliction::HandleRemove, EFFECT_1, SPELL_AURA_PERIODIC_DAMAGE, AURA_EFFECT_HANDLE_REAL);
         }
     };
+    // 453172 - Cunning Cruelty
+    class spell_warl_cunning_cruelty : public AuraScript
+    {
+        bool Validate(SpellInfo const* /*spellInfo*/) override
+        {
+            return ValidateSpellInfo({ Spells::ShadowboltVolleyArea });
+        }
+
+        bool CheckEffectProc(AuraEffect const* aurEff, ProcEventInfo const& /*eventInfo*/)
+        {
+            return roll_chance(aurEff->GetAmount());
+        }
+
+        void HandleProc(AuraEffect const* /*aurEff*/, ProcEventInfo const& eventInfo)
+        {
+            eventInfo.GetActor()->CastSpell(eventInfo.GetActionTarget()->GetPosition(), Spells::ShadowboltVolleyArea, TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
+        }
+
+        void Register() override
+        {
+            DoCheckEffectProc += AuraCheckEffectProcFn(spell_warl_cunning_cruelty::CheckEffectProc, EFFECT_0, SPELL_AURA_DUMMY);
+            OnEffectProc += AuraEffectProcFn(spell_warl_cunning_cruelty::HandleProc, EFFECT_0, SPELL_AURA_DUMMY);
+        }
+    };
+
+    // 1259886 - Cull the Weak
+    class spell_warl_cull_the_weak : public AuraScript
+    {
+        bool Validate(SpellInfo const* /*spellInfo*/) override
+        {
+            return ValidateSpellInfo({ Spells::DarkHarvest });
+        }
+
+        void HandleEffectProc(AuraEffect const* aurEff, ProcEventInfo const& /*eventInfo*/)
+        {
+            GetTarget()->GetSpellHistory()->ModifyCooldown(Spells::DarkHarvest, -Milliseconds(aurEff->GetAmountAsInt()));
+        }
+
+        void Register() override
+        {
+            OnEffectProc += AuraEffectProcFn(spell_warl_cull_the_weak::HandleEffectProc, EFFECT_0, SPELL_AURA_DUMMY);
+        }
+    };
+
+    // 1260264 - Shard Instability
+    class spell_warl_shard_instability : public AuraScript
+    {
+        bool Validate(SpellInfo const* /*spellInfo*/) override
+        {
+            return ValidateSpellInfo({ Spells::ShardInstability });
+        }
+
+        bool CheckEffectProc(AuraEffect const* aurEff, ProcEventInfo const& /*eventInfo*/)
+        {
+            return roll_chance(aurEff->GetAmount());
+        }
+
+        void HandleProc(AuraEffect const* /*aurEff*/, ProcEventInfo const& eventInfo)
+        {
+            eventInfo.GetActor()->CastSpell(eventInfo.GetActor(), Spells::ShardInstability, TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
+        }
+
+        void Register() override
+        {
+            DoCheckEffectProc += AuraCheckEffectProcFn(spell_warl_shard_instability::CheckEffectProc, EFFECT_1, SPELL_AURA_DUMMY);
+            OnEffectProc += AuraEffectProcFn(spell_warl_shard_instability::HandleProc, EFFECT_1, SPELL_AURA_DUMMY);
+        }
+    };
 }
 
 void AddSC_custom_warlock_spell_fixes()
@@ -861,4 +930,7 @@ void AddSC_custom_warlock_spell_fixes()
     RegisterSpellScript(spell_warl_deaths_embrace_dots);
     RegisterSpellScript(spell_warl_deaths_embrace_shadow_bolt);
     RegisterSpellScript(spell_warl_unstable_affliction);
+    RegisterSpellScript(spell_warl_cunning_cruelty);
+    RegisterSpellScript(spell_warl_cull_the_weak);
+    RegisterSpellScript(spell_warl_shard_instability);
 }

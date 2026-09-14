@@ -154,7 +154,6 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 (215941, 'spell_warl_soul_conduit'),
 (232670, 'spell_warr_shadowbolt_affliction'),
 (104318, 'spell_warlock_fel_firebolt_wild_imp'),
-(386344, 'spell_warlock_inquisitors_gaze'),
 (29722, 'spell_warl_incinerate'),
 (980, 'spell_warlock_agony'),
 (3110, 'spell_warlock_imp_firebolt'),
@@ -234,3 +233,37 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 (27243, 'spell_warl_deaths_embrace_dots'),
 (198590, 'spell_warl_deaths_embrace_dots'),
 (232670, 'spell_warl_deaths_embrace_shadow_bolt');
+
+-- =========================================================================
+-- Shard Instability (1260264) - procs and casts 1260269 (Shard Instability)
+-- =========================================================================
+DELETE FROM `spell_proc` WHERE `SpellId` IN (1260264, 1260269);
+INSERT INTO `spell_proc` (`SpellId`, `SchoolMask`, `SpellFamilyName`, `SpellFamilyMask0`, `SpellFamilyMask1`, `SpellFamilyMask2`, `SpellFamilyMask3`, `ProcFlags`, `ProcFlags2`, `SpellTypeMask`, `SpellPhaseMask`, `HitMask`, `AttributesMask`, `DisableEffectsMask`, `ProcsPerMinute`, `Chance`, `Cooldown`, `Charges`) VALUES
+(1260264, 0, 5, 0x00800001, 0, 0, 0, 0, 0, 0x1, 0x2, 0, 0, 0, 0, 0, 0, 0),
+(1260269, 0, 5, 0, 0x00000100, 0, 0, 0, 0, 0, 0x1, 0, 0x10, 0, 0, 0, 0, 0);
+
+DELETE FROM `spell_script_names` WHERE `ScriptName`='spell_warl_shard_instability';
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
+(1260264, 'spell_warl_shard_instability');
+
+-- =========================================================================
+-- Cull the Weak (1259886) - reduces Dark Harvest (1257052) cooldown on proc
+-- =========================================================================
+DELETE FROM `spell_proc` WHERE `SpellId` IN (1259886);
+INSERT INTO `spell_proc` (`SpellId`, `SchoolMask`, `SpellFamilyName`, `SpellFamilyMask0`, `SpellFamilyMask1`, `SpellFamilyMask2`, `SpellFamilyMask3`, `ProcFlags`, `ProcFlags2`, `SpellTypeMask`, `SpellPhaseMask`, `HitMask`, `AttributesMask`, `DisableEffectsMask`, `ProcsPerMinute`, `Chance`, `Cooldown`, `Charges`) VALUES
+(1259886, 0, 5, 0, 0x00000110, 0, 0, 0, 0, 0x4, 0x1, 0, 0, 0, 0, 0, 0, 0);
+
+DELETE FROM `spell_script_names` WHERE `ScriptName`='spell_warl_cull_the_weak';
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
+(1259886, 'spell_warl_cull_the_weak');
+
+-- =========================================================================
+-- Cunning Cruelty (453172) - procs Shadowbolt Volley Area (453176)
+-- =========================================================================
+DELETE FROM `spell_proc` WHERE `SpellId` IN (453172);
+INSERT INTO `spell_proc` (`SpellId`, `SchoolMask`, `SpellFamilyName`, `SpellFamilyMask0`, `SpellFamilyMask1`, `SpellFamilyMask2`, `SpellFamilyMask3`, `ProcFlags`, `ProcFlags2`, `SpellTypeMask`, `SpellPhaseMask`, `HitMask`, `AttributesMask`, `DisableEffectsMask`, `ProcsPerMinute`, `Chance`, `Cooldown`, `Charges`) VALUES
+(453172, 0, 5, 0x00800001, 0, 0, 0, 0, 0, 0x1, 0x2, 0, 0, 0, 0, 0, 0, 0);
+
+DELETE FROM `spell_script_names` WHERE `ScriptName`='spell_warl_cunning_cruelty';
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
+(453172, 'spell_warl_cunning_cruelty');
