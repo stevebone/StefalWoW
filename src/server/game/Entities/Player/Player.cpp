@@ -8262,49 +8262,12 @@ void Player::_ApplyItemBonuses(Item* item, uint8 slot, bool apply)
 
     uint32 itemLevel = item->GetItemLevel(this);
 
+    // stat scaling uses raw (unsquished) item level for items with a scaling config offset curve
     BonusData const* bonus = item->GetBonus();
     uint32 rawItemLevel = itemLevel;
     if (bonus->ItemLevelOffsetCurveId)
-    {
-        if (bonus->ItemLevelOffsetItemLevel)
-        {
-            rawItemLevel = bonus->ItemLevelOffsetItemLevel;
-        }
-        else
-        {
-            rawItemLevel = bonus->ItemLevel;
-            if (bonus->PlayerLevelToItemLevelCurveId)
-            {
-                uint32 level = GetLevel();
-                uint32 fixedLevel = item->GetModifier(ITEM_MODIFIER_TIMEWALKER_LEVEL);
-                if (fixedLevel)
-                    level = fixedLevel;
-                else if (Optional<ContentTuningLevels> levels = sDB2Manager.GetContentTuningData(bonus->ContentTuningId, {}, true))
-                    level = std::min(std::max(int16(level), levels->MinLevel), levels->MaxLevel);
-                rawItemLevel = uint32(sDB2Manager.GetCurveValueAt(bonus->PlayerLevelToItemLevelCurveId, level));
-            }
-            rawItemLevel += bonus->ItemLevelBonus;
-            for (uint32 i = 0; i < MAX_ITEM_PROTO_SOCKETS; ++i)
-                rawItemLevel += bonus->GemItemLevelBonus[i];
-            rawItemLevel = std::min(std::max(rawItemLevel, uint32(MIN_ITEM_LEVEL)), uint32(MAX_ITEM_LEVEL));
-
-            float curveVal = sDB2Manager.GetCurveValueAt(bonus->ItemLevelOffsetCurveId, GetLevel());
-            int32 effective = static_cast<int32>(bonus->ItemLevelOffset) + static_cast<int32>(curveVal);
-            for (uint32 i = 0; i < MAX_ITEM_PROTO_SOCKETS; ++i)
-                effective += static_cast<int32>(bonus->GemItemLevelBonus[i]);
-            effective = std::max(effective, static_cast<int32>(MIN_ITEM_LEVEL));
-            effective = std::min(effective, static_cast<int32>(MAX_ITEM_LEVEL));
-
-            if (rawItemLevel > 0)
-            {
-                float ratio = float(effective) / float(rawItemLevel);
-                if (ratio >= 0.1f && ratio <= 10.0f)
-                    rawItemLevel = uint32(effective);
-            }
-            else
-                rawItemLevel = uint32(effective);
-        }
-    }
+        rawItemLevel = Item::GetItemLevel(proto, *bonus, GetLevel(), item->GetModifier(ITEM_MODIFIER_TIMEWALKER_LEVEL),
+            0, 0, 0, false, 0, item->GetModifier(ITEM_MODIFIER_CONTENT_TUNING_ID), false);
 
     float combatRatingMultiplier = 1.0f;
     if (GtCombatRatingsMultByILvl const* ratingMult = sCombatRatingsMultByILvlGameTable.GetRow(rawItemLevel))
@@ -31902,7 +31865,7 @@ void Player::UpdateAverageItemLevelTotal()
                 if (AzeriteItem const* azeriteItem = item->ToAzeriteItem())
                     azeriteLevel = azeriteItem->GetEffectiveLevel();
                 uint32 pvpItemLevel = Item::GetItemLevel(itemTemplate, *item->GetBonus(), GetLevel(),
-                    item->GetModifier(ITEM_MODIFIER_TIMEWALKER_LEVEL), 0, 0, 0, true, azeriteLevel);
+                    item->GetModifier(ITEM_MODIFIER_TIMEWALKER_LEVEL), 0, 0, 0, true, azeriteLevel, 0);
 
                 InventoryType inventoryType = itemTemplate->GetInventoryType();
 
@@ -31928,7 +31891,7 @@ void Player::UpdateAverageItemLevelTotal()
                 if (AzeriteItem const* azeriteItem = item->ToAzeriteItem())
                     azeriteLevel = azeriteItem->GetEffectiveLevel();
                 uint32 pvpItemLevel = Item::GetItemLevel(itemTemplate, *item->GetBonus(), GetLevel(),
-                    item->GetModifier(ITEM_MODIFIER_TIMEWALKER_LEVEL), 0, 0, 0, true, azeriteLevel);
+                    item->GetModifier(ITEM_MODIFIER_TIMEWALKER_LEVEL), 0, 0, 0, true, azeriteLevel, 0);
 
                 InventoryType inventoryType = itemTemplate->GetInventoryType();
                 ForEachEquipmentSlot(inventoryType, m_canDualWield, m_canTitanGrip,
@@ -32008,15 +31971,13 @@ void Player::UpdateAverageItemLevelEquipped()
                 azeriteLevel = azeriteItem->GetEffectiveLevel();
 
             uint32 itemLevel = Item::GetItemLevel(pItem->GetTemplate(), *pItem->GetBonus(), GetLevel(), pItem->GetModifier(ITEM_MODIFIER_TIMEWALKER_LEVEL),
-                0, 0, 0,
-                false, azeriteLevel);
+                0, 0, 0, false, azeriteLevel, 0);
             uint32 itemLevelEffective = Item::GetItemLevel(pItem->GetTemplate(), *pItem->GetBonus(), GetEffectiveLevel(), pItem->GetModifier(ITEM_MODIFIER_TIMEWALKER_LEVEL),
                 m_unitData->MinItemLevel, m_unitData->MinItemLevelCutoff, IsUsingPvpItemLevels() && pItem->GetTemplate()->HasFlag(ITEM_FLAG3_IGNORE_ITEM_LEVEL_CAP_IN_PVP) ? 0 : m_unitData->MaxItemLevel,
-                IsUsingPvpItemLevels(),
-                azeriteLevel);
+                IsUsingPvpItemLevels(), azeriteLevel, 0);
             uint32 pvpItemLevel = Item::GetItemLevel(pItem->GetTemplate(), *pItem->GetBonus(), GetLevel(), pItem->GetModifier(ITEM_MODIFIER_TIMEWALKER_LEVEL),
                 0, 0, 0,
-                true, azeriteLevel);
+                true, azeriteLevel, 0);
             totalItemLevel += itemLevel;
             totalItemLevelEffective += itemLevelEffective;
             totalPvpItemLevel += pvpItemLevel;
