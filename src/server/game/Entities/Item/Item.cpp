@@ -2311,6 +2311,8 @@ uint32 Item::GetItemLevel(ItemTemplate const* itemTemplate, BonusData const& bon
     if (AzeriteLevelInfoEntry const* azeriteLevelInfo = sAzeriteLevelInfoStore.LookupEntry(azeriteLevel))
         itemLevel = azeriteLevelInfo->ItemLevel;
 
+    bool skipSquish = false;
+
     if (!bonusData.ItemLevelOffsetCurveId)
     {
         if (bonusData.PlayerLevelToItemLevelCurveId)
@@ -2327,6 +2329,11 @@ uint32 Item::GetItemLevel(ItemTemplate const* itemTemplate, BonusData const& bon
     }
     else
     {
+        // ItemLevelOffsetItemLevel set by ITEM_BONUS_SCALING_CONFIG_AND_REQ_LEVEL is the final
+        // authoritative item level (client displays it as-is); era squish must not be applied to it
+        if (bonusData.ItemLevelOffsetItemLevel)
+            skipSquish = true;
+
         uint32 scalingLevel = bonusData.ItemLevelOffsetItemLevel;
         if (bonusData.ScalingConfigUsesPlayerLevel)
             scalingLevel = fixedLevel ? fixedLevel : level;
@@ -2354,7 +2361,7 @@ uint32 Item::GetItemLevel(ItemTemplate const* itemTemplate, BonusData const& bon
 
     if (applySquish)
     {
-        if (!bonusData.IgnoreSquish)
+        if (!bonusData.IgnoreSquish && !skipSquish)
         {
             if (std::shared_ptr<Realm const> currentRealm = sRealmList->GetCurrentRealm())
             {
