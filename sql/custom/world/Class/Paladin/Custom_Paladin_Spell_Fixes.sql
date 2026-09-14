@@ -397,3 +397,7 @@ INSERT INTO `spell_proc` (`SpellId`, `SchoolMask`, `SpellFamilyName`, `SpellFami
 DELETE FROM `spell_proc` WHERE `SpellId` = 387791;
 INSERT INTO `spell_proc` (`SpellId`, `SchoolMask`, `SpellFamilyName`, `SpellFamilyMask0`, `SpellFamilyMask1`, `SpellFamilyMask2`, `SpellFamilyMask3`, `ProcFlags`, `ProcFlags2`, `SpellTypeMask`, `SpellPhaseMask`, `HitMask`, `AttributesMask`, `DisableEffectsMask`, `ProcsPerMinute`, `Chance`, `Cooldown`, `Charges`) VALUES
 (387791, 0, 10, 0x8000, 0, 0, 0, 0, 0x4, 0, 1, 0, 0, 0, 0, 100, 0, 0);
+
+-- Remove deprecated / non existing spell scripts
+-- Spell 20217/19740 no longer exists and current ones are core handled
+DELETE FROM `spell_script_names` WHERE `spell_id` IN (20217,19740);

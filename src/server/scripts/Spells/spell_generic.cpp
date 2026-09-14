@@ -5791,8 +5791,8 @@ void AddSC_generic_spell_scripts()
     RegisterSpellScriptWithArgs(spell_gen_knock_away_threat_reduction, "spell_gen_knock_away_threat_reduction_100", 100);   // 10101
     RegisterSpellScriptWithArgs(spell_gen_knock_away_threat_reduction, "spell_gen_knock_away_threat_reduction_50", 50);     // 18670, 18945
     RegisterSpellScriptWithArgs(spell_gen_knock_away_threat_reduction, "spell_gen_knock_away_threat_reduction_25", 25);     // 18813, 25778
-    RegisterSpellScriptWithArgs(spell_gen_increase_stats_buff, "spell_pal_blessing_of_kings");
-    RegisterSpellScriptWithArgs(spell_gen_increase_stats_buff, "spell_pal_blessing_of_might");
+    // RegisterSpellScriptWithArgs(spell_gen_increase_stats_buff, "spell_pal_blessing_of_kings"); // Spell is removed
+    // RegisterSpellScriptWithArgs(spell_gen_increase_stats_buff, "spell_pal_blessing_of_might"); // Spell is removed
     RegisterSpellScriptWithArgs(spell_gen_increase_stats_buff, "spell_dru_mark_of_the_wild");
     RegisterSpellScriptWithArgs(spell_gen_increase_stats_buff, "spell_pri_power_word_fortitude");
     RegisterSpellScriptWithArgs(spell_gen_increase_stats_buff, "spell_pri_shadow_protection");
