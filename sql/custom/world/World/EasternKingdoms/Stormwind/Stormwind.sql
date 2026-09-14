@@ -11,6 +11,9 @@
 -- NPC: 6579 Shoni the Shilent
 -- NPC: 49540 Stormwind Rat
 
+-- NPC: 185467 Wilder Seabraid (Stormwind)
+-- NPC: 185468 Tawny Seabraid (Stormwind)
+
 -- Quest: 389 Bazil Thredd
 -- Quest: 399 Humble Beginnings
 -- Quest: 1666 Marshal Haggard
@@ -27,7 +30,7 @@ DELETE FROM `disables` where `sourceType` = 1 AND `entry` IN (389,399, 1861, 166
 
 -- Quest starters and enders
 DELETE FROM `creature_queststarter` WHERE `quest` IN (389,399,1666, 1688, 1861, 2040,2041,2206,6261, 6285);
-DELETE FROM `creature_questender` WHERE `quest` IN (399,1666, 1688, 1861, 2206, 6261, 6285);
+DELETE FROM `creature_questender` WHERE `quest` IN (399,1666, 1688, 1861, 2206, 6261, 6285,66858);
 
 INSERT INTO `creature_queststarter` VALUES
 (1646, 389,0),
@@ -48,7 +51,8 @@ INSERT INTO `creature_questender` VALUES
 (1646, 399, 0),
 (294, 1666, 0),
 (6122, 1688, 0),
-(5497, 1861, 0);
+(5497, 1861, 0),
+(219244, 66858, 0);
 
 -- Quest Templates
 UPDATE `quest_template` SET `ContentTuningID` = '73', `QuestSortID` = '12', `AllowableRaces` = '18446744073709551615', `Expansion` = '0', `RewardFactionID1` = '72', `RewardFactionValue1` = '1', `RewardFactionFlags` = '1' WHERE (`ID` = '1666');
