@@ -826,6 +826,15 @@ struct QuestPOIData
 
 typedef std::unordered_map<uint32, QuestPOIData> QuestPOIContainer;
 
+// Maps a quest turn-in to one or more garrison/war-campaign champions (GarrFollower) it should grant.
+struct QuestGarrisonFollower
+{
+    uint32 GarrFollowerID = 0;
+    uint8 GarrType = 0;
+};
+
+typedef std::unordered_map<uint32 /*questId*/, std::vector<QuestGarrisonFollower>> QuestGarrisonFollowerContainer;
+
 typedef std::array<std::unordered_map<uint32, QuestGreeting>, 2> QuestGreetingContainer;
 typedef std::array<std::unordered_map<uint32, QuestGreetingLocale>, 2> QuestGreetingLocaleContainer;
 
@@ -932,16 +941,17 @@ struct ClassAvailability
     uint8 MinActiveExpansionLevel = 0;
 };
 
-struct RaceClassAvailability
-{
-    uint8 RaceID = 0;
-    std::vector<ClassAvailability> Classes;
-};
-
 struct RaceUnlockRequirement
 {
     uint8 Expansion;
     uint32 AchievementId;
+};
+
+struct RaceClassAvailability
+{
+    uint8 RaceID = 0;
+    RaceUnlockRequirement UnlockRequirement;
+    std::vector<ClassAvailability> Classes;
 };
 
 enum QueryDataGroup
@@ -1078,6 +1088,9 @@ class TC_GAME_API ObjectMgr
         std::vector<int32> const* GetCreatureQuestCurrencyList(uint32 creatureId) const;
 
         uint32 GetNearestTaxiNode(float x, float y, float z, uint32 mapid, uint32 team);
+        // Explicit `creature_taxi_node` binding if one exists, else the usual proximity search.
+        uint32 GetTaxiNodeForFlightMaster(uint32 creatureId, float x, float y, float z, uint32 mapid, uint32 team);
+        uint32 GetCreatureTaxiNode(uint32 creatureId) const;
         void GetTaxiPath(uint32 source, uint32 destination, uint32 &path, uint32 &cost);
         void GetTaxiPath(uint32 source, uint32 destination, std::vector<uint32>& path, uint32& cost);
         uint32 GetTaxiMountDisplayId(uint32 id, uint32 team, bool allowed_alt_team = false);
@@ -1121,6 +1134,8 @@ class TC_GAME_API ObjectMgr
         NpcText const* GetNpcText(uint32 textID) const;
         QuestGreeting const* GetQuestGreeting(TypeID type, uint32 id) const;
         QuestGreetingLocale const* GetQuestGreetingLocale(TypeID type, uint32 id) const;
+
+        std::vector<QuestGarrisonFollower> const* GetQuestGarrisonFollowers(uint32 questId) const;
 
         WorldSafeLocsEntry const* GetDefaultGraveyard(uint32 team) const;
         WorldSafeLocsEntry const* GetClosestGraveyard(WorldLocation const& location, uint32 team, WorldObject* conditionObject) const;
@@ -1270,7 +1285,9 @@ class TC_GAME_API ObjectMgr
         void LoadAccessRequirements();
         void LoadQuestAreaTriggers();
         void LoadQuestGreetings();
+        void LoadQuestGarrisonFollowers();
         void LoadAreaTriggerScripts();
+        void LoadCreatureTaxiNodes();
         void LoadTavernAreaTriggers();
         void LoadGameObjectForQuests();
 
@@ -1653,16 +1670,8 @@ class TC_GAME_API ObjectMgr
 
         std::string GetPhaseName(uint32 phaseId) const;
 
-        std::unordered_map<uint8, RaceUnlockRequirement> const& GetRaceUnlockRequirements() const { return _raceUnlockRequirementStore; }
-        RaceUnlockRequirement const* GetRaceUnlockRequirement(uint8 race) const
-        {
-            auto itr = _raceUnlockRequirementStore.find(race);
-            if (itr != _raceUnlockRequirementStore.end())
-                return &itr->second;
-            return nullptr;
-        }
-
-        std::vector<RaceClassAvailability> const& GetClassExpansionRequirements() const { return _classExpansionRequirementStore; }
+        std::vector<RaceClassAvailability> const& GetRaceClassRequirements() const { return _raceClassRequirementStore; }
+        RaceUnlockRequirement const* GetRaceUnlockRequirement(uint8 raceId) const;
         ClassAvailability const* GetClassExpansionRequirement(uint8 raceId, uint8 classId) const;
         ClassAvailability const* GetClassExpansionRequirementFallback(uint8 classId) const;
 
@@ -1709,8 +1718,10 @@ class TC_GAME_API ObjectMgr
         NpcTextContainer _npcTextStore;
         QuestGreetingContainer _questGreetingStore;
         QuestGreetingLocaleContainer _questGreetingLocaleStore;
+        QuestGarrisonFollowerContainer _questGarrisonFollowerStore;
         AreaTriggerContainer _areaTriggerStore;
         AreaTriggerScriptContainer _areaTriggerScriptStore;
+        std::unordered_map<uint32, uint32> _creatureTaxiNodeStore;  // CreatureID -> TaxiNodes.db2 ID
         std::unordered_map<uint32, AreaTriggerPolygon> _areaTriggerPolygons;
         AccessRequirementContainer _accessRequirementStore;
         std::unordered_map<uint32, WorldSafeLocsEntry> _worldSafeLocs;
@@ -1861,8 +1872,7 @@ class TC_GAME_API ObjectMgr
         std::unordered_map<uint32, Trainer::Trainer> _trainers;
         std::map<std::tuple<uint32, uint32, uint32>, uint32> _creatureDefaultTrainers;
 
-        std::unordered_map<uint8, RaceUnlockRequirement> _raceUnlockRequirementStore;
-        std::vector<RaceClassAvailability> _classExpansionRequirementStore;
+        std::vector<RaceClassAvailability> _raceClassRequirementStore;
         RealmNameContainer _realmNameStore;
 
         SceneTemplateContainer _sceneTemplateStore;

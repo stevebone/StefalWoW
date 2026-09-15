@@ -187,6 +187,14 @@ void WorldStateMgr::LoadFromDB()
     }
 
     TC_LOG_INFO("server.loading", ">> Loaded {} saved world state values {} ms", savedValueCount, GetMSTimeDiffToNow(oldMSTime));
+
+    // Seed the initial-state packet cache from the values just loaded. Update() only rebuilds this cache after a realm
+    // world state actually changes, so without seeding it here a player logging in before the first change would get
+    // an INIT_WORLD_STATES carrying no realm-wide values at all (e.g. an empty war-effort/contribution bar).
+    data.RealmWorldStatePacketCache.clear();
+    data.RealmWorldStatePacketCache.reserve(data.RealmWorldStateValues.size());
+    for (auto const& [worldStateId, value] : data.RealmWorldStateValues)
+        data.RealmWorldStatePacketCache.emplace_back(worldStateId, value);
 }
 
 void WorldStateMgr::Update()

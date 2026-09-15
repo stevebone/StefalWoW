@@ -21,6 +21,7 @@
 #include "WorldserverService.h"
 #include "Client/game_utilities_service.pb.h"
 #include "Client/api/client/v2/game_utilities_service.pb.h"
+#include <variant>
 
 namespace Battlenet::Services
 {

@@ -1,0 +1,136 @@
+--
+-- The Ember Court - the authored per-guest DISLIKES (Venthyr unique sanctum feature, GarrTalentTree 324).
+-- Everything else about a guest, including what they LIKE, is client data and is not repeated here.
+--
+-- WHY THIS TABLE IS EMPTY
+-- -----------------------
+-- Nearly everything about this feature IS published by the 12.0.7.68275 client, and the core consumes it
+-- directly - none of it is repeated here:
+--   * the unlock ladder     GarrTalentTree 324 "The Ember Court" (GarrTypeID 111, MaxTiers 5, Flags 0,
+--                           CurrencyID 0, FeatureTypeIndex 5 = SanctumUnique, FeatureSubtypeIndex 2 =
+--                           Revendreth/Venthyr). Unlike its three siblings it is GarrTalentTreeType 1
+--                           (Classic), not 0 (Tiers), which is why the core keys every unlock on its OWN
+--                           talent (found by GarrTalent.Tier) instead of on a researched count;
+--   * the ladder's meaning  the talents' own descriptions, read literally - 1111 "A New Court" (Tier 0,
+--                           PlayerConditionID 84025) establishes it, 1113 "Homegrown Help" (Tier 1) grants
+--                           "a DREDGER BUTLER", 1114 "Court Influencer" (Tier 2) "allowing you to invite a
+--                           THIRD guest", 1112 "Discerning Taste" (Tier 3) "a FOURTH guest", 1115 "The
+--                           Professionals" (Tier 4) "hire FIVE specialist staff". The base guest list is
+--                           therefore TWO - stated by "a third guest", not chosen - and the scenario agrees:
+--                           it ships four alternative Tribute steps, CriteriaTree 84848 "Step 3A (1 Guest)",
+--                           87110 "3B (2 Guests)", 87112 "3C (3 Guests)", 87114 "3D (4 Guests)";
+--   * the research costs    GarrTalentRank 1089/1094/1095/1093/1096: 1500/5000/10000/12500/15000 x currency
+--                           1813 Reservoir Anima @3600/43200/86400/86400/86400s. All five ranks carry
+--                           PerkSpellID 0 - confirmed by reading the rows, not assumed. Charged by the
+--                           generic Garrison talent engine, not by this feature;
+--   * the venue             AreaTable 13329, ZoneName "SinfallScenario" / AreaName "The Ember Court",
+--                           ContinentID 2222, ParentAreaID 10413 (Revendreth). UiMap 1644 "Ember Court"
+--                           (parent 1525). It is an AREA of map 2222, not a separate instance map;
+--   * the scenario          Scenario 1791 "The Ember Court" (Type 0, Flags 2, UiTextureKitID 5349;
+--                           LFGDungeons 2063), steps in OrderIndex order:
+--                             4463 "Last-Minute Preparations" CT 84766 WidgetSetID 459
+--                                  "Prepare the court and issue orders to your staff."
+--                             4483 "The Court"                CT 84846 WidgetSetID 461
+--                                  "Ensure that your guests enjoy the party!"
+--                             4484/4601/4602/4603 "Tribute"   CT 84848 / 87110 / 87112 / 87114
+--                                  "Collect the tribute left by your guests."  (one per 1/2/3/4 guests)
+--                             4527 "The After Party"          CT 85576
+--                           Tutorial twin Scenario 1820 "Ember Court Rehearsal" (LFGDungeons 2088), steps
+--                           4585-4593. WidgetSetID 461 is independently confirmed from the client side: the
+--                           UI hardcodes EMBER_COURT_TUTORIAL_WIDGET_SET_ID = 461;
+--   * the sixteen guests    CriteriaTree 87983 (Achievement 14723 "Be Our Guest"), children 87984-87999 in
+--                           OrderIndex 0-15, cross-checked name-for-name against the sixteen "RSVP: <Guest>"
+--                           quests already in this world DB. Completing a guest's RSVP quest is what unlocks
+--                           that guest for invitation - the core tests the quest rather than inventing a flag;
+--   * the five attributes   CriteriaTree 88024-88033 (Achievement 14726) name the ten poles - Messy, Clean,
+--                           Safe, Dangerous, Humble, Decadent, Relaxing, Exciting, Casual, Formal - and
+--                           UiWidgetVisualization pairs and numbers them: 1438 "1. Cleanliness (Messy>Clean)",
+--                           1440 "2. Danger (Safe>Dangerous)", 1437 "3. Decadence (Humble>Decadent)",
+--                           1439 "4. Excitement (Relaxing>Exciting)", 1435 "5. Formality (Casual>Formal)";
+--   * the achievements      14723 "Be Our Guest", 14724 "People Pleaser", 14725 "We Happy Few" (four Elated
+--                           guests), 14726 "It's Certainly Never Boring", 14727 "Master of Ceremonies",
+--                           14678-14683 and 14749, all CriteriaType 27 (CompleteQuest) over per-guest hidden
+--                           credit quests - so the core credits those quest ids and lets the existing criteria
+--                           system pay out, instead of building a parallel achievement path;
+--   * the reputation        Faction 2445 "The Ember Court", fed by currency 1837 via CurrencyContainer 160
+--                           "Ember Court Prestige"; PlayerCondition 84504-84507 are its Friendly/Honored/
+--                           Revered/Exalted gates. Currency 1820 "Infused Ruby" (MaxQty 100) is the supply
+--                           currency;
+--   * the quests            98 rows already in this world DB under QuestSortID -586, including the 16 RSVPs,
+--                           the "Ember Court: <theme>" set, 24 "Restock:" supply quests, the 16 "X's Best
+--                           Friend" quests 63685-63700, and the unlock 63065 "Sanctum Upgrade: The Ember
+--                           Court" (Foreman Flatfinger 172605 -> Theotar 161979, both already spawned).
+--
+-- What NO 68275 client row anywhere states:
+--   1. WHAT EACH GUEST DISLIKES. Only "Likes:" strings exist. A scan of all 172,667 `ItemSparse`
+--      Description_lang values for "dislike" returns four unrelated items, so the method works and the
+--      absence is real. Treating the opposite pole of a like as a dislike would be a guess, so it is not
+--      done - a dislike exists only if it is authored here.
+-- That is the ONE thing this table carries, and it SHIPS EMPTY. An empty table is a perfectly normal state:
+-- it means no guest has an authored dislike, which is exactly what the build says.
+--
+-- IMPORTANT - what this table NO LONGER carries, because it turned out to be derivable after all:
+--   * EACH GUEST'S LIKES. Published on that guest's own mood-icon item in `ItemSparse`: Display_lang is the
+--     guest's name and Description_lang is a literal "Likes: <poles>" list, so the row binds to the guest by
+--     name with no ordering assumption. All sixteen are in EmberCourt.cpp:
+--       178886 Baroness Vashj        Dangerous, Decadent, Exciting   178888 Choofa            Exciting
+--       181338 Lady Moonberry        Messy, Exciting, Casual         178889 Cryptkeeper Kassir Formal
+--       181339 Mikanikos             Clean, Safe, Humble             181344 Droman Aliothe     Relaxing
+--       181340 The Countess          Decadent, Relaxing, Formal      181345 Grandmaster Vole   Dangerous
+--       181341 Alexandros Mograine   Safe, Humble                    181346 Kleia and Pelagos  Humble
+--       181342 Hunt-Captain Korayn   Dangerous, Casual               181347 P.D. Marileth      Messy
+--       178887 Polemarch Adrestes    Clean, Formal                   181348 Sika               Clean
+--       181343 Rendle and Cudgelface Messy, Relaxing                 181349 Stonehead          Casual
+--     Cross-validated: items 181390/181391/181392 give Temel "Clean", Theotar "Formal" and Watchmaster
+--     Boromod "Casual", reproducing the rehearsal scenario's own step text word for word.
+--   * THE MOOD LADDER, five rungs: Miserable < Uncomfortable < Happy < Very Happy < Elated. Published three
+--     agreeing ways - SpellName 327199/327200/327201/327781/327202 ("UI: <Rung> [DNT]"), the literal
+--     "Mood: <Rung>" strings in `UiWidgetStringSource` (a count returns exactly these five and no sixth), and
+--     the icons UI_EmberCourt-Emoji-<Rung>.blp as FileDataID 3750310-3750314. "Elated", the rung Achievement
+--     14724 requires, is therefore the TOP of the ladder = 5, a derived constant rather than a tunable.
+--   * THE FIVE AXES, confirmed a third time by the "Adjust World State" spells 321808 Cleanliness / 321809
+--     Danger / 321810 Decadence / 321811 Excitement / 321812 Formality (+322728 Bonus Happiness), whose order
+--     is the order the C++ enum uses.
+--
+-- STILL NOT DERIVABLE, and NOT worked around anywhere in the core:
+--   * THE NUMERIC HAPPINESS THRESHOLDS behind the rungs. The rung shown is driven by per-guest, per-rung
+--     shown-state WorldStates (190 widgets over WorldState 32788-33058) that the SERVER sets; no constant
+--     says how much happiness earns which rung. The core therefore never COMPUTES a mood - a mood is only
+--     ever reported to it by a real completion, and is validated against the five-rung ladder.
+--   * THE TRIBUTE PAYOUT. No tribute-chest gameobject exists: `gameobject_template` has ZERO rows named
+--     "%Ember Court%" (control: 30 rows named "%Tribute%" for other content), and `GameObjects.db2` has none
+--     on map 2222 (control: 449 rows on map 2222, all Bastion WMO labels; 2,953 on map 0). Every one of the
+--     sixteen Ember Court `ModifierTree` ids is absent from a 230,888-row table that is dense around them
+--     (4,693 rows in 145000-152000), so the rating->reward logic is server-side only. Nothing awards tribute.
+--   * THE COURT COOLDOWN. Spell 336617 "Ember Court Timer" has DurationIndex 0 and no `SpellCooldowns`,
+--     `SpellCategories` or `SpellAuraOptions` row, and its own description shows it is the REHEARSAL PREP
+--     timer, not a lockout. No interval is enforced.
+--   * THE THEME -> ATTRIBUTE DELTAS. The 16 "Contract:" supply items 176126-176141 and their spells
+--     321611-321658 only say "adds an option"; the per-theme axis movement lives in server scripts.
+--
+-- Authoring a row is validated at load: `guestIndex` must be 0-15, each attribute must be 0-5 and each pole
+-- 0-2, an attribute and its pole must both be set or both be 0, and a guest may not both prefer and dislike
+-- the same end of the same axis.
+--
+-- Authoring a row is validated at load: `guestIndex` must be 0-15, the attribute must be 0-5 and the pole
+-- 0-2, both must be set or both 0, and a guest may not be made to dislike a pole its own client-published
+-- "Likes:" list names.
+--
+-- Columns:
+--   guestIndex         0-15, the CriteriaTree 87983 child OrderIndex (see the roster in the characters-DB
+--                      migration 2026_08_08_10_covenant_ember_court.sql)
+--   dislikedAttribute  1 Cleanliness, 2 Danger, 3 Decadence, 4 Excitement, 5 Formality; 0 = none authored
+--   dislikedPole       1 = the LOW end (Messy/Safe/Humble/Relaxing/Casual),
+--                      2 = the HIGH end (Clean/Dangerous/Decadent/Exciting/Formal); 0 = none
+--
+-- Idempotent.
+--
+CREATE TABLE IF NOT EXISTS `garrison_ember_court_guest` (
+  `guestIndex`        TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  `dislikedAttribute` TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  `dislikedPole`      TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  PRIMARY KEY (`guestIndex`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Ember Court per-guest dislikes (unpublished by the client - see file header)';
+
+-- No INSERTs. The 12.0.7.68275 build publishes no dislikes at all, so authoring one is a design decision, not
+-- a transcription. Everything else about a guest is read from the client - see the file header.

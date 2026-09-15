@@ -40,6 +40,8 @@
 #include "CollectionPackets.h"
 #include "CombatLogPackets.h"
 #include "CombatPackets.h"
+#include "ContributionPackets.h"
+#include "CovenantPackets.h"
 #include "DuelPackets.h"
 #include "EquipmentSetPackets.h"
 #include "GameObjectPackets.h"
@@ -80,6 +82,7 @@
 #include "TransmogrificationPackets.h"
 #include "VehiclePackets.h"
 #include "VignettePackets.h"
+#include "WarfrontPackets.h"
 #include "WhoPackets.h"
 #include "WorldStatePackets.h"
 

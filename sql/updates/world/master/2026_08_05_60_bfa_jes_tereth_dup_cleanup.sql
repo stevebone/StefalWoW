@@ -1,0 +1,11 @@
+-- BfA War Campaign: clean duplicate foothold quest options on Grand Admiral Jes-Tereth (menu 22508)
+--
+-- The wowc import left a second, corrupt "(Quest) Set sail for X" line for each foothold, showing
+-- as duplicates in her gossip. The corrupt copies are identifiable by an invalid GossipOptionID
+-- (0 or negative) while the valid copy has a proper positive GossipOptionID:
+--    OptionID 1 (Vol'dun, GossipOptionID 0)         -- dup of OptionID 0 (48162)
+--    OptionID 3 (Nazmir,  GossipOptionID -5762051)  -- dup of OptionID 2 (48164)
+--    OptionID 4 (Zuldazar,GossipOptionID 0)         -- dup of OptionID 6 (48168)
+-- OrderIndex == OptionID at load, so removing option 4 does NOT renumber the transport options
+-- (7/8/9/10), and the Jes-Tereth teleport SmartAI (2026_08_05_50) stays valid.
+DELETE FROM `gossip_menu_option` WHERE `MenuID`=22508 AND `OptionID` IN (1,3,4);

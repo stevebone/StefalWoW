@@ -16,11 +16,14 @@
  */
 
 #include "PlayerTaxi.h"
+#include "ConditionMgr.h"
 #include "DB2Stores.h"
+#include "Log.h"
 #include "ObjectMgr.h"
 #include "Player.h"
 #include "StringConvert.h"
 #include "TaxiPackets.h"
+#include <iomanip>
 #include <sstream>
 
 PlayerTaxi::PlayerTaxi() = default;
@@ -135,9 +138,175 @@ void PlayerTaxi::AppendTaximaskTo(WorldPackets::Taxi::ShowTaxiNodes& data, bool 
     }
     else
     {
-        data.CanLandNodes = m_taximask;                  // known nodes
-        data.CanUseNodes = m_taximask;
+        data.CanLandNodes = m_taximask;                  // known nodes - where the player may land (incl. early landing)
+        data.CanUseNodes = m_taximask;                   // widened by AppendConditionUnlockedNodesTo, see PlayerTaxi.h
     }
+}
+
+bool PlayerTaxi::IsNodeUnlockedByCondition(uint32 nodeidx, Player const* player)
+{
+    if (!player)
+        return false;
+
+    TaxiNodesEntry const* node = sTaxiNodesStore.LookupEntry(nodeidx);
+    if (!node)
+        return false;
+
+    // Only nodes that actually publish an availability condition can be unlocked without discovery. Every other
+    // node keeps its existing behaviour exactly - this must not widen anything Blizzard did not gate.
+    if (node->ConditionID <= 0)
+        return false;
+
+    // ConditionMgr::IsPlayerMeetingCondition answers "true" for a PlayerCondition it cannot find, which is the
+    // right default when a condition merely decorates something but is exactly wrong here - an unresolvable
+    // condition would hand the node to everyone. Refuse to unlock what cannot be evaluated.
+    if (!sPlayerConditionStore.LookupEntry(node->ConditionID))
+        return false;
+
+    if (!ConditionMgr::IsPlayerMeetingCondition(player, node->ConditionID))
+        return false;
+
+    // VisibilityConditionID hides the node on the flight map even when ConditionID would allow it, so a node that
+    // fails it must not be offered either. Same fail-closed rule for an unresolvable condition.
+    if (node->VisibilityConditionID)
+    {
+        if (!sPlayerConditionStore.LookupEntry(node->VisibilityConditionID))
+            return false;
+
+        if (!ConditionMgr::IsPlayerMeetingCondition(player, node->VisibilityConditionID))
+            return false;
+    }
+
+    // A node the player's faction cannot see on the flight map must not be offered either - the discovery mask
+    // implies this today (you cannot learn a node of the other faction), the condition path has to state it.
+    switch (player->GetTeam())
+    {
+        case HORDE:    return node->GetFlags().HasFlag(TaxiNodeFlags::ShowOnHordeMap);
+        case ALLIANCE: return node->GetFlags().HasFlag(TaxiNodeFlags::ShowOnAllianceMap);
+        default:       return false;
+    }
+}
+
+void PlayerTaxi::AppendConditionUnlockedNodesTo(TaxiMask& landNodes, TaxiMask& useNodes,
+    TaxiMask const& reachableNodes, Player const* player, std::vector<TaxiConditionUnlockReport>* report)
+{
+    for (TaxiNodesEntry const* node : sTaxiNodesStore)
+    {
+        if (!node || !node->ConditionID)
+            continue;
+
+        uint32 field = uint32((node->ID - 1) / (sizeof(TaxiMask::value_type) * 8));
+        TaxiMask::value_type submask = TaxiMask::value_type(1 << ((node->ID - 1) % (sizeof(TaxiMask::value_type) * 8)));
+
+        if (field >= reachableNodes.size())
+            continue;
+
+        TaxiConditionUnlockReport entry;
+        entry.NodeID = node->ID;
+        entry.ConditionID = node->ConditionID;
+        entry.VisibilityConditionID = node->VisibilityConditionID;
+        entry.Flags = node->Flags;
+        entry.InReachableMask = (reachableNodes[field] & submask) != 0;
+        entry.AlreadyOffered = (useNodes[field] & submask) != 0;
+
+        // Skip anything the flight master cannot route to anyway (this also keeps the number of condition
+        // evaluations down to the handful of gated nodes that share a network with the current node) and
+        // anything already offered through the discovery mask.
+        if (!entry.InReachableMask || entry.AlreadyOffered)
+        {
+            if (report && entry.InReachableMask)
+                report->push_back(entry);
+            continue;
+        }
+
+        entry.ConditionPassed = IsNodeUnlockedByCondition(node->ID, player);
+        if (entry.ConditionPassed)
+        {
+            // CanLandNodes is what the flight map iterates to place pins; CanUseNodes only decides
+            // whether an already-placed pin is selectable. Setting just the latter left the node
+            // undrawn, which is why a Kyrian at the Eternal Gateway saw Elysian Hold and nothing else
+            // even though the server had already worked out that three more were open to him.
+            landNodes[field] |= submask;
+            useNodes[field] |= submask;
+            entry.BitSet = (landNodes[field] & submask) != 0 && (useNodes[field] & submask) != 0;
+        }
+
+        TC_LOG_DEBUG("taxi.condition", "taxi node {} cond={} viscond={} flags=0x{:X} reachable={} known={} passed={} bitSet={}",
+            entry.NodeID, entry.ConditionID, entry.VisibilityConditionID, uint32(entry.Flags),
+            entry.InReachableMask, entry.AlreadyOffered, entry.ConditionPassed, entry.BitSet);
+
+        if (report)
+            report->push_back(entry);
+    }
+
+    // Hidden routing hubs.
+    //
+    // Some networks are not point-to-point: Bastion's covenant teleporters all run through two invisible hub
+    // nodes (2627 "Ground Points Hub", 2628 "Ground Hub"), so TaxiPath carries 2625->2628, 2628->2630,
+    // 2630->2627, 2627->2625 and so on, but NO 2625->2630. Argus (1985-1987), the 9.2 Resonant Peaks network
+    // (2732) and the 10.0 travel network (2835/2843) are built the same way - which is exactly the set
+    // TaxiNodesEntry::IsPartOfTaxiNetwork() has to whitelist by id, because they carry no
+    // ShowOnAllianceMap/ShowOnHordeMap flag of their own.
+    //
+    // The client resolves the route itself and only sends CMSG_ACTIVATE_TAXI once it has one. With the hubs
+    // absent from both masks it cannot get from the gateway to any destination, so it refuses locally with
+    // "There is no direct path to that destination!" and the server never hears about the click - which is why
+    // this read as a server routing bug while the server-side masks were provably correct for every
+    // *destination* (qword 41 = 0x3E3: 2625/2626/2630-2634 all set, hubs 2627/2628 clear).
+    //
+    // Identified structurally rather than by another hardcoded id list: a node the taxi network accepts but
+    // which publishes no faction map flag is by definition infrastructure, never a destination. That also means
+    // setting CanLandNodes for it cannot draw a stray pin - the client places pins from those same flags.
+    for (TaxiNodesEntry const* node : sTaxiNodesStore)
+    {
+        if (!node || !node->IsPartOfTaxiNetwork())
+            continue;
+
+        if (node->GetFlags().HasFlag(TaxiNodeFlags::ShowOnAllianceMap) || node->GetFlags().HasFlag(TaxiNodeFlags::ShowOnHordeMap))
+            continue;   // a real, displayable destination - covered by the discovery mask and the pass above
+
+        uint32 field = uint32((node->ID - 1) / (sizeof(TaxiMask::value_type) * 8));
+        TaxiMask::value_type submask = TaxiMask::value_type(1 << ((node->ID - 1) % (sizeof(TaxiMask::value_type) * 8)));
+        if (field >= reachableNodes.size())
+            continue;
+
+        // Only hubs on the current node's own network, so this never widens anything the flight master could
+        // not route through anyway.
+        if (!(reachableNodes[field] & submask))
+            continue;
+
+        landNodes[field] |= submask;
+        useNodes[field] |= submask;
+
+        TC_LOG_DEBUG("taxi.condition", "taxi hub {} flags=0x{:X} added to both masks (hidden routing infrastructure)",
+            node->ID, uint32(node->Flags));
+    }
+}
+
+std::string PlayerTaxi::DescribeMaskQword(TaxiMask const& mask, uint32 qwordIndex)
+{
+    static_assert(sizeof(TaxiMask::value_type) == 1, "the qword reassembly below assumes a byte-wide mask element");
+
+    uint64 value = 0;
+    for (uint32 i = 0; i < 8; ++i)
+    {
+        std::size_t byteIndex = std::size_t(qwordIndex) * 8 + i;
+        if (byteIndex < mask.size())
+            value |= uint64(mask[byteIndex]) << (i * 8);
+    }
+
+    std::ostringstream ss;
+    ss << "qword " << qwordIndex << " (nodes " << (qwordIndex * 64 + 1) << ".." << (qwordIndex * 64 + 64) << ") = 0x"
+       << std::hex << std::setw(16) << std::setfill('0') << value << std::dec << " ->";
+
+    if (!value)
+        ss << " <none>";
+    else
+        for (uint32 bit = 0; bit < 64; ++bit)
+            if (value & (UI64LIT(1) << bit))
+                ss << ' ' << (qwordIndex * 64 + bit + 1);
+
+    return ss.str();
 }
 
 bool PlayerTaxi::LoadTaxiDestinationsFromString(const std::string& values, uint32 team)
@@ -180,9 +349,15 @@ bool PlayerTaxi::LoadTaxiDestinationsFromString(const std::string& values, uint3
             return false;
     }
 
-    // can't load taxi path without mount set (quest taxi path?)
+    // can't load taxi path without mount set (quest taxi path?) - unless the source node publishes no mount at
+    // all for either team (teleport-style nodes such as the covenant sanctum transport network), which is a
+    // legitimately mountless path rather than broken data.
     if (!sObjectMgr->GetTaxiMountDisplayId(GetTaxiSource(), team, true))
-        return false;
+    {
+        TaxiNodesEntry const* sourceNode = sTaxiNodesStore.LookupEntry(GetTaxiSource());
+        if (!sourceNode || sourceNode->MountCreatureID[0] || sourceNode->MountCreatureID[1])
+            return false;
+    }
 
     return true;
 }

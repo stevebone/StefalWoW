@@ -32,6 +32,7 @@
 #include "GameObjectModel.h"
 #include "GameObjectPackets.h"
 #include "GameTime.h"
+#include "Garrison.h"
 #include "GossipDef.h"
 #include "GridNotifiersImpl.h"
 #include "Group.h"
@@ -44,6 +45,7 @@
 #include "MapManager.h"
 #include "MapUtils.h"
 #include "MiscPackets.h"
+#include "NPCPackets.h"
 #include "ObjectAccessor.h"
 #include "ObjectMgr.h"
 #include "OutdoorPvPMgr.h"
@@ -3469,6 +3471,126 @@ void GameObject::Use(Unit* user, bool ignoreCastInProgress /*= false*/)
             player->SendDirectMessage(gameObjectUILink.Write());
             return;
         }
+        case GAMEOBJECT_TYPE_GARRISON_MONUMENT:             //44
+        {
+            // The WoD garrison trophy monuments ("Monument Base"): 232379/232380/233177 in Lunarfall and
+            // 233827/233828/233829 in Frostwall, all six spawned. Data0 is the TrophyTypeID (4 = Alliance,
+            // 3 = Horde) and Data1 the TrophyInstanceID, which is which of the three plinths this is.
+            //
+            // The client drives the whole UI from an interaction of PlayerInteractionType::Trophy (36):
+            // PlayerInteractionFrameManager maps that type to GarrisonMonumentFrame and its showFunc calls
+            // C_Trophy.MonumentLoadList(), which is what emits CMSG_GET_TROPHY_LIST. Until now nothing here
+            // opened that interaction, so clicking a monument did nothing at all and none of the trophy
+            // opcodes were ever reachable - the same defect the Anima Conductors had below.
+            Player* player = user->ToPlayer();
+            if (!player)
+                return;
+
+            // TrophyTypeID 0 is NoValue: no Trophy.db2 row is displayable on such a monument, so there is
+            // nothing to show. Refusing here keeps the client from opening an unavoidably empty frame.
+            if (!GetGOInfo()->garrisonMonument.TrophyTypeID)
+                return;
+
+            player->PlayerTalkClass->GetInteractionData().StartInteraction(GetGUID(), PlayerInteractionType::Trophy);
+
+            WorldPackets::GameObject::GameObjectInteraction openMonument;
+            openMonument.ObjectGUID = GetGUID();
+            openMonument.InteractionType = PlayerInteractionType::Trophy;
+            player->SendDirectMessage(openMonument.Write());
+            return;
+        }
+        case GAMEOBJECT_TYPE_GARR_TALENT_TREE:              //58
+        {
+            // A gameobject that opens a garrison talent tree directly instead of through a gossip option. The four
+            // covenant Anima Conductors are these: 328302 (Kyrian, tree 345), 350776 (Venthyr, 348),
+            // 350777 (Night Fae, 346), 348675 (Necrolord, 347) - each one's Data1 is its Channel Anima tree.
+            //
+            // SMSG_GAME_OBJECT_INTERACTION is NOT usable here, and that is why this was still inert after the case
+            // was added. Both SMSG_GAME_OBJECT_INTERACTION and SMSG_NPC_INTERACTION_OPEN_RESULT feed the client's
+            // PlayerInteractionManager, and Blizzard_UIPanels_Game/Shared/PlayerInteractionFrameManager.lua's
+            // InteractionManagerFrameInfo table has NO entry for PlayerInteractionType::GarrTalent (35) - its
+            // ShowFrame() does `if not frameInfo then return end`, i.e. a silent no-op. The talent/anima UIs are
+            // raised by dedicated events instead (Blizzard_UIParent/Mainline/UIParent.lua):
+            //   GARRISON_TALENT_NPC_OPENED(garrTypeID, garrTalentTreeID) -> OrderHallTalentFrame:SetGarrisonType()
+            //   ANIMA_DIVERSION_OPEN(AnimaDiversionFrameInfo)            -> AnimaDiversionFrame:TryShow()
+            // and the ONLY server->client trigger for either is SMSG_GOSSIP_OPTION_NPC_INTERACTION carrying a
+            // GossipNpcOptionID, from which the client reads GossipNPCOption.db2 (GossipNpcOption = 32
+            // GarrisonTalent, plus GarrTalentTreeID) - there is no dedicated open-talent/open-anima opcode
+            // anywhere in the 12.0.7 client (whole-binary opcode catalogue: 2408 named opcodes, zero matches for
+            // ANIMA/DIVERSION/TALENT_NPC/GARRISON_OPEN_MISSION).
+            //
+            // So resolve the gameobject's tree to its own GossipNPCOption row and send exactly what the gossip
+            // path sends. No id is hardcoded: the four conductors resolve to rows 31032/31290/31291/31292 purely
+            // through GarrTalentTreeID.
+            Player* player = user->ToPlayer();
+            if (!player)
+                return;
+
+            uint32 garrTalentTreeId = GetGOInfo()->garrTalentTree.GarrTalentTreeID;
+            if (!garrTalentTreeId)
+                return;
+
+            // ...with one exception, and it is the only kind of tree these gameobjects actually carry. A
+            // Channel Anima tree (GarrTalentTree.FeatureTypeIndex 7) is not a talent grid at all - it is the
+            // Anima Diversion map, and its "talents" are map pins: all six rows of the Kyrian tree 345
+            // publish IconFileDataID 0 and carry normalised map coordinates in GarrTalentMapPOI.db2 instead.
+            // Sent through the gossip path below, the client raises OrderHallTalentFrame, which draws every
+            // row as an icon button - so the frame came up with the right title, the right anima total and
+            // research cost, and six blank buttons. That is exactly what the tester saw.
+            //
+            // The map frame is a different client system. AnimaDiversionFrame is raised by the
+            // ANIMA_DIVERSION_OPEN event (UIParent.lua:2227-2229) fired from the client's own AnimaDiversion
+            // code, and that whole system is keyed on an active PlayerInteraction of type AnimaDiversion (47):
+            // C_AnimaDiversion.GetOriginPosition (client RVA 0x9FAAD0, in AnimaDiversionUI.cpp) reads the
+            // current interaction and tests it against 47, and C_AnimaDiversion.CloseUI (RVA 0x9F9720) clears
+            // interaction 47. No ANIMA opcode exists in the 12.0.7 client to carry it, so starting that
+            // interaction is the only lever there is, and SMSG_GAME_OBJECT_INTERACTION is how a gameobject
+            // starts one - the Trophy case a few lines above does exactly this.
+            //
+            // No extra payload is needed: the client takes the map from this gameobject's own Data0 (UiMapID
+            // 1813 Bastion / 1814 Maldraxxus / 1738 Revendreth / 1739 Ardenweald, one per conductor) and the
+            // texture kit from GarrTalentTree.UiTextureKitID, and it already has both.
+            if (GarrTalentTreeEntry const* talentTree = sGarrTalentTreeStore.LookupEntry(garrTalentTreeId))
+            {
+                if (talentTree->FeatureTypeIndex == GARR_TALENT_FEATURE_CHANNEL_ANIMA)
+                {
+                    player->PlayerTalkClass->GetInteractionData().StartInteraction(GetGUID(), PlayerInteractionType::AnimaDiversion);
+
+                    WorldPackets::GameObject::GameObjectInteraction openAnimaDiversion;
+                    openAnimaDiversion.ObjectGUID = GetGUID();
+                    openAnimaDiversion.InteractionType = PlayerInteractionType::AnimaDiversion;
+                    player->SendDirectMessage(openAnimaDiversion.Write());
+                    return;
+                }
+            }
+
+            GossipNPCOptionEntry const* npcOption = nullptr;
+            for (GossipNPCOptionEntry const* option : sGossipNPCOptionStore)
+            {
+                if (option->GarrTalentTreeID == int32(garrTalentTreeId))
+                {
+                    npcOption = option;
+                    break;
+                }
+            }
+
+            if (!npcOption)
+            {
+                // Nothing to open with - refuse rather than send an interaction the client has no frame for.
+                TC_LOG_DEBUG("misc", "GameObject::Use: GARR_TALENT_TREE gameobject {} (entry {}) has GarrTalentTreeID {} "
+                    "with no GossipNPCOption.db2 row referencing it; cannot open the talent UI.",
+                    GetGUID().ToString(), GetEntry(), garrTalentTreeId);
+                return;
+            }
+
+            player->PlayerTalkClass->GetInteractionData().StartInteraction(GetGUID(), PlayerInteractionType::GarrTalent);
+
+            WorldPackets::NPC::GossipOptionNPCInteraction npcInteraction;
+            npcInteraction.GossipGUID = GetGUID();
+            npcInteraction.GossipNpcOptionID = npcOption->ID;
+            player->SendDirectMessage(npcInteraction.Write());
+            return;
+        }
         case GAMEOBJECT_TYPE_GATHERING_NODE:                //50
         {
             Player* player = user->ToPlayer();
@@ -3518,6 +3640,30 @@ void GameObject::Use(Unit* user, bool ignoreCastInProgress /*= false*/)
             if (Loot* loot = GetLootForPlayer(player))
                 player->SendLoot(*loot);
             break;
+        }
+        case GAMEOBJECT_TYPE_GARRISON_SHIPMENT:             //45
+        {
+            // Work-order "standard"/crate. Clicking it collects the finished orders and delivers their goods;
+            // placement is a separate action at the work-order NPC. Handled in core (no script).
+            Player* player = user->ToPlayer();
+            if (!player)
+                return;
+
+            // WoD building crate: collect the finished orders on the crate's garrison plot.
+            if (Garrison* garrison = player->GetGarrison())
+                if (uint32 plotInstanceId = garrison->FindPlotInstanceForNpc(GetGUID()))
+                {
+                    garrison->CollectReadyShipments(plotInstanceId);
+                    return;
+                }
+
+            // Order-hall / class-hall "standard" (plotless, e.g. "Training Troops" / "Seal of Broken Fate"):
+            // collect the finished orders for this GO's CharShipmentContainer -> troops join the roster, item
+            // orders deliver their goods.
+            if (uint32 containerId = GetGOInfo()->garrisonShipment.ShipmentContainer)
+                for (auto const& [garrType, garrison] : player->GetGarrisons())
+                    garrison->CollectReadyShipmentsForContainer(containerId);
+            return;
         }
         default:
             if (GetGoType() >= MAX_GAMEOBJECT_TYPE)

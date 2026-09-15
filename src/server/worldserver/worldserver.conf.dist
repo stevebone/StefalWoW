@@ -4391,6 +4391,95 @@ Pvp.FactionBalance.Pct20 = 0.8
 ###################################################################################################
 
 ###################################################################################################
+# WARFRONT SETTINGS
+#
+#    Warfront.TimeScale
+#        Description: Multiplier applied to every BfA Warfront cycle timer (7-day siege window, ~5-day world-boss
+#                     window). Lower it to compress the whole cycle for testing (e.g. 0.001 turns the 7-day siege
+#                     into ~10 minutes). Clamped to a small positive floor so timers always progress.
+#        Default:     1.0 - (retail-length cycle)
+
+Warfront.TimeScale = 1.0
+
+#    Warfront.NativeUI.Enable
+#        Description: Enables the native Warfront / Contribution Collector DISPLAY round-trip, i.e. sending
+#                     SMSG_CONTRIBUTION_LAST_UPDATE_RESPONSE (0x4202C4) in reply to
+#                     CMSG_CONTRIBUTION_LAST_UPDATE_REQUEST (0x3B00FE) and whenever a contribution bar moves,
+#                     plus SMSG_WARFRONT_COMPLETE (0x420206) when a warfront assault is won.
+#                     Both bodies are now BYTE-RECOVERED from the 12.0.7 (68275) client and the writers match
+#                     them; the earlier "INFERRED, deserializers are reflection-read" warning was wrong on both
+#                     counts. Neither opcode is reflection-serialized: the dispatcher hands the handler the raw
+#                     remaining payload and the handler casts it to a POD struct, which is why descriptor
+#                     tracing found nothing. Recovered layouts (derivations in WarfrontPackets.h /
+#                     ContributionPackets.h):
+#                       SMSG_WARFRONT_COMPLETE                    = 8 bytes  { int32 mapID, int32 winner }
+#                       SMSG_CONTRIBUTION_LAST_UPDATE_RESPONSE    = 16 bytes { uint64 lastUpdate, int32 id, int32 key2 }
+#                     The method was validated first against four opcodes of the same family with known-good TC
+#                     layouts (SMSG_TUTORIAL_FLAGS, SMSG_PLAY_MUSIC, SMSG_SCENARIO_COMPLETED,
+#                     SMSG_EXPLORATION_EXPERIENCE), all of which it reproduced exactly.
+#                     No sniff confirmation exists: 5.15M packets across 47 captures contain zero occurrences of
+#                     either opcode (no warfront or war-effort session was ever captured), so the client binary
+#                     is the only witness. It is the authoritative one, but the flag still defaults off so that
+#                     turning the round-trip on stays a deliberate act.
+#                     Receiving/logging CMSG_CONTRIBUTION_LAST_UPDATE_REQUEST is always active and unaffected by
+#                     this flag (reading is harmless); the received field values are logged to the "warfront" logger.
+#        Default:     0 - (disabled; the round-trip stays off until an operator opts in)
+#                     1 - (enabled)
+
+Warfront.NativeUI.Enable = 0
+
+#    Warfront.RequireUnlockQuest
+#        Description: Gates warfront enrollment behind the Blizzlike war-campaign unlock chain. When enabled a
+#                     character must have completed the World-Quest campaign quest ("Uniting Kul Tiras" 51918 /
+#                     "Uniting Zandalar" 51916) AND the terminal quest of that warfront's intro chain
+#                     (Stromgarde: "Back to Boralus" 53198 / "Back to Zuldazar" 53212; Darkshore: "We Are Coming"
+#                     54871 / "Warfront Preparations" 54416) before the war table will accept them. Holding or
+#                     having completed the "Warfront: The Battle for X" quest itself (53414/53416, 53992/53955)
+#                     also counts, since it is only obtainable after that chain.
+#                     The .warfront GM commands always bypass this gate.
+#        Default:     1 - (Blizzlike; warfronts are war-campaign content)
+#                     0 - (disabled; any max-level character of the challenging faction may enroll)
+
+Warfront.RequireUnlockQuest = 1
+
+#    Warfront.Contribution.CurrencyID
+#    Warfront.Contribution.CurrencyAmount
+#        Description: Cost of a single war-effort donation at a Contribution Collector, used ONLY when the
+#                     contribution's ManagedWorldStateInput carries no QuestID. That is the live situation for
+#                     every warfront bar in build 68275 (inputs 10/115/116/117 all ship QuestID = 0); the value
+#                     existed only in the 8.0 Arathi launch build (QuestID 52048), and that quest is not present
+#                     in any modern quest_template, so the real cost cannot be recovered offline. War Resources
+#                     (1560) is the BfA war-effort currency and is used as the stand-in.
+#                     When a contribution DOES define a turn-in quest, that quest's item/currency objectives are
+#                     the cost and these settings are ignored.
+#        Default:     1560 - (War Resources)
+#                     100
+
+Warfront.Contribution.CurrencyID = 1560
+Warfront.Contribution.CurrencyAmount = 100
+
+#    Warfront.Contribution.MinutesPerDonation
+#        Description: How far one donation pushes the contribution bar, expressed in minutes of that bar's own
+#                     passive accumulation (ManagedWorldState.AccumulationAmountPerMinute). Used together with the
+#                     fallback cost above; ignored when the contribution defines a turn-in quest.
+#        Default:     60.0 - (one donation is worth an hour of passive war effort)
+
+Warfront.Contribution.MinutesPerDonation = 60.0
+
+#    Contribution.AccumulationRate
+#        Description: Multiplier on the passive per-minute fill of every ManagedWorldState. This is what drives the
+#                     warfront cycle on its own: at the retail default the warfront bars need
+#                     500000000 / 86805 = 5760 minutes = exactly 4 days to reach their target, at which point the
+#                     zone flips CONTRIBUTION -> SIEGE with no GM command involved. Raise it to compress that for
+#                     testing; 0 freezes passive accumulation entirely so only player donations move the bar.
+#        Default:     1.0 - (retail rate)
+
+Contribution.AccumulationRate = 1.0
+
+#
+###################################################################################################
+
+###################################################################################################
 # LOAD SETTINGS
 #
 # These settings control content loading

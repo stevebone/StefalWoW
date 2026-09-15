@@ -108,7 +108,8 @@ void PreparedStatementBase::setString(uint8 index, std::string&& value)
 
 void PreparedStatementBase::setString(uint8 index, std::string_view value)
 {
-    ASSERT(index < statement_data.size());
+    ASSERT(index < statement_data.size(), "prepared statement %u takes %u parameters, tried to set #%u",
+        m_index, uint32(statement_data.size()), uint32(index));
     statement_data[index].data.emplace<std::string>(value);
 }
 
