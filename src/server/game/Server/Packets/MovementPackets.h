@@ -244,16 +244,6 @@ namespace WorldPackets
             float SpeedMax = 1.0f;
         };
 
-        class MoveAddImpulse final : public ServerPacket
-        {
-        public:
-            MoveAddImpulse() : ServerPacket(SMSG_MOVE_ADD_IMPULSE, 16 + 4 + 4 * 3) {}
-            WorldPacket const* Write() override;
-            ObjectGuid MoverGUID;
-            uint32 SequenceIndex = 0;
-            TaggedPosition<Position::XYZ> Direction;
-        };
-
         class MoveSplineSetFlag final : public ServerPacket
         {
         public:
@@ -847,6 +837,93 @@ namespace WorldPackets
 
             MovementInfo* Status = nullptr;
             int32 InertiaID = 0;
+        };
+
+        class MoveAddImpulse final : public ServerPacket
+        {
+        public:
+            explicit MoveAddImpulse() : ServerPacket(SMSG_MOVE_ADD_IMPULSE, 16 + 4 + 12) {}
+
+            WorldPacket const* Write() override;
+
+            ObjectGuid MoverGUID;
+            uint32 SequenceIndex = 0;
+            TaggedPosition<Position::XYZ> Direction;
+        };
+
+        class MoveAddImpulseAck final : public ClientPacket
+        {
+        public:
+            explicit MoveAddImpulseAck(WorldPacket&& packet) : ClientPacket(CMSG_MOVE_ADD_IMPULSE_ACK, std::move(packet)) {}
+
+            void Read() override;
+
+            MovementAck Ack;
+        };
+
+        class MoveUpdateAddImpulse final : public ServerPacket
+        {
+        public:
+            explicit MoveUpdateAddImpulse() : ServerPacket(SMSG_MOVE_UPDATE_ADD_IMPULSE) {}
+
+            WorldPacket const* Write() override;
+
+            MovementInfo* Status = nullptr;
+        };
+
+        class MoveSetCanDrive final : public ServerPacket
+        {
+        public:
+            explicit MoveSetCanDrive() : ServerPacket(SMSG_MOVE_SET_CAN_DRIVE, 16 + 4 + 4) {}
+
+            WorldPacket const* Write() override;
+
+            ObjectGuid MoverGUID;
+            uint32 SequenceIndex = 0;
+            int32 DriveCapabilityRecID = 0;
+        };
+
+        class MoveUnsetCanDrive final : public ServerPacket
+        {
+        public:
+            explicit MoveUnsetCanDrive() : ServerPacket(SMSG_MOVE_UNSET_CAN_DRIVE, 16 + 4) {}
+
+            WorldPacket const* Write() override;
+
+            ObjectGuid MoverGUID;
+            uint32 SequenceIndex = 0;
+        };
+
+        class MoveSetCanDriveAck final : public ClientPacket
+        {
+        public:
+            explicit MoveSetCanDriveAck(WorldPacket&& packet) : ClientPacket(CMSG_MOVE_SET_CAN_DRIVE_ACK, std::move(packet)) {}
+
+            void Read() override;
+
+            MovementAck Ack;
+            int32 DriveCapabilityRecID = 0;
+        };
+
+        class MoveStartDriveForward final : public ClientPacket
+        {
+        public:
+            explicit MoveStartDriveForward(WorldPacket&& packet) : ClientPacket(CMSG_MOVE_START_DRIVE_FORWARD, std::move(packet)) {}
+
+            void Read() override;
+
+            MovementInfo Status;
+        };
+
+        class AdjustSplineDuration final : public ServerPacket
+        {
+        public:
+            explicit AdjustSplineDuration() : ServerPacket(SMSG_ADJUST_SPLINE_DURATION, 16 + 4) {}
+
+            WorldPacket const* Write() override;
+
+            ObjectGuid MoverGUID;
+            float Scale = 1.0f;
         };
 
         ByteBuffer& operator>>(ByteBuffer& data, MovementAck& ack);

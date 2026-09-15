@@ -2833,6 +2833,7 @@ void AuraEffect::HandleAuraMounted(AuraApplication const* aurApp, uint8 mode, bo
             if (MountCapabilityEntry const* mountCapability = sMountCapabilityStore.LookupEntry(GetAmountAsInt()))
             {
                 target->SetFlightCapabilityID(mountCapability->FlightCapabilityID, true);
+                target->SetDriveCapabilityID(mountCapability->DriveCapabilityID, false);
                 target->CastSpell(target, mountCapability->ModSpellAuraID, this);
             }
             // Private server: always enable flying for players with riding skills
@@ -2883,8 +2884,14 @@ void AuraEffect::HandleAuraMounted(AuraApplication const* aurApp, uint8 mode, bo
         target->SetCanAdvFly(false);
         target->SetCanDoubleJump(false);
         target->SetFlightCapabilityID(0, true);
+        target->SetDriveCapabilityID(0, true);
         // Remove Vigor aura on dismount
         target->RemoveAura(372773);
+
+        // Dragonriding updates
+        if (target->GetTypeId() == TYPEID_PLAYER && (mode & AURA_EFFECT_HANDLE_REAL))
+            if (GetMiscValue() == 32158 && GetMiscValueB() == 229) // Dragon mounts
+                target->ToPlayer()->UpdateDynamicFlight(apply);
     }
 }
 

@@ -1680,6 +1680,19 @@ void Player::Regenerate(Powers power)
     int32 curValue = GetPower(power);
     float addvalue = GetPowerRegen(power) * 0.001f * m_regenTimer;
 
+    // Vigor regen scales with forward velocity during advanced flying
+    if (power == POWER_ALTERNATE_MOUNT && m_movementInfo.HasMovementFlag(MOVEMENTFLAG_ADV_FLYING) && m_movementInfo.advFlying)
+    {
+        if (FlightCapabilityEntry const* flightCapability = sFlightCapabilityStore.LookupEntry(GetFlightCapabilityID()))
+        {
+            if (flightCapability->VigorRegenMaxVelCoefficient > 0.0f && flightCapability->MaxVel > 0.0f)
+            {
+                float velocityPct = std::min(m_movementInfo.advFlying->forwardVelocity / flightCapability->MaxVel, 1.0f);
+                addvalue *= 1.0f + velocityPct * flightCapability->VigorRegenMaxVelCoefficient;
+            }
+        }
+    }
+
     int32 minPower = powerType->MinPower;
     int32 maxPower = GetMaxPower(power);
 
@@ -30305,6 +30318,20 @@ void Player::AddMoveImpulse(Position direction)
     SendMessageToSet(impulse.Write(), true);
 }
 
+void Player::UpdateDynamicFlight(bool apply)
+{
+    if (apply)
+    {
+        if (!HasAuraType(SPELL_AURA_ADV_FLYING))
+            AddAura(SPELL_DYNAMIC_FLIGHT, this);
+    }
+    else
+    {
+        if (HasAuraType(SPELL_AURA_ADV_FLYING))
+            RemoveAura(SPELL_DYNAMIC_FLIGHT);
+    }
+}
+
 void Player::ApplyTraitConfig(int32 configId, bool apply)
 {
     UF::TraitConfig const* traitConfig = GetTraitConfig(configId);
@@ -32866,8 +32893,6 @@ bool Player::TeleportToDigsiteInMap(uint32 mapId)
 
     if (sites.empty())
         return false;
-
-    //uint32 site_id = Trinity::Containers::SelectRandomContainerElement(sites);
 
     MapEntry const* map = sMapStore.LookupEntry(mapId);
     if (!map)

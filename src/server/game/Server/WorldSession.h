@@ -601,6 +601,9 @@ namespace WorldPackets
         class MoveApplyInertiaAck;
         class MoveRemoveInertiaAck;
         class MoveInitActiveMoverComplete;
+        class MoveAddImpulseAck;
+        class MoveSetCanDriveAck;
+        class MoveStartDriveForward;
     }
 
     namespace NPC
@@ -1368,6 +1371,11 @@ class TC_GAME_API WorldSession
         void HandleDiscardedTimeSyncAcks(WorldPackets::Movement::DiscardedTimeSyncAcks& packet);
         void HandleMoveRemoveMovementForceAck(WorldPackets::Movement::MoveRemoveMovementForceAck& moveRemoveMovementForceAck);
         void HandleMoveSetModMovementForceMagnitudeAck(WorldPackets::Movement::MovementSpeedAck& setModMovementForceMagnitudeAck);
+
+        // Dragonriding / Inertia / Impulse / Drive
+        void HandleMoveAddImpulseAck(WorldPackets::Movement::MoveAddImpulseAck& moveAddImpulseAck);
+        void HandleMoveSetCanDriveAck(WorldPackets::Movement::MoveSetCanDriveAck& moveSetCanDriveAck);
+        void HandleMoveStartDriveForward(WorldPackets::Movement::MoveStartDriveForward& moveStartDriveForward);
 
         // Inertia
         void HandleMoveApplyInertiaAck(WorldPackets::Movement::MoveApplyInertiaAck& moveApplyInertiaAck);

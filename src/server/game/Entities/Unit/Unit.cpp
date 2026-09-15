@@ -15071,3 +15071,57 @@ bool Unit::IsAlliedRace()
 
     return false;
 }
+
+void Unit::SetDriveCapabilityID(int32 driveCapabilityId, bool clientUpdate)
+{
+    if (driveCapabilityId && !sDriveCapabilityStore.HasRecord(driveCapabilityId))
+        return;
+
+    if (GetDriveCapabilityID() == driveCapabilityId)
+        return;
+
+    SetUpdateFieldValue(m_values.ModifyValue(&Unit::m_unitData).ModifyValue(&UF::UnitData::DriveCapabilityID), driveCapabilityId);
+
+    if (driveCapabilityId)
+        AddUnitMovementFlag(MOVEMENTFLAG_CAN_DRIVE);
+    else
+        RemoveUnitMovementFlag(MOVEMENTFLAG_CAN_DRIVE | MOVEMENTFLAG_DRIVING_FORWARD);
+
+    if (!clientUpdate)
+        return;
+
+    if (Player* playerMover = GetPlayerMovingMe())
+    {
+        if (driveCapabilityId)
+        {
+            WorldPackets::Movement::MoveSetCanDrive packet;
+            packet.MoverGUID = GetGUID();
+            packet.SequenceIndex = m_movementCounter++;
+            packet.DriveCapabilityRecID = driveCapabilityId;
+            playerMover->SendDirectMessage(packet.Write());
+        }
+        else
+        {
+            WorldPackets::Movement::MoveUnsetCanDrive packet;
+            packet.MoverGUID = GetGUID();
+            packet.SequenceIndex = m_movementCounter++;
+            playerMover->SendDirectMessage(packet.Write());
+        }
+
+        WorldPackets::Movement::MoveUpdate moveUpdate;
+        moveUpdate.Status = &m_movementInfo;
+        SendMessageToSet(moveUpdate.Write(), playerMover);
+    }
+}
+
+void Unit::SendAddImpulse(Position const& direction)
+{
+    if (Player* playerMover = GetPlayerMovingMe())
+    {
+        WorldPackets::Movement::MoveAddImpulse addImpulse;
+        addImpulse.MoverGUID = GetGUID();
+        addImpulse.SequenceIndex = m_movementCounter++;
+        addImpulse.Direction = direction;
+        playerMover->SendDirectMessage(addImpulse.Write());
+    }
+}

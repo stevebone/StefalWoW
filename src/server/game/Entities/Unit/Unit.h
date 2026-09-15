@@ -1930,6 +1930,10 @@ class TC_GAME_API Unit : public WorldObject
 
         UF::UpdateField<UF::UnitData, int32(WowCS::EntityFragment::CGObject), TYPEID_UNIT> m_unitData;
 
+        void SendAddImpulse(Position const& direction);
+        int32 GetDriveCapabilityID() const { return m_unitData->DriveCapabilityID; }
+        void SetDriveCapabilityID(int32 driveCapabilityId, bool clientUpdate);
+
     protected:
         explicit Unit (bool isWorldObject);
 

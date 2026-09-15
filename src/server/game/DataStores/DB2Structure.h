@@ -1690,6 +1690,36 @@ struct DifficultyEntry
     int32 Unknown1105;
 };
 
+struct DriveCapabilityEntry
+{
+    uint32 ID;
+    float ForwardAcceleration;
+    float BackwardMaxSpeed;
+    float IdleFriction;
+    float BackwardAcceleration;
+    float Field_5;
+    float Field_6;
+    float Field_7; 
+    float Field_8;
+    float Field_9;
+    float Field_10;
+    float Field_11;
+    float Field_12;
+    float Field_13;
+    float Field_14;
+    float Field_15;
+    float Field_16;
+};
+
+struct DriveCapabilityTierEntry
+{
+    uint32 ID;
+    float Acceleration;
+    float MaxSpeed;
+    int32 DriveCapabilityID;
+    int32 OrderIndex;
+};
+
 struct DungeonEncounterEntry
 {
     LocalizedString Name;

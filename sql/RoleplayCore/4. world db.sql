@@ -845,16 +845,11 @@ REPLACE INTO `spell_script_names` VALUES (232592, 'spell_twelve_string_guitar');
 
 REPLACE INTO `spell_linked_spell` VALUES (372771, 372773, 0, 'Dragonriding energy aura');
 
-REPLACE INTO `spell_script_names` VALUES (373646, 'spell_af_skyriding');
-REPLACE INTO `spell_script_names` VALUES (406095, 'spell_af_skyriding');
-REPLACE INTO `spell_script_names` VALUES (430747, 'spell_af_skyriding');
-REPLACE INTO `spell_script_names` VALUES (430833, 'spell_af_skyriding');
-REPLACE INTO `spell_script_names` VALUES (372771, 'spell_af_energy');
 REPLACE INTO `spell_script_names` VALUES (372773, 'spell_af_energy');
 REPLACE INTO `spell_script_names` VALUES (372610, 'spell_af_skyward_ascent');
 REPLACE INTO `spell_script_names` VALUES (374763, 'spell_af_skyward_ascent');
 REPLACE INTO `spell_script_names` VALUES (386451, 'spell_af_skyward_ascent');
 REPLACE INTO `spell_script_names` VALUES (372608, 'spell_af_surge_forward');
-REPLACE INTO `spell_script_names` VALUES (386449, 'spell_af_surge_forward');
 REPLACE INTO `spell_script_names` VALUES (361584, 'spell_af_whirling_surge');
 REPLACE INTO `spell_script_names` VALUES (436854, 'spell_switch_flight');
+REPLACE INTO `spell_script_names` VALUES (392752, 'spell_dragonriding_launch_boost');

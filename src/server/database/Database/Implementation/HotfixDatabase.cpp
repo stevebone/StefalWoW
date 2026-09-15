@@ -1614,6 +1614,17 @@ void HotfixDatabaseConnection::DoPrepareStatements()
     PrepareStatement(HOTFIX_SEL_PVP_DIFFICULTY, "SELECT ID, RangeIndex, MinLevel, MaxLevel, MapID FROM pvp_difficulty WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
     PREPARE_MAX_ID_STMT(HOTFIX_SEL_PVP_DIFFICULTY, "SELECT MAX(ID) + 1 FROM pvp_difficulty", CONNECTION_SYNCH);
 
+    // DriveCapability.db2
+    PrepareStatement(HOTFIX_SEL_DRIVE_CAPABILITY, "SELECT ID, ForwardAcceleration, BackwardMaxSpeed, IdleFriction, BackwardAcceleration, Field_5, Field_6, Field_7, Field_8, "
+        "Field_9, Field_10, Field_11, Field_12, Field_13, Field_14, Field_15, Field_16"
+        " FROM drive_capability WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
+    PREPARE_MAX_ID_STMT(HOTFIX_SEL_DRIVE_CAPABILITY, "SELECT MAX(ID) + 1 FROM drive_capability", CONNECTION_SYNCH);
+
+    // DriveCapabilityTier.db2
+    PrepareStatement(HOTFIX_SEL_DRIVE_CAPABILITY_TIER, "SELECT ID, Acceleration, MaxSpeed, DriveCapabilityID, OrderIndex"
+        " FROM drive_capability_tier WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
+    PREPARE_MAX_ID_STMT(HOTFIX_SEL_DRIVE_CAPABILITY_TIER, "SELECT MAX(ID) + 1 FROM drive_capability_tier", CONNECTION_SYNCH);
+
     // PvpStat.db2
     PrepareStatement(HOTFIX_SEL_PVP_STAT, "SELECT Description, ID, MapID FROM pvp_stat WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
     PREPARE_MAX_ID_STMT(HOTFIX_SEL_PVP_STAT, "SELECT MAX(ID) + 1 FROM pvp_stat", CONNECTION_SYNCH);
