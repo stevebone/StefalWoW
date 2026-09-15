@@ -1,10 +1,15 @@
 -- Redridge Mountains Creature Text
 DELETE FROM `creature_text` WHERE `creatureID` IN (43081,712,43270,43300,43272,43305,43303,43302,43448,43449,43458,43462,43461,43460,43459,7013,43535,43827);
-DELETE FROM `creature_text` WHERE `creatureID` IN (43571,43572,43610,43611,703,397);
+DELETE FROM `creature_text` WHERE `creatureID` IN (43571,43572,43610,43611,703,397,43607,43728);
 DELETE FROM `creature_text` WHERE `creatureID` IN (426,429,430,431,568,580) AND `GroupID` = 1;
 INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `BroadcastTextId`, `TextRange`, `comment`) VALUES
 (43610, 0, 0, 'Johnny, you do realize that we just blew up half of Redridge, right?', 12, 7, 100, 0, 0, 0, 43784, 0, 'Messner to Player'),
 (43611, 0, 0, 'Redridge''ll heal, but them orcs sure won''t...', 12, 7, 100, 0, 0, 0, 43786, 0, 'Keeshan to Player'),
+(43611, 1, 0, 'Heads up! PAYLOAD INCOMING!', 12, 7, 100, 0, 0, 0, 43807, 0, 'Keeshan to Player'),
+(43611, 2, 0, 'Troteman.', 12, 7, 100, 0, 0, 0, 43809, 0, 'Keeshan to Player'),
+(43607, 0, 0, 'Where the hell did this come from?', 12, 7, 100, 0, 0, 0, 43808, 0, 'Danforth to Player'),
+(43607, 1, 0, 'Troteman?', 12, 7, 100, 0, 0, 0, 43810, 0, 'Danforth to Player'),
+(43728, 0, 0, 'At your service.', 12, 7, 100, 0, 0, 0, 43811, 0, 'Colonel Troteman to Player'),
 
 (43571, 0, 0, 'We''re free! RUN FOR YOUR LIVES!', 14, 7, 100, 22, 0, 0, 43638, 0, 'Kidnapped Redridge Citizen to Player'),
 (43572, 0, 0, 'We''re free! RUN FOR YOUR LIVES!', 14, 7, 100, 22, 0, 0, 43638, 0, 'Kidnapped Redridge Citizen to Player'),
