@@ -2836,6 +2836,7 @@ void AuraEffect::HandleAuraMounted(AuraApplication const* aurApp, uint8 mode, bo
                 target->SetDriveCapabilityID(mountCapability->DriveCapabilityID, false);
                 target->CastSpell(target, mountCapability->ModSpellAuraID, this);
             }
+
             // Private server: always enable flying for players with riding skills
             if (Player* player = target->ToPlayer())
             {

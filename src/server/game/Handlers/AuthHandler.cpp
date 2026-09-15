@@ -158,6 +158,8 @@ void WorldSession::SendFeatureSystemStatusGlueScreen()
         { "housingEnableCreateCharterNeighborhood"sv, "0"sv },
         { "housingEnableBuyHouse"sv, "0"sv },
         { "housingMarketEnabled"sv, "0"sv },
+        { "advFlyKeyboardMinTurnFactor"sv, "1"sv },
+        { "advFlyKeyboardMaxTurnFactor"sv, "1"sv },
     };
 
     WorldPackets::System::MirrorVars variables;

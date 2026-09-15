@@ -10438,8 +10438,6 @@ void Unit::AddToWorld()
     i_motionMaster->AddToWorld();
 
     RemoveAurasWithInterruptFlags(SpellAuraInterruptFlags::EnterWorld);
-
-    CalculateAdvFlyingSpeeds();
 }
 
 void Unit::RemoveFromWorld()
@@ -13168,33 +13166,6 @@ bool Unit::CanSwim() const
     if (HasUnitFlag(UNIT_FLAG_PET_IN_COMBAT))
         return true;
     return HasUnitFlag(UNIT_FLAG_RENAME | UNIT_FLAG_CAN_SWIM);
-}
-
-void Unit::CalculateAdvFlyingSpeeds()
-{
-    FlightCapabilityEntry const* flightCapabilityEntry = sFlightCapabilityStore.LookupEntry(GetFlightCapabilityID());
-    if (!flightCapabilityEntry)
-        flightCapabilityEntry = sFlightCapabilityStore.LookupEntry(1);
-
-    ASSERT(flightCapabilityEntry, "Wrong default value for flightCapabilityID");
-
-    _advFlyingSpeeds[ADV_FLYING_ADD_IMPULSE_MAX_SPEED] = flightCapabilityEntry->AddImpulseMaxSpeed;
-    _advFlyingSpeeds[ADV_FLYING_AIR_FRICTION] = flightCapabilityEntry->AirFriction;
-    _advFlyingSpeeds[ADV_FLYING_BANKING_RATE] = flightCapabilityEntry->BankingRateMin;
-    _advFlyingSpeeds[ADV_FLYING_BANKING_RATE] = flightCapabilityEntry->BankingRateMax;
-    _advFlyingSpeeds[ADV_FLYING_DOUBLE_JUMP_VEL_MOD] = flightCapabilityEntry->DoubleJumpVelMod;
-    _advFlyingSpeeds[ADV_FLYING_GLIDE_START_MIN_HEIGHT] = flightCapabilityEntry->GlideStartMinHeight;
-    _advFlyingSpeeds[ADV_FLYING_LAUNCH_SPEED_COEFFICIENT] = flightCapabilityEntry->LaunchSpeedCoefficient;
-    _advFlyingSpeeds[ADV_FLYING_LIFT_COEFFICIENT] = flightCapabilityEntry->LiftCoefficient;
-    _advFlyingSpeeds[ADV_FLYING_MAX_VEL] = flightCapabilityEntry->MaxVel;
-    _advFlyingSpeeds[ADV_FLYING_OVER_MAX_DECELERATION] = flightCapabilityEntry->OverMaxDeceleration;
-    _advFlyingSpeeds[ADV_FLYING_PITCHING_RATE_DOWN] = flightCapabilityEntry->PitchingRateDownMin;
-    _advFlyingSpeeds[ADV_FLYING_PITCHING_RATE_DOWN] = flightCapabilityEntry->PitchingRateDownMax;
-    _advFlyingSpeeds[ADV_FLYING_PITCHING_RATE_UP] = flightCapabilityEntry->PitchingRateUpMin;
-    _advFlyingSpeeds[ADV_FLYING_PITCHING_RATE_UP] = flightCapabilityEntry->PitchingRateUpMax;
-    _advFlyingSpeeds[ADV_FLYING_SURFACE_FRICTION] = flightCapabilityEntry->SurfaceFriction;
-    _advFlyingSpeeds[ADV_FLYING_TURN_VELOCITY_THRESHOLD] = flightCapabilityEntry->TurnVelocityThresholdMin;
-    _advFlyingSpeeds[ADV_FLYING_TURN_VELOCITY_THRESHOLD] = flightCapabilityEntry->TurnVelocityThresholdMax;
 }
 
 float Unit::GetAdvFlyingVelocity() const

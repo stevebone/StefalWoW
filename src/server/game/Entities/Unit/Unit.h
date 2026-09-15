@@ -1854,7 +1854,6 @@ class TC_GAME_API Unit : public WorldObject
         virtual bool CanEnterWater() const = 0;
         virtual bool CanSwim() const;
 
-        void CalculateAdvFlyingSpeeds();
         float GetAdvFlyingVelocity() const;
 
         float GetHoverOffset() const { return HasUnitMovementFlag(MOVEMENTFLAG_HOVER) ? *m_unitData->HoverHeight : 0.0f; }
@@ -2107,8 +2106,6 @@ class TC_GAME_API Unit : public WorldObject
         std::unordered_map<ObjectGuid, uint32/*entry*/> m_SummonedCreatures;
 
         bool _isCombatDisallowed;
-
-        std::array<float, ADV_FLYING_MAX_SPEED_TYPE> _advFlyingSpeeds;
 
     public:
         TaskScheduler _scheduler;
