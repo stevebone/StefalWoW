@@ -161,6 +161,16 @@ namespace WorldPackets
             ObjectGuid LootObj;
         };
 
+        class DisenchantCredit final : public ServerPacket
+        {
+        public:
+            explicit DisenchantCredit() : ServerPacket(SMSG_DISENCHANT_CREDIT, 16) {}
+
+            WorldPacket const* Write() override;
+
+            ObjectGuid Winner;
+        };
+
         class LootRoll final : public ClientPacket
         {
         public:

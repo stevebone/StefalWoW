@@ -1771,12 +1771,30 @@ void WorldSession::SendFeatureSystemStatus()
 
 void WorldSession::HandleSetFactionAtWar(WorldPackets::Character::SetFactionAtWar& packet)
 {
-    GetPlayer()->GetReputationMgr().SetAtWar(packet.FactionIndex, true);
+    ReputationMgr& reputationMgr = GetPlayer()->GetReputationMgr();
+    reputationMgr.SetAtWar(packet.FactionIndex, true);
+
+    if (FactionState const* factionState = reputationMgr.GetState(packet.FactionIndex))
+    {
+        WorldPackets::Character::SetFactionAtWarResult result;
+        result.FactionIndex = factionState->ReputationListID;
+        result.Flags = factionState->Flags.AsUnderlyingType();
+        SendPacket(result.Write());
+    }
 }
 
 void WorldSession::HandleSetFactionNotAtWar(WorldPackets::Character::SetFactionNotAtWar& packet)
 {
-    GetPlayer()->GetReputationMgr().SetAtWar(packet.FactionIndex, false);
+    ReputationMgr& reputationMgr = GetPlayer()->GetReputationMgr();
+    reputationMgr.SetAtWar(packet.FactionIndex, false);
+
+    if (FactionState const* factionState = reputationMgr.GetState(packet.FactionIndex))
+    {
+        WorldPackets::Character::SetFactionAtWarResult result;
+        result.FactionIndex = factionState->ReputationListID;
+        result.Flags = factionState->Flags.AsUnderlyingType();
+        SendPacket(result.Write());
+    }
 }
 
 void WorldSession::HandleTutorialFlag(WorldPackets::Misc::TutorialSetFlag& packet)

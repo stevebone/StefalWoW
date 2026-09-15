@@ -384,6 +384,14 @@ namespace WorldPackets
             ObjectGuid PlayerGUID;
         };
 
+        class ForcedDeathUpdate final : public ServerPacket
+        {
+        public:
+            explicit ForcedDeathUpdate() : ServerPacket(SMSG_FORCED_DEATH_UPDATE, 0) {}
+
+            WorldPacket const* Write() override { return &_worldPacket; }
+        };
+
         class ReclaimCorpse final : public ClientPacket
         {
         public:
@@ -1092,6 +1100,16 @@ namespace WorldPackets
 
             int32 ChoiceID;
             bool Status;
+        };
+
+        class NotifyMoney final : public ServerPacket
+        {
+        public:
+            explicit NotifyMoney() : ServerPacket(SMSG_NOTIFY_MONEY, 8) {}
+
+            WorldPacket const* Write() override;
+
+            uint64 Money = 0;
         };
 
         class AccountWarbandSceneUpdate final : public ServerPacket

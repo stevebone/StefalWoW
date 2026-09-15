@@ -137,6 +137,13 @@ WorldPacket const* CoinRemoved::Write()
     return &_worldPacket;
 }
 
+WorldPacket const* DisenchantCredit::Write()
+{
+    _worldPacket << Winner;
+
+    return &_worldPacket;
+}
+
 void LootRoll::Read()
 {
     _worldPacket >> LootObj;

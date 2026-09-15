@@ -268,6 +268,7 @@ private:
     void SendAllPassed();
     void SendRoll(ObjectGuid const& targetGuid, int32 rollNumber, RollVote rollType, Optional<ObjectGuid> const& rollWinner);
     void SendLootRollWon(ObjectGuid const& targetGuid, int32 rollNumber, RollVote rollType);
+    void SendDisenchantCredit(ObjectGuid const& winnerGuid);
     void FillPacket(WorldPackets::Loot::LootItemData& lootItem) const;
     void Finish(RollVoteMap::const_iterator winnerItr);
     bool AllPlayerVoted(RollVoteMap::const_iterator& winnerItr);

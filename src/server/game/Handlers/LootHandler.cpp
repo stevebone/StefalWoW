@@ -31,6 +31,7 @@
 #include "LootItemStorage.h"
 #include "LootPackets.h"
 #include "MapUtils.h"
+#include "MiscPackets.h"
 #include "Object.h"
 #include "ObjectAccessor.h"
 #include "ObjectMgr.h"
@@ -182,6 +183,10 @@ void WorldSession::HandleLootMoneyOpcode(WorldPackets::Loot::LootMoney& /*packet
                 packet.MoneyMod = goldMod;
                 packet.SoleLooter = playersNear.size() <= 1;
                 (*i)->SendDirectMessage(packet.Write());
+
+                WorldPackets::Misc::NotifyMoney notifyMoney;
+                notifyMoney.Money = goldPerPlayer + goldMod;
+                (*i)->SendDirectMessage(notifyMoney.Write());
             }
         }
         else
@@ -196,6 +201,10 @@ void WorldSession::HandleLootMoneyOpcode(WorldPackets::Loot::LootMoney& /*packet
             packet.MoneyMod = goldMod;
             packet.SoleLooter = true; // "You loot..."
             SendPacket(packet.Write());
+
+            WorldPackets::Misc::NotifyMoney notifyMoney;
+            notifyMoney.Money = loot->gold + goldMod;
+            SendPacket(notifyMoney.Write());
         }
 
 #ifdef ELUNA

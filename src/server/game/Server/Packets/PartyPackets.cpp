@@ -317,6 +317,13 @@ void SetLootMethod::Read()
         _worldPacket >> *PartyIndex;
 }
 
+WorldPacket const* SetLootMethodFailed::Write()
+{
+    _worldPacket << uint8(Reason);
+
+    return &_worldPacket;
+}
+
 void MinimapPingClient::Read()
 {
     _worldPacket >> OptionalInit(PartyIndex);

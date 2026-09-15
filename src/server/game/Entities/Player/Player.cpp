@@ -4369,6 +4369,8 @@ void Player::BuildPlayerRepop()
 
     StopMirrorTimers();                                     //disable timers(bars)
 
+    SendDirectMessage(WorldPackets::Misc::ForcedDeathUpdate().Write());
+
     // OnPlayerRepop hook
     sScriptMgr->OnPlayerRepop(this);
 }
@@ -26970,6 +26972,7 @@ void Player::SummonIfPossible(bool agree)
     // expire and auto declined
     if (m_summon_expire < GameTime::GetGameTime())
     {
+        SendDirectMessage(WorldPackets::Movement::SummonCancel().Write());
         broadcastSummonResponse(false);
         return;
     }

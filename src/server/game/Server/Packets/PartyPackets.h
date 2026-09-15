@@ -297,6 +297,26 @@ namespace WorldPackets
             uint32 LootThreshold = 0u;
         };
 
+        enum class LootMethodFailure : uint8
+        {
+            NotInGroup = 0,
+            NotLeader = 1,
+            LfgGroup = 2,
+            InvalidLootMethod = 3,
+            InvalidThreshold = 4,
+            InvalidMasterLooter = 5
+        };
+
+        class SetLootMethodFailed final : public ServerPacket
+        {
+        public:
+            explicit SetLootMethodFailed() : ServerPacket(SMSG_SET_LOOT_METHOD_FAILED, 1) {}
+
+            WorldPacket const* Write() override;
+
+            LootMethodFailure Reason = LootMethodFailure::NotInGroup;
+        };
+
         class MinimapPingClient final : public ClientPacket
         {
         public:

@@ -434,6 +434,22 @@ void LootRoll::SendLootRollWon(ObjectGuid const& targetGuid, int32 rollNumber, R
     }
 }
 
+void LootRoll::SendDisenchantCredit(ObjectGuid const& winnerGuid)
+{
+    WorldPackets::Loot::DisenchantCredit disenchantCredit;
+    disenchantCredit.Winner = winnerGuid;
+    disenchantCredit.Write();
+
+    for (auto const& [playerGuid, roll] : m_rollVoteMap)
+    {
+        if (roll.Vote == RollVote::NotValid)
+            continue;
+
+        if (Player* player = ObjectAccessor::GetPlayer(m_map, playerGuid))
+            player->SendDirectMessage(disenchantCredit.GetRawPacket());
+    }
+}
+
 void LootRoll::FillPacket(WorldPackets::Loot::LootItemData& lootItem) const
 {
     lootItem.Quantity = m_lootItem->count;
@@ -683,6 +699,9 @@ void LootRoll::Finish(RollVoteMap::const_iterator winnerItr)
         m_lootItem->rollWinnerGUID = winnerItr->first;
 
         SendLootRollWon(winnerItr->first, winnerItr->second.RollNumber, winnerItr->second.Vote);
+
+        if (winnerItr->second.Vote == RollVote::Disenchant)
+            SendDisenchantCredit(winnerItr->first);
 
         if (Player* player = ObjectAccessor::FindConnectedPlayer(winnerItr->first))
         {

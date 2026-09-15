@@ -846,6 +846,17 @@ namespace WorldPackets
             uint16 FactionIndex = 0;
         };
 
+        class SetFactionAtWarResult final : public ServerPacket
+        {
+        public:
+            explicit SetFactionAtWarResult() : ServerPacket(SMSG_SET_FACTION_AT_WAR, 4 + 2) {}
+
+            WorldPacket const* Write() override;
+
+            uint32 FactionIndex = 0; // RepListID, see comment above
+            uint16 Flags = 0;        // ReputationFlags; the client reads only AtWar (0x2)
+        };
+
         class SetFactionInactive final : public ClientPacket
         {
         public:

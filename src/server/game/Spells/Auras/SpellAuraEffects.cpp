@@ -22,6 +22,7 @@
 #include "BattlegroundPackets.h"
 #include "CellImpl.h"
 #include "CharmInfo.h"
+#include "CombatPackets.h"
 #include "Common.h"
 #include "Containers.h"
 #include "DB2Stores.h"
@@ -2382,6 +2383,19 @@ void AuraEffect::HandleFeignDeath(AuraApplication const* aurApp, uint8 mode, boo
         for (auto const& [guid, ref] : target->GetThreatManager().GetThreatenedByMeList())
             if (isAffectedByFeignDeath(ref->GetOwner()))
                 ref->ScaleThreat(0.0f);
+
+        bool feignDeathResisted = false;
+        for (auto const& [guid, ref] : target->GetThreatManager().GetThreatenedByMeList())
+        {
+            if (isAffectedByFeignDeath(ref->GetOwner()))
+                ref->ScaleThreat(0.0f);
+            else
+                feignDeathResisted = true;
+        }
+
+        if (feignDeathResisted)
+            if (Player* targetPlayer = target->ToPlayer())
+                targetPlayer->SendDirectMessage(WorldPackets::Combat::FeignDeathResisted().Write());
 
         if (target->GetMap()->IsDungeon()) // feign death does not remove combat in dungeons
         {

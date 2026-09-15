@@ -677,6 +677,14 @@ namespace WorldPackets
             bool SkipStartingArea = false;
         };
 
+        class SummonCancel final : public ServerPacket
+        {
+        public:
+            explicit SummonCancel() : ServerPacket(SMSG_SUMMON_CANCEL, 0) {}
+
+            WorldPacket const* Write() override { return &_worldPacket; }
+        };
+
         class SuspendToken final : public ServerPacket
         {
         public:
