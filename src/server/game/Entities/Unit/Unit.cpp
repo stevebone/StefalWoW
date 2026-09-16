@@ -2227,47 +2227,56 @@ void Unit::DoMeleeAttackIfReady()
         return {};
     };
 
+    auto hasUsableWeapon = [&](WeaponAttackType type) -> bool
+        {
+            if (Player const* player = ToPlayer())
+                return player->GetWeaponForAttack(type, true) != nullptr;
+            return true;
+        };
+
     if (isAttackReady(BASE_ATTACK))
     {
-        Optional<AttackSwingErr> autoAttackError = getAutoAttackError();
-        if (!autoAttackError)
-        {
-            // prevent base and off attack in same time, delay attack at 0.2 sec
-            if (haveOffhandWeapon())
-                if (getAttackTimer(OFF_ATTACK) < ATTACK_DISPLAY_DELAY)
-                    setAttackTimer(OFF_ATTACK, ATTACK_DISPLAY_DELAY);
-
-            // do attack
-            AttackerStateUpdate(victim, BASE_ATTACK);
+        // Empty main-hand with an armed off-hand: do not fall back to fists.
+        // The off-hand weapon is the swing; unarmed MH would sheath into knuckle combat.
+        if (!hasUsableWeapon(BASE_ATTACK) && hasUsableWeapon(OFF_ATTACK))
             resetAttackTimer(BASE_ATTACK);
-        }
         else
-            setAttackTimer(BASE_ATTACK, 100);
-
-        if (Player* attackerPlayer = ToPlayer())
-            attackerPlayer->SetAttackSwingError(autoAttackError);
-    }
-
-    if (!IsInFeralForm() && haveOffhandWeapon() && isAttackReady(OFF_ATTACK))
-    {
-        if (GetAuraEffectsByType(SPELL_AURA_OVERRIDE_AUTOATTACK_WITH_MELEE_SPELL).empty())
         {
             Optional<AttackSwingErr> autoAttackError = getAutoAttackError();
             if (!autoAttackError)
             {
                 // prevent base and off attack in same time, delay attack at 0.2 sec
-                if (getAttackTimer(BASE_ATTACK) < ATTACK_DISPLAY_DELAY)
-                    setAttackTimer(BASE_ATTACK, ATTACK_DISPLAY_DELAY);
+                if (haveOffhandWeapon())
+                    if (getAttackTimer(OFF_ATTACK) < ATTACK_DISPLAY_DELAY)
+                        setAttackTimer(OFF_ATTACK, ATTACK_DISPLAY_DELAY);
 
                 // do attack
-                AttackerStateUpdate(victim, OFF_ATTACK);
-                resetAttackTimer(OFF_ATTACK);
+                AttackerStateUpdate(victim, BASE_ATTACK);
+                resetAttackTimer(BASE_ATTACK);
             }
             else
-                setAttackTimer(OFF_ATTACK, 100);
+                setAttackTimer(BASE_ATTACK, 100);
+
+            if (Player* attackerPlayer = ToPlayer())
+                attackerPlayer->SetAttackSwingError(autoAttackError);
+        }
+    }
+
+    if (!IsInFeralForm() && haveOffhandWeapon() && isAttackReady(OFF_ATTACK))
+    {
+        Optional<AttackSwingErr> autoAttackError = getAutoAttackError();
+        if (!autoAttackError)
+        {
+            // prevent base and off attack in same time, delay attack at 0.2 sec
+            if (getAttackTimer(BASE_ATTACK) < ATTACK_DISPLAY_DELAY)
+                setAttackTimer(BASE_ATTACK, ATTACK_DISPLAY_DELAY);
+
+            // do attack
+            AttackerStateUpdate(victim, OFF_ATTACK);
+            resetAttackTimer(OFF_ATTACK);
         }
         else
-            resetAttackTimer(OFF_ATTACK);
+            setAttackTimer(OFF_ATTACK, 100);
     }
 }
 
@@ -2337,6 +2346,19 @@ void Unit::AttackerStateUpdate(Unit* victim, WeaponAttackType attType, bool extr
             if (itr != meleeAttackOverrides.end())
                 meleeAttackSpellId = (*itr)->GetSpellEffectInfo().MiscValue;
         }
+
+        // Override spells replace weapon swings. Empty/broken slot in this hand
+        // falls back to a normal auto-attack (unarmed punch), not a failed 408385.
+        // Exception: empty main-hand while off-hand is armed - do not fist-fight.
+        if (meleeAttackSpellId)
+            if (Player const* player = ToPlayer())
+                if (!player->GetWeaponForAttack(attType, true))
+                    meleeAttackSpellId = 0;
+
+        if (attType == BASE_ATTACK && !meleeAttackSpellId)
+            if (Player const* player = ToPlayer())
+                if (!player->GetWeaponForAttack(BASE_ATTACK, true) && player->GetWeaponForAttack(OFF_ATTACK, true))
+                    return;
 
         if (!meleeAttackSpellId)
         {
