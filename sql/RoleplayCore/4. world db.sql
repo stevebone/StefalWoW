@@ -812,7 +812,7 @@ REPLACE INTO `spell_script_names` VALUES (202157, 'aura_dru_feral_affinity');
 REPLACE INTO `spell_script_names` VALUES (159286, 'spell_dru_primal_fury');
 
 -- ----------------------------
--- Misc fix or changes
+-- Misc fix or changes (spell)
 -- ----------------------------
 
 REPLACE INTO `spell_script_names` VALUES (108897, 'spell_pandaren_faction_choice');
@@ -830,6 +830,52 @@ REPLACE INTO `spell_linked_spell` VALUES (299293, 300027, 2, 'Transport item - C
 REPLACE INTO `spell_linked_spell` VALUES (296790, 296863, 2, 'Transport item - Inflatable Mount Shoes');
 REPLACE INTO `spell_linked_spell` VALUES (297090, 300031, 2, 'Transport item - Saddlechute');
 REPLACE INTO `spell_linked_spell` VALUES (406087, 406090, 0, 'Worgen - Calm the Wolf');
+
+-- ----------------------------
+-- Misc fix or changes
+-- ----------------------------
+
+DELETE FROM `playercreateinfo` WHERE `race` = 29 AND `class` = 12;  
+INSERT INTO `playercreateinfo`  
+(`race`, `class`, `map`, `position_x`, `position_y`, `position_z`, `orientation`,  
+ `npe_map`, `npe_position_x`, `npe_position_y`, `npe_position_z`, `npe_orientation`,  
+ `npe_transport_guid`, `intro_movie_id`, `intro_scene_id`, `npe_intro_scene_id`)  
+VALUES  
+(29, 12, 1865, 2121, 3318, 54.7061, 0.0872665, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1903, NULL);
+ 
+DELETE FROM `class_expansion_requirement` WHERE `ClassID` = 12 AND `RaceID` = 29;  
+INSERT INTO `class_expansion_requirement` (`ClassID`, `RaceID`, `ActiveExpansionLevel`, `AccountExpansionLevel`)  
+VALUES (12, 29, 0, 0); 
+ 
+DELETE FROM `playercreateinfo_action` WHERE `race` = 29 AND `class` = 12;  
+INSERT INTO `playercreateinfo_action` (`race`, `class`, `button`, `action`, `type`) VALUES  
+(29, 12, 1, 131347, 0),  
+(29, 12, 2, 188501, 0),  
+(29, 12, 3, 344865, 0),  
+(29, 12, 4, 344859, 0),  
+(29, 12, 5, 344862, 0),  
+(29, 12, 6, 256948, 0);
+
+DELETE FROM `class_expansion_requirement` WHERE `RaceID` IN (86, 91) AND `ClassID` IN (1, 3, 4, 5, 7, 8, 9, 10, 11);
+INSERT INTO `class_expansion_requirement` (`ClassID`, `RaceID`, `ActiveExpansionLevel`, `AccountExpansionLevel`) VALUES
+(1, 86, 11, 11),
+(3, 86, 11, 11),
+(4, 86, 11, 11),
+(5, 86, 11, 11),
+(7, 86, 11, 11),
+(8, 86, 11, 11),
+(9, 86, 11, 11),
+(10, 86, 11, 11),
+(11, 86, 11, 11),
+(1, 91, 11, 11),
+(3, 91, 11, 11),
+(4, 91, 11, 11),
+(5, 91, 11, 11),
+(7, 91, 11, 11),
+(8, 91, 11, 11),
+(9, 91, 11, 11),
+(10, 91, 11, 11),
+(11, 91, 11, 11);
 
 -- ----------------------------
 -- Toys fix
