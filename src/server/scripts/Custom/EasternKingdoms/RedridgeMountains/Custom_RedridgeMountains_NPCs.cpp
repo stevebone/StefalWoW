@@ -30,6 +30,7 @@
 #include "Player.h"
 #include "ScriptedCreature.h"
 #include "Unit.h"
+#include "Vehicle.h"
 #include "SpellAuras.h"
 #include "ScriptMgr.h"
 #include "TemporarySummon.h"
@@ -1214,34 +1215,55 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
 
         void OnQuestReward(Player* player, Quest const* quest, LootItemType /*type*/, uint32 /*opt*/) override
         {
-            if (quest->GetQuestId() != Quests::Detonation)
-                return;
-
-            if (Creature* messner = me->FindNearestCreature(Creatures::MessnerCanyon, 10.0f))
-                messner->AI()->Talk(Talks::MessnerCanyonSay00, player);
-
-            _talkPlayerGuid = player->GetGUID();
-            _events.ScheduleEvent(Events::KeeshanCanyonTalk, 5s);
-        }
-
-        void UpdateAI(uint32 diff) override
-        {
-            _events.Update(diff);
-
-            while (uint32 eventId = _events.ExecuteEvent())
+            if (quest->GetQuestId() == Quests::Detonation)
             {
-                if (eventId == Events::KeeshanCanyonTalk)
+
+                if (Creature* messner = me->FindNearestCreature(Creatures::MessnerCanyon, 10.0f))
+                    messner->AI()->Talk(Talks::MessnerCanyonSay00, player);
+
+                me->m_Events.AddEventAtOffset([this, player]()
+                    {
+                        if (me && player)
+                            Talk(Talks::KeeshanCanyonSay00, player);
+                    }, 5s);
+            }
+
+            if (quest->GetQuestId() == Quests::TheGrandMagusDoane)
+            {
+                Talk(Talks::KeeshanCanyonSay01, player);
+
+                player->SummonCreature(Creatures::BravoCompanySiegeTank, Positions::SiegeTankSpawn);
+
+                if (Creature* danforth = me->FindNearestCreature(Creatures::DanforthCanyon, 10.0f))
                 {
-                    Player* player = ObjectAccessor::GetPlayer(*me, _talkPlayerGuid);
-                    if (player)
-                        Talk(Talks::KeeshanCanyonSay00, player);
+                    me->m_Events.AddEventAtOffset([danforth, player]()
+                        {
+                            if(danforth && player)
+                                danforth->AI()->Talk(Talks::DanforthCanyonSay00, player);
+                        }, 3s);
+
+                    me->m_Events.AddEventAtOffset([danforth, player]()
+                        {
+                            if (danforth && player)
+                            {
+                                danforth->AI()->Talk(Talks::DanforthCanyonSay01, player);
+                                if (Creature* troteman = player->FindNearestCreature(Creatures::ColonelTrotemanSiegeTank, 20.0f))
+                                    troteman->AI()->SetData(1, 0);
+                            }
+                        }, 11s);
                 }
+
+                me->m_Events.AddEventAtOffset([this, player]()
+                    {
+                        if (me && player)
+                            Talk(Talks::KeeshanCanyonSay02, player);
+                    }, 8s);
+
             }
         }
 
     private:
         EventMap _events;
-        ObjectGuid _talkPlayerGuid;
     };
 
     /*######
@@ -1372,6 +1394,126 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
         bool _summonedMinion = false;
         bool _despawning = false;
     };
+
+    /*######
+    ## 43714 Bravo Company Siege Tank
+    ######*/
+
+    struct npc_bravo_company_siege_tank : public ScriptedAI
+    {
+        npc_bravo_company_siege_tank(Creature* creature) : ScriptedAI(creature)
+        {
+            // Spawn in air with parachute, then fall to the ground.
+            me->CastSpell(me, Spells::Parachute, true);
+            me->CastSpell(me, 85882, true);
+            me->GetMotionMaster()->MoveFall(MovementPoints::SiegeTankFall);
+            _events.ScheduleEvent(Events::SiegeTankCheckLanding, 500ms);
+        }
+
+        void MovementInform(uint32 type, uint32 id) override
+        {
+            if (type == EFFECT_MOTION_TYPE && id == MovementPoints::SiegeTankFall)
+                HandleLanding();
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _events.Update(diff);
+
+            while (uint32 eventId = _events.ExecuteEvent())
+            {
+                switch (eventId)
+                {
+                    case Events::SiegeTankCheckLanding:
+                        // Polling backup in case MoveFall did not create a movement generator
+                        // (creature falling via gravity instead of spline).
+                        if (_wasFalling && !me->IsFalling())
+                            HandleLanding();
+                        else
+                        {
+                            if (me->IsFalling())
+                                _wasFalling = true;
+                            _events.ScheduleEvent(Events::SiegeTankCheckLanding, 200ms);
+                        }
+                        break;
+                    case Events::SiegeTankEnableSpellClick:
+                        me->SetNpcFlag(UNIT_NPC_FLAG_SPELLCLICK);
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            if (!UpdateVictim())
+                return;
+
+            me->DoMeleeAttackIfReady();
+        }
+
+    private:
+        void HandleLanding()
+        {
+            if (_landingHandled)
+                return;
+            _landingHandled = true;
+
+            // Landed: remove parachute, eject passenger, schedule spellclick flag.
+            me->RemoveAurasDueToSpell(Spells::Parachute);
+            me->HandleEmoteCommand(EMOTE_ONESHOT_ATTACK_THROWN);
+
+            if (Vehicle* vehicle = me->GetVehicleKit())
+            {
+                if (Unit* passenger = vehicle->GetPassenger(1))
+                    passenger->ExitVehicle(&Positions::SiegeTankEjectPos);
+            }
+
+            _events.ScheduleEvent(Events::SiegeTankEnableSpellClick, 1s);
+        }
+
+        EventMap _events;
+        bool _wasFalling = false;
+        bool _landingHandled = false;
+    };
+
+    /*######
+    ## 43728 Colonel Troteman (Siege Tank)
+    ######*/
+
+    struct npc_colonel_troteman_siege_tank : public ScriptedAI
+    {
+        npc_colonel_troteman_siege_tank(Creature* creature) : ScriptedAI(creature) { }
+
+        void SetData(uint32 id, uint32 /*value*/) override
+        {
+            if (id == 1)
+            {
+                Talk(Talks::ColonelTrotemanSiegeTankSay00);
+                _events.ScheduleEvent(Events::ColonelTrotemanUpdateEntry, 5s);
+            }
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _events.Update(diff);
+
+            while (uint32 eventId = _events.ExecuteEvent())
+            {
+                if (eventId == Events::ColonelTrotemanUpdateEntry)
+                    me->UpdateEntry(Creatures::ColonelTroteman);
+            }
+
+            if (!UpdateVictim())
+                return;
+
+            me->DoMeleeAttackIfReady();
+        }
+
+    private:
+        EventMap _events;
+    };
+
+    // 43745 - Keeshan's Gun (Siege Tank Gun)
+    // No script needed - the gun is summoned and mounted by spell_summon_bravo_company_siege_tank.
 }
 
 void AddSC_custom_redridge_mountains_npcs()
@@ -1393,4 +1535,6 @@ void AddSC_custom_redridge_mountains_npcs()
     RegisterCreatureAI(npc_kidnapped_redridge_citizen);
     RegisterCreatureAI(npc_keeshan_canyon);
     RegisterCreatureAI(npc_grand_magus_doane);
+    RegisterCreatureAI(npc_bravo_company_siege_tank);
+    RegisterCreatureAI(npc_colonel_troteman_siege_tank);
 }

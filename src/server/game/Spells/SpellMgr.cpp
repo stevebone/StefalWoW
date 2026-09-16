@@ -5491,6 +5491,18 @@ void SpellMgr::LoadSpellInfoCorrections()
         properties->Control = SUMMON_CATEGORY_PET;
     });
 
+    // Redridge Mountains - Bravo Company Siege Tank: remove summon aura when player exits vehicle
+    ApplySpellFix({ 81808 }, [](SpellInfo* spellInfo)
+    {
+        spellInfo->AuraInterruptFlags2 |= SpellAuraInterruptFlags2::AbandonVehicle;
+    });
+
+    // Redridge Mountains - Bravo Company Siege Tank Ram: ignore armor so damage isn't reduced
+    ApplySpellFix({ 81888 }, [](SpellInfo* spellInfo)
+    {
+        spellInfo->AttributesCu |= SPELL_ATTR0_CU_IGNORE_ARMOR;
+    });
+
     TC_LOG_INFO("server.loading", ">> Loaded SpellInfo corrections in {} ms", GetMSTimeDiffToNow(oldMSTime));
 }
 

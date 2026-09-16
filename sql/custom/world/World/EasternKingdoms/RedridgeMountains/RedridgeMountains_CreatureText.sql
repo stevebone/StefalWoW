@@ -1,6 +1,6 @@
 -- Redridge Mountains Creature Text
 DELETE FROM `creature_text` WHERE `creatureID` IN (43081,712,43270,43300,43272,43305,43303,43302,43448,43449,43458,43462,43461,43460,43459,7013,43535,43827);
-DELETE FROM `creature_text` WHERE `creatureID` IN (43571,43572,43610,43611,703,397,43607,43728);
+DELETE FROM `creature_text` WHERE `creatureID` IN (43571,43572,43610,43611,703,397,43607,43728,43744);
 DELETE FROM `creature_text` WHERE `creatureID` IN (426,429,430,431,568,580) AND `GroupID` = 1;
 INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `BroadcastTextId`, `TextRange`, `comment`) VALUES
 (43610, 0, 0, 'Johnny, you do realize that we just blew up half of Redridge, right?', 12, 7, 100, 0, 0, 0, 43784, 0, 'Messner to Player'),
@@ -10,6 +10,16 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Lan
 (43607, 0, 0, 'Where the hell did this come from?', 12, 7, 100, 0, 0, 0, 43808, 0, 'Danforth to Player'),
 (43607, 1, 0, 'Troteman?', 12, 7, 100, 0, 0, 0, 43810, 0, 'Danforth to Player'),
 (43728, 0, 0, 'At your service.', 12, 7, 100, 0, 0, 0, 43811, 0, 'Colonel Troteman to Player'),
+
+(43744, 0, 0, 'AAHHHHHHHHH!!!!', 12, 7, 100, 0, 0, 0, 43822, 0, 'Keeshan to Player'),
+(43744, 0, 1, 'AAHHHHHHHHHHHHHHHHHH!!!!', 14, 7, 100, 0, 0, 0, 43823, 0, 'Keeshan to Player'),
+(43744, 0, 2, 'AAAAAAAAAAAHHHHHHHHHHHHH!!!!', 14, 7, 100, 0, 0, 0, 43824, 0, 'Keeshan to Player'),
+(43744, 0, 3, 'BLOOD AND THUNDER, RIGHT!?', 14, 7, 100, 0, 0, 0, 43825, 0, 'Keeshan to Player'),
+(43744, 0, 4, 'I CAN''T FIND YOUR LEGS, JOEY! I CAN''T FIND YOUR DAMNED LEGS!', 14, 7, 100, 0, 0, 0, 43826, 0, 'Keeshan to Player'),
+(43744, 0, 5, 'AAAHHHH!', 12, 7, 100, 0, 0, 0, 43827, 0, 'Keeshan to Player'),
+(43744, 0, 6, 'RUN TO YOUR DARK GODS, YOU FILTHY ANIMALS!', 12, 7, 100, 0, 0, 0, 43828, 0, 'Keeshan to Player'),
+(43744, 0, 7, 'THERE ARE NO FRIENDLY CIVILIANS!', 12, 7, 100, 0, 0, 0, 43829, 0, 'Keeshan to Player'),
+
 
 (43571, 0, 0, 'We''re free! RUN FOR YOUR LIVES!', 14, 7, 100, 22, 0, 0, 43638, 0, 'Kidnapped Redridge Citizen to Player'),
 (43572, 0, 0, 'We''re free! RUN FOR YOUR LIVES!', 14, 7, 100, 22, 0, 0, 43638, 0, 'Kidnapped Redridge Citizen to Player'),

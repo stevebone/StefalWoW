@@ -2,7 +2,7 @@
 
 -- Creatures
 SET @CGUID := 900000;
-Last GUID: @CGUID+3313
+Last GUID: @CGUID+3457
 
 -- Gameobjects
 SET @OGUID := 900000;

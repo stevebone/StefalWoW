@@ -23,6 +23,7 @@
 #include "CreatureAI.h"
 #include "GameObject.h"
 #include "ObjectAccessor.h"
+#include "PhasingHandler.h"
 #include "Player.h"
 #include "ScriptMgr.h"
 #include "SpellScript.h"
@@ -182,6 +183,78 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
             AfterCast += SpellCastFn(spell_plant_seaforium::HandleAfterCast);
         }
     };
+
+    // 81888 - Ram (Bravo Company Siege Tank)
+    class spell_bravo_company_siege_tank_ram : public SpellScript
+    {
+        void CalculateDamage(SpellEffectInfo const& /*spellEffectInfo*/, Unit* /*victim*/, int32& damage, int32& /*flatMod*/, float& /*pctMod*/) const
+        {
+            // Override raw base points (138) with the client tooltip value (11370),
+            // which is level-independent and what the spell is intended to deal.
+            damage = 11370;
+        }
+
+        void Register() override
+        {
+            CalcDamage += SpellCalcDamageFn(spell_bravo_company_siege_tank_ram::CalculateDamage);
+        }
+    };
+
+    // 81808 - Summon Bravo Company Siege Tank
+    // Blocks the spell's built-in summon effect (effect 1) and summons the tank (43734),
+    // gun (43745) and Keeshan (43744) manually, then mounts them via delayed m_Events.
+    class spell_summon_bravo_company_siege_tank : public SpellScript
+    {
+        void BlockSummonEffect(SpellEffIndex /*effIndex*/)
+        {
+            PreventHitDefaultEffect(EFFECT_1);
+        }
+
+        void HandleAfterCast()
+        {
+            Player* player = GetCaster()->ToPlayer();
+            if (!player)
+                return;
+
+            TempSummon* tank = player->SummonCreature(Creatures::BravoCompanySiegeTankSpawn, Positions::SiegeTankSummon, TEMPSUMMON_MANUAL_DESPAWN, 0s, 989);
+            if (!tank)
+                return;
+
+            TempSummon* gun = player->SummonCreature(Creatures::KeeshanGun, tank->GetPosition(), TEMPSUMMON_MANUAL_DESPAWN, 0s, 988);
+            if (!gun)
+                return;
+
+            TempSummon* keeshan = player->SummonCreature(Creatures::Keeshan, gun->GetPosition());
+            if (!keeshan)
+                return;
+
+            PhasingHandler::AddPhase(tank, 242, true);
+            PhasingHandler::AddPhase(gun, 242, true);
+            PhasingHandler::AddPhase(keeshan, 242, true);
+
+            // Gun boards the tank on seat 1 after the gun is fully in-world.
+            gun->m_Events.AddEventAtOffset([gun, tank]()
+                {
+                    if (gun && tank)
+                        gun->EnterVehicle(tank, 1);
+                }, 500ms);
+
+            // Keeshan boards the gun on seat 0 after the gun has boarded the tank.
+            keeshan->m_Events.AddEventAtOffset([keeshan, gun]()
+                {
+                    if (keeshan && gun)
+                        keeshan->EnterVehicle(gun, 0);
+                }, 1s);
+
+            player->EnterVehicle(tank, 0);
+        }
+
+        void Register() override
+        {
+            OnEffectLaunch += SpellEffectFn(spell_summon_bravo_company_siege_tank::BlockSummonEffect, EFFECT_1, SPELL_EFFECT_SUMMON);
+            AfterCast += SpellCastFn(spell_summon_bravo_company_siege_tank::HandleAfterCast);
+        }
+    };
 }
 
 void AddSC_custom_redridge_mountains_spells()
@@ -192,4 +265,6 @@ void AddSC_custom_redridge_mountains_spells()
     RegisterSpellScript(spell_distraction);
     RegisterSpellScript(spell_bravo_company_field_kit2);
     RegisterSpellScript(spell_plant_seaforium);
+    RegisterSpellScript(spell_bravo_company_siege_tank_ram);
+    RegisterSpellScript(spell_summon_bravo_company_siege_tank);
 }
