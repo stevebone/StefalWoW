@@ -19,6 +19,7 @@
 
 // This is where scripts' loading functions should be declared:
 // world
+void AddSC_archaeology_spell_scripts();
 void AddSC_areatrigger_scripts();
 void AddSC_conversation_scripts();
 void AddSC_emerald_dragons();
@@ -39,6 +40,7 @@ void AddSC_duel_reset();
 // void Add${NameOfDirectory}Scripts()
 void AddWorldScripts()
 {
+    AddSC_archaeology_spell_scripts();
     AddSC_areatrigger_scripts();
     AddSC_conversation_scripts();
     AddSC_emerald_dragons();

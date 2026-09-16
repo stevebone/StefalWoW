@@ -1160,6 +1160,7 @@ class TC_GAME_API ObjectMgr
         uint32 GetAreaTriggerScriptId(uint32 trigger_id) const;
         uint32 GetEventScriptId(uint32 eventId) const;
         SpellScriptsBounds GetSpellScriptsBounds(uint32 spellId);
+        bool HasEnabledSpellScript(uint32 spellId, std::string_view scriptName);
 
         RepRewardRate const* GetRepRewardRate(uint32 factionId) const
         {

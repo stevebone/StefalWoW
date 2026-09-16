@@ -5573,45 +5573,60 @@ struct ResearchBranchLoadInfo
 {
     static constexpr DB2FieldMeta Fields[7] =
     {
-        { false, FT_INT, "Id" },
-        { false, FT_STRING, "Name" },
-        { false, FT_BYTE, "ResearchFieldId" },
-        { false, FT_SHORT, "CurrencyId" },
-        { true, FT_INT, "TextureFileId" },
-        { true, FT_INT, "BigTextureFileId" },
-        { true, FT_INT, "ItemId" },
+        {.IsSigned = false, .Type = FT_INT, .Name = "ID" },
+        {.IsSigned = false, .Type = FT_STRING, .Name = "Name" },
+        {.IsSigned = false, .Type = FT_BYTE, .Name = "ResearchFieldID" },
+        {.IsSigned = false, .Type = FT_SHORT, .Name = "CurrencyID" },
+        {.IsSigned = true, .Type = FT_INT, .Name = "TextureFileID" },
+        {.IsSigned = true, .Type = FT_INT, .Name = "BigTextureFileID" },
+        {.IsSigned = true, .Type = FT_INT, .Name = "ItemID" },
     };
-    static constexpr DB2LoadInfo Instance{ Fields,7, &ResearchBranchMeta::Instance, HOTFIX_SEL_RESEARCH_BRANCH };
+
+    static constexpr DB2LoadInfo Instance{ Fields, 7, &ResearchBranchMeta::Instance, HOTFIX_SEL_RESEARCH_BRANCH };
+};
+
+struct ResearchFieldLoadInfo
+{
+    static constexpr DB2FieldMeta Fields[3] =
+    {
+        {.IsSigned = false, .Type = FT_INT, .Name = "ID" },
+        {.IsSigned = false, .Type = FT_STRING, .Name = "Name" },
+        {.IsSigned = false, .Type = FT_BYTE, .Name = "Slot" },
+    };
+
+    static constexpr DB2LoadInfo Instance{ Fields, 3, &ResearchFieldMeta::Instance, HOTFIX_SEL_RESEARCH_FIELD };
 };
 
 struct ResearchProjectLoadInfo
 {
     static constexpr DB2FieldMeta Fields[9] =
     {
-        { false, FT_INT, "Id" },
-        { false, FT_STRING, "Name" },
-        { false, FT_STRING, "Description" },
-        { false, FT_BYTE, "Rarity" },
-        { true, FT_INT, "SpellId" },
-        { false, FT_SHORT, "ResearchBranchId" },
-        { false, FT_BYTE, "NumSockets" },
-        { true, FT_INT, "TextureFileId" },
-        { false, FT_INT, "RequiredWeight" },
+        {.IsSigned = false, .Type = FT_INT, .Name = "ID" },
+        {.IsSigned = false, .Type = FT_STRING, .Name = "Name" },
+        {.IsSigned = false, .Type = FT_STRING, .Name = "Description" },
+        {.IsSigned = false, .Type = FT_BYTE, .Name = "Rarity" },
+        {.IsSigned = true, .Type = FT_INT, .Name = "SpellID" },
+        {.IsSigned = false, .Type = FT_SHORT, .Name = "ResearchBranchID" },
+        {.IsSigned = false, .Type = FT_BYTE, .Name = "NumSockets" },
+        {.IsSigned = true, .Type = FT_INT, .Name = "TextureFileID" },
+        {.IsSigned = false, .Type = FT_INT, .Name = "RequiredWeight" },
     };
-    static constexpr DB2LoadInfo Instance{ Fields,9, &ResearchProjectMeta::Instance, HOTFIX_SEL_RESEARCH_PROJECT };
+
+    static constexpr DB2LoadInfo Instance{ Fields, 9, &ResearchProjectMeta::Instance, HOTFIX_SEL_RESEARCH_PROJECT };
 };
 
 struct ResearchSiteLoadInfo
 {
     static constexpr DB2FieldMeta Fields[5] =
     {
-        { false, FT_INT, "Id" },
-        { false, FT_STRING, "Name" },
-        { true, FT_SHORT, "MapId" },
-        { true, FT_INT, "QuestPoiBlobId" },
-        { false, FT_INT, "AreaPOIIconEnum" },
+        {.IsSigned = false, .Type = FT_INT, .Name = "ID" },
+        {.IsSigned = false, .Type = FT_STRING, .Name = "Name" },
+        {.IsSigned = true, .Type = FT_SHORT, .Name = "MapID" },
+        {.IsSigned = true, .Type = FT_INT, .Name = "QuestPOIBlobID" },
+        {.IsSigned = false, .Type = FT_INT, .Name = "AreaPOIIconEnum" },
     };
-    static constexpr DB2LoadInfo Instance{ Fields,5, &ResearchSiteMeta::Instance, HOTFIX_SEL_RESEARCH_SITE };
+
+    static constexpr DB2LoadInfo Instance{ Fields, 5, &ResearchSiteMeta::Instance, HOTFIX_SEL_RESEARCH_SITE };
 };
 
 struct RewardPackLoadInfo

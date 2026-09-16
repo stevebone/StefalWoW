@@ -39,6 +39,7 @@ struct AccessRequirement;
 struct AchievementEntry;
 struct AreaTableEntry;
 struct AreaTriggerEntry;
+struct ArchaeologySolvePlan;
 struct ArtifactPowerRankEntry;
 struct AzeriteEssencePowerEntry;
 struct AzeriteItemMilestonePowerEntry;
@@ -1028,6 +1029,9 @@ enum PlayerLoginQueryIndex
     PLAYER_LOGIN_QUERY_LOAD_PVP_TALENTS,
     PLAYER_LOGIN_QUERY_LOAD_ACCOUNT_DATA,
     PLAYER_LOGIN_QUERY_LOAD_SKILLS,
+    PLAYER_LOGIN_QUERY_LOAD_RESEARCH_SITES,
+    PLAYER_LOGIN_QUERY_LOAD_RESEARCH_PROJECTS,
+    PLAYER_LOGIN_QUERY_LOAD_RESEARCH_HISTORY,
     PLAYER_LOGIN_QUERY_LOAD_WEEKLY_QUEST_STATUS,
     PLAYER_LOGIN_QUERY_LOAD_RANDOM_BG,
     PLAYER_LOGIN_QUERY_LOAD_BANNED,
@@ -2546,6 +2550,48 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         void UpdateSkillsForLevel();
         void ModifySkillBonus(uint32 skillid, int32 val, bool talent);
 
+        // Archaeology: seed active dig sites into the ResearchSites update fields on login when the
+        // player knows the profession and has none yet.
+        void InitializeResearchSites();
+
+        // Archaeology: resolve a Survey (spell 80451) cast - if standing in an active dig site, test
+        // the hidden find, reveal its private lootable GameObject + advance progress on success, and
+        // reply with the survey result packet.
+        void HandleArchaeologySurvey();
+
+        // Archaeology find GameObject guard/callback used by go_archaeology_find.
+        bool CanUseArchaeologyFind(GameObject const* find) const;
+        void OnArchaeologyFindLooted(GameObject* find);
+
+        // Archaeology: swap one active dig-site slot for a fresh surveyable site on the same continent
+        // (progress reset), used when a site is exhausted or found already complete.
+        void ReplaceResearchSite(uint32 siteIndex, uint32 mapId);
+
+        // Archaeology: on login, assign a current research project for each branch the player already
+        // has fragments in but no active project (new fragment gains assign on the fly).
+        void InitializeResearchProjects();
+
+        // Archaeology: the active research project for a branch (ResearchProject.db2 ID), or 0 if none.
+        int32 GetCurrentResearchProject(uint32 branchId) const;
+
+        // Archaeology: ensure a branch has a current project, assigning a fresh one if it has none.
+        // Returns the project ID (existing or new), or 0 if the branch has no eligible projects.
+        uint32 EnsureResearchProject(uint32 branchId);
+
+        // Archaeology: the set of completed research project IDs (from ResearchHistory), used to bias
+        // new project rolls away from repeats.
+        std::unordered_set<uint32> GetCompletedResearchProjects() const;
+
+        // Archaeology: authorize the current project's solve spell through the client-cast known-spell
+        // gate. Resource validation remains in the solve script, which owns the preserved cast weights.
+        bool CanCastResearchProjectSpell(uint32 spellId) const;
+
+        // Archaeology: revalidate mutable player state against one immutable DB2-backed solve plan,
+        // consume its exact accepted resources before the reward effect, then finalize bookkeeping.
+        bool CanSolveResearchProject(ArchaeologySolvePlan const& plan) const;
+        bool ConsumeResearchProjectSolveResources(ArchaeologySolvePlan const& plan);
+        void CompleteResearchProjectSolve(ArchaeologySolvePlan const& plan);
+
         /*********************************************************/
         /***                  PVP SYSTEM                       ***/
         /*********************************************************/
@@ -3265,6 +3311,13 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         void _LoadRandomBGStatus(PreparedQueryResult result);
         void _LoadGroup(PreparedQueryResult result);
         void _LoadSkills(PreparedQueryResult result);
+        void _LoadResearchSites(PreparedQueryResult result);
+        bool _EnsureResearchSiteFindLocation(uint32 researchSiteId, float& x, float& y);
+        void _UpdateArchaeologySurveyIndicator();
+        void _LoadResearchProjects(PreparedQueryResult result);
+        void _LoadResearchHistory(PreparedQueryResult result);
+        void RecordCompletedProject(uint32 projectId);
+        void AdvanceResearchProject(uint32 branchId, uint32 completedProjectId);
         void _LoadSpells(PreparedQueryResult result, PreparedQueryResult favoritesResult);
         void _LoadStoredAuraTeleportLocations(PreparedQueryResult result);
         bool _LoadHomeBind(PreparedQueryResult result);
@@ -3304,6 +3357,9 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         void _SaveMonthlyQuestStatus(CharacterDatabaseTransaction trans);
         void _SaveSeasonalQuestStatus(CharacterDatabaseTransaction trans);
         void _SaveSkills(CharacterDatabaseTransaction trans);
+        void _SaveResearchSites(CharacterDatabaseTransaction trans);
+        void _SaveResearchProjects(CharacterDatabaseTransaction trans);
+        void _SaveResearchHistory(CharacterDatabaseTransaction trans);
         void _SaveSpells(CharacterDatabaseTransaction trans);
         void _SaveStoredAuraTeleportLocations(CharacterDatabaseTransaction trans);
         void _SaveEquipmentSets(CharacterDatabaseTransaction trans);
@@ -3544,6 +3600,15 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
 
         uint32 _pendingBindId;
         uint32 _pendingBindTimer;
+
+        struct PendingArchaeologyFind
+        {
+            ObjectGuid GameObjectGuid;
+            uint32 ResearchSiteId = 0;
+            uint32 ResearchBranchId = 0;
+        };
+        Optional<PendingArchaeologyFind> _pendingArchaeologyFind;
+        std::unordered_map<uint32 /*researchSiteId*/, std::pair<float, float>> _researchSiteFindLocations;
 
         uint32 _activeCheats;
 

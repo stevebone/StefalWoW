@@ -3991,34 +3991,41 @@ struct RandPropPointsEntry
 
 struct ResearchBranchEntry
 {
-    int32 Id;
+    uint32 ID;
     LocalizedString Name;
-    uint8 ResearchFieldId;
-    uint16 CurrencyId;
-    int32 TextureFileId;
-    int32 BigTextureFileId;
-    int32 ItemId;
+    uint8 ResearchFieldID;
+    uint16 CurrencyID;
+    int32 TextureFileID;
+    int32 BigTextureFileID;
+    int32 ItemID;
+};
+
+struct ResearchFieldEntry
+{
+    uint32 ID;
+    LocalizedString Name;
+    uint8 Slot;
 };
 
 struct ResearchProjectEntry
 {
-    int32 Id;
+    uint32 ID;
     LocalizedString Name;
     LocalizedString Description;
     uint8 Rarity;
-    int32 SpellId;
-    uint16 ResearchBranchId;
+    int32 SpellID;
+    uint16 ResearchBranchID;
     uint8 NumSockets;
-    int32 TextureFileId;
+    int32 TextureFileID;
     uint32 RequiredWeight;
 };
 
 struct ResearchSiteEntry
 {
-    int32 Id;
+    uint32 ID;
     LocalizedString Name;
-    int16 MapId;
-    int32 QuestPoiBlobId;
+    int16 MapID;
+    int32 QuestPOIBlobID;
     uint32 AreaPOIIconEnum;
 };
 
