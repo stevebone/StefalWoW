@@ -37,6 +37,8 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
         static constexpr uint32 ToWinAWarYouGottaBecomeWar = 26651;
         static constexpr uint32 Detonation = 26668;
         static constexpr uint32 TheGrandMagusDoane = 26694;
+        static constexpr uint32 ShowdownAtStoneWatch = 26713;
+        static constexpr uint32 DarkblazeBroodOfTheWorldbreaker = 26714;
     }
 
     namespace AreaTriggers
@@ -92,6 +94,8 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
         static constexpr uint32 ColonelTroteman = 43733;
         static constexpr uint32 KeeshanGun = 43745;
         static constexpr uint32 Keeshan = 43744;
+        static constexpr uint32 BlackrockInvader = 43775;
+        static constexpr uint32 BlackrockDrake = 43788;
     }
 
     namespace GameObjects
@@ -150,9 +154,13 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
         static constexpr uint32 DoaneFireball = 20811;
         static constexpr uint32 TeleportVisualOnly = 51347;
         static constexpr uint32 DoaneCredit = 81791;
-        static constexpr uint32 Parachute = 81793;
+        static constexpr uint32 ParachuteVisual = 81793; 
+        static constexpr uint32 Parachute = 61360;
         static constexpr uint32 SummonBravoCompanySiegeTank = 81808;
         static constexpr uint32 SiegeTankRam = 81888;
+        static constexpr uint32 MachineGun = 81874;
+        static constexpr uint32 KillCreditBlackrockInvader = 81878;
+        static constexpr uint32 ShowdownSummonBravoTeam = 82010;
     }
 
     namespace Events
@@ -192,9 +200,12 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
         static constexpr uint32 KeeshanCanyonTalk = 33;
         static constexpr uint32 DoaneDemonArmorCheck = 34;
         static constexpr uint32 DoaneFireballCombat = 35;
-        static constexpr uint32 SiegeTankCheckLanding = 36;
+
         static constexpr uint32 SiegeTankEnableSpellClick = 37;
         static constexpr uint32 ColonelTrotemanUpdateEntry = 38;
+
+        static constexpr uint32 KeeshanGunMachineGunCooldown = 1;
+        static constexpr uint32 KeeshanGunScanInvaders = 2;
     }
 
     namespace MovementPoints
@@ -220,6 +231,7 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
         static constexpr uint32 DoaneSay01 = 1;
         static constexpr uint32 DoaneSay02 = 2;
         static constexpr uint32 ColonelTrotemanSiegeTankSay00 = 0;
+        static constexpr uint32 KeeshanSiegeTankSay00 = 0;
     }
 
     namespace Spawns
@@ -233,7 +245,7 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
         static constexpr Position CitizenFleePoint1 = { -9535.30f, -3261.26f, 49.0533f };
         static constexpr Position CitizenFleePoint2 = { -9595.788f, -3323.489f, 49.649f };
         static constexpr Position SiegeTankEjectPos = { -9641.6259f, -3468.3959f, 120.8942f, 5.2918f };
-        static constexpr Position SiegeTankSpawn    = { -9646.64f, -3454.94f, 127.485f, 1.4141f };
-        static constexpr Position SiegeTankSummon   = { -9646.64f, -3454.94f, 117.485f, 0.0f };
+        static constexpr Position SiegeTankSpawn    = { -9646.64f, -3454.94f, 137.485f, 1.4141f };
+        static constexpr Position SiegeTankSummon   = { -9646.64f, -3454.94f, 117.485f, 1.4141f };
     }
 }

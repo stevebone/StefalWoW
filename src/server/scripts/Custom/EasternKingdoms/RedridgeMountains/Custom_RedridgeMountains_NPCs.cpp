@@ -39,6 +39,9 @@
 #include "Map.h"
 #include "Vehicle.h"
 #include "ScriptActions.h"
+#include "CellImpl.h"
+#include "GridNotifiers.h"
+#include "GridNotifiersImpl.h"
 
 #include <queue>
 
@@ -579,6 +582,9 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
 
         void Reset() override
         {
+            if (me->GetSpawnId() != 0)
+                return;
+
             _events.Reset();
 
             _events.ScheduleEvent(Events::JorgensenGuardianRandomTalk, 40s, 60s);
@@ -1404,10 +1410,9 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
         npc_bravo_company_siege_tank(Creature* creature) : ScriptedAI(creature)
         {
             // Spawn in air with parachute, then fall to the ground.
+            me->CastSpell(me, Spells::ParachuteVisual, true);
             me->CastSpell(me, Spells::Parachute, true);
-            me->CastSpell(me, 85882, true);
             me->GetMotionMaster()->MoveFall(MovementPoints::SiegeTankFall);
-            _events.ScheduleEvent(Events::SiegeTankCheckLanding, 500ms);
         }
 
         void MovementInform(uint32 type, uint32 id) override
@@ -1424,18 +1429,6 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
             {
                 switch (eventId)
                 {
-                    case Events::SiegeTankCheckLanding:
-                        // Polling backup in case MoveFall did not create a movement generator
-                        // (creature falling via gravity instead of spline).
-                        if (_wasFalling && !me->IsFalling())
-                            HandleLanding();
-                        else
-                        {
-                            if (me->IsFalling())
-                                _wasFalling = true;
-                            _events.ScheduleEvent(Events::SiegeTankCheckLanding, 200ms);
-                        }
-                        break;
                     case Events::SiegeTankEnableSpellClick:
                         me->SetNpcFlag(UNIT_NPC_FLAG_SPELLCLICK);
                         break;
@@ -1443,11 +1436,6 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
                         break;
                 }
             }
-
-            if (!UpdateVictim())
-                return;
-
-            me->DoMeleeAttackIfReady();
         }
 
     private:
@@ -1512,8 +1500,130 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
         EventMap _events;
     };
 
-    // 43745 - Keeshan's Gun (Siege Tank Gun)
-    // No script needed - the gun is summoned and mounted by spell_summon_bravo_company_siege_tank.
+    /*######
+    ## 43745 Siege Tank Gun (Keeshan's Gun)
+    ## Rides the Bravo Company Siege Tank (43734) in seat 1.
+    ## Keeshan (43744) rides the gun in seat 0. The player drives the tank in seat 0.
+    ######*/
+
+    struct npc_siege_tank_gun : public ScriptedAI
+    {
+        npc_siege_tank_gun(Creature* creature) : ScriptedAI(creature)
+        {
+            _machineGunOnCooldown = false;
+            _events.ScheduleEvent(Events::KeeshanGunScanInvaders, 1s);
+        }
+
+        void KilledUnit(Unit* victim) override
+        {
+            if (victim->GetEntry() != Creatures::BlackrockInvader && victim->GetEntry() != Creatures::BlackrockDrake)
+                return;
+
+            if (Player* player = GetPlayerDriver())
+                player->CastSpell(player, Spells::KillCreditBlackrockInvader, true);
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _events.Update(diff);
+
+            while (uint32 eventId = _events.ExecuteEvent())
+            {
+                switch (eventId)
+                {
+                    case Events::KeeshanGunScanInvaders:
+                        ScanForInvaders();
+                        _events.ScheduleEvent(Events::KeeshanGunScanInvaders, 1s);
+                        break;
+                    case Events::KeeshanGunMachineGunCooldown:
+                        _machineGunOnCooldown = false;
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+
+    private:
+        // The player drives the base vehicle (siege tank) in seat 0; the gun rides it in seat 1.
+        Player* GetPlayerDriver() const
+        {
+            if (Unit* vehicle = me->GetVehicleCreatureBase())
+                if (Vehicle* tank = vehicle->GetVehicleKit())
+                    if (Unit* passenger = tank->GetPassenger(0))
+                        return passenger->ToPlayer();
+            return nullptr;
+        }
+
+        // Predicate: alive Blackrock invaders/drakes within range of the gun.
+        struct BlackrockInvaderCheck
+        {
+            BlackrockInvaderCheck(WorldObject const* obj, float range) : _obj(obj), _range(range) { }
+
+            bool operator()(Unit* u) const
+            {
+                if (!u->IsAlive())
+                    return false;
+
+                if (u->GetEntry() != Creatures::BlackrockInvader && u->GetEntry() != Creatures::BlackrockDrake)
+                    return false;
+
+                return _obj->IsWithinDist(u, _range);
+            }
+
+            WorldObject const* _obj;
+            float _range;
+        };
+
+        void ScanForInvaders()
+        {
+            Unit* vehicle = me->GetVehicleCreatureBase();
+            if (!vehicle)
+                return;
+
+            std::list<Unit*> targets;
+            BlackrockInvaderCheck check(me, 60.0f);
+            Trinity::UnitListSearcher<BlackrockInvaderCheck> searcher(me, targets, check);
+            Cell::VisitAllObjects(me, searcher, 60.0f);
+
+            if (targets.empty())
+                return;
+
+            bool firedThisTick = false;
+
+            for (Unit* target : targets)
+            {
+                Creature* invader = target->ToCreature();
+                if (!invader)
+                    continue;
+
+                invader->SetWalk(false);
+
+                // Only (re)issue the attack order if it's not already chasing the tank,
+                // otherwise you'll stomp its movement generator every second.
+                if (!invader->IsEngaged() || invader->GetVictim() != vehicle)
+                    invader->AI()->AttackStart(vehicle);
+
+                if (!firedThisTick && !_machineGunOnCooldown && me->GetDistance(invader) <= 30.0f)
+                {
+                    me->SetFacingToObject(invader);
+
+                    if (Vehicle* gun = me->GetVehicleKit())
+                        if (Unit* keeshan = gun->GetPassenger(0))
+                            if (Creature* keeshanCreature = keeshan->ToCreature())
+                                keeshanCreature->AI()->Talk(Talks::KeeshanSiegeTankSay00, GetPlayerDriver());
+
+                    me->CastSpell(invader, Spells::MachineGun, true);
+                    _machineGunOnCooldown = true;
+                    _events.ScheduleEvent(Events::KeeshanGunMachineGunCooldown, 10s);
+                    firedThisTick = true; // one shot per cooldown cycle, keep looping to still AttackStart the rest
+                }
+            }
+        }
+
+        EventMap _events;
+        bool _machineGunOnCooldown = false;
+    };
 }
 
 void AddSC_custom_redridge_mountains_npcs()
@@ -1537,4 +1647,5 @@ void AddSC_custom_redridge_mountains_npcs()
     RegisterCreatureAI(npc_grand_magus_doane);
     RegisterCreatureAI(npc_bravo_company_siege_tank);
     RegisterCreatureAI(npc_colonel_troteman_siege_tank);
+    RegisterCreatureAI(npc_siege_tank_gun);
 }

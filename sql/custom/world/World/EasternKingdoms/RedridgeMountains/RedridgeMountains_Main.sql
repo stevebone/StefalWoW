@@ -94,6 +94,11 @@
 -- NPC: 43745 Siege Tank Gun
 -- NPC: 43728 Colonel Troteman (Siege Tank)
 -- NPC: 43733 Colonel Troteman 
+-- NPC: 43812 Keeshan (Post)
+-- NPC: 43826 Messner (Post)
+-- NPC: 43827 Jorgensen (Post)
+-- NPC: 43828 Danforth (Post)
+-- NPC: 43829 Krakauer (Post)
 
 -- Quest: 26512 Tuning The Gnomecorder
 -- Quest: 26545 Yowler Must Die!
@@ -118,6 +123,7 @@
 -- Quest: 26693 The Dark Tower
 -- Quest: 26694 The Grand Magus Doane
 -- Quest: 26708 Ahhhhhhhhhhhh-Ahhhhhhhhh
+-- Quest: 26713 Showdown at Stonewatch
 
 -- Spell: 81003 Apply Quest Invis Zone 5
 -- Spell: 81004 Detect: Quest Invis Zone 5
@@ -152,6 +158,9 @@
 -- Spell: 81870 Machine Gun
 -- Spell: 81874 Machine Gun
 -- Spell: 81878 Kill Credit Blackrock Invader
+-- Spell: 81266 Apply Quest Invis Zone 11
+-- Spell: 81267 Detect: Quest Invis Zone 11
+-- Spell: 82010 Showdown (Summon Bravo Team)
 
 -- Object: 204447 Seaforium (actual bomb)
 -- Object: 204448 Plant Seaforium Here (SpellFocus)
@@ -163,13 +172,15 @@ DELETE FROM `spell_area` WHERE `spell` = 81019 AND `area` = 998;
 DELETE FROM `spell_area` WHERE `spell` = 81080 AND `area` = 998;
 DELETE FROM `spell_area` WHERE `spell` = 81202 AND `area` = 5326;
 DELETE FROM `spell_area` WHERE `spell` = 81241 AND `area` = 5324;
+DELETE FROM `spell_area` WHERE `spell` = 81267 AND `area` = 5325;
 INSERT INTO `spell_area` (`spell`, `area`, `quest_start`, `quest_start_status`, `quest_end_status`, `quest_end`, `aura_spell`, `racemask`, `gender`, `flags`) VALUES
 (81004, 97, 0, 0, 43, 26587, 0, 0, 2, 3),
 (81010, 996, 26560, 10, 43, 26560, 0, 0, 2, 3),
 (81019, 998, 26561, 10, 43, 26561, 0, 0, 2, 3),
 (81080, 998, 26562, 10, 43, 26562, 0, 0, 2, 3),
 (81202, 5326, 26616, 66, 43, 26646, 0, 0, 2, 3), -- Quest 26616 complete, removed when 26646 rewarded
-(81241, 5324, 26646, 66, 43, 26708, 0, 0, 2, 3); -- Quest 26646 complete, removed when 26708 rewarded
+(81241, 5324, 26646, 66, 43, 26708, 0, 0, 2, 3), -- Quest 26646 complete, removed when 26708 rewarded
+(81267, 5325, 26708, 66, 33, 26713, 0, 0, 2, 3); -- Quest 26708 complete, removed when 26713 taken
 
 DELETE FROM `spell_area` WHERE `spell` IN (80893,80940,80941,80943) AND `area` = 44;
 INSERT INTO `spell_area` (`spell`, `area`, `quest_start`, `quest_start_status`, `quest_end_status`, `quest_end`, `aura_spell`, `racemask`, `gender`, `flags`) VALUES
@@ -263,24 +274,34 @@ INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry
 (32, 5, 43609, 0, 0, 8, 0, 26651, 0, 0, 0, 0, 0, '', 'Jorgensen (Canyon) visible when quest 26651 To Win A War You Gotta Become War is rewarded'),
 (32, 5, 43460, 0, 0, 14, 0, 26646, 0, 0, 0, 0, 0, '', 'Jorgensen (camp) visible when quest 26646 Prisoners of War is NOT taken');
 
+-- This makes Colonel Troteman be visible when player is on quest 26708 and it is at least complete.
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 32 AND `SourceGroup` = 5 AND `SourceEntry` IN (43733);
+INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `NegativeCondition`, `ErrorType`, `ErrorTextId`, `ScriptName`, `Comment`) VALUES
+(32, 5, 43733, 0, 0, 47, 0, 26708, 66, 0, 0, 0, 0, '', 'Colonel Troteman (Post) visible when quest 26708 is at least complete');
+
 -- Condition: terrain swap 751 active when in area 44 AND quest 26668 is complete
 DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 25 AND `SourceEntry` = 751;
 -- Condition: phase switch 241
-DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` = 241;
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` IN (241,243,244);
 INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `NegativeCondition`, `ErrorType`, `ErrorTextId`, `ScriptName`, `Comment`) VALUES
 (25, 0, 751, 0, 0, 23, 0, 44, 0, 0, 0, 0, 0, '', 'TerrainSwap 751 active when in area/zone 44 Redridge Mountains'),
 (25, 0, 751, 0, 0, 47, 0, 26668, 66, 0, 0, 0, 0, '', 'TerrainSwap 751 active when quest 26668 Detonation is complete'),
-(26, 241, 0, 0, 0, 47, 0, 26668, 66, 0, 0, 0, 0, '', 'Phase 241 Render Valley Post Explosion active when quest 26668 Detonation is complete');
+(26, 241, 0, 0, 0, 47, 0, 26668, 66, 0, 0, 0, 0, '', 'Phase 241 Render Valley Post Explosion active when quest 26668 Detonation is complete'),
+(26, 243, 0, 0, 0, 47, 0, 26713, 10, 0, 0, 0, 0, '', 'Phase 243 Stonewatch - Showdown active when quest 26713 Showdown at Stonewatch is taken/complete'),
+(26, 244, 0, 0, 0, 47, 0, 26714, 10, 0, 0, 0, 0, '', 'Phase 244 Stonewatch - Showdown Darkblaze active when quest 26714 Darkblaze is taken/complete');
 
 -- Register terrain swap 751 on map 0 (Eastern Kingdoms)
 DELETE FROM `terrain_swap_defaults` WHERE `MapId` = 0 AND `TerrainSwapMap` = 751;
 INSERT INTO `terrain_swap_defaults` (`MapId`, `TerrainSwapMap`, `Comment`) VALUES 
 (0, 751, 'Eastern Kingdoms - Redridge - Orc Bomb');
 
-DELETE FROM `phase_area` WHERE `PhaseId` IN (241,242);
+DELETE FROM `phase_area` WHERE `PhaseId` IN (241,243,244);
 INSERT INTO `phase_area` (`AreaId`, `PhaseId`, `Comment`) VALUES
 (997, 241, 'Redridge Mountains - Renders Valley - Post Bomb'),
-(5347, 241, 'Redridge Mountains - Renders Crater - Post Bomb');
+(5347, 241, 'Redridge Mountains - Renders Crater - Post Bomb'),
+(70, 243, 'Redridge Mountains - Stonewatch - Showdown'),
+(2099, 243, 'Redridge Mountains - Stonewatch Keep - Showdown'),
+(70, 244, 'Redridge Mountains - Stonewatch - Darkblaze');
 
 -- Set some creatures to be visible still in the 241 phase
 UPDATE `creature` SET `phaseuseflags` = 1 WHERE `id` IN (49996,52146,428,4462,43083);
@@ -303,6 +324,7 @@ UPDATE `creature_template` SET `ScriptName` = 'npc_keeshan_canyon' WHERE `entry`
 UPDATE `creature_template` SET `ScriptName` = 'npc_grand_magus_doane' WHERE `entry` = 397;
 UPDATE `creature_template` SET `ScriptName` = 'npc_bravo_company_siege_tank' WHERE `entry` = 43714;
 UPDATE `creature_template` SET `ScriptName` = 'npc_colonel_troteman_siege_tank' WHERE `entry` = 43728;
+UPDATE `creature_template` SET `ScriptName` = 'npc_siege_tank_gun' WHERE `entry` = 43745;
 UPDATE `gameobject_template` SET `ScriptName` = 'go_chain_lever' WHERE `entry` = 204403;
 UPDATE `gameobject_template` SET `ScriptName` = 'go_blackrock_holding_pen' WHERE `entry` IN (204441,204442,204435);
 
@@ -341,8 +363,16 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 (82578, 'spell_distraction'),
 (82585, 'spell_plant_seaforium'),
 (81888, 'spell_bravo_company_siege_tank_ram'),
-(81870, 'spell_bravo_company_machine_gun'),
+(81870, 'spell_bravo_company_machine_gun');
 
+-- Needed for the Showdown Quest
+DELETE FROM `spell_linked_spell` WHERE `spell_trigger` = 82010;
+INSERT INTO `spell_linked_spell` (`spell_trigger`, `spell_effect`, `type`, `comment`) VALUES 
+(82010, 82002, 0, 'Showdown - Summon Personal Guardian Keeshan'),
+(82010, 82004, 0, 'Showdown - Summon Personal Guardian Messner'),
+(82010, 82005, 0, 'Showdown - Summon Personal Guardian Jorgensen'),
+(82010, 82007, 0, 'Showdown - Summon Personal Guardian Danforth'),
+(82010, 82009, 0, 'Showdown - Summon Personal Guardian Krakauer');
 
 -- Creature Difficulties
 -- Remove incorrect records
@@ -444,7 +474,7 @@ UPDATE `smart_scripts` SET `event_chance` = 30 WHERE `entryorguid` = 568 AND `so
 
 -- Creatures
 SET @CGUID := 900000;
-DELETE FROM `creature` WHERE `guid` BETWEEN @CGUID+3294 AND @CGUID+3457;
+DELETE FROM `creature` WHERE `guid` BETWEEN @CGUID+3294 AND @CGUID+3514;
 INSERT INTO `creature` (`guid`, `id`, `map`, `zoneId`, `areaId`, `phaseUseFlags`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `wander_distance`, `MovementType`) VALUES 
 (@CGUID+3294, 147222, 0, 44, 1001, 0, 0, -9732.28, -2104.18, 59.7424, 5.13223, 3600, 0, 0),
 
@@ -469,7 +499,13 @@ INSERT INTO `creature` (`guid`, `id`, `map`, `zoneId`, `areaId`, `phaseUseFlags`
 (@CGUID+3310, 43572, 0, 44, 5324, 1, 0, -9601.65, -3493.69, 121.956, 3.67116, 300, 0, 0),
 (@CGUID+3311, 43571, 0, 44, 5324, 1, 0, -9626.29, -3484.53, 121.957, 0.899735, 300, 0, 0),
 (@CGUID+3312, 43571, 0, 44, 5324, 1, 0, -9619.16, -3487.82, 121.957, 1.26784, 300, 0, 0),
-(@CGUID+3313, 43571, 0, 44, 5324, 1, 0, -9603.82, -3492.5, 121.956, 4.71805, 300, 0, 0);
+(@CGUID+3313, 43571, 0, 44, 5324, 1, 0, -9603.82, -3492.5, 121.956, 4.71805, 300, 0, 0),
+(@CGUID+3458, 43733, 0, 0, 0, 1, 0, -9142.3, -3037.48, 108.713, 1.86589, 180, 0, 0),
+(@CGUID+3459, 43812, 0, 44, 5325, 1, 2, -9136.05, -3034.24, 108.652, 2.39532, 300, 0, 0),
+(@CGUID+3460, 43826, 0, 44, 5325, 1, 1, -9133.68, -3033.84, 108.723, 2.4107, 300, 0, 0),
+(@CGUID+3461, 43827, 0, 44, 5325, 1, 1, -9136.33, -3036.74, 108.72, 2.38818, 300, 0, 0),
+(@CGUID+3462, 43828, 0, 44, 5325, 1, 1, -9137.19, -3039.48, 108.723, 2.41984, 300, 0, 0),
+(@CGUID+3463, 43829, 0, 44, 5325, 1, 1, -9131.12, -3033.29, 108.723, 2.39396, 300, 0, 0);
 
 INSERT INTO `creature` (`guid`, `id`, `map`, `zoneId`, `areaId`, `PhaseId`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `wander_distance`, `MovementType`) VALUES 
 (@CGUID+3314, 43775, 0, 44, 1000, 242, 1, -9218.06, -3202.91, 105.464, 0.616056, 180, 3, 1),
@@ -615,14 +651,69 @@ INSERT INTO `creature` (`guid`, `id`, `map`, `zoneId`, `areaId`, `PhaseId`, `equ
 (@CGUID+3454, 43775, 0, 0, 0, 242, 1, -9258.17, -3349.25, 104.481, 3.21607, 180, 3, 1),
 (@CGUID+3455, 43775, 0, 0, 0, 242, 1, -9281.59, -3340.91, 110.543, 3.21607, 180, 3, 1),
 (@CGUID+3456, 43775, 0, 0, 0, 242, 1, -9269.62, -3381.21, 99.9492, 3.31818, 180, 3, 1),
-(@CGUID+3457, 43775, 0, 0, 0, 242, 1, -9356.5, -3366.5, 88.0898, 2.98595, 180, 3, 1);
+(@CGUID+3457, 43775, 0, 0, 0, 242, 1, -9356.5, -3366.5, 88.0898, 2.98595, 180, 3, 1),
+
+(@CGUID+3464, 436, 0, 0, 0, 243, 1, -9358.35, -3084.53, 153.787, 5.68977, 3600, 0, 0),
+(@CGUID+3465, 436, 0, 0, 0, 243, 1, -9378.56, -3076.05, 158.155, 2.35619, 3600, 0, 0),
+(@CGUID+3466, 436, 0, 0, 0, 243, 1, -9392.91, -3015.43, 136.81, 3.45096, 3600, 5, 1),
+(@CGUID+3467, 436, 0, 0, 0, 243, 1, -9389.49, -3024.51, 136.81, 2.81873, 3600, 5, 1),
+(@CGUID+3468, 436, 0, 0, 0, 243, 1, -9399.29, -3006.63, 136.81, 4.74729, 3600, 0, 0),
+(@CGUID+3469, 436, 0, 0, 0, 243, 1, -9358.32, -3027.09, 136.758, 1.13446, 3600, 0, 0),
+(@CGUID+3470, 436, 0, 0, 0, 243, 1, -9406.03, -3089.28, 139.856, 1.09956, 3600, 0, 0),
+(@CGUID+3471, 436, 0, 0, 0, 243, 1, -9365.92, -3051.78, 156.861, 4.41568, 3600, 0, 0),
+(@CGUID+3472, 436, 0, 0, 0, 243, 1, -9379.13, -3068.04, 140.758, 3.75246, 3600, 0, 0),
+(@CGUID+3473, 436, 0, 0, 0, 243, 1, -9360.73, -3081.39, 155.48, 3.18573, 3600, 5, 1),
+(@CGUID+3474, 436, 0, 0, 0, 243, 1, -9390.71, -3053.79, 156.861, 5.58505, 3600, 0, 0),
+(@CGUID+3475, 436, 0, 0, 0, 243, 1, -9397.55, -3069.87, 140.758, 3.56047, 3600, 0, 0),
+(@CGUID+3476, 436, 0, 0, 0, 243, 1, -9377.03, -3068.71, 149.58, 3.7001, 3600, 0, 0),
+(@CGUID+3477, 436, 0, 0, 0, 243, 1, -9367.85, -2991.52, 138.541, 1.0472, 3600, 0, 0),
+(@CGUID+3478, 436, 0, 0, 0, 243, 1, -9420.07, -3080.51, 136.802, 2.33874, 3600, 0, 0),
+(@CGUID+3479, 436, 0, 0, 0, 243, 1, -9430.26, -2953.52, 115.829, 0.669421, 3600, 5, 1),
+(@CGUID+3480, 436, 0, 0, 0, 243, 1, -9429.38, -3050.43, 136.776, 5.48033, 3600, 0, 0),
+(@CGUID+3481, 4065, 0, 0, 0, 243, 1, -9357.39, -3079.56, 164.784, 4.69494, 3600, 0, 0),
+(@CGUID+3482, 4065, 0, 0, 0, 243, 1, -9495.44, -2899.71, 112.507, 2.40855, 3600, 0, 0),
+(@CGUID+3483, 4065, 0, 0, 0, 243, 1, -9534.49, -2920.27, 106.696, 1.27409, 3600, 0, 0),
+(@CGUID+3484, 4065, 0, 0, 0, 243, 1, -9283.71, -3027.75, 120.66, 1.28981, 3600, 5, 1),
+(@CGUID+3485, 4065, 0, 0, 0, 243, 1, -9439.13, -3080.34, 136.688, 0.996597, 3600, 0, 0),
+(@CGUID+3486, 4065, 0, 0, 0, 243, 1, -9392.3, -3017.34, 136.81, 3.45104, 3600, 5, 1),
+(@CGUID+3487, 4065, 0, 0, 0, 243, 1, -9400.14, -3010.42, 136.704, 5.61996, 3600, 0, 0),
+(@CGUID+3488, 4065, 0, 0, 0, 243, 1, -9404.86, -3009.31, 136.704, 5.91667, 3600, 0, 0),
+(@CGUID+3489, 4065, 0, 0, 0, 243, 1, -9350.46, -3034.49, 136.307, 0.541052, 3600, 0, 0),
+(@CGUID+3490, 4065, 0, 0, 0, 243, 1, -9353.37, -3029.71, 136.588, 0.733038, 3600, 0, 0),
+(@CGUID+3491, 4065, 0, 0, 0, 243, 1, -9361.88, -3082.55, 149.581, 3.24631, 3600, 0, 0),
+(@CGUID+3492, 4065, 0, 0, 0, 243, 1, -9382.88, -3039.52, 139.437, 1.88496, 3600, 0, 0),
+(@CGUID+3493, 4065, 0, 0, 0, 243, 1, -9390.65, -3039.86, 139.437, 1.3439, 3600, 0, 0),
+(@CGUID+3494, 4065, 0, 0, 0, 243, 1, -9386.2, -3051.99, 156.861, 5.02655, 3600, 0, 0),
+(@CGUID+3495, 4065, 0, 0, 0, 243, 1, -9367.44, -3076.13, 149.58, 0.506145, 3600, 0, 0),
+(@CGUID+3496, 4065, 0, 0, 0, 243, 1, -9396.15, -3074.33, 140.858, 2.9147, 3600, 0, 0),
+(@CGUID+3497, 4065, 0, 0, 0, 243, 1, -9357.78, -3000.23, 137.079, 4.11898, 3600, 0, 0),
+(@CGUID+3498, 4065, 0, 0, 0, 243, 1, -9415.97, -3075.98, 136.802, 3.08923, 3600, 0, 0),
+(@CGUID+3499, 4065, 0, 0, 0, 243, 1, -9288.48, -2998.13, 119.47, 6.21337, 3600, 0, 0),
+(@CGUID+3500, 4065, 0, 0, 0, 243, 1, -9308.72, -2942.36, 128.656, 4.43853, 3600, 0, 2),
+(@CGUID+3501, 4065, 0, 0, 0, 243, 1, -9297.52, -2952.91, 128.936, 4.74729, 3600, 0, 0),
+(@CGUID+3502, 4065, 0, 0, 0, 243, 1, -9337.76, -3025.9, 135.564, 2.82787, 3600, 5, 1),
+(@CGUID+3503, 4065, 0, 0, 0, 243, 1, -9285.12, -2935.32, 128.947, 4.06662, 3600, 0, 0),
+(@CGUID+3504, 4065, 0, 0, 0, 243, 1, -9280.19, -2940.93, 128.945, 3.63029, 3600, 0, 0),
+(@CGUID+3505, 4065, 0, 0, 0, 243, 1, -9298.27, -2940.57, 142.652, 6.26573, 3600, 0, 0),
+(@CGUID+3506, 4065, 0, 0, 0, 243, 1, -9278.73, -2939.37, 134.909, 1.10709, 3600, 5, 1),
+(@CGUID+3507, 4065, 0, 0, 0, 243, 1, -9446, -2992.99, 136.895, 2.51327, 3600, 0, 0),
+(@CGUID+3508, 4065, 0, 0, 0, 243, 1, -9438.59, -3004.44, 137.579, 3.03687, 3600, 0, 0),
+(@CGUID+3509, 4065, 0, 0, 0, 243, 1, -9449.31, -3020.26, 136.87, 1.74533, 3600, 0, 0),
+(@CGUID+3510, 4065, 0, 0, 0, 243, 1, -9420.86, -3052.87, 136.777, 3.21141, 3600, 0, 0),
+(@CGUID+3511, 4464, 0, 0, 0, 243, 1, -9389.81, -3077.22, 158.155, 0.959931, 3600, 0, 0),
+(@CGUID+3512, 4464, 0, 0, 0, 243, 1, -9401.48, -3090.75, 139.856, 2.61799, 3600, 0, 0),
+(@CGUID+3513, 4464, 0, 0, 0, 243, 1, -9371.32, -3050.18, 156.861, 5.25344, 3600, 0, 0),
+(@CGUID+3514, 4464, 0, 0, 0, 243, 1, -9379.59, -3075.51, 140.675, 1.7764, 3600, 0, 0);
+
 
 
 
 
 -- Creature Spawn Fixes
 DELETE FROM `creature_addon` WHERE `guid` IN (334690,334613,334610,334572,
-@CGUID+3306,@CGUID+3307,@CGUID+3308,@CGUID+3309,@CGUID+3310,@CGUID+3311,@CGUID+3312,@CGUID+3313);
+@CGUID+3306,@CGUID+3307,@CGUID+3308,@CGUID+3309,@CGUID+3310,@CGUID+3311,@CGUID+3312,@CGUID+3313,
+@CGUID+3458,@CGUID+3459,@CGUID+3460,@CGUID+3461,@CGUID+3462,@CGUID+3463
+);
 INSERT INTO `creature_addon` (`guid`, `emote`) VALUES 
 (334572, 455),
 (334690, 455),
@@ -637,7 +728,13 @@ INSERT INTO `creature_addon` (`guid`, `StandState`, `auras`) VALUES
 (@CGUID+3310, 0, '81240'),
 (@CGUID+3311, 0, '81240'),
 (@CGUID+3312, 1, '81240'),
-(@CGUID+3313, 0, '81240');
+(@CGUID+3313, 0, '81240'),
+(@CGUID+3458, 0, '130432'),
+(@CGUID+3459, 0, '81266'),
+(@CGUID+3460, 0, '81266'),
+(@CGUID+3461, 0, '81266'),
+(@CGUID+3462, 0, '81266'),
+(@CGUID+3463, 0, '81266');
 
 UPDATE creature SET MovementType = 1, wander_distance = 8
 WHERE id IN (

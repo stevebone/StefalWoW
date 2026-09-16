@@ -200,6 +200,21 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
         }
     };
 
+    // 81870 - Machine Gun (Bravo Company Siege Tank - Keeshan's Gun)
+    class spell_bravo_company_machine_gun : public SpellScript
+    {
+        void CalculateDamage(SpellEffectInfo const& /*spellEffectInfo*/, Unit* /*victim*/, int32& damage, int32& /*flatMod*/, float& /*pctMod*/) const
+        {
+            // Override raw base points (272)
+            damage = 11370;
+        }
+
+        void Register() override
+        {
+            CalcDamage += SpellCalcDamageFn(spell_bravo_company_machine_gun::CalculateDamage);
+        }
+    };
+
     // 81808 - Summon Bravo Company Siege Tank
     // Blocks the spell's built-in summon effect (effect 1) and summons the tank (43734),
     // gun (43745) and Keeshan (43744) manually, then mounts them via delayed m_Events.
@@ -266,5 +281,6 @@ void AddSC_custom_redridge_mountains_spells()
     RegisterSpellScript(spell_bravo_company_field_kit2);
     RegisterSpellScript(spell_plant_seaforium);
     RegisterSpellScript(spell_bravo_company_siege_tank_ram);
+    RegisterSpellScript(spell_bravo_company_machine_gun);
     RegisterSpellScript(spell_summon_bravo_company_siege_tank);
 }
