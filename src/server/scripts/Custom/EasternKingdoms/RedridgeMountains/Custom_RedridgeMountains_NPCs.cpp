@@ -1446,7 +1446,7 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
             _landingHandled = true;
 
             // Landed: remove parachute, eject passenger, schedule spellclick flag.
-            me->RemoveAurasDueToSpell(Spells::Parachute);
+            me->RemoveAurasDueToSpell(Spells::ParachuteVisual);
             me->HandleEmoteCommand(EMOTE_ONESHOT_ATTACK_THROWN);
 
             if (Vehicle* vehicle = me->GetVehicleKit())
@@ -1459,7 +1459,6 @@ namespace Scripts::EasternKingdoms::RedridgeMountains
         }
 
         EventMap _events;
-        bool _wasFalling = false;
         bool _landingHandled = false;
     };
 
