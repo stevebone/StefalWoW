@@ -112,6 +112,17 @@ std::vector<ResearchSiteEntry const*> const* ArchaeologyMgr::GetResearchSitesFor
     return itr != _researchSitesByMap.end() ? &itr->second : nullptr;
 }
 
+std::vector<uint32> ArchaeologyMgr::GetSurveyableMapIds() const
+{
+    std::vector<uint32> mapIds;
+    for (auto const& [mapId, sites] : _researchSitesByMap)
+        if (std::any_of(sites.begin(), sites.end(), [this](ResearchSiteEntry const* site) { return IsSurveyableDigSite(site->ID); }))
+            mapIds.push_back(mapId);
+
+    std::sort(mapIds.begin(), mapIds.end());
+    return mapIds;
+}
+
 void ArchaeologyMgr::LoadDigSiteData()
 {
     uint32 oldMSTime = getMSTime();

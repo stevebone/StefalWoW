@@ -102,6 +102,11 @@ class TC_GAME_API ArchaeologyMgr
         // Dig-site pool for a continent/map, or nullptr if the map has none.
         std::vector<ResearchSiteEntry const*> const* GetResearchSitesForMap(uint32 mapId) const;
 
+        // Maps that have at least one surveyable dig site (branch mapping + boundary polygon +
+        // wired branch policy), i.e. the continents active-site seeding is eligible for. Derived
+        // from the loaded stores so a continent added through the world DB needs no core change.
+        std::vector<uint32> GetSurveyableMapIds() const;
+
         // Randomly pick up to `count` distinct dig-site IDs from a map's pool (fewer if the pool is
         // smaller), excluding IDs already active for the player. Empty if the map has no dig sites.
         std::vector<uint32> RollResearchSitesForMap(uint32 mapId, uint32 count, std::vector<uint32> const& exclude = {}) const;

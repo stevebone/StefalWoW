@@ -252,7 +252,7 @@ NonDefaultConstructible<SpellEffectHandlerFn> SpellEffectHandlers[TOTAL_SPELL_EF
     &Spell::EffectDiscoverTaxi,                             //154 SPELL_EFFECT_DISCOVER_TAXI
     &Spell::EffectTitanGrip,                                //155 SPELL_EFFECT_TITAN_GRIP Allows you to equip two-handed axes, maces and swords in one hand, but you attack $49152s1% slower than normal.
     &Spell::EffectEnchantItemPrismatic,                     //156 SPELL_EFFECT_ENCHANT_ITEM_PRISMATIC
-    &Spell::EffectCreateItem2,                              //157 SPELL_EFFECT_CREATE_ITEM_2            create item or create item template and replace by some randon spell loot item
+    &Spell::EffectCreateItem2,                              //157 SPELL_EFFECT_CREATE_LOOT             create loot from spell_loot_template (entry = effect MiscValue)
     &Spell::EffectMilling,                                  //158 SPELL_EFFECT_MILLING                  milling
     &Spell::EffectRenamePet,                                //159 SPELL_EFFECT_ALLOW_RENAME_PET         allow rename pet once again
     &Spell::EffectForceCast2,                               //160 SPELL_EFFECT_FORCE_CAST_2
@@ -1508,7 +1508,10 @@ void Spell::EffectCreateItem2()
     // Pick a random item from spell_loot_template
     if (m_spellInfo->IsLootCrafting())
     {
-        player->AutoStoreLoot(m_spellInfo->Id, LootTemplates_Spell, context, false, false, true);
+        // SPELL_EFFECT_CREATE_LOOT names its spell_loot_template entry with the effect's
+        // MiscValue (archaeology solve spells share one loot table per project family),
+        // unlike the spell-id-keyed SPELL_EFFECT_CREATE_RANDOM_ITEM tables.
+        player->AutoStoreLoot(uint32(effectInfo->MiscValue), LootTemplates_Spell, context, false, false, true);
         if (!m_CastItem)
             player->UpdateCraftSkill(m_spellInfo);
     }
