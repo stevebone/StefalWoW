@@ -63,10 +63,10 @@ WorldPacket const* ClubFinderGetClubPostingIdsResponse::Write()
 {
     // u32 count, then one { club id u64, guild id u64 } record per subscribed club.
     _worldPacket << Size<uint32>(PostingIds);
-    for (ClubPostingClubIDMap const& postingId : PostingIds)
+    for (ClubPostingClubIdMap const& postingId : PostingIds)
     {
-        _worldPacket << postingId.ClubID;
-        _worldPacket << postingId.GuildID;
+        _worldPacket << postingId.ClubId;
+        _worldPacket << postingId.GuildId;
     }
 
     return &_worldPacket;
@@ -80,11 +80,8 @@ ByteBuffer& operator>>(ByteBuffer& data, ClubFinderPostingFilter& filter)
     data.ResetBitPos();
 
     data >> Bits<3>(filter.ValueType);
-
-    uint32 byteCount = 0;
     if (filter.ValueType == 5 || filter.ValueType == 6)
-        byteCount = data.ReadBits(24);
-
+        data >> SizedString::BitsSize<24>(filter.StringValue);
     data.ResetBitPos();
 
     switch (filter.ValueType)
@@ -99,14 +96,10 @@ ByteBuffer& operator>>(ByteBuffer& data, ClubFinderPostingFilter& filter)
             break;
         case 5:
         case 6:
-            if (byteCount)
-            {
-                filter.StringValue.resize(byteCount);
-                data.read(reinterpret_cast<uint8*>(filter.StringValue.data()), byteCount);
-                // The client counts the terminator; drop it so the value is a plain string.
-                if (!filter.StringValue.empty() && filter.StringValue.back() == '\0')
-                    filter.StringValue.pop_back();
-            }
+            data >> SizedString::Data<Strings::DontValidateUtf8>(filter.StringValue);
+            // The client counts the terminator in the length; drop it so the value is a plain string.
+            if (!filter.StringValue.empty() && filter.StringValue.back() == '\0')
+                filter.StringValue.pop_back();
             break;
         default:
             break;
@@ -119,9 +112,9 @@ void ClubFinderRequestClubsData::Read()
 {
     uint32 filterCount = 0;
 
-    _worldPacket >> Size<uint32>(ClubPostingIDs);
+    _worldPacket >> Size<uint32>(ClubPostingIds);
     _worldPacket >> filterCount;
-    for (uint32& clubPostingId : ClubPostingIDs)
+    for (uint32& clubPostingId : ClubPostingIds)
         _worldPacket >> clubPostingId;
 
     _worldPacket >> Bits<3>(Type);
@@ -152,7 +145,7 @@ ByteBuffer& operator<<(ByteBuffer& data, ClubFinderClubCacheData const& posting)
     data << posting.MinIlvl;
     data << posting.TabardInfo;
     data << posting.LastPosterGUID;
-    data << posting.ClubID;
+    data << posting.ClubId;
     data << posting.LastUpdatedTime;
 
     data << SizedString::Data(posting.ClubName);
@@ -163,8 +156,8 @@ ByteBuffer& operator<<(ByteBuffer& data, ClubFinderClubCacheData const& posting)
 
 WorldPacket const* ClubFinderReturnRecruitingClubs::Write()
 {
-    _worldPacket << Size<uint32>(ClubPostingIDs);
-    for (uint32 clubPostingId : ClubPostingIDs)
+    _worldPacket << Size<uint32>(ClubPostingIds);
+    for (uint32 clubPostingId : ClubPostingIds)
         _worldPacket << clubPostingId;
 
     _worldPacket << Bits<3>(Type);
@@ -184,11 +177,7 @@ void ClubFinderRequestClubsList::Read()
     _worldPacket >> filterCount;
     _worldPacket >> ApplicantSettings;
 
-    if (searchStringLength)
-    {
-        SearchString.resize(searchStringLength);
-        _worldPacket.read(reinterpret_cast<uint8*>(SearchString.data()), searchStringLength);
-    }
+    SearchString = _worldPacket.ReadString(searchStringLength);
 
     // Cap before resize: an uncapped crafted count would std::bad_alloc the world thread.
     filterCount = std::min<uint32>(filterCount, _worldPacket.size());
@@ -203,7 +192,7 @@ WorldPacket const* ClubFinderLookupClubPostingsList::Write()
     // bits). Writing the envelope right after the count (the 12.0 shape) eats the first byte
     // of record #1's bit block and the whole packet misparses.
     _worldPacket << Size<uint32>(Postings);
-    for (ClubCacheData const& posting : Postings)
+    for (ClubFinderClubCacheData const& posting : Postings)
         _worldPacket << posting;
 
     _worldPacket << Bits<3>(Type);
@@ -312,21 +301,6 @@ void ClubFinderWhisperApplicantRequest::Read()
 {
     _worldPacket >> ClubFinderGUID;
     _worldPacket >> PlayerGUID;
-}
-
-WorldPacket const* ClubFinderPlayerGuidLookupData::Write()
-{
-    _worldPacket << Guid;
-
-    return &_worldPacket;
-}
-
-WorldPacket const* ClubFinderPlayerGuidLookupResult::Write()
-{
-    _worldPacket << Guid;
-    _worldPacket << uint8(Found ? 0x80 : 0x00);
-
-    return &_worldPacket;
 }
 
 WorldPacket const* ClubFinderWhisperApplicantResponse::Write()

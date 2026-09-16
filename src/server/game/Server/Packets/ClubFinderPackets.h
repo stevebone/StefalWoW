@@ -99,13 +99,13 @@ namespace WorldPackets
 
             WorldPacket const* Write() override;
 
-            struct ClubPostingClubIDMap
+            struct ClubPostingClubIdMap
             {
-                uint64 ClubID       = 0;
-                uint64 GuildID      = 0;
+                uint64 ClubId  = 0;
+                uint64 GuildId = 0;
             };
 
-            std::vector<ClubPostingClubIDMap> PostingIds;
+            std::vector<ClubPostingClubIdMap> PostingIds;
         };
 
         // Two counts, then the posting ids, then the bit block, then any filters.
@@ -116,7 +116,7 @@ namespace WorldPackets
 
             void Read() override;
 
-            std::vector<uint32> ClubPostingIDs;
+            std::vector<uint32> ClubPostingIds;
             std::vector<ClubFinderPostingFilter> Filters;
             uint8 Type         = 0;   // 3 bits, ClubFinderRequestType
             // Set when the client is resolving a single linked club rather than paging a browse. The
@@ -137,8 +137,8 @@ namespace WorldPackets
             std::string RealmName;      // not on the 12.1 wire; kept for server-side use
             ObjectGuid ClubFinderGUID;
             ObjectGuid LastPosterGUID;
-            uint64 RecruitingSpecs  = 0; // not on the 12.1 wire; kept for search filtering
-            uint64 ClubID           = 0; // not on the 12.1 wire; lives in ClubFinderGUID's low qword
+            uint64 RecruitingSpecs = 0; // also used for server-side search filtering
+            uint64 ClubId          = 0; // duplicate of ClubFinderGUID's low qword
             int64 LastUpdatedTime   = 0;
             uint32 NumActiveMembers = 0;
             uint32 TabardInfo       = 0;
@@ -158,7 +158,7 @@ namespace WorldPackets
 
             WorldPacket const* Write() override;
 
-            std::vector<uint32> ClubPostingIDs;
+            std::vector<uint32> ClubPostingIds;
             uint8 Type = 0;   // 3 bits, ClubFinderRequestType
         };
 
@@ -189,9 +189,7 @@ namespace WorldPackets
 
             WorldPacket const* Write() override;
 
-            using ClubCacheData = ClubFinderClubCacheData;
-
-            std::vector<ClubCacheData> Postings;
+            std::vector<ClubFinderClubCacheData> Postings;
             // The type MUST echo the request: the handler only fires the pending page callback (and so
             // CLUB_FINDER_CLUB_LIST_RETURNED) for callbacks whose type matches this field.
             uint8 Type        = 0;
@@ -312,32 +310,6 @@ namespace WorldPackets
             ObjectGuid ClubFinderGUID;   // the posting this list belongs to
             std::vector<Applicant> Applicants;
             uint8 Type = 0;   // ClubFinderRequestType
-        };
-
-        // One packed player GUID per packet (0x4502DB).
-        class ClubFinderPlayerGuidLookupData final : public ServerPacket
-        {
-        public:
-            ClubFinderPlayerGuidLookupData(ObjectGuid const& guid)
-                : ServerPacket(SMSG_BROADCAST_SUMMON_CAST /* 0x4502DB */, 20), Guid(guid) { }
-
-            WorldPacket const* Write() override;
-
-            ObjectGuid Guid;
-        };
-
-        // Packed player GUID plus a byte flag, bit 7 set = found (0x4502DC). Marks the club
-        // finder's name-cache entry resolved and queues the applicant list rebuild.
-        class ClubFinderPlayerGuidLookupResult final : public ServerPacket
-        {
-        public:
-            ClubFinderPlayerGuidLookupResult(ObjectGuid const& guid, bool found)
-                : ServerPacket(SMSG_BROADCAST_SUMMON_RESPONSE /* 0x4502DC */, 22), Guid(guid), Found(found) { }
-
-            WorldPacket const* Write() override;
-
-            ObjectGuid Guid;
-            bool Found = true;
         };
 
         // An officer asks permission to whisper an applicant. Both directions carry the same pair of

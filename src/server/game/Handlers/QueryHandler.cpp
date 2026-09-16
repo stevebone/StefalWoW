@@ -57,17 +57,12 @@ void WorldSession::HandleQueryPlayerNames(WorldPackets::Query::QueryPlayerNames&
     SendPacket(response.Write());
 }
 
-// The club finder resolves applicant names through this query in addition to the plain
-// QueryPlayerNames: the per-guid lookup and the bulk prepopulate complete the club finder's
-// own name-cache entries, so all three responses are sent.
+// Retail resolves club finder applicant names through the plain name query pipeline (verified
+// against a 12.1 capture: an active club finder session exchanges only CMSG_QUERY_PLAYER_NAMES /
+// SMSG_QUERY_PLAYER_NAMES_RESPONSE). Answer this variant the same way: the bulk response plus a
+// name cache prepopulate.
 void WorldSession::HandleQueryPlayerNamesForCommunity(WorldPackets::Query::QueryPlayerNamesForCommunity& queryPlayerNames)
 {
-    for (ObjectGuid guid : queryPlayerNames.Players)
-    {
-        WorldPackets::ClubFinder::ClubFinderPlayerGuidLookupData lookup(guid);
-        SendPacket(lookup.Write());
-    }
-
     WorldPackets::Query::PrepopulateNameCache prepopulate;
     WorldPackets::Query::QueryPlayerNamesResponse response;
     for (ObjectGuid guid : queryPlayerNames.Players)

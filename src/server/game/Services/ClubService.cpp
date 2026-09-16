@@ -34,7 +34,6 @@
 
 namespace Battlenet::Services
 {
-
 ClubService::ClubService(WorldSession* session) : BaseService(session) { }
 
 uint32 ClubService::HandleGetClubType(club::v1::client::GetClubTypeRequest const* request, club::v1::client::GetClubTypeResponse* response,
@@ -63,7 +62,7 @@ uint32 ClubService::HandleSubscribe(club::v1::client::SubscribeRequest const* /*
     if (!guild)
         return ERROR_CLUB_NO_CLUB;
 
-    // Subscibe the client to it's own guild club.
+    // Subscribe the client to its own guild club.
     club::v1::client::SubscribeNotification subscribeNotification;
 
     Guild::Member const* guildMember = guild->GetMember(player->GetGUID());
@@ -531,6 +530,7 @@ uint32 ClubService::HandleUpdateClubState(club::v1::client::UpdateClubStateReque
     if (request->club_id() != guild->GetId())
         return ERROR_CLUB_NO_CLUB;
 
+    // The non-const GetMember is private; the const overload is the public read path.
     Guild::Member const* guildMember = static_cast<Guild const*>(guild)->GetMember(player->GetGUID());
 
     if (!guildMember)

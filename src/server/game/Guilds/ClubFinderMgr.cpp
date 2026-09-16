@@ -17,9 +17,9 @@
 
 #include "ClubFinderMgr.h"
 #include "CharacterCache.h"
+#include "Common.h"
 #include "DatabaseEnv.h"
 #include "DB2Stores.h"
-#include "Common.h"
 #include "GameTime.h"
 #include "Guild.h"
 #include "GuildMgr.h"
@@ -27,6 +27,7 @@
 #include "Player.h"
 #include "Timer.h"
 #include "World.h"
+
 #include <algorithm>
 #include <cctype>
 #include <regex>

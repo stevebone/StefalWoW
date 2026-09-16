@@ -16,12 +16,10 @@
  */
 
 #include "ClubFinderPackets.h"
-#include "PacketOperators.h"
-#include "ClubFinderMgr.h"
 #include "CharacterCache.h"
+#include "ClubFinderMgr.h"
 #include "DatabaseEnv.h"
 #include "DB2Stores.h"
-#include "ObjectAccessor.h"
 #include "Guild.h"
 #include "GuildMgr.h"
 #include "Log.h"
@@ -240,7 +238,7 @@ static uint32 PackGuildTabard(EmblemInfo const& emblem)
 // posting must reach them with its real flags so the readout disappears immediately (the client's own
 // Lua drops the countdown when the record's listing flag is off - an empty response instead leaves its
 // cache stale until relog). Moderation removals still hide the posting even from its own guild.
-static bool BuildClubCacheData(ClubFinderPosting const& posting, WorldPackets::ClubFinder::ClubFinderLookupClubPostingsList::ClubCacheData& data, bool isOwnPosting = false)
+static bool BuildClubCacheData(ClubFinderPosting const& posting, WorldPackets::ClubFinder::ClubFinderClubCacheData& data, bool isOwnPosting = false)
 {
     if (isOwnPosting)
     {
@@ -262,7 +260,7 @@ static bool BuildClubCacheData(ClubFinderPosting const& posting, WorldPackets::C
     data.ClubFinderGUID   = posting.GetClubFinderGUID();
     data.LastPosterGUID   = posting.LastPosterGUID;
     data.RecruitingSpecs  = posting.RecruitingSpecs;
-    data.ClubID           = posting.ClubId;
+    data.ClubId           = posting.ClubId;
     data.LastUpdatedTime  = posting.LastUpdatedTime;
     data.NumActiveMembers = guild->GetMembersCount();
     // Guild and community records share this slot with different meanings: a GUILD record carries
@@ -306,9 +304,9 @@ void WorldSession::HandleClubFinderRequestSubscribedClubPostingIDs(WorldPackets:
         if (!posting)
             continue;
 
-        WorldPackets::ClubFinder::ClubFinderGetClubPostingIdsResponse::ClubPostingClubIDMap& entry = response.PostingIds.emplace_back();
-        entry.ClubID  = clubId;
-        entry.GuildID = posting->ClubId;
+        WorldPackets::ClubFinder::ClubFinderGetClubPostingIdsResponse::ClubPostingClubIdMap& entry = response.PostingIds.emplace_back();
+        entry.ClubId  = clubId;
+        entry.GuildId = posting->ClubId;
     }
 
     SendPacket(response.Write());
@@ -318,7 +316,7 @@ void WorldSession::HandleClubFinderRequestSubscribedClubPostingIDs(WorldPackets:
 void WorldSession::HandleClubFinderRequestClubsData(WorldPackets::ClubFinder::ClubFinderRequestClubsData& request)
 {
     TC_LOG_DEBUG("network", "CMSG_CLUB_FINDER_REQUEST_CLUBS_DATA [{}]: PostingIds: {}, Type: {}, LinkedLookup: {}",
-        GetPlayerInfo(), uint32(request.ClubPostingIDs.size()), uint32(request.Type), request.LinkedLookup);
+        GetPlayerInfo(), uint32(request.ClubPostingIds.size()), uint32(request.Type), request.LinkedLookup);
 
     WorldPackets::ClubFinder::ClubFinderLookupClubPostingsList response;
 
@@ -326,7 +324,7 @@ void WorldSession::HandleClubFinderRequestClubsData(WorldPackets::ClubFinder::Cl
     response.Type = request.Type;
     response.LinkedLookup = request.LinkedLookup;
 
-    for (uint32 clubPostingId : request.ClubPostingIDs)
+    for (uint32 clubPostingId : request.ClubPostingIds)
     {
         // The client asks by CLUB (guild) id: browse requests echo the guild ids the search
         // returned, and the own-posting fetch after a subscribed-ids answer asks for the guild
@@ -343,7 +341,7 @@ void WorldSession::HandleClubFinderRequestClubsData(WorldPackets::ClubFinder::Cl
         Player* player = GetPlayer();
         bool isOwnPosting = player && player->GetGuildId() == posting->ClubId;
 
-        WorldPackets::ClubFinder::ClubFinderLookupClubPostingsList::ClubCacheData& data = response.Postings.emplace_back();
+        WorldPackets::ClubFinder::ClubFinderClubCacheData& data = response.Postings.emplace_back();
         if (!BuildClubCacheData(*posting, data, isOwnPosting))
             response.Postings.pop_back();
     }
@@ -418,10 +416,10 @@ void WorldSession::HandleClubFinderRequestClubsList(WorldPackets::ClubFinder::Cl
     response.Type = request.Type;
 
     for (ClubFinderPosting const* posting : sClubFinderMgr->Search(criteria))
-        response.ClubPostingIDs.push_back(posting->ClubId);
+        response.ClubPostingIds.push_back(posting->ClubId);
 
     TC_LOG_DEBUG("network", "SMSG_CLUB_FINDER_RETURN_RECRUITING_CLUBS [{}]: {} posting(s) matched",
-        GetPlayerInfo(), response.ClubPostingIDs.size());
+        GetPlayerInfo(), response.ClubPostingIds.size());
 
     SendPacket(response.Write());
 }
@@ -464,9 +462,13 @@ static void FillApplicationList(WorldPackets::ClubFinder::ClubFinderApplicationL
 
 void WorldSession::SendClubFinderPendingApplications(uint8 type)
 {
+    Player* player = GetPlayer();
+    if (!player)
+        return;
+
     WorldPackets::ClubFinder::ClubFinderApplicationList response(SMSG_CLUB_FINDER_RESPONSE_CHARACTER_APPLICATION_LIST);
     response.Type = type;
-    FillApplicationList(response, sClubFinderMgr->GetApplicationsForPlayer(GetPlayer()->GetGUID()));
+    FillApplicationList(response, sClubFinderMgr->GetApplicationsForPlayer(player->GetGUID()));
     SendPacket(response.Write());
 }
 
@@ -703,9 +705,7 @@ void WorldSession::HandleClubFinderRespondToApplicant(WorldPackets::ClubFinder::
         GetPlayerInfo(), request.PlayerGUID.ToString(), posting->PostingId, request.ShouldAccept);
 }
 
-// The applicant accepts an invite, or withdraws. DeclineInvite is never emitted by the client - a
-// declined invite arrives as Cancel - so both are handled as a withdrawal.
-// The applicant answers an invitation (accept / decline), or withdraws their request. DeclineInvite
+// The applicant answers an invitation (accept / decline) or withdraws their request. DeclineInvite
 // is never emitted by the client - a declined invite arrives as Cancel - so both are handled as a
 // withdrawal. Accepting is the only step that actually admits the member: the officer's accept
 // merely marked the application APPROVED and delivered the invitation (see
