@@ -123,6 +123,7 @@ void AddSC_npc_perks_program_vendor();
 
 // ==================== Spells Scripts ======================= //
 void AddSC_advanced_flying_spell_scripts();
+void AddSC_archaeology_spell_scripts();
 
 // ==================== Misc Scripts ========================= //
 void AddSC_gm_fixer();
@@ -236,6 +237,7 @@ void AddCustomScripts()
 
     // Spells
     AddSC_advanced_flying_spell_scripts();
+    AddSC_archaeology_spell_scripts();
 
     // Misc
     AddSC_gm_fixer();
