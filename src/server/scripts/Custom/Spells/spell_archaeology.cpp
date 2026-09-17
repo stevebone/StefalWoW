@@ -23,6 +23,7 @@
 #include "Player.h"
 #include "ScriptMgr.h"
 #include "Spell.h"
+#include "SpellInfo.h"
 #include "SpellPackets.h"
 #include "SpellScript.h"
 #include <any>
