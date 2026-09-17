@@ -18,6 +18,7 @@
 #include "ArchaeologyMgr.h"
 #include "GameObject.h"
 #include "GameObjectAI.h"
+#include "LootMgr.h"
 #include "ObjectAccessor.h"
 #include "Player.h"
 #include "ScriptMgr.h"
@@ -117,6 +118,12 @@ class spell_archaeology_solve : public SpellScript
         if (Player* player = GetCaster()->ToPlayer())
         {
             player->CompleteResearchProjectSolve(*_solvePlan);
+
+            // Rare projects whose client spell carries no create effect (retail grants the
+            // reward server-side) draw it from the spell-id-keyed spell_loot_template rows.
+            if (!GetSpellInfo()->HasEffect(SPELL_EFFECT_CREATE_ITEM) && !GetSpellInfo()->IsLootCrafting())
+                player->AutoStoreLoot(GetSpellInfo()->Id, LootTemplates_Spell, ItemContext::NONE, false, false, true);
+
             _completed = true;
         }
     }

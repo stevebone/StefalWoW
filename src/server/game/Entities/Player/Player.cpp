@@ -28700,9 +28700,11 @@ void Player::_LoadResearchSites(PreparedQueryResult result)
 
 void Player::InitializeResearchSites()
 {
-    // Introduction continents: Eastern Kingdoms (0), Kalimdor (1), Outland (530), Northrend (571),
-    // Pandaria (870). Content stops at Pandaria - there is no Draenor+ dig-site data, so those maps
-    // are deliberately absent rather than seeded with invented rows.
+    // Every continent ArchaeologyMgr can fully drive (branch mapping + polygon + wired find
+    // object) is seeded: Eastern Kingdoms (0), Kalimdor (1), Outland (530), Northrend (571),
+    // Pandaria (870) and, through the Draenor/Legion/BfA companion world SQL, Draenor (1116),
+    // the Broken Isles (1220), Kul Tiras (1642) and Zandalar (1643). The map list is derived
+    // from the loaded stores, so continents added later through the world DB need no core change.
     //
     // PROVISIONAL-FROM-FORK (evry/master-track/archaeology 80890c6a9f, extended by eb4525d6bf and
     // b59c8db8ff): four active sites per continent, and the only eligibility test is "knows the
@@ -28715,7 +28717,7 @@ void Player::InitializeResearchSites()
     for (uint16 siteId : m_activePlayerData->ResearchSites[0])
         activeSites.push_back(siteId);
 
-    for (uint32 mapId : { 0u, 1u, 530u, 571u, 870u })
+    for (uint32 mapId : sArchaeologyMgr->GetSurveyableMapIds())
     {
         uint32 activeCount = 0;
         for (uint32 siteId : activeSites)
