@@ -1392,7 +1392,6 @@ void LoadLootTemplates_Skinning()
 
 void LoadLootTemplates_Spell()
 {
-    // TODO: change this to use MiscValue from spell effect as id instead of spell id
     TC_LOG_INFO("server.loading", "Loading spell loot templates...");
 
     uint32 oldMSTime = getMSTime();
@@ -1407,19 +1406,36 @@ void LoadLootTemplates_Spell()
         if (!spellInfo->IsLootCrafting())
             return;
 
-        if (!lootIdSet.contains(spellInfo->Id))
+        // A loot-crafting spell's table is keyed by its spell id (legacy
+        // SPELL_EFFECT_CREATE_RANDOM_ITEM data) or, for SPELL_EFFECT_CREATE_LOOT, by the
+        // effect's MiscValue (e.g. archaeology solve spells share one loot table per project
+        // family).
+        bool hasLootEntry = lootIdSet.contains(spellInfo->Id);
+        if (hasLootEntry)
+            lootIdSetUsed.insert(spellInfo->Id);
+
+        for (SpellEffectInfo const& effect : spellInfo->GetEffects())
+            if (effect.Effect == SPELL_EFFECT_CREATE_LOOT && effect.MiscValue && lootIdSet.contains(uint32(effect.MiscValue)))
+            {
+                hasLootEntry = true;
+                lootIdSetUsed.insert(uint32(effect.MiscValue));
+            }
+
+        if (!hasLootEntry)
         {
             // not report about not trainable spells (optionally supported by DB)
             // ignore 61756 (Northrend Inscription Research (FAST QA VERSION) for example
             if (!spellInfo->HasAttribute(SPELL_ATTR0_NOT_SHAPESHIFTED) || spellInfo->HasAttribute(SPELL_ATTR0_IS_TRADESKILL))
                 LootTemplates_Spell.ReportNonExistingId(spellInfo->Id, "Spell", spellInfo->Id);
         }
-        else
-            lootIdSetUsed.insert(spellInfo->Id);
     });
 
     for (uint32 lootId : lootIdSetUsed)
         lootIdSet.erase(lootId);
+
+    // Scripted consumers (e.g. spell scripts rolling a solve reward) may key
+    // spell_loot_template by any real spell id, not only by loot-crafting spell ids.
+    std::erase_if(lootIdSet, [](uint32 lootId) { return sSpellMgr->GetSpellInfo(lootId, DIFFICULTY_NONE) != nullptr; });
 
     // output error for any still listed (not referenced from appropriate table) ids
     LootTemplates_Spell.ReportUnusedIds(lootIdSet);

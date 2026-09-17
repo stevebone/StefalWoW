@@ -1485,7 +1485,14 @@ void Spell::EffectCreateItem2()
     // Pick a random item from spell_loot_template
     if (m_spellInfo->IsLootCrafting())
     {
-        player->AutoStoreLoot(m_spellInfo->Id, LootTemplates_Spell, context, false, false, true);
+        // SPELL_EFFECT_CREATE_LOOT names its spell_loot_template entry with the effect's
+        // MiscValue (archaeology solve spells share one loot table per project family),
+        // unlike the spell-id-keyed SPELL_EFFECT_CREATE_RANDOM_ITEM tables. Fall back to
+        // the spell id for spells whose loot tables are still keyed the legacy way.
+        uint32 lootId = uint32(effectInfo->MiscValue);
+        if (!LootTemplates_Spell.HaveLootFor(lootId))
+            lootId = m_spellInfo->Id;
+        player->AutoStoreLoot(lootId, LootTemplates_Spell, context, false, false, true);
         if (!m_CastItem)
             player->UpdateCraftSkill(m_spellInfo);
     }
