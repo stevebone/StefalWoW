@@ -3737,9 +3737,15 @@ std::string Creature::GetNameForLocaleIdx(LocaleConstant locale) const
     if (locale != DEFAULT_LOCALE)
         if (CreatureLocale const* cl = sObjectMgr->GetCreatureLocale(GetEntry()))
         {
-            std::vector<std::string> const& names = female ? cl->NameAlt : cl->Name;
-            if (names.size() > locale && !names[locale].empty())
-                return names[locale];
+            // Prefer the feminine form for female creatures, but never lose the
+            // localized name over a missing feminine form (most creatures, including
+            // localized ones, have none).
+            if (female)
+                if (cl->NameAlt.size() > locale && !cl->NameAlt[locale].empty())
+                    return cl->NameAlt[locale];
+
+            if (cl->Name.size() > locale && !cl->Name[locale].empty())
+                return cl->Name[locale];
         }
 
     if (female && !GetCreatureTemplate()->FemaleName.empty())
