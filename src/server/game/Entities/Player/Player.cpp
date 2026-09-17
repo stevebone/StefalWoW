@@ -5993,6 +5993,14 @@ void Player::SetSkill(uint32 id, uint16 step, uint16 newVal, uint16 maxVal)
             UpdateCriteria(CriteriaType::AchieveSkillStep, id);
         }
     }
+
+    // Archaeology: seed active dig sites and research projects the moment the profession is
+    // learned mid-session; the login path already covers players who had it when loading.
+    if (id == SKILL_ARCHAEOLOGY && newVal)
+    {
+        InitializeResearchSites();
+        InitializeResearchProjects();
+    }
 }
 
 uint32 Player::GetProfessionSkillForExp(uint32 skill, int32 expansion) const
