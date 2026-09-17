@@ -112,7 +112,7 @@ class spell_archaeology_solve : public SpellScript
 
     void HandleAfterCast()
     {
-        if (!_resourcesConsumed || !_completed || !_solvePlan)
+        if (!_resourcesConsumed || _completed || !_solvePlan)
             return;
 
         if (Player* player = GetCaster()->ToPlayer())

@@ -1435,7 +1435,7 @@ void LoadLootTemplates_Spell()
 
     // Scripted consumers (e.g. spell scripts rolling a solve reward) may key
     // spell_loot_template by any real spell id, not only by loot-crafting spell ids.
-    std::erase_if(lootIdSet, [](uint32 lootId) { return sSpellMgr->GetSpellInfo(lootId) != nullptr; });
+    std::erase_if(lootIdSet, [](uint32 lootId) { return sSpellMgr->GetSpellInfo(lootId, DIFFICULTY_NONE) != nullptr; });
 
     // output error for any still listed (not referenced from appropriate table) ids
     LootTemplates_Spell.ReportUnusedIds(lootIdSet);
