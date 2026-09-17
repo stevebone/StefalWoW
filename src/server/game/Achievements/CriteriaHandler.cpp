@@ -807,6 +807,34 @@ void CriteriaHandler::UpdateCriteria(Criteria const* criteria, uint64 miscValue1
                     break;
             }
             break;
+        case CriteriaType::CompleteResearchProject:
+            if (miscValue1)  // event-driven: specific project completed
+                SetCriteriaProgress(criteria, 1, referencePlayer);
+            else  // login case: recompute from completed-project history
+            {
+                std::unordered_set<uint32> const& completed = referencePlayer->GetCompletedResearchProjects();
+                SetCriteriaProgress(criteria, completed.count(uint32(criteria->Entry->Asset.ResearchProjectID)) ? 1 : 0, referencePlayer);
+            }
+            break;
+        case CriteriaType::CompleteAnyResearchProject:
+            if (miscValue2)  // event-driven: miscValue2 is the research branch id, nonzero for a real completion
+                SetCriteriaProgress(criteria, 1, referencePlayer, PROGRESS_ACCUMULATE);
+            else  // login case: recount only completed projects matching this criteria's modifier tree
+            {
+                uint32 count = 0;
+                for (uint32 projectId : referencePlayer->GetCompletedResearchProjects())
+                    if (ResearchProjectEntry const* project = sResearchProjectStore.LookupEntry(projectId))
+                        if (!criteria->Modifier || ModifierTreeSatisfied(criteria->Modifier, project->Rarity, project->ResearchBranchID, nullptr, referencePlayer))
+                            ++count;
+                SetCriteriaProgress(criteria, count, referencePlayer);
+            }
+            break;
+        case CriteriaType::FindResearchObject:
+            SetCriteriaProgress(criteria, 1, referencePlayer, PROGRESS_ACCUMULATE);
+            break;
+        case CriteriaType::ExhaustAnyResearchSite:
+            SetCriteriaProgress(criteria, 1, referencePlayer, PROGRESS_ACCUMULATE);
+            break;
         // FIXME: not triggered in code as result, need to implement
         case CriteriaType::RunInstance:
         case CriteriaType::EarnTeamArenaRating:
@@ -822,7 +850,6 @@ void CriteriaHandler::UpdateCriteria(Criteria const* criteria, uint64 miscValue1
         case CriteriaType::CompleteQuestsCountForGuild:
         case CriteriaType::HonorableKillsForGuild:
         case CriteriaType::KillAnyCreatureForGuild:
-        case CriteriaType::CompleteAnyResearchProject:
         case CriteriaType::CompleteGuildChallenge:
         case CriteriaType::CompleteAnyGuildChallenge:
         case CriteriaType::CompletedLFRDungeon:
@@ -846,8 +873,6 @@ void CriteriaHandler::UpdateCriteria(Criteria const* criteria, uint64 miscValue1
         case CriteriaType::LevelChangedForGarrisonFollower:
         case CriteriaType::LearnToy:
         case CriteriaType::LearnAnyToy:
-        case CriteriaType::FindResearchObject:
-        case CriteriaType::ExhaustAnyResearchSite:
         case CriteriaType::CompleteInternalCriteria:
         case CriteriaType::CompleteAnyChallengeMode:
         case CriteriaType::KilledAllUnitsInSpawnRegion:
@@ -1265,6 +1290,10 @@ bool CriteriaHandler::IsCompletedCriteria(Criteria const* criteria, uint64 requi
         case CriteriaType::ReachRenownLevel:
         case CriteriaType::BankTabPurchased:
         case CriteriaType::LearnTaxiNode:
+        case CriteriaType::CompleteResearchProject:
+        case CriteriaType::CompleteAnyResearchProject:
+        case CriteriaType::FindResearchObject:
+        case CriteriaType::ExhaustAnyResearchSite:
             return progress->Counter >= requiredAmount;
         case CriteriaType::EarnAchievement:
         case CriteriaType::CompleteQuest:
@@ -2092,9 +2121,16 @@ bool CriteriaHandler::ModifierSatisfied(ModifierTreeEntry const* modifier, uint6
             if (referencePlayer->GetRBGPersonalRating() < reqValue)
                 return false;
             break;
-        case ModifierTreeType::ResearchProjectRarity: // 65 NYI
-        case ModifierTreeType::ResearchProjectBranch: // 66 NYI
-            return false;
+        case ModifierTreeType::ResearchProjectRarity: // 65
+            // miscValue1 is the completed project's rarity
+            if (miscValue1 != reqValue)
+                return false;
+            break;
+        case ModifierTreeType::ResearchProjectBranch: // 66
+            // miscValue2 is the completed project's research branch id
+            if (miscValue2 != reqValue)
+                return false;
+            break;
         case ModifierTreeType::WorldStateExpression: // 67
             if (WorldStateExpressionEntry const* worldStateExpression = sWorldStateExpressionStore.LookupEntry(reqValue))
                 return ConditionMgr::IsMeetingWorldStateExpression(referencePlayer->GetMap(), worldStateExpression);
@@ -4570,6 +4606,7 @@ inline bool IsCriteriaTypeStoredByAsset(CriteriaType type)
     {
         case CriteriaType::KillCreature:
         case CriteriaType::WinBattleground:
+        case CriteriaType::CompleteResearchProject:
         case CriteriaType::SkillRaised:
         case CriteriaType::EarnAchievement:
         case CriteriaType::CompleteQuestsInZone:
@@ -4603,6 +4640,7 @@ inline bool IsCriteriaTypeStoredByAsset(CriteriaType type)
         case CriteriaType::DefeatDungeonEncounter:
         case CriteriaType::LearnToy:
         case CriteriaType::LearnAnyTransmog:
+        case CriteriaType::FindResearchObject:
             return true;
         default:
             break;
