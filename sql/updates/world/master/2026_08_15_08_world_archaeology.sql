@@ -1,0 +1,70 @@
+--
+-- Archaeology: Outland (530) / Northrend (571) dig-site branch mappings.
+-- Sourced the same way as Eastern Kingdoms / Kalimdor: Archy addon dig-site DB
+-- (blobID = ResearchSite.QuestPOIBlobID) joined to ResearchBranch via race -> fragment currency.
+-- Coverage: Outland 28/28, Northrend 30/30 DB2 sites.
+--
+-- PROVISIONAL-FROM-FORK (evry/master-track/archaeology eb4525d6bf): findCount = 6 everywhere.
+--
+-- Ported from evry/master-track/archaeology eb4525d6bf.
+--
+DELETE FROM `archaeology_dig_site` WHERE `researchSiteId` IN (339,341,343,345,347,349,351,353,355,357,359,363,365,367,369,371,373,375,377,379,381,383,385,387,391,393,395,399,401,403,405,407,409,411,413,415,417,419,421,423,425,427,429,431,433,435,437,439,443,445,447,449,451,455,457,459,587,589);
+INSERT INTO `archaeology_dig_site` (`researchSiteId`,`researchBranchId`,`findCount`) VALUES
+(339,6,6),
+(341,6,6),
+(343,6,6),
+(345,6,6),
+(347,2,6),
+(349,2,6),
+(351,2,6),
+(353,2,6),
+(355,2,6),
+(357,2,6),
+(359,6,6),
+(363,6,6),
+(365,6,6),
+(367,6,6),
+(369,2,6),
+(371,6,6),
+(373,2,6),
+(375,6,6),
+(377,6,6),
+(379,2,6),
+(381,2,6),
+(383,2,6),
+(385,2,6),
+(387,2,6),
+(391,2,6),
+(393,2,6),
+(395,6,6),
+(399,6,6),
+(401,27,6),
+(403,27,6),
+(405,27,6),
+(407,27,6),
+(409,27,6),
+(411,27,6),
+(413,27,6),
+(415,5,6),
+(417,4,6),
+(419,5,6),
+(421,5,6),
+(423,4,6),
+(425,4,6),
+(427,4,6),
+(429,8,6),
+(431,8,6),
+(433,8,6),
+(435,8,6),
+(437,5,6),
+(439,27,6),
+(443,8,6),
+(445,27,6),
+(447,27,6),
+(449,27,6),
+(451,5,6),
+(455,27,6),
+(457,27,6),
+(459,27,6),
+(587,5,6),
+(589,5,6);

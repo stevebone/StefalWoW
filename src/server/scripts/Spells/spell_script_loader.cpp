@@ -16,6 +16,7 @@
  */
 
 // This is where scripts' loading functions should be declared:
+void AddSC_archaeology_spell_scripts();
 void AddSC_deathknight_spell_scripts();
 void AddSC_demon_hunter_spell_scripts();
 void AddSC_druid_spell_scripts();
@@ -38,6 +39,7 @@ void AddSC_azerite_item_spell_scripts();
 // void Add${NameOfDirectory}Scripts()
 void AddSpellsScripts()
 {
+    AddSC_archaeology_spell_scripts();
     AddSC_deathknight_spell_scripts();
     AddSC_demon_hunter_spell_scripts();
     AddSC_druid_spell_scripts();
