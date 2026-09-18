@@ -1532,7 +1532,7 @@ namespace Scripts::Custom::Paladin
     };
 
     // =========================================================================
-    // Walk Into Light (1263782) — Herald of the Sun talent
+    // Walk Into Light (1263782) - Herald of the Sun talent
     // Holy: Infusion of Light occurs 100% more often during Avenging Wrath.
     // Ret: 100% chance to gain Blessing of An'she and generate 2 Holy Power
     //       after casting Avenging Wrath. During Avenging Wrath, Hammer of
@@ -1604,7 +1604,7 @@ namespace Scripts::Custom::Paladin
         }
     };
 
-    // Avenging Wrath aura hooks — Ret: grant Blessing of An'she + 2 HP on AW apply
+    // Avenging Wrath aura hooks - Ret: grant Blessing of An'she + 2 HP on AW apply
     class spell_pal_walk_into_light_avenging_wrath : public AuraScript
     {
         void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
@@ -1618,7 +1618,7 @@ namespace Scripts::Custom::Paladin
         }
     };
 
-    // Hammer of Wrath — Ret: cast Blade of Justice at scaled effectiveness during wings
+    // Hammer of Wrath - Ret: cast Blade of Justice at scaled effectiveness during wings
     class spell_pal_walk_into_light_hammer_of_wrath : public SpellScript
     {
         bool Validate(SpellInfo const* /*spellInfo*/) override
@@ -1680,7 +1680,7 @@ namespace Scripts::Custom::Paladin
         bool _bojFired = false;
     };
 
-    // 53576 - Infusion of Light (talent aura: Holy — double proc frequency during wings)
+    // 53576 - Infusion of Light (talent aura: Holy - double proc frequency during wings)
     class spell_pal_walk_into_light_infusion : public AuraScript
     {
         bool Validate(SpellInfo const* spellInfo) override
@@ -1714,7 +1714,7 @@ namespace Scripts::Custom::Paladin
     };
 
     // =========================================================================
-    // Execution Sentence (343527) — moved from spell_paladin.cpp
+    // Execution Sentence (343527) - moved from spell_paladin.cpp
     // Fixes: HandleProc now filters for Holy damage from the caster only.
     // Adds: spell_pal_execution_sentence_radiate for 1260251 secondary target tracking.
     // =========================================================================
@@ -2089,7 +2089,7 @@ namespace Scripts::Custom::Paladin
         }
     }
 
-    // Avenging Wrath aura hooks — apply/remove Judgment override when AW is cast/expired.
+    // Avenging Wrath aura hooks - apply/remove Judgment override when AW is cast/expired.
     class spell_pal_hammer_of_wrath_avenging_wrath : public AuraScript
     {
         void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
@@ -2123,7 +2123,7 @@ namespace Scripts::Custom::Paladin
         }
     };
 
-    // Hammer of Wrath talent passive aura hooks — apply/remove override if AW is active
+    // Hammer of Wrath talent passive aura hooks - apply/remove override if AW is active
     // when the talent is learned or unlearned.
     class spell_pal_hammer_of_wrath_talent : public AuraScript
     {
@@ -2541,34 +2541,6 @@ namespace Scripts::Custom::Paladin
         }
     };
 
-    // 199422 - Holy Ritual (attached to 6940 - Blessing of Sacrifice and 1022 - Blessing of Protection)
-    class spell_pal_holy_ritual : public AuraScript
-    {
-        bool Validate(SpellInfo const* /*spellInfo*/) override
-        {
-            return ValidateSpellInfo({ Spells::HolyRitualTalent, Spells::HolyRitualHeal });
-        }
-
-        bool Load() override
-        {
-            return GetCaster()->HasAura(Spells::HolyRitualTalent);
-        }
-
-        void HandleHeal(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/) const
-        {
-            if (Unit* caster = GetCaster())
-                caster->CastSpell(GetTarget(), Spells::HolyRitualHeal, CastSpellExtraArgsInit{
-                    .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR,
-                    .TriggeringAura = aurEff
-                });
-        }
-
-        void Register() override
-        {
-            AfterEffectApply += AuraEffectApplyFn(spell_pal_holy_ritual::HandleHeal, EFFECT_1, SPELL_AURA_ANY, AURA_EFFECT_HANDLE_REAL);
-        }
-    };
-
     // 403495 - Judgment of Justice (attached to 20271 - Judgment)
     class spell_pal_judgment_of_justice : public SpellScript
     {
@@ -2788,7 +2760,6 @@ void AddSC_custom_paladin_spell_fixes()
     RegisterSpellScript(spell_pal_crusading_strikes_damage);
     RegisterSpellScript(spell_pal_light_of_the_titans);
     RegisterSpellScript(spell_pal_light_of_the_titans_hot);
-    RegisterSpellScript(spell_pal_holy_ritual);
     RegisterSpellScript(spell_pal_judgment_of_justice);
     RegisterSpellScript(spell_pal_punishment);
     RegisterSpellScript(spell_pal_guided_prayer);

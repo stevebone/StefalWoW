@@ -95,34 +95,6 @@ namespace Scripts::Custom::DeathKnight
             OnCheckCast += SpellCheckCastFn(spell_dk_blood_draw_buff::CheckTriggerSource);
         }
     };
-
-    // 454851 - Vestigial Shell (attached to 48707 - Anti-Magic Shell)
-    class spell_dk_vestigial_shell : public SpellScript
-    {
-        bool Validate(SpellInfo const* /*spellInfo*/) override
-        {
-            return ValidateSpellInfo({ Spells::VestigialShellTalent, Spells::VestigialShell });
-        }
-
-        bool Load() override
-        {
-            return GetCaster()->HasAura(Spells::VestigialShellTalent);
-        }
-
-        void HandleAfterCast() const
-        {
-            Unit* caster = GetCaster();
-            caster->CastSpell(caster, Spells::VestigialShell, CastSpellExtraArgsInit{
-                .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR,
-                .TriggeringSpell = GetSpell()
-                });
-        }
-
-        void Register() override
-        {
-            AfterCast += SpellCastFn(spell_dk_vestigial_shell::HandleAfterCast);
-        }
-    };
 }
 
 void AddSC_custom_deathknight_spell_fixes()
@@ -131,5 +103,4 @@ void AddSC_custom_deathknight_spell_fixes()
 
     RegisterSpellScript(spell_dk_blood_draw_drain);
     RegisterSpellScript(spell_dk_blood_draw_buff);
-    RegisterSpellScript(spell_dk_vestigial_shell);
 }
