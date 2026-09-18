@@ -14509,24 +14509,23 @@ void Player::SendPreparedGossip(WorldObject* source)
     if (!source)
         return;
 
-    // If there is only one quest available (and no gossip options), send quest info
-    if (source->GetTypeId() == TYPEID_UNIT || source->GetTypeId() == TYPEID_GAMEOBJECT)
-    {
-        if (PlayerTalkClass->GetGossipMenu().Empty() && PlayerTalkClass->GetQuestMenu().GetMenuItemCount() == 1)
-        {
-            SendPreparedQuest(source);
-            return;
-        }
-    }
-
-    // In case non empty gossip menu or quest menu count > 1, show it
-    // (quest entries from quest menu will be included in list)
-
     uint32 textId = GetGossipTextId(source);
 
     if (uint32 menuId = PlayerTalkClass->GetGossipMenu().GetMenuId())
         textId = GetGossipTextId(menuId, source);
 
+    // If there is only one quest available and nothing to show in the gossip window
+    // (no options and no gossip text), send quest info directly
+    if ((source->GetTypeId() == TYPEID_UNIT || source->GetTypeId() == TYPEID_GAMEOBJECT) &&
+        PlayerTalkClass->GetGossipMenu().Empty() &&
+        textId == DEFAULT_GOSSIP_MESSAGE &&
+        PlayerTalkClass->GetQuestMenu().GetMenuItemCount() == 1)
+    {
+        SendPreparedQuest(source);
+        return;
+    }
+
+    // Otherwise show the gossip window (text + options + quest entries)
     PlayerTalkClass->SendGossipMenu(textId, source->GetGUID());
 }
 
