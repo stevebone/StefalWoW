@@ -1528,7 +1528,7 @@ class spell_dk_vestigial_shell : public SpellScript
         caster->CastSpell(caster, SPELL_DK_VESTIGIAL_SHELL, CastSpellExtraArgsInit{
             .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR,
             .TriggeringSpell = GetSpell()
-            });
+        });
     }
 
     void Register() override
