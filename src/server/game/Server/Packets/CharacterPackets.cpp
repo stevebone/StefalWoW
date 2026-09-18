@@ -112,6 +112,54 @@ WorldPacket const* GetAccountCharacterListResult::Write()
     return &_worldPacket;
 }
 
+void GetRegionwideCharacterRestrictionAndMailData::Read()
+{
+    _worldPacket >> Size<uint32>(CharacterGuids);
+
+    for (ObjectGuid& guid : CharacterGuids)
+        _worldPacket >> guid;
+}
+
+WorldPacket const* RegionwideCharacterRestrictionsData::Write()
+{
+    _worldPacket << Size<uint32>(Characters);
+
+    for (RestrictionEntry const& entry : Characters)
+    {
+        _worldPacket << uint8(entry.Flags);
+        _worldPacket << entry.Guid;
+        _worldPacket << uint32(entry.RestrictionID);
+    }
+
+    return &_worldPacket;
+}
+
+WorldPacket const* RegionwideCharacterMailData::Write()
+{
+    _worldPacket << Size<uint32>(Characters);
+
+    for (MailEntry const& entry : Characters)
+    {
+        _worldPacket << uint8(entry.Type);
+        _worldPacket << entry.Guid;
+        _worldPacket << Size<uint32>(entry.MailSenders);
+        _worldPacket << Size<uint32>(entry.MailSenderTypes);
+
+        if (!entry.MailSenderTypes.empty())
+            _worldPacket.append(entry.MailSenderTypes.data(), entry.MailSenderTypes.size());
+
+        for (std::string const& str : entry.MailSenders)
+            _worldPacket << SizedCString::BitsSize<6>(str);
+
+        _worldPacket.FlushBits();
+
+        for (std::string const& str : entry.MailSenders)
+            _worldPacket << SizedCString::Data(str);
+    }
+
+    return &_worldPacket;
+}
+
 EnumCharactersResult::CharacterInfoBasic::CharacterInfoBasic(Field const* fields)
 {
     //         0                1                2                3                 4                  5

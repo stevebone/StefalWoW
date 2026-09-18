@@ -43,6 +43,7 @@
 #include "Item.h"
 #include "Language.h"
 #include "Log.h"
+#include "Mail.h"
 #include "Map.h"
 #include "MapUtils.h"
 #include "Metric.h"
@@ -720,6 +721,16 @@ void WorldSession::HandleCharEnum(CharacterDatabaseQueryHolder const& holder)
     SendPacket(charEnum.Write());
     SendAccountDataTimes(ObjectGuid::Empty, GLOBAL_CACHE_MASK);
 
+    if (charEnum.Realmless && !charEnum.IsDeletedCharacters)
+    {
+        GuidVector characterGuids;
+        characterGuids.reserve(charEnum.RegionwideCharacters.size());
+        for (WorldPackets::Character::EnumCharactersResult::RegionwideCharacterListEntry const& entry : charEnum.RegionwideCharacters)
+            characterGuids.push_back(entry.Basic.Guid);
+
+        SendRegionwideCharacterRestrictionAndMailData(characterGuids);
+    }
+
     if (!charEnum.IsDeletedCharacters)
         _collectionMgr->SendWarbandSceneCollectionData();
 }
@@ -883,6 +894,98 @@ void WorldSession::HandleGetAccountCharacterList(WorldPackets::Character::GetAcc
 
         SendPacket(resultPacket.Write());
     }));
+}
+
+static std::string GetRegionwideMailSenderName(uint32 messageType, ObjectGuid::LowType sender, std::string_view playerName)
+{
+    switch (messageType)
+    {
+        case MAIL_NORMAL:
+            return std::string(playerName);
+        case MAIL_CREATURE:
+        case MAIL_BLACKMARKET:
+            if (CreatureTemplate const* creatureTemplate = sObjectMgr->GetCreatureTemplate(sender))
+                return creatureTemplate->Name;
+            break;
+        case MAIL_GAMEOBJECT:
+            if (GameObjectTemplate const* gameObjectTemplate = sObjectMgr->GetGameObjectTemplate(sender))
+                return gameObjectTemplate->name;
+            break;
+        default:
+            break;
+    }
+
+    return { };
+}
+
+void WorldSession::SendRegionwideCharacterRestrictionAndMailData(GuidVector const& characterGuids)
+{
+    WorldPackets::Character::RegionwideCharacterRestrictionsData restrictions;
+    restrictions.Characters.reserve(characterGuids.size());
+    for (ObjectGuid const& guid : characterGuids)
+    {
+        WorldPackets::Character::RegionwideCharacterRestrictionsData::RestrictionEntry& entry = restrictions.Characters.emplace_back();
+        entry.Guid = guid;
+        // Flags and RestrictionID stay 0 - no trial boost/expansion/catch-up restrictions on this server
+    }
+    SendPacket(restrictions.Write());
+
+    CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_ACCOUNT_UNREAD_MAIL);
+    stmt->setUInt32(0, GetAccountId());
+    stmt->setInt64(1, GameTime::GetGameTime());
+    stmt->setInt64(2, GameTime::GetGameTime());
+
+    _queryProcessor.AddCallback(CharacterDatabase.AsyncQuery(stmt).WithPreparedCallback(
+        [this, characterGuids](PreparedQueryResult result)
+    {
+        // receiver -> distinct (messageType, sender) pairs -> display name
+        std::unordered_map<ObjectGuid::LowType, std::map<std::pair<uint32, ObjectGuid::LowType>, std::string>> sendersByReceiver;
+        if (result)
+        {
+            do
+            {
+                Field* fields = result->Fetch();
+                uint32 messageType = fields[1].GetUInt8();
+                ObjectGuid::LowType sender = fields[2].GetUInt64();
+                std::string_view senderName = fields[3].IsNull() ? std::string_view() : fields[3].GetStringView();
+
+                sendersByReceiver[fields[0].GetUInt64()].try_emplace(std::make_pair(messageType, sender),
+                    GetRegionwideMailSenderName(messageType, sender, senderName));
+            } while (result->NextRow());
+        }
+
+        WorldPackets::Character::RegionwideCharacterMailData mailData;
+        mailData.Characters.reserve(characterGuids.size());
+        for (ObjectGuid const& guid : characterGuids)
+        {
+            WorldPackets::Character::RegionwideCharacterMailData::MailEntry& entry = mailData.Characters.emplace_back();
+            entry.Guid = guid;
+
+            if (auto itr = sendersByReceiver.find(guid.GetCounter()); itr != sendersByReceiver.end())
+            {
+                entry.MailSenders.reserve(itr->second.size());
+                entry.MailSenderTypes.reserve(itr->second.size());
+                for (auto const& [key, name] : itr->second)
+                {
+                    entry.MailSenderTypes.push_back(key.first);
+                    entry.MailSenders.push_back(name);
+                }
+            }
+        }
+
+        SendPacket(mailData.Write());
+    }));
+}
+
+void WorldSession::HandleGetRegionwideCharacterRestrictionAndMailData(WorldPackets::Character::GetRegionwideCharacterRestrictionAndMailData& packet)
+{
+    GuidVector characterGuids;
+    characterGuids.reserve(packet.CharacterGuids.size());
+    for (ObjectGuid const& guid : packet.CharacterGuids)
+        if (_legitCharacters.find(guid) != _legitCharacters.end())
+            characterGuids.push_back(guid);
+
+    SendRegionwideCharacterRestrictionAndMailData(characterGuids);
 }
 
 bool WorldSession::MeetsChrCustomizationReq(ChrCustomizationReqEntry const* req, Races race, Classes playerClass,
@@ -1475,7 +1578,13 @@ void WorldSession::HandleCharDeleteOpcode(WorldPackets::Character::CharDelete& c
     sCalendarMgr->RemoveAllPlayerEventsAndInvites(charDelete.Guid);
     Player::DeleteFromDB(charDelete.Guid, accountId);
 
+    _legitCharacters.erase(charDelete.Guid);
+
     SendCharDelete(CHAR_DELETE_SUCCESS);
+
+    // refresh the client's regionwide character data now that the list changed
+    if (!_legitCharacters.empty())
+        SendRegionwideCharacterRestrictionAndMailData(GuidVector(_legitCharacters.begin(), _legitCharacters.end()));
 }
 
 void WorldSession::HandlePlayerLoginOpcode(WorldPackets::Character::PlayerLogin& playerLogin)

@@ -110,6 +110,9 @@ void CharacterDatabaseConnection::DoPrepareStatements()
     PrepareStatement(CHAR_SEL_UNDELETE_ENUM_CUSTOMIZATIONS, "SELECT cc.guid, cc.chrCustomizationOptionID, cc.chrCustomizationChoiceID FROM character_customizations cc "
                      "LEFT JOIN characters c ON cc.guid = c.guid WHERE c.deleteInfos_Account = ? AND c.deleteInfos_Name IS NOT NULL ORDER BY cc.guid, cc.chrCustomizationOptionID", CONNECTION_ASYNC);
     PrepareStatement(CHAR_SEL_ACCOUNT_CHARACTERS, "SELECT guid, `name`, race, class, gender, level, logout_time FROM characters WHERE account = ? AND deleteInfos_Name IS NULL", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_SEL_ACCOUNT_UNREAD_MAIL, "SELECT m.receiver, m.messageType, m.sender, (SELECT c.name FROM characters AS c WHERE c.guid = m.sender) FROM mail AS m "
+                     "INNER JOIN characters AS rc ON rc.guid = m.receiver "
+                     "WHERE rc.account = ? AND rc.deleteInfos_Name IS NULL AND NOT (m.checked & 1) AND m.deliver_time <= ? AND m.expire_time > ?", CONNECTION_ASYNC);
 
     PrepareStatement(CHAR_SEL_FREE_NAME, "SELECT name, at_login FROM characters WHERE guid = ? AND NOT EXISTS (SELECT NULL FROM characters WHERE name = ?)", CONNECTION_ASYNC);
     PrepareStatement(CHAR_SEL_CHAR_ZONE, "SELECT zone FROM characters WHERE guid = ?", CONNECTION_SYNCH);
