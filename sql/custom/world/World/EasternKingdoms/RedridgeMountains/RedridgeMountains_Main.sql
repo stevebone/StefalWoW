@@ -275,9 +275,11 @@ INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry
 (32, 5, 43460, 0, 0, 14, 0, 26646, 0, 0, 0, 0, 0, '', 'Jorgensen (camp) visible when quest 26646 Prisoners of War is NOT taken');
 
 -- This makes Colonel Troteman be visible when player is on quest 26708 and it is at least complete.
+-- Second condition is for Colonel Troteman at the Canyon
 DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 32 AND `SourceGroup` = 5 AND `SourceEntry` IN (43733);
 INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `NegativeCondition`, `ErrorType`, `ErrorTextId`, `ScriptName`, `Comment`) VALUES
-(32, 5, 43733, 0, 0, 47, 0, 26708, 66, 0, 0, 0, 0, '', 'Colonel Troteman (Post) visible when quest 26708 is at least complete');
+(32, 5, 43733, 0, 0, 47, 0, 26708, 66, 0, 0, 0, 0, '', 'Colonel Troteman (Post) visible when quest 26708 is at least complete'),
+(32, 5, 43733, 0, 1, 1, 1, 130432, 0, 0, 1, 0, 0, '', 'Colonel Troteman does not have aura 130432');
 
 -- Condition: terrain swap 751 active when in area 44 AND quest 26668 is complete
 DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 25 AND `SourceEntry` = 751;
