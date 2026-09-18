@@ -69,7 +69,7 @@ void CharacterDatabaseConnection::DoPrepareStatements()
                      "gm.guildid, c.playerFlags, c.at_login, cp.entry, cp.modelid, cp.level AS cpLevel, cb.guid AS cbGuid, c.slot, c.createTime, c.logout_time, c.activeTalentGroup, c.lastLoginBuild, "
                      "c.personalTabardEmblemStyle, c.personalTabardEmblemColor, c.personalTabardBorderStyle, c.personalTabardBorderColor, c.personalTabardBackgroundColor, "
                      "c.timerunningSeasonId, c.chromieTimeExpansionId, "
-                     CharacterSelectEquipment("ceq.") " "
+                     CharacterSelectEquipment("ceq.") ", c.money "
                      "FROM characters AS c LEFT JOIN character_pet AS cp ON c.summonedPetNumber = cp.id LEFT JOIN guild_member AS gm ON c.guid = gm.guid "
                      "LEFT JOIN character_banned AS cb ON c.guid = cb.guid AND cb.active = 1 "
                      "LEFT JOIN character_select_screen_equipment_cache ceq ON c.guid = ceq.guid "
@@ -79,7 +79,7 @@ void CharacterDatabaseConnection::DoPrepareStatements()
                      "c.personalTabardEmblemStyle, c.personalTabardEmblemColor, c.personalTabardBorderStyle, c.personalTabardBorderColor, c.personalTabardBackgroundColor, "
                      "c.timerunningSeasonId, c.chromieTimeExpansionId, "
                      CharacterSelectEquipment("ceq.") ", "
-                     "cd.genitive "
+                     "cd.genitive, c.money "
                      "FROM characters AS c LEFT JOIN character_pet AS cp ON c.summonedPetNumber = cp.id LEFT JOIN guild_member AS gm ON c.guid = gm.guid "
                      "LEFT JOIN character_banned AS cb ON c.guid = cb.guid AND cb.active = 1 "
                      "LEFT JOIN character_select_screen_equipment_cache ceq ON c.guid = ceq.guid "
@@ -91,7 +91,7 @@ void CharacterDatabaseConnection::DoPrepareStatements()
                      "gm.guildid, c.playerFlags, c.at_login, cp.entry, cp.modelid, cp.level AS cpLevel, cb.guid AS cbGuid, c.slot, c.createTime, c.logout_time, c.activeTalentGroup, c.lastLoginBuild, "
                      "c.personalTabardEmblemStyle, c.personalTabardEmblemColor, c.personalTabardBorderStyle, c.personalTabardBorderColor, c.personalTabardBackgroundColor, "
                      "c.timerunningSeasonId, c.chromieTimeExpansionId, "
-                     CharacterSelectEquipment("ceq.") " "
+                     CharacterSelectEquipment("ceq.") ", c.money "
                      "FROM characters AS c LEFT JOIN character_pet AS cp ON c.summonedPetNumber = cp.id LEFT JOIN guild_member AS gm ON c.guid = gm.guid "
                      "LEFT JOIN character_banned AS cb ON c.guid = cb.guid AND cb.active = 1 "
                      "LEFT JOIN character_select_screen_equipment_cache ceq ON c.guid = ceq.guid "
@@ -101,7 +101,7 @@ void CharacterDatabaseConnection::DoPrepareStatements()
                      "c.personalTabardEmblemStyle, c.personalTabardEmblemColor, c.personalTabardBorderStyle, c.personalTabardBorderColor, c.personalTabardBackgroundColor, "
                      "c.timerunningSeasonId, c.chromieTimeExpansionId, "
                      CharacterSelectEquipment("ceq.") ", "
-                     "cd.genitive "
+                     "cd.genitive, c.money "
                      "FROM characters AS c LEFT JOIN character_pet AS cp ON c.summonedPetNumber = cp.id LEFT JOIN guild_member AS gm ON c.guid = gm.guid "
                      "LEFT JOIN character_banned AS cb ON c.guid = cb.guid AND cb.active = 1 "
                      "LEFT JOIN character_select_screen_equipment_cache ceq ON c.guid = ceq.guid "
@@ -109,6 +109,7 @@ void CharacterDatabaseConnection::DoPrepareStatements()
                      "WHERE c.deleteInfos_Account = ? AND c.deleteInfos_Name IS NOT NULL", CONNECTION_ASYNC);
     PrepareStatement(CHAR_SEL_UNDELETE_ENUM_CUSTOMIZATIONS, "SELECT cc.guid, cc.chrCustomizationOptionID, cc.chrCustomizationChoiceID FROM character_customizations cc "
                      "LEFT JOIN characters c ON cc.guid = c.guid WHERE c.deleteInfos_Account = ? AND c.deleteInfos_Name IS NOT NULL ORDER BY cc.guid, cc.chrCustomizationOptionID", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_SEL_ACCOUNT_CHARACTERS, "SELECT guid, `name`, race, class, gender, level, logout_time FROM characters WHERE account = ? AND deleteInfos_Name IS NULL", CONNECTION_ASYNC);
 
     PrepareStatement(CHAR_SEL_FREE_NAME, "SELECT name, at_login FROM characters WHERE guid = ? AND NOT EXISTS (SELECT NULL FROM characters WHERE name = ?)", CONNECTION_ASYNC);
     PrepareStatement(CHAR_SEL_CHAR_ZONE, "SELECT zone FROM characters WHERE guid = ?", CONNECTION_SYNCH);
