@@ -28788,6 +28788,7 @@ void Player::CompleteResearchProjectSolve(ArchaeologySolvePlan const& plan)
         return;
 
     RecordCompletedProject(plan.ProjectID);
+    UpdateCriteria(CriteriaType::CompleteResearchProject, plan.ProjectID);
     UpdateCriteria(CriteriaType::CompleteAnyResearchProject, project->Rarity, plan.BranchID);
     AdvanceResearchProject(plan.BranchID, plan.ProjectID);
 
