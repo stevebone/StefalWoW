@@ -588,6 +588,10 @@ struct npc_illidari_fighting_invasion_begins : public ScriptedAI
     {
         _events.ScheduleEvent(EVENT_CHAOS_STRIKE, 5s);
         _events.ScheduleEvent(EVENT_FEL_RUSH, 7s);
+
+        // Need to confirm if creature text is shared across all npcs
+        if (me->GetEntry() == 98460)
+            Talk(0);
     }
 
     void EnterEvadeMode(EvadeReason why) override
@@ -824,11 +828,14 @@ private:
     TaskScheduler _scheduler;
 };
 
+// Defined in Custom/World/BrokenIsles/Mardum/Custom_Mardum_NPCs.cpp
+namespace Scripts::Custom::Mardum { CreatureAI* CreateSevisBrightflameAshtongueGatewayAI(Creature* creature); }
+
 CreatureAI* SevisBrightflameAshtongueGatewayAISelector(Creature* creature)
 {
     if (creature->IsPrivateObject())
         return new npc_sevis_brightflame_ashtongue_gateway_private(creature);
-    return new NullCreatureAI(creature);
+    return Scripts::Custom::Mardum::CreateSevisBrightflameAshtongueGatewayAI(creature);
 }
 
 // 200255 - Accepting Felsaber Gift
