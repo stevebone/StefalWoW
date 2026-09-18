@@ -256,6 +256,8 @@ namespace WorldPackets
 
         class AlterApperance;
         class EnumCharacters;
+        class GetAccountCharacterList;
+        class GetRegionwideCharacterRestrictionAndMailData;
         class CreateCharacter;
         class CharDelete;
         class CharacterRenameRequest;
@@ -938,7 +940,7 @@ enum AccountDataType
 #define NUM_ACCOUNT_DATA_TYPES        20
 
 #define ALL_ACCOUNT_DATA_CACHE_MASK 0x000FFFFFu
-#define GLOBAL_CACHE_MASK           0x000BA515u
+#define GLOBAL_CACHE_MASK           0x000CA515u
 #define PER_CHARACTER_CACHE_MASK    0x00045AEAu
 
 struct AccountData
@@ -1152,6 +1154,8 @@ class TC_GAME_API WorldSession
         void SendAccountDataTimes(ObjectGuid playerGuid, uint32 mask);
         void LoadAccountData(PreparedQueryResult result, uint32 mask);
 
+        void SendRegionwideCharacterRestrictionAndMailData(GuidVector const& characterGuids);
+
         void LoadTutorialsData(PreparedQueryResult result);
         void SendTutorialsData();
         void SaveTutorialsData(CharacterDatabaseTransaction trans);
@@ -1295,6 +1299,8 @@ class TC_GAME_API WorldSession
         void HandleCharUndeleteEnumOpcode(WorldPackets::Character::EnumCharacters& /*enumCharacters*/);
         void HandleCharDeleteOpcode(WorldPackets::Character::CharDelete& charDelete);
         void HandleSetupWarbandGroups(WorldPackets::Character::SetupWarbandGroups& setupWarbandGroups);
+        void HandleGetAccountCharacterList(WorldPackets::Character::GetAccountCharacterList& getAccountCharacterList);
+        void HandleGetRegionwideCharacterRestrictionAndMailData(WorldPackets::Character::GetRegionwideCharacterRestrictionAndMailData& packet);
         void HandleCharCreateOpcode(WorldPackets::Character::CreateCharacter& charCreate);
         void HandlePlayerLoginOpcode(WorldPackets::Character::PlayerLogin& playerLogin);
 

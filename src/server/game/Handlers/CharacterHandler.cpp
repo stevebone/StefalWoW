@@ -43,6 +43,7 @@
 #include "Item.h"
 #include "Language.h"
 #include "Log.h"
+#include "Mail.h"
 #include "Map.h"
 #include "MapUtils.h"
 #include "Metric.h"
@@ -67,6 +68,7 @@
 #include "Util.h"
 #include "World.h"
 #include <boost/circular_buffer.hpp>
+#include <limits>
 #include <sstream>
 
 class LoginQueryHolder : public CharacterDatabaseQueryHolder
@@ -488,6 +490,8 @@ void WorldSession::HandleCharEnum(CharacterDatabaseQueryHolder const& holder)
     WorldPackets::Character::EnumCharactersResult charEnum;
     charEnum.Success = true;
     charEnum.IsDeletedCharacters = static_cast<EnumCharactersQueryHolder const&>(holder).IsDeletedCharacters();
+    charEnum.Realmless = true;
+    charEnum.ForceCharacterListSort = false;
     charEnum.ClassDisableMask = sWorld->getIntConfig(CONFIG_CHARACTER_CREATING_DISABLED_CLASSMASK);
 
     if (!charEnum.IsDeletedCharacters)
@@ -508,11 +512,18 @@ void WorldSession::HandleCharEnum(CharacterDatabaseQueryHolder const& holder)
 
     if (PreparedQueryResult result = holder.GetPreparedResult(EnumCharactersQueryHolder::CHARACTERS))
     {
+        // c.money is the last column of every character select statement
+        std::size_t const moneyFieldIndex = result->GetFieldCount() - 1;
+
         do
         {
-            charEnum.Characters.emplace_back(result->Fetch());
+            Field* fields = result->Fetch();
 
-            WorldPackets::Character::EnumCharactersResult::CharacterInfoBasic& charInfo = charEnum.Characters.back().Basic;
+            WorldPackets::Character::EnumCharactersResult::RegionwideCharacterListEntry& entry = charEnum.RegionwideCharacters.emplace_back(fields);
+            entry.Money = fields[moneyFieldIndex].GetUInt64();
+            entry.Basic.RealmInfoFound = true;
+
+            WorldPackets::Character::EnumCharactersResult::CharacterInfoBasic& charInfo = entry.Basic;
 
             if (std::vector<UF::ChrCustomizationChoice>* customizationsForChar = Trinity::Containers::MapGetValuePtr(customizations, charInfo.Guid.GetCounter()))
                 charInfo.Customizations = std::move(*customizationsForChar);
@@ -547,7 +558,7 @@ void WorldSession::HandleCharEnum(CharacterDatabaseQueryHolder const& holder)
 
             charEnum.MaxCharacterLevel = std::max<int32>(charEnum.MaxCharacterLevel, charInfo.ExperienceLevel);
         }
-        while (result->NextRow() && charEnum.Characters.size() < MAX_CHARACTERS_PER_REALM);
+        while (result->NextRow() && charEnum.RegionwideCharacters.size() < MAX_CHARACTERS_PER_REALM);
     }
 
     for (RaceClassAvailability const& requirement : sObjectMgr->GetRaceClassRequirements())
@@ -575,6 +586,10 @@ void WorldSession::HandleCharEnum(CharacterDatabaseQueryHolder const& holder)
             return classUnlock.HasExpansion && classUnlock.HasUnlockedAchievement && classUnlock.HasEntitlement;
         });
     }
+
+    // warband arrangement: grouped characters first ordered by group and scene placement,
+    // ungrouped characters keep database order after them
+    std::unordered_map<ObjectGuid::LowType, std::pair<uint8, uint32>> warbandMemberPlacement; // charGuid -> (group orderIndex, placement)
 
     if (!charEnum.IsDeletedCharacters)
     {
@@ -614,12 +629,13 @@ void WorldSession::HandleCharEnum(CharacterDatabaseQueryHolder const& holder)
                 member.WarbandScenePlacementID = fields[3].GetUInt32();
                 member.Type = fields[4].GetInt32();
                 member.ContentSetID = fields[5].GetInt32();
+                warbandMemberPlacement[fields[2].GetUInt64()] = std::make_pair(it->second->OrderIndex, member.WarbandScenePlacementID);
                 it->second->Members.push_back(member);
             } while (memberResult->NextRow());
         }
 
         // If no warband groups exist and we have characters, create a default group
-        if (charEnum.WarbandGroups.empty() && !charEnum.Characters.empty())
+        if (charEnum.WarbandGroups.empty() && !charEnum.RegionwideCharacters.empty())
         {
             // Use the first available warband scene (ID 1 = default "Campfire" scene)
             uint32 defaultSceneId = 0;
@@ -650,14 +666,15 @@ void WorldSession::HandleCharEnum(CharacterDatabaseQueryHolder const& holder)
                 }
 
                 // Assign up to 4 characters (or as many as we have placement slots)
-                uint32 maxMembers = std::min<uint32>(static_cast<uint32>(charEnum.Characters.size()), static_cast<uint32>(characterPlacementIds.size()));
+                uint32 maxMembers = std::min<uint32>(static_cast<uint32>(charEnum.RegionwideCharacters.size()), static_cast<uint32>(characterPlacementIds.size()));
                 for (uint32 i = 0; i < maxMembers; ++i)
                 {
                     WorldPackets::Character::WarbandGroupMember member;
-                    member.Guid = charEnum.Characters[i].Basic.Guid;
+                    member.Guid = charEnum.RegionwideCharacters[i].Basic.Guid;
                     member.WarbandScenePlacementID = characterPlacementIds[i];
                     member.Type = 0; // Character
                     member.ContentSetID = 0;
+                    warbandMemberPlacement[member.Guid.GetCounter()] = std::make_pair(defaultGroup.OrderIndex, member.WarbandScenePlacementID);
                     defaultGroup.Members.push_back(member);
                 }
 
@@ -693,7 +710,26 @@ void WorldSession::HandleCharEnum(CharacterDatabaseQueryHolder const& holder)
         }
     }
 
+    std::ranges::stable_sort(charEnum.RegionwideCharacters, std::less{}, [&warbandMemberPlacement](WorldPackets::Character::EnumCharactersResult::RegionwideCharacterListEntry const& entry)
+    {
+        std::pair<uint8, uint32> arrangement{ std::numeric_limits<uint8>::max(), 0 };
+        if (auto itr = warbandMemberPlacement.find(entry.Basic.Guid.GetCounter()); itr != warbandMemberPlacement.end())
+            arrangement = itr->second;
+        return arrangement;
+    });
+
     SendPacket(charEnum.Write());
+    SendAccountDataTimes(ObjectGuid::Empty, GLOBAL_CACHE_MASK);
+
+    if (charEnum.Realmless && !charEnum.IsDeletedCharacters)
+    {
+        GuidVector characterGuids;
+        characterGuids.reserve(charEnum.RegionwideCharacters.size());
+        for (WorldPackets::Character::EnumCharactersResult::RegionwideCharacterListEntry const& entry : charEnum.RegionwideCharacters)
+            characterGuids.push_back(entry.Basic.Guid);
+
+        SendRegionwideCharacterRestrictionAndMailData(characterGuids);
+    }
 
     if (!charEnum.IsDeletedCharacters)
         _collectionMgr->SendWarbandSceneCollectionData();
@@ -819,6 +855,137 @@ void WorldSession::HandleSetupWarbandGroups(WorldPackets::Character::SetupWarban
     }
 
     CharacterDatabase.CommitTransaction(trans);
+}
+
+void WorldSession::HandleGetAccountCharacterList(WorldPackets::Character::GetAccountCharacterList& getAccountCharacterList)
+{
+    TC_LOG_DEBUG("network", "CMSG_GET_ACCOUNT_CHARACTER_LIST [{}]: token {}", GetAccountId(), getAccountCharacterList.Token);
+
+    CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_ACCOUNT_CHARACTERS);
+    stmt->setUInt32(0, GetAccountId());
+
+    _queryProcessor.AddCallback(CharacterDatabase.AsyncQuery(stmt).WithPreparedCallback(
+        [this, token = getAccountCharacterList.Token](PreparedQueryResult result)
+    {
+        WorldPackets::Character::GetAccountCharacterListResult resultPacket;
+        resultPacket.Token = token;
+
+        if (result)
+        {
+            ObjectGuid const wowAccountGuid = ObjectGuid::Create<HighGuid::WowAccount>(GetAccountId());
+            uint32 const virtualRealmAddress = GetVirtualRealmAddress();
+            do
+            {
+                Field* fields = result->Fetch();
+                WorldPackets::Character::GetAccountCharacterListResult::AccountCharacterEntry& entry = resultPacket.Characters.emplace_back();
+                entry.WowAccount = wowAccountGuid;
+                entry.Guid = ObjectGuid::Create<HighGuid::Player>(fields[0].GetUInt64());
+                entry.VirtualRealmAddress = virtualRealmAddress;
+                entry.RaceID = fields[2].GetUInt8();
+                entry.ClassID = fields[3].GetUInt8();
+                entry.SexID = fields[4].GetUInt8();
+                entry.ExperienceLevel = fields[5].GetUInt8();
+                entry.LastActiveTime = fields[6].GetInt64();
+                entry.Name = std::string(fields[1].GetStringView());
+                // single-realm server: every character lives on the local realm, and retail leaves
+                // the realm name empty for local-realm characters
+            } while (result->NextRow());
+        }
+
+        SendPacket(resultPacket.Write());
+    }));
+}
+
+static std::string GetRegionwideMailSenderName(uint32 messageType, ObjectGuid::LowType sender, std::string_view playerName)
+{
+    switch (messageType)
+    {
+        case MAIL_NORMAL:
+            return std::string(playerName);
+        case MAIL_CREATURE:
+        case MAIL_BLACKMARKET:
+            if (CreatureTemplate const* creatureTemplate = sObjectMgr->GetCreatureTemplate(sender))
+                return creatureTemplate->Name;
+            break;
+        case MAIL_GAMEOBJECT:
+            if (GameObjectTemplate const* gameObjectTemplate = sObjectMgr->GetGameObjectTemplate(sender))
+                return gameObjectTemplate->name;
+            break;
+        default:
+            break;
+    }
+
+    return { };
+}
+
+void WorldSession::SendRegionwideCharacterRestrictionAndMailData(GuidVector const& characterGuids)
+{
+    WorldPackets::Character::RegionwideCharacterRestrictionsData restrictions;
+    restrictions.Characters.reserve(characterGuids.size());
+    for (ObjectGuid const& guid : characterGuids)
+    {
+        WorldPackets::Character::RegionwideCharacterRestrictionsData::RestrictionEntry& entry = restrictions.Characters.emplace_back();
+        entry.Guid = guid;
+        // Flags and RestrictionID stay 0 - no trial boost/expansion/catch-up restrictions on this server
+    }
+    SendPacket(restrictions.Write());
+
+    CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_ACCOUNT_UNREAD_MAIL);
+    stmt->setUInt32(0, GetAccountId());
+    stmt->setInt64(1, GameTime::GetGameTime());
+    stmt->setInt64(2, GameTime::GetGameTime());
+
+    _queryProcessor.AddCallback(CharacterDatabase.AsyncQuery(stmt).WithPreparedCallback(
+        [this, characterGuids](PreparedQueryResult result)
+    {
+        // receiver -> distinct (messageType, sender) pairs -> display name
+        std::unordered_map<ObjectGuid::LowType, std::map<std::pair<uint32, ObjectGuid::LowType>, std::string>> sendersByReceiver;
+        if (result)
+        {
+            do
+            {
+                Field* fields = result->Fetch();
+                uint32 messageType = fields[1].GetUInt8();
+                ObjectGuid::LowType sender = fields[2].GetUInt64();
+                std::string_view senderName = fields[3].IsNull() ? std::string_view() : fields[3].GetStringView();
+
+                sendersByReceiver[fields[0].GetUInt64()].try_emplace(std::make_pair(messageType, sender),
+                    GetRegionwideMailSenderName(messageType, sender, senderName));
+            } while (result->NextRow());
+        }
+
+        WorldPackets::Character::RegionwideCharacterMailData mailData;
+        mailData.Characters.reserve(characterGuids.size());
+        for (ObjectGuid const& guid : characterGuids)
+        {
+            WorldPackets::Character::RegionwideCharacterMailData::MailEntry& entry = mailData.Characters.emplace_back();
+            entry.Guid = guid;
+
+            if (auto itr = sendersByReceiver.find(guid.GetCounter()); itr != sendersByReceiver.end())
+            {
+                entry.MailSenders.reserve(itr->second.size());
+                entry.MailSenderTypes.reserve(itr->second.size());
+                for (auto const& [key, name] : itr->second)
+                {
+                    entry.MailSenderTypes.push_back(key.first);
+                    entry.MailSenders.push_back(name);
+                }
+            }
+        }
+
+        SendPacket(mailData.Write());
+    }));
+}
+
+void WorldSession::HandleGetRegionwideCharacterRestrictionAndMailData(WorldPackets::Character::GetRegionwideCharacterRestrictionAndMailData& packet)
+{
+    GuidVector characterGuids;
+    characterGuids.reserve(packet.CharacterGuids.size());
+    for (ObjectGuid const& guid : packet.CharacterGuids)
+        if (_legitCharacters.find(guid) != _legitCharacters.end())
+            characterGuids.push_back(guid);
+
+    SendRegionwideCharacterRestrictionAndMailData(characterGuids);
 }
 
 bool WorldSession::MeetsChrCustomizationReq(ChrCustomizationReqEntry const* req, Races race, Classes playerClass,
@@ -1411,7 +1578,13 @@ void WorldSession::HandleCharDeleteOpcode(WorldPackets::Character::CharDelete& c
     sCalendarMgr->RemoveAllPlayerEventsAndInvites(charDelete.Guid);
     Player::DeleteFromDB(charDelete.Guid, accountId);
 
+    _legitCharacters.erase(charDelete.Guid);
+
     SendCharDelete(CHAR_DELETE_SUCCESS);
+
+    // refresh the client's regionwide character data now that the list changed
+    if (!_legitCharacters.empty())
+        SendRegionwideCharacterRestrictionAndMailData(GuidVector(_legitCharacters.begin(), _legitCharacters.end()));
 }
 
 void WorldSession::HandlePlayerLoginOpcode(WorldPackets::Character::PlayerLogin& playerLogin)

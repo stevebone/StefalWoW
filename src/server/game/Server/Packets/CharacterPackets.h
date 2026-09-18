@@ -135,6 +135,88 @@ namespace WorldPackets
             std::string Name;
         };
 
+        class GetAccountCharacterList final : public ClientPacket
+        {
+        public:
+            explicit GetAccountCharacterList(WorldPacket&& packet) : ClientPacket(CMSG_GET_ACCOUNT_CHARACTER_LIST, std::move(packet)) { }
+
+            void Read() override;
+
+            uint32 Token = 0;
+            uint8 Flags = 0;
+        };
+
+        class GetAccountCharacterListResult final : public ServerPacket
+        {
+        public:
+            GetAccountCharacterListResult() : ServerPacket(SMSG_GET_ACCOUNT_CHARACTER_LIST_RESULT, 4) { }
+
+            WorldPacket const* Write() override;
+
+            struct AccountCharacterEntry
+            {
+                ObjectGuid WowAccount;
+                ObjectGuid Guid;
+                uint32 VirtualRealmAddress = 0;
+                uint8 RaceID = 0;
+                uint8 ClassID = 0;
+                uint8 SexID = 0;
+                uint8 ExperienceLevel = 0;
+                int64 LastActiveTime = 0;
+                int32 ContentSetID = 0;
+                std::string Name;
+                std::string RealmName;
+            };
+
+            uint32 Token = 0;
+            std::vector<AccountCharacterEntry> Characters;
+        };
+
+        class GetRegionwideCharacterRestrictionAndMailData final : public ClientPacket
+        {
+        public:
+            explicit GetRegionwideCharacterRestrictionAndMailData(WorldPacket&& packet) : ClientPacket(CMSG_GET_REGIONWIDE_CHARACTER_RESTRICTION_AND_MAIL_DATA, std::move(packet)) { }
+
+            void Read() override;
+
+            std::vector<ObjectGuid> CharacterGuids;
+        };
+
+        class RegionwideCharacterRestrictionsData final : public ServerPacket
+        {
+        public:
+            RegionwideCharacterRestrictionsData() : ServerPacket(SMSG_REGIONWIDE_CHARACTER_RESTRICTIONS_DATA, 4) { }
+
+            WorldPacket const* Write() override;
+
+            struct RestrictionEntry
+            {
+                ObjectGuid Guid;
+                uint8 Flags = 0;           ///< bit4 = IsRestricted, bit3 = CatchUpAvailable
+                uint32 RestrictionID = 0;
+            };
+
+            std::vector<RestrictionEntry> Characters;
+        };
+
+        class RegionwideCharacterMailData final : public ServerPacket
+        {
+        public:
+            RegionwideCharacterMailData() : ServerPacket(SMSG_REGIONWIDE_CHARACTER_MAIL_DATA, 4) { }
+
+            WorldPacket const* Write() override;
+
+            struct MailEntry
+            {
+                ObjectGuid Guid;
+                uint8 Type = 1;             ///< bits7-5 = TypeMask, per client parser
+                std::vector<std::string> MailSenders;      ///< parallel with MailSenderTypes
+                std::vector<uint32> MailSenderTypes;       ///< enum MailMessageType
+            };
+
+            std::vector<MailEntry> Characters;
+        };
+
         class EnumCharactersResult final : public ServerPacket
         {
         public:
