@@ -77,6 +77,41 @@ EnumCharacters::EnumCharacters(WorldPacket&& packet) : ClientPacket(std::move(pa
     ASSERT(GetOpcode() == CMSG_ENUM_CHARACTERS || GetOpcode() == CMSG_ENUM_CHARACTERS_DELETED_BY_CLIENT);
 }
 
+void GetAccountCharacterList::Read()
+{
+    _worldPacket >> Token;
+    _worldPacket >> Flags;
+}
+
+WorldPacket const* GetAccountCharacterListResult::Write()
+{
+    _worldPacket << uint32(Token);
+    _worldPacket << Size<uint32>(Characters);
+
+    for (AccountCharacterEntry const& character : Characters)
+    {
+        _worldPacket << character.WowAccount;
+        _worldPacket << character.Guid;
+        _worldPacket << uint32(character.VirtualRealmAddress);
+        _worldPacket << uint8(character.RaceID);
+        _worldPacket << uint8(character.ClassID);
+        _worldPacket << uint8(character.SexID);
+        _worldPacket << uint8(character.ExperienceLevel);
+        _worldPacket << int64(character.LastActiveTime);
+        _worldPacket << int32(character.ContentSetID);
+
+        _worldPacket << SizedString::BitsSize<6>(character.Name);
+        _worldPacket << Bits<3>(0);
+        _worldPacket << SizedString::BitsSize<6>(character.RealmName);
+        _worldPacket.FlushBits();
+
+        _worldPacket << SizedString::Data(character.Name);
+        _worldPacket << SizedString::Data(character.RealmName);
+    }
+
+    return &_worldPacket;
+}
+
 void SetupWarbandGroups::Read()
 {
     uint32 groupCount = _worldPacket.ReadBits(5);

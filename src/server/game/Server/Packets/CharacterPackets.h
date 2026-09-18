@@ -145,6 +145,43 @@ namespace WorldPackets
             std::vector<WarbandGroup> Groups;
         };
 
+        class GetAccountCharacterList final : public ClientPacket
+        {
+        public:
+            explicit GetAccountCharacterList(WorldPacket&& packet) : ClientPacket(CMSG_GET_ACCOUNT_CHARACTER_LIST, std::move(packet)) { }
+
+            void Read() override;
+
+            uint32 Token = 0;
+            uint8 Flags = 0;
+        };
+
+        class GetAccountCharacterListResult final : public ServerPacket
+        {
+        public:
+            GetAccountCharacterListResult() : ServerPacket(SMSG_GET_ACCOUNT_CHARACTER_LIST_RESULT, 4) { }
+
+            WorldPacket const* Write() override;
+
+            struct AccountCharacterEntry
+            {
+                ObjectGuid WowAccount;
+                ObjectGuid Guid;
+                uint32 VirtualRealmAddress = 0;
+                uint8 RaceID = 0;
+                uint8 ClassID = 0;
+                uint8 SexID = 0;
+                uint8 ExperienceLevel = 0;
+                int64 LastActiveTime = 0;
+                int32 ContentSetID = 0;
+                std::string Name;
+                std::string RealmName;
+            };
+
+            uint32 Token = 0;
+            std::vector<AccountCharacterEntry> Characters;
+        };
+
         class EnumCharactersResult final : public ServerPacket
         {
         public:
