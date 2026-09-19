@@ -444,9 +444,19 @@ static void FillApplicationList(WorldPackets::ClubFinder::ClubFinderApplicationL
         if (!posting)
             continue;
 
-        // The client treats an application older than a week as expired; do not list it as live.
-        if (application->Status == CLUB_FINDER_APPLICATION_PENDING && ClubFinderMgr::IsApplicationExpired(*application))
+        if (ClubFinderMgr::IsApplicationExpired(*application))
+        {
+            if (application->Status == CLUB_FINDER_APPLICATION_PENDING)
+                continue;
+
+            WorldPackets::ClubFinder::ClubFinderApplicationList::PendingApplication& entry = packet.Applications.emplace_back();
+            entry.ClubFinderGUID    = posting->GetClubFinderGUID();
+            entry.PlayerGUID        = application->PlayerGuid;
+            entry.LastUpdatedTime   = application->LastUpdatedTime;
+            entry.ApplicationStatus = CLUB_FINDER_APPLICATION_NONE;
+            entry.Closed = 0;
             continue;
+        }
 
         WorldPackets::ClubFinder::ClubFinderApplicationList::PendingApplication& entry = packet.Applications.emplace_back();
         entry.ClubFinderGUID    = posting->GetClubFinderGUID();
