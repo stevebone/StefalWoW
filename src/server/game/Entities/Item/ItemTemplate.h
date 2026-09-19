@@ -146,7 +146,7 @@ enum ItemFieldFlags : uint32
     ITEM_FIELD_FLAG_TRANSLATED    = 0x00000002, // Item text will not read as garbage when player does not know the language
     ITEM_FIELD_FLAG_UNLOCKED      = 0x00000004, // Item had lock but can be opened now
     ITEM_FIELD_FLAG_WRAPPED       = 0x00000008, // Item is wrapped and contains another item
-    ITEM_FIELD_FLAG_UNK2          = 0x00000010,
+    ITEM_FIELD_FLAG_CONVERTED_WARBOUND = 0x00000010, // BtWuE item has been equipped and converted to soulbound
     ITEM_FIELD_FLAG_UNK3          = 0x00000020,
     ITEM_FIELD_FLAG_UNK4          = 0x00000040,
     ITEM_FIELD_FLAG_UNK5          = 0x00000080,

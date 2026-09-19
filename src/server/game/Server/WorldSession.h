@@ -172,6 +172,9 @@ namespace WorldPackets
         class AutoStoreBankItem;
         class BuyBankTab;
         class UpdateBankTabSettings;
+        class AutoDepositAccountBank;
+        class AccountBankDepositMoney;
+        class AccountBankWithdrawMoney;
         class AutoDepositCharacterBank;
         class BankerActivate;
     }
@@ -1628,6 +1631,9 @@ class TC_GAME_API WorldSession
         void HandleBuyBankTab(WorldPackets::Bank::BuyBankTab const& buyBankTab);
         void HandleUpdateBankTabSettings(WorldPackets::Bank::UpdateBankTabSettings const& updateBankTabSettings);
         void HandleAutoDepositCharacterBank(WorldPackets::Bank::AutoDepositCharacterBank const& autoDepositCharacterBank);
+        void HandleAutoDepositAccountBank(WorldPackets::Bank::AutoDepositAccountBank const& autoDepositAccountBank);
+        void HandleAccountBankDepositMoney(WorldPackets::Bank::AccountBankDepositMoney const& accountBankDepositMoney);
+        void HandleAccountBankWithdrawMoney(WorldPackets::Bank::AccountBankWithdrawMoney const& accountBankWithdrawMoney);
 
         // Black Market
         void HandleBlackMarketOpen(WorldPackets::BlackMarket::BlackMarketOpen& blackMarketOpen);

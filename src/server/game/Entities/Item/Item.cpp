@@ -1773,6 +1773,28 @@ Item* Item::CloneItem(uint32 count, Player const* player /*= nullptr*/) const
     return newItem;
 }
 
+bool Item::IsWarbandBound() const
+{
+    ItemBondingType bonding = GetBonding();
+    if (bonding == BIND_WOW_ACCOUNT || bonding == BIND_BNET_ACCOUNT)
+        return true;
+    if (bonding == BIND_BNET_ACCOUNT_UNTIL_EQUIPPED && !HasItemFlag(ITEM_FIELD_FLAG_CONVERTED_WARBOUND))
+        return true;
+    return false;
+}
+
+void Item::ConvertToSoulbound()
+{
+    if (GetBonding() != BIND_BNET_ACCOUNT_UNTIL_EQUIPPED)
+        return;
+    if (HasItemFlag(ITEM_FIELD_FLAG_CONVERTED_WARBOUND))
+        return;
+
+    SetBinding(true);
+    SetItemFlag(ITEM_FIELD_FLAG_CONVERTED_WARBOUND);
+    SetState(ITEM_CHANGED, GetOwner());
+}
+
 bool Item::IsBindedNotWith(Player const* player) const
 {
     // not binded item

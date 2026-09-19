@@ -252,6 +252,9 @@ class TC_GAME_API Item : public Object
 
         bool IsSoulBound() const { return HasItemFlag(ITEM_FIELD_FLAG_SOULBOUND); }
         bool IsBoundAccountWide() const { return GetTemplate()->HasFlag(ITEM_FLAG_IS_BOUND_TO_ACCOUNT); }
+        bool IsWarbandBound() const;
+        bool IsAccountBound() const { return IsBoundAccountWide() || IsWarbandBound(); }
+        void ConvertToSoulbound();
         bool IsBattlenetAccountBound() const { return GetTemplate()->HasFlag(ITEM_FLAG2_BNET_ACCOUNT_TRADE_OK); }
         bool IsBindedNotWith(Player const* player) const;
         bool IsBoundByEnchant() const;
