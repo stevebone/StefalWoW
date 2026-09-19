@@ -76,6 +76,7 @@ void AddSC_custom_dazaralor_objects();
 
 void AddSC_custom_mardum_scenes();
 void AddSC_custom_mardum_player();
+void AddSC_custom_mardum_npcs();
 
 // ==================== Followship Scripts ==================== //
 void AddSC_followship_bots();                // FSB main Script
@@ -195,6 +196,7 @@ void AddCustomScripts()
 
     AddSC_custom_mardum_scenes();
     AddSC_custom_mardum_player();
+    AddSC_custom_mardum_npcs();
 
     AddSC_followship_bots();
     AddSC_followship_bots_player();

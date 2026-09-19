@@ -28,6 +28,8 @@ namespace Scripts::Custom::Mardum
     {
         static constexpr uint32 KaynSunfury = 98229;
         static constexpr uint32 SevisBrightflameAshtongue = 99916;
+        static constexpr uint32 FelSpreader = 97142;
+        static constexpr uint32 FirstFelSpreader = 97154;
     }
 
     namespace Maps
@@ -44,6 +46,22 @@ namespace Scripts::Custom::Mardum
     {
         static constexpr uint32 EnterTheIllidariAshtongue = 40378;
         static constexpr uint32 AssaultOnMardum          = 39279;
+    }
+
+    namespace Objectives
+    {
+        static constexpr uint32 FelSpreaderDestroyed = 279930; // quest 39279
+    }
+
+    namespace Spells
+    {
+        static constexpr uint32 DestroyingFelSpreader = 191827;
+        static constexpr uint32 FelSpreaderExplosion  = 199617;
+    }
+
+    namespace Conversations
+    {
+        static constexpr uint32 FelSpreaderDestroyed = 581;
     }
 
     namespace CreatureText

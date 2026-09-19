@@ -20,11 +20,17 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "Conversation.h"
 #include "Creature.h"
 #include "CreatureAI.h"
+#include "ObjectAccessor.h"
 #include "ObjectGuid.h"
 #include "Player.h"
 #include "ScriptedCreature.h"
+#include "ScriptMgr.h"
+#include "SpellInfo.h"
+#include "Spell.h"
+#include "TaskScheduler.h"
 #include "Unit.h"
 
 #include "Custom_Mardum_Defines.h"
@@ -64,4 +70,73 @@ namespace Scripts::Custom::Mardum
     {
         return new npc_sevis_brightflame_ashtongue_gateway(creature);
     }
+
+    // 97142 - Fel Spreader
+    // npc_spellclick_spells makes the clicker cast 191827 (2s cast) on the spreader.
+    // SpellHit fires exactly when that cast lands; the scheduler task is a fallback
+    // in case the spell never produces a unit-target hit on the creature.
+    struct npc_fel_spreader : public ScriptedAI
+    {
+        npc_fel_spreader(Creature* creature) : ScriptedAI(creature) { }
+
+        void OnSpellClick(Unit* clicker, bool spellClickHandled) override
+        {
+            Player* player = clicker ? clicker->ToPlayer() : nullptr;
+            if (!spellClickHandled || !player)
+                return;
+
+            ObjectGuid clickerGuid = player->GetGUID();
+            _scheduler.Schedule(2200ms, [this, clickerGuid](TaskContext const& /*context*/)
+            {
+                if (Player* player = ObjectAccessor::GetPlayer(*me, clickerGuid))
+                    FinishInteraction(player);
+            });
+        }
+
+        void SpellHit(WorldObject* caster, SpellInfo const* spellInfo) override
+        {
+            if (spellInfo->Id != Spells::DestroyingFelSpreader)
+                return;
+
+            if (Unit* unitCaster = caster ? caster->ToUnit() : nullptr)
+                FinishInteraction(unitCaster);
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _scheduler.Update(diff);
+        }
+
+    private:
+        void FinishInteraction(Unit* clicker)
+        {
+            Player* player = clicker->ToPlayer();
+            if (!player)
+                return;
+
+            if (!_processedClickers.insert(player->GetGUID()).second)
+                return;
+
+            // Triggered: the player may still be finishing the 191827 cast slot.
+            player->CastSpell(me, Spells::FelSpreaderExplosion, CastSpellExtraArgs(TRIGGERED_FULL_MASK));
+
+            // Read the objective before awarding the credit that completes it.
+            bool firstSpreader = !player->IsQuestObjectiveComplete(Quests::AssaultOnMardum, Objectives::FelSpreaderDestroyed);
+            player->KilledMonsterCredit(firstSpreader ? Creatures::FirstFelSpreader : Creatures::FelSpreader, me->GetGUID());
+
+            if (firstSpreader)
+                Conversation::CreateConversation(Conversations::FelSpreaderDestroyed, player, *player, player->GetGUID());
+
+            me->DespawnOrUnsummon(1s, 5min);
+        }
+
+        TaskScheduler _scheduler;
+        GuidUnorderedSet _processedClickers;
+    };
+}
+
+void AddSC_custom_mardum_npcs()
+{
+    using namespace Scripts::Custom::Mardum;
+    RegisterCreatureAI(npc_fel_spreader);
 }

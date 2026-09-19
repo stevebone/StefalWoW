@@ -491,7 +491,6 @@ INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,
 INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (95056,46598,1,0);
 INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (78917,46598,1,0);
 INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (89669,179185,1,0);
-INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (97142,191827,0,0);
 INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (101947,201112,0,0);
 INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (97382,192252,1,0);
 INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (97459,191481,0,0);
