@@ -3,8 +3,8 @@
 SET @CGUID := 70032949;
 DELETE FROM `creature` WHERE `guid` BETWEEN @CGUID+0 AND @CGUID+330;
 INSERT INTO `creature` (`guid`, `id`, `map`, `zoneId`, `areaId`, `phaseId`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `wander_distance`, `MovementType`) VALUES
-(@CGUID+0, 96159, 1481, 7705, 7740, 5310, 0, 523.405, 2428.41, -117.087, 0.0787885, 180, 0, 0),
-(@CGUID+1, 96159, 1481, 7705, 7740, 5310, 0, 523.405, 2428.41, -117.003, 0.0851803, 180, 0, 0),
+(@CGUID+0, 96159, 1481, 7705, 7740, 0, 0, 523.405, 2428.41, -117.087, 0.0787885, 180, 0, 0),
+(@CGUID+1, 6491, 1481, 7705, 7747, 0, 0, 1902.684, 1447.442, 108.0863, 1.388749, 180, 0, 0);
 (@CGUID+2, 102910, 1481, 7705, 7712, 5310, 1, 1406.01, 1799.79, 61.8698, 1.63923, 180, 0, 0),
 (@CGUID+3, 105945, 1481, 7705, 7712, 5310, 1, 1449.39, 1762.3, 54.5247, 1.53671, 180, 0, 0),
 (@CGUID+4, 102907, 1481, 7705, 7712, 5310, 1, 1411.62, 1692.06, 54.542, 0.72837, 180, 0, 0),
@@ -333,7 +333,7 @@ INSERT INTO `creature` (`guid`, `id`, `map`, `zoneId`, `areaId`, `phaseId`, `equ
 (@CGUID+327, 37490, 1481, 7705, 7749, 5310, 0, 1561.43, 1412.84, 242.111, 6.2374, 180, 0, 0),
 (@CGUID+328, 96650, 1481, 7705, 7712, 5310, 1, 1426.26, 1708.68, 54.459, 2.71799, 180, 0, 0),
 (@CGUID+329, 98986, 1481, 7705, 7912, 5310, 0, 1880.78, 1139.95, 80.3036, 2.64984, 180, 0, 0),
-(@CGUID+330, 6491, 1481, 0, 0, 5310, 0, 848.139, 2398.06, -52.0289, 5.48009, 180, 0, 0);
+(@CGUID+330, 6491, 1481, 7705, 7740, 0, 0, 848.139, 2398.06, -52.0289, 5.48009, 180, 0, 0);
 
 DELETE FROM `creature_addon` WHERE `guid` BETWEEN @CGUID+0 AND @CGUID+330;
 INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES

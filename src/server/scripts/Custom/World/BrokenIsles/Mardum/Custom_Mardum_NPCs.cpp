@@ -120,12 +120,17 @@ namespace Scripts::Custom::Mardum
             // Triggered: the player may still be finishing the 191827 cast slot.
             player->CastSpell(me, Spells::FelSpreaderExplosion, CastSpellExtraArgs(TRIGGERED_FULL_MASK));
 
-            // Read the objective before awarding the credit that completes it.
+            // Read the objective before awarding the credits that complete it.
+            // FirstFelSpreader credit completes objective 279930, which gates the
+            // conversation so it only triggers on the first spreader.
             bool firstSpreader = !player->IsQuestObjectiveComplete(Quests::AssaultOnMardum, Objectives::FelSpreaderDestroyed);
-            player->KilledMonsterCredit(firstSpreader ? Creatures::FirstFelSpreader : Creatures::FelSpreader, me->GetGUID());
+            player->KilledMonsterCredit(Creatures::FelSpreader, me->GetGUID());
 
             if (firstSpreader)
+            {
+                player->KilledMonsterCredit(Creatures::FirstFelSpreader, me->GetGUID());
                 Conversation::CreateConversation(Conversations::FelSpreaderDestroyed, player, *player, player->GetGUID());
+            }
 
             me->DespawnOrUnsummon(1s, 5min);
         }

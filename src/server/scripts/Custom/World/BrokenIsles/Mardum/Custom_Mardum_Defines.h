@@ -30,11 +30,17 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 SevisBrightflameAshtongue = 99916;
         static constexpr uint32 FelSpreader = 97142;
         static constexpr uint32 FirstFelSpreader = 97154;
+        static constexpr uint32 LegionCommunicator1 = 102223;
     }
 
     namespace Maps
     {
         static constexpr uint32 Mardum = 1481;
+    }
+
+    namespace GameObjects
+    {
+        static constexpr uint32 LegionCommunicator1 = 244439;
     }
 
     namespace Scenes
@@ -50,7 +56,8 @@ namespace Scripts::Custom::Mardum
 
     namespace Objectives
     {
-        static constexpr uint32 FelSpreaderDestroyed = 279930; // quest 39279
+        static constexpr uint32 FelSpreaderDestroyed      = 279930; // quest 39279
+        static constexpr uint32 LegionCommunicator1    = 281333; // quest 39279
     }
 
     namespace Spells
@@ -61,7 +68,8 @@ namespace Scripts::Custom::Mardum
 
     namespace Conversations
     {
-        static constexpr uint32 FelSpreaderDestroyed = 581;
+        static constexpr uint32 FelSpreaderDestroyed      = 581;
+        static constexpr uint32 LegionCommunicatorReport  = 558;
     }
 
     namespace CreatureText

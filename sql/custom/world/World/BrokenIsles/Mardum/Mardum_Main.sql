@@ -1,10 +1,13 @@
 -- Mardum (Demon Hunter) Fixes
 
+-- NPC: 93112 Felguard Sentry
+-- NPC: 93115 Foul Felstalker
 -- NPC: 98484 Mo'arg Brute
 -- NPC: 98483 Hellish Imp
 -- NPC: 98482 Foul Felstalker
 -- NPC: 98497 Imp Mother
 -- NPC: 98486 Wrath Warrior
+-- NPC: 95226 Anguish Jailer
 
 -- NPC: 97142 Fel Spreader
 
@@ -17,6 +20,12 @@
 -- Spell: 199617 Assault on Mardum: Fel Spreader Fel Explosion
 
 -- ========================= Fixes for the Bonus quest
+-- Update Kill Credits
+UPDATE `creature_template` SET `KillCredit2` = 94651 WHERE `entry` = 98483; -- imps are min mobs
+UPDATE `creature_template` SET `KillCredit2` = 95226 WHERE `entry` IN (98482,98486); -- Foul Felstalker & Wrath Warrior are normal mobs
+UPDATE `creature_template` SET `KillCredit2` = 96400 WHERE `entry` = 98484; -- Brutes have their own kill credit
+
+
 DELETE FROM `conversation_template` WHERE `Id` = 581;
 INSERT INTO `conversation_template` (`Id`, `FirstLineId`, `VerifiedBuild`) VALUES
 (581, 1511, 69875);
@@ -42,7 +51,21 @@ DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 18 AND `SourceGroup` 
 INSERT INTO `conditions` (`SourceTypeOrReferenceId`,`SourceGroup`,`SourceEntry`,`SourceId`,`ElseGroup`,`ConditionTypeOrReference`,`ConditionTarget`,`ConditionValue1`,`ConditionValue2`,`ConditionValue3`,`NegativeCondition`,`ErrorType`,`ErrorTextId`,`ScriptName`,`Comment`) VALUES
 (18,97142,191827,0,0,9,0,39279,0,0,0,0,0,'','Fel Spreader - spellclick requires quest 39279 Assault On Mardum in log');
 
+-- GO: 244439 Legion Communicator -> conversation 558 (Doom Commander Beliash)
+UPDATE `gameobject_template` SET `ScriptName` = 'go_legion_communicator' WHERE `entry` = 244439;
 
+DELETE FROM `conversation_template` WHERE `Id` = 558;
+INSERT INTO `conversation_template` (`Id`, `FirstLineId`, `VerifiedBuild`) VALUES
+(558, 1445, 69875);
+
+DELETE FROM `conversation_line_template` WHERE `Id` IN (1445,1446);
+INSERT INTO `conversation_line_template` (`Id`, `UiCameraID`, `VerifiedBuild`) VALUES
+(1445, 254, 69875),
+(1446, 254, 69875);
+
+DELETE FROM `conversation_actors` WHERE `ConversationId` = 558;
+INSERT  INTO `conversation_actors` (`ConversationId`, `ConversationActorId`, `Idx`, `CreatureId`, `CreatureDisplayInfoId`, `NoActorObject`, `ActivePlayerObject`, `VerifiedBuild`) VALUES
+(558, 49825, 0, 93221, 65308, 0, 0, 69875);
 
 -- ========================= Fixes for the Invasion Begins
 -- Scene: 1116 The Invasion Begins (banner planted) -> Kayn Sunfury (98229) dialogue on complete
@@ -66,9 +89,18 @@ DELETE FROM `creature_template_difficulty` WHERE `DifficultyID` = 1 AND `Entry` 
 UPDATE `creature_template_difficulty` SET `StaticFlags1` = `StaticFlags1` | 0x20000000 WHERE `Entry` IN (94744);
 
 -- SAI
-UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (98484,98486,98497,98482);
-DELETE FROM smart_scripts WHERE entryorguid IN (98484,98486,98497,98482) AND source_type = 0;
+UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (98484,98486,98497,98482,95226,93112);
+DELETE FROM smart_scripts WHERE entryorguid IN (98484,98486,98497,98482,95226,93112) AND source_type = 0;
 INSERT INTO smart_scripts (entryorguid, source_type, id, link, Difficulties, event_type, event_phase_mask, event_chance, event_flags, event_param1, event_param2, event_param3, event_param4, event_param5, event_param_string, action_type, action_param1, action_param2, action_param3, action_param4, action_param5, action_param6, action_param7, action_param_string, target_type, target_param1, target_param2, target_param3, target_param4, target_param_string, target_x, target_y, target_z, target_o, comment) VALUES
+(93112, 0, 0, 0, '', 0, 0, 100, 1, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Felguard Sentry - In Combat - Talk (No Repeat)'),
+(93112, 0, 2, 0, '', 0, 0, 100, 0, 5000, 8000, 12000, 15000, 0, '', 11, 200570, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Felguard Sentry - In Combat - Cast ''Blazing Blade'''),
+
+
+(95226, 0, 0, 0, '', 0, 0, 100, 0, 1000, 2000, 3000, 4000, 0, '', 11, 200502, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Anguish Jailer - In Combat - Cast ''Anguished Soul'''),
+(95226, 0, 1, 0, '', 6, 0, 100, 0, 0, 0, 0, 0, 0, '', 11, 200521, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Anguish Jailer - On Just Died - Cast ''Well of Souls Soul Visual'''),
+(95226, 0, 3, 0, '', 4, 0, 30, 1, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Anguis Jailer - In Combat - Talk (No Repeat)'),
+
+
 (98484, 0, 0, 0, '', 0, 0, 100, 0, 1000, 2000, 8000, 9000, 0, '', 11, 200425, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Mo''arg Brute - In Combat - Cast ''Brutal Slam'''),
 (98484, 0, 1, 4, '', 0, 0, 30, 1, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Mo Arg Brute - In Combat - Talk (No Repeat)'),
 
@@ -80,5 +112,11 @@ INSERT INTO smart_scripts (entryorguid, source_type, id, link, Difficulties, eve
 
 (98482, 0, 0, 0, '', 0, 0, 100, 0, 5000, 8000, 12000, 15000, 0, '', 11, 200417, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Foul Felstalker - In Combat - Cast ''Foul Fel''');
 
-
-
+DELETE FROM `graveyard_zone` WHERE `GhostZone` = 7705;
+INSERT INTO `graveyard_zone` (`ID`, `GhostZone`, `Comment`) VALUES
+(5082, 7705, 'DH-Mardum - (01) Start'),
+(5284, 7705, 'DH-Mardum - (02) Molten Shore'),
+(5083, 7705, 'DH-Mardum - (03) Seat of Command'),
+(5119, 7705, 'DH-Mardum - (04) Illidari Foothold'),
+(5140, 7705, 'DH-Mardum - (05) Volcano'),
+(5188, 7705, 'DH-Mardum - (06) The Fel Hammer');
