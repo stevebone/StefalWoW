@@ -30,6 +30,11 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 SevisBrightflameAshtongue = 99916;
     }
 
+    namespace Maps
+    {
+        static constexpr uint32 Mardum = 1481;
+    }
+
     namespace Scenes
     {
         static constexpr uint32 TheInvasionBeginsBannerPlanted = 1116;
@@ -38,6 +43,7 @@ namespace Scripts::Custom::Mardum
     namespace Quests
     {
         static constexpr uint32 EnterTheIllidariAshtongue = 40378;
+        static constexpr uint32 AssaultOnMardum          = 39279;
     }
 
     namespace CreatureText

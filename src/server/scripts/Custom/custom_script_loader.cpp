@@ -75,6 +75,7 @@ void AddSC_custom_redridge_mountains_spells();
 void AddSC_custom_dazaralor_objects();
 
 void AddSC_custom_mardum_scenes();
+void AddSC_custom_mardum_player();
 
 // ==================== Followship Scripts ==================== //
 void AddSC_followship_bots();                // FSB main Script
@@ -193,6 +194,7 @@ void AddCustomScripts()
 	AddSC_custom_dazaralor_objects();
 
     AddSC_custom_mardum_scenes();
+    AddSC_custom_mardum_player();
 
     AddSC_followship_bots();
     AddSC_followship_bots_player();

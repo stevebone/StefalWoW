@@ -6,8 +6,15 @@
 -- NPC: 98497 Imp Mother
 -- NPC: 98486 Wrath Warrior
 
+-- NPC: 97142 Fel Spreader
+
 -- NPC: 93011 Kayn Sunfury <Illidari>
 -- NPC: 98460 Kor'vas Bloodthorn <Illidari>
+
+-- Quest: 39279 Assault On Mardum (Bonus Objectives)
+
+-- Spell: 191827 Destroying Fel Spreader (spell click)
+-- Spell: 199617 Assault on Mardum: Fel Spreader Fel Explosion
 
 -- Scene: 1116 The Invasion Begins (banner planted) -> Kayn Sunfury (98229) dialogue on complete
 UPDATE `scene_template` SET `ScriptName` = 'scene_the_invasion_begins_banner_planted' WHERE `SceneId` = 1116;
