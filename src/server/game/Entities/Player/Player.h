@@ -30,6 +30,7 @@
 #include "ItemEnchantmentMgr.h"
 #include "MapReference.h"
 #include "PetDefines.h"
+#include "ItemPackets.h"
 #include "PlayerTaxi.h"
 #include "QuestDef.h"
 #include "SceneMgr.h"
@@ -1689,7 +1690,7 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         bool IsUseEquipedWeapon(bool mainhand) const;
         bool IsTwoHandUsed() const;
         bool IsUsingTwoHandedWeaponInOneHand() const;
-        void SendNewItem(Item* item, uint32 quantity, bool pushed, bool created, bool broadcast = false, uint32 dungeonEncounterId = 0);
+        void SendNewItem(Item* item, uint32 quantity, bool pushed, bool created, bool broadcast = false, uint32 dungeonEncounterId = 0, WorldPackets::Item::ItemPushResult::DisplayType chatNotifyType = WorldPackets::Item::ItemPushResult::DISPLAY_TYPE_NORMAL);
         bool BuyItemFromVendorSlot(ObjectGuid vendorguid, uint32 vendorslot, uint32 item, uint32 count, uint8 bag, uint8 slot);
         Optional<SellResult> CanSellItemToVendor(Item const* item, uint32 amount) const;
         Optional<SellResult> SellItemToVendor(Item* item, uint32 amount);

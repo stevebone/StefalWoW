@@ -14550,7 +14550,7 @@ void Player::SendItemPassives()
     SendDirectMessage(sendItemPassives.Write());
 }
 
-void Player::SendNewItem(Item* item, uint32 quantity, bool pushed, bool created, bool broadcast /*= false*/, uint32 dungeonEncounterId /*= 0*/)
+void Player::SendNewItem(Item* item, uint32 quantity, bool pushed, bool created, bool broadcast /*= false*/, uint32 dungeonEncounterId /*= 0*/, WorldPackets::Item::ItemPushResult::DisplayType chatNotifyType /*= WorldPackets::Item::ItemPushResult::DISPLAY_TYPE_NORMAL*/)
 {
     if (!item)  // prevent crash
         return;
@@ -14578,7 +14578,7 @@ void Player::SendNewItem(Item* item, uint32 quantity, bool pushed, bool created,
     packet.ItemGUID = item->GetGUID();
 
     packet.Pushed = pushed;
-    packet.ChatNotifyType = WorldPackets::Item::ItemPushResult::DISPLAY_TYPE_NORMAL;
+    packet.ChatNotifyType = chatNotifyType;
     packet.Created = created;
     //packet.IsBonusRoll;
 

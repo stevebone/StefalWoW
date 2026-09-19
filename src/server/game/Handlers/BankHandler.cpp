@@ -213,6 +213,8 @@ void WorldSession::HandleBuyBankTab(WorldPackets::Bank::BuyBankTab const& buyBan
     if (!bag)
         return;
 
+    _player->SendNewItem(bag, 1, true, false, false, 0, WorldPackets::Item::ItemPushResult::DISPLAY_TYPE_HIDDEN);
+
     switch (buyBankTab.BankType)
     {
         case BankType::Character:

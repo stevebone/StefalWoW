@@ -4757,6 +4757,7 @@ void BankTabSettings::WriteUpdate(bool ignoreChangesMask, ByteBuffer& data, Play
     if (ignoreChangesMask)
         changesMask.SetAll();
 
+    data.FlushBits();
     data.WriteBits(changesMask.GetBlock(0), 4);
 
     if (changesMask[0])
