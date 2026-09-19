@@ -559,20 +559,26 @@ TC_API_EXPORT EnumText EnumUtils<NPCFlags2>::ToString(NPCFlags2 value)
         case UNIT_NPC_FLAG_2_GARRISON_MISSION_NPC: return { "UNIT_NPC_FLAG_2_GARRISON_MISSION_NPC", "is garrison mission", "" };
         case UNIT_NPC_FLAG_2_TRADESKILL_NPC: return { "UNIT_NPC_FLAG_2_TRADESKILL_NPC", "is tradeskill", "crafting at npc" };
         case UNIT_NPC_FLAG_2_BLACK_MARKET_VIEW: return { "UNIT_NPC_FLAG_2_BLACK_MARKET_VIEW", "is black market view", "only allows viewing black market auctions, no bidding" };
+        case UNIT_NPC_FLAG_2_GARRISON_RECRUITMENT: return { "UNIT_NPC_FLAG_2_GARRISON_RECRUITMENT", "is garrison recruitment", "" };
         case UNIT_NPC_FLAG_2_GARRISON_TALENT_NPC: return { "UNIT_NPC_FLAG_2_GARRISON_TALENT_NPC", "is garrrison talent", "" };
         case UNIT_NPC_FLAG_2_CONTRIBUTION_COLLECTOR: return { "UNIT_NPC_FLAG_2_CONTRIBUTION_COLLECTOR", "is contribution collector", "" };
+        case UNIT_NPC_FLAG_2_TELEPORTER: return { "UNIT_NPC_FLAG_2_TELEPORTER", "is teleporter", "" };
+        case UNIT_NPC_FLAG_2_UNK_0x1000: return { "UNIT_NPC_FLAG_2_UNK_0x1000", "UNIT_NPC_FLAG_2_UNK_0x1000", "" };
         case UNIT_NPC_FLAG_2_FAST_STEERING_AVOIDS_OBSTACLES: return { "UNIT_NPC_FLAG_2_FAST_STEERING_AVOIDS_OBSTACLES", "enables avoiding obstacles when FastSteering spline flag is set", "" };
         case UNIT_NPC_FLAG_2_AZERITE_RESPEC: return { "UNIT_NPC_FLAG_2_AZERITE_RESPEC", "is azerite respec", "" };
         case UNIT_NPC_FLAG_2_ISLANDS_QUEUE: return { "UNIT_NPC_FLAG_2_ISLANDS_QUEUE", "is islands queue", "" };
         case UNIT_NPC_FLAG_2_SUPPRESS_NPC_SOUNDS_EXCEPT_END_OF_INTERACTION: return { "UNIT_NPC_FLAG_2_SUPPRESS_NPC_SOUNDS_EXCEPT_END_OF_INTERACTION", "UNIT_NPC_FLAG_2_SUPPRESS_NPC_SOUNDS_EXCEPT_END_OF_INTERACTION", "" };
+        case UNIT_NPC_FLAG_2_SPECIAL_VENDOR: return { "UNIT_NPC_FLAG_2_SPECIAL_VENDOR", "is special vendor", "" };
+        case UNIT_NPC_FLAG_2_BARBER_NPC: return { "UNIT_NPC_FLAG_2_BARBER_NPC", "is barber", "" };
         case UNIT_NPC_FLAG_2_PERKS_VENDOR: return { "UNIT_NPC_FLAG_2_PERKS_VENDOR", "is trading post vendor", "" };
+        case UNIT_NPC_FLAG_2_CRAFTING_ORDER_CLERK: return { "UNIT_NPC_FLAG_2_CRAFTING_ORDER_CLERK", "is crafting order clerk", "" };
         case UNIT_NPC_FLAG_2_PERSONAL_TABARD_DESIGNER: return { "UNIT_NPC_FLAG_2_PERSONAL_TABARD_DESIGNER", "is personal tabard designer", "" };
         default: throw std::out_of_range("value");
     }
 }
 
 template <>
-TC_API_EXPORT size_t EnumUtils<NPCFlags2>::Count() { return 17; }
+TC_API_EXPORT size_t EnumUtils<NPCFlags2>::Count() { return 23; }
 
 template <>
 TC_API_EXPORT NPCFlags2 EnumUtils<NPCFlags2>::FromIndex(size_t index)
@@ -588,14 +594,20 @@ TC_API_EXPORT NPCFlags2 EnumUtils<NPCFlags2>::FromIndex(size_t index)
         case 6: return UNIT_NPC_FLAG_2_GARRISON_MISSION_NPC;
         case 7: return UNIT_NPC_FLAG_2_TRADESKILL_NPC;
         case 8: return UNIT_NPC_FLAG_2_BLACK_MARKET_VIEW;
-        case 9: return UNIT_NPC_FLAG_2_GARRISON_TALENT_NPC;
-        case 10: return UNIT_NPC_FLAG_2_CONTRIBUTION_COLLECTOR;
-        case 11: return UNIT_NPC_FLAG_2_FAST_STEERING_AVOIDS_OBSTACLES;
-        case 12: return UNIT_NPC_FLAG_2_AZERITE_RESPEC;
-        case 13: return UNIT_NPC_FLAG_2_ISLANDS_QUEUE;
-        case 14: return UNIT_NPC_FLAG_2_SUPPRESS_NPC_SOUNDS_EXCEPT_END_OF_INTERACTION;
-        case 15: return UNIT_NPC_FLAG_2_PERKS_VENDOR;
-        case 16: return UNIT_NPC_FLAG_2_PERSONAL_TABARD_DESIGNER;
+        case 9: return UNIT_NPC_FLAG_2_GARRISON_RECRUITMENT;
+        case 10: return UNIT_NPC_FLAG_2_GARRISON_TALENT_NPC;
+        case 11: return UNIT_NPC_FLAG_2_CONTRIBUTION_COLLECTOR;
+        case 12: return UNIT_NPC_FLAG_2_TELEPORTER;
+        case 13: return UNIT_NPC_FLAG_2_UNK_0x1000;
+        case 14: return UNIT_NPC_FLAG_2_FAST_STEERING_AVOIDS_OBSTACLES;
+        case 15: return UNIT_NPC_FLAG_2_AZERITE_RESPEC;
+        case 16: return UNIT_NPC_FLAG_2_ISLANDS_QUEUE;
+        case 17: return UNIT_NPC_FLAG_2_SUPPRESS_NPC_SOUNDS_EXCEPT_END_OF_INTERACTION;
+        case 18: return UNIT_NPC_FLAG_2_SPECIAL_VENDOR;
+        case 19: return UNIT_NPC_FLAG_2_BARBER_NPC;
+        case 20: return UNIT_NPC_FLAG_2_PERKS_VENDOR;
+        case 21: return UNIT_NPC_FLAG_2_CRAFTING_ORDER_CLERK;
+        case 22: return UNIT_NPC_FLAG_2_PERSONAL_TABARD_DESIGNER;
         default: throw std::out_of_range("index");
     }
 }
@@ -614,14 +626,20 @@ TC_API_EXPORT size_t EnumUtils<NPCFlags2>::ToIndex(NPCFlags2 value)
         case UNIT_NPC_FLAG_2_GARRISON_MISSION_NPC: return 6;
         case UNIT_NPC_FLAG_2_TRADESKILL_NPC: return 7;
         case UNIT_NPC_FLAG_2_BLACK_MARKET_VIEW: return 8;
-        case UNIT_NPC_FLAG_2_GARRISON_TALENT_NPC: return 9;
-        case UNIT_NPC_FLAG_2_CONTRIBUTION_COLLECTOR: return 10;
-        case UNIT_NPC_FLAG_2_FAST_STEERING_AVOIDS_OBSTACLES: return 11;
-        case UNIT_NPC_FLAG_2_AZERITE_RESPEC: return 12;
-        case UNIT_NPC_FLAG_2_ISLANDS_QUEUE: return 13;
-        case UNIT_NPC_FLAG_2_SUPPRESS_NPC_SOUNDS_EXCEPT_END_OF_INTERACTION: return 14;
-        case UNIT_NPC_FLAG_2_PERKS_VENDOR: return 15;
-        case UNIT_NPC_FLAG_2_PERSONAL_TABARD_DESIGNER: return 16;
+        case UNIT_NPC_FLAG_2_GARRISON_RECRUITMENT: return 9;
+        case UNIT_NPC_FLAG_2_GARRISON_TALENT_NPC: return 10;
+        case UNIT_NPC_FLAG_2_CONTRIBUTION_COLLECTOR: return 11;
+        case UNIT_NPC_FLAG_2_TELEPORTER: return 12;
+        case UNIT_NPC_FLAG_2_UNK_0x1000: return 13;
+        case UNIT_NPC_FLAG_2_FAST_STEERING_AVOIDS_OBSTACLES: return 14;
+        case UNIT_NPC_FLAG_2_AZERITE_RESPEC: return 15;
+        case UNIT_NPC_FLAG_2_ISLANDS_QUEUE: return 16;
+        case UNIT_NPC_FLAG_2_SUPPRESS_NPC_SOUNDS_EXCEPT_END_OF_INTERACTION: return 17;
+        case UNIT_NPC_FLAG_2_SPECIAL_VENDOR: return 18;
+        case UNIT_NPC_FLAG_2_BARBER_NPC: return 19;
+        case UNIT_NPC_FLAG_2_PERKS_VENDOR: return 20;
+        case UNIT_NPC_FLAG_2_CRAFTING_ORDER_CLERK: return 21;
+        case UNIT_NPC_FLAG_2_PERSONAL_TABARD_DESIGNER: return 22;
         default: throw std::out_of_range("value");
     }
 }

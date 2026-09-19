@@ -368,13 +368,19 @@ enum NPCFlags2 : uint32
     UNIT_NPC_FLAG_2_GARRISON_MISSION_NPC                            = 0x00000020,   // TITLE is garrison mission
     UNIT_NPC_FLAG_2_TRADESKILL_NPC                                  = 0x00000040,   // TITLE is tradeskill DESCRIPTION crafting at npc
     UNIT_NPC_FLAG_2_BLACK_MARKET_VIEW                               = 0x00000080,   // TITLE is black market view DESCRIPTION only allows viewing black market auctions, no bidding
+    UNIT_NPC_FLAG_2_GARRISON_RECRUITMENT                            = 0x00000100,   // TITLE is garrison recruitment
     UNIT_NPC_FLAG_2_GARRISON_TALENT_NPC                             = 0x00000200,   // TITLE is garrrison talent
     UNIT_NPC_FLAG_2_CONTRIBUTION_COLLECTOR                          = 0x00000400,   // TITLE is contribution collector
+    UNIT_NPC_FLAG_2_TELEPORTER                                      = 0x00000800,   // TITLE is teleporter
+    UNIT_NPC_FLAG_2_UNK_0x1000                                      = 0x00001000,
     UNIT_NPC_FLAG_2_FAST_STEERING_AVOIDS_OBSTACLES                  = 0x00002000,   // TITLE enables avoiding obstacles when FastSteering spline flag is set
     UNIT_NPC_FLAG_2_AZERITE_RESPEC                                  = 0x00004000,   // TITLE is azerite respec
     UNIT_NPC_FLAG_2_ISLANDS_QUEUE                                   = 0x00008000,   // TITLE is islands queue
     UNIT_NPC_FLAG_2_SUPPRESS_NPC_SOUNDS_EXCEPT_END_OF_INTERACTION   = 0x00010000,
+    UNIT_NPC_FLAG_2_SPECIAL_VENDOR                                  = 0x00020000,   // TITLE is special vendor
+    UNIT_NPC_FLAG_2_BARBER_NPC                                      = 0x00040000,   // TITLE is barber
     UNIT_NPC_FLAG_2_PERKS_VENDOR                                    = 0x00080000,   // TITLE is trading post vendor
+    UNIT_NPC_FLAG_2_CRAFTING_ORDER_CLERK                            = 0x00100000,   // TITLE is crafting order clerk
     UNIT_NPC_FLAG_2_PERSONAL_TABARD_DESIGNER                        = 0x00200000,   // TITLE is personal tabard designer
 };
 
