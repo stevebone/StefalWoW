@@ -93,6 +93,13 @@ class spell_switch_flight : public SpellScript
                 caster->SetCanAdvFly(false);
                 caster->SetCanDoubleJump(false);
             }
+
+            // Exactly one style spell must stay learned: the outgoing one is removed
+            // unconditionally, otherwise both accumulate in character_spell and the
+            // login order decides which aura wins instead of the player's choice.
+            player->RemoveSpell(SPELL_SKYRIDING);
+            if (!player->HasSpell(SPELL_STEADY_FLIGHT))
+                player->AddSpell(SPELL_STEADY_FLIGHT, false, true, false, false);
         }
         else
         {
@@ -105,6 +112,10 @@ class spell_switch_flight : public SpellScript
                 caster->SetCanDoubleJump(true);
                 caster->SetFlightCapabilityID(1, true);
             }
+
+            player->RemoveSpell(SPELL_STEADY_FLIGHT);
+            if (!player->HasSpell(SPELL_SKYRIDING))
+                player->AddSpell(SPELL_SKYRIDING, false, true, false, false);
         }
     }
 
@@ -413,7 +424,17 @@ public:
             }
             else if (!hasSkyriding && !hasSteady)
             {
-                player->CastSpell(player, SPELL_SKYRIDING, true);
+                // The spell is learned with active=false so it stays out of the spell book.
+                if (player->HasSpell(SPELL_STEADY_FLIGHT))
+                    player->CastSpell(player, SPELL_STEADY_FLIGHT, true);
+                else if (player->HasSpell(SPELL_SKYRIDING))
+                    player->CastSpell(player, SPELL_SKYRIDING, true);
+                else
+                {
+                    player->AddSpell(SPELL_SKYRIDING, false, true, false, false);
+                    if (!player->HasAura(SPELL_SKYRIDING))
+                        player->CastSpell(player, SPELL_SKYRIDING, true);
+                }
             }
 
             // Vigor aura: CRITICAL for active abilities (CasterAuraSpell=372773 in DB2)
