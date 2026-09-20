@@ -39,6 +39,7 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 IzalWhitemoon       = 93117;
         static constexpr uint32 AshtongueMystic     = 99914;
         static constexpr uint32 ELMGeneralPurposeBunny = 24021;
+        static constexpr uint32 JaceDarkweaver      = 93759;
     }
 
     namespace Maps
@@ -69,6 +70,9 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 EnterTheIllidariCoilskar  = 40379;
         static constexpr uint32 AssaultOnMardum          = 39279;
         static constexpr uint32 SetThemFree              = 38759;
+        static constexpr uint32 EyeOnThePrize            = 39049;
+        static constexpr uint32 MeetingWithTheQueen      = 39050;
+        static constexpr uint32 BeforeWereOverun         = 38766;
     }
 
     namespace Objectives
@@ -86,6 +90,7 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 AshtongueMysticSacrifice = 196724;
         static constexpr uint32 PermanentFeignDeath    = 159474;
         static constexpr uint32 ShivarraSoulMissiles02 = 191664;
+        static constexpr uint32 FelChannelling         = 188485;
     }
 
     namespace Conversations
@@ -119,6 +124,12 @@ namespace Scripts::Custom::Mardum
         // Sevis Brightflame (99917) - creature_text GroupIDs
         static constexpr uint8 SevisCoilskarGreeting = 0;
         static constexpr uint8 SevisCoilskarFollowUp = 1;
+
+        // Jace Darkweaver (93759) - creature_text GroupIDs (Mardum_CreatureText.sql)
+        static constexpr uint8 JaceEyeOnThePrizeGreeting    = 0; // 'I sense greater power within you...'
+        static constexpr uint8 JaceMeetingWithTheQueenAccept = 1; // 'Use the crucible to complete the ritual.'
+        static constexpr uint8 JaceBeforeWereOverunAccept = 2; // 'Beliash is protected by...'
+        static constexpr uint8 JaceBeforeWereOverunAccept2 = 3; // 'Good luck, $n. I'll see you up in the volcano.'
     }
 
     namespace Misc
@@ -126,6 +137,7 @@ namespace Scripts::Custom::Mardum
         static constexpr float SearchRange         = 50.0f;
         static constexpr float TalkDistance        = 5.0f;
         static constexpr float CaptiveGreetingRange = 10.0f;
+        static constexpr float JaceGreetingRange    = 10.0f;
         static constexpr uint32 MysticGossipMenu         = 19015;
         static constexpr uint32 MysticVisualKit          = 25111;
         static constexpr uint32 MysticAnimKit            = 9256;

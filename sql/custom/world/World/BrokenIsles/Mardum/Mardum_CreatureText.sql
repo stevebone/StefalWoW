@@ -1,7 +1,23 @@
 -- Mardum Creature Text
-DELETE FROM `creature_text` WHERE `creatureID` IN (98484,98486,98497,98460,95226, 93112);
+DELETE FROM `creature_text` WHERE `creatureID` IN (98484,98486,98497,98460,95226,93112,96884,93759,94654);
 DELETE FROM `creature_text` WHERE `creatureID` IN (98229) AND `GroupID` IN (2,3);
 INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `BroadcastTextId`, `TextRange`, `comment`) VALUES
+(94654, 0, 0, 'A fatal mistake, mortal.', 12, 0, 100, 0, 0, 55149, 96650, 0, 'Doomguard Eradicator to Player'),
+(94654, 0, 1, 'The Legion conquers all.', 12, 0, 100, 0, 0, 55147, 96648, 0, 'Doomguard Eradicator to Player'),
+(94654, 0, 2, 'Intruder, your life ends now.', 12, 0, 100, 0, 0, 55146, 96647, 0, 'Doomguard Eradicator to Player'),
+(94654, 0, 3, 'Doom!', 12, 0, 100, 0, 0, 55142, 96645, 0, 'Doomguard Eradicator to Player'),
+(94654, 0, 4, 'Succulent marrow. Crunchy bones.', 12, 0, 100, 0, 0, 55150, 96651, 0, 'Doomguard Eradicator to Player'),
+(94654, 0, 5, 'You do not belong here.', 12, 0, 100, 0, 0, 55148, 96649, 0, 'Doomguard Eradicator to Player'),
+
+(93759, 0, 0, 'I sense greater power within you, $n. Have you stolen a demon''s essence?', 12, 0, 100, 0, 0, 55229, 96428, 0, 'Jace Darkweaver to Player'),
+(93759, 1, 0, 'Use the crucible to complete the ritual.', 12, 0, 100, 0, 0, 55242, 96680, 0, 'Jace Darkweaver to Player'),
+(93759, 2, 0, 'Beliash is protected by those Spires of Woe. You''ll want to deactivate them.', 12, 0, 100, 0, 0, 55230, 96689, 0, 'Jace Darkweaver to Player'),
+(93759, 3, 0, 'Good luck, $n. I''ll see you up in the volcano.', 12, 0, 100, 0, 0, 55232, 101307, 0, 'Jace Darkweaver to Player'),
+
+(96884, 0, 0, 'This demon will die.', 12, 0, 100, 0, 0, 55082, 99743, 0, 'Coilskar Sea-Caller to Player'),
+(96884, 1, 0, 'Lady S''theno requested I join you.', 12, 0, 100, 0, 0, 55077, 99738, 0, 'Coilskar Sea-Caller to Player'),
+(96884, 1, 1, 'The Coilskar honor their allegiance.', 12, 0, 100, 0, 0, 55084, 99745, 0, 'Coilskar Sea-Caller to Player'),
+
 (93112, 0, 0, 'For the Legion!', 12, 0, 100, 0, 0, 55192, 96663, 0, 'Felguard Sentry to Player'),
 (93112, 0, 1, 'Demon hunters? How did you get here?', 12, 0, 100, 0, 0, 55187, 94934, 0, 'Felguard Sentry to Player'),
 (93112, 0, 2, 'Die, Illidari fool.', 12, 0, 100, 0, 0, 55189, 94936, 0, 'Felguard Sentry to Player'),
@@ -27,8 +43,9 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Lan
 (98460, 0, 0, 'Having fun? I am!', 12, 0, 100, 0, 0, 55287, 100223, 0, 'Kor''vas Bloodthorn <Illidari> to Player'),
 (98460, 0, 1, 'Hah! Racking up the kills.', 12, 0, 100, 0, 0, 55288, 100222, 0, 'Kor''vas Bloodthorn <Illidari> to Player'),
 
-(98484, 0, 0, 'Taste my blade.', 12, 0, 100, 0, 0, 0, 82439, 0, 'Mo''arg Brute to Player'),
+(98484, 0, 0, 'Taste my blade.', 12, 0, 100, 0, 0, 55327, 97902, 0, 'Mo''arg Brute to Player'),
 (98484, 0, 1, 'Ahahahahaha! I will cut you down.', 12, 0, 100, 0, 0, 0, 94883, 0, 'Mo''arg Brute to Player'),
+(98484, 0, 2, 'Hunt this.', 12, 0, 100, 0, 0, 55328, 97903, 0, 'Mo''arg Brute to Player'),
 
 (98486, 0, 0, 'Brood Queen Tyranna orders your death.', 12, 0, 100, 0, 0, 55366, 98762, 0, 'Wrath Warrior to Player'),
 (98486, 0, 1, 'This is where you die.', 12, 0, 100, 0, 0, 55362, 98765, 0, 'Wrath Warrior to Player'),

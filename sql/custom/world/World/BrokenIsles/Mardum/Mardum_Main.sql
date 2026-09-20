@@ -8,18 +8,24 @@
 -- NPC: 98497 Imp Mother
 -- NPC: 98486 Wrath Warrior
 -- NPC: 95226 Anguish Jailer
+-- NPC: 94654 Doomguard Eradicator
 
 -- NPC: 97142 Fel Spreader
 -- NPC: 93011 Kayn Sunfury <Illidari>
 -- NPC: 98460 Kor'vas Bloodthorn <Illidari>
--- NPC: 
+-- NPC: 96884 Coilskar Sea-Caller <Servant of Illidan>
+-- NPC: 93759 Jace Darkweaver <Illidari>
 
 -- Quest: 39279 Assault On Mardum (Bonus Objectives)
 -- Quest: 38759 Set Them Free
 -- Quest: 40379 Enter the Illidari: Coilskar
+-- Quest: 39049 Eye on the prize
+-- Quest: 39050 Meeting With the Queen
+-- Quest: 38766 Before we're overrun
 
 -- Spell: 191827 Destroying Fel Spreader (spell click)
 -- Spell: 199617 Assault on Mardum: Fel Spreader Fel Explosion
+-- Spell: 191668 Enter the Illidari: Summon Coilskar Sea-Caller
 
 -- ========================= Fixes for the Bonus quest
 -- Update Kill Credits
@@ -27,6 +33,8 @@ UPDATE `creature_template` SET `KillCredit2` = 94651 WHERE `entry` = 98483; -- i
 UPDATE `creature_template` SET `KillCredit2` = 95226 WHERE `entry` IN (98482,98486); -- Foul Felstalker & Wrath Warrior are normal mobs
 UPDATE `creature_template` SET `KillCredit2` = 96400 WHERE `entry` = 98484; -- Brutes have their own kill credit
 
+-- Add flag for auto reward
+UPDATE `quest_template` SET `Flags` = `Flags` | 0x400 WHERE `ID` = 39279;
 
 DELETE FROM `conversation_template` WHERE `Id` = 581;
 INSERT INTO `conversation_template` (`Id`, `FirstLineId`, `VerifiedBuild`) VALUES
@@ -98,6 +106,13 @@ DELETE FROM `creature_template_difficulty` WHERE `DifficultyID` = 1 AND `Entry` 
  96473, 102726, 97034, 97706, 97059, 96277, 96402, 96280, 96278, 97014,
  103432, 96279, 97370, 102724, 97058, 97057, 100243, 100244, 93802, 98497, 98986
 );
+
+-- ========================= Fixes for Before We're Overrun
+DELETE FROM `creature_queststarter` WHERE `quest` = 38766;
+INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES
+(93759, 38766, 69587);
+
+UPDATE `creature_template` SET `ScriptName` = 'npc_jace_darkweaver' WHERE `entry` = 93759;
 
 -- remove prior script
 UPDATE creature_template SET ScriptName='' WHERE entry=96159;

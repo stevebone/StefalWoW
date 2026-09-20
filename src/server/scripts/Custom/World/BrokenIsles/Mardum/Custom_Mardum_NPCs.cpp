@@ -381,11 +381,60 @@ namespace Scripts::Custom::Mardum
         void CastSoulMissiles()
         {
             Creature* bunny = ObjectAccessor::GetCreature(*me, _bunnyGuid);
-            SpellCastResult result = me->CastSpell(bunny ? bunny : me, Spells::ShivarraSoulMissiles02, CastSpellExtraArgs(TRIGGERED_FULL_MASK));
+            me->CastSpell(bunny ? bunny : me, Spells::ShivarraSoulMissiles02, CastSpellExtraArgs(TRIGGERED_FULL_MASK));
         }
 
         TaskScheduler _scheduler;
         ObjectGuid _bunnyGuid = ObjectGuid::Empty;
+    };
+
+    // 93759 - Jace Darkweaver <Illidari>
+    struct npc_jace_darkweaver : public ScriptedAI
+    {
+        npc_jace_darkweaver(Creature* creature) : ScriptedAI(creature)
+        {
+            me->CastSpell(me, Spells::FelChannelling, CastSpellExtraArgs(TRIGGERED_FULL_MASK));
+        }
+
+        void MoveInLineOfSight(Unit* who) override
+        {
+            Player* player = who->ToPlayer();
+            if (!player)
+                return;
+
+            if (!me->IsWithinDist(player, Misc::JaceGreetingRange))
+                return;
+
+            if (player->GetQuestStatus(Quests::EyeOnThePrize) != QUEST_STATUS_COMPLETE)
+                return;
+
+            // greet each player only once
+            if (_greetedPlayers.insert(player->GetGUID()).second)
+                Talk(CreatureText::JaceEyeOnThePrizeGreeting, player);
+        }
+
+        void OnQuestAccept(Player* player, Quest const* quest) override
+        {
+            if (quest->GetQuestId() == Quests::MeetingWithTheQueen)
+            {
+                Talk(CreatureText::JaceMeetingWithTheQueenAccept, player);
+            }
+
+            if (quest->GetQuestId() == Quests::BeforeWereOverun)
+            {
+                Talk(CreatureText::JaceBeforeWereOverunAccept, player);
+
+                _scheduler.Schedule(5s, [this, player](TaskContext const& /*context*/)
+                    {
+                        if (me && player)
+                            Talk(CreatureText::JaceBeforeWereOverunAccept2, player);
+                    });
+            }
+        }
+
+    private:
+        GuidUnorderedSet _greetedPlayers;
+        TaskScheduler _scheduler;
     };
 }
 
@@ -395,4 +444,5 @@ void AddSC_custom_mardum_npcs()
 
     RegisterCreatureAI(npc_fel_spreader);
     RegisterCreatureAI(npc_ashtongue_mystic);
+    RegisterCreatureAI(npc_jace_darkweaver);
 }
