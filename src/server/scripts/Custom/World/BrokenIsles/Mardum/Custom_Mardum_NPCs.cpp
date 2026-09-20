@@ -20,9 +20,11 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "CellImpl.h"
 #include "Conversation.h"
 #include "Creature.h"
 #include "CreatureAI.h"
+#include "GridNotifiers.h"
 #include "ObjectAccessor.h"
 #include "ObjectGuid.h"
 #include "Player.h"
@@ -138,10 +140,96 @@ namespace Scripts::Custom::Mardum
         TaskScheduler _scheduler;
         GuidUnorderedSet _processedClickers;
     };
+
+    // 96159 - Colossal Infernal (Molten Shore)
+    // Summoned standing on the ground by npc_inquisitor_baleful_molten_shore but
+    // hidden until a player is in Molten Shore. A hidden unit emits no spell
+    // packets, so the meteor visual is cast by an invisible attacker bunny
+    // hovering in the sky onto a target bunny at the coloss' feet.
+    // Only the temp-summoned coloss takes part: spawnId 0 + Molten Shore marks
+    // it via script string id so it can be looked up unambiguously.
+    struct npc_colossal_infernal_molten_shore : public ScriptedAI
+    {
+        npc_colossal_infernal_molten_shore(Creature* creature) : ScriptedAI(creature) { }
+
+        void JustAppeared() override
+        {
+            me->setActive(true);
+            me->SetFarVisible(true);
+
+            if (me->GetMapId() != Maps::Mardum || me->GetAreaId() != Areas::MoltenShore || me->GetSpawnId() != 0)
+                return;
+
+            me->SetScriptStringId(StringIds::ColossalInfernal);
+            me->SetVisible(false);
+        }
+
+        void DoAction(int32 action) override
+        {
+            if (action != Actions::ColossalInfernalMeteor || me->IsVisible() || _meteorInFlight)
+                return;
+
+            _meteorInFlight = true;
+
+            // Target bunny at the coloss' feet marks the meteor impact point.
+            TempSummon* targetBunny = me->SummonCreature(Creatures::ElmGeneralPurposeBunny, me->GetPosition(), TEMPSUMMON_TIMED_DESPAWN, 10s);
+
+            // Attacker bunny hovers at the sky anchor; kill gravity before it can fall.
+            if (TempSummon* attackerBunny = me->SummonCreature(Creatures::ElmGeneralPurposeBunny, Positions::InfernalMeteorAttackerBunny, TEMPSUMMON_TIMED_DESPAWN, 10s))
+            {
+                attackerBunny->SetDisableGravity(true);
+                if (targetBunny)
+                    attackerBunny->CastSpell(targetBunny, Spells::ColossalInfernalMeteor, CastSpellExtraArgs(TRIGGERED_FULL_MASK));
+            }
+
+            _scheduler.Schedule(5s, [this](TaskContext const& /*context*/)
+            {
+                me->SetVisible(true);
+                _meteorInFlight = false;
+            });
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _scheduler.Update(diff);
+
+            if (me->IsVisible() || _meteorInFlight)
+                return;
+
+            // Molten Shore/Despair Ridge are areas inside zone 7705, and
+            // UpdateArea has no script hook - so the crossing is detected by
+            // polling for a player standing in Molten Shore.
+            _areaCheck -= Milliseconds(diff);
+            if (_areaCheck > 0ms)
+                return;
+
+            _areaCheck = 1s;
+
+            std::list<Player*> players;
+            Trinity::AnyPlayerInPositionRangeCheck check(me, Misc::MeteorTriggerRange);
+            Trinity::PlayerListSearcher<Trinity::AnyPlayerInPositionRangeCheck> searcher(me, players, check);
+            Cell::VisitWorldObjects(me, searcher, Misc::MeteorTriggerRange);
+
+            for (Player* player : players)
+            {
+                if (player->GetAreaId() == Areas::MoltenShore)
+                {
+                    DoAction(Actions::ColossalInfernalMeteor);
+                    break;
+                }
+            }
+        }
+
+    private:
+        TaskScheduler _scheduler;
+        bool _meteorInFlight = false;
+        Milliseconds _areaCheck = 0ms;
+    };
 }
 
 void AddSC_custom_mardum_npcs()
 {
     using namespace Scripts::Custom::Mardum;
     RegisterCreatureAI(npc_fel_spreader);
+    RegisterCreatureAI(npc_colossal_infernal_molten_shore);
 }

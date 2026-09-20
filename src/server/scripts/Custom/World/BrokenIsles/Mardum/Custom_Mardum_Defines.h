@@ -21,6 +21,7 @@
  */
 
 #include "Define.h"
+#include "Position.h"
 
 namespace Scripts::Custom::Mardum
 {
@@ -31,11 +32,19 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 FelSpreader = 97142;
         static constexpr uint32 FirstFelSpreader = 97154;
         static constexpr uint32 LegionCommunicator1 = 102223;
+        static constexpr uint32 ColossalInfernal = 96159;
+        static constexpr uint32 ElmGeneralPurposeBunny = 23837;
     }
 
     namespace Maps
     {
         static constexpr uint32 Mardum = 1481;
+    }
+
+    namespace Areas
+    {
+        static constexpr uint32 DespairRidge = 7741;
+        static constexpr uint32 MoltenShore  = 7740;
     }
 
     namespace GameObjects
@@ -62,8 +71,22 @@ namespace Scripts::Custom::Mardum
 
     namespace Spells
     {
-        static constexpr uint32 DestroyingFelSpreader = 191827;
-        static constexpr uint32 FelSpreaderExplosion  = 199617;
+        static constexpr uint32 DestroyingFelSpreader  = 191827;
+        static constexpr uint32 FelSpreaderExplosion   = 199617;
+        static constexpr uint32 InfernalSummon         = 199216;
+        static constexpr uint32 ColossalInfernalMeteor = 242915;
+    }
+
+    namespace Actions
+    {
+        static constexpr int32 ColossalInfernalMeteor = 1;
+    }
+
+    namespace StringIds
+    {
+        // Marks the Baleful-summoned Colossal Infernal taking part in the
+        // Molten Shore meteor reveal (temp summon -> spawnId 0).
+        static constexpr char const ColossalInfernal[] = "mardum_colossal_infernal";
     }
 
     namespace Conversations
@@ -82,9 +105,16 @@ namespace Scripts::Custom::Mardum
         static constexpr uint8 SevisAshtongueGreeting = 0;
     }
 
+    namespace Positions
+    {
+        // Sky anchor above Molten Shore where the meteor's caster bunny hovers.
+        static constexpr Position InfernalMeteorAttackerBunny = { 425.915f, 2550.287f, 200.0f };
+    }
+
     namespace Misc
     {
-        static constexpr float SearchRange  = 50.0f;
-        static constexpr float TalkDistance = 5.0f;
+        static constexpr float SearchRange        = 50.0f;
+        static constexpr float TalkDistance       = 5.0f;
+        static constexpr float MeteorTriggerRange = 350.0f; // Molten Shore player poll on the coloss AI
     }
 }

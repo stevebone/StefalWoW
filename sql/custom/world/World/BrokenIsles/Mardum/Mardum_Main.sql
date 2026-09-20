@@ -67,6 +67,9 @@ DELETE FROM `conversation_actors` WHERE `ConversationId` = 558;
 INSERT  INTO `conversation_actors` (`ConversationId`, `ConversationActorId`, `Idx`, `CreatureId`, `CreatureDisplayInfoId`, `NoActorObject`, `ActivePlayerObject`, `VerifiedBuild`) VALUES
 (558, 49825, 0, 93221, 65308, 0, 0, 69875);
 
+-- Colossal Infernal (96159) - hidden until meteor visual on Molten Shore entry
+UPDATE `creature_template` SET `ScriptName` = 'npc_colossal_infernal_molten_shore' WHERE `entry` = 96159;
+
 -- ========================= Fixes for the Invasion Begins
 -- Scene: 1116 The Invasion Begins (banner planted) -> Kayn Sunfury (98229) dialogue on complete
 UPDATE `scene_template` SET `ScriptName` = 'scene_the_invasion_begins_banner_planted' WHERE `SceneId` = 1116;

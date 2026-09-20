@@ -53,7 +53,7 @@ namespace Scripts::Custom::Mardum
                 Conversation::CreateConversation(Conversations::LegionCommunicatorReport, player, *player, player->GetGUID());
 
             player->KilledMonsterCredit(Creatures::LegionCommunicator1);
-            me->SetFlag(GO_FLAG_IN_USE);
+            me->SetFlag(GO_FLAG_NOT_SELECTABLE);
             me->DespawnOrUnsummon(5min, 1s);
             return false;
         }
