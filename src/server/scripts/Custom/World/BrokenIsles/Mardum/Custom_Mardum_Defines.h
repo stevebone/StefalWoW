@@ -35,6 +35,10 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 CyanaNightglaive    = 94377;
         static constexpr uint32 BelathDawnblade     = 94400;
         static constexpr uint32 SevisBrightflameCoilskar = 99917;
+        static constexpr uint32 MannethrelDarkstar  = 93230;
+        static constexpr uint32 IzalWhitemoon       = 93117;
+        static constexpr uint32 AshtongueMystic     = 99914;
+        static constexpr uint32 ELMGeneralPurposeBunny = 24021;
     }
 
     namespace Maps
@@ -79,6 +83,9 @@ namespace Scripts::Custom::Mardum
     {
         static constexpr uint32 DestroyingFelSpreader  = 191827;
         static constexpr uint32 FelSpreaderExplosion   = 199617;
+        static constexpr uint32 AshtongueMysticSacrifice = 196724;
+        static constexpr uint32 PermanentFeignDeath    = 159474;
+        static constexpr uint32 ShivarraSoulMissiles02 = 191664;
     }
 
     namespace Conversations
@@ -103,6 +110,12 @@ namespace Scripts::Custom::Mardum
         // Belath Dawnblade (94400) - creature_text GroupID
         static constexpr uint8 BelathCaptiveGreeting = 0;
 
+        // Mannethrel Darkstar (93230) - creature_text GroupID
+        static constexpr uint8 MannethrelCaptiveGreeting = 0;
+
+        // Izal Whitemoon (93117) - creature_text GroupID
+        static constexpr uint8 IzalCaptiveGreeting = 0;
+
         // Sevis Brightflame (99917) - creature_text GroupIDs
         static constexpr uint8 SevisCoilskarGreeting = 0;
         static constexpr uint8 SevisCoilskarFollowUp = 1;
@@ -113,5 +126,10 @@ namespace Scripts::Custom::Mardum
         static constexpr float SearchRange         = 50.0f;
         static constexpr float TalkDistance        = 5.0f;
         static constexpr float CaptiveGreetingRange = 10.0f;
+        static constexpr uint32 MysticGossipMenu         = 19015;
+        static constexpr uint32 MysticVisualKit          = 25111;
+        static constexpr uint32 MysticAnimKit            = 9256;
+        static constexpr uint32 SoulMissileTargetSpawnId = 6000619;
+        static constexpr uint32 SoulMissileTargetEntry   = 24021;
     }
 }

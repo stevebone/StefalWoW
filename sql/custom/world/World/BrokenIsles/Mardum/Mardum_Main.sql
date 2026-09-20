@@ -53,6 +53,13 @@ DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 18 AND `SourceGroup` 
 INSERT INTO `conditions` (`SourceTypeOrReferenceId`,`SourceGroup`,`SourceEntry`,`SourceId`,`ElseGroup`,`ConditionTypeOrReference`,`ConditionTarget`,`ConditionValue1`,`ConditionValue2`,`ConditionValue3`,`NegativeCondition`,`ErrorType`,`ErrorTextId`,`ScriptName`,`Comment`) VALUES
 (18,97142,191827,0,0,9,0,39279,0,0,0,0,0,'','Fel Spreader - spellclick requires quest 39279 Assault On Mardum in log');
 
+-- Ashtongue Mystic (99914) sacrifice scene -> npc_ashtongue_mystic C++ script
+-- (replaces SAI timed action list 9991400: the soul-missile casts silently died on
+--  the guid-target lookup / OOC gating; ScriptName replaces SmartAI for the entry)
+UPDATE `creature_template` SET `ScriptName` = 'npc_ashtongue_mystic', `AIName` = '' WHERE `entry` = 99914;
+DELETE FROM `smart_scripts` WHERE `entryorguid` = 99914 AND `source_type` = 0;
+DELETE FROM `smart_scripts` WHERE `entryorguid` = 9991400 AND `source_type` = 9;
+
 -- GO: 244439 Legion Communicator -> conversation 558 (Doom Commander Beliash)
 -- GO: 244440 Legion Communicator -> conversation 558 (Doom Commander Beliash)
 UPDATE `gameobject_template` SET `ScriptName` = 'go_legion_communicator' WHERE `entry` IN (244439,244440);

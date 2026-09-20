@@ -1299,11 +1299,14 @@ private:
     TaskScheduler _scheduler;
 };
 
+// Defined in Custom/World/BrokenIsles/Mardum/Custom_Mardum_NPCs.cpp
+namespace Scripts::Custom::Mardum { CreatureAI* CreateIzalWhitemoonCaptiveAI(Creature* creature); }
+
 CreatureAI* IzalWhitemoonFreedAISelector(Creature* creature)
 {
     if (creature->IsPrivateObject())
         return new npc_izal_whitemoon_freed_private(creature);
-    return new NullCreatureAI(creature);
+    return Scripts::Custom::Mardum::CreateIzalWhitemoonCaptiveAI(creature);
 }
 
 // 94400 - Belath Dawnblade
@@ -1375,11 +1378,14 @@ private:
     TaskScheduler _scheduler;
 };
 
+// Defined in Custom/World/BrokenIsles/Mardum/Custom_Mardum_NPCs.cpp
+namespace Scripts::Custom::Mardum { CreatureAI* CreateMannethrelDarkstarCaptiveAI(Creature* creature); }
+
 CreatureAI* MannethrelDarkstarFreedAISelector(Creature* creature)
 {
     if (creature->IsPrivateObject())
         return new npc_mannethrel_darkstar_freed_private(creature);
-    return new NullCreatureAI(creature);
+    return Scripts::Custom::Mardum::CreateMannethrelDarkstarCaptiveAI(creature);
 }
 
 // 204711 - Set Them Free: Cyana Nightglaive Freed Kill Credit

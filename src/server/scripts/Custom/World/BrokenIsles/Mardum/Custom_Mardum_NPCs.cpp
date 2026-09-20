@@ -23,14 +23,17 @@
 #include "Conversation.h"
 #include "Creature.h"
 #include "CreatureAI.h"
+#include "Map.h"
 #include "ObjectAccessor.h"
 #include "ObjectGuid.h"
+#include "PhasingHandler.h"
 #include "Player.h"
 #include "ScriptedCreature.h"
 #include "ScriptMgr.h"
 #include "SpellInfo.h"
 #include "Spell.h"
 #include "TaskScheduler.h"
+#include "TemporarySummon.h"
 #include "Unit.h"
 
 #include "Custom_Mardum_Defines.h"
@@ -137,6 +140,74 @@ namespace Scripts::Custom::Mardum
     CreatureAI* CreateBelathDawnbladeCaptiveAI(Creature* creature)
     {
         return new npc_belath_dawnblade_captive(creature);
+    }
+
+    // 93230 - Mannethrel Darkstar (captive, shared/non-private spawn)
+    struct npc_mannethrel_darkstar_captive : public ScriptedAI
+    {
+        npc_mannethrel_darkstar_captive(Creature* creature) : ScriptedAI(creature) { }
+
+        void MoveInLineOfSight(Unit* who) override
+        {
+            Player* player = who->ToPlayer();
+            if (!player)
+                return;
+
+            if (!me->IsWithinDist(player, Misc::CaptiveGreetingRange))
+                return;
+
+            if (player->GetQuestStatus(Quests::SetThemFree) != QUEST_STATUS_INCOMPLETE)
+                return;
+
+            // greet each player only once
+            if (_greetedPlayers.insert(player->GetGUID()).second)
+                Talk(CreatureText::MannethrelCaptiveGreeting, player);
+        }
+
+    private:
+        GuidUnorderedSet _greetedPlayers;
+    };
+
+    // Factory used by MannethrelDarkstarFreedAISelector in zone_mardum.cpp
+    // for the shared (non-private) spawn. Returns CreatureAI* so the concrete type
+    // stays private to this translation unit.
+    CreatureAI* CreateMannethrelDarkstarCaptiveAI(Creature* creature)
+    {
+        return new npc_mannethrel_darkstar_captive(creature);
+    }
+
+    // 93117 - Izal Whitemoon (captive, shared/non-private spawn)
+    struct npc_izal_whitemoon_captive : public ScriptedAI
+    {
+        npc_izal_whitemoon_captive(Creature* creature) : ScriptedAI(creature) { }
+
+        void MoveInLineOfSight(Unit* who) override
+        {
+            Player* player = who->ToPlayer();
+            if (!player)
+                return;
+
+            if (!me->IsWithinDist(player, Misc::CaptiveGreetingRange))
+                return;
+
+            if (player->GetQuestStatus(Quests::SetThemFree) != QUEST_STATUS_INCOMPLETE)
+                return;
+
+            // greet each player only once
+            if (_greetedPlayers.insert(player->GetGUID()).second)
+                Talk(CreatureText::IzalCaptiveGreeting, player);
+        }
+
+    private:
+        GuidUnorderedSet _greetedPlayers;
+    };
+
+    // Factory used by IzalWhitemoonFreedAISelector in zone_mardum.cpp
+    // for the shared (non-private) spawn. Returns CreatureAI* so the concrete type
+    // stays private to this translation unit.
+    CreatureAI* CreateIzalWhitemoonCaptiveAI(Creature* creature)
+    {
+        return new npc_izal_whitemoon_captive(creature);
     }
 
     // 99917 - Sevis Brightflame (Coilskar Gateway, shared/non-private spawn)
@@ -258,6 +329,64 @@ namespace Scripts::Custom::Mardum
         TaskScheduler _scheduler;
         GuidUnorderedSet _processedClickers;
     };
+
+    // 99914 - Ashtongue Mystic (sacrifice scene)
+    // Replaces the SAI scripts which do not support private objects properly
+    struct npc_ashtongue_mystic : public ScriptedAI
+    {
+        npc_ashtongue_mystic(Creature* creature) : ScriptedAI(creature) { }
+
+        bool OnGossipSelect(Player* player, uint32 menuId, uint32 gossipListId) override
+        {
+            if (menuId != Misc::MysticGossipMenu || gossipListId != 0)
+                return false;
+
+            player->CastSpell(me, Spells::AshtongueMysticSacrifice);
+            CloseGossipMenuFor(player);
+            return true;
+        }
+
+        void IsSummonedBy(WorldObject* /*summoner*/) override
+        {
+            PhasingHandler::ResetPhaseShift(me);
+
+            me->SendPlaySpellVisualKit(Misc::MysticVisualKit, 0, 0);
+            me->SetAIAnimKitId(Misc::MysticAnimKit);
+
+            _scheduler.Schedule(1s, [this](TaskContext const& /*context*/)
+            {
+                me->CastSpell(me, Spells::PermanentFeignDeath, CastSpellExtraArgs(TRIGGERED_FULL_MASK));
+
+                // 191664's implicit-target condition only resolves on entry 24021
+                if (Creature* bunny = me->FindNearestCreatureWithOptions(50.f, { .CreatureId = Creatures::ELMGeneralPurposeBunny, .IgnorePhases = true }))
+                {
+                    // The bunny needs to be private object with the same owner as caster
+                    // Otherwise cast produces NOTHING
+                    bunny->SetPrivateObjectOwner(me->GetPrivateObjectOwner());
+                    PhasingHandler::ResetPhaseShift(bunny);
+                    _bunnyGuid = bunny->GetGUID();
+                }
+            });
+            _scheduler.Schedule(2s, [this](TaskContext const& /*context*/) { CastSoulMissiles(); });
+            _scheduler.Schedule(4s, [this](TaskContext const& /*context*/) { CastSoulMissiles(); });
+            _scheduler.Schedule(5s, [this](TaskContext const& /*context*/) { CastSoulMissiles(); });
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _scheduler.Update(diff);
+        }
+
+    private:
+        void CastSoulMissiles()
+        {
+            Creature* bunny = ObjectAccessor::GetCreature(*me, _bunnyGuid);
+            SpellCastResult result = me->CastSpell(bunny ? bunny : me, Spells::ShivarraSoulMissiles02, CastSpellExtraArgs(TRIGGERED_FULL_MASK));
+        }
+
+        TaskScheduler _scheduler;
+        ObjectGuid _bunnyGuid = ObjectGuid::Empty;
+    };
 }
 
 void AddSC_custom_mardum_npcs()
@@ -265,4 +394,5 @@ void AddSC_custom_mardum_npcs()
     using namespace Scripts::Custom::Mardum;
 
     RegisterCreatureAI(npc_fel_spreader);
+    RegisterCreatureAI(npc_ashtongue_mystic);
 }
