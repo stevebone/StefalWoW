@@ -936,11 +936,14 @@ private:
     TaskScheduler _scheduler;
 };
 
+// Defined in Custom/World/BrokenIsles/Mardum/Custom_Mardum_NPCs.cpp
+namespace Scripts::Custom::Mardum { CreatureAI* CreateSevisBrightflameCoilskarGatewayAI(Creature* creature); }
+
 CreatureAI* SevisBrightflameCoilskarGatewayAISelector(Creature* creature)
 {
     if (creature->IsPrivateObject())
         return new npc_sevis_brightflame_coilskar_gateway_private(creature);
-    return new NullCreatureAI(creature);
+    return Scripts::Custom::Mardum::CreateSevisBrightflameCoilskarGatewayAI(creature);
 }
 
 enum EyeOnThePrizeData
@@ -1257,11 +1260,14 @@ private:
     TaskScheduler _scheduler;
 };
 
+// Defined in Custom/World/BrokenIsles/Mardum/Custom_Mardum_NPCs.cpp
+namespace Scripts::Custom::Mardum { CreatureAI* CreateCyanaNightglaiveCaptiveAI(Creature* creature); }
+
 CreatureAI* CyanaNightglaiveFreedAISelector(Creature* creature)
 {
     if (creature->IsPrivateObject())
         return new npc_cyana_nightglaive_freed_private(creature);
-    return new NullCreatureAI(creature);
+    return Scripts::Custom::Mardum::CreateCyanaNightglaiveCaptiveAI(creature);
 }
 
 // 93117 - Izal Whitemoon
@@ -1329,11 +1335,14 @@ private:
     TaskScheduler _scheduler;
 };
 
+// Defined in Custom/World/BrokenIsles/Mardum/Custom_Mardum_NPCs.cpp
+namespace Scripts::Custom::Mardum { CreatureAI* CreateBelathDawnbladeCaptiveAI(Creature* creature); }
+
 CreatureAI* BelathDawnbladeFreedAISelector(Creature* creature)
 {
     if (creature->IsPrivateObject())
         return new npc_belath_dawnblade_freed_private(creature);
-    return new NullCreatureAI(creature);
+    return Scripts::Custom::Mardum::CreateBelathDawnbladeCaptiveAI(creature);
 }
 
 // 93230 - Mannethrel Darkstar

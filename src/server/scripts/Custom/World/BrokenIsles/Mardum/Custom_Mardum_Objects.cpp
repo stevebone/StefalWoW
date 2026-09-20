@@ -32,14 +32,17 @@ namespace Scripts::Custom::Mardum
 {
     /*######
     ## 244439 Legion Communicator #1
-    ## CMSG_GAMEOBJECT_REPORT_USE -> talking-head conversation 558, then the
-    ## gameobject is marked in use (not interactable) and despawns 1s later,
-    ## respawning after 5 minutes.
+    ## 244440 Legion Communicator #2
+    ## CMSG_GAMEOBJECT_REPORT_USE -> talking-head conversation, then the
+    ## gameobject is marked not selectable after use and remains spawned
     ######*/
 
     struct go_legion_communicator : public GameObjectAI
     {
-        go_legion_communicator(GameObject* go) : GameObjectAI(go) { }
+        go_legion_communicator(GameObject* go) : GameObjectAI(go)
+        {
+            DetermineCommunicator();
+        }
 
         bool OnReportUse(Player* player) override
         {
@@ -49,22 +52,44 @@ namespace Scripts::Custom::Mardum
             _used = true;
 
             // Read the objective before awarding the credit that completes it.
-            if (!player->IsQuestObjectiveComplete(Quests::AssaultOnMardum, Objectives::LegionCommunicator1))
-                Conversation::CreateConversation(Conversations::LegionCommunicatorReport, player, *player, player->GetGUID());
+            if (!player->IsQuestObjectiveComplete(Quests::AssaultOnMardum, _questObjective))
+                Conversation::CreateConversation(_conversationId, player, *player, player->GetGUID());
 
-            player->KilledMonsterCredit(Creatures::LegionCommunicator1);
+            player->KilledMonsterCredit(_killCreditEntry);
             me->SetFlag(GO_FLAG_NOT_SELECTABLE);
-            me->DespawnOrUnsummon(5min, 1s);
             return false;
         }
 
     private:
         bool _used = false;
+        uint32 _questObjective = 0;
+        uint32 _conversationId = 0;
+        uint32 _killCreditEntry = 0;
+
+        void DetermineCommunicator()
+        {
+            switch (me->GetEntry())
+            {
+            case GameObjects::LegionCommunicator1:
+                _questObjective = Objectives::LegionCommunicator1;
+                _conversationId = Conversations::LegionCommunicatorReport1;
+                _killCreditEntry = Creatures::LegionCommunicator1;
+                break;
+            case GameObjects::LegionCommunicator2:
+                _questObjective = Objectives::LegionCommunicator2;
+                _conversationId = Conversations::LegionCommunicatorReport2;
+                _killCreditEntry = Creatures::LegionCommunicator2;
+                break;
+            default:
+                break;
+            }
+        }
     };
 }
 
 void AddSC_custom_mardum_objects()
 {
     using namespace Scripts::Custom::Mardum;
+
     RegisterGameObjectAI(go_legion_communicator);
 }

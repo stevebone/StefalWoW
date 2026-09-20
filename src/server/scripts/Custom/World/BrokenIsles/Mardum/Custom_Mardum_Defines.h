@@ -21,7 +21,6 @@
  */
 
 #include "Define.h"
-#include "Position.h"
 
 namespace Scripts::Custom::Mardum
 {
@@ -32,8 +31,10 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 FelSpreader = 97142;
         static constexpr uint32 FirstFelSpreader = 97154;
         static constexpr uint32 LegionCommunicator1 = 102223;
-        static constexpr uint32 ColossalInfernal = 96159;
-        static constexpr uint32 ElmGeneralPurposeBunny = 23837;
+        static constexpr uint32 LegionCommunicator2 = 102224;
+        static constexpr uint32 CyanaNightglaive    = 94377;
+        static constexpr uint32 BelathDawnblade     = 94400;
+        static constexpr uint32 SevisBrightflameCoilskar = 99917;
     }
 
     namespace Maps
@@ -50,6 +51,7 @@ namespace Scripts::Custom::Mardum
     namespace GameObjects
     {
         static constexpr uint32 LegionCommunicator1 = 244439;
+        static constexpr uint32 LegionCommunicator2 = 244440;
     }
 
     namespace Scenes
@@ -60,39 +62,30 @@ namespace Scripts::Custom::Mardum
     namespace Quests
     {
         static constexpr uint32 EnterTheIllidariAshtongue = 40378;
+        static constexpr uint32 EnterTheIllidariCoilskar  = 40379;
         static constexpr uint32 AssaultOnMardum          = 39279;
+        static constexpr uint32 SetThemFree              = 38759;
     }
 
     namespace Objectives
     {
         static constexpr uint32 FelSpreaderDestroyed      = 279930; // quest 39279
-        static constexpr uint32 LegionCommunicator1    = 281333; // quest 39279
+        static constexpr uint32 LegionCommunicator1       = 281333; // quest 39279
+        static constexpr uint32 LegionCommunicator2       = 281334; // quest 39279
+        static constexpr uint32 SoulSacrificed            = 280770; // quest 40379
     }
 
     namespace Spells
     {
         static constexpr uint32 DestroyingFelSpreader  = 191827;
         static constexpr uint32 FelSpreaderExplosion   = 199617;
-        static constexpr uint32 InfernalSummon         = 199216;
-        static constexpr uint32 ColossalInfernalMeteor = 242915;
-    }
-
-    namespace Actions
-    {
-        static constexpr int32 ColossalInfernalMeteor = 1;
-    }
-
-    namespace StringIds
-    {
-        // Marks the Baleful-summoned Colossal Infernal taking part in the
-        // Molten Shore meteor reveal (temp summon -> spawnId 0).
-        static constexpr char const ColossalInfernal[] = "mardum_colossal_infernal";
     }
 
     namespace Conversations
     {
-        static constexpr uint32 FelSpreaderDestroyed      = 581;
-        static constexpr uint32 LegionCommunicatorReport  = 558;
+        static constexpr uint32 FelSpreaderDestroyed       = 581;
+        static constexpr uint32 LegionCommunicatorReport1  = 558;
+        static constexpr uint32 LegionCommunicatorReport2  = 583;
     }
 
     namespace CreatureText
@@ -103,18 +96,22 @@ namespace Scripts::Custom::Mardum
 
         // Sevis Brightflame (99916) - creature_text GroupID
         static constexpr uint8 SevisAshtongueGreeting = 0;
-    }
 
-    namespace Positions
-    {
-        // Sky anchor above Molten Shore where the meteor's caster bunny hovers.
-        static constexpr Position InfernalMeteorAttackerBunny = { 425.915f, 2550.287f, 200.0f };
+        // Cyana Nightglaive (94377) - creature_text GroupID
+        static constexpr uint8 CyanaCaptiveGreeting = 0;
+
+        // Belath Dawnblade (94400) - creature_text GroupID
+        static constexpr uint8 BelathCaptiveGreeting = 0;
+
+        // Sevis Brightflame (99917) - creature_text GroupIDs
+        static constexpr uint8 SevisCoilskarGreeting = 0;
+        static constexpr uint8 SevisCoilskarFollowUp = 1;
     }
 
     namespace Misc
     {
-        static constexpr float SearchRange        = 50.0f;
-        static constexpr float TalkDistance       = 5.0f;
-        static constexpr float MeteorTriggerRange = 350.0f; // Molten Shore player poll on the coloss AI
+        static constexpr float SearchRange         = 50.0f;
+        static constexpr float TalkDistance        = 5.0f;
+        static constexpr float CaptiveGreetingRange = 10.0f;
     }
 }

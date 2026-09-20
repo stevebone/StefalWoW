@@ -10,11 +10,13 @@
 -- NPC: 95226 Anguish Jailer
 
 -- NPC: 97142 Fel Spreader
-
 -- NPC: 93011 Kayn Sunfury <Illidari>
 -- NPC: 98460 Kor'vas Bloodthorn <Illidari>
+-- NPC: 
 
 -- Quest: 39279 Assault On Mardum (Bonus Objectives)
+-- Quest: 38759 Set Them Free
+-- Quest: 40379 Enter the Illidari: Coilskar
 
 -- Spell: 191827 Destroying Fel Spreader (spell click)
 -- Spell: 199617 Assault on Mardum: Fel Spreader Fel Explosion
@@ -52,23 +54,25 @@ INSERT INTO `conditions` (`SourceTypeOrReferenceId`,`SourceGroup`,`SourceEntry`,
 (18,97142,191827,0,0,9,0,39279,0,0,0,0,0,'','Fel Spreader - spellclick requires quest 39279 Assault On Mardum in log');
 
 -- GO: 244439 Legion Communicator -> conversation 558 (Doom Commander Beliash)
-UPDATE `gameobject_template` SET `ScriptName` = 'go_legion_communicator' WHERE `entry` = 244439;
+-- GO: 244440 Legion Communicator -> conversation 558 (Doom Commander Beliash)
+UPDATE `gameobject_template` SET `ScriptName` = 'go_legion_communicator' WHERE `entry` IN (244439,244440);
 
-DELETE FROM `conversation_template` WHERE `Id` = 558;
+DELETE FROM `conversation_template` WHERE `Id` IN (558,583);
 INSERT INTO `conversation_template` (`Id`, `FirstLineId`, `VerifiedBuild`) VALUES
-(558, 1445, 69875);
+(558, 1445, 69875),
+(583, 1514, 69875);
 
-DELETE FROM `conversation_line_template` WHERE `Id` IN (1445,1446);
+DELETE FROM `conversation_line_template` WHERE `Id` IN (1445,1446,1514,1515);
 INSERT INTO `conversation_line_template` (`Id`, `UiCameraID`, `VerifiedBuild`) VALUES
 (1445, 254, 69875),
-(1446, 254, 69875);
+(1446, 254, 69875),
+(1514, 254, 69875),
+(1515, 254, 69875);
 
-DELETE FROM `conversation_actors` WHERE `ConversationId` = 558;
+DELETE FROM `conversation_actors` WHERE `ConversationId` IN (558,583);
 INSERT  INTO `conversation_actors` (`ConversationId`, `ConversationActorId`, `Idx`, `CreatureId`, `CreatureDisplayInfoId`, `NoActorObject`, `ActivePlayerObject`, `VerifiedBuild`) VALUES
-(558, 49825, 0, 93221, 65308, 0, 0, 69875);
-
--- Colossal Infernal (96159) - hidden until meteor visual on Molten Shore entry
-UPDATE `creature_template` SET `ScriptName` = 'npc_colossal_infernal_molten_shore' WHERE `entry` = 96159;
+(558, 49825, 0, 93221, 65308, 0, 0, 69875),
+(583, 49825, 0, 93221, 65308, 0, 0, 69875);
 
 -- ========================= Fixes for the Invasion Begins
 -- Scene: 1116 The Invasion Begins (banner planted) -> Kayn Sunfury (98229) dialogue on complete
@@ -87,6 +91,9 @@ DELETE FROM `creature_template_difficulty` WHERE `DifficultyID` = 1 AND `Entry` 
  96473, 102726, 97034, 97706, 97059, 96277, 96402, 96280, 96278, 97014,
  103432, 96279, 97370, 102724, 97058, 97057, 100243, 100244, 93802, 98497, 98986
 );
+
+-- remove prior script
+UPDATE creature_template SET ScriptName='' WHERE entry=96159;
 
 -- Floating flag
 UPDATE `creature_template_difficulty` SET `StaticFlags1` = `StaticFlags1` | 0x20000000 WHERE `Entry` IN (94744);
