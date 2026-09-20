@@ -853,17 +853,14 @@ void Roleplay::CreateCustomNpcFromPlayer(Player* player, std::string const& key)
 
     creatureTemplate.Models.push_back(CreatureModel(outfitId, 1.0f, 1.0f));
 
-    if (sWorld->getBoolConfig(CONFIG_CACHE_DATA_QUERIES)) {
-        CreatureTemplate& storedTemplate = sObjectMgr->_creatureTemplateStore[creatureTemplate.Entry];
-        for (uint8 loc = LOCALE_enUS; loc < TOTAL_LOCALES; ++loc)
-            storedTemplate.QueryData[loc] = storedTemplate.BuildQueryData(static_cast<LocaleConstant>(loc), DIFFICULTY_NONE);
-    }
-
     sObjectMgr->CheckCreatureTemplate(&creatureTemplate);
 
     SaveNpcCreatureTemplateToDb(creatureTemplate);
 
     sObjectMgr->_creatureTemplateStore[creatureTemplate.Entry] = std::move(creatureTemplate);
+
+    if (sWorld->getBoolConfig(CONFIG_CACHE_DATA_QUERIES))
+        sObjectMgr->_creatureTemplateStore[npcCreatureTemplateId].InitializeQueryData();
 
     EquipmentInfo _equipmentInfo;
     for (uint8 equipmentInfoSlot = 0; equipmentInfoSlot < MAX_EQUIPMENT_ITEMS; equipmentInfoSlot++) {
@@ -1037,7 +1034,6 @@ void Roleplay::SetCustomNpcTameable(std::string const& key, bool tameable)
     cTemplate.type = tameable ? 1 : 0;
     cTemplate.family = tameable ? CREATURE_FAMILY_GORILLA : CREATURE_FAMILY_NONE;
 
-    sObjectMgr->_creatureTemplateStore[cTemplate.Entry] = std::move(cTemplate);
     SaveNpcCreatureTemplateToDb(cTemplate);
     ReloadSpawnedCustomNpcs(key);
 }
@@ -1048,7 +1044,6 @@ void Roleplay::SetCustomNpcName(std::string const& key, std::string const& displ
     CreatureTemplate& cTemplate = sObjectMgr->_creatureTemplateStore[templateId];
     cTemplate.Name = displayName;
 
-    sObjectMgr->_creatureTemplateStore[cTemplate.Entry] = std::move(cTemplate);
     SaveNpcCreatureTemplateToDb(cTemplate);
     ReloadSpawnedCustomNpcs(key);
 }
@@ -1059,7 +1054,6 @@ void Roleplay::SetCustomNpcSubName(std::string const& key, std::string const& su
     CreatureTemplate& cTemplate = sObjectMgr->_creatureTemplateStore[templateId];
     cTemplate.SubName = subName;
 
-    sObjectMgr->_creatureTemplateStore[cTemplate.Entry] = std::move(cTemplate);
     SaveNpcCreatureTemplateToDb(cTemplate);
     ReloadSpawnedCustomNpcs(key);
 }
