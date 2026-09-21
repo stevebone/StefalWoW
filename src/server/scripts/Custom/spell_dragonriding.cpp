@@ -29,6 +29,11 @@ enum AdvancedFlyingSpells
     SPELL_THRILL_OF_THE_SKIES_2 = 383366,
     SPELL_SURGE_FORWARD         = 372608,
     SPELL_WHIRLING_SURGE        = 361584,
+    SPELL_AIR_STOP              = 403092,
+    SPELL_SECOND_WIND           = 425782,
+
+    ACHIEVEMENT_DYNAMIC_FLIGHT_SECOND_WIND = 61553,
+    ACHIEVEMENT_DYNAMIC_FLIGHT_AIR_STOP    = 61554,
 
     SPELL_ENERGY_WIDGET         = 423624,
     SPELL_VIGOR_CACHE           = 433547,
@@ -414,6 +419,21 @@ public:
             learn(SPELL_SURGE_FORWARD);
             learn(SPELL_WHIRLING_SURGE);
             learn(SPELL_SWITCH_FLIGHT_STYLE);
+            learn(SPELL_SECOND_WIND);
+
+            auto completeAchievement = [&](uint32 achievementId)
+            {
+                if (AchievementEntry const* achievementEntry = sAchievementStore.LookupEntry(achievementId))
+                    if (!player->HasAchieved(achievementId))
+                        player->CompletedAchievement(achievementEntry);
+            };
+            completeAchievement(ACHIEVEMENT_DYNAMIC_FLIGHT_SECOND_WIND);
+
+            if (level >= 30)
+            {
+                learn(SPELL_AIR_STOP);
+                completeAchievement(ACHIEVEMENT_DYNAMIC_FLIGHT_AIR_STOP);
+            }
 
             bool hasSkyriding = player->HasAura(SPELL_SKYRIDING);
             bool hasSteady = player->HasAura(SPELL_STEADY_FLIGHT);
