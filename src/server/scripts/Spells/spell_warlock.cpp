@@ -676,31 +676,6 @@ class spell_warl_create_healthstone : public SpellScript
     }
 };
 
-// 453172 - Cunning Cruelty
-class spell_warl_cunning_cruelty : public AuraScript
-{
-    bool Validate(SpellInfo const* /*spellInfo*/) override
-    {
-        return ValidateSpellInfo({ SPELL_WARLOCK_SHADOWBOLT_VOLLEY_AREA });
-    }
-
-    static bool CheckProc(AuraScript const&, AuraEffect const* aurEff, ProcEventInfo const& /*eventInfo*/)
-    {
-        return roll_chance(aurEff->GetAmount());
-    }
-
-    static void HandleProc(AuraScript const&, AuraEffect const* /*aurEff*/, ProcEventInfo const& eventInfo)
-    {
-        eventInfo.GetActor()->CastSpell(eventInfo.GetActionTarget()->GetPosition(), SPELL_WARLOCK_SHADOWBOLT_VOLLEY_AREA, TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
-    }
-
-    void Register() override
-    {
-        DoCheckEffectProc += AuraCheckEffectProcFn(spell_warl_cunning_cruelty::CheckProc, EFFECT_0, SPELL_AURA_DUMMY);
-        OnEffectProc += AuraEffectProcFn(spell_warl_cunning_cruelty::HandleProc, EFFECT_0, SPELL_AURA_DUMMY);
-    }
-};
-
 // 1259886 - Cull the Weak
 class spell_warl_cull_the_weak : public AuraScript
 {
@@ -718,6 +693,39 @@ class spell_warl_cull_the_weak : public AuraScript
     {
         OnEffectProc += AuraEffectProcFn(spell_warl_cull_the_weak::HandleEffectProc, EFFECT_0, SPELL_AURA_DUMMY);
     }
+};
+
+// 453172 - Cunning Cruelty
+class spell_warl_cunning_cruelty : public AuraScript
+{
+    bool Validate(SpellInfo const* /*spellInfo*/) override
+    {
+        return ValidateSpellInfo({ SPELL_WARLOCK_SHADOWBOLT_VOLLEY_AREA });
+    }
+
+    bool CheckProc(AuraEffect const* /*aurEff*/, ProcEventInfo const& eventInfo)
+    {
+        // Shadow Bolt proc chance is 50%
+        // Drain Soul proc chance is 25%
+        float chance = 50.0f;
+        if (eventInfo.GetSpellInfo()->IsAffected(SPELLFAMILY_WARLOCK, { 0x800000 }))
+            chance = 25.0f;
+
+        return roll_chance(chance, _rng);
+    }
+
+    static void HandleProc(AuraScript const&, AuraEffect const* /*aurEff*/, ProcEventInfo const& eventInfo)
+    {
+        eventInfo.GetActor()->CastSpell(eventInfo.GetActionTarget()->GetPosition(), SPELL_WARLOCK_SHADOWBOLT_VOLLEY_AREA, TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
+    }
+
+    void Register() override
+    {
+        DoCheckEffectProc += AuraCheckEffectProcFn(spell_warl_cunning_cruelty::CheckProc, EFFECT_0, SPELL_AURA_DUMMY);
+        OnEffectProc += AuraEffectProcFn(spell_warl_cunning_cruelty::HandleProc, EFFECT_0, SPELL_AURA_DUMMY);
+    }
+
+    PseudoRandomDistributionState _rng;
 };
 
 // 108416 - Dark Pact
@@ -1582,9 +1590,13 @@ class spell_warl_shard_instability : public AuraScript
         return ValidateSpellInfo({ SPELL_WARLOCK_SHARD_INSTABILITY });
     }
 
-    static bool CheckProc(AuraScript const&, AuraEffect const* aurEff, ProcEventInfo const& /*eventInfo*/)
+    template <bool IsDrainSoul>
+    bool CheckProc(AuraEffect const* aurEff, ProcEventInfo const& eventInfo)
     {
-        return roll_chance(aurEff->GetAmount());
+        if (eventInfo.GetSpellInfo()->IsAffected(SPELLFAMILY_WARLOCK, { 0x800000 }) != IsDrainSoul)
+            return false;
+
+        return roll_chance(aurEff->GetAmount(), _rng);
     }
 
     static void HandleProc(AuraScript const&, AuraEffect const* /*aurEff*/, ProcEventInfo const& eventInfo)
@@ -1594,9 +1606,13 @@ class spell_warl_shard_instability : public AuraScript
 
     void Register() override
     {
-        DoCheckEffectProc += AuraCheckEffectProcFn(spell_warl_shard_instability::CheckProc, EFFECT_1, SPELL_AURA_DUMMY);
+        DoCheckEffectProc += AuraCheckEffectProcFn(spell_warl_shard_instability::CheckProc<true>, EFFECT_0, SPELL_AURA_DUMMY);
+        DoCheckEffectProc += AuraCheckEffectProcFn(spell_warl_shard_instability::CheckProc<false>, EFFECT_1, SPELL_AURA_DUMMY);
+        OnEffectProc += AuraEffectProcFn(spell_warl_shard_instability::HandleProc, EFFECT_0, SPELL_AURA_DUMMY);
         OnEffectProc += AuraEffectProcFn(spell_warl_shard_instability::HandleProc, EFFECT_1, SPELL_AURA_DUMMY);
     }
+
+    PseudoRandomDistributionState _rng;
 };
 
 // 452999 - Siphon Life
@@ -4575,8 +4591,8 @@ void AddSC_warlock_spell_scripts()
     RegisterSpellScript(spell_warl_chaotic_energies);
     RegisterSpellScript(spell_warl_conflagrate);
     RegisterSpellScript(spell_warl_create_healthstone);
-    RegisterSpellScript(spell_warl_cunning_cruelty);
     RegisterSpellScript(spell_warl_cull_the_weak);
+    RegisterSpellScript(spell_warl_cunning_cruelty);
     RegisterSpellScript(spell_warl_dark_pact);
     RegisterSpellScript(spell_warl_deaths_embrace);
     RegisterSpellScript(spell_warl_deaths_embrace_dots);
