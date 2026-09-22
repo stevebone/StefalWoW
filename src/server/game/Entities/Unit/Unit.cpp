@@ -4304,6 +4304,23 @@ bool IsInterruptFlagIgnoredForSpell(SpellAuraInterruptFlags flag, Unit const* un
     return false;
 }
 
+template<>
+bool IsInterruptFlagIgnoredForSpell(SpellAuraInterruptFlags2 flag, Unit const* /*unit*/, SpellInfo const* auraSpellInfo, bool /*isChannel*/, SpellInfo const* /*interruptSource*/)
+{
+    switch (flag)
+    {
+        case SpellAuraInterruptFlags2::Ground:
+        case SpellAuraInterruptFlags2::TouchingGround:
+            // the stack counter of client authoritative aura point tracking is managed by the
+            // client itself, ground touch must not wipe it
+            return auraSpellInfo->HasAttribute(SPELL_ATTR8_AURA_POINTS_ON_CLIENT);
+        default:
+            break;
+    }
+
+    return false;
+}
+
 template <typename InterruptFlags>
 void Unit::RemoveAurasWithInterruptFlags(InterruptFlags flag, SpellInfo const* source)
 {
