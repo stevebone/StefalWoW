@@ -42,7 +42,7 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 JaceDarkweaver      = 93759;
         static constexpr uint32 CoilskarSeaCaller   = 96884;
         static constexpr uint32 DoomCommanderBeliash = 93221;
-        static constexpr uint32 QueenTyranna        = 93802;
+        static constexpr uint32 QueenTyranna        = 95048; // RP version beside Beliash; 93802 is the boss at the Seat of Command
         static constexpr uint32 BeliashKillCredit   = 106003;
     }
 
@@ -72,6 +72,7 @@ namespace Scripts::Custom::Mardum
     {
         static constexpr uint32 EnterTheIllidariAshtongue = 40378;
         static constexpr uint32 EnterTheIllidariCoilskar  = 40379;
+        static constexpr uint32 EnterTheIllidariShivarra  = 38765;
         static constexpr uint32 AssaultOnMardum          = 39279;
         static constexpr uint32 SetThemFree              = 38759;
         static constexpr uint32 EyeOnThePrize            = 39049;
@@ -102,6 +103,7 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 ShadowBlaze              = 195401;
         static constexpr uint32 ShadowBoltVolley         = 196403;
         static constexpr uint32 ShadowRetreat            = 196625;
+        static constexpr uint32 BroodQueenTyrannaTeleport = 188658;
     }
 
     namespace Conversations
@@ -151,7 +153,7 @@ namespace Scripts::Custom::Mardum
         static constexpr uint8 BeliashAggro = 0; // 'They will die.'
         static constexpr uint8 BeliashAggro2 = 1; // 'You wont survive'
 
-        // Brood Queen Tyranna (93802) - creature_text GroupID
+        // Brood Queen Tyranna (95048) - creature_text GroupID
         static constexpr uint8 QueenTyrannaAggro = 0;
     }
 

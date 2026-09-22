@@ -53,10 +53,33 @@ namespace Scripts::Custom::Mardum
             }, 30s);
         }
     };
+
+    // 38765 - Enter the Illidari: Shivarra
+    // Bound through quest_template_addon.ScriptName - only fires for this quest.
+    class quest_enter_the_illidari_shivarra : public QuestScript
+    {
+    public:
+        quest_enter_the_illidari_shivarra() : QuestScript("quest_enter_the_illidari_shivarra") { }
+
+        void OnQuestStatusChange(Player* player, Quest const* /*quest*/, QuestStatus /*oldStatus*/, QuestStatus newStatus) override
+        {
+            if (newStatus != QUEST_STATUS_COMPLETE)
+                return;
+
+            // Scheduled on the player's EventProcessor so it is dropped on logout;
+            // the login check in player_mardum_coilskar_forces covers that case.
+            player->m_Events.AddEventAtOffset([player]()
+                {
+                    player->CastSpell(player, Spells::SummonCoilskarSeaCaller, CastSpellExtraArgs(TRIGGERED_FULL_MASK));
+                }, 30s);
+        }
+    };
 }
 
 void AddSC_custom_mardum_quests()
 {
     using namespace Scripts::Custom::Mardum;
+
     new quest_enter_the_illidari_coilskar();
+    new quest_enter_the_illidari_shivarra();
 }

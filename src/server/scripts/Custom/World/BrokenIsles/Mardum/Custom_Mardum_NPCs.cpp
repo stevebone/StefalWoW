@@ -528,9 +528,10 @@ namespace Scripts::Custom::Mardum
         void MoveInLineOfSight(Unit* who) override
         {
             if (Player* player = who->ToPlayer())
-                if (me->IsWithinDist(player, Misc::BeliashConversationRange))
-                    if (_conversedPlayers.insert(player->GetGUID()).second)
-                        Conversation::CreateConversation(Conversations::DoomCommanderBeliash, player, player->GetPosition(), { player->GetGUID() });
+                if(player->GetQuestStatus(Quests::BeforeWereOverun) == QUEST_STATUS_INCOMPLETE)
+                    if (me->IsWithinDist(player, Misc::BeliashConversationRange))
+                        if (_conversedPlayers.insert(player->GetGUID()).second)
+                            Conversation::CreateConversation(Conversations::DoomCommanderBeliash, player, player->GetPosition(), { player->GetGUID() });
 
             // keep base aggro behavior - this is a hostile boss
             ScriptedAI::MoveInLineOfSight(who);
@@ -561,11 +562,12 @@ namespace Scripts::Custom::Mardum
         void JustDied(Unit* killer) override
         {
             // covers kills by pets/summons/controlled units, not just the player directly
-            if (Player* player = killer->GetCharmerOrOwnerPlayerOrPlayerItself())
-                player->KilledMonsterCredit(Creatures::BeliashKillCredit);
+            if (killer)
+                if (Player* player = killer->GetCharmerOrOwnerPlayerOrPlayerItself())
+                    player->KilledMonsterCredit(Creatures::BeliashKillCredit);
 
             if (Creature* tyranna = me->FindNearestCreature(Creatures::QueenTyranna, Misc::BeliashConversationRange))
-                tyranna->DisappearAndDie();
+                tyranna->CastSpell(tyranna, Spells::BroodQueenTyrannaTeleport);
 
             me->DespawnOrUnsummon(15s, 5min);
         }

@@ -22,6 +22,7 @@
 -- Quest: 39049 Eye on the prize
 -- Quest: 39050 Meeting With the Queen
 -- Quest: 38766 Before we're overrun
+-- Quest: 38765 Enter the Illidari: Shivarra
 
 -- Spell: 191827 Destroying Fel Spreader (spell click)
 -- Spell: 199617 Assault on Mardum: Fel Spreader Fel Explosion
@@ -178,3 +179,6 @@ DELETE FROM `smart_scripts` WHERE `entryorguid` = 96884 AND `source_type` = 0;
 -- (fires on objective 280771 'Coilskar Forces' completion -> delayed summon cast)
 UPDATE `quest_template_addon` SET `ScriptName` = 'quest_enter_the_illidari_coilskar' WHERE `ID` = 40379;
 
+-- Quest: 38765 Enter the Illidari: Shivarra -> quest_enter_the_illidari_shivarra C++ script
+-- (fires on status complete after 'Shivarra Forces' completion -> delayed summon cast)
+UPDATE `quest_template_addon` SET `ScriptName` = 'quest_enter_the_illidari_shivarra' WHERE `ID` = 38765;

@@ -75,13 +75,16 @@ namespace Scripts::Custom::Mardum
 
         void OnLogin(Player* player, bool /*firstLogin*/) override
         {
-            if (player->GetQuestStatus(Quests::EnterTheIllidariCoilskar) != QUEST_STATUS_INCOMPLETE)
-                return;
+            bool needsSpawn = false;
+            if (player->GetQuestStatus(Quests::EnterTheIllidariCoilskar) == QUEST_STATUS_INCOMPLETE &&
+                player->IsQuestObjectiveComplete(Quests::EnterTheIllidariCoilskar, Objectives::CoilskarForces))
+                needsSpawn = true;
 
-            if (!player->IsQuestObjectiveComplete(Quests::EnterTheIllidariCoilskar, Objectives::CoilskarForces))
-                return;
+            if (player->GetQuestStatus(Quests::EnterTheIllidariShivarra) == QUEST_STATUS_COMPLETE)
+                needsSpawn = true;
 
-            player->CastSpell(player, Spells::SummonCoilskarSeaCaller, CastSpellExtraArgs(TRIGGERED_FULL_MASK));
+            if(needsSpawn)
+                player->CastSpell(player, Spells::SummonCoilskarSeaCaller, CastSpellExtraArgs(TRIGGERED_FULL_MASK));
         }
     };
 }

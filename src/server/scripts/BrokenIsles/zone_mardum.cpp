@@ -1466,7 +1466,7 @@ struct npc_sevis_brightflame_shivarra_gateway : public ScriptedAI
         if (!me->IsWithinDist(player, 10.f))
             return;
 
-        if (player->GetQuestStatus(38765) != QUEST_STATUS_COMPLETE)
+        if (player->GetQuestStatus(38765) != QUEST_STATUS_INCOMPLETE)
             return;
 
         // greet each player only once

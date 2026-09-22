@@ -22,6 +22,7 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Lan
 (96884, 0, 0, 'This demon will die.', 12, 0, 100, 0, 0, 55082, 99743, 0, 'Coilskar Sea-Caller to Player'),
 (96884, 1, 0, 'Lady S''theno requested I join you.', 12, 0, 100, 0, 0, 55077, 99738, 0, 'Coilskar Sea-Caller to Player'),
 (96884, 1, 1, 'The Coilskar honor their allegiance.', 12, 0, 100, 0, 0, 55084, 99745, 0, 'Coilskar Sea-Caller to Player'),
+(96884, 1, 2, 'Lord Illidan leads and the Coilskar follow.', 12, 0, 100, 0, 0, 55081, 99742, 0, 'Coilskar Sea-Caller to Player'),
 
 (93112, 0, 0, 'For the Legion!', 12, 0, 100, 0, 0, 55192, 96663, 0, 'Felguard Sentry to Player'),
 (93112, 0, 1, 'Demon hunters? How did you get here?', 12, 0, 100, 0, 0, 55187, 94934, 0, 'Felguard Sentry to Player'),
