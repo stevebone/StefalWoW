@@ -12,7 +12,17 @@
 #include "SpellScript.h"
 #include "SpellAuraEffects.h"
 
+#include <unordered_map>
+
 static constexpr float THRILL_OF_THE_SKIES_MIN_VELOCITY = 40.f;
+
+static constexpr float LIGHTNING_SPEED_IMPULSE_PER_TICK = 15.f; // forward impulse per 1s tick of the 5s burst
+static constexpr float NEAR_WALL_RANGE = 24.f;                  // wall skim detection distance
+static constexpr float NEAR_GROUND_RANGE = 18.f;                // low altitude above terrain counts as skimming too
+static constexpr float MIN_SKIM_ALTITUDE = 2.f;                 // standing on the ground is not skimming
+static constexpr uint32 STATIC_CHARGE_TICK = 1000;              // 1 stack per second near a surface
+static constexpr uint32 STATIC_CHARGE_MAX_STACKS = 10;          // spell 418590 "Stackable up to 10"
+static constexpr uint32 STATIC_CHARGE_DURATION_MS = 5000;       // spell 418590 duration, forced onto the aura
 
 enum AdvancedFlyingSpells
 {
@@ -31,6 +41,14 @@ enum AdvancedFlyingSpells
     SPELL_WHIRLING_SURGE        = 361584,
     SPELL_AIR_STOP              = 403092,
     SPELL_SECOND_WIND           = 425782,
+
+    SPELL_WHIRLING_SURGE_2      = 376359,
+    SPELL_LIGHTNING_RUSH        = 418592,
+    SPELL_STATIC_CHARGE_STACKS  = 418590,
+    SPELL_STATIC_CHARGE_READY   = 419252,
+
+    SPELL_REPLACE_WITH_WHIRLING_SURGE  = 447981,
+    SPELL_REPLACE_WITH_LIGHTNING_RUSH  = 447982,
 
     ACHIEVEMENT_DYNAMIC_FLIGHT_SECOND_WIND = 61553,
     ACHIEVEMENT_DYNAMIC_FLIGHT_AIR_STOP    = 61554,
@@ -417,9 +435,21 @@ public:
 
             learn(SPELL_SKYRIDING_BASICS);
             learn(SPELL_SURGE_FORWARD);
-            learn(SPELL_WHIRLING_SURGE);
             learn(SPELL_SWITCH_FLIGHT_STYLE);
             learn(SPELL_SECOND_WIND);
+
+            bool lightningSpeedSelected = player->HasSpell(SPELL_REPLACE_WITH_LIGHTNING_RUSH)
+                || player->HasSpell(SPELL_LIGHTNING_RUSH);
+            if (!lightningSpeedSelected)
+                learn(SPELL_WHIRLING_SURGE);
+
+            if (lightningSpeedSelected)
+            {
+                player->RemoveSpell(SPELL_WHIRLING_SURGE_2);
+                player->RemoveSpell(SPELL_WHIRLING_SURGE);
+            }
+            else if (player->HasSpell(SPELL_REPLACE_WITH_WHIRLING_SURGE))
+                player->RemoveSpell(SPELL_LIGHTNING_RUSH);
 
             auto completeAchievement = [&](uint32 achievementId)
             {
@@ -476,6 +506,192 @@ public:
     }
 };
 
+// 418592 - Lightning Rush
+class spell_lightning_rush : public SpellScript
+{
+    SpellCastResult CheckCast()
+    {
+        Unit* caster = GetCaster();
+        if (!caster->HasUnitMovementFlag(MOVEMENTFLAG_CAN_ADV_FLY))
+        {
+            SetCustomCastResultMessage(SPELL_CUSTOM_ERROR_REQUIRES_SKYRIDING);
+            return SPELL_FAILED_CUSTOM_ERROR;
+        }
+
+        return SPELL_CAST_OK;
+    }
+
+    void Register() override
+    {
+        OnCheckCast += SpellCheckCastFn(spell_lightning_rush::CheckCast);
+    }
+};
+
+// 418592 - Lightning Rush aura
+class spell_lightning_rush_aura : public AuraScript
+{
+    void OnPeriodicTick(AuraEffect const* /*aurEff*/)
+    {
+        if (Unit* target = GetTarget())
+            SendFacingImpulse(target, LIGHTNING_SPEED_IMPULSE_PER_TICK);
+    }
+
+    void Register() override
+    {
+        OnEffectPeriodic += AuraEffectPeriodicFn(spell_lightning_rush_aura::OnPeriodicTick, EFFECT_0, SPELL_AURA_PERIODIC_DUMMY);
+    }
+};
+
+static bool IsNearSurface(Unit* unit)
+{
+    float const x = unit->GetPositionX();
+    float const y = unit->GetPositionY();
+    float const z = unit->GetPositionZ();
+
+    Map* map = unit->GetMap();
+    float const groundBelow = map->GetHeight(unit->GetPhaseShift(), x, y, z + 1.f);
+    if (groundBelow == INVALID_HEIGHT)
+        return false;
+
+    float const altitude = z - groundBelow;
+    if (altitude < MIN_SKIM_ALTITUDE) // standing or walking on the ground is not skimming
+        return false;
+
+    // model surfaces (trees, buildings, cliff walls) through line of sight rays
+    for (int i = 0; i < 4; ++i)
+    {
+        float const angle = unit->GetOrientation() + i * (float(M_PI) / 2.f);
+        if (!unit->IsWithinLOS(x + std::cos(angle) * NEAR_WALL_RANGE, y + std::sin(angle) * NEAR_WALL_RANGE, z + 1.f))
+            return true;
+    }
+
+    if (altitude < NEAR_GROUND_RANGE) // low pass over terrain
+        return true;
+
+    for (int i = 0; i < 4; ++i)
+    {
+        float const angle = unit->GetOrientation() + i * (float(M_PI) / 2.f);
+        float const sample = map->GetHeight(unit->GetPhaseShift(),
+            x + std::cos(angle) * NEAR_WALL_RANGE, y + std::sin(angle) * NEAR_WALL_RANGE, z + 1.f);
+        if (sample != INVALID_HEIGHT && sample > z) // terrain rises above the flight level
+            return true;
+    }
+
+    return false;
+}
+
+class adv_flying_static_charge : public PlayerScript
+{
+public:
+    adv_flying_static_charge() : PlayerScript("adv_flying_static_charge") {}
+
+    void OnUpdate(Player* player, uint32 diff) override
+    {
+        auto itr = _nextStackTick.find(player->GetGUID());
+        if (itr == _nextStackTick.end())
+        {
+            _nextStackTick.emplace(player->GetGUID(), STATIC_CHARGE_TICK);
+            return;
+        }
+
+        if (itr->second > diff)
+        {
+            itr->second -= diff;
+            return;
+        }
+        itr->second = STATIC_CHARGE_TICK;
+
+        if (!player->HasSpell(SPELL_LIGHTNING_RUSH) || !player->HasUnitMovementFlag(MOVEMENTFLAG_CAN_ADV_FLY))
+            return;
+
+        Aura* stacks = player->GetAura(SPELL_STATIC_CHARGE_STACKS);
+
+        // the charge expired unused - the button enabler must not outlive it
+        if (!stacks)
+            player->RemoveAura(SPELL_STATIC_CHARGE_READY);
+
+        if (stacks && stacks->GetStackAmount() >= STATIC_CHARGE_MAX_STACKS)
+        {
+            if (!player->HasAura(SPELL_STATIC_CHARGE_READY))
+                player->CastSpell(player, SPELL_STATIC_CHARGE_READY, true);
+            return;
+        }
+
+        if (IsNearSurface(player))
+        {
+            // direct aura application - spell 418590 carries CasterAuraSpell 417888 (storm rider
+            // form) which normal players do not have, so a triggered cast would be rejected
+            if (!stacks)
+                stacks = player->AddAura(SPELL_STATIC_CHARGE_STACKS, player);
+
+            if (stacks)
+            {
+                if (stacks->GetStackAmount() < STATIC_CHARGE_MAX_STACKS)
+                    stacks->SetStackAmount(stacks->GetStackAmount() + 1);
+
+                // force the intended duration - some server data builds carry a truncated one,
+                // which made the aura expire between ticks
+                stacks->SetMaxDuration(STATIC_CHARGE_DURATION_MS);
+                stacks->SetDuration(STATIC_CHARGE_DURATION_MS);
+            }
+        }
+    }
+
+    void OnLogout(Player* player) override
+    {
+        _nextStackTick.erase(player->GetGUID());
+    }
+
+private:
+    std::unordered_map<ObjectGuid, uint32> _nextStackTick;
+};
+
+// 447982 - Lightning Rush (Talent)
+class spell_af_swap_lightning_rush : public AuraScript
+{
+    void OnApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+    {
+        Player* player = GetTarget()->ToPlayer();
+        if (!player)
+            return;
+
+        if (player->HasSpell(SPELL_WHIRLING_SURGE_2))
+            player->RemoveSpell(SPELL_WHIRLING_SURGE_2);
+        if (player->HasSpell(SPELL_WHIRLING_SURGE))
+            player->RemoveSpell(SPELL_WHIRLING_SURGE);
+        if (!player->HasSpell(SPELL_LIGHTNING_RUSH))
+            player->LearnSpell(SPELL_LIGHTNING_RUSH, false);
+    }
+
+    void Register() override
+    {
+        OnEffectApply += AuraEffectApplyFn(spell_af_swap_lightning_rush::OnApply, EFFECT_0, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL);
+    }
+};
+
+// 447981 - Whirling Surge (Talent)
+class spell_af_swap_whirling_surge : public AuraScript
+{
+    void OnApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+    {
+        Player* player = GetTarget()->ToPlayer();
+        if (!player)
+            return;
+
+        if (player->HasSpell(SPELL_LIGHTNING_RUSH))
+            player->RemoveSpell(SPELL_LIGHTNING_RUSH);
+        if (!player->HasSpell(SPELL_WHIRLING_SURGE_2))
+            player->LearnSpell(SPELL_WHIRLING_SURGE_2, false);
+        if (!player->HasSpell(SPELL_WHIRLING_SURGE))
+            player->LearnSpell(SPELL_WHIRLING_SURGE, false);
+    }
+
+    void Register() override
+    {
+        OnEffectApply += AuraEffectApplyFn(spell_af_swap_whirling_surge::OnApply, EFFECT_0, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL);
+    }
+};
+
 void AddSC_advanced_flying_spell_scripts()
 {
     RegisterSpellScript(spell_switch_flight);
@@ -485,5 +701,9 @@ void AddSC_advanced_flying_spell_scripts()
     RegisterSpellAndAuraScriptPair(spell_dragonriding_launch_boost, spell_dragonriding_launch_boost_aura);
     RegisterSpellScript(spell_dragonriding);
     RegisterSpellScript(spell_af_energy);
+    RegisterSpellAndAuraScriptPair(spell_lightning_rush, spell_lightning_rush_aura);
+    RegisterAuraScript(spell_af_swap_lightning_rush);
+    RegisterAuraScript(spell_af_swap_whirling_surge);
     new adv_flying_check();
+    new adv_flying_static_charge();
 }

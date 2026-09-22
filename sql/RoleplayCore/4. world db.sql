@@ -899,3 +899,6 @@ REPLACE INTO `spell_script_names` VALUES (372608, 'spell_af_surge_forward');
 REPLACE INTO `spell_script_names` VALUES (361584, 'spell_af_whirling_surge');
 REPLACE INTO `spell_script_names` VALUES (436854, 'spell_switch_flight');
 REPLACE INTO `spell_script_names` VALUES (392752, 'spell_dragonriding_launch_boost');
+REPLACE INTO `spell_script_names` VALUES (418592, 'spell_lightning_rush');
+REPLACE INTO `spell_script_names` VALUES (447981, 'spell_af_swap_power_impulse');
+REPLACE INTO `spell_script_names` VALUES (447982, 'spell_af_swap_whirling_surge');

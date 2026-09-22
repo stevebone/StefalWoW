@@ -1154,6 +1154,8 @@ void Player::Update(uint32 p_time)
 
     if (_justPassedBarberChecks)
         _justPassedBarberChecks = false;
+
+    sScriptMgr->OnPlayerUpdate(this, p_time);
 }
 
 void Player::Heartbeat()
