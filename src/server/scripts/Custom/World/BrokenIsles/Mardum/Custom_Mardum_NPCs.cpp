@@ -23,12 +23,14 @@
 #include "Conversation.h"
 #include "Creature.h"
 #include "CreatureAI.h"
+#include "EventMap.h"
 #include "Map.h"
 #include "ObjectAccessor.h"
 #include "ObjectGuid.h"
 #include "PhasingHandler.h"
 #include "Player.h"
 #include "ScriptedCreature.h"
+#include "ScriptedGossip.h"
 #include "ScriptMgr.h"
 #include "SpellInfo.h"
 #include "Spell.h"
@@ -432,9 +434,179 @@ namespace Scripts::Custom::Mardum
             }
         }
 
+        void UpdateAI(uint32 diff) override
+        {
+            _scheduler.Update(diff);
+        }
+
     private:
         GuidUnorderedSet _greetedPlayers;
         TaskScheduler _scheduler;
+    };
+
+    // 96884 - Coilskar Sea-Caller (summoned by spell 191668, the player is the summoner)
+    struct npc_coilskar_sea_caller : public ScriptedAI
+    {
+        npc_coilskar_sea_caller(Creature* creature) : ScriptedAI(creature)
+        {
+            _events.ScheduleEvent(Events::SeaCallerGreeting, 500ms);
+            _events.ScheduleEvent(Events::SeaCallerSpellRotation, 5s);
+        }
+
+        void JustEngagedWith(Unit* who) override
+        {
+            Talk(CreatureText::SeaCallerEngage, who);
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _events.Update(diff);
+
+            while (uint32 eventId = _events.ExecuteEvent())
+            {
+                switch (eventId)
+                {
+                    case Events::SeaCallerGreeting:
+                        if (me->IsSummon())
+                            if (Unit* summoner = me->ToTempSummon()->GetSummonerUnit())
+                                if (Player* player = summoner->ToPlayer())
+                                    Talk(CreatureText::SeaCallerGreeting, player);
+                        break; // not rescheduled - fires once
+                    case Events::SeaCallerSpellRotation:
+                        if (!me->HasUnitState(UNIT_STATE_CASTING))
+                            DoHealOrBolt();
+                        _events.Repeat(5s);
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            if (!UpdateVictim())
+                return;
+
+            if (me->HasUnitState(UNIT_STATE_CASTING))
+                return;
+
+            me->DoMeleeAttackIfReady();
+        }
+
+    private:
+        EventMap _events;
+
+        void DoHealOrBolt()
+        {
+            Unit* owner = me->GetCharmerOrOwnerPlayerOrPlayerItself();
+            bool selfNeedsHeal  = me->HealthBelowPct(50);
+            bool ownerNeedsHeal = owner && owner->HealthBelowPct(50);
+
+            // heal whoever is lower if both are hurt
+            if (selfNeedsHeal && (!ownerNeedsHeal || me->GetHealthPct() <= owner->GetHealthPct()))
+                me->CastSpell(me, Spells::SeaCallerHealingWave);
+            else if (ownerNeedsHeal)
+                me->CastSpell(owner, Spells::SeaCallerHealingWave);
+            else if (Unit* victim = me->GetVictim())
+                me->CastSpell(victim, Spells::SeaCallerLightningBolt);
+        }
+    };
+
+    // 93221 - Doom Commander Beliash
+    struct npc_doom_commander_beliash : public ScriptedAI
+    {
+        npc_doom_commander_beliash(Creature* creature) : ScriptedAI(creature)
+        {
+            // MoveInLineOfSight is gated by m_SightDistance (MonsterSight, 50y default) -
+            // raise it so the 100y conversation trigger can actually fire.
+            me->m_SightDistance = Misc::BeliashConversationRange;
+        }
+
+        void Reset() override
+        {
+            _events.Reset();
+        }
+
+        void MoveInLineOfSight(Unit* who) override
+        {
+            if (Player* player = who->ToPlayer())
+                if (me->IsWithinDist(player, Misc::BeliashConversationRange))
+                    if (_conversedPlayers.insert(player->GetGUID()).second)
+                        Conversation::CreateConversation(Conversations::DoomCommanderBeliash, player, player->GetPosition(), { player->GetGUID() });
+
+            // keep base aggro behavior - this is a hostile boss
+            ScriptedAI::MoveInLineOfSight(who);
+        }
+
+        void JustEngagedWith(Unit* /*who*/) override
+        {
+            if (Creature* tyranna = me->FindNearestCreature(Creatures::QueenTyranna, Misc::BeliashConversationRange))
+                tyranna->AI()->Talk(CreatureText::QueenTyrannaAggro, tyranna);
+
+            me->m_Events.AddEventAtOffset([this]()
+                {
+                    if(me && me->IsAlive())
+                        Talk(CreatureText::BeliashAggro);
+                }, 5s);
+
+            me->m_Events.AddEventAtOffset([this]()
+                {
+                    if (me && me->IsAlive())
+                        Talk(CreatureText::BeliashAggro2);
+                }, 8s);
+            
+            _events.ScheduleEvent(Events::BeliashShadowBlaze, 10s);
+            _events.ScheduleEvent(Events::BeliashShadowBoltVolley, 8s);
+            _events.ScheduleEvent(Events::BeliashShadowRetreat, 12s);            
+        }
+
+        void JustDied(Unit* killer) override
+        {
+            // covers kills by pets/summons/controlled units, not just the player directly
+            if (Player* player = killer->GetCharmerOrOwnerPlayerOrPlayerItself())
+                player->KilledMonsterCredit(Creatures::BeliashKillCredit);
+
+            if (Creature* tyranna = me->FindNearestCreature(Creatures::QueenTyranna, Misc::BeliashConversationRange))
+                tyranna->DisappearAndDie();
+
+            me->DespawnOrUnsummon(15s, 5min);
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _events.Update(diff);
+
+            while (uint32 eventId = _events.ExecuteEvent())
+            {
+                switch (eventId)
+                {
+                    case Events::BeliashShadowBlaze:
+                        DoCast(Spells::ShadowBlaze);
+                        _events.Repeat(10s);
+                        break;
+                    case Events::BeliashShadowBoltVolley:
+                        DoCast(Spells::ShadowBoltVolley);
+                        _events.Repeat(8s);
+                        break;
+                    case Events::BeliashShadowRetreat:
+                        DoCast(Spells::ShadowRetreat);
+                        _events.Repeat(12s);
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            if (!UpdateVictim())
+                return;
+
+            if (me->HasUnitState(UNIT_STATE_CASTING))
+                return;
+
+            me->DoMeleeAttackIfReady();
+        }
+
+    private:
+        EventMap _events;
+        GuidUnorderedSet _conversedPlayers;
     };
 }
 
@@ -445,4 +617,6 @@ void AddSC_custom_mardum_npcs()
     RegisterCreatureAI(npc_fel_spreader);
     RegisterCreatureAI(npc_ashtongue_mystic);
     RegisterCreatureAI(npc_jace_darkweaver);
+    RegisterCreatureAI(npc_coilskar_sea_caller);
+    RegisterCreatureAI(npc_doom_commander_beliash);
 }

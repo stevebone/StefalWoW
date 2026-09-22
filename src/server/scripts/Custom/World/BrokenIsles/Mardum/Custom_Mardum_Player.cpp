@@ -24,6 +24,7 @@
 #include "Player.h"
 #include "QuestDef.h"
 #include "ScriptMgr.h"
+#include "Spell.h"
 
 #include "Custom_Mardum_Defines.h"
 
@@ -63,10 +64,32 @@ namespace Scripts::Custom::Mardum
                     player->AddQuest(quest, nullptr);
         }
     };
+
+    // 40379 - Enter the Illidari: Coilskar
+    // Covers relogging after the Coilskar Forces objective is done but before the
+    // Sea-Caller summon fired - the 30s delayed cast does not survive a logout.
+    class player_mardum_coilskar_forces : public PlayerScript
+    {
+    public:
+        player_mardum_coilskar_forces() : PlayerScript("player_mardum_coilskar_forces") { }
+
+        void OnLogin(Player* player, bool /*firstLogin*/) override
+        {
+            if (player->GetQuestStatus(Quests::EnterTheIllidariCoilskar) != QUEST_STATUS_INCOMPLETE)
+                return;
+
+            if (!player->IsQuestObjectiveComplete(Quests::EnterTheIllidariCoilskar, Objectives::CoilskarForces))
+                return;
+
+            player->CastSpell(player, Spells::SummonCoilskarSeaCaller, CastSpellExtraArgs(TRIGGERED_FULL_MASK));
+        }
+    };
 }
 
 void AddSC_custom_mardum_player()
 {
     using namespace Scripts::Custom::Mardum;
+
     new player_mardum_assault_bonus_objective();
+    new player_mardum_coilskar_forces();
 }

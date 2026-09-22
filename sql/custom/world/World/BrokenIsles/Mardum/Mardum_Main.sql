@@ -114,6 +114,22 @@ INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES
 
 UPDATE `creature_template` SET `ScriptName` = 'npc_jace_darkweaver' WHERE `entry` = 93759;
 
+DELETE FROM `conversation_template` WHERE `Id` IN (531);
+INSERT INTO `conversation_template` (`Id`, `FirstLineId`, `VerifiedBuild`) VALUES
+(531, 1383, 69875);
+
+DELETE FROM `conversation_line_template` WHERE `Id` IN (1383);
+INSERT INTO `conversation_line_template` (`Id`, `UiCameraID`, `VerifiedBuild`) VALUES
+(1383, 99, 69875);
+
+DELETE FROM `conversation_actors` WHERE `ConversationId` IN (531);
+INSERT  INTO `conversation_actors` (`ConversationId`, `ConversationActorId`, `Idx`, `CreatureId`, `CreatureDisplayInfoId`, `NoActorObject`, `ActivePlayerObject`, `VerifiedBuild`) VALUES
+(531, 49821, 0, 93759, 60791, 0, 0, 69875);
+
+-- NPC: 93221 Doom Commander Beliash -> npc_doom_commander_beliash C++ script
+UPDATE `creature_template` SET `ScriptName` = 'npc_doom_commander_beliash', `AIName` = '' WHERE `entry` = 93221;
+DELETE FROM `smart_scripts` WHERE `entryorguid` = 93221 AND `source_type` = 0;
+
 -- remove prior script
 UPDATE creature_template SET ScriptName='' WHERE entry=96159;
 
@@ -152,3 +168,13 @@ INSERT INTO `graveyard_zone` (`ID`, `GhostZone`, `Comment`) VALUES
 (5119, 7705, 'DH-Mardum - (04) Illidari Foothold'),
 (5140, 7705, 'DH-Mardum - (05) Volcano'),
 (5188, 7705, 'DH-Mardum - (06) The Fel Hammer');
+
+-- ========================= Coilskar Sea-Caller (quest 40379) =========================
+-- NPC: 96884 Coilskar Sea-Caller -> npc_coilskar_sea_caller C++ script
+UPDATE `creature_template` SET `ScriptName` = 'npc_coilskar_sea_caller', `AIName` = '' WHERE `entry` = 96884;
+DELETE FROM `smart_scripts` WHERE `entryorguid` = 96884 AND `source_type` = 0;
+
+-- Quest: 40379 Enter the Illidari: Coilskar -> quest_enter_the_illidari_coilskar C++ script
+-- (fires on objective 280771 'Coilskar Forces' completion -> delayed summon cast)
+UPDATE `quest_template_addon` SET `ScriptName` = 'quest_enter_the_illidari_coilskar' WHERE `ID` = 40379;
+

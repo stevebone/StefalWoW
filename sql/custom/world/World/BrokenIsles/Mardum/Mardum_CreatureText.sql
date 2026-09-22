@@ -1,7 +1,12 @@
 -- Mardum Creature Text
-DELETE FROM `creature_text` WHERE `creatureID` IN (98484,98486,98497,98460,95226,93112,96884,93759,94654);
+DELETE FROM `creature_text` WHERE `creatureID` IN (98484,98486,98497,98460,95226,93112,96884,93759,94654,93221,95048);
 DELETE FROM `creature_text` WHERE `creatureID` IN (98229) AND `GroupID` IN (2,3);
 INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `BroadcastTextId`, `TextRange`, `comment`) VALUES
+(95048, 0, 0, 'Deal with these insects, Beliash.', 12, 0, 100, 0, 0, 55071, 96146, 0, 'Brood Queen Tyranna to Player'),
+
+(93221, 0, 0, 'They will die.', 14, 0, 100, 0, 0, 55133, 94990, 0, 'Doom Commander Beliash to Player'),
+(93221, 1, 0, 'You won''t survive Inferno Peak...', 12, 0, 100, 0, 0, 55134, 94991, 0, 'Doom Commander Beliash to Player'),
+
 (94654, 0, 0, 'A fatal mistake, mortal.', 12, 0, 100, 0, 0, 55149, 96650, 0, 'Doomguard Eradicator to Player'),
 (94654, 0, 1, 'The Legion conquers all.', 12, 0, 100, 0, 0, 55147, 96648, 0, 'Doomguard Eradicator to Player'),
 (94654, 0, 2, 'Intruder, your life ends now.', 12, 0, 100, 0, 0, 55146, 96647, 0, 'Doomguard Eradicator to Player'),

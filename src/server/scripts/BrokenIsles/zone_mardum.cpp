@@ -1457,6 +1457,23 @@ struct npc_sevis_brightflame_shivarra_gateway : public ScriptedAI
 {
     npc_sevis_brightflame_shivarra_gateway(Creature* creature) : ScriptedAI(creature), _soulMissileCounter(0) { }
 
+    void MoveInLineOfSight(Unit* who) override
+    {
+        Player* player = who->ToPlayer();
+        if (!player)
+            return;
+
+        if (!me->IsWithinDist(player, 10.f))
+            return;
+
+        if (player->GetQuestStatus(38765) != QUEST_STATUS_COMPLETE)
+            return;
+
+        // greet each player only once
+        if (_greetedPlayers.insert(player->GetGUID()).second)
+            Talk(0, player);
+    }
+
     bool OnGossipSelect(Player* player, uint32 menuId, uint32 gossipListId) override
     {
         if (menuId == GOSSIP_MENU_SACRIFICE_PLAYER && gossipListId == GOSSIP_OPTION_SACRIFICE_PLAYER)
@@ -1527,11 +1544,13 @@ struct npc_sevis_brightflame_shivarra_gateway : public ScriptedAI
 
             me->GetMotionMaster()->MoveCloserAndStop(POINT_SEVIS_GATEWAY_SHIVARRA, summoner, 2.0f);
 
-            task.Schedule(2s, [this](TaskContext& task)
+            task.Schedule(2s, [this, summoner](TaskContext& task)
             {
                 me->SendPlaySpellVisualKit(SPELL_VISUAL_SACRIFICE_PLAYER, 4, 1000);
                 me->SetAIAnimKitId(ANIM_KIT_SWING_WEAPON);
+
                 DoCast(SPELL_SEVIS_CHAOS_STRIKE);
+                summoner->KillSelf(false);
 
                 task.Schedule(2s, [this](TaskContext& task)
                 {
@@ -1565,6 +1584,7 @@ struct npc_sevis_brightflame_shivarra_gateway : public ScriptedAI
 private:
     TaskScheduler _scheduler;
     uint8 _soulMissileCounter;
+    GuidUnorderedSet _greetedPlayers;
 };
 
 // EventID 47550

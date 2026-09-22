@@ -40,6 +40,10 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 AshtongueMystic     = 99914;
         static constexpr uint32 ELMGeneralPurposeBunny = 24021;
         static constexpr uint32 JaceDarkweaver      = 93759;
+        static constexpr uint32 CoilskarSeaCaller   = 96884;
+        static constexpr uint32 DoomCommanderBeliash = 93221;
+        static constexpr uint32 QueenTyranna        = 93802;
+        static constexpr uint32 BeliashKillCredit   = 106003;
     }
 
     namespace Maps
@@ -81,6 +85,7 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 LegionCommunicator1       = 281333; // quest 39279
         static constexpr uint32 LegionCommunicator2       = 281334; // quest 39279
         static constexpr uint32 SoulSacrificed            = 280770; // quest 40379
+        static constexpr uint32 CoilskarForces            = 280771; // quest 40379
     }
 
     namespace Spells
@@ -91,6 +96,12 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 PermanentFeignDeath    = 159474;
         static constexpr uint32 ShivarraSoulMissiles02 = 191664;
         static constexpr uint32 FelChannelling         = 188485;
+        static constexpr uint32 SummonCoilskarSeaCaller  = 191668;
+        static constexpr uint32 SeaCallerLightningBolt   = 197745;
+        static constexpr uint32 SeaCallerHealingWave     = 197744;
+        static constexpr uint32 ShadowBlaze              = 195401;
+        static constexpr uint32 ShadowBoltVolley         = 196403;
+        static constexpr uint32 ShadowRetreat            = 196625;
     }
 
     namespace Conversations
@@ -98,6 +109,7 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 FelSpreaderDestroyed       = 581;
         static constexpr uint32 LegionCommunicatorReport1  = 558;
         static constexpr uint32 LegionCommunicatorReport2  = 583;
+        static constexpr uint32 DoomCommanderBeliash       = 531;
     }
 
     namespace CreatureText
@@ -130,6 +142,29 @@ namespace Scripts::Custom::Mardum
         static constexpr uint8 JaceMeetingWithTheQueenAccept = 1; // 'Use the crucible to complete the ritual.'
         static constexpr uint8 JaceBeforeWereOverunAccept = 2; // 'Beliash is protected by...'
         static constexpr uint8 JaceBeforeWereOverunAccept2 = 3; // 'Good luck, $n. I'll see you up in the volcano.'
+
+        // Coilskar Sea-Caller (96884) - creature_text GroupIDs
+        static constexpr uint8 SeaCallerEngage   = 0; // 'Deal with these insects, Beliash.'
+        static constexpr uint8 SeaCallerGreeting = 1; // 'Lady S'theno requested I join you.'
+
+        // Doom Commander Beliash (93221) - creature_text GroupID
+        static constexpr uint8 BeliashAggro = 0; // 'They will die.'
+        static constexpr uint8 BeliashAggro2 = 1; // 'You wont survive'
+
+        // Brood Queen Tyranna (93802) - creature_text GroupID
+        static constexpr uint8 QueenTyrannaAggro = 0;
+    }
+
+    namespace Events
+    {
+        // Coilskar Sea-Caller (96884) - EventMap IDs
+        static constexpr int8 SeaCallerGreeting      = 1;
+        static constexpr int8 SeaCallerSpellRotation = 2;
+
+        // Doom Commander Beliash (93221) - EventMap IDs
+        static constexpr int8 BeliashShadowBlaze      = 1;
+        static constexpr int8 BeliashShadowBoltVolley = 2;
+        static constexpr int8 BeliashShadowRetreat    = 3;
     }
 
     namespace Misc
@@ -138,6 +173,7 @@ namespace Scripts::Custom::Mardum
         static constexpr float TalkDistance        = 5.0f;
         static constexpr float CaptiveGreetingRange = 10.0f;
         static constexpr float JaceGreetingRange    = 10.0f;
+        static constexpr float BeliashConversationRange = 100.0f;
         static constexpr uint32 MysticGossipMenu         = 19015;
         static constexpr uint32 MysticVisualKit          = 25111;
         static constexpr uint32 MysticAnimKit            = 9256;
