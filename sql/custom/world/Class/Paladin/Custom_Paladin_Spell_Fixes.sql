@@ -157,17 +157,6 @@ DELETE FROM `spell_script_names` WHERE `ScriptName`='spell_pal_light_s_beacon_cu
 INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 (53651, 'spell_pal_light_s_beacon_custom');
 
--- Expurgation (383344): should only proc from Blade of Justice (184575) and its AOE (404358).
--- DB2 EffectSpellClassMask is 0, so auto-generated proc has no family filter (procs from everything).
--- spell_proc Chance=100 + AuraScript CheckProc filters by exact spell ID.
-DELETE FROM `spell_proc` WHERE `SpellId` = 383344;
-INSERT INTO `spell_proc` (`SpellId`, `SchoolMask`, `SpellFamilyName`, `SpellFamilyMask0`, `SpellFamilyMask1`, `SpellFamilyMask2`, `SpellFamilyMask3`, `ProcFlags`, `ProcFlags2`, `SpellTypeMask`, `SpellPhaseMask`, `HitMask`, `AttributesMask`, `DisableEffectsMask`, `ProcsPerMinute`, `Chance`, `Cooldown`, `Charges`) VALUES
-(383344, 0, 0, 0, 0, 0, 0, 0x10, 0, 0, 2, 0, 0, 0, 0, 100, 0, 0);
-
-DELETE FROM `spell_script_names` WHERE `ScriptName`='spell_pal_expurgation_custom';
-INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
-(383344, 'spell_pal_expurgation_custom');
-
 -- Hammer of Wrath Talent (1241288): replaces Judgment with Hammer of Wrath during Avenging Wrath.
 -- spell_pal_hammer_of_wrath_avenging_wrath hooks all Avenging Wrath variants.
 -- spell_pal_hammer_of_wrath_talent hooks the talent passive aura.

@@ -1999,28 +1999,6 @@ namespace Scripts::Custom::Paladin
         }
     };
 
-    // 383344 - Expurgation
-    // Passive aura that should only proc from Blade of Justice (184575) and its AOE (404358).
-    // DB2 EffectSpellClassMask is 0, so the auto-generated proc entry has no family filter.
-    // spell_proc Chance=100 + CheckProc filters by exact spell ID.
-    class spell_pal_expurgation_custom : public AuraScript
-    {
-        bool CheckProc(ProcEventInfo& eventInfo)
-        {
-            SpellInfo const* procSpell = eventInfo.GetSpellInfo();
-            if (!procSpell)
-                return false;
-
-            return procSpell->Id == Spells::BladeOfJustice
-                || procSpell->Id == Spells::BladeOfJusticeAoE;
-        }
-
-        void Register() override
-        {
-            DoCheckProc += AuraCheckProcFn(spell_pal_expurgation_custom::CheckProc);
-        }
-    };
-
     // =========================================================================
     // Hammer of Wrath Talent (1241288)
     // Passive talent: replaces Judgment with Hammer of Wrath during Avenging Wrath.
@@ -2739,7 +2717,6 @@ void AddSC_custom_paladin_spell_fixes()
     RegisterSpellScript(spell_pal_suns_avatar_heal);
     RegisterSpellScript(spell_pal_suns_avatar_self_damage);
     RegisterSpellScript(spell_pal_light_s_beacon_custom);
-    RegisterSpellScript(spell_pal_expurgation_custom);
     RegisterSpellScript(spell_pal_hammer_of_wrath_avenging_wrath);
     RegisterSpellScript(spell_pal_hammer_of_wrath_talent);
     RegisterSpellScript(spell_pal_radiant_glory);
