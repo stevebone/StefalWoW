@@ -71,7 +71,6 @@ namespace Scripts::Custom::Mardum
 
             if (newStatus == QUEST_STATUS_COMPLETE)
             {
-
                 // Scheduled on the player's EventProcessor so it is dropped on logout;
                 // the login check in player_mardum_coilskar_forces covers that case.
                 player->m_Events.AddEventAtOffset([player]()

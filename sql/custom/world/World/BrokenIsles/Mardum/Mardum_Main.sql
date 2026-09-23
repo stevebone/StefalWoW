@@ -2,6 +2,7 @@
 
 -- NPC: 93112 Felguard Sentry
 -- NPC: 93115 Foul Felstalker
+-- NPC: 93716 Doom Slayer
 -- NPC: 98484 Mo'arg Brute
 -- NPC: 98483 Hellish Imp
 -- NPC: 98482 Foul Felstalker
@@ -15,6 +16,7 @@
 -- NPC: 98460 Kor'vas Bloodthorn <Illidari>
 -- NPC: 96884 Coilskar Sea-Caller <Servant of Illidan>
 -- NPC: 93759 Jace Darkweaver <Illidari>
+-- NPC: 100161 Legion Devastator
 
 -- Quest: 39279 Assault On Mardum (Bonus Objectives)
 -- Quest: 38759 Set Them Free
@@ -27,6 +29,23 @@
 -- Spell: 191827 Destroying Fel Spreader (spell click)
 -- Spell: 199617 Assault on Mardum: Fel Spreader Fel Explosion
 -- Spell: 191668 Enter the Illidari: Summon Coilskar Sea-Caller
+-- Spell: 194689 Fel Bombardment
+
+-- ========================= Fixes for the quest 38765 Enter the Illidari: Shivarra / Fel Bombardments
+DELETE FROM `conversation_template` WHERE `Id` = 747;
+INSERT INTO `conversation_template` (`Id`, `FirstLineId`, `VerifiedBuild`) VALUES
+(747, 1779, 69875);
+
+DELETE FROM `conversation_line_template` WHERE `Id` IN (1779,1780,2938);
+INSERT INTO `conversation_line_template` (`Id`, `UiCameraID`, `ActorIdx`, `VerifiedBuild`) VALUES
+(1779, 119, 0, 69875),
+(1780, 119, 0, 69875),
+(2938, 263, 1, 69875);
+
+DELETE FROM `conversation_actors` WHERE `ConversationId` = 747;
+INSERT  INTO `conversation_actors` (`ConversationId`, `ConversationActorId`, `Idx`, `CreatureId`, `CreatureDisplayInfoId`, `NoActorObject`, `ActivePlayerObject`, `VerifiedBuild`) VALUES
+(747, 49947, 0, 93127, 61698, 0, 0, 69875),
+(747, 49935, 1, 93802, 65935, 0, 0, 69875);
 
 -- ========================= Fixes for the Bonus quest
 -- Update Kill Credits
@@ -138,16 +157,22 @@ UPDATE creature_template SET ScriptName='' WHERE entry=96159;
 UPDATE `creature_template_difficulty` SET `StaticFlags1` = `StaticFlags1` | 0x20000000 WHERE `Entry` IN (94744);
 
 -- SAI
-UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (98484,98486,98497,98482,95226,93112);
-DELETE FROM smart_scripts WHERE entryorguid IN (98484,98486,98497,98482,95226,93112) AND source_type = 0;
+UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (98484,98486,98497,98482,95226,93112,93716,94654);
+DELETE FROM smart_scripts WHERE entryorguid IN (98484,98486,98497,98482,95226,93112,93716,94654) AND source_type = 0;
 INSERT INTO smart_scripts (entryorguid, source_type, id, link, Difficulties, event_type, event_phase_mask, event_chance, event_flags, event_param1, event_param2, event_param3, event_param4, event_param5, event_param_string, action_type, action_param1, action_param2, action_param3, action_param4, action_param5, action_param6, action_param7, action_param_string, target_type, target_param1, target_param2, target_param3, target_param4, target_param_string, target_x, target_y, target_z, target_o, comment) VALUES
 (93112, 0, 0, 0, '', 0, 0, 100, 1, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Felguard Sentry - In Combat - Talk (No Repeat)'),
 (93112, 0, 2, 0, '', 0, 0, 100, 0, 5000, 8000, 12000, 15000, 0, '', 11, 200570, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Felguard Sentry - In Combat - Cast ''Blazing Blade'''),
 
+(94654, 0, 0, 0, '', 4, 0, 100, 0, 0, 0, 0, 0, 0, '', 11, 200608, 0, 0, 0, 0, 0, 0, '', 7, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Doomguard Eradicator - On Aggro - Cast ''Shadowflame'''),
+(94654, 0, 1, 0, '', 4, 0, 30, 1, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Doomguard Eradicator - On Aggro - Talk (No Repeat)'),
+
+(93716, 0, 0, 0, '', 0, 0, 100, 0, 2000, 3000, 3000, 5000, 0, '', 11, 200525, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Doom Slayer - In Combat - Cast ''Inferno Axe'''),
+(93716, 0, 1, 0, '', 4, 0, 100, 0, 0, 0, 0, 0, 0, '', 11, 200552, 0, 0, 0, 0, 0, 0, '', 7, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Doom Slayer - On Aggro - Cast ''Fel Crash'''),
+(93716, 0, 2, 0, '', 4, 0, 30, 1, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Doom Slayer - On Aggro - Talk (No Repeat)'),
 
 (95226, 0, 0, 0, '', 0, 0, 100, 0, 1000, 2000, 3000, 4000, 0, '', 11, 200502, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Anguish Jailer - In Combat - Cast ''Anguished Soul'''),
 (95226, 0, 1, 0, '', 6, 0, 100, 0, 0, 0, 0, 0, 0, '', 11, 200521, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Anguish Jailer - On Just Died - Cast ''Well of Souls Soul Visual'''),
-(95226, 0, 3, 0, '', 4, 0, 30, 1, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Anguis Jailer - In Combat - Talk (No Repeat)'),
+(95226, 0, 2, 0, '', 4, 0, 30, 1, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Anguis Jailer - In Combat - Talk (No Repeat)'),
 
 
 (98484, 0, 0, 0, '', 0, 0, 100, 0, 1000, 2000, 8000, 9000, 0, '', 11, 200425, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Mo''arg Brute - In Combat - Cast ''Brutal Slam'''),
@@ -300,4 +325,18 @@ INSERT INTO `spell_target_position` (`ID`, `EffectIndex`, `OrderIndex`, `MapID`,
 (194689, 0, 111, 1481, 699.826, 2653.49, -73.8398, 0, 69814),
 (194689, 0, 112, 1481, 1036.43, 3066.39, -5.33064, 0, 69814),
 (194689, 0, 113, 1481, 1372.52, 2362.25, 48.75, 0, 69814),
-(194689, 0, 114, 1481, 700.736, 2427.94, -68.544, 0, 69814);
+(194689, 0, 114, 1481, 700.736, 2427.94, -68.544, 0, 69814),
+(194689, 0, 115, 1481, 1380.769, 2307.047, 68.79, 0, 69814),
+(194689, 0, 116, 1481, 1359.921, 2272.701, 78.418, 0, 69814),
+(194689, 0, 117, 1481, 1352.14, 2228.301, 87.94, 0, 69814),
+(194689, 0, 118, 1481, 1360.766, 2178.386, 93.686, 0, 69814),
+(194689, 0, 119, 1481, 1381.394, 2134.039, 99.793, 0, 69814),
+(194689, 0, 120, 1481, 1407.384, 2096.695, 106.86, 0, 69814);
+
+-- NPC: 100161 Legion Devastator -> npc_legion_devastator C++ script
+UPDATE `creature_template` SET `ScriptName` = 'npc_legion_devastator', `AIName` = '' WHERE `entry` = 100161;
+DELETE FROM `smart_scripts` WHERE `entryorguid` = 100161 AND `source_type` = 0;
+
+DELETE FROM `areatrigger_create_properties` WHERE `Id` = 4920 AND `IsCustom` = 0;
+INSERT INTO `areatrigger_create_properties` VALUES
+(4920, 0, 9637, 0, 16, 0, 0, 0, 0, -1, 0, 0, NULL, 0, 0, 1, 0, 0, 5, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL, '', 69814);

@@ -1,7 +1,10 @@
 -- Mardum Creature Text
-DELETE FROM `creature_text` WHERE `creatureID` IN (98484,98486,98497,98460,95226,93112,96884,93759,94654,93221,95048);
+DELETE FROM `creature_text` WHERE `creatureID` IN (98484,98486,98497,98460,95226,93112,96884,93759,94654,93221,95048,93716);
 DELETE FROM `creature_text` WHERE `creatureID` IN (98229) AND `GroupID` IN (2,3);
 INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `BroadcastTextId`, `TextRange`, `comment`) VALUES
+(93716, 0, 0, 'The Legion conquers all.', 12, 0, 100, 0, 0, 55147, 96648, 0, 'Doom Slayer to Player'),
+(93716, 0, 1, 'Succulent marrow. Crunchy bones.', 12, 0, 100, 0, 0, 55150, 96651, 0, 'Doom Slayer to Player'),
+
 (95048, 0, 0, 'Deal with these insects, Beliash.', 12, 0, 100, 0, 0, 55071, 96146, 0, 'Brood Queen Tyranna to Player'),
 
 (93221, 0, 0, 'They will die.', 14, 0, 100, 0, 0, 55133, 94990, 0, 'Doom Commander Beliash to Player'),
@@ -41,7 +44,6 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Lan
 (95226, 0, 5, 'A new prisoner for the taking.', 12, 0, 100, 0, 0, 55014, 97909, 0, 'Anguish Jailer to Player'),
 (95226, 0, 6, 'Your soul will be mine.', 12, 0, 100, 0, 0, 55013, 97908, 0, 'Anguish Jailer to Player'),
 (95226, 0, 7, 'Your armies are nothing, demon hunter.', 12, 0, 100, 0, 0, 55015, 97910, 0, 'Anguish Jailer to Player'),
-
 
 (98229, 2, 0, 'Cyana, Jace, Allari... find the keystone.', 12, 0, 100, 0, 0, 55144, 100341, 0, 'Kayn Sunfury <Illidari> to Player'),
 (98229, 3, 0, 'Now, let''s see about activating that gateway.', 12, 0, 100, 0, 0, 55143, 100136, 0, 'Kayn Sunfury <Illidari> to Player'),

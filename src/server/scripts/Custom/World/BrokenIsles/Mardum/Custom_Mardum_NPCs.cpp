@@ -610,6 +610,80 @@ namespace Scripts::Custom::Mardum
         EventMap _events;
         GuidUnorderedSet _conversedPlayers;
     };
+
+    // 100161 - Legion Devastator
+    struct npc_legion_devastator : public ScriptedAI
+    {
+        npc_legion_devastator(Creature* creature) : ScriptedAI(creature)
+        {
+            // MoveInLineOfSight is gated by m_SightDistance (MonsterSight, 50y default) -
+            // raise it so the 200y bombardment trigger can actually fire.
+            me->m_SightDistance = Misc::BombardmentRange;
+            me->setActive(true);
+            me->SetFarVisible(true);
+        }
+
+        void Reset() override
+        {
+            _events.Reset();
+            _bombardmentActive = false;
+        }
+
+        void MoveInLineOfSight(Unit* who) override
+        {
+            if (Player* player = who->ToPlayer())
+                if (player->GetQuestStatus(Quests::EnterTheIllidariShivarra) == QUEST_STATUS_COMPLETE)
+                    if (me->IsWithinDist(player, Misc::BombardmentRange, true, false))
+                    {
+                        if (!_bombardmentActive)
+                        {
+                            _bombardmentActive = true;
+                            _bombardingPlayer = player->GetGUID();
+                            _events.ScheduleEvent(Events::DevastatorBombardment, 0s);
+                        }
+                        if (_conversedPlayers.insert(player->GetGUID()).second)
+                            _events.ScheduleEvent(Events::DevastatorBombardmentConversation, 5s);
+                    }
+
+            ScriptedAI::MoveInLineOfSight(who);
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _events.Update(diff);
+
+            while (uint32 eventId = _events.ExecuteEvent())
+            {
+                switch (eventId)
+                {
+                    case Events::DevastatorBombardment:
+                    {
+                        Player* player = ObjectAccessor::GetPlayer(*me, _bombardingPlayer);
+                        if (player && me->IsWithinDist(player, Misc::BombardmentRange, true, false))
+                        {
+                            me->CastSpell(nullptr, Spells::FelBombardment);
+                            _events.Repeat(3s);
+                        }
+                        else
+                            _bombardmentActive = false;
+                        break;
+                    }
+                    case Events::DevastatorBombardmentConversation:
+                        if (Player* player = ObjectAccessor::GetPlayer(*me, _bombardingPlayer))
+                            Conversation::CreateConversation(Conversations::FelBombardments, player, player->GetPosition(), { player->GetGUID() });
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+
+    private:
+        EventMap _events;
+        ObjectGuid _bombardingPlayer;
+        GuidUnorderedSet _conversedPlayers;
+        bool _bombardmentActive = false;
+    };
 }
 
 void AddSC_custom_mardum_npcs()
@@ -621,4 +695,5 @@ void AddSC_custom_mardum_npcs()
     RegisterCreatureAI(npc_jace_darkweaver);
     RegisterCreatureAI(npc_coilskar_sea_caller);
     RegisterCreatureAI(npc_doom_commander_beliash);
+    RegisterCreatureAI(npc_legion_devastator);
 }

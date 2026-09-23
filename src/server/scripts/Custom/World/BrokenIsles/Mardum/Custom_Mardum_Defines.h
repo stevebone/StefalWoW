@@ -44,6 +44,7 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 DoomCommanderBeliash = 93221;
         static constexpr uint32 QueenTyranna        = 95048; // RP version beside Beliash; 93802 is the boss at the Seat of Command
         static constexpr uint32 BeliashKillCredit   = 106003;
+        static constexpr uint32 LegionDevastator    = 100161;
     }
 
     namespace Maps
@@ -105,6 +106,7 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 ShadowBoltVolley         = 196403;
         static constexpr uint32 ShadowRetreat            = 196625;
         static constexpr uint32 BroodQueenTyrannaTeleport = 188658;
+        static constexpr uint32 FelBombardment         = 194689;
     }
 
     namespace Conversations
@@ -113,6 +115,7 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 LegionCommunicatorReport1  = 558;
         static constexpr uint32 LegionCommunicatorReport2  = 583;
         static constexpr uint32 DoomCommanderBeliash       = 531;
+        static constexpr uint32 FelBombardments            = 747;
     }
 
     namespace CreatureText
@@ -168,6 +171,10 @@ namespace Scripts::Custom::Mardum
         static constexpr int8 BeliashShadowBlaze      = 1;
         static constexpr int8 BeliashShadowBoltVolley = 2;
         static constexpr int8 BeliashShadowRetreat    = 3;
+
+        // Legion Devastator (100161) - EventMap IDs
+        static constexpr int8 DevastatorBombardment             = 1;
+        static constexpr int8 DevastatorBombardmentConversation = 2;
     }
 
     namespace Misc
@@ -177,6 +184,7 @@ namespace Scripts::Custom::Mardum
         static constexpr float CaptiveGreetingRange = 10.0f;
         static constexpr float JaceGreetingRange    = 10.0f;
         static constexpr float BeliashConversationRange = 100.0f;
+        static constexpr float BombardmentRange         = 450.0f;
         static constexpr uint32 MysticGossipMenu         = 19015;
         static constexpr uint32 MysticVisualKit          = 25111;
         static constexpr uint32 MysticAnimKit            = 9256;
