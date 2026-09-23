@@ -2850,6 +2850,16 @@ void AuraEffect::HandleAuraMounted(AuraApplication const* aurApp, uint8 mode, bo
                         target->SetCanAdvFly(true);
                         target->SetCanDoubleJump(true);
                         target->SetFlightCapabilityID(1, true);
+                        // The client keeps adv-fly physics params only if they arrive after
+                        // SET_CAN_ADV_FLY - force the complete burst now that it is enabled.
+                        target->SendAdvFlyingSpeedBurst();
+                        // Apply the Dynamic Flight aura - retail receives it from the selected
+                        // mount capability; if a generic capability was chosen instead, drop its
+                        // speed aura so mounted speed comes only from 406095.
+                        if (MountCapabilityEntry const* mountCapability = sMountCapabilityStore.LookupEntry(GetAmountAsInt()))
+                            if (mountCapability->ModSpellAuraID > 0 && uint32(mountCapability->ModSpellAuraID) != SPELL_DYNAMIC_FLIGHT)
+                                target->RemoveAurasDueToSpell(mountCapability->ModSpellAuraID, target->GetGUID());
+                        player->UpdateDynamicFlight(true);
                         // Cast Vigor aura - required by CasterAuraSpell check for active abilities
                         if (!player->HasAura(372773))
                             player->CastSpell(player, 372773, true);
@@ -2886,6 +2896,9 @@ void AuraEffect::HandleAuraMounted(AuraApplication const* aurApp, uint8 mode, bo
         target->SetDriveCapabilityID(0, true);
         // Remove Vigor aura on dismount
         target->RemoveAura(372773);
+        // Remove the Dynamic Flight aura if it was force-applied on mount
+        if (Player* player = target->ToPlayer())
+            player->UpdateDynamicFlight(false);
     }
 
     // Dragonriding updates
@@ -3032,8 +3045,11 @@ void AuraEffect::HandleModAdvFlying(AuraApplication const* aurApp, uint8 mode, b
     player->SetCanFly(apply);
     player->SetCanAdvFly(apply);
 
+    // Retail delivers the full FlightCapability parameter burst right after SET_CAN_ADV_FLY on every
+    // engage (sniff 66709). Sending it earlier is useless: the client only accepts/keeps the physics
+    // params once the adv-fly state is enabled.
     if (apply)
-        player->InitAdvFlying();
+        player->SendAdvFlyingSpeedBurst();
 }
 
 void AuraEffect::HandleIgnoreMovementForces(AuraApplication const* aurApp, uint8 mode, bool apply) const
@@ -6743,36 +6759,6 @@ void AuraEffect::HandleAuraActAsControlZone(AuraApplication const* aurApp, uint8
 
     if (GameObject* controlZone = auraOwner->SummonGameObject(gameobjectTemplate->entry, auraOwner->GetPosition(), QuaternionData::fromEulerAnglesZYX(aurApp->GetTarget()->GetOrientation(), 0.f, 0.f), 24h, GO_SUMMON_TIMED_OR_CORPSE_DESPAWN))
         controlZone->SetSpellId(GetSpellInfo()->Id);
-}
-
-void AuraEffect::HandleAdvFlyModSpeed(AuraApplication const* aurApp, uint8 mode, bool /*apply*/) const
-{
-    if (!(mode & AURA_EFFECT_HANDLE_REAL))
-        return;
-
-    Player* player = aurApp->GetTarget()->ToPlayer();
-    if (!player)
-        return;
-
-    player->CalculateAdvFlyingSpeeds();
-
-    static std::unordered_map<AuraType, std::tuple<OpcodeServer, AdvFlyingRateTypeSingle, std::optional<AdvFlyingRateTypeSingle>>> advFlyMap;
-    if (advFlyMap.empty())
-    {
-        using TupleType = std::tuple<OpcodeServer, AdvFlyingRateTypeSingle, std::optional<AdvFlyingRateTypeSingle>>;
-        advFlyMap[SPELL_AURA_MOD_ADV_FLYING_LIFT_COEF] = TupleType{ SMSG_MOVE_SET_ADV_FLYING_LIFT_COEFFICIENT, AdvFlyingRateTypeSingle(ADV_FLYING_LIFT_COEFFICIENT), std::optional<AdvFlyingRateTypeSingle>(std::nullopt) };
-        advFlyMap[SPELL_AURA_MOD_ADV_FLYING_MAX_VEL] = TupleType{ SMSG_MOVE_SET_ADV_FLYING_MAX_VEL, AdvFlyingRateTypeSingle(ADV_FLYING_MAX_VEL), std::optional<AdvFlyingRateTypeSingle>(std::nullopt) };
-        advFlyMap[SPELL_AURA_MOD_ADV_FLYING_AIR_FRICTION] = TupleType{ SMSG_MOVE_SET_ADV_FLYING_AIR_FRICTION, AdvFlyingRateTypeSingle(ADV_FLYING_AIR_FRICTION), std::optional<AdvFlyingRateTypeSingle>(std::nullopt) };
-        advFlyMap[SPELL_AURA_MOD_ADV_FLYING_ADD_IMPULSE_MAX_SPEED] = TupleType{ SMSG_MOVE_SET_ADV_FLYING_ADD_IMPULSE_MAX_SPEED, AdvFlyingRateTypeSingle(ADV_FLYING_ADD_IMPULSE_MAX_SPEED), std::optional<AdvFlyingRateTypeSingle>(std::nullopt) };
-        advFlyMap[SPELL_AURA_MOD_ADV_FLYING_BANKING_RATE] = TupleType{ SMSG_MOVE_SET_ADV_FLYING_PITCHING_RATE_DOWN, AdvFlyingRateTypeSingle(ADV_FLYING_BANKING_RATE), std::optional<AdvFlyingRateTypeSingle>(AdvFlyingRateTypeSingle(ADV_FLYING_PITCHING_RATE_DOWN)) };
-        advFlyMap[SPELL_AURA_MOD_ADV_FLYING_PITCHING_RATE_DOWN] = TupleType{ SMSG_MOVE_SET_ADV_FLYING_PITCHING_RATE_UP, AdvFlyingRateTypeSingle(ADV_FLYING_PITCHING_RATE_UP), std::optional<AdvFlyingRateTypeSingle>(AdvFlyingRateTypeSingle(ADV_FLYING_PITCHING_RATE_UP)) };
-        advFlyMap[SPELL_AURA_MOD_ADV_FLYING_PITCHING_RATE_UP] = TupleType{ SMSG_MOVE_SET_ADV_FLYING_OVER_MAX_DECELERATION, AdvFlyingRateTypeSingle(ADV_FLYING_OVER_MAX_DECELERATION), std::optional<AdvFlyingRateTypeSingle>(std::nullopt) };
-        advFlyMap[SPELL_AURA_MOD_ADV_FLYING_OVER_MAX_DECELERATION] = TupleType{ SMSG_MOVE_SET_ADV_FLYING_BANKING_RATE, AdvFlyingRateTypeSingle(ADV_FLYING_BANKING_RATE), std::optional<AdvFlyingRateTypeSingle>(AdvFlyingRateTypeSingle(ADV_FLYING_BANKING_RATE)) };
-    }
-
-    auto [opcode, speedType, speedTypeMax] = advFlyMap[GetSpellEffectInfo().ApplyAuraName];
-
-    player->SendAdvFlyingSpeed(opcode, speedType, speedTypeMax);
 }
 
 void AuraEffect::HandleAuraLeech(AuraApplication const* auraApp, uint8 mode, bool /*apply*/) const

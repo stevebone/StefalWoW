@@ -119,6 +119,7 @@ class spell_switch_flight : public SpellScript
             caster->RemoveAura(SPELL_VIGOR);
             if (caster->IsMounted())
             {
+                player->UpdateDynamicFlight(false);
                 caster->SetCanAdvFly(false);
                 caster->SetCanDoubleJump(false);
             }
@@ -130,9 +131,11 @@ class spell_switch_flight : public SpellScript
                 caster->CastSpell(caster, SPELL_VIGOR, true);
             if (caster->IsMounted())
             {
+                player->UpdateDynamicFlight(true);
                 caster->SetCanAdvFly(true);
                 caster->SetCanDoubleJump(true);
                 caster->SetFlightCapabilityID(1, true);
+                caster->SendAdvFlyingSpeedBurst();
             }
         }
     }

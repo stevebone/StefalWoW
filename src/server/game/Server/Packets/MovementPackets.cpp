@@ -1301,14 +1301,5 @@ WorldPacket const* AdjustSplineDuration::Write()
     return &_worldPacket;
 }
 
-WorldPacket const* WorldPackets::Movement::SetAdvFlyingMinMaxSpeeds::Write()
-{
-    _worldPacket << uint32(SequenceIndex);
-    _worldPacket << float(Speed);
-    _worldPacket << float(MaxSpeed);
-
-    return &_worldPacket;
-}
-// StefalWoW
 }
 

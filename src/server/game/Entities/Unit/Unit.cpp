@@ -9151,6 +9151,10 @@ void Unit::SetFlightCapabilityID(int32 flightCapabilityId, bool clientUpdate)
 
     SetUpdateFieldValue(m_values.ModifyValue(&Unit::m_unitData).ModifyValue(&UF::UnitData::FlightCapabilityID), flightCapabilityId);
 
+    // GlideEventSpeedDivisor scales movement speed when the client evaluates which GlideEvent to play.
+    // 1.0 is the neutral default; 0.0 would cause divide-by-zero on the client.
+    SetUpdateFieldValue(m_values.ModifyValue(&Unit::m_unitData).ModifyValue(&UF::UnitData::GlideEventSpeedDivisor), 1.0f);
+
     UpdateAdvFlyingSpeed(ADV_FLYING_AIR_FRICTION, clientUpdate);
     UpdateAdvFlyingSpeed(ADV_FLYING_MAX_VEL, clientUpdate);
     UpdateAdvFlyingSpeed(ADV_FLYING_LIFT_COEFFICIENT, clientUpdate);
@@ -9166,7 +9170,7 @@ void Unit::SetFlightCapabilityID(int32 flightCapabilityId, bool clientUpdate)
     UpdateAdvFlyingSpeed(ADV_FLYING_LAUNCH_SPEED_COEFFICIENT, clientUpdate);
 }
 
-void Unit::UpdateAdvFlyingSpeed(AdvFlyingRateTypeSingle speedType, bool clientUpdate)
+void Unit::UpdateAdvFlyingSpeed(AdvFlyingRateTypeSingle speedType, bool clientUpdate, bool force /*= false*/)
 {
     FlightCapabilityEntry const* flightCapabilityEntry = sFlightCapabilityStore.LookupEntry(GetFlightCapabilityID());
     if (!flightCapabilityEntry)
@@ -9209,7 +9213,7 @@ void Unit::UpdateAdvFlyingSpeed(AdvFlyingRateTypeSingle speedType, bool clientUp
             ApplyPct(newValue, pos);
     }
 
-    if (m_advFlyingSpeed[speedType] == newValue)
+    if (!force && m_advFlyingSpeed[speedType] == newValue)
         return;
 
     m_advFlyingSpeed[speedType] = newValue;
@@ -9227,7 +9231,7 @@ void Unit::UpdateAdvFlyingSpeed(AdvFlyingRateTypeSingle speedType, bool clientUp
     }
 }
 
-void Unit::UpdateAdvFlyingSpeed(AdvFlyingRateTypeRange speedType, bool clientUpdate)
+void Unit::UpdateAdvFlyingSpeed(AdvFlyingRateTypeRange speedType, bool clientUpdate, bool force /*= false*/)
 {
     FlightCapabilityEntry const* flightCapabilityEntry = sFlightCapabilityStore.LookupEntry(GetFlightCapabilityID());
     if (!flightCapabilityEntry)
@@ -9266,7 +9270,7 @@ void Unit::UpdateAdvFlyingSpeed(AdvFlyingRateTypeRange speedType, bool clientUpd
         }
     }
 
-    if (m_advFlyingSpeed[speedType] == min && m_advFlyingSpeed[speedType + 1] == max)
+    if (!force && m_advFlyingSpeed[speedType] == min && m_advFlyingSpeed[speedType + 1] == max)
         return;
 
     m_advFlyingSpeed[speedType] = min;
@@ -14929,6 +14933,28 @@ void Unit::SetDriveCapabilityID(int32 driveCapabilityId, bool clientUpdate)
     }
 }
 
+void Unit::SendAdvFlyingSpeedBurst()
+{
+    // The complete FlightCapability parameter burst, in the retail order (sniff 66709: sent on every
+    // mount-engage, strictly AFTER SMSG_MOVE_SET_CAN_ADV_FLY). The client only accepts/keeps the
+    // physics params once the adv-fly state is enabled, and the change-suppression in
+    // UpdateAdvFlyingSpeed would swallow most of it - m_advFlyingSpeed is pre-seeded with
+    // FlightCapability fallback row 1 - so force all 13.
+    UpdateAdvFlyingSpeed(ADV_FLYING_AIR_FRICTION, true, true);
+    UpdateAdvFlyingSpeed(ADV_FLYING_MAX_VEL, true, true);
+    UpdateAdvFlyingSpeed(ADV_FLYING_LIFT_COEFFICIENT, true, true);
+    UpdateAdvFlyingSpeed(ADV_FLYING_DOUBLE_JUMP_VEL_MOD, true, true);
+    UpdateAdvFlyingSpeed(ADV_FLYING_GLIDE_START_MIN_HEIGHT, true, true);
+    UpdateAdvFlyingSpeed(ADV_FLYING_ADD_IMPULSE_MAX_SPEED, true, true);
+    UpdateAdvFlyingSpeed(ADV_FLYING_BANKING_RATE, true, true);
+    UpdateAdvFlyingSpeed(ADV_FLYING_PITCHING_RATE_DOWN, true, true);
+    UpdateAdvFlyingSpeed(ADV_FLYING_PITCHING_RATE_UP, true, true);
+    UpdateAdvFlyingSpeed(ADV_FLYING_TURN_VELOCITY_THRESHOLD, true, true);
+    UpdateAdvFlyingSpeed(ADV_FLYING_SURFACE_FRICTION, true, true);
+    UpdateAdvFlyingSpeed(ADV_FLYING_OVER_MAX_DECELERATION, true, true);
+    UpdateAdvFlyingSpeed(ADV_FLYING_LAUNCH_SPEED_COEFFICIENT, true, true);
+}
+
 void Unit::SendAddImpulse(Position const& direction)
 {
     if (Player* playerMover = GetPlayerMovingMe())
@@ -14939,20 +14965,6 @@ void Unit::SendAddImpulse(Position const& direction)
         addImpulse.Direction = direction;
         playerMover->SendDirectMessage(addImpulse.Write());
     }
-}
-
-void Unit::CalculateAdvFlyingSpeeds()
-{
-    FlightCapabilityEntry const* flightCapabilityEntry = sFlightCapabilityStore.LookupEntry(GetFlightCapabilityID());
-    if (!flightCapabilityEntry)
-        flightCapabilityEntry = sFlightCapabilityStore.LookupEntry(1);
-
-    ASSERT(flightCapabilityEntry, "Wrong default value for flightCapabilityID");
-
-    m_advFlyingSpeed[ADV_FLYING_DOUBLE_JUMP_VEL_MOD] = flightCapabilityEntry->DoubleJumpVelMod;
-    m_advFlyingSpeed[ADV_FLYING_GLIDE_START_MIN_HEIGHT] = flightCapabilityEntry->GlideStartMinHeight;
-    m_advFlyingSpeed[ADV_FLYING_LAUNCH_SPEED_COEFFICIENT] = flightCapabilityEntry->LaunchSpeedCoefficient;
-    m_advFlyingSpeed[ADV_FLYING_SURFACE_FRICTION] = flightCapabilityEntry->SurfaceFriction;
 }
 
 float Unit::GetAdvFlyingVelocity() const

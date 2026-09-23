@@ -2139,12 +2139,9 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         void DeleteTraitConfig(int32 deletedConfigId);
         void AddMoveImpulse(Position direction);
         // StefalWoW
-        void InitAdvFlying();
-        void SendAdvFlyingSpeed(OpcodeServer opcode, AdvFlyingRateTypeSingle speedType, std::optional<AdvFlyingRateTypeSingle> maxSpeedType = {});
         void UpdateDynamicFlight(bool apply = false);
         bool IsInAlliance() const { return m_team == ALLIANCE; }
         bool IsInHorde() const { return m_team == HORDE; }
-        void InitAdvancedFly();
         void ShowNeutralPlayerFactionSelectUI();
         // StefalWoW
         void ApplyTraitConfig(int32 configId, bool apply);

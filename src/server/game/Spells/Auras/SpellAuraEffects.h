@@ -371,7 +371,6 @@ class TC_GAME_API AuraEffect
         void HandleAuraPvpTalents(AuraApplication const* auraApp, uint8 mode, bool apply) const;
 
         void HandleAuraActAsControlZone(AuraApplication const* aurApp, uint8 mode, bool apply) const;
-        void HandleAdvFlyModSpeed(AuraApplication const* aurApp, uint8 mode, bool) const;
 };
 
 namespace Trinity

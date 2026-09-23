@@ -921,24 +921,6 @@ namespace WorldPackets
             float Scale = 1.0f;
         };
 
-        class SetAdvFlyingMinMaxSpeeds final : public ServerPacket
-        {
-        public:
-            SetAdvFlyingMinMaxSpeeds(OpcodeServer opcode, uint32 sequenceIndex, float speed, float maxSpeed) : ServerPacket(opcode, 4 + 4 + 4)
-            {
-                SequenceIndex = sequenceIndex;
-                Speed = speed;
-                MaxSpeed = maxSpeed;
-            }
-
-            WorldPacket const* Write() override;
-
-            uint32 SequenceIndex;
-            float Speed;
-            float MaxSpeed;
-        };
-        // StefalWoW
-
         ByteBuffer& operator>>(ByteBuffer& data, MovementAck& ack);
     }
 }
