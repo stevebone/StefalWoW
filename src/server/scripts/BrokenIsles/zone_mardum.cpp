@@ -2336,7 +2336,7 @@ void AddSC_zone_mardum()
     new scene_enter_the_illidari_coilskar();
 
     // Quests
-    new quest_enter_the_illidari_shivarra();
+    // new quest_enter_the_illidari_shivarra(); // override in Custom Namespace
     new quest_hidden_no_more();
 
     // Spells

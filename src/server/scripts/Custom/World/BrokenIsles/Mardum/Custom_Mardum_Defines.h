@@ -78,6 +78,7 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 EyeOnThePrize            = 39049;
         static constexpr uint32 MeetingWithTheQueen      = 39050;
         static constexpr uint32 BeforeWereOverun         = 38766;
+        static constexpr uint32 SevisSacrificeTracker    = 40087;
     }
 
     namespace Objectives

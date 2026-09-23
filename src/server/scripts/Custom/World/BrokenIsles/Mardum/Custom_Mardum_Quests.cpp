@@ -63,15 +63,22 @@ namespace Scripts::Custom::Mardum
 
         void OnQuestStatusChange(Player* player, Quest const* /*quest*/, QuestStatus /*oldStatus*/, QuestStatus newStatus) override
         {
-            if (newStatus != QUEST_STATUS_COMPLETE)
-                return;
+            if (newStatus == QUEST_STATUS_NONE)
+            {
+                player->RemoveActiveQuest(Quests::SevisSacrificeTracker, false);
+                player->RemoveRewardedQuest(Quests::SevisSacrificeTracker);
+            }
 
-            // Scheduled on the player's EventProcessor so it is dropped on logout;
-            // the login check in player_mardum_coilskar_forces covers that case.
-            player->m_Events.AddEventAtOffset([player]()
-                {
-                    player->CastSpell(player, Spells::SummonCoilskarSeaCaller, CastSpellExtraArgs(TRIGGERED_FULL_MASK));
-                }, 30s);
+            if (newStatus == QUEST_STATUS_COMPLETE)
+            {
+
+                // Scheduled on the player's EventProcessor so it is dropped on logout;
+                // the login check in player_mardum_coilskar_forces covers that case.
+                player->m_Events.AddEventAtOffset([player]()
+                    {
+                        player->CastSpell(player, Spells::SummonCoilskarSeaCaller, CastSpellExtraArgs(TRIGGERED_FULL_MASK));
+                    }, 30s);
+            }
         }
     };
 }
