@@ -463,7 +463,8 @@ void WorldSession::HandleCharEnum(CharacterDatabaseQueryHolder const& holder)
     WorldPackets::Character::EnumCharactersResult charEnum;
     charEnum.Success = true;
     charEnum.IsDeletedCharacters = enumHolder.IsDeletedCharacters();
-    charEnum.Realmless = true;
+    // the undelete flow is realm-bound on the client, deleted characters are always sent as a classic per-realm list
+    charEnum.Realmless = !charEnum.IsDeletedCharacters;
     charEnum.ForceCharacterListSort = false;
     charEnum.ClassDisableMask = sWorld->getIntConfig(CONFIG_CHARACTER_CREATING_DISABLED_CLASSMASK);
 
@@ -580,46 +581,51 @@ void WorldSession::HandleCharEnum(CharacterDatabaseQueryHolder const& holder)
         {
             Field* fields = result->Fetch();
 
-            WorldPackets::Character::EnumCharactersResult::RegionwideCharacterListEntry& entry = charEnum.RegionwideCharacters.emplace_back(fields);
-            entry.Money = fields[moneyFieldIndex].GetUInt64();
-            entry.Basic.RealmInfoFound = true;
+            WorldPackets::Character::EnumCharactersResult::CharacterInfoBasic* charInfo;
+            if (charEnum.IsDeletedCharacters)
+                charInfo = &charEnum.Characters.emplace_back(fields).Basic;
+            else
+            {
+                WorldPackets::Character::EnumCharactersResult::RegionwideCharacterListEntry& entry = charEnum.RegionwideCharacters.emplace_back(fields);
+                entry.Money = fields[moneyFieldIndex].GetUInt64();
+                entry.Basic.RealmInfoFound = true;
+                charInfo = &entry.Basic;
+            }
 
-            WorldPackets::Character::EnumCharactersResult::CharacterInfoBasic& charInfo = entry.Basic;
+            if (std::vector<UF::ChrCustomizationChoice>* customizationsForChar = Trinity::Containers::MapGetValuePtr(customizations, charInfo->Guid.GetCounter()))
+                charInfo->Customizations = std::move(*customizationsForChar);
 
-            if (std::vector<UF::ChrCustomizationChoice>* customizationsForChar = Trinity::Containers::MapGetValuePtr(customizations, charInfo.Guid.GetCounter()))
-                charInfo.Customizations = std::move(*customizationsForChar);
-
-            TC_LOG_INFO("network", "Loading char guid {} from account {}.", charInfo.Guid.ToString(), GetAccountId());
+            TC_LOG_INFO("network", "Loading char guid {} from account {}.", charInfo->Guid.ToString(), GetAccountId());
 
             if (!charEnum.IsDeletedCharacters)
             {
-                if (!ValidateAppearance(Races(charInfo.RaceID), Classes(charInfo.ClassID), Gender(charInfo.SexID), MakeChrCustomizationChoiceRange(charInfo.Customizations)))
+                if (!ValidateAppearance(Races(charInfo->RaceID), Classes(charInfo->ClassID), Gender(charInfo->SexID), MakeChrCustomizationChoiceRange(charInfo->Customizations)))
                 {
-                    TC_LOG_ERROR("entities.player.loading", "Player {} has wrong Appearance values (Hair/Skin/Color), forcing recustomize", charInfo.Guid.ToString());
+                    TC_LOG_ERROR("entities.player.loading", "Player {} has wrong Appearance values (Hair/Skin/Color), forcing recustomize", charInfo->Guid.ToString());
 
-                    charInfo.Customizations.clear();
+                    charInfo->Customizations.clear();
 
-                    if (!(charInfo.Flags2 & (CHARACTER_FLAG_2_CUSTOMIZE | CHARACTER_FLAG_2_FACTION_CHANGE | CHARACTER_FLAG_2_RACE_CHANGE)))
+                    if (!(charInfo->Flags2 & (CHARACTER_FLAG_2_CUSTOMIZE | CHARACTER_FLAG_2_FACTION_CHANGE | CHARACTER_FLAG_2_RACE_CHANGE)))
                     {
                         CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_UPD_ADD_AT_LOGIN_FLAG);
                         stmt->setUInt16(0, uint16(AT_LOGIN_CUSTOMIZE));
-                        stmt->setUInt64(1, charInfo.Guid.GetCounter());
+                        stmt->setUInt64(1, charInfo->Guid.GetCounter());
                         CharacterDatabase.Execute(stmt);
-                        charInfo.Flags2 = CHARACTER_FLAG_2_CUSTOMIZE;
+                        charInfo->Flags2 = CHARACTER_FLAG_2_CUSTOMIZE;
                     }
                 }
 
                 // Do not allow locked characters to login
-                if (!(charInfo.Flags & (CHARACTER_FLAG_LOCKED_FOR_TRANSFER | CHARACTER_FLAG_LOCKED_BY_BILLING)))
-                    _legitCharacters.insert(charInfo.Guid);
+                if (!(charInfo->Flags & (CHARACTER_FLAG_LOCKED_FOR_TRANSFER | CHARACTER_FLAG_LOCKED_BY_BILLING)))
+                    _legitCharacters.insert(charInfo->Guid);
             }
 
-            if (!sCharacterCache->HasCharacterCacheEntry(charInfo.Guid)) // This can happen if characters are inserted into the database manually. Core hasn't loaded name data yet.
-                sCharacterCache->AddCharacterCacheEntry(charInfo.Guid, GetAccountId(), charInfo.Name, charInfo.SexID, charInfo.RaceID, charInfo.ClassID, charInfo.ExperienceLevel, false);
+            if (!sCharacterCache->HasCharacterCacheEntry(charInfo->Guid)) // This can happen if characters are inserted into the database manually. Core hasn't loaded name data yet.
+                sCharacterCache->AddCharacterCacheEntry(charInfo->Guid, GetAccountId(), charInfo->Name, charInfo->SexID, charInfo->RaceID, charInfo->ClassID, charInfo->ExperienceLevel, false);
 
-            charEnum.MaxCharacterLevel = std::max<int32>(charEnum.MaxCharacterLevel, charInfo.ExperienceLevel);
+            charEnum.MaxCharacterLevel = std::max<int32>(charEnum.MaxCharacterLevel, charInfo->ExperienceLevel);
         }
-        while (result->NextRow() && charEnum.RegionwideCharacters.size() < MAX_CHARACTERS_PER_REALM);
+        while (result->NextRow() && (charEnum.IsDeletedCharacters ? charEnum.Characters.size() : charEnum.RegionwideCharacters.size()) < MAX_CHARACTERS_PER_REALM);
     }
 
     // warband arrangement: grouped characters first ordered by group and scene placement,
