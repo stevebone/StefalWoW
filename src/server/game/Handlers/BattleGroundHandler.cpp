@@ -453,18 +453,6 @@ void WorldSession::HandleBattleFieldPortOpcode(WorldPackets::Battleground::Battl
         }
         else
         {
-            // if player leaves rated arena match before match start, it is counted as he played but he lost
-            if (bgQueue.GetQueueId().Rated && ginfo.IsInvitedToBGInstanceGUID)
-            {
-                ArenaTeam* at = sArenaTeamMgr->GetArenaTeamById(ginfo.Team);
-                if (at)
-                {
-                    TC_LOG_DEBUG("bg.battleground", "UPDATING memberLost's personal arena rating for {} by opponents rating: {}, because he has left queue!", _player->GetGUID().ToString(), ginfo.OpponentsTeamRating);
-                    at->MemberLost(_player, ginfo.OpponentsMatchmakerRating);
-                    at->SaveToDB();
-                }
-            }
-
             WorldPackets::Battleground::BattlefieldStatusFailed battlefieldStatus;
             sBattlegroundMgr->BuildBattlegroundStatusFailed(&battlefieldStatus, bgQueueTypeId, _player, battlefieldPort.Ticket.Id, ginfo.JoinTime, ERR_BATTLEGROUND_LEAVE_QUEUE, &errorGuid);
             SendPacket(battlefieldStatus.Write());
