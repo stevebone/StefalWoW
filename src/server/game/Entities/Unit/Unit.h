@@ -1932,6 +1932,7 @@ class TC_GAME_API Unit : public WorldObject
         DynObjectList m_dynObj;
 
         typedef std::list<GameObject*> GameObjectList;
+        void RemoveGameObjectImpl(GameObject* gameObj, bool del);
         GameObjectList m_gameObj;
 
         typedef std::vector<AreaTrigger*> AreaTriggerList;

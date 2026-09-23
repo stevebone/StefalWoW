@@ -593,7 +593,7 @@ void World::LoadConfigSettings(bool reload)
 
     ///- Read the player limit and the Message of the day from the config file
     SetPlayerAmountLimit(sConfigMgr->GetIntDefault("PlayerLimit"sv, 100));
-    SetMotd(sConfigMgr->GetStringDefault("Motd"sv, "Welcome to a Trinity Core Server."sv));
+    SetMotd(sConfigMgr->GetStringDefault("Motd"sv, "Welcome to a TrinityCore Server."sv));
 
     uint32 databaseCacheVersion = m_int_configs[CONFIG_CLIENTCACHE_VERSION];
 
@@ -620,6 +620,7 @@ void World::LoadConfigSettings(bool reload)
         { .Name = "AllowTwoSide.Interaction.Guild"sv, .DefaultValue = false, .Index = CONFIG_ALLOW_TWO_SIDE_INTERACTION_GUILD },
         { .Name = "AllowTwoSide.Interaction.Auction"sv, .DefaultValue = true, .Index = CONFIG_ALLOW_TWO_SIDE_INTERACTION_AUCTION },
         { .Name = "AllowTwoSide.Trade"sv, .DefaultValue = false, .Index = CONFIG_ALLOW_TWO_SIDE_TRADE },
+        { .Name = "ExtendedAccountNameLengthLimit"sv, .DefaultValue = false, .Index = CONFIG_EXTENDED_ACCOUNT_NAME_LENGTH_LIMIT },
         { .Name = "CharacterCreating.DisableAlliedRaceAchievementRequirement"sv, .DefaultValue = false, .Index = CONFIG_CHARACTER_CREATING_DISABLE_ALLIED_RACE_ACHIEVEMENT_REQUIREMENT },
         { .Name = "AllFlightPaths"sv, .DefaultValue = false, .Index = CONFIG_ALL_TAXI_PATHS },
         { .Name = "InstantFlightPaths"sv, .DefaultValue = false, .Index = CONFIG_INSTANT_TAXI },
@@ -836,7 +837,7 @@ void World::LoadConfigSettings(bool reload)
         { .Name = "Season.MythicPlusMilestoneSeasonID"sv, .DefaultValue = 117, .Index = CONFIG_MYTHIC_PLUS_MILESTONE_SEASON_ID },
         { .Name = "Season.PvpSeasonID"sv, .DefaultValue = 39, .Index = CONFIG_PVP_SEASON_ID },
         { .Name = "Arena.ArenaStartRating"sv, .DefaultValue = 0, .Index = CONFIG_ARENA_START_RATING },
-        { .Name = "Arena.ArenaStartPersonalRating"sv, .DefaultValue = 1000, .Index = CONFIG_ARENA_START_PERSONAL_RATING },
+        { .Name = "Arena.ArenaStartPersonalRating"sv, .DefaultValue = 0, .Index = CONFIG_ARENA_START_PERSONAL_RATING },
         { .Name = "Arena.ArenaStartMatchmakerRating"sv, .DefaultValue = 1500, .Index = CONFIG_ARENA_START_MATCHMAKER_RATING },
         { .Name = "Creature.PickPocketRefillDelay"sv, .DefaultValue = 10 * MINUTE, .Index = CONFIG_CREATURE_PICKPOCKET_REFILL },
         { .Name = "Creature.MovingStopTimeForPlayer"sv, .DefaultValue = 3 * MINUTE * IN_MILLISECONDS, .Index = CONFIG_CREATURE_STOP_FOR_PLAYER },

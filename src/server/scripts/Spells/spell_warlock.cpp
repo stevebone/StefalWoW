@@ -227,6 +227,73 @@ enum WarlockSpells
     SPELL_WARLOCK_INFERNAL_BOLT_EMPOWER = 433891,
     SPELL_WARLOCK_PIT_LORD_ATTACK_VISUAL = 439562,
     SPELL_WARLOCK_OVERFIEND_CHAOS_BOLT = 434589,
+    SPELL_WARLOCK_ABSOLUTE_CORRUPTION               = 196103,
+    SPELL_WARLOCK_AGONY                             = 980,
+    SPELL_WARLOCK_BACKDRAFT                         = 196406,
+    SPELL_WARLOCK_BACKDRAFT_PROC                    = 117828,
+    SPELL_WARLOCK_BILESCOURGE_BOMBERS               = 267211,
+    SPELL_WARLOCK_BILESCOURGE_BOMBERS_MISSILE       = 267212,
+    SPELL_WARLOCK_BILESCOURGE_BOMBERS_AREATRIGGER   = 282248,
+    SPELL_WARLOCK_CHANNEL_DEMONFIRE_ACTIVATOR       = 228312,
+    SPELL_WARLOCK_CHANNEL_DEMONFIRE_DAMAGE          = 281362,
+    SPELL_WARLOCK_CHANNEL_DEMONFIRE_SELECTOR        = 196449,
+    SPELL_WARLOCK_CONFLAGRATE_DEBUFF                = 265931,
+    SPELL_WARLOCK_CONFLAGRATE_ENERGIZE              = 245330,
+    SPELL_WARLOCK_CORRUPTION_DAMAGE                 = 146739,
+    SPELL_WARLOCK_CREATE_HEALTHSTONE                = 23517,
+    SPELL_WARLOCK_CURSE_OF_EXHAUSTION               = 334275,
+    SPELL_WARLOCK_DARK_HARVEST                      = 1257052,
+    SPELL_WARLOCK_DEATHS_EMBRACE                    = 453189,
+    SPELL_WARLOCK_DEMONBOLT_ENERGIZE                = 280127,
+    SPELL_WARLOCK_DEMONIC_CIRCLE_ALLOW_CAST         = 62388,
+    SPELL_WARLOCK_DEMONIC_CIRCLE_SUMMON             = 48018,
+    SPELL_WARLOCK_DEMONIC_CIRCLE_TELEPORT           = 48020,
+    SPELL_WARLOCK_DEVOUR_MAGIC_HEAL                 = 19658,
+    SPELL_WARLOCK_DOOM_ENERGIZE                     = 193318,
+    SPELL_WARLOCK_DRAIN_SOUL_ENERGIZE               = 205292,
+    SPELL_WARLOCK_FLAMESHADOW                       = 37379,
+    SPELL_WARLOCK_GLYPH_OF_DEMON_TRAINING           = 56249,
+    SPELL_WARLOCK_GLYPH_OF_SOUL_SWAP                = 56226,
+    SPELL_WARLOCK_GLYPH_OF_SUCCUBUS                 = 56250,
+    SPELL_WARLOCK_IMMOLATE_PERIODIC                 = 157736,
+    SPELL_WARLOCK_IMPROVED_HEALTH_FUNNEL_BUFF_R1    = 60955,
+    SPELL_WARLOCK_IMPROVED_HEALTH_FUNNEL_BUFF_R2    = 60956,
+    SPELL_WARLOCK_IMPROVED_HEALTH_FUNNEL_R1         = 18703,
+    SPELL_WARLOCK_IMPROVED_HEALTH_FUNNEL_R2         = 18704,
+    SPELL_WARLOCK_INCUBUS_PACT                      = 365355,
+    SPELL_WARLOCK_PERPETUAL_UNSTABILITY_DAMAGE      = 459461,
+    SPELL_WARLOCK_PERPETUAL_UNSTABILITY_TALENT      = 459376,
+    SPELL_WARLOCK_PYROGENICS_DEBUFF                 = 387096,
+    SPELL_WARLOCK_PYROGENICS_TALENT                 = 387095,
+    SPELL_WARLOCK_RAIN_OF_FIRE                      = 5740,
+    SPELL_WARLOCK_RAIN_OF_FIRE_DAMAGE               = 42223,
+    SPELL_WARLOCK_ROARING_BLAZE                     = 205184,
+    SPELL_WARLOCK_SEED_OF_CORRUPTION_DAMAGE         = 27285,
+    SPELL_WARLOCK_SEED_OF_CORRUPTION_GENERIC        = 32865,
+    SPELL_WARLOCK_SHADOWBOLT_VOLLEY_AREA            = 453176,
+    SPELL_WARLOCK_SHADOWBURN_ENERGIZE               = 245731,
+    SPELL_WARLOCK_SHADOW_BOLT_ENERGIZE              = 194192,
+    SPELL_WARLOCK_SHADOWFLAME                       = 37378,
+    SPELL_WARLOCK_SHARD_INSTABILITY                 = 1260269,
+    SPELL_WARLOCK_SIPHON_LIFE_HEAL                  = 453000,
+    SPELL_WARLOCK_SOUL_FIRE_ENERGIZE                = 281490,
+    SPELL_WARLOCK_SOUL_SWAP_CD_MARKER               = 94229,
+    SPELL_WARLOCK_SOUL_SWAP_DOT_MARKER              = 92795,
+    SPELL_WARLOCK_SOUL_SWAP_MOD_COST                = 92794,
+    SPELL_WARLOCK_SOUL_SWAP_OVERRIDE                = 86211,
+    SPELL_WARLOCK_SOULSHATTER_EFFECT                = 32835,
+    SPELL_WARLOCK_STRENGTHEN_PACT_INCUBUS           = 366325,
+    SPELL_WARLOCK_STRENGTHEN_PACT_SUCCUBUS          = 366323,
+    SPELL_WARLOCK_SUCCUBUS_PACT                     = 365360,
+    SPELL_WARLOCK_SUMMON_INCUBUS                    = 365349,
+    SPELL_WARLOCK_SUMMON_SUCCUBUS                   = 712,
+    SPELL_WARLOCK_UNSTABLE_AFFLICTION_DAMAGE        = 196364,
+    SPELL_WARLOCK_UNSTABLE_AFFLICTION_ENERGIZE      = 31117,
+    SPELL_WARLOCK_VILE_TAINT_DAMAGE                 = 386931,
+    SPELL_WARLOCK_VOLATILE_AGONY_DAMAGE             = 453035,
+    SPELL_WARLOCK_VOLATILE_AGONY_TALENT             = 453034,
+    SPELL_WARLOCK_WITHER_PERIODIC                   = 445474,
+    SPELL_WARLOCK_WITHER_TALENT                     = 445465,
 };
 
 enum MiscSpells
@@ -672,6 +739,58 @@ class spell_warl_create_healthstone : public SpellScript
     {
         OnEffectHitTarget += SpellEffectFn(spell_warl_create_healthstone::HandleScriptEffect, EFFECT_0, SPELL_EFFECT_SCRIPT_EFFECT);
     }
+};
+
+// 1259886 - Cull the Weak
+class spell_warl_cull_the_weak : public AuraScript
+{
+    bool Validate(SpellInfo const* /*spellInfo*/) override
+    {
+        return ValidateSpellInfo({ SPELL_WARLOCK_DARK_HARVEST });
+    }
+
+    void HandleEffectProc(AuraEffect const* aurEff, ProcEventInfo const& /*eventInfo*/) const
+    {
+        GetTarget()->GetSpellHistory()->ModifyCooldown(SPELL_WARLOCK_DARK_HARVEST, -Milliseconds(aurEff->GetAmountAsInt()));
+    }
+
+    void Register() override
+    {
+        OnEffectProc += AuraEffectProcFn(spell_warl_cull_the_weak::HandleEffectProc, EFFECT_0, SPELL_AURA_DUMMY);
+    }
+};
+
+// 453172 - Cunning Cruelty
+class spell_warl_cunning_cruelty : public AuraScript
+{
+    bool Validate(SpellInfo const* /*spellInfo*/) override
+    {
+        return ValidateSpellInfo({ SPELL_WARLOCK_SHADOWBOLT_VOLLEY_AREA });
+    }
+
+    bool CheckProc(AuraEffect const* /*aurEff*/, ProcEventInfo const& eventInfo)
+    {
+        // Shadow Bolt proc chance is 50%
+        // Drain Soul proc chance is 25%
+        float chance = 50.0f;
+        if (eventInfo.GetSpellInfo()->IsAffected(SPELLFAMILY_WARLOCK, { 0x800000 }))
+            chance = 25.0f;
+
+        return roll_chance(chance, _rng);
+    }
+
+    static void HandleProc(AuraScript const&, AuraEffect const* /*aurEff*/, ProcEventInfo const& eventInfo)
+    {
+        eventInfo.GetActor()->CastSpell(eventInfo.GetActionTarget()->GetPosition(), SPELL_WARLOCK_SHADOWBOLT_VOLLEY_AREA, TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
+    }
+
+    void Register() override
+    {
+        DoCheckEffectProc += AuraCheckEffectProcFn(spell_warl_cunning_cruelty::CheckProc, EFFECT_0, SPELL_AURA_DUMMY);
+        OnEffectProc += AuraEffectProcFn(spell_warl_cunning_cruelty::HandleProc, EFFECT_0, SPELL_AURA_DUMMY);
+    }
+
+    PseudoRandomDistributionState _rng;
 };
 
 // 108416 - Dark Pact
@@ -1526,6 +1645,39 @@ class spell_warl_shadow_invocation : public AuraScript
     {
         OnProc += AuraProcFn(spell_warl_shadow_invocation::HandleProc);
     }
+};
+
+// 1260264 - Shard Instability
+class spell_warl_shard_instability : public AuraScript
+{
+    bool Validate(SpellInfo const* /*spellInfo*/) override
+    {
+        return ValidateSpellInfo({ SPELL_WARLOCK_SHARD_INSTABILITY });
+    }
+
+    template <bool IsDrainSoul>
+    bool CheckProc(AuraEffect const* aurEff, ProcEventInfo const& eventInfo)
+    {
+        if (eventInfo.GetSpellInfo()->IsAffected(SPELLFAMILY_WARLOCK, { 0x800000 }) != IsDrainSoul)
+            return false;
+
+        return roll_chance(aurEff->GetAmount(), _rng);
+    }
+
+    static void HandleProc(AuraScript const&, AuraEffect const* /*aurEff*/, ProcEventInfo const& eventInfo)
+    {
+        eventInfo.GetActor()->CastSpell(eventInfo.GetActor(), SPELL_WARLOCK_SHARD_INSTABILITY, TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
+    }
+
+    void Register() override
+    {
+        DoCheckEffectProc += AuraCheckEffectProcFn(spell_warl_shard_instability::CheckProc<true>, EFFECT_0, SPELL_AURA_DUMMY);
+        DoCheckEffectProc += AuraCheckEffectProcFn(spell_warl_shard_instability::CheckProc<false>, EFFECT_1, SPELL_AURA_DUMMY);
+        OnEffectProc += AuraEffectProcFn(spell_warl_shard_instability::HandleProc, EFFECT_0, SPELL_AURA_DUMMY);
+        OnEffectProc += AuraEffectProcFn(spell_warl_shard_instability::HandleProc, EFFECT_1, SPELL_AURA_DUMMY);
+    }
+
+    PseudoRandomDistributionState _rng;
 };
 
 // 452999 - Siphon Life
@@ -3877,6 +4029,8 @@ void AddSC_warlock_spell_scripts()
     RegisterSpellScript(spell_warl_chaotic_energies);
     RegisterSpellScript(spell_warl_conflagrate);
     RegisterSpellScript(spell_warl_create_healthstone);
+    RegisterSpellScript(spell_warl_cull_the_weak);
+    RegisterSpellScript(spell_warl_cunning_cruelty);
     RegisterSpellScript(spell_warl_dark_pact);
     // RegisterSpellScript(spell_warl_deaths_embrace); // Deaths Embrace no longer affects Malefic Rapture
     // RegisterSpellScript(spell_warl_deaths_embrace_dots); // Replaced in Custom_Warlock_Spell_Fixes.cpp
@@ -3904,6 +4058,7 @@ void AddSC_warlock_spell_scripts()
     RegisterSpellAndAuraScriptPair(spell_warl_shadowburn, spell_warl_shadowburn_aura);
     RegisterSpellScript(spell_warl_shadow_bolt);
     RegisterSpellScript(spell_warl_shadow_invocation);
+    RegisterSpellScript(spell_warl_shard_instability);
     RegisterSpellScript(spell_warl_siphon_life);
     RegisterSpellScript(spell_warl_soul_fire);
     RegisterSpellScript(spell_warl_soul_swap);
