@@ -847,7 +847,7 @@ namespace WorldPackets
             int32 InertiaID = 0;
         };
 								
-								class MoveForceGravityModifierChangeAck final : public ClientPacket
+		class MoveForceGravityModifierChangeAck final : public ClientPacket
         {
         public:
             explicit MoveForceGravityModifierChangeAck(WorldPacket&& packet) : ClientPacket(CMSG_MOVE_FORCE_GRAVITY_MODIFIER_CHANGE_ACK, std::move(packet)) { }
