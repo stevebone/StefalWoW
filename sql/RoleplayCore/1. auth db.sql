@@ -140,7 +140,7 @@ CREATE TABLE IF NOT EXISTS `account_bank_item` (
   `item` bigint unsigned NOT NULL,
   `sourceRealm` int unsigned NOT NULL COMMENT 'realm whose characters database holds the item_instance row',
   PRIMARY KEY (`battlenetAccountId`, `bag`, `slot`),
-  UNIQUE KEY `idx_item` (`item`)
+  KEY `idx_item` (`item`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `account_bank_coinage` (
