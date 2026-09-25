@@ -99,11 +99,6 @@ std::string GetRegionwideCharacterExistsQuery(std::string const& characterSchema
         + " AND account = " + std::to_string(accountId) + " AND deleteInfos_Name IS NULL";
 }
 
-void CharacterDatabaseConnection::DoPrepareStatements()
-{
-    if (!m_reconnecting)
-        m_stmts.resize(MAX_CHARACTERDATABASE_STATEMENTS);
-
 #define SelectItemInstanceContent "ii.guid, ii.itemEntry, ii.creatorGuid, ii.giftCreatorGuid, ii.count, ii.duration, ii.charges, ii.flags, ii.enchantments, ii.randomBonusListId, " \
         "ii.durability, ii.playedTime, ii.createTime, ii.text, ii.battlePetSpeciesId, ii.battlePetBreedData, ii.battlePetLevel, ii.battlePetDisplayId, ii.context, ii.bonusListIDs, " \
         "iit.itemModifiedAppearanceAllSpecs, iit.itemModifiedAppearanceSpec1, iit.itemModifiedAppearanceSpec2, iit.itemModifiedAppearanceSpec3, iit.itemModifiedAppearanceSpec4, iit.itemModifiedAppearanceSpec5, " \
@@ -111,6 +106,24 @@ void CharacterDatabaseConnection::DoPrepareStatements()
         "iit.secondaryItemModifiedAppearanceAllSpecs, iit.secondaryItemModifiedAppearanceSpec1, iit.secondaryItemModifiedAppearanceSpec2, iit.secondaryItemModifiedAppearanceSpec3, iit.secondaryItemModifiedAppearanceSpec4, iit.secondaryItemModifiedAppearanceSpec5, " \
         "ig.gemItemId1, ig.gemBonuses1, ig.gemContext1, ig.gemScalingLevel1, ig.gemItemId2, ig.gemBonuses2, ig.gemContext2, ig.gemScalingLevel2, ig.gemItemId3, ig.gemBonuses3, ig.gemContext3, ig.gemScalingLevel3, " \
         "im.fixedScalingLevel, im.artifactKnowledgeLevel, im.craftingModifiedStat1, im.craftingModifiedStat2"
+
+std::string GetAccountBankItemsQuery(std::string const& authSchema, uint32 battlenetAccountId)
+{
+    // the warband bank slot map lives in the auth database, the item rows were pulled into this
+    // realm's database by the login migration before this query runs
+    std::string query = "SELECT " SelectItemInstanceContent ", abi.bag, abi.slot FROM `" + authSchema + "`.account_bank_item abi "
+        "JOIN item_instance ii ON abi.item = ii.guid "
+        "LEFT JOIN item_instance_gems ig ON ii.guid = ig.itemGuid "
+        "LEFT JOIN item_instance_transmog iit ON ii.guid = iit.itemGuid "
+        "LEFT JOIN item_instance_modifiers im ON ii.guid = im.itemGuid "
+        "WHERE abi.battlenetAccountId = " + std::to_string(battlenetAccountId) + " ORDER BY abi.bag ASC, abi.slot ASC";
+    return query;
+}
+
+void CharacterDatabaseConnection::DoPrepareStatements()
+{
+    if (!m_reconnecting)
+        m_stmts.resize(MAX_CHARACTERDATABASE_STATEMENTS);
 
     PrepareStatement(CHAR_DEL_POOL_QUEST_SAVE, "DELETE FROM pool_quest_save WHERE pool_id = ?", CONNECTION_ASYNC);
     PrepareStatement(CHAR_INS_POOL_QUEST_SAVE, "INSERT INTO pool_quest_save (pool_id, quest_id) VALUES (?, ?)", CONNECTION_ASYNC);
@@ -920,15 +933,6 @@ void CharacterDatabaseConnection::DoPrepareStatements()
     PrepareStatement(CHAR_INS_PLAYER_DATA_FLAGS_CHARACTER, "INSERT INTO character_player_data_flag (characterGuid, storageIndex, mask) VALUES (?, ?, ?)", CONNECTION_ASYNC);
 
     PrepareStatement(CHAR_SEL_CHARACTER_BANK_TAB_SETTINGS, "SELECT tabId, name, icon, description, depositFlags FROM character_bank_tab_settings WHERE characterGuid = ?", CONNECTION_ASYNC);
-    PrepareStatement(CHAR_SEL_ACCOUNT_BANK_TAB_SETTINGS, "SELECT tabId, name, icon, description, depositFlags FROM account_bank_tab_settings WHERE battlenetAccountId = ?", CONNECTION_ASYNC);
-    PrepareStatement(CHAR_DEL_ACCOUNT_BANK_TAB_SETTINGS, "DELETE FROM account_bank_tab_settings WHERE battlenetAccountId = ?", CONNECTION_ASYNC);
-    PrepareStatement(CHAR_INS_ACCOUNT_BANK_TAB_SETTINGS, "INSERT INTO account_bank_tab_settings (battlenetAccountId, tabId, name, icon, description, depositFlags) VALUES (?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC);
-    PrepareStatement(CHAR_SEL_ACCOUNT_BANK_ITEMS, "SELECT " SelectItemInstanceContent ", abi.bag, abi.slot FROM account_bank_item abi JOIN item_instance ii ON abi.item = ii.guid LEFT JOIN item_instance_gems ig ON ii.guid = ig.itemGuid LEFT JOIN item_instance_transmog iit ON ii.guid = iit.itemGuid LEFT JOIN item_instance_modifiers im ON ii.guid = im.itemGuid WHERE abi.battlenetAccountId = ? ORDER BY abi.bag ASC, abi.slot ASC", CONNECTION_ASYNC);
-    PrepareStatement(CHAR_REP_ACCOUNT_BANK_ITEM, "REPLACE INTO account_bank_item (battlenetAccountId, bag, slot, item) VALUES (?, ?, ?, ?)", CONNECTION_ASYNC);
-    PrepareStatement(CHAR_DEL_ACCOUNT_BANK_ITEM, "DELETE FROM account_bank_item WHERE battlenetAccountId = ? AND item = ?", CONNECTION_ASYNC);
-    PrepareStatement(CHAR_DEL_ACCOUNT_BANK_ITEMS_BY_BNET, "DELETE FROM account_bank_item WHERE battlenetAccountId = ?", CONNECTION_ASYNC);
-    PrepareStatement(CHAR_SEL_ACCOUNT_BANK_COINAGE, "SELECT coinage FROM account_bank_coinage WHERE battlenetAccountId = ?", CONNECTION_ASYNC);
-    PrepareStatement(CHAR_REP_ACCOUNT_BANK_COINAGE, "REPLACE INTO account_bank_coinage (battlenetAccountId, coinage) VALUES (?, ?)", CONNECTION_ASYNC);
     PrepareStatement(CHAR_DEL_CHARACTER_BANK_TAB_SETTINGS, "DELETE FROM character_bank_tab_settings WHERE characterGuid = ?", CONNECTION_ASYNC);
     PrepareStatement(CHAR_INS_CHARACTER_BANK_TAB_SETTINGS, "INSERT INTO character_bank_tab_settings (characterGuid, tabId, name, icon, description, depositFlags) VALUES (?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC);
 

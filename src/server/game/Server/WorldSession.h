@@ -1639,6 +1639,7 @@ class TC_GAME_API WorldSession
         void HandleAutoDepositAccountBank(WorldPackets::Bank::AutoDepositAccountBank const& autoDepositAccountBank);
         void HandleAccountBankDepositMoney(WorldPackets::Bank::AccountBankDepositMoney const& accountBankDepositMoney);
         void HandleAccountBankWithdrawMoney(WorldPackets::Bank::AccountBankWithdrawMoney const& accountBankWithdrawMoney);
+        void MigrateAccountBankItems();
 
         // Black Market
         void HandleBlackMarketOpen(WorldPackets::BlackMarket::BlackMarketOpen& blackMarketOpen);

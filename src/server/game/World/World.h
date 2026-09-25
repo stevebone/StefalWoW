@@ -946,6 +946,18 @@ struct TC_GAME_API RealmRegistryEntry
 
 TC_GAME_API std::vector<RealmRegistryEntry> const& GetRealmRegistry();
 
+// CharacterSelect.ExtraRealms = "; "-separated list of "<realmId>:<characters schema name>"
+// entries, or "auto" to read the realm -> schema registry from the auth database. Sibling
+// realm data (regionwide character list, warband bank items) is read from those schemas.
+struct TC_GAME_API CrossRealmSchema
+{
+    uint32 VirtualRealmAddress;
+    uint32 HomeRealmId;
+    std::string Schema;
+};
+
+TC_GAME_API std::vector<CrossRealmSchema> const& GetCrossRealmSchemas();
+
 #define sWorld World::instance()
 
 #endif

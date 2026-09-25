@@ -19688,8 +19688,8 @@ bool Player::LoadFromDB(ObjectGuid guid, CharacterDatabaseQueryHolder const& hol
     m_reputationMgr->LoadFromDB(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_REPUTATION));
 
     _LoadCharacterBankTabSettings(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_BANK_TAB_SETTINGS));
-    _LoadAccountBankTabSettings(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_ACCOUNT_BANK_TAB_SETTINGS));
-    _LoadAccountBankCoinage(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_ACCOUNT_BANK_COINAGE));
+    _LoadAccountBankTabSettings();
+    _LoadAccountBankCoinage();
 
     _LoadInventory(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_INVENTORY),
         holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_ARTIFACTS),
@@ -19699,7 +19699,7 @@ bool Player::LoadFromDB(ObjectGuid guid, CharacterDatabaseQueryHolder const& hol
         holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_AZERITE_EMPOWERED),
         time_diff);
 
-    _LoadAccountBankItems(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_ACCOUNT_BANK_ITEMS), time_diff);
+    _LoadAccountBankItems(time_diff);
 
     // update items with duration and realtime
     UpdateItemDuration(time_diff, true);
@@ -21418,9 +21418,12 @@ void Player::_LoadCharacterBankTabSettings(PreparedQueryResult result)
         AddDynamicUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::CharacterBankTabSettings));
 }
 
-void Player::_LoadAccountBankTabSettings(PreparedQueryResult result)
+void Player::_LoadAccountBankTabSettings()
 {
-    if (result)
+    // the warband bank is account-global, its state lives in the auth database
+    LoginDatabasePreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_SEL_ACCOUNT_BANK_TAB_SETTINGS);
+    stmt->setUInt32(0, GetSession()->GetBattlenetAccountId());
+    if (PreparedQueryResult result = LoginDatabase.Query(stmt))
     {
         uint8 tabCount = 0;
         do
@@ -21442,9 +21445,11 @@ void Player::_LoadAccountBankTabSettings(PreparedQueryResult result)
         AddDynamicUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::AccountBankTabSettings));
 }
 
-void Player::_LoadAccountBankCoinage(PreparedQueryResult result)
+void Player::_LoadAccountBankCoinage()
 {
-    if (result)
+    LoginDatabasePreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_SEL_ACCOUNT_BANK_COINAGE);
+    stmt->setUInt32(0, GetSession()->GetBattlenetAccountId());
+    if (PreparedQueryResult result = LoginDatabase.Query(stmt))
         SetAccountBankCoinage((*result)[0].GetUInt64());
 }
 
@@ -21459,8 +21464,13 @@ void Player::ModifyAccountBankCoinage(int64 delta)
     SetAccountBankCoinage(uint64(next));
 }
 
-void Player::_LoadAccountBankItems(PreparedQueryResult result, uint32 timeDiff)
+void Player::_LoadAccountBankItems(uint32 timeDiff)
 {
+    // the slot map lives in the auth database, every item row was pulled into this realm's
+    // database by the login migration before the character load started
+    QueryResult result = CharacterDatabase.Query(GetAccountBankItemsQuery(LoginDatabase.GetConnectionInfo()->database,
+        GetSession()->GetBattlenetAccountId()).c_str());
+
     // Same field layout as character_inventory load (SelectItemInstanceContent), with
     // abi.bag (tab index 0-4) at field 54 and abi.slot at field 55.
 
@@ -21939,9 +21949,9 @@ void Player::SaveToDB(LoginDatabaseTransaction loginTransaction, CharacterDataba
     _SaveCUFProfiles(trans);
     _SavePlayerData(trans);
     _SaveCharacterBankTabSettings(trans);
-    _SaveAccountBankTabSettings(trans);
-    _SaveAccountBankItems(trans);
-    _SaveAccountBankCoinage(trans);
+    _SaveAccountBankTabSettings(loginTransaction);
+    _SaveAccountBankItems(loginTransaction);
+    _SaveAccountBankCoinage(loginTransaction);
     if (_garrison)
         _garrison->SaveToDB(trans);
 
@@ -23071,18 +23081,18 @@ void Player::_SaveCharacterBankTabSettings(CharacterDatabaseTransaction trans) c
     }
 }
 
-void Player::_SaveAccountBankTabSettings(CharacterDatabaseTransaction trans) const
+void Player::_SaveAccountBankTabSettings(LoginDatabaseTransaction trans) const
 {
     uint32 bnetAccountId = GetSession()->GetBattlenetAccountId();
 
-    CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_ACCOUNT_BANK_TAB_SETTINGS);
+    LoginDatabasePreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_DEL_ACCOUNT_BANK_TAB_SETTINGS);
     stmt->setUInt32(0, bnetAccountId);
     trans->Append(stmt);
 
     for (std::size_t i = 0; i < m_activePlayerData->AccountBankTabSettings.size(); ++i)
     {
         UF::BankTabSettings const& tabSetting = m_activePlayerData->AccountBankTabSettings[i];
-        stmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_ACCOUNT_BANK_TAB_SETTINGS);
+        stmt = LoginDatabase.GetPreparedStatement(LOGIN_INS_ACCOUNT_BANK_TAB_SETTINGS);
         stmt->setUInt32(0, bnetAccountId);
         stmt->setUInt8(1, i);
         stmt->setString(2, *tabSetting.Name);
@@ -23093,24 +23103,24 @@ void Player::_SaveAccountBankTabSettings(CharacterDatabaseTransaction trans) con
     }
 }
 
-void Player::_SaveAccountBankCoinage(CharacterDatabaseTransaction trans) const
+void Player::_SaveAccountBankCoinage(LoginDatabaseTransaction trans) const
 {
     uint32 bnetAccountId = GetSession()->GetBattlenetAccountId();
     if (!bnetAccountId)
         return;
 
-    CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_REP_ACCOUNT_BANK_COINAGE);
+    LoginDatabasePreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_REP_ACCOUNT_BANK_COINAGE);
     stmt->setUInt32(0, bnetAccountId);
     stmt->setUInt64(1, GetAccountBankCoinage());
     trans->Append(stmt);
 }
 
-void Player::_SaveAccountBankItems(CharacterDatabaseTransaction trans)
+void Player::_SaveAccountBankItems(LoginDatabaseTransaction trans)
 {
     uint32 bnetAccountId = GetSession()->GetBattlenetAccountId();
 
     // Delete all account bank item positions - they will be re-inserted below
-    CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_ACCOUNT_BANK_ITEMS_BY_BNET);
+    LoginDatabasePreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_DEL_ACCOUNT_BANK_ITEMS_BY_BNET);
     stmt->setUInt32(0, bnetAccountId);
     trans->Append(stmt);
 
@@ -23128,11 +23138,12 @@ void Player::_SaveAccountBankItems(CharacterDatabaseTransaction trans)
             if (!item)
                 continue;
 
-            stmt = CharacterDatabase.GetPreparedStatement(CHAR_REP_ACCOUNT_BANK_ITEM);
+            stmt = LoginDatabase.GetPreparedStatement(LOGIN_REP_ACCOUNT_BANK_ITEM);
             stmt->setUInt32(0, bnetAccountId);
             stmt->setUInt8(1, tabIndex);
             stmt->setUInt8(2, slot);
             stmt->setUInt64(3, item->GetGUID().GetCounter());
+            stmt->setUInt32(4, sRealmList->GetCurrentRealmId().Realm);
             trans->Append(stmt);
         }
     }

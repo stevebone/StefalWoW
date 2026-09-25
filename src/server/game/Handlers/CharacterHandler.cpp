@@ -380,19 +380,6 @@ bool LoginQueryHolder::Initialize()
     stmt->setUInt64(0, lowGuid);
     res &= SetPreparedQuery(PLAYER_LOGIN_QUERY_LOAD_BANK_TAB_SETTINGS, stmt);
 
-    // the warband bank is shared by every character of the battle.net account
-    stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_ACCOUNT_BANK_TAB_SETTINGS);
-    stmt->setUInt32(0, m_battlenetAccountId);
-    res &= SetPreparedQuery(PLAYER_LOGIN_QUERY_LOAD_ACCOUNT_BANK_TAB_SETTINGS, stmt);
-
-    stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_ACCOUNT_BANK_ITEMS);
-    stmt->setUInt32(0, m_battlenetAccountId);
-    res &= SetPreparedQuery(PLAYER_LOGIN_QUERY_LOAD_ACCOUNT_BANK_ITEMS, stmt);
-
-    stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_ACCOUNT_BANK_COINAGE);
-    stmt->setUInt32(0, m_battlenetAccountId);
-    res &= SetPreparedQuery(PLAYER_LOGIN_QUERY_LOAD_ACCOUNT_BANK_COINAGE, stmt);
-
     stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_PERKS_CURRENCY);
     stmt->setUInt64(0, lowGuid);
     res &= SetPreparedQuery(PLAYER_LOGIN_QUERY_LOAD_PERKS_CURRENCY, stmt);
@@ -455,84 +442,6 @@ public:
 private:
     bool _isDeletedCharacters = false;
 };
-
-namespace
-{
-    // CharacterSelect.ExtraRealms = "; "-separated list of "<realmId>:<characters schema name>" entries.
-    // The value "auto" replaces manual listing: every worldserver started with "auto" registers its
-    // characters schema in the auth table realm_character_schemas on startup and reads the registry back.
-    // The client expects a single stable account-wide character list regardless of the connected realm
-    // (retail serves every realm of the connect group from one service), so the characters of sibling
-    // realms are read from their schemas directly and sent with their own VirtualRealmAddress.
-    struct CrossRealmSchema
-    {
-        uint32 VirtualRealmAddress;
-        uint32 HomeRealmId;
-        std::string Schema;
-    };
-
-    std::vector<CrossRealmSchema> const& GetCrossRealmSchemas()
-    {
-        static std::vector<CrossRealmSchema> const schemas = []
-        {
-            std::vector<CrossRealmSchema> result;
-            uint32 const currentRealmId = sRealmList->GetCurrentRealmId().Realm;
-            std::string const extraRealmsConfig = sConfigMgr->GetStringDefault("CharacterSelect.ExtraRealms", "");
-
-            auto addRealm = [&result, currentRealmId](uint32 realmId, std::string schema)
-            {
-                if (realmId == currentRealmId)
-                    return;
-
-                auto realmItr = std::find_if(GetRealmRegistry().begin(), GetRealmRegistry().end(), [realmId](RealmRegistryEntry const& realm)
-                {
-                    return realm.Id == realmId;
-                });
-                if (realmItr == GetRealmRegistry().end())
-                {
-                    TC_LOG_ERROR("misc", "CharacterSelect.ExtraRealms: realm {} is not present in the realmlist table, skipping", realmId);
-                    return;
-                }
-
-                result.push_back({ realmItr->Address, realmItr->Id, std::move(schema) });
-            };
-
-            if (extraRealmsConfig == "auto")
-            {
-                if (QueryResult rows = LoginDatabase.Query("SELECT realmId, schemaName FROM realm_character_schemas"))
-                    do
-                    {
-                        Field* fields = rows->Fetch();
-                        addRealm(fields[0].GetUInt32(), fields[1].GetString());
-                    } while (rows->NextRow());
-            }
-            else
-            {
-                for (std::string_view entry : Trinity::Tokenize(extraRealmsConfig, ';', true))
-                {
-                    std::vector<std::string_view> parts = Trinity::Tokenize(entry, ':', true);
-                    if (parts.size() != 2)
-                    {
-                        TC_LOG_ERROR("misc", "CharacterSelect.ExtraRealms: malformed entry '{}', expected '<realmId>:<schema>'", entry);
-                        continue;
-                    }
-
-                    Optional<uint32> const realmId = Trinity::StringTo<uint32>(parts[0]);
-                    if (!realmId)
-                    {
-                        TC_LOG_ERROR("misc", "CharacterSelect.ExtraRealms: malformed realm id '{}'", parts[0]);
-                        continue;
-                    }
-
-                    addRealm(*realmId, std::string(parts[1]));
-                }
-            }
-
-            return result;
-        }();
-        return schemas;
-    }
-}
 
 void WorldSession::HandleCharEnum(CharacterDatabaseQueryHolder const& holder, std::vector<QueryResult> crossRealmCharacters, std::vector<QueryResult> crossRealmCustomizations)
 {
@@ -1744,6 +1653,11 @@ void WorldSession::HandleContinuePlayerLogin()
     }
 
     std::shared_ptr<LoginQueryHolder> holder = std::make_shared<LoginQueryHolder>(GetAccountId(), GetBattlenetAccountId(), m_playerLoading);
+
+    // the warband bank slot map is account-global while item rows are realm-local, pull items
+    // homed to sibling realms into this realm's database before the login queries read them
+    MigrateAccountBankItems();
+
     if (!holder->Initialize())
     {
         m_playerLoading.Clear();

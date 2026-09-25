@@ -1053,9 +1053,6 @@ enum PlayerLoginQueryIndex
     PLAYER_LOGIN_QUERY_LOAD_DATA_ELEMENTS,
     PLAYER_LOGIN_QUERY_LOAD_DATA_FLAGS,
     PLAYER_LOGIN_QUERY_LOAD_BANK_TAB_SETTINGS,
-    PLAYER_LOGIN_QUERY_LOAD_ACCOUNT_BANK_TAB_SETTINGS,
-    PLAYER_LOGIN_QUERY_LOAD_ACCOUNT_BANK_ITEMS,
-    PLAYER_LOGIN_QUERY_LOAD_ACCOUNT_BANK_COINAGE,
     PLAYER_LOGIN_QUERY_LOAD_PERKS_CURRENCY,
     PLAYER_LOGIN_QUERY_LOAD_PERKS_PURCHASES,
     PLAYER_LOGIN_QUERY_LOAD_PERKS_FROZEN,
@@ -3358,9 +3355,9 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         void _LoadCUFProfiles(PreparedQueryResult result);
         void _LoadPlayerData(PreparedQueryResult elementsResult, PreparedQueryResult flagsResult);
         void _LoadCharacterBankTabSettings(PreparedQueryResult result);
-        void _LoadAccountBankTabSettings(PreparedQueryResult result);
-        void _LoadAccountBankItems(PreparedQueryResult result, uint32 timeDiff);
-        void _LoadAccountBankCoinage(PreparedQueryResult result);
+        void _LoadAccountBankTabSettings();
+        void _LoadAccountBankItems(uint32 timeDiff);
+        void _LoadAccountBankCoinage();
         void _LoadPerksCurrency(PreparedQueryResult result);
         void _LoadPerksPurchases(PreparedQueryResult result);
         void _LoadPerksFrozen(PreparedQueryResult result);
@@ -3398,9 +3395,9 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         void _SaveCUFProfiles(CharacterDatabaseTransaction trans);
         void _SavePlayerData(CharacterDatabaseTransaction trans);
         void _SaveCharacterBankTabSettings(CharacterDatabaseTransaction trans) const;
-        void _SaveAccountBankTabSettings(CharacterDatabaseTransaction trans) const;
-        void _SaveAccountBankItems(CharacterDatabaseTransaction trans);
-        void _SaveAccountBankCoinage(CharacterDatabaseTransaction trans) const;
+        void _SaveAccountBankTabSettings(LoginDatabaseTransaction trans) const;
+        void _SaveAccountBankItems(LoginDatabaseTransaction trans);
+        void _SaveAccountBankCoinage(LoginDatabaseTransaction trans) const;
         void _SavePerksCurrency(CharacterDatabaseTransaction trans);
         void _SavePerksFrozen(CharacterDatabaseTransaction trans);
         void _SavePerksMilestones(CharacterDatabaseTransaction trans);

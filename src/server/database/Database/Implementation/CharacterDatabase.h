@@ -696,15 +696,6 @@ enum CharacterDatabaseStatements : uint32
     CHAR_SEL_CHARACTER_BANK_TAB_SETTINGS,
     CHAR_DEL_CHARACTER_BANK_TAB_SETTINGS,
     CHAR_INS_CHARACTER_BANK_TAB_SETTINGS,
-    CHAR_SEL_ACCOUNT_BANK_TAB_SETTINGS,
-    CHAR_DEL_ACCOUNT_BANK_TAB_SETTINGS,
-    CHAR_INS_ACCOUNT_BANK_TAB_SETTINGS,
-    CHAR_SEL_ACCOUNT_BANK_ITEMS,
-    CHAR_REP_ACCOUNT_BANK_ITEM,
-    CHAR_DEL_ACCOUNT_BANK_ITEM,
-    CHAR_DEL_ACCOUNT_BANK_ITEMS_BY_BNET,
-    CHAR_SEL_ACCOUNT_BANK_COINAGE,
-    CHAR_REP_ACCOUNT_BANK_COINAGE,
 
     // Perks Program (Trading Post)
     CHAR_SEL_PERKS_CURRENCY,
@@ -754,5 +745,6 @@ public:
 TC_DATABASE_API std::string GetRegionwideCharacterEnumQuery(std::string const& characterSchema, uint32 realmId, uint32 accountId, bool withDeclinedNames);
 TC_DATABASE_API std::string GetRegionwideCharacterEnumCustomizationsQuery(std::string const& characterSchema, uint32 accountId);
 TC_DATABASE_API std::string GetRegionwideCharacterExistsQuery(std::string const& characterSchema, uint32 accountId, uint64 characterGuid);
+TC_DATABASE_API std::string GetAccountBankItemsQuery(std::string const& authSchema, uint32 battlenetAccountId);
 
 #endif

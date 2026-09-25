@@ -3670,6 +3670,68 @@ std::vector<RealmRegistryEntry> const& GetRealmRegistry()
     return registry;
 }
 
+std::vector<CrossRealmSchema> const& GetCrossRealmSchemas()
+{
+    static std::vector<CrossRealmSchema> const schemas = []
+    {
+        std::vector<CrossRealmSchema> result;
+        uint32 const currentRealmId = sRealmList->GetCurrentRealmId().Realm;
+        std::string const extraRealmsConfig = sConfigMgr->GetStringDefault("CharacterSelect.ExtraRealms", "");
+
+        auto addRealm = [&result, currentRealmId](uint32 realmId, std::string schema)
+        {
+            if (realmId == currentRealmId)
+                return;
+
+            auto realmItr = std::find_if(GetRealmRegistry().begin(), GetRealmRegistry().end(), [realmId](RealmRegistryEntry const& realm)
+            {
+                return realm.Id == realmId;
+            });
+            if (realmItr == GetRealmRegistry().end())
+            {
+                TC_LOG_ERROR("misc", "CharacterSelect.ExtraRealms: realm {} is not present in the realmlist table, skipping", realmId);
+                return;
+            }
+
+            result.push_back({ realmItr->Address, realmItr->Id, std::move(schema) });
+        };
+
+        if (extraRealmsConfig == "auto")
+        {
+            if (QueryResult rows = LoginDatabase.Query("SELECT realmId, schemaName FROM realm_character_schemas"))
+                do
+                {
+                    Field* fields = rows->Fetch();
+                    addRealm(fields[0].GetUInt32(), fields[1].GetString());
+                } while (rows->NextRow());
+        }
+        else
+        {
+            for (std::string_view entry : Trinity::Tokenize(extraRealmsConfig, ';', true))
+            {
+                std::vector<std::string_view> parts = Trinity::Tokenize(entry, ':', true);
+                if (parts.size() != 2)
+                {
+                    TC_LOG_ERROR("misc", "CharacterSelect.ExtraRealms: malformed entry '{}', expected '<realmId>:<schema>'", entry);
+                    continue;
+                }
+
+                Optional<uint32> const realmId = Trinity::StringTo<uint32>(parts[0]);
+                if (!realmId)
+                {
+                    TC_LOG_ERROR("misc", "CharacterSelect.ExtraRealms: malformed realm id '{}'", parts[0]);
+                    continue;
+                }
+
+                addRealm(*realmId, std::string(parts[1]));
+            }
+        }
+
+        return result;
+    }();
+    return schemas;
+}
+
 CliCommandHolder::CliCommandHolder(void* callbackArg, char const* command, Print zprint, CommandFinished commandFinished)
     : m_callbackArg(callbackArg), m_command(strdup(command)), m_print(zprint), m_commandFinished(commandFinished)
 {
