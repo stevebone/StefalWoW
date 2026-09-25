@@ -1156,40 +1156,6 @@ class spell_pal_judgment_of_justice : public SpellScript
             caster->CastSpell(GetHitUnit(), SPELL_PALADIN_JUDGMENT_OF_JUSTICE, CastSpellExtraArgsInit{
             .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR,
             .TriggeringSpell = GetSpell()
-                });
-    }
-
-    void Register() override
-    {
-        OnObjectTargetSelect += SpellObjectTargetSelectFn(spell_pal_judgment_of_justice::PreventSpeed, EFFECT_1, TARGET_UNIT_CASTER);
-        OnEffectHitTarget += SpellEffectFn(spell_pal_judgment_of_justice::HandleDummy, EFFECT_0, SPELL_EFFECT_SCHOOL_DAMAGE);
-    }
-};
-
-// 403495 - Judgment of Justice (attached to 20271 - Judgment)
-class spell_pal_judgment_of_justice : public SpellScript
-{
-    bool Validate(SpellInfo const* spellInfo) override
-    {
-        return ValidateSpellInfo({ SPELL_PALADIN_JUDGMENT_OF_JUSTICE_TALENT, SPELL_PALADIN_JUDGMENT_OF_JUSTICE })
-            && ValidateSpellEffect({ { spellInfo->Id, EFFECT_1 } })
-            && spellInfo->GetEffect(EFFECT_1).IsEffect(SPELL_EFFECT_APPLY_AURA);
-    }
-
-    void PreventSpeed(WorldObject*& target) const
-    {
-        if (!GetCaster()->HasAura(SPELL_PALADIN_JUDGMENT_OF_JUSTICE_TALENT))
-            target = nullptr;
-    }
-
-    void HandleDummy(SpellEffIndex /*effIndex*/) const
-    {
-        Unit* caster = GetCaster();
-
-        if (caster->HasAura(SPELL_PALADIN_JUDGMENT_OF_JUSTICE_TALENT))
-            caster->CastSpell(GetHitUnit(), SPELL_PALADIN_JUDGMENT_OF_JUSTICE, CastSpellExtraArgsInit{
-            .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR,
-            .TriggeringSpell = GetSpell()
         });
     }
 
