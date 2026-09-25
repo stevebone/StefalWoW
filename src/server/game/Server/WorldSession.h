@@ -951,7 +951,7 @@ enum AccountDataType
 #define NUM_ACCOUNT_DATA_TYPES        20
 
 #define ALL_ACCOUNT_DATA_CACHE_MASK 0x000FFFFFu
-#define GLOBAL_CACHE_MASK           0x000CA515u
+#define GLOBAL_CACHE_MASK           0x000DA515u
 #define PER_CHARACTER_CACHE_MASK    0x00045AEAu
 
 struct AccountData
@@ -1306,7 +1306,7 @@ class TC_GAME_API WorldSession
         void Handle_EarlyProccess(WorldPackets::Null& null); // just mark packets processed in WorldSocket::ReadDataHandler
         void LogUnprocessedTail(WorldPacket const* packet);
 
-        void HandleCharEnum(CharacterDatabaseQueryHolder const& holder);
+        void HandleCharEnum(CharacterDatabaseQueryHolder const& holder, std::vector<QueryResult> crossRealmCharacters, std::vector<QueryResult> crossRealmCustomizations);
         void HandleCharEnumOpcode(WorldPackets::Character::EnumCharacters& /*enumCharacters*/);
         void HandleCharUndeleteEnumOpcode(WorldPackets::Character::EnumCharacters& /*enumCharacters*/);
         void HandleSetupWarbandGroups(WorldPackets::Character::SetupWarbandGroups& setupWarbandGroups);
@@ -1318,6 +1318,8 @@ class TC_GAME_API WorldSession
         void HandleCommentatorModeOpcode(WorldPackets::Chat::CommentatorModeEnable& packet);
 
         void SendConnectToInstance(WorldPackets::Auth::ConnectToSerial serial);
+        void SendConnectToHomeRealm(uint32 homeRealmId, ObjectGuid::LowType characterGuid);
+        void BeginRealmTransferLogin(ObjectGuid::LowType characterGuid);
         void HandleContinuePlayerLogin();
         void AbortLogin(WorldPackets::Character::LoginFailureReason reason);
         void HandleLoadScreenOpcode(WorldPackets::Character::LoadingScreenNotify& loadingScreenNotify);
@@ -2065,6 +2067,7 @@ class TC_GAME_API WorldSession
         };
 
         uint64 GetConnectToInstanceKey() const { return _instanceConnectKey.Raw; }
+        void SetInstanceConnectKey(uint64 key) { _instanceConnectKey.Raw = key; }
         static void AddInstanceConnection(WorldSession* session, std::weak_ptr<WorldSocket> sockRef, ConnectToKey key);
 
     public:
@@ -2131,6 +2134,10 @@ class TC_GAME_API WorldSession
         // characters who failed on Player::BuildEnumData shouldn't login
         GuidSet _legitCharacters;
 
+        // characters of sibling realms shown in the regionwide list, homed to their own realm;
+        // they must not enter _legitCharacters or logging into them would skip the realm redirect
+        GuidSet _crossRealmCharacters;
+
         ObjectGuid::LowType m_GUIDLow;                      // set logined or recently logout player (while m_playerRecentlyLogout set)
         Player* _player;
         std::array<std::shared_ptr<WorldSocket>, MAX_CONNECTION_TYPES> m_Socket;
@@ -2194,6 +2201,7 @@ class TC_GAME_API WorldSession
         std::unique_ptr<CollectionMgr> _collectionMgr;
 
         ConnectToKey _instanceConnectKey;
+        ObjectGuid::LowType _realmTransferCharacterGuid = 0; // character selected before a cross-realm handoff, entered into the world after the session resume
 
         WorldSession(WorldSession const& right) = delete;
         WorldSession& operator=(WorldSession const& right) = delete;

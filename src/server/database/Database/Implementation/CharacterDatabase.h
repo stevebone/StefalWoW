@@ -748,4 +748,11 @@ public:
     void DoPrepareStatements() override;
 };
 
+// The character select list query is reused for cross-realm schemas (see CharacterSelect.ExtraRealms),
+// the tables are qualified with the sibling realm's schema name. realmId is prepended as the first
+// column of every row so the handler can stamp the entry with the right VirtualRealmAddress.
+TC_DATABASE_API std::string GetRegionwideCharacterEnumQuery(std::string const& characterSchema, uint32 realmId, uint32 accountId, bool withDeclinedNames);
+TC_DATABASE_API std::string GetRegionwideCharacterEnumCustomizationsQuery(std::string const& characterSchema, uint32 accountId);
+TC_DATABASE_API std::string GetRegionwideCharacterExistsQuery(std::string const& characterSchema, uint32 accountId, uint64 characterGuid);
+
 #endif

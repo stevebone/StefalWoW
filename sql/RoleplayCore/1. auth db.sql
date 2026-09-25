@@ -83,7 +83,6 @@ INSERT INTO `rbac_linked_permissions` VALUES (199, 1021);
 CREATE TABLE `account_warband_groups` (
   `id` bigint(20) unsigned NOT NULL,
   `accountId` int(10) unsigned NOT NULL,
-  `realmId` int(10) unsigned NOT NULL DEFAULT '1',
   `orderIndex` tinyint(3) unsigned NOT NULL,
   `name` varchar(257) NOT NULL,
   `warbandSceneId` int(10) unsigned NOT NULL DEFAULT '0',
@@ -100,4 +99,26 @@ CREATE TABLE `account_warband_group_members` (
   `type` int(10) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`accountId`, `realmId`, `groupId`, `characterGuid`),
   CONSTRAINT `fk_warband_group` FOREIGN KEY (`accountId`, `realmId`, `groupId`) REFERENCES `account_warband_groups` (`accountId`, `realmId`, `id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `account_data_global` (
+  `accountId` int UNSIGNED NOT NULL,
+  `type` tinyint UNSIGNED NOT NULL DEFAULT 0,
+  `time` bigint NOT NULL DEFAULT 0,
+  `data` longblob NULL,
+  PRIMARY KEY (`accountId`, `type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `account_realm_transfer` (
+  `accountId` int UNSIGNED NOT NULL,
+  `connectKey` int UNSIGNED NOT NULL,
+  `characterGuid` bigint UNSIGNED NOT NULL,
+  `createTime` bigint NOT NULL,
+  PRIMARY KEY (`accountId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `realm_character_schemas` (
+  `realmId` int UNSIGNED NOT NULL,
+  `schemaName` varchar(64) NOT NULL,
+  PRIMARY KEY (`realmId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

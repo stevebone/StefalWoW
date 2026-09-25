@@ -18,19 +18,6 @@
 #include "CharacterDatabase.h"
 #include "MySQLPreparedStatement.h"
 
-void CharacterDatabaseConnection::DoPrepareStatements()
-{
-    if (!m_reconnecting)
-        m_stmts.resize(MAX_CHARACTERDATABASE_STATEMENTS);
-
-#define SelectItemInstanceContent "ii.guid, ii.itemEntry, ii.creatorGuid, ii.giftCreatorGuid, ii.count, ii.duration, ii.charges, ii.flags, ii.enchantments, ii.randomBonusListId, " \
-        "ii.durability, ii.playedTime, ii.createTime, ii.text, ii.battlePetSpeciesId, ii.battlePetBreedData, ii.battlePetLevel, ii.battlePetDisplayId, ii.context, ii.bonusListIDs, " \
-        "iit.itemModifiedAppearanceAllSpecs, iit.itemModifiedAppearanceSpec1, iit.itemModifiedAppearanceSpec2, iit.itemModifiedAppearanceSpec3, iit.itemModifiedAppearanceSpec4, iit.itemModifiedAppearanceSpec5, " \
-        "iit.spellItemEnchantmentAllSpecs, iit.spellItemEnchantmentSpec1, iit.spellItemEnchantmentSpec2, iit.spellItemEnchantmentSpec3, iit.spellItemEnchantmentSpec4, iit.spellItemEnchantmentSpec5, " \
-        "iit.secondaryItemModifiedAppearanceAllSpecs, iit.secondaryItemModifiedAppearanceSpec1, iit.secondaryItemModifiedAppearanceSpec2, iit.secondaryItemModifiedAppearanceSpec3, iit.secondaryItemModifiedAppearanceSpec4, iit.secondaryItemModifiedAppearanceSpec5, " \
-        "ig.gemItemId1, ig.gemBonuses1, ig.gemContext1, ig.gemScalingLevel1, ig.gemItemId2, ig.gemBonuses2, ig.gemContext2, ig.gemScalingLevel2, ig.gemItemId3, ig.gemBonuses3, ig.gemContext3, ig.gemScalingLevel3, " \
-        "im.fixedScalingLevel, im.artifactKnowledgeLevel, im.craftingModifiedStat1, im.craftingModifiedStat2"
-
 #define CharacterSelectEquipmentSlot(table_alias, slot_name) \
     table_alias slot_name "EquippedItemID," table_alias slot_name "VisibleItemID," \
     table_alias slot_name "Subclass," table_alias slot_name "InvType," \
@@ -45,6 +32,85 @@ void CharacterDatabaseConnection::DoPrepareStatements()
     CharacterSelectEquipmentSlot(table_alias, "trinket1") "," CharacterSelectEquipmentSlot(table_alias, "trinket2") "," CharacterSelectEquipmentSlot(table_alias, "back") "," \
     CharacterSelectEquipmentSlot(table_alias, "mainHand") "," CharacterSelectEquipmentSlot(table_alias, "offHand") "," CharacterSelectEquipmentSlot(table_alias, "ranged") "," \
     CharacterSelectEquipmentSlot(table_alias, "tabard")
+
+namespace
+{
+    // Shared by CHAR_SEL_ENUM / CHAR_SEL_ENUM_DECLINED_NAME and GetRegionwideCharacterEnumQuery,
+    // the cross-realm variant reuses the exact same column layout
+    std::string BuildCharacterEnumQuery(bool withDeclinedNames)
+    {
+        std::string query = "SELECT c.guid, c.name, c.race, c.class, c.gender, c.level, c.zone, c.map, c.position_x, c.position_y, c.position_z, "
+            "gm.guildid, c.playerFlags, c.at_login, cp.entry, cp.modelid, cp.level AS cpLevel, cb.guid AS cbGuid, c.slot, c.createTime, c.logout_time, c.activeTalentGroup, c.lastLoginBuild, "
+            "c.personalTabardEmblemStyle, c.personalTabardEmblemColor, c.personalTabardBorderStyle, c.personalTabardBorderColor, c.personalTabardBackgroundColor, "
+            "c.timerunningSeasonId, c.flags4, "
+            CharacterSelectEquipment("ceq.");
+        if (withDeclinedNames)
+            query += ", cd.genitive ";
+        query += ", c.money ";
+        query += "FROM characters AS c LEFT JOIN character_pet AS cp ON c.summonedPetNumber = cp.id LEFT JOIN guild_member AS gm ON c.guid = gm.guid "
+            "LEFT JOIN character_banned AS cb ON c.guid = cb.guid AND cb.active = 1 "
+            "LEFT JOIN character_select_screen_equipment_cache ceq ON c.guid = ceq.guid ";
+        if (withDeclinedNames)
+            query += "LEFT JOIN character_declinedname AS cd ON c.guid = cd.guid ";
+        query += "WHERE c.account = ? AND c.deleteInfos_Name IS NULL";
+        return query;
+    }
+
+    std::string QualifyTables(std::string query, std::string const& schema)
+    {
+        std::string const qualified = "`" + schema + "`.";
+        for (char const* table : { "characters AS c", "characters c", "character_pet AS cp", "guild_member AS gm", "character_banned AS cb",
+                                   "character_select_screen_equipment_cache ceq", "character_declinedname AS cd",
+                                   "character_customizations cc" })
+        {
+            std::string const token = std::string(" ") + table;
+            std::string const replacement = " " + qualified + table;
+            for (std::size_t pos = query.find(token); pos != std::string::npos; pos = query.find(token, pos + replacement.length()))
+                query.replace(pos, token.length(), replacement);
+        }
+        return query;
+    }
+}
+
+std::string GetRegionwideCharacterEnumQuery(std::string const& characterSchema, uint32 realmId, uint32 accountId, bool withDeclinedNames)
+{
+    constexpr std::string_view SelectKeyword = "SELECT ";
+
+    std::string query = BuildCharacterEnumQuery(withDeclinedNames);
+    query.erase(0, SelectKeyword.length());
+    // the query runs as plain SQL against the sibling schema, the account filter is inlined
+    std::string const placeholder = "c.account = ?";
+    std::size_t const pos = query.find(placeholder);
+    if (pos != std::string::npos)
+        query.replace(pos, placeholder.length(), "c.account = " + std::to_string(accountId));
+    return "SELECT " + std::to_string(realmId) + " AS `__realmId`, " + QualifyTables(std::move(query), characterSchema);
+}
+
+std::string GetRegionwideCharacterEnumCustomizationsQuery(std::string const& characterSchema, uint32 accountId)
+{
+    std::string query = "SELECT cc.guid, cc.chrCustomizationOptionID, cc.chrCustomizationChoiceID FROM character_customizations cc "
+        "LEFT JOIN characters c ON cc.guid = c.guid WHERE c.account = " + std::to_string(accountId) + " AND c.deleteInfos_Name IS NULL";
+    return QualifyTables(std::move(query), characterSchema);
+}
+
+std::string GetRegionwideCharacterExistsQuery(std::string const& characterSchema, uint32 accountId, uint64 characterGuid)
+{
+    return "SELECT 1 FROM `" + characterSchema + "`.characters WHERE guid = " + std::to_string(characterGuid)
+        + " AND account = " + std::to_string(accountId) + " AND deleteInfos_Name IS NULL";
+}
+
+void CharacterDatabaseConnection::DoPrepareStatements()
+{
+    if (!m_reconnecting)
+        m_stmts.resize(MAX_CHARACTERDATABASE_STATEMENTS);
+
+#define SelectItemInstanceContent "ii.guid, ii.itemEntry, ii.creatorGuid, ii.giftCreatorGuid, ii.count, ii.duration, ii.charges, ii.flags, ii.enchantments, ii.randomBonusListId, " \
+        "ii.durability, ii.playedTime, ii.createTime, ii.text, ii.battlePetSpeciesId, ii.battlePetBreedData, ii.battlePetLevel, ii.battlePetDisplayId, ii.context, ii.bonusListIDs, " \
+        "iit.itemModifiedAppearanceAllSpecs, iit.itemModifiedAppearanceSpec1, iit.itemModifiedAppearanceSpec2, iit.itemModifiedAppearanceSpec3, iit.itemModifiedAppearanceSpec4, iit.itemModifiedAppearanceSpec5, " \
+        "iit.spellItemEnchantmentAllSpecs, iit.spellItemEnchantmentSpec1, iit.spellItemEnchantmentSpec2, iit.spellItemEnchantmentSpec3, iit.spellItemEnchantmentSpec4, iit.spellItemEnchantmentSpec5, " \
+        "iit.secondaryItemModifiedAppearanceAllSpecs, iit.secondaryItemModifiedAppearanceSpec1, iit.secondaryItemModifiedAppearanceSpec2, iit.secondaryItemModifiedAppearanceSpec3, iit.secondaryItemModifiedAppearanceSpec4, iit.secondaryItemModifiedAppearanceSpec5, " \
+        "ig.gemItemId1, ig.gemBonuses1, ig.gemContext1, ig.gemScalingLevel1, ig.gemItemId2, ig.gemBonuses2, ig.gemContext2, ig.gemScalingLevel2, ig.gemItemId3, ig.gemBonuses3, ig.gemContext3, ig.gemScalingLevel3, " \
+        "im.fixedScalingLevel, im.artifactKnowledgeLevel, im.craftingModifiedStat1, im.craftingModifiedStat2"
 
     PrepareStatement(CHAR_DEL_POOL_QUEST_SAVE, "DELETE FROM pool_quest_save WHERE pool_id = ?", CONNECTION_ASYNC);
     PrepareStatement(CHAR_INS_POOL_QUEST_SAVE, "INSERT INTO pool_quest_save (pool_id, quest_id) VALUES (?, ?)", CONNECTION_ASYNC);
@@ -65,26 +131,8 @@ void CharacterDatabaseConnection::DoPrepareStatements()
     PrepareStatement(CHAR_SEL_MAIL_LIST_INFO, "SELECT id, sender, (SELECT name FROM characters WHERE guid = sender) AS sendername, receiver, (SELECT name FROM characters WHERE guid = receiver) AS receivername, "
                      "subject, deliver_time, expire_time, money, has_items FROM mail WHERE receiver = ? ", CONNECTION_SYNCH);
     PrepareStatement(CHAR_SEL_MAIL_LIST_ITEMS, "SELECT itemEntry,count FROM item_instance WHERE guid = ?", CONNECTION_SYNCH);
-    PrepareStatement(CHAR_SEL_ENUM, "SELECT c.guid, c.name, c.race, c.class, c.gender, c.level, c.zone, c.map, c.position_x, c.position_y, c.position_z, "
-                     "gm.guildid, c.playerFlags, c.at_login, cp.entry, cp.modelid, cp.level AS cpLevel, cb.guid AS cbGuid, c.slot, c.createTime, c.logout_time, c.activeTalentGroup, c.lastLoginBuild, "
-                     "c.personalTabardEmblemStyle, c.personalTabardEmblemColor, c.personalTabardBorderStyle, c.personalTabardBorderColor, c.personalTabardBackgroundColor, "
-                     "c.timerunningSeasonId, c.flags4, "
-                     CharacterSelectEquipment("ceq.") ", c.money "
-                     "FROM characters AS c LEFT JOIN character_pet AS cp ON c.summonedPetNumber = cp.id LEFT JOIN guild_member AS gm ON c.guid = gm.guid "
-                     "LEFT JOIN character_banned AS cb ON c.guid = cb.guid AND cb.active = 1 "
-                     "LEFT JOIN character_select_screen_equipment_cache ceq ON c.guid = ceq.guid "
-                     "WHERE c.account = ? AND c.deleteInfos_Name IS NULL", CONNECTION_ASYNC);
-    PrepareStatement(CHAR_SEL_ENUM_DECLINED_NAME, "SELECT c.guid, c.name, c.race, c.class, c.gender, c.level, c.zone, c.map, c.position_x, c.position_y, c.position_z, "
-                     "gm.guildid, c.playerFlags, c.at_login, cp.entry, cp.modelid, cp.level AS cpLevel, cb.guid AS cbGuid, c.slot, c.createTime, c.logout_time, c.activeTalentGroup, c.lastLoginBuild, "
-                     "c.personalTabardEmblemStyle, c.personalTabardEmblemColor, c.personalTabardBorderStyle, c.personalTabardBorderColor, c.personalTabardBackgroundColor, "
-                     "c.timerunningSeasonId, c.flags4, "
-                     CharacterSelectEquipment("ceq.") ", "
-                     "cd.genitive, c.money "
-                     "FROM characters AS c LEFT JOIN character_pet AS cp ON c.summonedPetNumber = cp.id LEFT JOIN guild_member AS gm ON c.guid = gm.guid "
-                     "LEFT JOIN character_banned AS cb ON c.guid = cb.guid AND cb.active = 1 "
-                     "LEFT JOIN character_select_screen_equipment_cache ceq ON c.guid = ceq.guid "
-                     "LEFT JOIN character_declinedname AS cd ON c.guid = cd.guid "
-                     "WHERE c.account = ? AND c.deleteInfos_Name IS NULL", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_SEL_ENUM, BuildCharacterEnumQuery(false), CONNECTION_ASYNC);
+    PrepareStatement(CHAR_SEL_ENUM_DECLINED_NAME, BuildCharacterEnumQuery(true), CONNECTION_ASYNC);
     PrepareStatement(CHAR_SEL_ENUM_CUSTOMIZATIONS, "SELECT cc.guid, cc.chrCustomizationOptionID, cc.chrCustomizationChoiceID FROM character_customizations cc "
                      "LEFT JOIN characters c ON cc.guid = c.guid WHERE c.account = ? AND c.deleteInfos_Name IS NULL ORDER BY cc.guid, cc.chrCustomizationOptionID", CONNECTION_ASYNC);
     PrepareStatement(CHAR_SEL_UNDELETE_ENUM, "SELECT c.guid, c.deleteInfos_Name, c.race, c.class, c.gender, c.level, c.zone, c.map, c.position_x, c.position_y, c.position_z, "

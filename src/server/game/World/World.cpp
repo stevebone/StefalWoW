@@ -1333,6 +1333,12 @@ bool World::SetInitialWorldSettings()
 
     LoginDatabase.PExecute("UPDATE realmlist SET icon = {}, timezone = {} WHERE id = '{}'", server_type, realm_zone, sRealmList->GetCurrentRealmId().Realm);      // One-time query
 
+    // realm -> characters schema registry for CharacterSelect.ExtraRealms = "auto": every worldserver
+    // registers itself so sibling realms pick the mapping up without listing each realm manually
+    if (sConfigMgr->GetStringDefault("CharacterSelect.ExtraRealms", "") == "auto")
+        LoginDatabase.PExecute("REPLACE INTO realm_character_schemas (realmId, schemaName) VALUES ({}, '{}')",
+            sRealmList->GetCurrentRealmId().Realm, CharacterDatabase.GetConnectionInfo()->database);
+
     TC_LOG_INFO("server.loading", "Loading GameObject models...");
     if (!LoadGameObjectModelList(m_dataPath))
     {
@@ -3640,6 +3646,28 @@ void World::UpdateWarModeRewardValues()
 uint32 GetVirtualRealmAddress()
 {
     return sRealmList->GetCurrentRealmId().GetAddress();
+}
+
+std::vector<RealmRegistryEntry> const& GetRealmRegistry()
+{
+    static std::vector<RealmRegistryEntry> const registry = []
+    {
+        std::vector<RealmRegistryEntry> realms;
+        if (PreparedQueryResult result = LoginDatabase.Query(LoginDatabase.GetPreparedStatement(LOGIN_SEL_REALMLIST)))
+        {
+            do
+            {
+                Field* fields = result->Fetch();
+                uint32 const realmId = fields[0].GetUInt32();
+                uint8 const region = fields[13].GetUInt8();
+                uint8 const battlegroup = fields[14].GetUInt8();
+
+                realms.push_back({ realmId, Battlenet::RealmHandle(region, battlegroup, realmId).GetAddress(), fields[1].GetString() });
+            } while (result->NextRow());
+        }
+        return realms;
+    }();
+    return registry;
 }
 
 CliCommandHolder::CliCommandHolder(void* callbackArg, char const* command, Print zprint, CommandFinished commandFinished)

@@ -70,6 +70,8 @@
 
 RealmID = 1
 
+CharacterSelect.ExtraRealms = "auto"
+
 #
 #    DataDir
 #        Description: Data directory setting.
