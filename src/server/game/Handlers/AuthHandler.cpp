@@ -159,6 +159,10 @@ void WorldSession::SendFeatureSystemStatusGlueScreen()
         { "housingEnableCreateCharterNeighborhood"sv, "0"sv },
         { "housingEnableBuyHouse"sv, "0"sv },
         { "housingMarketEnabled"sv, "0"sv },
+        // Advanced flying keyboard turn factors - client defaults (5.0/8.0) multiply the
+        // banking turn rate and make A/D snap-turn during skyriding; 1.0 is the sane base.
+        { "advFlyKeyboardMinTurnFactor"sv, "1"sv },
+        { "advFlyKeyboardMaxTurnFactor"sv, "1"sv },
     };
 
     WorldPackets::System::MirrorVars variables;
