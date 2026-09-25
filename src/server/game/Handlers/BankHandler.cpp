@@ -511,9 +511,10 @@ void WorldSession::MigrateAccountBankItems()
         trans->PAppend("DELETE FROM {}.item_instance_transmog WHERE itemGuid = {}", sourceSchema, oldGuid);
         trans->PAppend("DELETE FROM {}.item_instance_modifiers WHERE itemGuid = {}", sourceSchema, oldGuid);
 
-        // pointer update rides the same transaction so a crash can never orphan the auth row
-        trans->PAppend("UPDATE {}.account_bank_item SET item = {}, sourceRealm = {} WHERE battlenetAccountId = {} AND item = {}",
-            authSchema, newGuid, currentRealmId, battlenetAccountId, oldGuid);
+        // pointer update rides the same transaction so a crash can never orphan the auth row;
+        // scoped by sourceRealm because sibling realms issue the same numeric item guids
+        trans->PAppend("UPDATE {}.account_bank_item SET item = {}, sourceRealm = {} WHERE battlenetAccountId = {} AND item = {} AND sourceRealm = {}",
+            authSchema, newGuid, currentRealmId, battlenetAccountId, oldGuid, sourceRealm->HomeRealmId);
     }
 
     CharacterDatabase.CommitTransaction(trans);

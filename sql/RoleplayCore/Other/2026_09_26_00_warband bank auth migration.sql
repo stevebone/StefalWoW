@@ -17,6 +17,11 @@
 -- losing realm's row is dropped. The dropped item_instance row stays orphaned in its
 -- characters database - clean it up manually if you care, it is never referenced again.
 -- After the merge, DROP TABLE removes the old per-realm bank tables.
+--
+-- Note: installs that created the auth tables while account_bank_item still had
+-- UNIQUE KEY idx_item must downgrade it to a plain index first - item guids are only
+-- unique per realm, two realms can legitimately hold the same numeric guid:
+--   ALTER TABLE `auth`.`account_bank_item` DROP INDEX idx_item, ADD INDEX idx_item (`item`);
 
 -- 1. Tab settings: realm 1 wins on conflict.
 REPLACE INTO `auth`.`account_bank_tab_settings` (battlenetAccountId, tabId, name, icon, description, depositFlags)
