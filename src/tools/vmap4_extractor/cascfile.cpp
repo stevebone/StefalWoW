@@ -16,8 +16,11 @@
  */
 
 #include "cascfile.h"
+#include "LocalFileDataStore.h"
+#include "StringFormat.h"
 #include <CascLib.h>
 #include <cstdio>
+#include <fstream>
 
 CASCFile::CASCFile(std::shared_ptr<CASC::Storage const> casc, const char* filename, bool warnNoExist /*= true*/) :
     eof(false),
@@ -25,6 +28,26 @@ CASCFile::CASCFile(std::shared_ptr<CASC::Storage const> casc, const char* filena
     pointer(0),
     size(0)
 {
+    // In custom mode, if the file name is known in the custom listfile,
+    // try to read it from the local Custom\ folder first (relative path matches the listfile).
+    if (sLocalFileDataStore->IsCustomMode())
+    {
+        auto const& validFiles = sLocalFileDataStore->GetValidFiles();
+        std::string filenameStr(filename);
+        std::size_t basePos = filenameStr.find_last_of("\\/");
+        std::string baseName = basePos != std::string::npos ? filenameStr.substr(basePos + 1) : filenameStr;
+        if (validFiles.find(baseName) != validFiles.end())
+        {
+            std::string localPath = Trinity::StringFormat("{}\\{}", sLocalFileDataStore->GetCustomPath(), filename);
+            std::ifstream file(localPath, std::ios::binary | std::ios::ate);
+            if (file)
+            {
+                init(file, filename);
+                return;
+            }
+        }
+    }
+
     std::unique_ptr<CASC::File> file(casc->OpenFile(filename, CASC_LOCALE_ALL_WOW, false));
     if (!file)
     {
@@ -43,6 +66,24 @@ CASCFile::CASCFile(std::shared_ptr<CASC::Storage const> casc, uint32 fileDataId,
     pointer(0),
     size(0)
 {
+    // In custom mode, if the fileDataId is mapped in the custom listfile,
+    // try to read the corresponding file from the local Custom\ folder first.
+    if (sLocalFileDataStore->IsCustomMode())
+    {
+        auto const& fileDataToName = sLocalFileDataStore->GetFileDataToName();
+        auto it = fileDataToName.find(fileDataId);
+        if (it != fileDataToName.end())
+        {
+            std::string localPath = Trinity::StringFormat("{}\\{}", sLocalFileDataStore->GetCustomPath(), it->second);
+            std::ifstream file(localPath, std::ios::binary | std::ios::ate);
+            if (file)
+            {
+                init(file, description.c_str());
+                return;
+            }
+        }
+    }
+
     std::unique_ptr<CASC::File> file(casc->OpenFile(fileDataId, CASC_LOCALE_ALL_WOW, false));
     if (!file)
     {
@@ -75,6 +116,31 @@ void CASCFile::init(CASC::File* file, const char* description)
         eof = true;
         return;
     }
+}
+
+void CASCFile::init(std::ifstream& file, const char* description)
+{
+    int64 fileSize = file.tellg();
+    if (fileSize <= 0)
+    {
+        fprintf(stderr, "Can't open %s, failed to get size!\n", description);
+        eof = true;
+        return;
+    }
+
+    size = fileSize;
+    buffer = new char[size];
+    file.seekg(0, std::ios::beg);
+    if (!file.read(buffer, size))
+    {
+        fprintf(stderr, "Can't read %s, size=%u!\n", description, uint32(size));
+        delete[] buffer;
+        buffer = nullptr;
+        size = 0;
+        eof = true;
+        return;
+    }
+    file.close();
 }
 
 size_t CASCFile::read(void* dest, size_t bytes)

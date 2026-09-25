@@ -150,7 +150,7 @@ ByteBuffer& operator>>(ByteBuffer& data, ItemMod& itemMod)
 
 ByteBuffer& operator<<(ByteBuffer& data, ItemModList const& itemModList)
 {
-    data << BitsSize<6>(itemModList.Values);
+    data << BitsSize<7>(itemModList.Values);
     data.FlushBits();
 
     for (ItemMod const& itemMod : itemModList.Values)
@@ -161,7 +161,7 @@ ByteBuffer& operator<<(ByteBuffer& data, ItemModList const& itemModList)
 
 ByteBuffer& operator>>(ByteBuffer& data, ItemModList& itemModList)
 {
-    data >> BitsSize<6>(itemModList.Values);
+    data >> BitsSize<7>(itemModList.Values);
     data.ResetBitPos();
 
     for (ItemMod& itemMod : itemModList.Values)
@@ -173,11 +173,9 @@ ByteBuffer& operator>>(ByteBuffer& data, ItemModList& itemModList)
 ByteBuffer& operator<<(ByteBuffer& data, ItemInstance const& itemInstance)
 {
     data << int32(itemInstance.ItemID);
-
+    data << itemInstance.Modifications;
     data << OptionalInit(itemInstance.ItemBonus);
     data.FlushBits();
-
-    data << itemInstance.Modifications;
 
     if (itemInstance.ItemBonus)
         data << *itemInstance.ItemBonus;
@@ -188,10 +186,9 @@ ByteBuffer& operator<<(ByteBuffer& data, ItemInstance const& itemInstance)
 ByteBuffer& operator>>(ByteBuffer& data, ItemInstance& itemInstance)
 {
     data >> itemInstance.ItemID;
+    data >> itemInstance.Modifications;
     data >> OptionalInit(itemInstance.ItemBonus);
     data.ResetBitPos();
-
-    data >> itemInstance.Modifications;
 
     if (itemInstance.ItemBonus)
         data >> *itemInstance.ItemBonus;

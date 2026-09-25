@@ -22,6 +22,7 @@
 #include "World.h"
 #include "AccountMgr.h"
 #include "AchievementMgr.h"
+#include "ArchaeologyMgr.h"
 #include "AreaTriggerDataStore.h"
 #include "ArenaTeamMgr.h"
 #include "AuctionHouseBot.h"
@@ -40,6 +41,8 @@
 #include "Chat.h"
 #include "ChatCommand.h"
 #include "ChatPackets.h"
+#include "ClubFinderMgr.h"
+#include "ClubStreamHistoryMgr.h"
 #include "Config.h"
 #include "Containers.h"
 #include "ConversationDataStore.h"
@@ -59,6 +62,7 @@
 #include "GridNotifiersImpl.h"
 #include "GroupMgr.h"
 #include "GuildMgr.h"
+#include "GuildRenameMgr.h"
 #include "IPLocation.h"
 #include "InstanceLockMgr.h"
 #include "ItemBonusMgr.h"
@@ -78,6 +82,7 @@
 #include "ObjectAccessor.h"
 #include "ObjectMgr.h"
 #include "OutdoorPvPMgr.h"
+#include "PerksProgramMgr.h"
 #include "PetitionMgr.h"
 #include "Player.h"
 #include "PlayerDump.h"
@@ -599,7 +604,7 @@ void World::LoadConfigSettings(bool reload)
 
     ///- Read the player limit and the Message of the day from the config file
     SetPlayerAmountLimit(sConfigMgr->GetIntDefault("PlayerLimit"sv, 100));
-    SetMotd(sConfigMgr->GetStringDefault("Motd"sv, "Welcome to a Trinity Core Server."sv));
+    SetMotd(sConfigMgr->GetStringDefault("Motd"sv, "Welcome to a TrinityCore Server."sv));
 
     uint32 databaseCacheVersion = m_int_configs[CONFIG_CLIENTCACHE_VERSION];
 
@@ -626,6 +631,7 @@ void World::LoadConfigSettings(bool reload)
         { .Name = "AllowTwoSide.Interaction.Guild"sv, .DefaultValue = false, .Index = CONFIG_ALLOW_TWO_SIDE_INTERACTION_GUILD },
         { .Name = "AllowTwoSide.Interaction.Auction"sv, .DefaultValue = true, .Index = CONFIG_ALLOW_TWO_SIDE_INTERACTION_AUCTION },
         { .Name = "AllowTwoSide.Trade"sv, .DefaultValue = false, .Index = CONFIG_ALLOW_TWO_SIDE_TRADE },
+        { .Name = "ExtendedAccountNameLengthLimit"sv, .DefaultValue = false, .Index = CONFIG_EXTENDED_ACCOUNT_NAME_LENGTH_LIMIT },
         { .Name = "CharacterCreating.DisableAlliedRaceAchievementRequirement"sv, .DefaultValue = false, .Index = CONFIG_CHARACTER_CREATING_DISABLE_ALLIED_RACE_ACHIEVEMENT_REQUIREMENT },
         { .Name = "AllFlightPaths"sv, .DefaultValue = false, .Index = CONFIG_ALL_TAXI_PATHS },
         { .Name = "InstantFlightPaths"sv, .DefaultValue = false, .Index = CONFIG_INSTANT_TAXI },
@@ -723,6 +729,8 @@ void World::LoadConfigSettings(bool reload)
         { .Name = "LevelReq.Mail"sv, .DefaultValue = 1, .Index = CONFIG_MAIL_LEVEL_REQ },
         { .Name = "PreserveCustomChannelDuration"sv, .DefaultValue = 14, .Index = CONFIG_PRESERVE_CUSTOM_CHANNEL_DURATION },
         { .Name = "PreserveCustomChannelInterval"sv, .DefaultValue = 5, .Index = CONFIG_PRESERVE_CUSTOM_CHANNEL_INTERVAL },
+        { .Name = "Club.StreamHistory.MaxMessages"sv, .DefaultValue = 100, .Index = CONFIG_CLUB_STREAM_HISTORY_MAX_MESSAGES },
+        { .Name = "Club.StreamHistory.MaxDays"sv, .DefaultValue = 30, .Index = CONFIG_CLUB_STREAM_HISTORY_MAX_DAYS },
         { .Name = "PlayerSaveInterval"sv, .DefaultValue = 15 * MINUTE * IN_MILLISECONDS, .Index = CONFIG_INTERVAL_SAVE },
         { .Name = "DisconnectToleranceInterval"sv, .DefaultValue = 0, .Index = CONFIG_INTERVAL_DISCONNECT_TOLERANCE },
         { .Name = "PlayerSave.Stats.MinLevel"sv, .DefaultValue = 0, .Index = CONFIG_MIN_LEVEL_STAT_SAVE, .Max = STRONG_MAX_LEVEL },
@@ -761,7 +769,6 @@ void World::LoadConfigSettings(bool reload)
         { .Name = "StartPlayerLevel"sv, .DefaultValue = 1, .Index = CONFIG_START_PLAYER_LEVEL, .Min = 1 },
         { .Name = "StartDeathKnightPlayerLevel"sv, .DefaultValue = 8, .Index = CONFIG_START_DEATH_KNIGHT_PLAYER_LEVEL, .Min = 1 },
         { .Name = "StartDemonHunterPlayerLevel"sv, .DefaultValue = 8, .Index = CONFIG_START_DEMON_HUNTER_PLAYER_LEVEL, .Min = 1 },
-        { .Name = "StartEvokerPlayerLevel"sv, .DefaultValue = 10, .Index = CONFIG_START_EVOKER_PLAYER_LEVEL, .Min = 1 },
         { .Name = "StartAlliedRacePlayerLevel"sv, .DefaultValue = 10, .Index = CONFIG_START_ALLIED_RACE_LEVEL, .Min = 1 },
         { .Name = "Currency.ResetHour"sv, .DefaultValue = 3, .Index = CONFIG_CURRENCY_RESET_HOUR, .Min = 0, .Max = 23 },
         { .Name = "Currency.ResetDay"sv, .DefaultValue = 3, .Index = CONFIG_CURRENCY_RESET_DAY, .Min = 0, .Max = 6 },
@@ -835,7 +842,7 @@ void World::LoadConfigSettings(bool reload)
         { .Name = "Arena.RatedUpdateTimer"sv, .DefaultValue = 5 * IN_MILLISECONDS, .Index = CONFIG_ARENA_RATED_UPDATE_TIMER },
         { .Name = "Arena.ArenaSeason.ID"sv, .DefaultValue = 32, .Index = CONFIG_ARENA_SEASON_ID },
         { .Name = "Arena.ArenaStartRating"sv, .DefaultValue = 0, .Index = CONFIG_ARENA_START_RATING },
-        { .Name = "Arena.ArenaStartPersonalRating"sv, .DefaultValue = 1000, .Index = CONFIG_ARENA_START_PERSONAL_RATING },
+        { .Name = "Arena.ArenaStartPersonalRating"sv, .DefaultValue = 0, .Index = CONFIG_ARENA_START_PERSONAL_RATING },
         { .Name = "Arena.ArenaStartMatchmakerRating"sv, .DefaultValue = 1500, .Index = CONFIG_ARENA_START_MATCHMAKER_RATING },
         { .Name = "Creature.PickPocketRefillDelay"sv, .DefaultValue = 10 * MINUTE, .Index = CONFIG_CREATURE_PICKPOCKET_REFILL },
         { .Name = "Creature.MovingStopTimeForPlayer"sv, .DefaultValue = 3 * MINUTE * IN_MILLISECONDS, .Index = CONFIG_CREATURE_STOP_FOR_PLAYER },
@@ -862,6 +869,7 @@ void World::LoadConfigSettings(bool reload)
         { .Name = "Respawn.DynamicMinimumGameObject"sv, .DefaultValue = 10, .Index = CONFIG_RESPAWN_DYNAMICMINIMUM_GAMEOBJECT },
         { .Name = "Respawn.WarningFrequency"sv, .DefaultValue = 1800, .Index = CONFIG_RESPAWN_GUIDWARNING_FREQUENCY },
         { .Name = "MaxWhoListReturns"sv, .DefaultValue = 49, .Index = CONFIG_MAX_WHO },
+        { .Name = "WhoList.Update.Interval"sv, .DefaultValue = 5, .Index = CONFIG_WHO_LIST_UPDATE_INTERVAL, .Min = 1 },
         { .Name = "HonorPointsAfterDuel"sv, .DefaultValue = 0, .Index = CONFIG_HONOR_AFTER_DUEL },
         { .Name = "PvPToken.MapAllowType"sv, .DefaultValue = 4, .Index = CONFIG_PVP_TOKEN_MAP_TYPE, .Min = 1, .Max = 4 },
         { .Name = "PvPToken.ItemID"sv, .DefaultValue = 29434, .Index = CONFIG_PVP_TOKEN_ID },
@@ -908,6 +916,10 @@ void World::LoadConfigSettings(bool reload)
     { {
         { .Name = "CharacterCreating.Disabled.RaceMask"sv, .DefaultValue = 0, .Index = CONFIG_CHARACTER_CREATING_DISABLED_RACEMASK },
         { .Name = "StartPlayerMoney"sv, .DefaultValue = 0, .Index = CONFIG_START_PLAYER_MONEY, .Min = 0, .Max = MAX_MONEY_AMOUNT },
+        { .Name = "StartDeathKnightPlayerMoney"sv, .DefaultValue = 2000, .Index = CONFIG_START_DEATH_KNIGHT_PLAYER_MONEY, .Min = 0, .Max = MAX_MONEY_AMOUNT },
+        { .Name = "StartDemonHunterPlayerMoney"sv, .DefaultValue = 0, .Index = CONFIG_START_DEMON_HUNTER_PLAYER_MONEY, .Min = 0, .Max = MAX_MONEY_AMOUNT },
+        { .Name = "StartEvokerPlayerMoney"sv, .DefaultValue = 0, .Index = CONFIG_START_EVOKER_PLAYER_MONEY, .Min = 0, .Max = MAX_MONEY_AMOUNT },
+        { .Name = "StartAlliedRacePlayerMoney"sv, .DefaultValue = 10000, .Index = CONFIG_START_ALLIED_RACE_MONEY, .Min = 0, .Max = MAX_MONEY_AMOUNT },
     } };
 
     static constexpr ConfigOptionLoadDefinitionArray<float, FLOAT_CONFIG_VALUE_COUNT> floats =
@@ -1085,8 +1097,7 @@ void World::LoadConfigSettings(bool reload)
     validateStartLevel(CONFIG_START_PLAYER_LEVEL, "StartPlayerLevel");
     validateStartLevel(CONFIG_START_DEATH_KNIGHT_PLAYER_LEVEL, "StartDeathKnightPlayerLevel");
     validateStartLevel(CONFIG_START_DEMON_HUNTER_PLAYER_LEVEL, "StartDemonHunterPlayerLevel");
-    validateStartLevel(CONFIG_START_EVOKER_PLAYER_LEVEL, "StartEvokerPlayerLevel");
-    validateStartLevel(CONFIG_START_ALLIED_RACE_LEVEL, "StartDemonHunterPlayerLevel");
+    validateStartLevel(CONFIG_START_ALLIED_RACE_LEVEL, "StartAlliedRacePlayerLevel");
     validateStartLevel(CONFIG_MAX_RECRUIT_A_FRIEND_BONUS_PLAYER_LEVEL, "RecruitAFriend.MaxLevel");
 
     if (m_int_configs[CONFIG_START_GM_LEVEL] < m_int_configs[CONFIG_START_PLAYER_LEVEL])
@@ -1227,8 +1238,10 @@ void World::LoadConfigSettings(bool reload)
         m_timers[WUPDATE_CLEANDB].Reset();
         m_timers[WUPDATE_AUTOBROADCAST].SetInterval(m_int_configs[CONFIG_AUTOBROADCAST_INTERVAL]);
         m_timers[WUPDATE_AUTOBROADCAST].Reset();
-        sWorldStateMgr->SetValue(WS_CURRENT_PVP_SEASON_ID, getBoolConfig(CONFIG_ARENA_SEASON_IN_PROGRESS) ? getIntConfig(CONFIG_ARENA_SEASON_ID) : 0, false, nullptr);
-        sWorldStateMgr->SetValue(WS_PREVIOUS_PVP_SEASON_ID, getIntConfig(CONFIG_ARENA_SEASON_ID) - getBoolConfig(CONFIG_ARENA_SEASON_IN_PROGRESS), false, nullptr);
+        m_timers[WUPDATE_WHO_LIST].SetInterval(m_int_configs[CONFIG_WHO_LIST_UPDATE_INTERVAL] * IN_MILLISECONDS);
+        m_timers[WUPDATE_WHO_LIST].Reset();
+        WorldStateMgr::SetValue(WS_CURRENT_PVP_SEASON_ID, getBoolConfig(CONFIG_ARENA_SEASON_IN_PROGRESS) ? getIntConfig(CONFIG_ARENA_SEASON_ID) : 0, false, nullptr);
+        WorldStateMgr::SetValue(WS_PREVIOUS_PVP_SEASON_ID, getIntConfig(CONFIG_ARENA_SEASON_ID) - getBoolConfig(CONFIG_ARENA_SEASON_IN_PROGRESS), false, nullptr);
 
         // call ScriptMgr if we're reloading the configuration
         sScriptMgr->OnConfigLoad(reload);
@@ -1319,6 +1332,12 @@ bool World::SetInitialWorldSettings()
     uint32 realm_zone = getIntConfig(CONFIG_REALM_ZONE);
 
     LoginDatabase.PExecute("UPDATE realmlist SET icon = {}, timezone = {} WHERE id = '{}'", server_type, realm_zone, sRealmList->GetCurrentRealmId().Realm);      // One-time query
+
+    // realm -> characters schema registry for CharacterSelect.ExtraRealms = "auto": every worldserver
+    // registers itself so sibling realms pick the mapping up without listing each realm manually
+    if (sConfigMgr->GetStringDefault("CharacterSelect.ExtraRealms", "") == "auto")
+        LoginDatabase.PExecute("REPLACE INTO realm_character_schemas (realmId, schemaName) VALUES ({}, '{}')",
+            sRealmList->GetCurrentRealmId().Realm, CharacterDatabase.GetConnectionInfo()->database);
 
     TC_LOG_INFO("server.loading", "Loading GameObject models...");
     if (!LoadGameObjectModelList(m_dataPath))
@@ -1529,6 +1548,9 @@ bool World::SetInitialWorldSettings()
     TC_LOG_INFO("misc", "Loading Item Scripts...");                 // must be after LoadItemPrototypes
     sObjectMgr->LoadItemScriptNames();
 
+    TC_LOG_INFO("server.loading", "Loading transmog data...");      // must be before LoadCreatureOutfits - outfit item entries resolve through TransmogMgr
+    TransmogMgr::Load();
+
     TC_LOG_INFO("server.loading", "Loading Creature Model Based Info Data...");
     sObjectMgr->LoadCreatureModelInfo();
 
@@ -1626,6 +1648,12 @@ bool World::SetInitialWorldSettings()
     TC_LOG_INFO("server.loading", "Loading Quest POI");
     sObjectMgr->LoadQuestPOI();
 
+    TC_LOG_INFO("server.loading", "Loading Archaeology research data...");
+    sArchaeologyMgr->LoadResearchSites();                        // must be after DB2 stores load
+    sArchaeologyMgr->LoadDigSiteData();                          // must be after LoadResearchSites
+    sArchaeologyMgr->LoadResearchBranchData();                   // must be after gameobject templates load
+    sArchaeologyMgr->LoadDigSitePoints();                        // must be after LoadDigSiteData
+
     TC_LOG_INFO("server.loading", "Loading Quests Starters and Enders...");
     sObjectMgr->LoadQuestStartersAndEnders();                    // must be after quest load
 
@@ -1641,7 +1669,7 @@ bool World::SetInitialWorldSettings()
     sQuestPoolMgr->LoadFromDB();                                // must be after quest templates
 
     TC_LOG_INFO("server.loading", "Loading World State templates...");
-    sWorldStateMgr->LoadFromDB();                               // must be loaded before battleground, outdoor PvP, game events and conditions
+    WorldStateMgr::LoadFromDB();                               // must be loaded before battleground, outdoor PvP, game events and conditions
 
     TC_LOG_INFO("server.loading", "Loading Game Event Data...");               // must be after loading pools fully
     sGameEventMgr->LoadFromDB();
@@ -1824,11 +1852,33 @@ bool World::SetInitialWorldSettings()
         sBlackMarketMgr->LoadAuctions();
     }
 
+    TC_LOG_INFO("server.loading", "Loading Perks Program vendor items...");
+    sPerksProgramMgr->LoadVendorItems();
+
+    TC_LOG_INFO("server.loading", "Loading Perks Program monthly rotation...");
+    sPerksProgramMgr->LoadMonthlyRotation();
+
+    TC_LOG_INFO("server.loading", "Loading Perks Program activity intervals...");
+    sPerksProgramMgr->LoadActivityIntervals();
+    sPerksProgramMgr->BuildCriteriaTreeMap();
+
+    TC_LOG_INFO("server.loading", "Loading Perks Program current activities...");
+    sPerksProgramMgr->LoadCurrentActivities();
+
     TC_LOG_INFO("server.loading", "Loading Guild rewards...");
     sGuildMgr->LoadGuildRewards();
 
     TC_LOG_INFO("server.loading", "Loading Guilds...");
     sGuildMgr->LoadGuilds();
+
+    TC_LOG_INFO("server.loading", "Loading Guild rename records...");
+    sGuildRenameMgr->Load();
+
+    TC_LOG_INFO("server.loading", "Loading Club Finder data...");
+    sClubFinderMgr->Load();
+
+    TC_LOG_INFO("server.loading", "Loading Club stream history...");
+    sClubStreamHistoryMgr->Load();
 
     TC_LOG_INFO("server.loading", "Loading ArenaTeams...");
     sArenaTeamMgr->LoadArenaTeams();
@@ -1878,8 +1928,8 @@ bool World::SetInitialWorldSettings()
     TC_LOG_INFO("server.loading", "Loading Persistend World Variables...");
     LoadPersistentWorldVariables();
 
-    sWorldStateMgr->SetValue(WS_CURRENT_PVP_SEASON_ID, getBoolConfig(CONFIG_ARENA_SEASON_IN_PROGRESS) ? getIntConfig(CONFIG_ARENA_SEASON_ID) : 0, false, nullptr);
-    sWorldStateMgr->SetValue(WS_PREVIOUS_PVP_SEASON_ID, getIntConfig(CONFIG_ARENA_SEASON_ID) - getBoolConfig(CONFIG_ARENA_SEASON_IN_PROGRESS), false, nullptr);
+    WorldStateMgr::SetValue(WS_CURRENT_PVP_SEASON_ID, getBoolConfig(CONFIG_ARENA_SEASON_IN_PROGRESS) ? getIntConfig(CONFIG_ARENA_SEASON_ID) : 0, false, nullptr);
+    WorldStateMgr::SetValue(WS_PREVIOUS_PVP_SEASON_ID, getIntConfig(CONFIG_ARENA_SEASON_ID) - getBoolConfig(CONFIG_ARENA_SEASON_IN_PROGRESS), false, nullptr);
 
     sObjectMgr->LoadPhases();
 
@@ -1933,7 +1983,6 @@ bool World::SetInitialWorldSettings()
     LoadAutobroadcasts();
 
     ///- Load and initialize scripts
-    sObjectMgr->LoadSpellScripts();                              // must be after load Creature/Gameobject(Template/Data)
     sObjectMgr->LoadEventScripts();                              // must be after load Creature/Gameobject(Template/Data)
 
     TC_LOG_INFO("server.loading", "Loading spell script names...");
@@ -2017,7 +2066,7 @@ bool World::SetInitialWorldSettings()
 
     m_timers[WUPDATE_CHECK_FILECHANGES].SetInterval(500);
 
-    m_timers[WUPDATE_WHO_LIST].SetInterval(5 * IN_MILLISECONDS); // update who list cache every 5 seconds
+    m_timers[WUPDATE_WHO_LIST].SetInterval(getIntConfig(CONFIG_WHO_LIST_UPDATE_INTERVAL) * IN_MILLISECONDS); // update who list cache every 5 seconds
 
     m_timers[WUPDATE_CHANNEL_SAVE].SetInterval(getIntConfig(CONFIG_PRESERVE_CUSTOM_CHANNEL_INTERVAL) * MINUTE * IN_MILLISECONDS);
 
@@ -2117,9 +2166,6 @@ bool World::SetInitialWorldSettings()
     TC_LOG_INFO("server.loading", "Loading phase names...");
     sObjectMgr->LoadPhaseNames();
 
-    TC_LOG_INFO("server.loading", "Loading transmog data...");
-    TransmogMgr::Load();
-
     uint32 startupDuration = GetMSTimeDiffToNow(startupBegin);
 
     TC_LOG_INFO("server.worldserver", "World initialized in {} minutes {} seconds", startupDuration / 60000, startupDuration % 60000 / 1000);
@@ -2130,8 +2176,8 @@ bool World::SetInitialWorldSettings()
 
 void World::SetForcedWarModeFactionBalanceState(TeamId team, int32 reward)
 {
-    sWorldStateMgr->SetValueAndSaveInDb(WS_WAR_MODE_HORDE_BUFF_VALUE, 10 + (team == TEAM_ALLIANCE ? reward : 0), false, nullptr);
-    sWorldStateMgr->SetValueAndSaveInDb(WS_WAR_MODE_ALLIANCE_BUFF_VALUE, 10 + (team == TEAM_HORDE ? reward : 0), false, nullptr);
+    WorldStateMgr::SetValueAndSaveInDb(WS_WAR_MODE_HORDE_BUFF_VALUE, 10 + (team == TEAM_ALLIANCE ? reward : 0), false, nullptr);
+    WorldStateMgr::SetValueAndSaveInDb(WS_WAR_MODE_ALLIANCE_BUFF_VALUE, 10 + (team == TEAM_HORDE ? reward : 0), false, nullptr);
 }
 
 void World::DisableForcedWarModeFactionBalanceState()
@@ -2436,7 +2482,7 @@ void World::Update(uint32 diff)
     {
         TC_METRIC_TIMER("world_update_time", TC_METRIC_TAG("type", "Ping MySQL"));
         m_timers[WUPDATE_PINGDB].Reset();
-        TC_LOG_DEBUG("misc", "Ping MySQL to keep connection alive");
+        TC_LOG_DEBUG("sql.driver", "Ping MySQL to keep connection alive");
         CharacterDatabase.KeepAlive();
         LoginDatabase.KeepAlive();
         WorldDatabase.KeepAlive();
@@ -2459,6 +2505,8 @@ void World::Update(uint32 diff)
         else if (_warnDiff > getIntConfig(CONFIG_RESPAWN_GUIDWARNING_FREQUENCY) * IN_MILLISECONDS)
             SendGuidWarning();
     }
+
+    WorldStateMgr::Update();
 
     {
         TC_METRIC_TIMER("world_update_time", TC_METRIC_TAG("type", "Process cli commands"));
@@ -2666,29 +2714,6 @@ void World::SendGlobalText(char const* text, WorldSession* self)
     free(buf);
 }
 
-/// Send a packet to all players (or players selected team) in the zone (except self if mentioned)
-bool World::SendZoneMessage(uint32 zone, WorldPacket const* packet, WorldSession* self, Optional<Team> team)
-{
-    bool foundPlayerToSend = false;
-    SessionMap::const_iterator itr;
-
-    for (itr = m_sessions.begin(); itr != m_sessions.end(); ++itr)
-    {
-        if (itr->second &&
-            itr->second->GetPlayer() &&
-            itr->second->GetPlayer()->IsInWorld() &&
-            itr->second->GetPlayer()->GetZoneId() == zone &&
-            itr->second != self &&
-            (!team || itr->second->GetPlayer()->GetTeam() == team))
-        {
-            itr->second->SendPacket(packet);
-            foundPlayerToSend = true;
-        }
-    }
-
-    return foundPlayerToSend;
-}
-
 bool World::SendAreaIDMessage(uint32 areaID, WorldPacket const* packet, WorldSession* self, Optional<Team> team)
 {
     bool foundPlayerToSend = false;
@@ -2709,14 +2734,6 @@ bool World::SendAreaIDMessage(uint32 areaID, WorldPacket const* packet, WorldSes
     }
 
     return foundPlayerToSend;
-}
-
-/// Send a System Message to all players in the zone (except self if mentioned)
-void World::SendZoneText(uint32 zone, char const* text, WorldSession* self, Optional<Team> team)
-{
-    WorldPackets::Chat::Chat packet;
-    packet.Initialize(CHAT_MSG_SYSTEM, LANG_UNIVERSAL, nullptr, nullptr, text);
-    SendZoneMessage(zone, packet.Write(), self, team);
 }
 
 /// Kick (and save) all players
@@ -3492,6 +3509,22 @@ bool World::IsBattlePetJournalLockAcquired(ObjectGuid battlenetAccountGuid)
     return false;
 }
 
+bool World::IsAccountInventoryLockAcquired(ObjectGuid battlenetAccountGuid, WorldSession const* exclude)
+{
+    for (auto&& sessionForBnet : Trinity::Containers::MapEqualRange(m_sessionsByBnetGuid, battlenetAccountGuid))
+    {
+        WorldSession const* session = sessionForBnet.second;
+        if (session == exclude)
+            continue;
+
+        Player const* other = session->GetPlayer();
+        if (other && other->HasPlayerLocalFlag(PLAYER_LOCAL_FLAG_HAS_ACCOUNT_BANK_LOCK))
+            return true;
+    }
+
+    return false;
+}
+
 bool World::IsPvPRealm() const
 {
     return (getIntConfig(CONFIG_GAME_TYPE) == REALM_TYPE_PVP || getIntConfig(CONFIG_GAME_TYPE) == REALM_TYPE_RPPVP || getIntConfig(CONFIG_GAME_TYPE) == REALM_TYPE_FFA_PVP);
@@ -3606,13 +3639,97 @@ void World::UpdateWarModeRewardValues()
             outnumberedFactionReward = 5;
     }
 
-    sWorldStateMgr->SetValueAndSaveInDb(WS_WAR_MODE_HORDE_BUFF_VALUE, 10 + (dominantFaction == TEAM_ALLIANCE ? outnumberedFactionReward : 0), false, nullptr);
-    sWorldStateMgr->SetValueAndSaveInDb(WS_WAR_MODE_ALLIANCE_BUFF_VALUE, 10 + (dominantFaction == TEAM_HORDE ? outnumberedFactionReward : 0), false, nullptr);
+    WorldStateMgr::SetValueAndSaveInDb(WS_WAR_MODE_HORDE_BUFF_VALUE, 10 + (dominantFaction == TEAM_ALLIANCE ? outnumberedFactionReward : 0), false, nullptr);
+    WorldStateMgr::SetValueAndSaveInDb(WS_WAR_MODE_ALLIANCE_BUFF_VALUE, 10 + (dominantFaction == TEAM_HORDE ? outnumberedFactionReward : 0), false, nullptr);
 }
 
 uint32 GetVirtualRealmAddress()
 {
     return sRealmList->GetCurrentRealmId().GetAddress();
+}
+
+std::vector<RealmRegistryEntry> const& GetRealmRegistry()
+{
+    static std::vector<RealmRegistryEntry> const registry = []
+    {
+        std::vector<RealmRegistryEntry> realms;
+        if (PreparedQueryResult result = LoginDatabase.Query(LoginDatabase.GetPreparedStatement(LOGIN_SEL_REALMLIST)))
+        {
+            do
+            {
+                Field* fields = result->Fetch();
+                uint32 const realmId = fields[0].GetUInt32();
+                uint8 const region = fields[13].GetUInt8();
+                uint8 const battlegroup = fields[14].GetUInt8();
+
+                realms.push_back({ realmId, Battlenet::RealmHandle(region, battlegroup, realmId).GetAddress(), fields[1].GetString() });
+            } while (result->NextRow());
+        }
+        return realms;
+    }();
+    return registry;
+}
+
+std::vector<CrossRealmSchema> const& GetCrossRealmSchemas()
+{
+    static std::vector<CrossRealmSchema> const schemas = []
+    {
+        std::vector<CrossRealmSchema> result;
+        uint32 const currentRealmId = sRealmList->GetCurrentRealmId().Realm;
+        std::string const extraRealmsConfig = sConfigMgr->GetStringDefault("CharacterSelect.ExtraRealms", "");
+
+        auto addRealm = [&result, currentRealmId](uint32 realmId, std::string schema)
+        {
+            if (realmId == currentRealmId)
+                return;
+
+            auto realmItr = std::find_if(GetRealmRegistry().begin(), GetRealmRegistry().end(), [realmId](RealmRegistryEntry const& realm)
+            {
+                return realm.Id == realmId;
+            });
+            if (realmItr == GetRealmRegistry().end())
+            {
+                TC_LOG_ERROR("misc", "CharacterSelect.ExtraRealms: realm {} is not present in the realmlist table, skipping", realmId);
+                return;
+            }
+
+            result.push_back({ realmItr->Address, realmItr->Id, std::move(schema) });
+        };
+
+        if (extraRealmsConfig == "auto")
+        {
+            if (QueryResult rows = LoginDatabase.Query("SELECT realmId, schemaName FROM realm_character_schemas"))
+                do
+                {
+                    Field* fields = rows->Fetch();
+                    addRealm(fields[0].GetUInt32(), fields[1].GetString());
+                } while (rows->NextRow());
+        }
+        else
+        {
+            for (std::string_view entry : Trinity::Tokenize(extraRealmsConfig, ';', true))
+            {
+                std::vector<std::string_view> parts = Trinity::Tokenize(entry, ':', true);
+                if (parts.size() != 2)
+                {
+                    TC_LOG_ERROR("misc", "CharacterSelect.ExtraRealms: malformed entry '{}', expected '<realmId>:<schema>'", entry);
+                    continue;
+                }
+
+                Optional<uint32> const realmId = Trinity::StringTo<uint32>(parts[0]);
+                if (!realmId)
+                {
+                    TC_LOG_ERROR("misc", "CharacterSelect.ExtraRealms: malformed realm id '{}'", parts[0]);
+                    continue;
+                }
+
+                addRealm(*realmId, std::string(parts[1]));
+            }
+        }
+
+        return result;
+    }();
+    return schemas;
 }
 
 CliCommandHolder::CliCommandHolder(void* callbackArg, char const* command, Print zprint, CommandFinished commandFinished)

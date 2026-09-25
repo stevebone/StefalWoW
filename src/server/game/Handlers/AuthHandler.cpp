@@ -48,13 +48,26 @@ void WorldSession::SendAuthResponse(uint32 code, bool queued, uint32 queuePos)
         {
             response.SuccessInfo->VirtualRealmAddress = currentRealm->Id.GetAddress();
             response.SuccessInfo->VirtualRealms.emplace_back(currentRealm->Id.GetAddress(), true, false, currentRealm->Name, currentRealm->NormalizedName);
+
+            // retail registers every sibling realm of the connect group so the client can resolve
+            // realm names of the regionwide character list entries
+            for (RealmRegistryEntry const& realmEntry : GetRealmRegistry())
+            {
+                Battlenet::RealmHandle const realmHandle(realmEntry.Address);
+                if (realmEntry.Address == currentRealm->Id.GetAddress()
+                    || (realmHandle.Region != currentRealm->Id.Region || realmHandle.Site != currentRealm->Id.Site))
+                    continue;
+
+                if (std::shared_ptr<Realm const> realm = sRealmList->GetRealm(realmHandle))
+                    response.SuccessInfo->VirtualRealms.emplace_back(realmEntry.Address, false, false, realm->Name, realm->NormalizedName);
+            }
         }
 
         if (HasPermission(rbac::RBAC_PERM_USE_CHARACTER_TEMPLATES))
             for (auto&& templ : sCharacterTemplateDataStore->GetCharacterTemplates())
                 response.SuccessInfo->Templates.push_back(&templ.second);
 
-        response.SuccessInfo->AvailableClasses = &sObjectMgr->GetClassExpansionRequirements();
+        response.SuccessInfo->AvailableClasses = &sObjectMgr->GetRaceClassRequirements();
 
         // TEMPORARY - prevent creating characters in uncompletable zone
         // This has the side effect of disabling Exile's Reach choice clientside without actually forcing character templates
@@ -114,6 +127,7 @@ void WorldSession::SendFeatureSystemStatusGlueScreen()
     features.MaxCharactersOnThisRealm = sWorld->getIntConfig(CONFIG_CHARACTERS_PER_REALM);
     features.MinimumExpansionLevel = EXPANSION_CLASSIC;
     features.MaximumExpansionLevel = sWorld->getIntConfig(CONFIG_EXPANSION);
+    features.CharacterSelectListModeRealmless = true;
 
     features.EuropaTicketSystemStatus.emplace();
     features.EuropaTicketSystemStatus->ThrottleState.MaxTries = 10;
@@ -158,6 +172,8 @@ void WorldSession::SendFeatureSystemStatusGlueScreen()
         { "housingEnableCreateCharterNeighborhood"sv, "0"sv },
         { "housingEnableBuyHouse"sv, "0"sv },
         { "housingMarketEnabled"sv, "0"sv },
+        { "advFlyKeyboardMinTurnFactor"sv, "1"sv },
+        { "advFlyKeyboardMaxTurnFactor"sv, "1"sv },
     };
 
     WorldPackets::System::MirrorVars variables;

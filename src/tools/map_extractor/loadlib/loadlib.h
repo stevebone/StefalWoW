@@ -84,6 +84,9 @@ public:
     bool prepareLoadedData();
     bool loadFile(std::shared_ptr<CASC::Storage const> mpq, std::string const& fileName, bool log = true);
     bool loadFile(std::shared_ptr<CASC::Storage const> mpq, uint32 fileDataId, std::string const& description, bool log = true);
+    // Reads a custom (non-CASC) file by relative path under the custom directory.
+    // Only meaningful in custom mode (-custom); always returns false otherwise.
+    bool loadFile(std::string const& fileName, bool log = true);
     void free();
 
     void parseChunks();

@@ -260,28 +260,22 @@ class spell_dru_astral_smolder : public AuraScript
             && sSpellMgr->AssertSpellInfo(SPELL_DRUID_ASTRAL_SMOLDER_DAMAGE, DIFFICULTY_NONE)->GetEffect(EFFECT_0).GetPeriodicTickCount() > 0;
     }
 
-    bool CheckProc(AuraEffect const* /*aurEff*/, ProcEventInfo const& eventInfo) const
-    {
-        return eventInfo.GetProcTarget() != nullptr;
-    }
-
     void HandleProc(AuraEffect const* aurEff, ProcEventInfo const& eventInfo)
     {
         PreventDefaultAction();
 
         SpellEffectInfo const& astralSmolderDmg = sSpellMgr->AssertSpellInfo(SPELL_DRUID_ASTRAL_SMOLDER_DAMAGE, GetCastDifficulty())->GetEffect(EFFECT_0);
-        int32 pct = aurEff->GetAmount();
+        SpellEffectValue pct = aurEff->GetAmount();
 
-        int32 amount = int32(CalculatePct(eventInfo.GetDamageInfo()->GetDamage(), pct) / astralSmolderDmg.GetPeriodicTickCount());
+        SpellEffectValue amount = CalculatePct(eventInfo.GetDamageInfo()->GetDamage(), pct) / astralSmolderDmg.GetPeriodicTickCount();
 
         CastSpellExtraArgs args(aurEff);
         args.AddSpellMod(SPELLVALUE_BASE_POINT0, amount);
-        GetTarget()->CastSpell(eventInfo.GetProcTarget(), SPELL_DRUID_ASTRAL_SMOLDER_DAMAGE, args);
+        GetTarget()->CastSpell(eventInfo.GetActionTarget(), SPELL_DRUID_ASTRAL_SMOLDER_DAMAGE, args);
     }
 
     void Register() override
     {
-        DoCheckEffectProc += AuraCheckEffectProcFn(spell_dru_astral_smolder::CheckProc, EFFECT_0, SPELL_AURA_DUMMY);
         OnEffectProc += AuraEffectProcFn(spell_dru_astral_smolder::HandleProc, EFFECT_0, SPELL_AURA_DUMMY);
     }
 };
@@ -502,7 +496,7 @@ class spell_dru_cultivation : public AuraScript
 // 1850 - Dash
 class spell_dru_dash : public AuraScript
 {
-    void CalculateAmount(AuraEffect const* /*aurEff*/, int32& amount, bool& /*canBeRecalculated*/)
+    void CalculateAmount(AuraEffect const* /*aurEff*/, SpellEffectValue& amount, bool& /*canBeRecalculated*/)
     {
         // do not set speed if not in cat form
         if (GetUnitOwner()->GetShapeshiftForm() != FORM_CAT_FORM)
@@ -528,7 +522,7 @@ class spell_dru_dream_of_cenarius_guardian : public AuraScript
         if (GetUnitOwner()->HasAura(SPELL_DRUID_DREAM_OF_CENARIUS_COOLDOWN))
             return false;
 
-        return roll_chance_f(GetUnitOwner()->GetUnitCriticalChanceDone(BASE_ATTACK));
+        return roll_chance(GetUnitOwner()->GetUnitCriticalChanceDone(BASE_ATTACK));
     }
 
     void HandleProc(AuraEffect const* aurEff, ProcEventInfo const& /*procInfo*/) const
@@ -597,7 +591,7 @@ class spell_dru_eclipse_aura : public AuraScript
             return;
 
         uint32 spellId = GetSpellInfo()->Id == SPELL_DRUID_ECLIPSE_SOLAR_AURA ? SPELL_DRUID_ECLIPSE_LUNAR_SPELL_CNT : SPELL_DRUID_ECLIPSE_SOLAR_SPELL_CNT;
-        spell_dru_eclipse_common::SetSpellCount(GetTarget(), spellId, auraEffDummy->GetAmount());
+        spell_dru_eclipse_common::SetSpellCount(GetTarget(), spellId, auraEffDummy->GetAmountAsInt());
     }
 
     void Register() override
@@ -653,7 +647,7 @@ class spell_dru_eclipse_dummy : public AuraScript
     void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
     {
         // counters are applied with a delay
-        GetTarget()->m_Events.AddEventAtOffset(new InitializeEclipseCountersEvent(GetTarget(), aurEff->GetAmount()), 1s);
+        GetTarget()->m_Events.AddEventAtOffset(new InitializeEclipseCountersEvent(GetTarget(), aurEff->GetAmountAsInt()), 1s);
     }
 
     void HandleRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
@@ -723,8 +717,8 @@ class spell_dru_eclipse_ooc : public AuraScript
         if (!owner->IsInCombat() && (!owner->HasAura(SPELL_DRUID_ECLIPSE_SOLAR_SPELL_CNT) || !owner->HasAura(SPELL_DRUID_ECLIPSE_LUNAR_SPELL_CNT)))
         {
             // Restore 2 stacks to each spell when out of combat
-            spell_dru_eclipse_common::SetSpellCount(owner, SPELL_DRUID_ECLIPSE_SOLAR_SPELL_CNT, auraEffDummy->GetAmount());
-            spell_dru_eclipse_common::SetSpellCount(owner, SPELL_DRUID_ECLIPSE_LUNAR_SPELL_CNT, auraEffDummy->GetAmount());
+            spell_dru_eclipse_common::SetSpellCount(owner, SPELL_DRUID_ECLIPSE_SOLAR_SPELL_CNT, auraEffDummy->GetAmountAsInt());
+            spell_dru_eclipse_common::SetSpellCount(owner, SPELL_DRUID_ECLIPSE_LUNAR_SPELL_CNT, auraEffDummy->GetAmountAsInt());
         }
     }
 
@@ -849,7 +843,7 @@ class spell_dru_elunes_favored_proc : public AuraScript
         if (!elunesFavored)
             return;
 
-        int32 heal = CalculatePct(_arcaneDamage, elunesFavored->GetAmount());
+        SpellEffectValue heal = CalculatePct(_arcaneDamage, elunesFavored->GetAmount());
 
         caster->CastSpell(caster, SPELL_DRUID_ELUNES_FAVORED_HEAL, CastSpellExtraArgsInit{
             .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR,
@@ -880,7 +874,7 @@ class spell_dru_embrace_of_the_dream : public AuraScript
 
     bool CheckProc(AuraEffect const* /*aurEff*/, ProcEventInfo const& /*eventInfo*/) const
     {
-        return roll_chance_i(GetEffectInfo(EFFECT_2).CalcValue(GetCaster()));
+        return roll_chance(GetEffectInfo(EFFECT_2).CalcValue(GetCaster()));
     }
 
     void HandleProc(AuraEffect const* aurEff, ProcEventInfo const& eventInfo) const
@@ -998,7 +992,7 @@ class spell_dru_ferocious_bite : public SpellScript
 
     void HandleHitTargetBurn(SpellEffIndex /*effIndex*/)
     {
-        int32 newValue = int32(float(GetEffectValue()) * _damageMultiplier);
+        SpellEffectValue newValue = GetEffectValue() * _damageMultiplier;
         SetEffectValue(newValue);
     }
 
@@ -1012,16 +1006,16 @@ class spell_dru_ferocious_bite : public SpellScript
     {
         Unit* caster = GetCaster();
 
-        int32 maxExtraConsumedPower = GetEffectValue();
+        SpellEffectValue maxExtraConsumedPower = GetEffectValue();
 
         if (AuraEffect* auraEffect = caster->GetAuraEffect(SPELL_DRUID_INCARNATION_KING_OF_THE_JUNGLE, EFFECT_1))
         {
-            float multiplier = 1.0f + float(auraEffect->GetAmount()) / 100.0f;
-            maxExtraConsumedPower = int32(float(maxExtraConsumedPower) * multiplier);
+            SpellEffectValue multiplier = 1.0 + auraEffect->GetAmount() / 100.0;
+            maxExtraConsumedPower = maxExtraConsumedPower * multiplier;
             SetEffectValue(maxExtraConsumedPower);
         }
 
-        _damageMultiplier = std::min<float>(caster->GetPower(POWER_ENERGY), maxExtraConsumedPower) / maxExtraConsumedPower;
+        _damageMultiplier = std::min<SpellEffectValue>(caster->GetPower(POWER_ENERGY), maxExtraConsumedPower) / maxExtraConsumedPower;
     }
 
     void Register() override
@@ -1073,7 +1067,7 @@ class spell_dru_flower_walk_heal : public SpellScript
     void FilterTargets(std::list<WorldObject*>& targets)
     {
         Unit* caster = GetCaster();
-        int32 maxTargets = GetEffectInfo(EFFECT_1).CalcValue(caster);
+        int32 maxTargets = GetEffectInfo(EFFECT_1).CalcValueAsInt(caster);
 
         if (targets.size() > 1)
             targets.remove(caster);
@@ -1180,7 +1174,7 @@ class spell_dru_galactic_guardian : public AuraScript
 
     static bool CheckEffectProc(AuraScript const&, AuraEffect const* aurEff, ProcEventInfo& /*eventInfo*/)
     {
-        return roll_chance_i(aurEff->GetAmount());
+        return roll_chance(aurEff->GetAmount());
     }
 
     static void HandleProc(AuraScript const&, AuraEffect const* /*aurEff*/, ProcEventInfo const& eventInfo)
@@ -1306,7 +1300,7 @@ class spell_dru_gore : public AuraScript
 
     bool CheckEffectProc(AuraEffect const* aurEff, ProcEventInfo& /*eventInfo*/)
     {
-        return roll_chance_i(aurEff->GetAmount());
+        return roll_chance(aurEff->GetAmount());
     }
 
     void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*procInfo*/)
@@ -1332,7 +1326,7 @@ class spell_dru_guardian_of_elune_healing : public AuraScript
         return ValidateSpellEffect({ { SPELL_DRUID_GUARDIAN_OF_ELUNE_AURA, EFFECT_1 } });
     }
 
-    void CalculateAmount(AuraEffect const* /*aurEff*/, int32& amount, bool& canBeRecalculated)
+    void CalculateAmount(AuraEffect const* /*aurEff*/, SpellEffectValue& amount, bool& canBeRecalculated)
     {
         canBeRecalculated = false;
 
@@ -1500,7 +1494,7 @@ class spell_dru_item_t6_trinket : public AuraScript
         else
             return;
 
-        if (roll_chance_i(chance))
+        if (roll_chance(chance))
             eventInfo.GetActor()->CastSpell(nullptr, spellId, aurEff);
     }
 
@@ -1538,7 +1532,7 @@ struct at_dru_lunar_beam : AreaTriggerAI
 
     void OnCreate(Spell const* /*creatingSpell*/) override
     {
-        _scheduler.Schedule(500ms, [this](TaskContext task)
+        _scheduler.Schedule(500ms, [this](TaskContext& task)
         {
             if (Unit* caster = at->GetCaster())
             {
@@ -1616,7 +1610,7 @@ class spell_dru_luxuriant_soil : public AuraScript
 
     static bool CheckProc(AuraScript const&, AuraEffect const* aurEff, ProcEventInfo const& /*eventInfo*/)
     {
-        return roll_chance_i(aurEff->GetAmount());
+        return roll_chance(aurEff->GetAmount());
     }
 
     void HandleProc(AuraEffect const* /*aurEff*/, ProcEventInfo const& eventInfo) const
@@ -1624,12 +1618,12 @@ class spell_dru_luxuriant_soil : public AuraScript
         Unit* rejuvCaster = GetTarget();
 
         // let's use the ProcSpell's max. range.
-        float spellRange = eventInfo.GetSpellInfo()->GetMaxRange();
+        SpellRange spellRange = eventInfo.GetSpellInfo()->GetMinMaxRange();
 
         std::vector<Unit*> targetList;
         Trinity::WorldObjectSpellAreaTargetCheck check(spellRange, rejuvCaster, rejuvCaster, rejuvCaster, eventInfo.GetSpellInfo(), TARGET_CHECK_ALLY, nullptr, TARGET_OBJECT_TYPE_UNIT);
         Trinity::UnitListSearcher searcher(rejuvCaster, targetList, check);
-        Cell::VisitAllObjects(rejuvCaster, searcher, spellRange);
+        Cell::VisitAllObjects(rejuvCaster, searcher, spellRange.Max);
 
         if (targetList.empty())
             return;
@@ -1713,7 +1707,7 @@ class spell_dru_matted_fur_absorb : public AuraScript
     static void CalculateAmount(AuraScript const&, AuraEffect const* /*aurEff*/, Unit const* victim, int32& baseAbsorb, int32& /*flatMod*/, float& /*pctMod*/)
     {
         if (AuraEffect const* passiveEffect = victim->GetAuraEffect(SPELL_DRUID_MATTED_FUR, EFFECT_0))
-            baseAbsorb = static_cast<int32>(victim->GetTotalAttackPowerValue(BASE_ATTACK) * 0.0125f * passiveEffect->GetAmount());
+            baseAbsorb = static_cast<int32>(victim->GetTotalAttackPowerValue(BASE_ATTACK) * 0.0125 * passiveEffect->GetAmount());
     }
 
     void Register() override
@@ -1758,7 +1752,7 @@ class spell_dru_moonless_night : public AuraScript
     {
         Unit* caster = eventInfo.GetActor();
         Unit* target = eventInfo.GetActionTarget();
-        int32 damage = CalculatePct(eventInfo.GetDamageInfo()->GetDamage(), aurEff->GetAmount());
+        SpellEffectValue damage = CalculatePct(eventInfo.GetDamageInfo()->GetDamage(), aurEff->GetAmount());
 
         caster->CastSpell(target, SPELL_DRUID_MOONLESS_NIGHT_DAMAGE, CastSpellExtraArgsInit{
             .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR,
@@ -1786,7 +1780,7 @@ public:
     static void Trigger(Unit* caster, AuraEffect const* naturesGraceEffect)
     {
         caster->CastSpell(caster, SPELL_DRUID_DREAMSTATE, CastSpellExtraArgsInit{
-            .SpellValueOverrides = { { SPELLVALUE_AURA_STACK, naturesGraceEffect->GetAmount() } }
+            .SpellValueOverrides = { { SPELLVALUE_AURA_STACK, naturesGraceEffect->GetAmountAsInt() } }
         });
 
     }
@@ -1891,7 +1885,7 @@ class spell_dru_omen_of_clarity_restoration : public AuraScript
 {
     bool CheckProc(AuraEffect const* aurEff, ProcEventInfo const& /*eventInfo*/) const
     {
-        return roll_chance_i(aurEff->GetAmount());
+        return roll_chance(aurEff->GetAmount());
     }
 
     void Register() override
@@ -1922,7 +1916,7 @@ class spell_dru_power_of_the_archdruid : public AuraScript
         float spellRange = aurEff->GetAmount();
 
         std::vector<Unit*> targetList;
-        Trinity::WorldObjectSpellAreaTargetCheck checker(spellRange, procTarget, druid, druid, eventInfo.GetSpellInfo(), TARGET_CHECK_ALLY, nullptr, TARGET_OBJECT_TYPE_UNIT);
+        Trinity::WorldObjectSpellAreaTargetCheck checker({ .Max = spellRange }, procTarget, druid, druid, eventInfo.GetSpellInfo(), TARGET_CHECK_ALLY, nullptr, TARGET_OBJECT_TYPE_UNIT);
         Trinity::UnitListSearcher searcher(procTarget, targetList, checker);
         Cell::VisitAllObjects(procTarget, searcher, spellRange);
         std::erase(targetList, procTarget);
@@ -1933,7 +1927,7 @@ class spell_dru_power_of_the_archdruid : public AuraScript
         AuraEffect const* powerOfTheArchdruidEffect = druid->GetAuraEffect(SPELL_DRUID_POWER_OF_THE_ARCHDRUID, EFFECT_0);
 
         // max. targets is SPELL_DRUID_POWER_OF_THE_ARCHDRUID's EFFECT_0 BasePoints.
-        int32 maxTargets = powerOfTheArchdruidEffect->GetAmount();
+        int32 maxTargets = powerOfTheArchdruidEffect->GetAmountAsInt();
 
         Trinity::Containers::RandomResize(targetList, maxTargets);
 
@@ -1972,7 +1966,7 @@ class spell_dru_pulverize : public SpellScript
         if (!bleedAura)
             return;
 
-        int32 stacksToRemove = GetEffectInfo(EFFECT_2).CalcValue(caster);
+        int32 stacksToRemove = GetEffectInfo(EFFECT_2).CalcValueAsInt(caster);
 
         bleedAura->ModStackAmount(-stacksToRemove);
         target->RemoveAurasDueToSpell(SPELL_DRUID_THRASH_PULVERIZE_TRIGGER);
@@ -2013,7 +2007,7 @@ class spell_dru_pulverize_thrash : public SpellScript
         if (!bleedAura)
             return;
 
-        int32 thresholdStacks = sSpellMgr->AssertSpellInfo(SPELL_DRUID_PULVERIZE, GetCastDifficulty())->GetEffect(EFFECT_2).CalcValue(caster);
+        int32 thresholdStacks = sSpellMgr->AssertSpellInfo(SPELL_DRUID_PULVERIZE, GetCastDifficulty())->GetEffect(EFFECT_2).CalcValueAsInt(caster);
         if (bleedAura->GetStackAmount() >= thresholdStacks)
             caster->CastSpell(target, SPELL_DRUID_THRASH_PULVERIZE_TRIGGER, CastSpellExtraArgs().SetTriggeringSpell(GetSpell()));
     }
@@ -2103,7 +2097,7 @@ class spell_dru_rip : public AuraScript
         return caster && caster->GetTypeId() == TYPEID_PLAYER;
     }
 
-    void CalculateAmount(AuraEffect const* /*aurEff*/, int32& amount, bool& canBeRecalculated)
+    void CalculateAmount(AuraEffect const* /*aurEff*/, SpellEffectValue& amount, bool& canBeRecalculated)
     {
         canBeRecalculated = false;
 
@@ -2119,7 +2113,7 @@ class spell_dru_rip : public AuraScript
             else if (AuraEffect const* auraEffIdolOfWorship = caster->GetAuraEffect(SPELL_DRUID_IDOL_OF_WORSHIP, EFFECT_0))
                 amount += cp * auraEffIdolOfWorship->GetAmount();
 
-            amount += int32(CalculatePct(caster->GetTotalAttackPowerValue(BASE_ATTACK), cp));
+            amount += CalculatePct(caster->GetTotalAttackPowerValue(BASE_ATTACK), cp);
         }
     }
 
@@ -2211,7 +2205,7 @@ class spell_dru_shooting_stars : public AuraScript
 
         float chance = float(aurEff->GetAmount()) * std::sqrt(float(targets.size()));
         float procs;
-        if (roll_chance_f(std::modf(chance / 100.0f, &procs) * 100.0f))
+        if (roll_chance(std::modf(chance / 100.0f, &procs) * 100.0f))
             procs += 1.0f;
 
         if (procs <= 0.0f)
@@ -2222,7 +2216,7 @@ class spell_dru_shooting_stars : public AuraScript
         {
             uint32 spellId = SPELL_DRUID_SHOOTING_STARS_DAMAGE;
             AuraEffect const* crashingStarTalent = caster->GetAuraEffect(SPELL_DRUID_CRASHING_STAR_TALENT, EFFECT_0);
-            if (crashingStarTalent && roll_chance_i(crashingStarTalent->GetAmount()))
+            if (crashingStarTalent && roll_chance(crashingStarTalent->GetAmount()))
                 spellId = SPELL_DRUID_CRASHING_STAR_DAMAGE;
 
             caster->CastSpell(target, spellId, CastSpellExtraArgsInit{
@@ -2307,7 +2301,7 @@ class spell_dru_starfall_dummy : public SpellScript
         if (caster->HasUnitState(UNIT_STATE_CONTROLLED))
             return;
 
-        caster->CastSpell(GetHitUnit(), uint32(GetEffectValue()), true);
+        caster->CastSpell(GetHitUnit(), uint32(GetEffectValueAsInt()), true);
     }
 
     void Register() override
@@ -2351,7 +2345,7 @@ class spell_dru_sudden_ambush : public AuraScript
         if (!comboPoints)
             return false;
 
-        return roll_chance_i(*comboPoints * aurEff->GetAmount());
+        return roll_chance(*comboPoints * aurEff->GetAmount());
     }
 
     void Register() override
@@ -2407,7 +2401,7 @@ class spell_dru_swift_flight_passive : public AuraScript
         return GetCaster()->GetTypeId() == TYPEID_PLAYER;
     }
 
-    void CalculateAmount(AuraEffect const* /*aurEff*/, int32 & amount, bool & /*canBeRecalculated*/)
+    void CalculateAmount(AuraEffect const* /*aurEff*/, SpellEffectValue& amount, bool& /*canBeRecalculated*/)
     {
         if (Player* caster = GetCaster()->ToPlayer())
             if (caster->GetSkillValue(SKILL_RIDING) >= 375)
@@ -2431,7 +2425,7 @@ class spell_dru_t3_6p_bonus : public AuraScript
     void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
     {
         PreventDefaultAction();
-        eventInfo.GetActor()->CastSpell(eventInfo.GetProcTarget(), SPELL_DRUID_BLESSING_OF_THE_CLAW, aurEff);
+        eventInfo.GetActor()->CastSpell(eventInfo.GetActionTarget(), SPELL_DRUID_BLESSING_OF_THE_CLAW, aurEff);
     }
 
     void Register() override
@@ -2460,7 +2454,7 @@ class spell_dru_t3_8p_bonus : public AuraScript
         if (!manaCost)
             return;
 
-        int32 amount = CalculatePct(*manaCost, aurEff->GetAmount());
+        SpellEffectValue amount = CalculatePct(*manaCost, aurEff->GetAmount());
         CastSpellExtraArgs args(aurEff);
         args.AddSpellBP0(amount);
         caster->CastSpell(nullptr, SPELL_DRUID_EXHILARATE, args);
@@ -2511,10 +2505,10 @@ class spell_dru_t10_balance_4p_bonus : public AuraScript
             return;
 
         Unit* caster = eventInfo.GetActor();
-        Unit* target = eventInfo.GetProcTarget();
+        Unit* target = eventInfo.GetActionTarget();
 
         SpellEffectInfo const& spellEffect = sSpellMgr->AssertSpellInfo(SPELL_DRUID_LANGUISH, GetCastDifficulty())->GetEffect(EFFECT_0);
-        int32 amount = CalculatePct(static_cast<int32>(damageInfo->GetDamage()), aurEff->GetAmount());
+        SpellEffectValue amount = CalculatePct(static_cast<int32>(damageInfo->GetDamage()), aurEff->GetAmount());
 
         amount /= spellEffect.GetPeriodicTickCount();
 
@@ -2593,7 +2587,7 @@ class spell_dru_t10_restoration_4p_bonus_dummy : public AuraScript
         if (!caster)
             return false;
 
-        return caster->GetGroup() || caster != eventInfo.GetProcTarget();
+        return caster->GetGroup() || caster != eventInfo.GetActionTarget();
     }
 
     void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
@@ -2620,7 +2614,7 @@ class spell_dru_thorns_of_iron_damage : public SpellScript
         Unit* caster = GetCaster();
 
         int32 noTargets = GetUnitTargetCountForEffect(effIndex);
-        int32 pct = GetTriggeringSpell()->GetEffect(effIndex).CalcValue(caster);
+        SpellEffectValue pct = GetTriggeringSpell()->GetEffect(effIndex).CalcValue(caster);
         int32 damage = CalculatePct(caster->GetArmor(), pct) / noTargets;
 
         SetHitDamage(damage);
@@ -2911,7 +2905,7 @@ class spell_dru_tiger_dash_aura : public AuraScript
     {
         if (AuraEffect* effRunSpeed = GetEffect(EFFECT_0))
         {
-            int32 reduction = aurEff->GetAmount();
+            SpellEffectValue reduction = aurEff->GetAmount();
             effRunSpeed->ChangeAmount(effRunSpeed->GetAmount() - reduction);
         }
     }
@@ -2944,7 +2938,7 @@ class spell_dru_twin_moonfire : public SpellScript
         float maxRange = sSpellMgr->AssertSpellInfo(SPELL_DRUID_TWIN_MOONS, GetCastDifficulty())->GetEffect(EFFECT_0).CalcValue(caster);
 
         std::list<Unit*> targets;
-        Trinity::WorldObjectSpellAreaTargetCheck check(maxRange, hitUnit, caster, caster, moonfireSpellInfo, TARGET_CHECK_ENEMY, nullptr, TARGET_OBJECT_TYPE_UNIT);
+        Trinity::WorldObjectSpellAreaTargetCheck check({ .Max = maxRange }, hitUnit, caster, caster, moonfireSpellInfo, TARGET_CHECK_ENEMY, nullptr, TARGET_OBJECT_TYPE_UNIT);
         Trinity::UnitListSearcher searcher(hitUnit, targets, check);
         Cell::VisitAllObjects(hitUnit, searcher, maxRange);
 
@@ -3077,7 +3071,7 @@ class spell_dru_ursocs_fury : public AuraScript
             return;
 
         Unit* caster = eventInfo.GetActor();
-        int32 amount = CalculatePct(damageInfo->GetDamage(), aurEff->GetAmount());
+        SpellEffectValue amount = CalculatePct(damageInfo->GetDamage(), aurEff->GetAmount());
 
         caster->CastSpell(caster, SPELL_DRUID_URSOCS_FURY_SHIELD, CastSpellExtraArgsInit{
             .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR,
@@ -3102,10 +3096,10 @@ class spell_dru_wild_growth : public SpellScript
     void FilterTargets(std::list<WorldObject*>& targets) const
     {
         Unit* caster = GetCaster();
-        int32 maxTargets = GetEffectInfo(EFFECT_1).CalcValue(caster);
+        int32 maxTargets = GetEffectInfo(EFFECT_1).CalcValueAsInt(caster);
 
         if (AuraEffect const* treeOfLife = caster->GetAuraEffect(SPELL_DRUID_TREE_OF_LIFE, EFFECT_2))
-            maxTargets += treeOfLife->GetAmount();
+            maxTargets += treeOfLife->GetAmountAsInt();
 
         // Note: Wild Growth became a smart heal which prioritizes players and their pets in their group before any unit outside their group.
         Trinity::SelectRandomInjuredTargets(targets, maxTargets, true, caster);
@@ -3131,16 +3125,16 @@ class spell_dru_wild_growth_aura : public AuraScript
             return;
 
         // calculate from base damage, not from aurEff->GetAmount() (already modified)
-        float damage = caster->CalculateSpellDamage(GetUnitOwner(), aurEff->GetSpellEffectInfo());
+        SpellEffectValue damage = aurEff->GetSpellEffectInfo().CalcValue(caster, nullptr, GetUnitOwner());
 
         // Wild Growth = first tick gains a 6% bonus, reduced by 2% each tick
         float reduction = 2.f;
         if (AuraEffect* bonus = caster->GetAuraEffect(SPELL_DRUID_RESTORATION_T10_2P_BONUS, EFFECT_0))
             reduction -= CalculatePct(reduction, bonus->GetAmount());
-        reduction *= (aurEff->GetTickNumber() - 1);
+        reduction *= aurEff->GetTickNumber() - 1;
 
         AddPct(damage, 6.f - reduction);
-        aurEff->SetAmount(int32(damage));
+        aurEff->SetAmount(damage);
     }
 
     void Register() override
@@ -3163,7 +3157,7 @@ class spell_dru_yseras_gift : public AuraScript
 
     void HandleEffectPeriodic(AuraEffect const* aurEff)
     {
-        int32 healAmount = int32(GetTarget()->CountPctFromMaxHealth(aurEff->GetAmount()));
+        SpellEffectValue healAmount = GetTarget()->CountPctFromMaxHealth(aurEff->GetAmount());
 
         if (!GetTarget()->IsFullHealth())
             GetTarget()->CastSpell(GetTarget(), SPELL_DRUID_YSERAS_GIFT_HEAL_SELF, CastSpellExtraArgs(aurEff).AddSpellBP0(healAmount));
@@ -3254,7 +3248,7 @@ class spell_dru_lunar_strike : public SpellScript
                 moonfireDOT->SetDuration(newDuration);
             }
 
-        if (GetCaster() && roll_chance_f(20) && GetCaster()->HasAura(SPELL_DRUID_ECLIPSE_LUNAR_AURA))
+        if (GetCaster() && roll_chance(20) && GetCaster()->HasAura(SPELL_DRUID_ECLIPSE_LUNAR_AURA))
             GetCaster()->CastSpell(nullptr, SPELL_DRUID_SOLAR_EMPOWEREMENT, true);
     }
 
@@ -3305,7 +3299,7 @@ class spell_dru_solar_wrath : public SpellScript
 
                     sunfireDOT->SetDuration(newDuration);
                 }
-        if (GetCaster() && roll_chance_f(20) && GetCaster()->HasAura(SPELL_DRUID_ECLIPSE_SOLAR_AURA))
+        if (GetCaster() && roll_chance(20) && GetCaster()->HasAura(SPELL_DRUID_ECLIPSE_SOLAR_AURA))
             GetCaster()->CastSpell(nullptr, SPELL_DRUID_LUNAR_EMPOWEREMENT, true);
     }
 

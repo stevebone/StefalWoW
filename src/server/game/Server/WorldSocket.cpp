@@ -77,6 +77,10 @@ WorldSocket::~WorldSocket()
     }
 }
 
+// handoff records live only until the client resumes on the home realm, stale rows are
+// superseded by the next transfer of the same account (primary key)
+constexpr Seconds RealmTransferRecordLifetime = 5min;
+
 struct WorldSocketProtocolInitializer final : Trinity::Net::SocketConnectionInitializer
 {
     static constexpr std::string_view ServerConnectionInitialize = "WORLD OF WARCRAFT CONNECTION - SERVER TO CLIENT - V2\n";
@@ -202,34 +206,38 @@ bool WorldSocket::InitializeCompression()
 bool WorldSocket::Update()
 {
     EncryptablePacket* queued;
-    MessageBuffer buffer(_sendBufferSize);
-    while (_bufferQueue.Dequeue(queued))
+    if (_bufferQueue.Dequeue(queued))
     {
-        uint32 packetSize = queued->size() + 4 /*opcode*/;
-        if (packetSize > MinSizeForCompression && queued->NeedsEncryption())
-            packetSize = deflateBound(_compressionStream, packetSize) + sizeof(CompressedWorldPacket);
-
-        // Flush current buffer if too small for next packet
-        if (buffer.GetRemainingSpace() < packetSize + sizeof(PacketHeader))
+        // Allocate buffer only when it's needed but not on every Update() call.
+        MessageBuffer buffer(_sendBufferSize);
+        do
         {
+            uint32 packetSize = queued->size() + 4 /*opcode*/;
+            if (packetSize > MinSizeForCompression && queued->NeedsEncryption())
+                packetSize = deflateBound(_compressionStream, packetSize) + sizeof(CompressedWorldPacket);
+
+            // Flush current buffer if too small for next packet
+            if (buffer.GetRemainingSpace() < packetSize + sizeof(PacketHeader))
+            {
+                QueuePacket(std::move(buffer));
+                buffer.Resize(_sendBufferSize);
+            }
+
+            if (buffer.GetRemainingSpace() >= packetSize + sizeof(PacketHeader))
+                WritePacketToBuffer(*queued, buffer);
+            else    // single packet larger than _sendBufferSize
+            {
+                MessageBuffer packetBuffer(packetSize + sizeof(PacketHeader));
+                WritePacketToBuffer(*queued, packetBuffer);
+                QueuePacket(std::move(packetBuffer));
+            }
+
+            delete queued;
+        } while (_bufferQueue.Dequeue(queued));
+
+        if (buffer.GetActiveSize() > 0)
             QueuePacket(std::move(buffer));
-            buffer.Resize(_sendBufferSize);
-        }
-
-        if (buffer.GetRemainingSpace() >= packetSize + sizeof(PacketHeader))
-            WritePacketToBuffer(*queued, buffer);
-        else    // single packet larger than _sendBufferSize
-        {
-            MessageBuffer packetBuffer(packetSize + sizeof(PacketHeader));
-            WritePacketToBuffer(*queued, packetBuffer);
-            QueuePacket(std::move(packetBuffer));
-        }
-
-        delete queued;
     }
-
-    if (buffer.GetActiveSize() > 0)
-        QueuePacket(std::move(buffer));
 
     if (!BaseSocket::Update())
         return false;
@@ -668,14 +676,18 @@ void WorldSocket::HandleAuthSessionCallback(WorldPackets::Auth::AuthSession cons
         return;
     }
 
-    ClientBuild::VariantId buildVariant = { .Platform = joinTicket->platform(), .Arch = joinTicket->clientarch(), .Type = joinTicket->type() };
+    ClientBuild::VariantId buildVariant =
+    {
+        .Platform = ClientBuild::Platform::Id(joinTicket->platform()),
+        .Arch = ClientBuild::Arch::Id(joinTicket->clientarch()),
+        .Type = ClientBuild::Type::Id(joinTicket->type())
+    };
     auto clientBuildAuthKey = std::ranges::find(buildInfo->AuthKeys, buildVariant, &ClientBuild::AuthKey::Variant);
     if (clientBuildAuthKey == buildInfo->AuthKeys.end())
     {
         SendAuthResponseError(ERROR_BAD_VERSION);
         TC_LOG_ERROR("network", "WorldSocket::HandleAuthSession: Missing client build auth key for build {} variant {}-{}-{} ({}).", account.Game.Build,
-            ClientBuild::ToCharArray(buildVariant.Platform).data(), ClientBuild::ToCharArray(buildVariant.Arch).data(),
-            ClientBuild::ToCharArray(buildVariant.Type).data(), address);
+            buildVariant.Platform, buildVariant.Arch, buildVariant.Type, address);
         DelayedCloseSocket();
         return;
     }
@@ -935,6 +947,86 @@ void WorldSocket::HandleAuthContinuedSessionCallback(WorldPackets::Auth::AuthCon
 
     // only first 32 bytes of the hmac are used
     memcpy(_encryptKey.data(), encryptKeyGen.GetDigest().data(), 32);
+
+    // an instance-connection auth backed by a pending realm transfer is a cross-realm character
+    // entry handoff: consume the transfer and build the session here, the stock instance-connection
+    // attach (AddInstanceConnection -> HandleContinuePlayerLogin) then continues the login exactly
+    // like a map transfer. Instance auths without a transfer row are regular map transfers
+    PreparedQueryResult transfer;
+    if (_type == CONNECTION_TYPE_INSTANCE)
+    {
+        LoginDatabasePreparedStatement* selStmt = LoginDatabase.GetPreparedStatement(LOGIN_SEL_ACCOUNT_REALM_TRANSFER);
+        selStmt->setUInt32(0, accountId);
+        selStmt->setInt64(1, GameTime::GetGameTime() - RealmTransferRecordLifetime.count());
+        transfer = LoginDatabase.Query(selStmt);
+    }
+
+    if (transfer)
+    {
+        Field* transferFields = transfer->Fetch();
+        ObjectGuid::LowType const characterGuid = transferFields[0].GetUInt64();
+        if (transferFields[1].GetUInt32() != uint32(key.Fields.Key))
+        {
+            TC_LOG_ERROR("network", "WorldSocket::HandleAuthContinuedSession: connect key mismatch for account: {}", accountId);
+            SendAuthResponseError(ERROR_DENIED);
+            DelayedCloseSocket();
+            return;
+        }
+
+        LoginDatabasePreparedStatement* delStmt = LoginDatabase.GetPreparedStatement(LOGIN_DEL_ACCOUNT_REALM_TRANSFER);
+        delStmt->setUInt32(0, accountId);
+        LoginDatabase.Execute(delStmt);
+
+        LoginDatabasePreparedStatement* handoffStmt = LoginDatabase.GetPreparedStatement(LOGIN_SEL_ACCOUNT_REALM_HANDOFF);
+        handoffStmt->setUInt32(0, sRealmList->GetCurrentRealmId().Realm);
+        handoffStmt->setUInt32(1, accountId);
+        PreparedQueryResult accountResult = LoginDatabase.Query(handoffStmt);
+        if (!accountResult)
+        {
+            TC_LOG_ERROR("network", "WorldSocket::HandleAuthContinuedSession: account {} not found for realm handoff", accountId);
+            SendAuthResponseError(ERROR_DENIED);
+            DelayedCloseSocket();
+            return;
+        }
+
+        Field* accountFields = accountResult->Fetch();
+        std::string login = accountFields[0].GetString();
+        _sessionKey = accountFields[1].GetBinary<SESSION_KEY_LENGTH>();
+        uint32 battlenetAccountId = accountFields[2].GetUInt32();
+        uint8 expansion = accountFields[3].GetUInt8();
+        time_t mutetime = time_t(accountFields[4].GetInt64());
+        std::string os = accountFields[5].GetString();
+        Minutes timezoneOffset = Minutes(accountFields[6].GetInt32());
+        uint32 build = accountFields[7].GetUInt32();
+        LocaleConstant locale = LocaleConstant(accountFields[8].GetUInt8());
+        uint32 recruiter = accountFields[9].GetUInt32();
+        AccountTypes security = AccountTypes(accountFields[10].GetUInt8());
+        std::string battlenetEmail = accountFields[11].GetString();
+
+        ClientBuild::VariantId buildVariant =
+        {
+            .Platform = ClientBuild::Platform::Win_x64,
+            .Arch = ClientBuild::Arch::x64,
+            .Type = ClientBuild::Type::Retail
+        };
+
+        SetWorldSession(new WorldSession(accountId, std::move(login), battlenetAccountId, std::move(battlenetEmail),
+            std::static_pointer_cast<WorldSocket>(shared_from_this()), security, expansion, mutetime, std::move(os), timezoneOffset,
+            build, buildVariant, locale, recruiter, false));
+        _worldSession->BeginRealmTransferLogin(characterGuid);
+        _worldSession->SetInstanceConnectKey(key.Raw);
+        _worldSession->InitializeSession();
+
+        // RBAC fills in asynchronously, the session must be registered before the client
+        // acknowledges encrypted mode so the instance connection finds it
+        sWorld->AddSession(_worldSession);
+        QueueQuery(_worldSession->LoadPermissionsAsync().WithPreparedCallback([this](PreparedQueryResult result)
+        {
+            std::scoped_lock sessionGuard(_worldSessionLock);
+            if (_worldSession)
+                _worldSession->GetRBACData()->LoadFromDBCallback(std::move(result));
+        }));
+    }
 
     SendPacketAndLogOpcode(*WorldPackets::Auth::EnterEncryptedMode(_encryptKey, true).Write());
     AsyncRead(Trinity::Net::InvokeReadHandlerCallback<WorldSocket>{ .Socket = this });

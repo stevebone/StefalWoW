@@ -140,6 +140,14 @@ namespace WorldPackets
             WorldPacket const* Write() override { return &_worldPacket; }
         };
 
+        class FeignDeathResisted final : public ServerPacket
+        {
+        public:
+            explicit FeignDeathResisted() : ServerPacket(SMSG_FEIGN_DEATH_RESISTED, 0) {}
+
+            WorldPacket const* Write() override { return &_worldPacket; }
+        };
+
         struct PowerUpdatePower
         {
             PowerUpdatePower(int32 power, uint8 powerType) : Power(power), PowerType(powerType) { }

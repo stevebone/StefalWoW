@@ -144,7 +144,8 @@ void WorldSession::SendLfgPlayerLockInfo()
     // Get Random dungeons that can be done at a certain level and expansion
     uint8 level = GetPlayer()->GetLevel();
     std::span<uint32 const> contentTuningReplacementConditionMask = GetPlayer()->m_playerData->CtrOptions->ConditionalFlags;
-    lfg::LfgDungeonSet const& randomDungeons = sLFGMgr->GetRandomAndSeasonalDungeons(level, GetExpansion(), contentTuningReplacementConditionMask);
+    lfg::LfgDungeonSet const& randomDungeons = sLFGMgr->GetRandomAndSeasonalDungeons(level, GetExpansion(), contentTuningReplacementConditionMask,
+        uint32(GetPlayer()->m_playerData->CtrOptions->ChromieTimeExpansionMask));
 
     WorldPackets::LFG::LfgPlayerInfo lfgPlayerInfo;
 
@@ -176,7 +177,7 @@ void WorldSession::SendLfgPlayerLockInfo()
         {
             if (Quest const* quest = sObjectMgr->GetQuestTemplate(reward->firstQuest))
             {
-                playerDungeonInfo.FirstReward = !GetPlayer()->CanRewardQuest(quest, false);
+                playerDungeonInfo.FirstReward = GetPlayer()->CanRewardQuest(quest, false);
                 if (!playerDungeonInfo.FirstReward)
                     quest = sObjectMgr->GetQuestTemplate(reward->otherQuest);
 

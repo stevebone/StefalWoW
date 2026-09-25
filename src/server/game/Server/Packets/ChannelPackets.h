@@ -42,10 +42,10 @@ namespace WorldPackets
 
             WorldPacket const* Write() override;
 
-            std::vector<ChannelPlayer> _Members;
+            std::vector<ChannelPlayer> Members;
             std::string _Channel; ///< Channel Name
             uint32 _ChannelFlags = 0; ///< @see enum ChannelFlags
-            bool _Display = false;
+            bool Display = false;
         };
 
         class TC_GAME_API ChannelNotify final : public ServerPacket
@@ -81,7 +81,7 @@ namespace WorldPackets
             uint32 _ChannelFlags = 0; ///< @see enum ChannelFlags
             std::string _Channel;     ///< Channel Name
             ObjectGuid ChannelGUID;
-            uint8 Unknown1107 = 0;
+            uint8 UserFlags = 0;
         };
 
         class ChannelNotifyLeft final : public ServerPacket

@@ -1150,7 +1150,7 @@ class spell_jormungars_paralytic_toxin : public AuraScript
         GetTarget()->RemoveAurasDueToSpell(SPELL_PARALYSIS);
     }
 
-    void CalculateAmount(AuraEffect const* aurEff, int32& amount, bool& canBeRecalculated)
+    void CalculateAmount(AuraEffect const* aurEff, SpellEffectValue& amount, bool& canBeRecalculated)
     {
         if (!canBeRecalculated)
             amount = aurEff->GetAmount();
@@ -1162,7 +1162,7 @@ class spell_jormungars_paralytic_toxin : public AuraScript
     {
         if (AuraEffect* slowEff = GetEffect(EFFECT_0))
         {
-            int32 newAmount = slowEff->GetAmount() - 10;
+            SpellEffectValue newAmount = slowEff->GetAmount() - 10;
             if (newAmount < -100)
                 newAmount = -100;
             slowEff->ChangeAmount(newAmount);
@@ -1270,12 +1270,12 @@ class spell_icehowl_arctic_breath : public SpellScript
 {
     bool Validate(SpellInfo const* spellInfo) override
     {
-        return ValidateSpellEffect({ { spellInfo->Id, EFFECT_0 } }) && ValidateSpellInfo({ static_cast<uint32>(spellInfo->GetEffect(EFFECT_0).CalcValue()) });
+        return ValidateSpellEffect({ { spellInfo->Id, EFFECT_0 } }) && ValidateSpellInfo({ static_cast<uint32>(spellInfo->GetEffect(EFFECT_0).CalcValueAsInt()) });
     }
 
     void HandleScriptEffect(SpellEffIndex /*effIndex*/)
     {
-        uint32 spellId = GetEffectInfo().CalcValue();
+        uint32 spellId = GetEffectInfo().CalcValueAsInt();
         GetCaster()->CastSpell(GetHitUnit(), spellId, true);
     }
 
@@ -1317,7 +1317,7 @@ class spell_icehowl_massive_crash : public AuraScript
     void HandleSpeed(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         if (Player* target = GetTarget()->ToPlayer())
-            if (target->GetMap()->IsHeroic())
+            if (!target->GetMap()->IsHeroic())
                 target->CastSpell(target, SPELL_SURGE_OF_ADRENALINE, true);
     }
 

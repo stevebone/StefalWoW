@@ -229,6 +229,7 @@ void Conversation::Create(ObjectGuid::LowType lowGuid, uint32 conversationEntry,
     _duration = *std::ranges::max_element(_lastLineEndTimes);
     SetUpdateFieldValue(m_values.ModifyValue(&Conversation::m_conversationData).ModifyValue(&UF::ConversationData::LastLineEndTime), _duration.count());
     SetUpdateFieldValue(m_values.ModifyValue(&Conversation::m_conversationData).ModifyValue(&UF::ConversationData::Lines), std::move(lines));
+    SetUpdateFieldValue(m_values.ModifyValue(&Conversation::m_conversationData).ModifyValue(&UF::ConversationData::Flags), uint32(conversationTemplate->Flags.AsUnderlyingType()));
 
     // conversations are despawned 5-20s after LastLineEndTime
     _duration += 10s;

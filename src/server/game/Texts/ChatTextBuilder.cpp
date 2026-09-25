@@ -55,10 +55,10 @@ ChatPacketSender::ChatPacketSender(ChatMsg chatType, ::Language language, WorldO
         else if (soundKitPlayType == SoundKitPlayType::ObjectSound)
         {
             SoundPacket = std::make_unique<WorldPackets::Misc::PlayObjectSound>(
-                receiver ? receiver->GetGUID() : ObjectGuid::Empty,
+                receiver ? receiver->GetGUID() : (sender ? sender->GetGUID() : ObjectGuid::Empty),
                 sender ? sender->GetGUID() : ObjectGuid::Empty,
                 soundKitId,
-                receiver ? receiver->GetPosition() : Position(),
+                sender ? sender->GetPosition() : Position(),
                 broadcastTextId
             );
         }
@@ -77,21 +77,54 @@ void ChatPacketSender::operator()(Player const* player) const
     if (EmotePacket)
         player->SendDirectMessage(EmotePacket->GetRawPacket());
 
+    std::string finalText;
+    uint8 targetGender = GENDER_MALE;
+    if (Receiver)
+    {
+        if (Unit const* receiverUnit = Receiver->ToUnit())
+            targetGender = receiverUnit->GetGender();
+        else
+            targetGender = player->GetGender();
+    }
+    else
+        targetGender = player->GetGender();
+
+    finalText = CreatureTextMgr::ReplaceGenderTokens(Text, targetGender);
+    bool useCachedPacket = (finalText == Text);
+
     if (Language == LANG_UNIVERSAL || Language == LANG_ADDON || Language == LANG_ADDON_LOGGED || player->CanUnderstandLanguage(Language))
     {
-        player->SendDirectMessage(UntranslatedPacket.GetRawPacket());
+        if (useCachedPacket)
+        {
+            player->SendDirectMessage(UntranslatedPacket.GetRawPacket());
+            return;
+        }
+
+        WorldPackets::Chat::Chat message;
+        message.Initialize(Type, Language, Sender, Receiver, finalText, AchievementId, "", Locale);
+        player->SendDirectMessage(message.Write());
         return;
     }
 
-    if (!TranslatedPacket)
+    if (useCachedPacket)
     {
-        TranslatedPacket.emplace();
-        TranslatedPacket->Initialize(Type, Language, Sender, Receiver, sLanguageMgr->Translate(Text, Language, player->GetSession()->GetSessionDbcLocale()),
-            AchievementId, "", Locale);
-        TranslatedPacket->Write();
+        if (!TranslatedPacket)
+        {
+            TranslatedPacket.emplace();
+            TranslatedPacket->Initialize(Type, Language, Sender, Receiver, sLanguageMgr->Translate(Text, Language, player->GetSession()->GetSessionDbcLocale()),
+                AchievementId, "", Locale);
+            TranslatedPacket->Write();
+        }
+
+        player->SendDirectMessage(TranslatedPacket->GetRawPacket());
+        return;
     }
 
-    player->SendDirectMessage(TranslatedPacket->GetRawPacket());
+    WorldPackets::Chat::Chat message;
+    message.Initialize(Type, Language, Sender, Receiver,
+        sLanguageMgr->Translate(finalText, Language, player->GetSession()->GetSessionDbcLocale()),
+        AchievementId, "", Locale);
+    player->SendDirectMessage(message.Write());
 }
 
 ChatPacketSender* BroadcastTextBuilder::operator()(LocaleConstant locale) const

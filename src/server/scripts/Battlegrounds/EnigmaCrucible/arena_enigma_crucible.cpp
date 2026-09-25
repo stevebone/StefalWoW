@@ -104,7 +104,7 @@ struct arena_enigma_crucible : ArenaScript
         if (Creature const* creature = battlegroundMap->GetCreature(_zoSorgGUID))
             creature->AI()->Talk(EnigmaCrucible::Texts::ZoSorg::Start);
 
-        _scheduler.Schedule(10s, [&](TaskContext context)
+        _scheduler.Schedule(10s, [&](TaskContext& context)
         {
             battlegroundMap->DoOnPlayers([&](Player* player)
             {
@@ -143,7 +143,7 @@ struct arena_enigma_crucible : ArenaScript
         if (Creature const* creature = battlegroundMap->GetCreature(_zoSorgGUID))
             creature->AI()->Talk(EnigmaCrucible::Texts::ZoSorg::Prepare);
 
-        _scheduler.Schedule(10s, [&](TaskContext)
+        _scheduler.Schedule(10s, [&](TaskContext const&)
         {
             if (Creature const* creature = battlegroundMap->GetCreature(_zoSorgGUID))
                 creature->AI()->Talk(EnigmaCrucible::Texts::ZoSorg::Prepare2);
@@ -264,7 +264,7 @@ class spell_enigma_arena_reaction_trigger : public AuraScript
     void HandleProc(ProcEventInfo const& eventInfo) const
     {
         if (ZoneScript* zonescript = GetTarget()->FindZoneScript())
-            zonescript->DoAction(EnigmaCrucible::Actions::ReactionDead, eventInfo.GetActor(), eventInfo.GetProcTarget());
+            zonescript->DoAction(EnigmaCrucible::Actions::ReactionDead, eventInfo.GetActor(), eventInfo.GetActionTarget());
     }
 
     void Register() override

@@ -105,8 +105,10 @@ struct BonusData
     int16 PvpItemLevelBonus;
     uint32 ItemLevelOffsetCurveId;
     uint32 ItemLevelOffsetItemLevel;
-    uint32 ItemLevelOffset;
+    int32 ItemLevelOffset;
     uint32 ItemSquishEraID;
+    int32 ScalingConfigCraftingQualityItemLevelBonus;
+    int32 ScalingConfigItemLevelBonus;
     std::array<ItemEffectEntry const*, 13> Effects;
     std::size_t EffectCount;
     uint32 LimitCategory;
@@ -117,6 +119,8 @@ struct BonusData
     bool HasFixedLevel;
     bool CannotTradeBindOnPickup;
     bool IgnoreSquish;
+    bool RestrictScalingToContentTuning;
+    bool ScalingConfigUsesPlayerLevel;
 
     void Initialize(ItemTemplate const* proto);
     void Initialize(WorldPackets::Item::ItemInstance const& itemInstance);
@@ -135,6 +139,8 @@ private:
         int32 ItemLevelPriority;
         int32 PvpItemLevelPriority;
         int32 BondingPriority;
+        int32 ScalingConfigItemLevelBonusPriority;
+        int32 ScalingConfigCraftingQualityItemLevelBonusPriority;
         bool HasQualityBonus;
         bool HasItemLimitCategory;
     } _state;
@@ -246,6 +252,9 @@ class TC_GAME_API Item : public Object
 
         bool IsSoulBound() const { return HasItemFlag(ITEM_FIELD_FLAG_SOULBOUND); }
         bool IsBoundAccountWide() const { return GetTemplate()->HasFlag(ITEM_FLAG_IS_BOUND_TO_ACCOUNT); }
+        bool IsWarbandBound() const;
+        bool IsAccountBound() const { return IsBoundAccountWide() || IsWarbandBound(); }
+        void ConvertToSoulbound();
         bool IsBattlenetAccountBound() const { return GetTemplate()->HasFlag(ITEM_FLAG2_BNET_ACCOUNT_TRADE_OK); }
         bool IsBindedNotWith(Player const* player) const;
         bool IsBoundByEnchant() const;
@@ -291,7 +300,7 @@ class TC_GAME_API Item : public Object
         void SetInTrade(bool b = true) { mb_in_trade = b; }
         bool IsInTrade() const { return mb_in_trade; }
 
-        uint64 CalculateDurabilityRepairCost(float discount) const;
+        uint64 CalculateDurabilityRepairCost(float discount, bool useRateConfig = true) const;
 
         bool HasEnchantRequiredSkill(Player const* player) const;
         uint32 GetEnchantRequiredLevel() const;
@@ -361,16 +370,16 @@ class TC_GAME_API Item : public Object
 
         bool hasQuest(uint32 quest_id) const override { return GetTemplate()->GetStartQuest() == quest_id; }
         bool hasInvolvedQuest(uint32 /*quest_id*/) const override { return false; }
-        bool IsPotion() const { return GetTemplate()->IsPotion(); }
         bool IsVellum() const { return GetTemplate()->IsVellum(); }
         bool IsConjuredConsumable() const { return GetTemplate()->IsConjuredConsumable(); }
         uint32 GetQuality() const { return _bonusData.Quality; }
         uint32 GetItemLevel(Player const* owner) const;
         static uint32 GetItemLevel(ItemTemplate const* itemTemplate, BonusData const& bonusData, uint32 level, uint32 fixedLevel,
-            uint32 minItemLevel, uint32 minItemLevelCutoff, uint32 maxItemLevel, bool pvpBonus, uint32 azeriteLevel);
+            int32 minItemLevel, int32 minItemLevelCutoff, int32 maxItemLevel, bool pvpBonus, uint32 azeriteLevel, uint32 overrideContentTuningId, bool applySquish = true);
         int32 GetRequiredLevel() const;
 		int32 GetItemStatType(uint32 index) const;
         float GetItemStatValue(uint32 index, Player const* owner) const;
+        float GetItemStatValue(uint32 index, uint32 itemLevel) const;
         uint32 GetSocketColor(uint32 index) const { ASSERT(index < MAX_ITEM_PROTO_SOCKETS); return _bonusData.SocketColor[index]; }
         uint32 GetAppearanceModId() const { return m_itemData->ItemAppearanceModID; }
         void SetAppearanceModId(uint32 appearanceModId) { SetUpdateFieldValue(m_values.ModifyValue(&Item::m_itemData).ModifyValue(&UF::ItemData::ItemAppearanceModID), appearanceModId); }
@@ -437,7 +446,7 @@ class TC_GAME_API Item : public Object
         static bool CanTransmogrifyItemWithItem(Item const* item, ItemModifiedAppearanceEntry const* itemModifiedAppearance);
         uint32 GetBuyPrice(Player const* owner, bool& standardPrice) const;
         static uint32 GetBuyPrice(ItemTemplate const* proto, uint32 quality, uint32 itemLevel, bool& standardPrice);
-        uint32 GetSellPrice(Player const* owner) const;
+        uint32 GetSellPrice(Player const* owner, bool forVendor = false) const;
         static uint32 GetSellPrice(ItemTemplate const* proto, uint32 quality, uint32 itemLevel);
 
         uint32 GetVisibleEntry(Player const* owner) const;

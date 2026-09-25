@@ -7,3 +7,6 @@ ALTER TABLE `creature` ADD COLUMN `size` FLOAT NOT NULL DEFAULT '-1';
 
 -- npc_vendor
 ALTER TABLE `npc_vendor` ADD COLUMN `OverrideGoldCost` INT NOT NULL DEFAULT '-1';
+
+-- item_template_addon
+ALTER TABLE `item_template_addon` ADD COLUMN `ScrappingLootId` INT UNSIGNED DEFAULT 0 AFTER MaxMoneyLoot;

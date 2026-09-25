@@ -106,6 +106,8 @@ class TC_GAME_API CreatureTextMgr
         template <class Builder>
         static void SendChatPacket(WorldObject* source, Builder const& builder, ChatMsg msgType, WorldObject const* whisperTarget = nullptr, CreatureTextRange range = TEXT_RANGE_NORMAL, Team team = TEAM_OTHER, bool gmOnly = false);
 
+        static std::string ReplaceGenderTokens(std::string text, uint8 gender);
+
         static float GetRangeForChatType(ChatMsg msgType);
 
     private:

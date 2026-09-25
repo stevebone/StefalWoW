@@ -59,6 +59,10 @@ R"(Generator command line args
                                     this command will build the map regardless of --skip* option settings
                                     if you do not specify a map number, builds all maps that pass the filters specified by --skip* options
 
+-custom                             Read the (modified) Map.db2 from the "Custom\DBFilesClient"
+                                    subfolder of the input directory instead of the extracted dbc copy.
+                                    Use this when generating mmaps for custom maps.
+
 --help                              This message
 
 examples:

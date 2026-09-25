@@ -181,7 +181,10 @@ namespace LuaItem
      */
     int IsPotion(Eluna* E, Item* item)
     {
-        E->Push(item->IsPotion());
+        if (item->GetTemplate()->GetClass() == ITEM_CLASS_CONSUMABLE && item->GetTemplate()->GetSubClass() == ITEM_SUBCLASS_POTION)
+            E->Push(true);
+        else
+            E->Push(false);
         return 1;
     }
 
@@ -501,11 +504,11 @@ namespace LuaItem
     /**
      * Returns the [Player] races allowed to use this [Item]
      *
-     * @return uint32 allowableRace
+     * @return uint64 allowableRace
      */
     int GetAllowableRace(Eluna* E, Item* item)
     {
-        E->Push(item->GetTemplate()->GetAllowableRace().RawValue);
+        E->Push(static_cast<Trinity::RaceMask<uint64>>(item->GetTemplate()->GetAllowableRace()).RawValue[0]);
         return 1;
     }
 

@@ -1,6 +1,6 @@
 #include "CreatureOutfit.h"
 #include "DB2Structure.h" // ChrRacesEntry, ItemModifiedAppearanceEntry, ItemAppearanceEntry
-#include "DB2Stores.h"    // sChrRacesStore, sItemAppearanceStore
+#include "DB2Stores.h"    // sChrRacesStore, sItemAppearanceStore, sChrCustomizationElementStore
 #include "TransmogMgr.h"  // TransmogMgr
 
 constexpr uint32 CreatureOutfit::invisible_model;
@@ -23,13 +23,27 @@ CreatureOutfit& CreatureOutfit::SetItemEntry(EquipmentSlots slot, uint32 item_en
     uint32 display = 0;
 
     if (ItemModifiedAppearanceEntry const* modifiedAppearance = TransmogMgr::GetItemModifiedAppearance(item_entry, appearancemodid))
-    {
         if (ItemAppearanceEntry const* itemAppearance = sItemAppearanceStore.LookupEntry(modifiedAppearance->ItemAppearanceID))
-        {
             display = itemAppearance->ItemDisplayInfoID;
-        }
-    }
 
     outfitdisplays[slot] = display;
     return *this;
+}
+
+bool CreatureOutfit::HasModelSwapCustomization()
+{
+    if (!_modelSwapChecked)
+    {
+        _modelSwapChecked = true;
+
+        for (UF::ChrCustomizationChoice const& choice : Customizations)
+            for (ChrCustomizationElementEntry const* element : sChrCustomizationElementStore)
+                if (element->ChrCustomizationChoiceID == choice.ChrCustomizationChoiceID && element->ChrCustomizationCondModelID)
+                {
+                    _hasModelSwap = true;
+                    return _hasModelSwap;
+                }
+    }
+
+    return _hasModelSwap;
 }

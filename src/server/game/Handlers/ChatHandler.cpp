@@ -383,8 +383,7 @@ ChatMessageResult WorldSession::HandleChatMessage(ChatMsg type, Language lang, s
                     return ChatMessageResult::NotInGroup;
             }
 
-            if (group->IsLeader(GetPlayer()->GetGUID()))
-                type = CHAT_MSG_PARTY_LEADER;
+            type = group->IsLeader(sender->GetGUID()) ? CHAT_MSG_PARTY_LEADER : CHAT_MSG_PARTY;
 
             sScriptMgr->OnPlayerChat(GetPlayer(), type, lang, msg, group);
 
@@ -789,7 +788,7 @@ void WorldSession::HandleTextEmoteOpcode(WorldPackets::Chat::CTextEmote& packet)
         return;
     }
 
-    sScriptMgr->OnPlayerTextEmote(_player, packet.SoundIndex, packet.EmoteID, packet.Target);
+    sScriptMgr->OnPlayerTextEmote(_player, packet.EmoteID, packet.SoundIndex, packet.Target);
 
     EmotesTextEntry const* em = sEmotesTextStore.LookupEntry(packet.EmoteID);
     if (!em)
@@ -830,9 +829,8 @@ void WorldSession::HandleTextEmoteOpcode(WorldPackets::Chat::CTextEmote& packet)
     _player->UpdateCriteria(CriteriaType::DoEmote, packet.EmoteID, 0, 0, unit);
 
     // Send scripted event call
-    if (unit)
-        if (Creature* creature = unit->ToCreature())
-            creature->AI()->ReceiveEmote(_player, packet.EmoteID);
+    if (Creature* creature = Object::ToCreature(unit))
+        creature->AI()->ReceiveEmote(_player, packet.EmoteID);
 
     if (emote != EMOTE_ONESHOT_NONE)
         _player->RemoveAurasWithInterruptFlags(SpellAuraInterruptFlags::Anim);

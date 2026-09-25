@@ -20,9 +20,12 @@
 
 #include "ObjectGuid.h"
 
-namespace Battlenet::Services::Clubs
+namespace Battlenet::Services
 {
-uint64 CreateClubMemberId(ObjectGuid guid);
+    namespace Clubs
+    {
+        uint64 CreateClubMemberId(ObjectGuid guid);
+    }
 }
 
 #endif // TRINITYCORE_CLUB_UTILS_H

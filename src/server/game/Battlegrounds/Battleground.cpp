@@ -30,6 +30,7 @@
 #include "GameTime.h"
 #include "GridNotifiersImpl.h"
 #include "Group.h"
+#include "GroupMgr.h"
 #include "Guild.h"
 #include "GuildMgr.h"
 #include "KillRewarder.h"
@@ -96,7 +97,6 @@ Battleground::Battleground(BattlegroundTemplate const* battlegroundTemplate) : _
     m_TeamScores[TEAM_HORDE]         = 0;
 
     m_PrematureCountDown = false;
-    m_PrematureCountDownTimer = 0;
 
     m_LastPlayerPositionBroadcast = 0;
 
@@ -131,6 +131,12 @@ Battleground::~Battleground()
         m_Map->SetBG(nullptr);
         m_Map = nullptr;
     }
+
+    // Clear Group::m_bgGroup, Group might later reference it in its own destructor
+    for (Group* bgRaid : m_BgRaids)
+        if (bgRaid)
+            bgRaid->SetBattlegroundGroup(nullptr);
+
     // remove from bg free slot queue
     RemoveFromBGFreeSlotQueue();
 
@@ -185,10 +191,7 @@ void Battleground::Update(uint32 diff)
             }
             else
             {
-                if (sBattlegroundMgr->GetPrematureFinishTime() && (GetPlayersCountByTeam(ALLIANCE) < GetMinPlayersPerTeam() || GetPlayersCountByTeam(HORDE) < GetMinPlayersPerTeam()))
-                    _ProcessProgress(diff);
-                else if (m_PrematureCountDown)
-                    m_PrematureCountDown = false;
+                _ProcessProgress(diff);
             }
             break;
         case STATUS_WAIT_LEAVE:
@@ -293,33 +296,42 @@ inline void Battleground::_ProcessProgress(uint32 diff)
     // ***           BATTLEGROUND BALLANCE SYSTEM            ***
     // *********************************************************
     // if less then minimum players are in on one side, then start premature finish timer
-    if (!m_PrematureCountDown)
+    bool broadcastStatusUpdate = false;
+    if (!sBattlegroundMgr->isTesting() && sBattlegroundMgr->GetPrematureFinishTime() && (GetPlayersCountByTeam(ALLIANCE) < GetMinPlayersPerTeam() || GetPlayersCountByTeam(HORDE) < GetMinPlayersPerTeam()))
     {
-        m_PrematureCountDown = true;
-        m_PrematureCountDownTimer = sBattlegroundMgr->GetPrematureFinishTime();
+        if (!m_PrematureCountDown)
+        {
+            m_PrematureCountDown = true;
+            SetRemainingTime(sBattlegroundMgr->GetPrematureFinishTime());
+            broadcastStatusUpdate = true;
+        }
+        else if ((m_EndTime -= int32(diff)) < 0)
+        {
+            // time's up!
+            EndBattleground(GetPrematureWinner());
+            m_PrematureCountDown = false;
+        }
     }
-    else if (m_PrematureCountDownTimer < diff)
+    else if (m_PrematureCountDown)
     {
-        // time's up!
-        EndBattleground(GetPrematureWinner());
         m_PrematureCountDown = false;
+        SetRemainingTime(0);
+        broadcastStatusUpdate = true;
     }
-    else if (!sBattlegroundMgr->isTesting())
+
+    if (broadcastStatusUpdate)
     {
-        uint32 newtime = m_PrematureCountDownTimer - diff;
-        // announce every minute
-        if (newtime > (MINUTE * IN_MILLISECONDS))
+        for (auto const& [guid, playerData] : m_Players)
         {
-            if (newtime / (MINUTE * IN_MILLISECONDS) != m_PrematureCountDownTimer / (MINUTE * IN_MILLISECONDS))
-                PSendMessageToAll(LANG_BATTLEGROUND_PREMATURE_FINISH_WARNING, CHAT_MSG_SYSTEM, nullptr, (uint32)(m_PrematureCountDownTimer / (MINUTE * IN_MILLISECONDS)));
+            if (Player* player = _GetPlayer(guid, false, "_ProcessProgress"))
+            {
+                WorldPackets::Battleground::BattlefieldStatusActive battlefieldStatus;
+                BattlegroundMgr::BuildBattlegroundStatusActive(&battlefieldStatus, this, player,
+                    player->GetBattlegroundQueueIndex(playerData.queueTypeId),
+                    player->GetBattlegroundQueueJoinTime(playerData.queueTypeId), playerData.queueTypeId);
+                player->SendDirectMessage(battlefieldStatus.Write());
+            }
         }
-        else
-        {
-            //announce every 15 seconds
-            if (newtime / (15 * IN_MILLISECONDS) != m_PrematureCountDownTimer / (15 * IN_MILLISECONDS))
-                PSendMessageToAll(LANG_BATTLEGROUND_PREMATURE_FINISH_WARNING_SECS, CHAT_MSG_SYSTEM, nullptr, (uint32)(m_PrematureCountDownTimer / IN_MILLISECONDS));
-        }
-        m_PrematureCountDownTimer = newtime;
     }
 }
 
@@ -329,9 +341,6 @@ inline void Battleground::_ProcessJoin(uint32 diff)
     // ***           BATTLEGROUND STARTING SYSTEM            ***
     // *********************************************************
     ModifyStartDelayTime(diff);
-
-    if (!isArena())
-        SetRemainingTime(300000);
 
     if (m_ResetStatTimer > 5000)
     {
@@ -455,9 +464,6 @@ inline void Battleground::_ProcessJoin(uint32 diff)
                 sWorld->SendWorldText(LANG_BG_STARTED_ANNOUNCE_WORLD, GetName(), GetMinLevel(), GetMaxLevel());
         }
     }
-
-    if (GetRemainingTime() > 0 && (m_EndTime -= diff) > 0)
-        SetRemainingTime(GetRemainingTime() - diff);
 }
 
 inline void Battleground::_ProcessLeave(uint32 diff)
@@ -617,7 +623,7 @@ void Battleground::RewardReputationToTeam(uint32 faction_id, uint32 Reputation, 
 
 void Battleground::UpdateWorldState(int32 worldStateId, int32 value, bool hidden /*= false*/)
 {
-    sWorldStateMgr->SetValue(worldStateId, value, hidden, GetBgMap());
+    WorldStateMgr::SetValue(worldStateId, value, hidden, GetBgMap());
 }
 
 void Battleground::EndBattleground(Team winner)
@@ -677,8 +683,7 @@ void Battleground::EndBattleground(Team winner)
     WorldPackets::Battleground::PVPMatchComplete pvpMatchComplete;
     pvpMatchComplete.Winner = GetWinner();
     pvpMatchComplete.Duration = std::chrono::duration_cast<Seconds>(Milliseconds(std::max<int32>(0, (GetElapsedTime() - BG_START_DELAY_2M))));
-    pvpMatchComplete.LogData.emplace();
-    BuildPvPLogDataPacket(*pvpMatchComplete.LogData);
+    BuildPvPLogDataPacket(pvpMatchComplete.LogData.emplace());
     pvpMatchComplete.Write();
 
     for (BattlegroundPlayerMap::iterator itr = m_Players.begin(); itr != m_Players.end(); ++itr)
@@ -885,6 +890,7 @@ void Battleground::RemovePlayerAtLeave(ObjectGuid guid, bool Transport, bool Sen
                 // unsummon current and summon old pet if there was one and there isn't a current pet
                 player->RemovePet(nullptr, PET_SAVE_NOT_IN_SLOT);
                 player->ResummonPetTemporaryUnSummonedIfAny();
+                player->ResummonAnimalCompanionIfAny();
             }
 
             if (SendPacket && bgQueueTypeId)
@@ -1103,6 +1109,7 @@ void Battleground::AddOrSetPlayerToCorrectBgGroup(Player* player, Team team)
         group = new Group;
         SetBgRaid(team, group);
         group->Create(player);
+        sGroupMgr->AddGroup(group);
         Seconds countdownMaxForBGType = Seconds(StartDelayTimes[BG_STARTING_EVENT_FIRST]  / 1000);
         if (_preparationStartTime)
             group->StartCountdown(CountdownTimerType::Pvp, countdownMaxForBGType, _preparationStartTime);
@@ -1346,21 +1353,6 @@ void Battleground::SendMessageToAll(uint32 entry, ChatMsg msgType, Player const*
     BroadcastWorker(localizer);
 }
 
-void Battleground::PSendMessageToAll(uint32 entry, ChatMsg msgType, Player const* source, ...)
-{
-    if (!entry)
-        return;
-
-    va_list ap;
-    va_start(ap, source);
-
-    Trinity::TrinityStringChatBuilder builder(nullptr, msgType, entry, source, &ap);
-    Trinity::LocalizedDo<Trinity::TrinityStringChatBuilder> localizer(builder);
-    BroadcastWorker(localizer);
-
-    va_end(ap);
-}
-
 void Battleground::AddPlayerPosition(WorldPackets::Battleground::BattlegroundPlayerPosition const& position)
 {
     _playerPositions.push_back(position);
@@ -1368,12 +1360,8 @@ void Battleground::AddPlayerPosition(WorldPackets::Battleground::BattlegroundPla
 
 void Battleground::RemovePlayerPosition(ObjectGuid guid)
 {
-    auto itr = std::remove_if(_playerPositions.begin(), _playerPositions.end(), [guid](WorldPackets::Battleground::BattlegroundPlayerPosition const& playerPosition)
-    {
-        return playerPosition.Guid == guid;
-    });
-
-    _playerPositions.erase(itr, _playerPositions.end());
+    auto itr = std::ranges::remove(_playerPositions, guid, &WorldPackets::Battleground::BattlegroundPlayerPosition::Guid);
+    _playerPositions.erase(itr.begin(), itr.end());
 }
 
 void Battleground::EndNow()

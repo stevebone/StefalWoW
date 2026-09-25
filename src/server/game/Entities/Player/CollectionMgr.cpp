@@ -462,6 +462,16 @@ void CollectionMgr::MountSetFavorite(uint32 spellId, bool favorite)
     SendSingleMountUpdate(*itr);
 }
 
+void CollectionMgr::ClearMountFanfare(uint32 spellId)
+{
+    auto itr = _mounts.find(spellId);
+    if (itr == _mounts.end())
+        return;
+
+    itr->second = MountStatusFlags(itr->second & ~MOUNT_NEEDS_FANFARE);
+    SendSingleMountUpdate(*itr);
+}
+
 bool CollectionMgr::HasMount(uint32 spellID)
 {
     return _mounts.find(spellID) != _mounts.end();
@@ -560,7 +570,8 @@ void CollectionMgr::LoadAccountItemAppearances(PreparedQueryResult knownAppearan
         168665, // Hidden Bracers
         158329, // Hidden Gloves
         143539, // Hidden Belt
-        168664  // Hidden Boots
+        168664, // Hidden Boots
+        216696  // Hidden Pants
     };
 
     for (uint32 hiddenItem : hiddenAppearanceItems)

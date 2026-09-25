@@ -1954,14 +1954,14 @@ OutdoorPvP* ScriptMgr::CreateOutdoorPvP(uint32 scriptId, Map* map)
     return tmpscript->GetOutdoorPvP(map);
 }
 
-Trinity::ChatCommands::ChatCommandTable ScriptMgr::GetChatCommands()
+std::vector<Trinity::ChatCommands::ChatCommandBuilder> ScriptMgr::GetChatCommands()
 {
-    Trinity::ChatCommands::ChatCommandTable table;
+    std::vector<Trinity::ChatCommands::ChatCommandBuilder> table;
 
     FOR_SCRIPTS(CommandScript, itr, end)
     {
-        Trinity::ChatCommands::ChatCommandTable cmds = itr->second->GetCommands();
-        std::move(cmds.begin(), cmds.end(), std::back_inserter(table));
+        std::span<Trinity::ChatCommands::ChatCommandBuilder const> cmds = itr->second->GetCommands();
+        table.insert(table.end(), cmds.begin(), cmds.end());
     }
 
     return table;
@@ -2242,13 +2242,13 @@ void ScriptMgr::OnPlayerFreeTalentPointsChanged(Player* player, uint32 points)
     FOREACH_SCRIPT(PlayerScript)->OnFreeTalentPointsChanged(player, points);
 }
 
-void ScriptMgr::OnPlayerTalentsReset(Player* player, bool noCost)
+void ScriptMgr::OnPlayerTalentsReset(Player* player, bool involuntarily)
 {
 #ifdef ELUNA
     if (Eluna* e = player->GetEluna())
-        e->OnTalentsReset(player, noCost);
+        e->OnTalentsReset(player, involuntarily);
 #endif
-    FOREACH_SCRIPT(PlayerScript)->OnTalentsReset(player, noCost);
+    FOREACH_SCRIPT(PlayerScript)->OnTalentsReset(player, involuntarily);
 }
 
 void ScriptMgr::OnPlayerMoneyChanged(Player* player, int64& amount)
@@ -3451,7 +3451,7 @@ void PlayerScript::OnFreeTalentPointsChanged(Player* /*player*/, uint32 /*points
 {
 }
 
-void PlayerScript::OnTalentsReset(Player* /*player*/, bool /*noCost*/)
+void PlayerScript::OnTalentsReset(Player* /*player*/, bool /*involuntarily*/)
 {
 }
 

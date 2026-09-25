@@ -49,6 +49,11 @@ namespace WorldPackets
     }
 }
 
+enum GuildFlags
+{
+    GUILD_FLAG_RENAME                   = 0x01
+};
+
 enum GuildMisc
 {
     GUILD_BANK_MAX_TABS                 = 8,                    // send by client for money log also
@@ -252,7 +257,7 @@ struct GuildReward
 {
     uint32 ItemID;
     uint8 MinGuildRep;
-    Trinity::RaceMask<uint64> RaceMask;
+    Trinity::RaceMask<int32, 2> RaceMask;
     uint64 Cost;
     std::vector<uint32> AchievementsRequired;
 };
@@ -760,11 +765,14 @@ class TC_GAME_API Guild
         time_t GetCreatedDate() const { return m_createdDate; }
         uint64 GetBankMoney() const { return m_bankMoney; }
 
+        bool ModifyBankMoney(uint64 amount, bool add);
+
         bool SetName(std::string_view name);
+        void SetRename(bool apply);
 
         // Handle client commands
         void HandleRoster(WorldSession* session);
-        void HandleQuery(WorldSession* session);
+        void HandleQuery(WorldSession* session, ObjectGuid const& queriedGuid);
         void HandleSetAchievementTracking(WorldSession* session, uint32 const* achievementIdsBegin, uint32 const* achievementIdsEnd);
         void HandleGetAchievementMembers(WorldSession* session, uint32 achievementId) const;
         void HandleSetMOTD(WorldSession* session, std::string_view motd);
@@ -881,6 +889,7 @@ class TC_GAME_API Guild
     protected:
         ObjectGuid::LowType m_id;
         std::string m_name;
+        uint32 m_flags;
         ObjectGuid m_leaderGuid;
         std::string m_motd;
         std::string m_info;

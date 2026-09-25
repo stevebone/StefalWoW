@@ -22,7 +22,9 @@
 #include "DB2Meta.h"
 #include "DBFilesClientList.h"
 #include "ExtractorDB2LoadInfo.h"
+#include "DB2FileSystemSource.h"
 #include "IteratorPair.h"
+#include "LocalFileDataStore.h"
 #include "Locales.h"
 #include "MapDefines.h"
 #include "MapUtils.h"
@@ -42,6 +44,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <fstream>
 #if TRINITY_PLATFORM == TRINITY_PLATFORM_WINDOWS
 #include <io.h>
 #else
@@ -116,6 +119,7 @@ uint32 CONF_Locale = 0;
 char const* CONF_Product = "wow";
 char const* CONF_Region = "eu";
 bool CONF_UseRemoteCasc = false;
+bool CONF_UseCustomFiles = false;
 
 #define CASC_LOCALES_COUNT 17
 
@@ -172,6 +176,7 @@ void Usage(char const* prg)
         "-p which installed product to open (wow/wowt/wow_beta)\n"\
         "-c use remote casc\n"\
         "-r set remote casc region - standard: eu\n"\
+        "-custom read custom maps from the \"Custom\" subfolder of the input path\n"\
         "Example: %s -f 0 -i \"c:\\games\\game\"\n", prg, prg);
     exit(1);
 }
@@ -190,6 +195,14 @@ void HandleArgs(int argc, char* arg[])
         // r - set casc remote region - standard: eu
         if (arg[c][0] != '-')
             Usage(arg[0]);
+
+        // Handle multi-character options before the single-char switch below,
+        // since "-custom" would otherwise be matched by the 'c' (remote casc) case.
+        if (strcmp(arg[c], "-custom") == 0)
+        {
+            CONF_UseCustomFiles = true;
+            continue;
+        }
 
         switch (arg[c][1])
         {
@@ -272,13 +285,47 @@ void TryLoadDB2(char const* name, DB2CascFileSource* source, DB2FileLoader* db2,
     }
 }
 
+void TryLoadDB2(char const* name, DB2FileSystemSource* source, DB2FileLoader* db2, DB2FileLoadInfo const* loadInfo)
+{
+    try
+    {
+        db2->Load(source, loadInfo);
+    }
+    catch (std::exception const& e)
+    {
+        printf("Fatal error: Invalid %s file format! %s\n", name, CASC::HumanReadableCASCError(GetCascError()), e.what());
+        exit(1);
+    }
+}
+
 void ReadMapDBC()
 {
     printf("Read Map.db2 file...\n");
 
-    DB2CascFileSource source(CascStorage, MapLoadInfo::Instance.Meta->FileDataId);
     DB2FileLoader db2;
-    TryLoadDB2("Map.db2", &source, &db2, &MapLoadInfo::Instance);
+    bool loadedFromCustom = false;
+    if (sLocalFileDataStore->IsCustomMode())
+    {
+        // In custom mode the Map.db2 is read from the local Custom\DBFilesClient\ folder
+        // so that custom maps declared there are picked up.
+        std::string mapPath = Trinity::StringFormat("{}\\DBFilesClient\\Map.db2", sLocalFileDataStore->GetCustomPath());
+        DB2FileSystemSource source(mapPath);
+        if (source.IsOpen())
+        {
+            TryLoadDB2("Map.db2", &source, &db2, &MapLoadInfo::Instance);
+            loadedFromCustom = true;
+        }
+        else
+        {
+            printf("WARNING (-custom): Custom Map.db2 not found at '%s', falling back to CASC.\n", mapPath.c_str());
+        }
+    }
+
+    if (!loadedFromCustom)
+    {
+        DB2CascFileSource source(CascStorage, MapLoadInfo::Instance.Meta->FileDataId);
+        TryLoadDB2("Map.db2", &source, &db2, &MapLoadInfo::Instance);
+    }
 
     map_ids.reserve(db2.GetRecordCount());
     std::unordered_map<uint32, std::size_t> idToIndex;
@@ -1047,6 +1094,19 @@ bool ConvertADT(uint32 fileDataId, std::string const& mapName, std::string const
 {
     ChunkedFile adt;
 
+    // In custom mode, try to load the ADT from the local Custom\ folder first,
+    // resolving its path from the custom listfile by FileDataId.
+    if (sLocalFileDataStore->IsCustomMode())
+    {
+        auto const& fileDataToName = sLocalFileDataStore->GetFileDataToName();
+        auto it = fileDataToName.find(fileDataId);
+        if (it != fileDataToName.end() && !it->second.empty())
+        {
+            if (adt.loadFile(it->second))
+                return ConvertADT(adt, mapName, outputPath, gx, gy, build, ignoreDeepWater);
+        }
+    }
+
     if (!adt.loadFile(CascStorage, fileDataId, Trinity::StringFormat("Map {} grid [{},{}]", mapName, gx, gy)))
         return false;
 
@@ -1101,7 +1161,22 @@ void ExtractMaps(uint32 build)
         // Loadup map grid data
         ChunkedFile wdt;
         std::bitset<(WDT_MAP_SIZE) * (WDT_MAP_SIZE)> existingTiles;
-        if (wdt.loadFile(CascStorage, map_ids[z].WdtFileDataId, Trinity::StringFormat("WDT for map {}", map_ids[z].Id), false))
+
+        // In custom mode try to load the WDT from the local Custom\ folder first,
+        // resolving its path from the custom listfile by FileDataId.
+        bool wdtLoaded = false;
+        if (sLocalFileDataStore->IsCustomMode())
+        {
+            auto const& fileDataToName = sLocalFileDataStore->GetFileDataToName();
+            auto it = fileDataToName.find(map_ids[z].WdtFileDataId);
+            if (it != fileDataToName.end() && !it->second.empty())
+                wdtLoaded = wdt.loadFile(it->second, false);
+        }
+
+        if (!wdtLoaded)
+            wdtLoaded = wdt.loadFile(CascStorage, map_ids[z].WdtFileDataId, Trinity::StringFormat("WDT for map {}", map_ids[z].Id), false);
+
+        if (wdtLoaded)
         {
             FileChunk const* mphd = wdt.GetChunk("MPHD");
             FileChunk const* main = wdt.GetChunk("MAIN");
@@ -1492,6 +1567,13 @@ int main(int argc, char * arg[])
 
     HandleArgs(argc, arg);
 
+    // Enable custom (local) map file reading mode if requested.
+    if (CONF_UseCustomFiles)
+    {
+        sLocalFileDataStore->SetCustomPath((input_path / "Custom").string());
+        sLocalFileDataStore->LoadFileDataIDsToLocalStorage();
+    }
+
     if (!RetardCheck())
         return 1;
 
@@ -1576,7 +1658,7 @@ int main(int argc, char * arg[])
     return 0;
 }
 
-#if TRINITY_PLATFORM == TRINITY_PLATFORM_WINDOWS
+#if TRINITY_COMPILER_IS_MICROSOFT
 #include "WheatyExceptionReport.h"
 // must be at end of file because of init_seg pragma
 INIT_CRASH_HANDLER();

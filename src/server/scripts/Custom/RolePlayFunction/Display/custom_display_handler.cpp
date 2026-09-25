@@ -78,12 +78,19 @@ namespace RoleplayCore
 
         if (id == 0)
         {
-            ResetItem(item);
-
             if (isSecondary)
+            {
+                uint32 savedPrimary = item->GetModifier(ITEM_MODIFIER_TRANSMOG_APPEARANCE_ALL_SPECS);
+                ResetItem(item);
+                item->SetModifier(ITEM_MODIFIER_TRANSMOG_APPEARANCE_ALL_SPECS, savedPrimary);
                 item->SetModifier(ITEM_MODIFIER_TRANSMOG_SECONDARY_APPEARANCE_ALL_SPECS, 0);
+            }
             else
+            {
+                ResetItem(item);
                 item->SetModifier(ITEM_MODIFIER_TRANSMOG_APPEARANCE_ALL_SPECS, 0);
+                item->SetModifier(ITEM_MODIFIER_TRANSMOG_SECONDARY_APPEARANCE_ALL_SPECS, 0);
+            }
 
             player->SetVisibleItemSlot(itemSlot, item);
             item->ClearBonuses();
@@ -205,21 +212,19 @@ namespace RoleplayCore
             return false;
         }
 
-        // Reset all modifiers before installing new ones
+        uint32 savedPrimary = item->GetModifier(ITEM_MODIFIER_TRANSMOG_APPEARANCE_ALL_SPECS);
+
         ResetItem(item);
 
-        // Set the appropriate modifier
         if (isSecondary)
         {
-            // Keeping the current main appear
-            item->SetModifier(ITEM_MODIFIER_TRANSMOG_APPEARANCE_ALL_SPECS,
-                             item->GetModifier(ITEM_MODIFIER_TRANSMOG_APPEARANCE_ALL_SPECS));
-            // Set the secondary appear
+            item->SetModifier(ITEM_MODIFIER_TRANSMOG_APPEARANCE_ALL_SPECS, savedPrimary);
             item->SetModifier(ITEM_MODIFIER_TRANSMOG_SECONDARY_APPEARANCE_ALL_SPECS, modApID);
         }
         else
         {
             item->SetModifier(ITEM_MODIFIER_TRANSMOG_APPEARANCE_ALL_SPECS, modApID);
+            item->SetModifier(ITEM_MODIFIER_TRANSMOG_SECONDARY_APPEARANCE_ALL_SPECS, modApID);
         }
 
         // Updating item status and display

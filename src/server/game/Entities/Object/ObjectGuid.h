@@ -298,6 +298,12 @@ public:
     static ObjectGuid CreateLFGList(uint8 arg1, uint64 counter);
     static ObjectGuid CreateClient(HighGuid type, uint32 realmId, uint32 arg1, uint64 counter);
     static ObjectGuid CreateClubFinder(uint32 realmId, uint8 type, uint32 clubFinderId, uint64 dbId);
+    // Retail 12.0.x guild club finder posting layout, recovered from a live capture: the high
+    // qword carries HighGuid::ClubFinder << 58, a type tag of 0x05 in bits 32..34 and the
+    // posting id in the low dword; the low qword is the club id. The classic CreateClubFinder
+    // layout (type << 33 | realm << 42 for type 1) puts a bit at 42 which makes the client's
+    // GetClubTypeFromFinderGUID (hi >> 33) decode fail, so the record is silently dropped.
+    static ObjectGuid CreateClubFinderPosting(uint32 postingId, uint64 clubId);
     static ObjectGuid CreateToolsClient(uint16 mapId, uint32 serverId, uint64 counter);
     static ObjectGuid CreateWorldLayer(uint32 arg1, uint16 arg2, uint8 arg3, uint32 arg4);
     static ObjectGuid CreateLMMLobby(uint32 realmId, uint32 arg2, uint8 arg3, uint8 arg4, uint64 counter);
@@ -323,7 +329,7 @@ class TC_GAME_API ObjectGuid
         constexpr ObjectGuid() = default;
 
         uint64 GetRawValue(std::size_t i) const { return _data[i]; }
-        std::span<uint8 const, 16> GetRawValue() const { return std::span<uint8 const, 16>(reinterpret_cast<uint8 const*>(_data.data()), BytesSize); }
+        std::span<uint8 const, BytesSize> GetRawValue() const { return std::span<uint8 const, BytesSize>(reinterpret_cast<uint8 const*>(_data.data()), BytesSize); }
         void SetRawValue(std::span<uint8 const> rawBytes);
         void SetRawValue(uint64 high, uint64 low) { _data[0] = low; _data[1] = high; }
         void Clear() { _data = { }; }

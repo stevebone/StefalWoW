@@ -73,6 +73,8 @@ inline constexpr ::RealmFlags ConvertLegacyRealmFlags(RealmFlags legacyRealmFlag
     ::RealmFlags realmFlags = ::RealmFlags::None;
     if (legacyRealmFlags & REALM_FLAG_VERSION_MISMATCH)
         realmFlags |= ::RealmFlags::VersionMismatch;
+    if (legacyRealmFlags & REALM_FLAG_OFFLINE)
+        realmFlags |= ::RealmFlags::Hidden;
     return realmFlags;
 }
 
@@ -137,6 +139,13 @@ inline constexpr uint32 HARDCODED_DEVELOPMENT_REALM_CATEGORY_ID = 1;
 // Storage object for a realm
 struct TC_SHARED_API Realm
 {
+    Realm();
+    Realm(Realm const& other);
+    Realm(Realm&& other) noexcept;
+    Realm& operator=(Realm const& other);
+    Realm& operator=(Realm&& other) noexcept;
+    ~Realm();
+
     Battlenet::RealmHandle Id;
     uint32 Build;
     std::vector<boost::asio::ip::address> Addresses;

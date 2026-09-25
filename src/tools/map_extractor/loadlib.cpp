@@ -16,8 +16,11 @@
  */
 
 #include "loadlib.h"
+#include "LocalFileDataStore.h"
+#include "StringFormat.h"
 #include <CascLib.h>
 #include <algorithm>
+#include <fstream>
 
 ChunkedFile::ChunkedFile()
 {
@@ -79,6 +82,47 @@ bool ChunkedFile::loadFile(std::shared_ptr<CASC::Storage const> mpq, uint32 file
         return true;
 
     printf("Error loading %s\n", description.c_str());
+    free();
+
+    return false;
+}
+
+bool ChunkedFile::loadFile(std::string const& fileName, bool log)
+{
+    free();
+
+    // In non-custom mode there is no local file to read.
+    if (!sLocalFileDataStore->IsCustomMode())
+        return false;
+
+    std::string fullPath = Trinity::StringFormat("{}\\{}", sLocalFileDataStore->GetCustomPath(), fileName);
+    std::ifstream file(fullPath, std::ios::binary | std::ios::ate);
+    if (!file)
+        return false;
+
+    int64 fileSize = file.tellg();
+    if (fileSize <= 0)
+        return false;
+
+    data_size = uint32(fileSize);
+    data = new uint8[data_size];
+    file.seekg(0, std::ios::beg);
+    if (!file.read(reinterpret_cast<char*>(data), data_size))
+    {
+        // Read failed - clean up and report failure so the caller falls back to CASC.
+        delete[] data;
+        data = nullptr;
+        data_size = 0;
+        return false;
+    }
+    file.close();
+
+    parseChunks();
+    if (prepareLoadedData())
+        return true;
+
+    if (log)
+        printf("Error loading %s\n", fileName.c_str());
     free();
 
     return false;

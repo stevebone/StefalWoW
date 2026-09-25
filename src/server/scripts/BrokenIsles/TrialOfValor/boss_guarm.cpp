@@ -378,7 +378,7 @@ class spell_multi_headed_proc_guarm : public AuraScript
 {
     void HandleProc(ProcEventInfo& eventInfo)
     {
-        GetTarget()->CastSpell(eventInfo.GetProcTarget(), SPELL_MULTI_HEADED_DAMAGE);
+        GetTarget()->CastSpell(eventInfo.GetActionTarget(), SPELL_MULTI_HEADED_DAMAGE);
     }
 
     void Register() override
@@ -418,7 +418,7 @@ class spell_lick_selector_guarm : public SpellScript
 
     void HandleHitTarget(SpellEffIndex /*effIndex*/)
     {
-        GetCaster()->CastSpell(GetHitUnit(), GetEffectValue(), true);
+        GetCaster()->CastSpell(GetHitUnit(), GetEffectValueAsInt(), true);
     }
 
     void Register() override
@@ -728,7 +728,7 @@ class spell_volatile_foam_selector : public SpellScript
 
     void HandleHitTarget(SpellEffIndex /*effIndex*/)
     {
-        GetCaster()->CastSpell(GetHitUnit(), GetEffectValue(), true);
+        GetCaster()->CastSpell(GetHitUnit(), GetEffectValueAsInt(), true);
     }
 
     void Register() override
@@ -769,7 +769,7 @@ class spell_volatile_foam_aura : public AuraScript
     {
         return ValidateSpellEffect({ { spellInfo->Id, EFFECT_0 } }) && ValidateSpellInfo(
         {
-            (uint32)spellInfo->GetEffect(EFFECT_0).CalcValue(), // SpellIdOnDispel
+            (uint32)spellInfo->GetEffect(EFFECT_0).CalcValueAsInt(), // SpellIdOnDispel
             SpellIdOnExpire
         });
     }
@@ -782,7 +782,7 @@ class spell_volatile_foam_aura : public AuraScript
         if (removeMode == AURA_REMOVE_BY_EXPIRE)
             target->CastSpell(target, SpellIdOnExpire);
         else if (removeMode == AURA_REMOVE_BY_ENEMY_SPELL)
-            target->CastSpell(nullptr, GetSpellInfo()->GetEffect(EFFECT_0).CalcValue());
+            target->CastSpell(nullptr, GetSpellInfo()->GetEffect(EFFECT_0).CalcValueAsInt());
     }
 
     void Register() override

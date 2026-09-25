@@ -604,3 +604,340 @@ CREATE TABLE `pvp_bracket_types` (
   `VerifiedBuild` int NOT NULL DEFAULT '0',
   PRIMARY KEY (`ID`, `VerifiedBuild`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Perks Activity Condition
+CREATE TABLE IF NOT EXISTS `perks_activity_condition` (
+    `ID` int(10) unsigned NOT NULL DEFAULT 0,
+    `PlayerConditionID` int(11) NOT NULL DEFAULT 0,
+    `Field_002` int(11) NOT NULL DEFAULT 0,
+    `PerksActivityID` int(11) NOT NULL DEFAULT 0,
+    `VerifiedBuild` int(11) NOT NULL DEFAULT 0,
+    PRIMARY KEY (`ID`, `VerifiedBuild`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Perks Activity Tag
+CREATE TABLE IF NOT EXISTS `perks_activity_tag` (
+    `ID` int(10) unsigned NOT NULL DEFAULT 0,
+    `TagName` text,
+    `VerifiedBuild` int(11) NOT NULL DEFAULT 0,
+    PRIMARY KEY (`ID`, `VerifiedBuild`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Perks Activity Tag Locale
+CREATE TABLE IF NOT EXISTS `perks_activity_tag_locale` (
+    `ID` int(10) unsigned NOT NULL DEFAULT 0,
+    `locale` varchar(4) NOT NULL,
+    `TagName_lang` text,
+    `VerifiedBuild` int(11) NOT NULL DEFAULT 0,
+    PRIMARY KEY (`ID`, `locale`, `VerifiedBuild`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Perks Activity X Holidays
+CREATE TABLE IF NOT EXISTS `perks_activity_x_holidays` (
+    `ID` int(10) unsigned NOT NULL DEFAULT 0,
+    `HolidayID` int(11) NOT NULL DEFAULT 0,
+    `PerksActivityID` int(11) NOT NULL DEFAULT 0,
+    `VerifiedBuild` int(11) NOT NULL DEFAULT 0,
+    PRIMARY KEY (`ID`, `VerifiedBuild`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Perks Activity X Tag
+CREATE TABLE IF NOT EXISTS `perks_activity_x_tag` (
+    `ID` int(10) unsigned NOT NULL DEFAULT 0,
+    `PerksActivityTagID` int(11) NOT NULL DEFAULT 0,
+    `PerksActivityID` int(11) NOT NULL DEFAULT 0,
+    `VerifiedBuild` int(11) NOT NULL DEFAULT 0,
+    PRIMARY KEY (`ID`, `VerifiedBuild`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Perks UI Theme
+CREATE TABLE IF NOT EXISTS `perks_ui_theme` (
+    `ID` int(10) unsigned NOT NULL DEFAULT 0,
+    `UiTextureKitID` int(11) NOT NULL DEFAULT 0,
+    `Field_002` int(11) NOT NULL DEFAULT 0,
+    `VerifiedBuild` int(11) NOT NULL DEFAULT 0,
+    PRIMARY KEY (`ID`, `VerifiedBuild`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Perks Vendor Category
+CREATE TABLE IF NOT EXISTS `perks_vendor_category` (
+    `ID` int(10) unsigned NOT NULL DEFAULT 0,
+    `DisplayName` text,
+    `PerksVendorType` int(11) NOT NULL DEFAULT 0,
+    `DefaultUIModelSceneID` int(11) NOT NULL DEFAULT 0,
+    `VerifiedBuild` int(11) NOT NULL DEFAULT 0,
+    PRIMARY KEY (`ID`, `VerifiedBuild`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Perks Vendor Category Locale
+CREATE TABLE IF NOT EXISTS `perks_vendor_category_locale` (
+    `ID` int(10) unsigned NOT NULL DEFAULT 0,
+    `locale` varchar(4) NOT NULL,
+    `DisplayName_lang` text,
+    `VerifiedBuild` int(11) NOT NULL DEFAULT 0,
+    PRIMARY KEY (`ID`, `locale`, `VerifiedBuild`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Perks Vendor Item (DB2)
+CREATE TABLE IF NOT EXISTS `perks_vendor_item` (
+    `ID` int(10) unsigned NOT NULL DEFAULT 0,
+    `PerksVendorCategoryID` tinyint(4) NOT NULL DEFAULT 0,
+    `Field_10_0_5_47118_002` int(11) NOT NULL DEFAULT 0,
+    `ItemID` int(11) NOT NULL DEFAULT 0,
+    `Field_10_0_5_47118_004` int(11) NOT NULL DEFAULT 0,
+    `CreatureDisplayInfoID` int(11) NOT NULL DEFAULT 0,
+    `Cost` int(11) NOT NULL DEFAULT 0,
+    `UiModelSceneID` int(11) NOT NULL DEFAULT 0,
+    `UiGroupInfo` int(11) NOT NULL DEFAULT 0,
+    `VerifiedBuild` int(11) NOT NULL DEFAULT 0,
+    PRIMARY KEY (`ID`, `VerifiedBuild`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Perks Vendor Item UI Group
+CREATE TABLE IF NOT EXISTS `perks_vendor_item_ui_group` (
+    `ID` int(10) unsigned NOT NULL DEFAULT 0,
+    `Name` text,
+    `Priority` int(11) NOT NULL DEFAULT 0,
+    `VerifiedBuild` int(11) NOT NULL DEFAULT 0,
+    PRIMARY KEY (`ID`, `VerifiedBuild`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Perks Vendor Item UI Group Locale
+CREATE TABLE IF NOT EXISTS `perks_vendor_item_ui_group_locale` (
+    `ID` int(10) unsigned NOT NULL DEFAULT 0,
+    `locale` varchar(4) NOT NULL,
+    `Name_lang` text,
+    `VerifiedBuild` int(11) NOT NULL DEFAULT 0,
+    PRIMARY KEY (`ID`, `locale`, `VerifiedBuild`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Perks Vendor Item UI Info
+CREATE TABLE IF NOT EXISTS `perks_vendor_item_ui_info` (
+    `ID` int(10) unsigned NOT NULL DEFAULT 0,
+    `Field_10_0_5_47118_001` int(11) NOT NULL DEFAULT 0,
+    `CreatureDisplayInfoID` int(11) NOT NULL DEFAULT 0,
+    `Field_10_2_5_52206_003` int(11) NOT NULL DEFAULT 0,
+    `VerifiedBuild` int(11) NOT NULL DEFAULT 0,
+    PRIMARY KEY (`ID`, `VerifiedBuild`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Perks Vendor Item X Interval
+CREATE TABLE IF NOT EXISTS `perks_vendor_item_x_interval` (
+    `ID` int(10) unsigned NOT NULL DEFAULT 0,
+    `PerksVendorItemID` int(11) NOT NULL DEFAULT 0,
+    `PerksActivityThresholdID` int(11) NOT NULL DEFAULT 0,
+    `VerifiedBuild` int(11) NOT NULL DEFAULT 0,
+    PRIMARY KEY (`ID`, `VerifiedBuild`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Perks Activity Threshold
+CREATE TABLE IF NOT EXISTS `perks_activity_threshold` (
+  `ID` int unsigned NOT NULL DEFAULT '0',
+  `PerksActivityCount` int NOT NULL DEFAULT '0',
+  `CurrencyAmount` int NOT NULL DEFAULT '0',
+  `Unknown` int NOT NULL DEFAULT '0',
+  `ThresholdGroupID` int unsigned NOT NULL DEFAULT '0',
+  `VerifiedBuild` int NOT NULL DEFAULT '0',
+  PRIMARY KEY (`ID`,`VerifiedBuild`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Perks Activity Threshold Group
+CREATE TABLE IF NOT EXISTS `perks_activity_threshold_group` (
+  `Name` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `ID` int unsigned NOT NULL DEFAULT '0',
+  `Unknown` int NOT NULL DEFAULT '0',
+  `VerifiedBuild` int NOT NULL DEFAULT '0',
+  PRIMARY KEY (`ID`,`VerifiedBuild`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Perks Activity Threshold Group Locale
+CREATE TABLE IF NOT EXISTS `perks_activity_threshold_group_locale` (
+  `ID` int unsigned NOT NULL DEFAULT '0',
+  `locale` varchar(4) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `Name_lang` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `VerifiedBuild` int NOT NULL DEFAULT '0',
+  PRIMARY KEY (`ID`,`locale`,`VerifiedBuild`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Perks Activity X Interval
+CREATE TABLE IF NOT EXISTS `perks_activity_x_interval` (
+  `ID` int unsigned NOT NULL DEFAULT '0',
+  `PerksActivityID` int NOT NULL DEFAULT '0',
+  `IntervalID` int unsigned NOT NULL DEFAULT '0',
+  `VerifiedBuild` int NOT NULL DEFAULT '0',
+  PRIMARY KEY (`ID`,`VerifiedBuild`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ----------------------------
+-- Table structure for ui_chromie_time_expansion_info
+-- ----------------------------
+DROP TABLE IF EXISTS `ui_chromie_time_expansion_info`;
+CREATE TABLE `ui_chromie_time_expansion_info`  (
+  `ID` int UNSIGNED NOT NULL DEFAULT 0,
+  `Name` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
+  `Description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
+  `AllianceOverrideDesc` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
+  `HordeOverrideDesc` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
+  `SpellID` int NOT NULL DEFAULT 0,
+  `MapAtlasElement` int NOT NULL DEFAULT 0,
+  `PreviewAtlasElement` int NOT NULL DEFAULT 0,
+  `ShowPlayerConditionID` int NOT NULL DEFAULT 0,
+  `ExpansionMask` int NOT NULL DEFAULT 0,
+  `ContentTuningID` int NOT NULL DEFAULT 0,
+  `CompletedPlayerConditionID` int NOT NULL DEFAULT 0,
+  `SortPriority` int NOT NULL DEFAULT 0,
+  `RecommendPlayerConditionID` int NOT NULL DEFAULT 0,
+  `VerifiedBuild` int NOT NULL DEFAULT 0,
+  PRIMARY KEY (`ID`, `VerifiedBuild`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Table structure for ui_chromie_time_expansion_info_locale
+-- ----------------------------
+DROP TABLE IF EXISTS `ui_chromie_time_expansion_info_locale`;
+CREATE TABLE `ui_chromie_time_expansion_info_locale`  (
+  `ID` int UNSIGNED NOT NULL DEFAULT 0,
+  `locale` varchar(4) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `Name_lang` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
+  `Description_lang` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
+  `AllianceOverrideDesc_lang` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
+  `HordeOverrideDesc_lang` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
+  `VerifiedBuild` int NOT NULL DEFAULT 0,
+  PRIMARY KEY (`ID`, `locale`, `VerifiedBuild`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+/*!50500 PARTITION BY LIST  COLUMNS(locale)
+(PARTITION deDE VALUES IN ('deDE') ENGINE = InnoDB,
+ PARTITION esES VALUES IN ('esES') ENGINE = InnoDB,
+ PARTITION esMX VALUES IN ('esMX') ENGINE = InnoDB,
+ PARTITION frFR VALUES IN ('frFR') ENGINE = InnoDB,
+ PARTITION itIT VALUES IN ('itIT') ENGINE = InnoDB,
+ PARTITION koKR VALUES IN ('koKR') ENGINE = InnoDB,
+ PARTITION ptBR VALUES IN ('ptBR') ENGINE = InnoDB,
+ PARTITION ruRU VALUES IN ('ruRU') ENGINE = InnoDB,
+ PARTITION zhCN VALUES IN ('zhCN') ENGINE = InnoDB,
+ PARTITION zhTW VALUES IN ('zhTW') ENGINE = InnoDB) */;
+ 
+--
+-- Table structure for table `chat_profanity`
+--
+
+DROP TABLE IF EXISTS `chat_profanity`;
+CREATE TABLE `chat_profanity` (
+  `ID` int unsigned NOT NULL DEFAULT '0',
+  `Text` text,
+  `Language` tinyint NOT NULL DEFAULT '0',
+  `VerifiedBuild` int NOT NULL DEFAULT '0',
+  PRIMARY KEY (`ID`,`VerifiedBuild`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Table structure for table `chat_profanity_locale`
+--
+
+DROP TABLE IF EXISTS `chat_profanity_locale`;
+CREATE TABLE `chat_profanity_locale` (
+  `ID` int unsigned NOT NULL DEFAULT '0',
+  `locale` varchar(4) NOT NULL,
+  `Text_lang` text,
+  `VerifiedBuild` int NOT NULL DEFAULT '0',
+  PRIMARY KEY (`ID`,`locale`,`VerifiedBuild`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+/*!50500 PARTITION BY LIST  COLUMNS(locale)
+(PARTITION deDE VALUES IN ('deDE') ENGINE = InnoDB,
+ PARTITION esES VALUES IN ('esES') ENGINE = InnoDB,
+ PARTITION esMX VALUES IN ('esMX') ENGINE = InnoDB,
+ PARTITION frFR VALUES IN ('frFR') ENGINE = InnoDB,
+ PARTITION itIT VALUES IN ('itIT') ENGINE = InnoDB,
+ PARTITION koKR VALUES IN ('koKR') ENGINE = InnoDB,
+ PARTITION ptBR VALUES IN ('ptBR') ENGINE = InnoDB,
+ PARTITION ruRU VALUES IN ('ruRU') ENGINE = InnoDB,
+ PARTITION zhCN VALUES IN ('zhCN') ENGINE = InnoDB,
+ PARTITION zhTW VALUES IN ('zhTW') ENGINE = InnoDB) */;
+	
+--
+-- Table structure for table `guild_tabard_emblem`
+--
+
+DROP TABLE IF EXISTS `guild_tabard_emblem`;
+CREATE TABLE `guild_tabard_emblem` (
+  `ID` int unsigned NOT NULL DEFAULT '0',
+  `Component` int NOT NULL DEFAULT '0',
+  `Color` int NOT NULL DEFAULT '0',
+  `FileDataID` int NOT NULL DEFAULT '0',
+  `EmblemID` int NOT NULL DEFAULT '0',
+  `VerifiedBuild` int NOT NULL DEFAULT '0',
+  PRIMARY KEY (`ID`,`VerifiedBuild`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Table structure for table `guild_tabard_background`
+--
+
+DROP TABLE IF EXISTS `guild_tabard_background`;
+CREATE TABLE `guild_tabard_background` (
+  `ID` int unsigned NOT NULL DEFAULT '0',
+  `Tier` int NOT NULL DEFAULT '0',
+  `Component` int NOT NULL DEFAULT '0',
+  `FileDataID` int NOT NULL DEFAULT '0',
+  `Color` int NOT NULL DEFAULT '0',
+  `VerifiedBuild` int NOT NULL DEFAULT '0',
+  PRIMARY KEY (`ID`,`VerifiedBuild`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Table structure for table `guild_tabard_border`
+--
+
+DROP TABLE IF EXISTS `guild_tabard_border`;
+CREATE TABLE `guild_tabard_border` (
+  `ID` int unsigned NOT NULL DEFAULT '0',
+  `BorderID` int NOT NULL DEFAULT '0',
+  `Tier` int NOT NULL DEFAULT '0',
+  `Component` int NOT NULL DEFAULT '0',
+  `FileDataID` int NOT NULL DEFAULT '0',
+  `Color` int NOT NULL DEFAULT '0',
+  `VerifiedBuild` int NOT NULL DEFAULT '0',
+  PRIMARY KEY (`ID`,`VerifiedBuild`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Table structure for table `drive_capability`
+--
+
+DROP TABLE IF EXISTS `drive_capability`;
+CREATE TABLE `drive_capability` (
+    `ID`                INT UNSIGNED NOT NULL,
+    `ForwardAcceleration` FLOAT NOT NULL,
+    `BackwardMaxSpeed`    FLOAT NOT NULL,
+    `IdleFriction`        FLOAT NOT NULL,
+    `BackwardAcceleration` FLOAT NOT NULL,
+    `Field_5`             FLOAT NOT NULL,
+    `Field_6`             FLOAT NOT NULL,
+    `Field_7`             FLOAT NOT NULL,
+    `Field_8`             FLOAT NOT NULL,
+    `Field_9`             FLOAT NOT NULL,
+    `Field_10`            FLOAT NOT NULL,
+    `Field_11`            FLOAT NOT NULL,
+    `Field_12`            FLOAT NOT NULL,
+    `Field_13`            FLOAT NOT NULL,
+    `Field_14`            FLOAT NOT NULL,
+    `Field_15`            FLOAT NOT NULL,
+    `Field_16`            FLOAT NOT NULL,
+    `VerifiedBuild`       INT NOT NULL DEFAULT 0,
+    PRIMARY KEY (`ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Table structure for table `drive_capability_tier`
+--
+
+DROP TABLE IF EXISTS `drive_capability_tier`;
+CREATE TABLE `drive_capability_tier` (
+    `ID`                INT UNSIGNED NOT NULL,
+    `Acceleration`      FLOAT NOT NULL,
+    `MaxSpeed`          FLOAT NOT NULL,
+    `DriveCapabilityID` INT NOT NULL,
+    `OrderIndex`        INT NOT NULL,
+    `VerifiedBuild`     INT NOT NULL DEFAULT 0,
+    PRIMARY KEY (`ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

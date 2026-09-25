@@ -1,6 +1,6 @@
-################################################
-# Trinity Core World Server configuration file #
-################################################
+###############################################
+# TrinityCore World Server configuration file #
+###############################################
 [worldserver]
 
 ###################################################################################################
@@ -70,6 +70,8 @@
 
 RealmID = 1
 
+CharacterSelect.ExtraRealms = "auto"
+
 #
 #    DataDir
 #        Description: Data directory setting.
@@ -83,7 +85,7 @@ DataDir = "."
 #    LogsDir
 #        Description: Logs directory setting.
 #        Important:   LogsDir needs to be quoted, as the string might contain space characters.
-#                     Logs directory must exists, or log file creation will be disabled.
+#                     Logs directory must exist, or log file creation will be disabled.
 #        Default:     "" - (Log files will be stored in the current path)
 
 LogsDir = ""
@@ -127,7 +129,7 @@ RoleplayDatabaseInfo  = "127.0.0.1;3306;trinity;trinity;roleplay"
 #    CharacterDatabase.WorkerThreads
 #    HotfixDatabase.WorkerThreads
 #    RoleplayDatabase.WorkerThreads
-#        Description: The amount of worker threads spawned to handle asynchronous (delayed) MySQL
+#        Description: The number of worker threads spawned to handle asynchronous (delayed) MySQL
 #                     statements. Each worker thread is mirrored with its own connection to the
 #                     MySQL server and their own thread on the MySQL server.
 #        Default:     1 - (LoginDatabase.WorkerThreads)
@@ -147,7 +149,7 @@ RoleplayDatabase.WorkerThreads  = 1
 #    CharacterDatabase.SynchThreads
 #    HotfixDatabase.SynchThreads
 #    RoleplayDatabase.SynchThreads
-#        Description: The amount of MySQL connections spawned to handle.
+#        Description: The number of MySQL connections spawned to handle.
 #        Default:     1 - (LoginDatabase.SynchThreads)
 #                     1 - (WorldDatabase.SynchThreads)
 #                     2 - (CharacterDatabase.SynchThreads)
@@ -199,7 +201,7 @@ ThreadPool = 2
 #    CMakeCommand
 #        Description: The path to your CMake binary.
 #                     If the path is left empty, the built-in CMAKE_COMMAND is used.
-#        Example:     "C:/Program Files (x86)/CMake/bin/cmake.exe"
+#        Example:     "C:/Program Files/CMake/bin/cmake.exe"
 #                     "/usr/bin/cmake"
 #        Default:     ""
 
@@ -227,7 +229,7 @@ SourceDirectory  = ""
 #    MySQLExecutable
 #        Description: The path to your MySQL CLI binary.
 #                     If the path is left empty, built-in path from cmake is used.
-#        Example:     "C:/Program Files/MySQL/MySQL Server 5.6/bin/mysql.exe"
+#        Example:     "C:/Program Files/MySQL/MySQL Server 8.0/bin/mysql.exe"
 #                     "mysql.exe"
 #                     "/usr/bin/mysql"
 #        Default:     ""
@@ -261,7 +263,7 @@ UseProcessors = 0
 #
 #    ProcessPriority
 #        Description: Process priority setting for Windows and Linux based systems.
-#        Details:     On Linux, a nice value of -15 is used. (requires superuser).
+#        Details:     On Linux, a nice value of -15 is used (requires superuser).
 #                     On Windows, process is set to HIGH class.
 #        Default:     0 - (Normal)
 #                     1 - (High)
@@ -640,6 +642,13 @@ GameType = 0
 RealmZone = 1
 
 #
+#    ExtendedAccountNameLengthLimit
+#        Description: Extends account name limit from 16 (retail-like) to 64 characters
+#        Default      0
+
+ExtendedAccountNameLengthLimit = 0
+
+#
 #    StrictPlayerNames
 #        Description: Limit player name to language specific symbol set. Prevents character
 #                     creation and forces rename request if not allowed symbols are used
@@ -772,6 +781,13 @@ ArenaTeam.CharterCost.5v5 = 2000000
 #        Default:     50 - (stable)
 
 MaxWhoListReturns = 50
+
+#
+#    WhoList.Update.Interval
+#        Description: Interval in seconds for Who List to get updated
+#        Default:     5 (seconds)
+
+WhoList.Update.Interval = 5
 
 #
 #    CharacterCreating.Disabled
@@ -938,23 +954,15 @@ StartDeathKnightPlayerLevel = 8
 
 #
 #    StartDemonHunterPlayerLevel
-#        Description: Staring level for demon hunters after creation.
+#        Description: Starting level for demon hunters after creation.
 #        Range:       1-MaxPlayerLevel
 #        Default:     8
 
 StartDemonHunterPlayerLevel = 8
 
 #
-#    StartEvokerPlayerLevel
-#        Description: Staring level for evokers after creation.
-#        Range:       1-MaxPlayerLevel
-#        Default:     10
-
-StartEvokerPlayerLevel = 10
-
-#
 #    StartAlliedRacePlayerLevel
-#        Description: Staring level for allied races after creation.
+#        Description: Starting level for allied races after creation.
 #        Range:       1-MaxPlayerLevel
 #        Default:     10
 
@@ -967,6 +975,38 @@ StartAlliedRacePlayerLevel = 10
 #                     100 - (1 Silver)
 
 StartPlayerMoney = 0
+
+#
+#    StartDeathKnightPlayerMoney
+#        Description: Amount of money (in Copper) that a death knight character has after creation.
+#        Default:     2000
+#                     100 - (1 Silver)
+
+StartDeathKnightPlayerMoney = 2000
+
+#
+#    StartDemonHunterPlayerMoney
+#        Description: Amount of money (in Copper) that a demon hunter character has after creation.
+#        Default:     0
+#                     100 - (1 Silver)
+
+StartDemonHunterPlayerMoney = 0
+
+#
+#    StartEvokerPlayerMoney
+#        Description: Amount of money (in Copper) that a evoker character has after creation.
+#        Default:     0
+#                     100 - (1 Silver)
+
+StartEvokerPlayerMoney = 0
+
+#
+#    StartAlliedRacePlayerMoney
+#        Description: Amount of money (in Copper) that a allied race character has after creation.
+#        Default:     10000
+#                     100 - (1 Silver)
+
+StartAlliedRacePlayerMoney = 10000
 
 #
 #    RecruitAFriend.MaxLevel
@@ -1215,6 +1255,38 @@ Guild.NewsLogRecordsCount = 250
 Guild.SaveInterval = 15
 
 #
+#    Guild.Rename.Enabled
+#        Description: Enable the in-game guild rename flow (CMSG_GUILD_REQUEST_RENAME* cluster).
+#        Default:     1 - (Enabled)
+#                     0 - (Disabled)
+
+Guild.Rename.Enabled = 1
+
+#
+#    Guild.Rename.Cost
+#        Description: Price (in copper) charged from the GUILD BANK for a guild rename.
+#        Default:     1000000 (100 gold)
+
+Guild.Rename.Cost = 1000000
+
+#
+#    Guild.Rename.Cooldown
+#        Description: Time (in seconds) that must pass after a paid rename before the guild can
+#                     rename again. 0 disables the cooldown.
+#        Default:     0
+
+Guild.Rename.Cooldown = 0
+
+#
+#    Guild.Rename.RefundWindow
+#        Description: Time (in seconds) during which the last paid rename can be refunded (the old
+#                     name is restored and the fee returned to the guild bank). 0 keeps it open
+#                     indefinitely.
+#        Default:     604800 (7 days)
+
+Guild.Rename.RefundWindow = 604800
+
+#
 #    MaxPrimaryTradeSkill
 #        Description: Maximum number of primary professions a character can learn.
 #        Range:       0-11
@@ -1249,7 +1321,7 @@ MaxRecruitAFriendBonusDistance = 100
 #
 #    MinQuestScaledXPRatio
 #        Description: Min ratio of experience that a quest can grant when player level scaling is factored.
-#        Example:     50 (No less than 50% experience granted from a lower leveled quests completion)
+#        Example:     50 (No less than 50% experience granted from a lower-level quests completion)
 #                     100 (Quests always grant full experience upon completion)
 #        Default:     0 - (Quests too low may grant no experience)
 
@@ -1257,9 +1329,9 @@ MinQuestScaledXPRatio = 0
 
 #
 #    MinCreatureScaledXPRatio
-#        Description: Min ratio of experience that a creature kill can grant when player level scaling is factored.  This
-#                     will also allow spell procs to trigger, such as Drain Soul, if > 0 and exp is grantable.
-#        Example:     50 (No less than 50% experience granted from a lower leveled creature kill)
+#        Description: Min ratio of experience that a creature kill can grant when player level scaling is factored.
+#                     This will also allow spell procs to trigger, such as Drain Soul, if > 0 and experience is grantable.
+#        Example:     50 (No less than 50% experience granted from a lower-level creature kill)
 #                     100 (Creature kills always grant full experience upon kill)
 #        Default:     0 - (Creatures too low may grant no experience)
 
@@ -1349,10 +1421,10 @@ FlashAtStart = 1
 #
 #    Motd
 #        Description: Message of the Day, displayed at login. Use '@' for a newline.
-#        Example:     "Welcome to John's Server!@This server is proud to be powered by Trinity Core."
-#        Default:     "Welcome to a Trinity Core server."
+#        Example:     "Welcome to John's Server!@This server is proud to be powered by TrinityCore."
+#        Default:     "Welcome to a TrinityCore server."
 
-Motd = "Welcome to a Trinity Core server."
+Motd = "Welcome to a TrinityCore server."
 
 #
 #    Server.LoginInfo
@@ -1390,7 +1462,7 @@ DBC.EnforceItemAttributes = 1
 
 #
 #   AccountInstancesPerHour
-#        Description: Controls the max amount of different instances player can enter within hour.
+#        Description: Controls the maximum number of individual instances player can enter per hour.
 #        Default:     10
 
 AccountInstancesPerHour = 10
@@ -1524,7 +1596,7 @@ Updates.AllowRehash = 1
 
 #
 #    Updates.CleanDeadRefMaxCount
-#        Description: Cleans dead/ orphaned references that occur if an update was removed or renamed and edited in one step.
+#        Description: Cleans dead/orphaned references that occur if an update was removed or renamed and edited in one step.
 #                     It only starts the clean up if the count of the missing updates is below or equal the Updates.CleanDeadRefMaxCount value.
 #                     This way prevents erasing of the update history due to wrong source directory state (maybe wrong branch or bad revision).
 #                     Disable this if you want to know if the database is in a possible "dirty state".
@@ -1647,12 +1719,12 @@ AllowTwoSide.Interaction.Guild = 0
 #    AllowTwoSide.Interaction.Auction
 #        Description: Allow auctions between factions.
 #                     This results in all auctions being handled as if placed in the neutral
-#                     auction house and will intentionally lock acces to the Horde and Alliance AH.
+#                     auction house and will intentionally lock access to the Horde and Alliance AH.
 #                     Deposit fee and auction cut values will be taken from neutral auction house.
 #                     If used in combination with the AH-Bot, settings should be set for neutral
 #                     auction house only.
 #
-#                     Warning: changing this in production results in players loosing access to their
+#                     Warning: changing this in production results in players losing access to their
 #                     already placed auctions in the faction houses - these auctions will expire after
 #                     their regular timings.
 #        Default:     1 - (Enabled)
@@ -2156,6 +2228,25 @@ PreserveCustomChannelInterval = 5
 PreserveCustomChannelDuration = 14
 
 #
+#    Club.StreamHistory.MaxMessages
+#        Description: Number of messages kept per guild chat stream (General / Officer) for the
+#                     Communities (club) scrollback. When a player opens guild chat the client asks
+#                     the server for this history via GetStreamHistory.
+#        Default:     100 - (Enabled, Keep the newest 100 messages per stream)
+#                     0   - (Disabled, No history is stored or returned)
+
+Club.StreamHistory.MaxMessages = 100
+
+#
+#    Club.StreamHistory.MaxDays
+#        Description: Age based retention for club stream messages: anything older than this many
+#                     days is deleted on server startup.
+#        Default:     30 - (Enabled, Delete messages older than 30 days)
+#                     0  - (Disabled, Keep messages indefinitely, subject to MaxMessages)
+
+Club.StreamHistory.MaxDays = 30
+
+#
 #    PartyRaidWarnings
 #        Description: Allow any user to use raid warnings when in a 5-man party.
 #        Default:     0 - (Disabled, Blizzlike)
@@ -2250,8 +2341,12 @@ GM.AllowInvite = 0
 
 #
 #    GM.LowerSecurity
-#        Description: Allow lower security levels to use commands on higher security level
-#                     characters.
+#        Description: Disallow lower security levels to use commands on higher security level
+#                     characters. Regardless of this value, lower security check is always
+#                     enabled for accounts without RBAC_PERM_CAN_IGNORE_LOWER_SECURITY_CHECK.
+#                     This option also does not affect "strong" checks, such as in
+#                     certain .account and .rbac commands, which are always enabled.
+#
 #        Default:     0 - (Disabled)
 #                     1 - (Enabled)
 
@@ -3954,7 +4049,7 @@ AuctionHouseBot.Buyer.ChanceFactor = 2
 
 #
 #    AuctionHouseBot.Buyer.Baseprice.QUALITY
-#       Description: Base sell prices in copper for non priced items for each quality.
+#       Description: Base sell prices in copper for non-priced items for each quality.
 #                    The default values are based on average item prices of each quality.
 #       Defaults:    Gray   3504
 #                    White  5429
@@ -4496,6 +4591,31 @@ Roleplay.CustomNpc.CreatureTemplateIdStart = 400000
 #                     0  - (Disabled)
 
 SoloLFG.Enable = 0
+
+#
+###################################################################################################
+
+###################################################################################################
+#    PROFANITY FILTER BLOB SERVING
+#
+#    ProfanityFilter.ServeURL
+#        Description: Serve the client's profanity filter dictionary (the recruitment
+#                      description sanitizer's word list) from THIS worldserver over plain
+#                      HTTP instead of Blizzard's depot, so client descriptions keep working
+#                      when Blizzard is unreachable, and the filter list becomes freely
+#                      editable. The dictionary is built from "<DataDir>/profanity_filters.conf"
+#                      (one regular expression per line under [bad]/[reserved]/[hatespeech]
+#                      sections; the file is created with the retail ruRU list on first run and
+#                      re-read at startup - every edit changes the published hash, so clients
+#                      re-download). The template is handed to the client verbatim; ${hash} and
+#                      ${usage} are substituted by it. The worldserver listens on the port from
+#                      this URL on all interfaces - use the address players' clients can reach.
+#                      Leave empty to keep serving the retail depot URL (requires internet).
+#        Examples:     "http://192.168.0.10:8085/${hash}.${usage}"
+#                      "http://my.server.host:8085/${hash}.${usage}"
+#        Default:      ""  - (disabled, Blizzard depot is used)
+
+ProfanityFilter.ServeURL = ""
 
 #
 ###################################################################################################

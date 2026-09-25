@@ -681,7 +681,7 @@ namespace WorldPackets
             uint32 ItemID = 0;
             uint32 AchievementLogic = 0;
             std::vector<uint32> AchievementsRequired;
-            Trinity::RaceMask<uint64> RaceMask = { };
+            Trinity::RaceMask<int32, 2> RaceMask = { };
             int32 MinGuildLevel = 0;
             int32 MinGuildRep = 0;
             uint64 Cost = 0;
@@ -1192,6 +1192,237 @@ namespace WorldPackets
             WorldPacket const* Write() override;
 
             bool Success = true;
+        };
+
+        // ---------------------------------------------------------------------------------------------
+        // Guild recipe sharing (profession recipes known by the guild / by one member).
+        //
+        // The 600-byte recipe blob is the crux of this cluster. Its format was recovered from the client's
+        // own inverse mapping (RVA 0x23EAD10-0x23EADA7) and validated against live captures:
+        //
+        //   uint16 HeaderCount N; uint32 Header[N]; uint8 Bits[600 - 2 - 4*N]
+        //   byteOffset = (2 + 4*N) + UniqueBit/8 ;  bit = 1 << (UniqueBit % 8)
+        //
+        // Bit N is the SkillLineAbility row whose SkillLine == the SkillLineID sent alongside this blob and
+        // whose UniqueBit == N. Rows with UniqueBit == 0 have no bit and are skipped, so bit 0 is never set.
+        // The store was identified as SkillLineAbility by an exact metadata match (fieldCount 55,
+        // recordSize 17, indexField 2), and the rule was checked against 12 captured masks: 6343 set bits,
+        // 7 mismatches, all 7 from a single older 12.0.1 capture scored against 12.0.7 data.
+        //
+        // We always emit HeaderCount = 0, which is provably safe: no client code reads the header bytes (the
+        // sole blob reader has a single caller), and it is what retail sends for most professions. With
+        // N = 0 the bits start at byte offset 2.
+        //
+        // This REFUTES the older internal dossier, which described these responses as a 0x1B0-byte entry
+        // (0x4E0005) and a 0xd8-byte entry (0x4E0007). Both were wrong - the "0xd8 entries" were plain
+        // 16-byte GUIDs. See c:\dumps\GUILD_RECIPE_BITINDEX_RE_68275.md.
+        // ---------------------------------------------------------------------------------------------
+
+        std::size_t constexpr GUILD_RECIPE_BLOB_SIZE = 600;
+        using GuildRecipeBlob = std::array<uint8, GUILD_RECIPE_BLOB_SIZE>;
+
+        // CMSG_GUILD_QUERY_RECIPES (0x2D000B) = PackedGUID GuildGUID.
+        class GuildQueryRecipes final : public ClientPacket
+        {
+        public:
+            explicit GuildQueryRecipes(WorldPacket&& packet) : ClientPacket(CMSG_GUILD_QUERY_RECIPES, std::move(packet)) {}
+
+            void Read() override;
+
+            ObjectGuid GuildGUID;
+        };
+
+        // SMSG_GUILD_KNOWN_RECIPES (0x4E0006) = uint32 Count, Count x { uint32 SkillLineID, uint8 Blob[600] }.
+        class GuildKnownRecipes final : public ServerPacket
+        {
+        public:
+            struct SkillLineRecipes
+            {
+                uint32 SkillLineID = 0;
+                GuildRecipeBlob Blob = { };
+            };
+
+            explicit GuildKnownRecipes() : ServerPacket(SMSG_GUILD_KNOWN_RECIPES, 4) {}
+
+            WorldPacket const* Write() override;
+
+            std::vector<SkillLineRecipes> Data;
+        };
+
+        // CMSG_GUILD_QUERY_MEMBER_RECIPES (0x2D000A) = PackedGUID GuildGUID, PackedGUID MemberGUID, uint32 SkillLineID.
+        class GuildQueryMemberRecipes final : public ClientPacket
+        {
+        public:
+            explicit GuildQueryMemberRecipes(WorldPacket&& packet) : ClientPacket(CMSG_GUILD_QUERY_MEMBER_RECIPES, std::move(packet)) {}
+
+            void Read() override;
+
+            ObjectGuid GuildGUID;
+            ObjectGuid MemberGUID;
+            uint32 SkillLineID = 0;
+        };
+
+        // SMSG_GUILD_MEMBER_RECIPES (0x4E0005) = PackedGUID MemberGUID, uint32 A, uint32 B, uint32 C, uint8 Blob[600].
+        //
+        // The three uint32s are CONFIRMED as fields (reader at RVA 0x71EA91-0x71EAE2 does ReadPackedGUID then
+        // three ReadUInt32 into msg+0x30/+0x34/+0x38) but their NAMES are a HYPOTHESIS: they sit positionally
+        // identical to LegionCore-7.3.5's { Member, SkillLineID, SkillRank, SkillStep, mask }. No client code
+        // proves the names - the client stores the values, forwards them to the UI and gates on none of them.
+        // They are filled with the real skill line and the member's actual rank/max so the values stay sane
+        // under any reading, but SkillRank/SkillStep must not be treated as established.
+        class GuildMemberRecipes final : public ServerPacket
+        {
+        public:
+            explicit GuildMemberRecipes() : ServerPacket(SMSG_GUILD_MEMBER_RECIPES, 16 + 12 + int32(GUILD_RECIPE_BLOB_SIZE)) {}
+
+            WorldPacket const* Write() override;
+
+            ObjectGuid MemberGUID;
+            uint32 SkillLineID = 0;
+            uint32 SkillRank = 0;       // HYPOTHESIS - see class comment
+            uint32 SkillStep = 0;       // HYPOTHESIS - see class comment
+            GuildRecipeBlob Blob = { };
+        };
+
+        // CMSG_GUILD_QUERY_MEMBERS_FOR_RECIPE (0x2D000C) =
+        //   PackedGUID GuildGUID, uint32 SkillLineID, uint32 RecipeSpellID, uint32 RecipeLevel.
+        class GuildQueryMembersForRecipe final : public ClientPacket
+        {
+        public:
+            explicit GuildQueryMembersForRecipe(WorldPacket&& packet) : ClientPacket(CMSG_GUILD_QUERY_MEMBERS_FOR_RECIPE, std::move(packet)) {}
+
+            void Read() override;
+
+            ObjectGuid GuildGUID;
+            uint32 SkillLineID = 0;
+            uint32 RecipeSpellID = 0;
+            uint32 RecipeLevel = 0;
+        };
+
+        // SMSG_GUILD_MEMBERS_WITH_RECIPE (0x4E0007) =
+        //   uint32 SkillLineID, uint32 RecipeSpellID, uint32 MemberCount, MemberCount x PackedGUID.
+        //
+        // These field names are CONFIRMED, not hypothesised: the C binding GetGuildRecipeInfoPostQuery
+        // (RVA 0x20D50B0) pushes exactly these three globals in this order, and the UI declares
+        // `local skillLineID, recipeID, numMembers = GetGuildRecipeInfoPostQuery();`.
+        class GuildMembersWithRecipe final : public ServerPacket
+        {
+        public:
+            explicit GuildMembersWithRecipe() : ServerPacket(SMSG_GUILD_MEMBERS_WITH_RECIPE, 12) {}
+
+            WorldPacket const* Write() override;
+
+            uint32 SkillLineID = 0;
+            uint32 RecipeSpellID = 0;
+            std::vector<ObjectGuid> Members;
+        };
+
+        // CMSG_GUILD_REQUEST_RENAME_STATUS (0x2E0021)
+        class GuildRequestRenameStatus final : public ClientPacket
+        {
+        public:
+            explicit GuildRequestRenameStatus(WorldPacket&& packet) : ClientPacket(CMSG_GUILD_REQUEST_RENAME_STATUS, std::move(packet)) {}
+
+            void Read() override;
+
+            ObjectGuid GuildRegistrarGUID;
+        };
+
+        // CMSG_GUILD_REQUEST_RENAME_NAME_CHECK (0x2E0022)
+        class GuildRequestRenameNameCheck final : public ClientPacket
+        {
+        public:
+            explicit GuildRequestRenameNameCheck(WorldPacket&& packet) : ClientPacket(CMSG_GUILD_REQUEST_RENAME_NAME_CHECK, std::move(packet)) {}
+
+            void Read() override;
+
+            ObjectGuid GuildRegistrarGUID;
+            uint64 ClientToken = 0;      // purpose unverified; read to keep the stream aligned
+            std::string DesiredName;
+        };
+
+        // CMSG_GUILD_REQUEST_RENAME (0x2E0023)
+        class GuildRequestRename final : public ClientPacket
+        {
+        public:
+            explicit GuildRequestRename(WorldPacket&& packet) : ClientPacket(CMSG_GUILD_REQUEST_RENAME, std::move(packet)) {}
+
+            void Read() override;
+
+            ObjectGuid GuildRegistrarGUID;
+            std::string DesiredName;
+        };
+
+        // CMSG_GUILD_REQUEST_RENAME_REFUND (0x2E0024)
+        class GuildRequestRenameRefund final : public ClientPacket
+        {
+        public:
+            explicit GuildRequestRenameRefund(WorldPacket&& packet) : ClientPacket(CMSG_GUILD_REQUEST_RENAME_REFUND, std::move(packet)) {}
+
+            void Read() override;
+
+            ObjectGuid GuildRegistrarGUID;
+            std::string GuildName;      // client-supplied; server reverts to stored history, content unused
+        };
+
+        // SMSG_GUILD_RENAME_STATUS_UPDATE (0x510043) -> Lua GUILD_RENAME_STATUS_UPDATE (GuildRenameStatus)
+        // Field set from Blizzard_APIDocumentationGenerated/GuildInfoDocumentation.lua (GuildRenameStatus table).
+        // NOTE: only the CMSG wires are byte-RE-verified; the SMSG micro-layout below follows TC convention.
+        class GuildRenameStatusUpdate final : public ServerPacket
+        {
+        public:
+            explicit GuildRenameStatusUpdate() : ServerPacket(SMSG_GUILD_RENAME_STATUS_UPDATE, 96) {}
+
+            WorldPacket const* Write() override;
+
+            bool IsNameChangeEnabled = false;
+            bool IsPlayerGuildMaster = false;
+            int64 RefundEligibleEndTime = 0;
+            int64 NextRenameTime = 0;
+            uint64 RenamePrice = 0;
+            uint64 RefundAmount = 0;
+            uint64 CurrentGuildMoney = 0;
+            int32 Result = 0;                       // GuildErrorType
+            std::string OldGuildName;
+            std::string ReservedName;
+            int64 ReservedNameExpirationTime = 0;
+        };
+
+        // SMSG_GUILD_RENAME_NAME_CHECK (0x510044) -> Lua GUILD_RENAME_NAME_CHECK
+        class GuildRenameNameCheckResult final : public ServerPacket
+        {
+        public:
+            explicit GuildRenameNameCheckResult() : ServerPacket(SMSG_GUILD_RENAME_NAME_CHECK, 32) {}
+
+            WorldPacket const* Write() override;
+
+            std::string DesiredName;
+            int32 Status = 0;                       // GuildErrorType
+            Optional<std::string> NameErrorToken;   // Nilable in client docs
+        };
+
+        // SMSG_GUILD_RENAME_REQUESTED_RESULT (0x510045) -> Lua REQUESTED_GUILD_RENAME_RESULT
+        class GuildRenameRequestedResult final : public ServerPacket
+        {
+        public:
+            explicit GuildRenameRequestedResult() : ServerPacket(SMSG_GUILD_RENAME_REQUESTED_RESULT, 32) {}
+
+            WorldPacket const* Write() override;
+
+            std::string NewName;
+            int32 Status = 0;                       // GuildErrorType
+        };
+
+        // SMSG_GUILD_RENAME_REFUND_RESULT (0x510046) -> Lua GUILD_RENAME_REFUND_RESULT
+        class GuildRenameRefundResult final : public ServerPacket
+        {
+        public:
+            explicit GuildRenameRefundResult() : ServerPacket(SMSG_GUILD_RENAME_REFUND_RESULT, 32) {}
+
+            WorldPacket const* Write() override;
+
+            std::string GuildName;
+            int32 Status = 0;                       // GuildErrorType
         };
     }
 }

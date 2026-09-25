@@ -196,11 +196,13 @@ enum class AreaTriggerShapeType : int8
 {
     Sphere                         = 0,
     Box                            = 1,
-    Unk                            = 2,
+    Quad2D                         = 2,
     Polygon                        = 3,
     Cylinder                       = 4,
-    Disk                           = 5,
-    BoundedPlane                   = 6,
+    Script                         = 5,
+    FromUnit                       = 6,
+    Disk                           = 7,
+    BoundedPlane                   = 8,
     Max
 };
 
@@ -346,31 +348,31 @@ enum class ChatChannelRuleset : int32
 
 enum class ChrRacesFlag : int32
 {
-    NPCOnly                                     = 0x000001,
-    DoNotComponentFeet                          = 0x000002,
-    CanMount                                    = 0x000004,
-    HasBald                                     = 0x000008,
-    BindToStartingArea                          = 0x000010,
-    AlternateForm                               = 0x000020,
-    CanMountSelf                                = 0x000040,
-    ForceToHDModelIfAvailable                   = 0x000080,
-    ExaltedWithAllVendors                       = 0x000100,
-    NotSelectable                               = 0x000200,
-    ReputationBonus                             = 0x000400,
-    UseLoincloth                                = 0x000800,
-    RestBonus                                   = 0x001000,
-    NoStartKits                                 = 0x002000,
-    NoStartingWeapon                            = 0x004000,
-    DontRedeemAccountLicenses                   = 0x008000,
-    SkinVariationIsHairColor                    = 0x010000,
-    UsePandarenRingForComponentingTexture       = 0x020000,
-    IgnoreForAssetManifestComponentInfoParsing  = 0x040000,
-    IsAlliedRace                                = 0x080000,
-    VoidVendorDiscount                          = 0x100000,
-    DAMMComponentNoMaleGeneration               = 0x200000,
-    DAMMComponentNoFemaleGeneration             = 0x400000,
-    NoAssociatedFactionReputationInRaceChange   = 0x800000,
-    InternalOnly                                = 0x100000,
+    NPCOnly                                     = 0x0000001,
+    DoNotComponentFeet                          = 0x0000002,
+    CanMount                                    = 0x0000004,
+    HasBald                                     = 0x0000008,
+    BindToStartingArea                          = 0x0000010,
+    AlternateForm                               = 0x0000020,
+    CanMountSelf                                = 0x0000040,
+    ForceToHDModelIfAvailable                   = 0x0000080,
+    ExaltedWithAllVendors                       = 0x0000100,
+    NotSelectable                               = 0x0000200,
+    ReputationBonus                             = 0x0000400,
+    UseLoincloth                                = 0x0000800,
+    RestBonus                                   = 0x0001000,
+    NoStartKits                                 = 0x0002000,
+    NoStartingWeapon                            = 0x0004000,
+    DontRedeemAccountLicenses                   = 0x0008000,
+    SkinVariationIsHairColor                    = 0x0010000,
+    UsePandarenRingForComponentingTexture       = 0x0020000,
+    IgnoreForAssetManifestComponentInfoParsing  = 0x0040000,
+    IsAlliedRace                                = 0x0080000,
+    VoidVendorDiscount                          = 0x0100000,
+    DAMMComponentNoMaleGeneration               = 0x0200000,
+    DAMMComponentNoFemaleGeneration             = 0x0400000,
+    NoAssociatedFactionReputationInRaceChange   = 0x0800000,
+    InternalOnly                                = 0x1000000,
 };
 
 DEFINE_ENUM_FLAG(ChrRacesFlag);
@@ -546,11 +548,11 @@ enum class CriteriaType : int16
 {
     KillCreature                                   = 0,   // Kill NPC "{Creature}"
     WinBattleground                                = 1,   // Win battleground "{Map}"
-    CompleteResearchProject                        = 2,   /*NYI*/ // Complete research project "{ResearchProject}"
-    CompleteAnyResearchProject                     = 3,   /*NYI*/ // Complete any research project
-    FindResearchObject                             = 4,   /*NYI*/ // Find research object "{GameObjects}"
+    CompleteResearchProject                        = 2,   // Complete research project "{ResearchProject}"
+    CompleteAnyResearchProject                     = 3,   // Complete any research project
+    FindResearchObject                             = 4,   // Find research object "{GameObjects}"
     ReachLevel                                     = 5,   // Reach level
-    ExhaustAnyResearchSite                         = 6,   /*NYI*/ // Exhaust any research site
+    ExhaustAnyResearchSite                         = 6,   // Exhaust any research site
     SkillRaised                                    = 7,   // Skill "{SkillLine}" raised
     EarnAchievement                                = 8,   // Earn achievement "{Achievement}"
     CompleteQuestsCount                            = 9,   // Count of complete quests (quest count)
@@ -802,7 +804,7 @@ enum class CriteriaType : int16
     RemoveDecor                                    = 271, /*NYI*/ // Remove any decor
     CollectUniqueDecor                             = 272, /*NYI*/ // Collect Unique Decor
 
-    Count                                          = 283
+    Count                                          = 284
 };
 
 enum class CriteriaTreeFlags : uint16
@@ -854,6 +856,7 @@ enum CurrencyConsts
 {
     CURRENCY_TYPE_ANCIENT_MANA    = 1155,
     CURRENCY_TYPE_AZERITE         = 1553,
+    CURRENCY_TRADERS_TENDER       = 2032,
 
     CURRENCY_MAX_CAP_ANCIENT_MANA = 2000
 };
@@ -926,6 +929,7 @@ enum class CurveInterpolationMode : uint8
     Bezier4     = 4,
     Bezier      = 5,
     Constant    = 6,
+    Step        = 7,
 };
 
 enum Difficulty : int16
@@ -1266,15 +1270,18 @@ enum ItemBonusType
     ITEM_BONUS_RELIC_TYPE                       = 17,
     ITEM_BONUS_OVERRIDE_REQUIRED_LEVEL          = 18,
     ITEM_BONUS_AZERITE_TIER_UNLOCK_SET          = 19,
-    ITEM_BONUS_SCRAPPING_LOOT_ID                = 20, /*NYI*/
+    ITEM_BONUS_SCRAPPING_LOOT_ID                = 20,
     ITEM_BONUS_OVERRIDE_CAN_DISENCHANT          = 21,
     ITEM_BONUS_OVERRIDE_CAN_SCRAP               = 22,
     ITEM_BONUS_ITEM_EFFECT_ID                   = 23,
+    ITEM_BONUS_OVERRIDE_CANT_UNEQUIP_IN_COMBAT  = 24, /*NYI*/
     ITEM_BONUS_MODIFIED_CRAFTING_STAT           = 25, /*NYI*/
     ITEM_BONUS_REQUIRED_LEVEL_CURVE             = 27,
     ITEM_BONUS_ICON_FILE_DATA_ID                = 28,
+    ITEM_BONUS_MAX_UPGRADE_SEQUENCE_VALUE       = 29, /*NYI*/
     ITEM_BONUS_DESCRIPTION_TEXT                 = 30,             // Item description
     ITEM_BONUS_OVERRIDE_NAME                    = 31,             // ItemNameDescription id
+    ITEM_BONUS_OVERRIDE_NO_CREATOR              = 32, /*NYI*/
     ITEM_BONUS_UPGRADE_SEQUENCE_VALUE           = 33, /*NYI*/
     ITEM_BONUS_ITEM_BONUS_LIST_GROUP            = 34, /*NYI*/
     ITEM_BONUS_ITEM_LIMIT_CATEGORY              = 35,
@@ -1282,6 +1289,7 @@ enum ItemBonusType
     ITEM_BONUS_ITEM_CONVERSION                  = 37, /*NYI*/
     ITEM_BONUS_ITEM_HISTORY_SLOT                = 38, /*NYI*/
     ITEM_BONUS_OVERRIDE_CAN_SALVAGE             = 39,
+    ITEM_BONUS_SALVAGE_LOOT_ID                  = 40, /*NYI*/
     ITEM_BONUS_OVERRIDE_CAN_RECRAFT             = 41,
     ITEM_BONUS_ITEM_LEVEL_BASE                  = 42,
     ITEM_BONUS_PVP_ITEM_LEVEL_BASE              = 43,
@@ -1293,6 +1301,8 @@ enum ItemBonusType
     ITEM_BONUS_SCALING_CONFIG_AND_REQ_LEVEL     = 49,
     ITEM_BONUS_ITEM_BONUS_LIST                  = 50,
     ITEM_BONUS_SCALING_CONFIG                   = 51,
+    ITEM_BONUS_CRAFTED_ITEM_LEVEL               = 52,
+    ITEM_BONUS_SCALING_ITEM_LEVEL_BONUS         = 53,             // Applied only when ItemScalingConfig is used
 };
 
 enum class ItemCollectionType : uint8
@@ -1499,6 +1509,12 @@ enum class ItemContext : uint8
     Warbound_19                                     = 183,
     Warbound_20                                     = 184,
     Endeavors                                       = 185,
+    TimewalkerMaxLevel                              = 186,
+    BonusRoll_1                                     = 187,
+    BonusRoll_2                                     = 188,
+    BonusRoll_3                                     = 189,
+    BonusRoll_4                                     = 190,
+    BonusRoll_5                                     = 191,
 
     Max
 };
@@ -1512,6 +1528,25 @@ enum ItemLimitCategoryMode
 enum ItemSetFlags
 {
     ITEM_SET_FLAG_LEGACY_INACTIVE = 0x01,
+};
+
+enum class ItemSheatheType : uint8
+{
+    None                    = 0,
+    Shoulder                = 1,
+    Inverted                = 2,
+    Hip                     = 3,
+    Shield                  = 4,
+    Crossbow                = 5,
+    ShoulderInvis           = 6,
+    InvertedInvis           = 7,
+    HipInvis                = 8,
+    ShieldInvis             = 9,
+    CrossbowInvis           = 10,
+    InvertedDualWield       = 11,
+    InvertedDualWieldInvis  = 12,
+
+    Max
 };
 
 enum ItemSpecStat
@@ -2626,6 +2661,16 @@ enum class TransmogOutfitSlotOptionFlags : int32
 
 DEFINE_ENUM_FLAG(TransmogOutfitSlotOptionFlags);
 
+enum class TransmogOutfitSlotOptionSheatheCategory : uint8
+{
+    Default = 0,
+    Back    = 1,
+    Side    = 2,
+    Hide    = 3,
+
+    Max
+};
+
 enum class TransmogSituation : int8
 {
     AllSpecs                = 0,
@@ -2814,7 +2859,8 @@ enum class TraitConditionType : int32
     Visible         = 1,
     Granted         = 2,
     Increased       = 3,
-    DisplayError    = 4
+    DisplayError    = 4,
+    RanksAllowed    = 5
 };
 
 enum class TraitConfigType : int32
@@ -3108,6 +3154,13 @@ enum VehicleSeatFlagsB
     VEHICLE_SEAT_FLAG_B_VEHICLE_PLAYERFRAME_UI   = 0x80000000            // Lua_UnitHasVehiclePlayerFrameUI - actually checked for flagsb &~ 0x80000000
 };
 
+enum class VehicleSeatFlagsC : int32
+{
+    NoFatigue                       = 0x00000040
+};
+
+DEFINE_ENUM_FLAG(VehicleSeatFlagsC);
+
 enum class VignetteFlags
 {
     InfiniteAOI             = 0x000001,
@@ -3139,6 +3192,20 @@ enum class WarbandSceneFlags : uint8
 };
 
 DEFINE_ENUM_FLAG(WarbandSceneFlags);
+
+enum class WMOAreaTableFlags : int32
+{
+    RenderMinimap               = 0x01,
+    ForceIndoors                = 0x02,
+    ForceOutdoors               = 0x04,
+    GenerateSingleExteriorMap   = 0x08,
+    Stormwind                   = 0x10,
+    ChunkUsesTerrainForMinimap  = 0x20,
+    IgnoreForMinimapAndEffects  = 0x40,
+    IgnoreFatigue               = 0x80
+};
+
+DEFINE_ENUM_FLAG(WMOAreaTableFlags);
 
 enum WorldMapTransformsFlags
 {

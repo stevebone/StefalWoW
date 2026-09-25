@@ -171,22 +171,21 @@ namespace WorldPackets
             bool LfgRequireAuthenticatorEnabled      = false;
             bool ScriptsDisallowedForBeta            = false;
             bool TimerunningEnabled                  = false;
-            bool PlayerIdentityOptionsEnabled                     = false; // classic only
+            bool PlayerIdentityOptionsEnabled        = false; // classic only
             bool IsPlayerContentTrackingEnabled      = false;
-            bool LfdEnabled                  = false;
-            bool LfrEnabled                  = true;  // classic only
-            bool PetHappinessEnabled               = true;  // classic only
+            bool LfdEnabled                          = false;
+            bool LfrEnabled                          = true;  // classic only
+            bool PetHappinessEnabled                 = true;  // classic only
             bool GuildEventsEditsEnabled             = true;
             bool GuildTradeSkillsEnabled             = true;
-            bool BNSendWhisperUseV2Services          = true;  ///< BNSendWhisper will send to v2.WhisperService instead of v1.NotificationService
-            bool BNSendGameDataUseV2Services         = true;  ///< BNSendGameData will send to v2.NotificationService instead of v1.NotificationService
             bool IsAccountCurrencyTransferEnabled    = false;
             bool NetEaseChatTelemetryEnabled         = false;
             bool LobbyMatchmakerQueueFromMainlineEnabled = false;
             bool CanSendLobbyMatchmakerPartyCustomizations = false;
-            bool AddonProfilingEnabled                = false;
+            bool AddonProfilingEnabled               = false;
             bool GlobalUserGeneratedContentMuteEnabled = false;
-            bool AccountUserGeneratedContentIsRisky   = false;
+            bool AccountUserGeneratedContentIsRisky  = false;
+            bool FriendsDisabled                     = false;
 
             SocialQueueConfig QuickJoinConfig;
             SquelchInfo Squelch;
@@ -237,14 +236,13 @@ namespace WorldPackets
             bool LiveRegionKeyBindingsCopyEnabled    = false;
             bool BrowserCrashReporterEnabled         = false; // NYI
             bool IsEmployeeAccount                   = false; // NYI
+            bool UseBleep                            = false; // NYI
             bool NameReservationOnly                 = false; // classic only
             bool TimerunningEnabled                  = false; // NYI
             bool ScriptsDisallowedForBeta            = false;
             bool PlayerIdentityOptionsEnabled        = false;
             bool AccountExportEnabled                = false;
             bool AccountLockedPostExport             = false;
-            bool BNSendWhisperUseV2Services          = true; ///< BNSendWhisper will send to v2.WhisperService instead of v1.NotificationService
-            bool BNSendGameDataUseV2Services         = true; ///< BNSendGameData will send to v2.NotificationService instead of v1.NotificationService
             bool CharacterSelectListModeRealmless    = false;
             bool WowTokenLimitedMode                 = false; // classic only
             bool NavBarEnabled                       = false;

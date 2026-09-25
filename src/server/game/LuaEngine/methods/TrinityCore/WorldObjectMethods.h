@@ -966,7 +966,8 @@ namespace LuaWorldObject
         float minrange = E->CHECKVAL<float>(4);
         float maxrange = E->CHECKVAL<float>(5);
 
-        E->Push(obj->IsInRange2d(x, y, minrange, maxrange));
+        Position pos(x, y);
+        E->Push(obj->IsInRange2d(&pos, minrange, maxrange));
         return 1;
     }
 
@@ -990,7 +991,8 @@ namespace LuaWorldObject
         float minrange = E->CHECKVAL<float>(5);
         float maxrange = E->CHECKVAL<float>(6);
 
-        E->Push(obj->IsInRange3d(x, y, z, minrange, maxrange));
+        Position pos(x, y, z);
+        E->Push(obj->IsInRange3d(&pos, minrange, maxrange));
         return 1;
     }
 

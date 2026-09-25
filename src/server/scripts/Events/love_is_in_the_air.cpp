@@ -147,36 +147,17 @@ enum SomethingStinks
     SPELL_HEAVILY_PERFUMED     = 71507
 };
 
-// 70192 - Fragrant Air Analysis
-class spell_love_is_in_the_air_fragrant_air_analysis : public SpellScript
-{
-    bool Validate(SpellInfo const* spellInfo) override
-    {
-        return ValidateSpellInfo({ uint32(spellInfo->GetEffect(EFFECT_0).CalcValue()) });
-    }
-
-    void HandleScript(SpellEffIndex /*effIndex*/)
-    {
-        GetHitUnit()->RemoveAurasDueToSpell(uint32(GetEffectValue()));
-    }
-
-    void Register() override
-    {
-        OnEffectHitTarget += SpellEffectFn(spell_love_is_in_the_air_fragrant_air_analysis::HandleScript, EFFECT_0, SPELL_EFFECT_SCRIPT_EFFECT);
-    }
-};
-
 // 71507 - Heavily Perfumed
 class spell_love_is_in_the_air_heavily_perfumed : public AuraScript
 {
     bool Validate(SpellInfo const* spellInfo) override
     {
-        return ValidateSpellInfo({ uint32(spellInfo->GetEffect(EFFECT_0).CalcValue()) });
+        return ValidateSpellInfo({ uint32(spellInfo->GetEffect(EFFECT_0).CalcValueAsInt()) });
     }
 
     void AfterRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
-        GetTarget()->CastSpell(GetTarget(), uint32(GetEffectInfo(EFFECT_0).CalcValue()));
+        GetTarget()->CastSpell(GetTarget(), uint32(GetEffectInfo(EFFECT_0).CalcValueAsInt()));
     }
 
     void Register() override
@@ -214,7 +195,7 @@ class spell_love_is_in_the_air_sample_satisfaction : public AuraScript
 {
     void OnPeriodic(AuraEffect const* /*aurEff*/)
     {
-        if (roll_chance_i(30))
+        if (roll_chance(30))
             Remove();
     }
 
@@ -241,7 +222,7 @@ class spell_love_is_in_the_air_service_uniform : public AuraScript
 {
     bool Validate(SpellInfo const* spellInfo) override
     {
-        return ValidateSpellInfo({ uint32(spellInfo->GetEffect(EFFECT_0).CalcValue()) });
+        return ValidateSpellInfo({ uint32(spellInfo->GetEffect(EFFECT_0).CalcValueAsInt()) });
     }
 
     void AfterApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
@@ -258,7 +239,7 @@ class spell_love_is_in_the_air_service_uniform : public AuraScript
 
     void AfterRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
-        GetTarget()->RemoveAurasDueToSpell(uint32(GetEffectInfo(EFFECT_0).CalcValue()));
+        GetTarget()->RemoveAurasDueToSpell(uint32(GetEffectInfo(EFFECT_0).CalcValueAsInt()));
     }
 
     void Register() override
@@ -300,14 +281,14 @@ class spell_love_is_in_the_air_perfume_cologne_immune : public SpellScript
     {
         return ValidateSpellInfo(
         {
-            uint32(spellInfo->GetEffect(EFFECT_0).CalcValue()),
-            uint32(spellInfo->GetEffect(EFFECT_1).CalcValue())
+            uint32(spellInfo->GetEffect(EFFECT_0).CalcValueAsInt()),
+            uint32(spellInfo->GetEffect(EFFECT_1).CalcValueAsInt())
         });
     }
 
     void HandleScript(SpellEffIndex /*effIndex*/)
     {
-        GetCaster()->RemoveAurasDueToSpell(uint32(GetEffectValue()));
+        GetCaster()->RemoveAurasDueToSpell(uint32(GetEffectValueAsInt()));
     }
 
     void Register() override
@@ -321,7 +302,6 @@ void AddSC_event_love_is_in_the_air()
 {
     RegisterSpellScript(spell_love_is_in_the_air_romantic_picnic);
     RegisterSpellScript(spell_love_is_in_the_air_create_heart_candy);
-    RegisterSpellScript(spell_love_is_in_the_air_fragrant_air_analysis);
     RegisterSpellScript(spell_love_is_in_the_air_heavily_perfumed);
     RegisterSpellScript(spell_love_is_in_the_air_recently_analyzed);
     RegisterSpellScript(spell_love_is_in_the_air_sample_satisfaction);

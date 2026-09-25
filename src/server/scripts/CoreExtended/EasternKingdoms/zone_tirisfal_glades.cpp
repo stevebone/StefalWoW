@@ -23,6 +23,7 @@
 #include "Conversation.h"
 #include "ConversationAI.h"
 #include "CreatureAIImpl.h"
+#include "EventMap.h"
 #include "EventProcessor.h"
 #include "GridNotifiersImpl.h"
 #include "MapUtils.h"
@@ -41,14 +42,34 @@
 #include "TemporarySummon.h"
 #include "Log.h"
 
-#define QUEST_THE_SHADOW_GRAVE 28608
-#define QUEST_BEYOND_THE_GRAVE 25089
-#define NPC_DARNEL             49141
-#define NPC_DARNEL_2           49337
+enum : uint32
+{
+    QUEST_THE_SHADOW_GRAVE = 28608,
+    QUEST_BEYOND_THE_GRAVE = 25089,
+    QUEST_RECRUITMENT = 26800,
 
- // Area IDs
-#define AREA_NIGHT_WEBS_HOLLOW 2117
-#define AREA_DEATHKNELL_GRAVEYARD 5692
+    NPC_DARNEL = 49141,
+    NPC_DARNEL_2 = 49337,
+    NPC_SCARLET_CORPSE = 49340,
+
+    SPELL_SUMMON_DARNELL = 91938,
+    SPELL_DARNELL_SLUMPED = 91935,
+    SPELL_SELECT_CORPSE = 91942,
+    SPELL_VISUAL_PICK = 91945,
+    SPELL_FEIGN_DEATH = 29266,
+    SPELL_RIDE_VEHICLE = 46598,
+    SPELL_RIDE_HARDCODED = 46598,
+    SPELL_COSMETIC_ARROW = 92230,
+
+    AREA_NIGHT_WEBS_HOLLOW = 2117,
+    AREA_DEATHKNELL_GRAVEYARD = 5692,
+
+    EVENT_CORPSE_PICKUP = 1,
+    EVENT_FOLLOW_PLAYER = 2,
+
+    POINT_TURN_IN = 1,
+    POINT_TO_CORPSE = 10,
+};
 
 enum PlaceDescription {
     UNKNOWN = 0,
@@ -277,7 +298,11 @@ struct npc_darnell_grave : public ScriptedAI
         if (CheckPlayerFoundItems())
         {
             m_ItemsFound = true;
-            Talk(9);
+
+            Player* player = ObjectAccessor::GetPlayer(*me, playerGUID);
+            if (player)
+                Talk(9, player);
+
             m_timer = 10000;
             return;
         }
@@ -379,7 +404,6 @@ struct npc_darnell_grave : public ScriptedAI
     }
 };
 
-// npc_deathguard_saltain
 class npc_deathguard_saltain : public CreatureScript
 {
 public:
@@ -395,137 +419,116 @@ public:
         return new npc_deathguard_saltainAI(creature);
     }
 
-    bool OnQuestAccept(Player* player, Creature* /*creature*/, Quest const* quest) override
+    bool OnQuestAccept(Player* player, Creature*, Quest const* quest) override
     {
-        std::cout << "QUEST ACCEPT!!" << "\n";
-        std::cout << "QUEST: " << quest << "\n";
-        if (quest->GetQuestId() == 26800)
+        if (quest->GetQuestId() == QUEST_RECRUITMENT)
         {
-            if (player && !player->IsInWorld())
+            if (!player || !player->IsInWorld())
                 return true;
 
-            player->CastSpell(player, 91938, true);
+            player->CastSpell(player, SPELL_SUMMON_DARNELL, true);
         }
         return true;
     }
 
-    bool OnQuestReward(Player* player, Creature* /*creature*/, Quest const* quest, uint32 /*opt*/) override
+    bool OnQuestReward(Player* player, Creature*, Quest const* quest, uint32) override
     {
-        if (quest->GetQuestId() == 26800)
+        if (quest->GetQuestId() == QUEST_RECRUITMENT)
         {
             if (Creature* darnell = GetDarnell(player))
             {
                 if (Vehicle* kit = darnell->GetVehicleKit())
                     kit->RemoveAllPassengers();
 
-                darnell->DespawnOrUnsummon(1000ms);
+                darnell->GetMotionMaster()->MovePoint(2, 1864.555f, 1611.069f, 95.3388f);
+                darnell->DespawnOrUnsummon(5s);
             }
         }
         return true;
     }
 };
 
-// 49337 - Darnell for quest 25089 and 26800
+// 49337 - Darnell (quest 26800 and 
 struct npc_darnell_deathknell_corpse : public VehicleAI
 {
-    npc_darnell_deathknell_corpse(Creature* c) : VehicleAI(c)
-    {
-        isWaitingForTurnIn = false;
-        eventTriggered = false;
-        m_seat = 0;
-        m_scarletGUID.Clear();
-    }
+    npc_darnell_deathknell_corpse(Creature* c) : VehicleAI(c) { me->SetReactState(REACT_PASSIVE); }
 
     ObjectGuid playerGUID;
-    ObjectGuid m_scarletGUID;
-    uint8 m_seat;
-    bool isWaitingForTurnIn;
-    bool eventTriggered;
+    ObjectGuid corpseGUID;
+    EventMap events;
+    bool isWaitingForTurnIn = false;
+    bool eventTriggered = false;
 
     void Reset() override
     {
         isWaitingForTurnIn = false;
         eventTriggered = false;
-        m_seat = 0;
-        m_scarletGUID.Clear();
+        corpseGUID.Clear();
         me->SetReactState(REACT_PASSIVE);
+        VehicleAI::Reset();
     }
 
     void IsSummonedBy(WorldObject* summoner) override
     {
-        if (!summoner)
-            return;
-
         Player* player = nullptr;
-
-        if (summoner->IsPlayer())
-            player = summoner->ToPlayer();
-        else
+        if (summoner)
         {
-            Unit* owner = me->GetCharmerOrOwner();
-            if (owner && owner->IsPlayer())
+            if (summoner->IsPlayer())
+                player = summoner->ToPlayer();
+            else if (Unit* owner = me->GetCharmerOrOwner(); owner && owner->IsPlayer())
                 player = owner->ToPlayer();
         }
 
-        if (!player)
+        if (!player || (!player->HasQuest(QUEST_RECRUITMENT) && !player->HasQuest(QUEST_BEYOND_THE_GRAVE)))
         {
             me->DespawnOrUnsummon(100ms);
             return;
         }
 
+        me->SetPrivateObjectOwner(ObjectGuid::Empty);
         playerGUID = player->GetGUID();
-
-        bool hasQuest26800 = player->HasQuest(26800);
-        bool hasQuest25089 = player->HasQuest(25089);
-
-        if (hasQuest26800 || hasQuest25089)
-        {
-            Talk(0);
-        }
-        else
-        {
-            me->DespawnOrUnsummon(100ms);
-        }
+        Talk(0, player);
+        events.ScheduleEvent(EVENT_FOLLOW_PLAYER, 1s);
     }
 
-    void PassengerBoarded(Unit* passenger, int8 /*seatId*/, bool apply) override
+    void PassengerBoarded(Unit* passenger, int8, bool apply) override
     {
         if (!apply)
         {
-            if (Creature* scarlet = passenger->ToCreature())
+            if (Creature* corpse = passenger->ToCreature())
             {
-                scarlet->SetDisableGravity(false);
-                scarlet->DespawnOrUnsummon(500ms);
+                corpse->CastSpell(corpse, SPELL_FEIGN_DEATH, true);
+                corpse->DespawnOrUnsummon(30s);
             }
         }
-    }
-
-    void SetGUID(ObjectGuid const& guid, int32 id) override
-    {
-        if (id == 49340)
-            m_scarletGUID = guid;
     }
 
     void DoAction(int32 param) override
     {
         if (param == 1)
-        {
-            if (Creature* scarlet = ObjectAccessor::GetCreature(*me, m_scarletGUID))
-            {
-                me->CastSpell(scarlet, 91945, true);
-                scarlet->AddAura(46598, scarlet);
-                scarlet->SetDisableGravity(true);
-                scarlet->EnterVehicle(me, m_seat);
-                m_seat++;
-                me->CastSpell(scarlet, 91935, true);
-                me->CastSpell(scarlet, 193710, true);
-            }
-        }
+            for (uint8 i = 1; i < 4; ++i)
+                if (Unit* p = me->GetVehicleKit()->GetPassenger(i))
+                    p->ExitVehicle();
+    }
+
+    void SpellHit(WorldObject*, SpellInfo const* spell) override
+    {
+        if (spell && spell->Id == SPELL_RIDE_HARDCODED)
+            me->CastSpell(me, SPELL_DARNELL_SLUMPED, true);
+    }
+
+    void StartPickup(ObjectGuid corpse, ObjectGuid player)
+    {
+        corpseGUID = corpse;
+        playerGUID = player;
+        if (Creature* c = ObjectAccessor::GetCreature(*me, corpse))
+            me->GetMotionMaster()->MovePoint(POINT_TO_CORPSE, c->GetRandomNearPosition(1.f));
     }
 
     void UpdateAI(uint32 diff) override
     {
         VehicleAI::UpdateAI(diff);
+        events.Update(diff);
 
         Player* player = ObjectAccessor::GetPlayer(*me, playerGUID);
         if (!player)
@@ -533,33 +536,43 @@ struct npc_darnell_deathknell_corpse : public VehicleAI
 
         if (isWaitingForTurnIn)
         {
-            QuestStatus status26800 = player->GetQuestStatus(26800);
-            QuestStatus status25089 = player->GetQuestStatus(QUEST_BEYOND_THE_GRAVE);
-
-            if (status26800 != QUEST_STATUS_INCOMPLETE && status25089 != QUEST_STATUS_INCOMPLETE && status25089 != QUEST_STATUS_FAILED && status26800 != QUEST_STATUS_FAILED)
-            {
+            auto isActive = [](QuestStatus s) { return s == QUEST_STATUS_INCOMPLETE || s == QUEST_STATUS_COMPLETE; };
+            if (!isActive(player->GetQuestStatus(QUEST_RECRUITMENT)) && !isActive(player->GetQuestStatus(QUEST_BEYOND_THE_GRAVE)))
                 me->DespawnOrUnsummon();
-            }
             return;
         }
 
-        if (!eventTriggered)
+        if (!eventTriggered
+            && player->IsWithinDist3d(1816.332f, 1589.852f, 96.523f, 3.0f)
+            && player->GetQuestStatus(QUEST_BEYOND_THE_GRAVE) == QUEST_STATUS_COMPLETE)
         {
-            if (player->IsWithinDist3d(1816.332f, 1589.852f, 96.523f, 3.0f))
+            eventTriggered = true;
+            Talk(2);
+            me->GetMotionMaster()->MovePoint(POINT_TURN_IN, 1864.78f, 1604.89f, 94.606f);
+        }
+
+        while (uint32 eventId = events.ExecuteEvent())
+        {
+            switch (eventId)
             {
-                if (player->GetQuestStatus(QUEST_BEYOND_THE_GRAVE) == QUEST_STATUS_COMPLETE)
+            case EVENT_CORPSE_PICKUP:
+                if (Creature* corpse = ObjectAccessor::GetCreature(*me, corpseGUID))
                 {
-                    eventTriggered = true;
-                    isWaitingForTurnIn = true;
-
-                    Talk(2);
-
-                    me->StopMoving();
-                    me->GetMotionMaster()->Clear();
-                    me->GetMotionMaster()->MoveIdle();
-
-                    me->GetMotionMaster()->MovePoint(1, 1864.78f, 1604.89f, 94.606f);
+                    me->CastSpell(corpse, SPELL_VISUAL_PICK, true);
+                    if (!me->HasAura(SPELL_DARNELL_SLUMPED))
+                        me->CastSpell(me, SPELL_DARNELL_SLUMPED, true);
+                    corpse->RemoveAllAuras();
+                    corpse->CastSpell(me, SPELL_RIDE_VEHICLE, true);
                 }
+                events.ScheduleEvent(EVENT_FOLLOW_PLAYER, 1s);
+                break;
+            case EVENT_FOLLOW_PLAYER:
+                if (Player* plr = ObjectAccessor::GetPlayer(*me, playerGUID))
+                {
+                    me->GetMotionMaster()->Clear();
+                    me->GetMotionMaster()->MoveFollow(plr, PET_FOLLOW_DIST, PET_FOLLOW_ANGLE);
+                }
+                break;
             }
         }
     }
@@ -569,36 +582,63 @@ struct npc_darnell_deathknell_corpse : public VehicleAI
         if (moveType != POINT_MOTION_TYPE)
             return;
 
-        if (pointId == 1)
+        if (pointId == POINT_TO_CORPSE)
+            events.ScheduleEvent(EVENT_CORPSE_PICKUP, 500ms);
+        else if (pointId == POINT_TURN_IN)
         {
             Talk(3);
-
-            me->StopMoving();
-            me->GetMotionMaster()->Clear();
             me->GetMotionMaster()->MoveIdle();
+            isWaitingForTurnIn = true;
         }
     }
 };
 
-// npc_scarlet_corpse_49340
+// 49340 - Scarlet Corpse
+// World corpses summon a clone near Darnell and despawn themselves,
+// preserving their natural respawn timer. Darnell then picks up the clone.
 struct npc_scarlet_corpse : public ScriptedAI
 {
-    npc_scarlet_corpse(Creature* c) : ScriptedAI(c) {}
-
-    void SpellHit(WorldObject* caster, SpellInfo const* /*spell*/) override
+    npc_scarlet_corpse(Creature* creature) : ScriptedAI(creature)
     {
-        if (Player* player = caster->ToPlayer())
+        me->SetReactState(REACT_PASSIVE);
+        me->ReplaceAllNpcFlags(UNIT_NPC_FLAG_SPELLCLICK);
+    }
+
+    void IsSummonedBy(WorldObject*) override
+    {
+        me->RemoveNpcFlag(UNIT_NPC_FLAG_SPELLCLICK);
+        me->RemoveAura(SPELL_COSMETIC_ARROW);
+        me->SetUnitFlag2(UNIT_FLAG2_FEIGN_DEATH);
+    }
+
+    void OnSpellClick(Unit* clicker, bool) override
+    {
+        Player* player = clicker->ToPlayer();
+        if (!player || player->GetQuestStatus(QUEST_RECRUITMENT) == QUEST_STATUS_COMPLETE)
+            return;
+
+        player->CastSpell(me, SPELL_SELECT_CORPSE);
+        SummonAndPickup(player);
+    }
+
+    void ReceiveEmote(Player* player, uint32 emoteId) override
+    {
+        if (emoteId == TEXT_EMOTE_POINT && player->HasQuest(QUEST_RECRUITMENT))
+            SummonAndPickup(player);
+    }
+
+private:
+    void SummonAndPickup(Player* player)
+    {
+        if (Creature* darnell = GetDarnell(player))
         {
-            if (player->GetQuestStatus(26800) == QUEST_STATUS_INCOMPLETE)
+            if (Creature* clone = me->SummonCreature(NPC_SCARLET_CORPSE, me->GetPosition(), TEMPSUMMON_MANUAL_DESPAWN))
             {
-                if (Creature* darnell = GetDarnell(player))
-                {
-                    darnell->AI()->SetGUID(me->GetGUID(), me->GetEntry());
-                    darnell->CastSpell(darnell, 91935, true);
-                    darnell->AI()->DoAction(1);
-                }
+                if (auto* ai = CAST_AI(npc_darnell_deathknell_corpse, darnell->AI()))
+                    ai->StartPickup(clone->GetGUID(), player->GetGUID());
             }
         }
+        me->DespawnOrUnsummon(100ms);
     }
 };
 

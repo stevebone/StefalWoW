@@ -44,6 +44,7 @@ EndScriptData */
 #include "M2Stores.h"
 #include "MapManager.h"
 #include "MovementPackets.h"
+#include "MovementTypedefs.h"
 #include "ObjectAccessor.h"
 #include "ObjectMgr.h"
 #include "PhasingHandler.h"
@@ -54,6 +55,7 @@ EndScriptData */
 #include "Transport.h"
 #include "World.h"
 #include "WorldSession.h"
+#include "WorldStateMgr.h"
 #include <fstream>
 #include <limits>
 #include <map>
@@ -67,7 +69,7 @@ class debug_commandscript : public CommandScript
 public:
     debug_commandscript() : CommandScript("debug_commandscript") { }
 
-    ChatCommandTable GetCommands() const override
+    std::span<ChatCommandBuilder const> GetCommands() const override
     {
         static ChatCommandTable debugPlayCommandTable =
         {
@@ -300,7 +302,6 @@ public:
         castFailed.FailedArg1 = failArg1.value_or(-1);
         castFailed.FailedArg2 = failArg2.value_or(-1);
         handler->GetSession()->SendPacket(castFailed.Write());
-
         return true;
     }
 
@@ -514,9 +515,9 @@ public:
         return true;
     }
 
-    static bool HandleDebugUpdateWorldStateCommand(ChatHandler* handler, uint32 variable, uint32 value)
+    static bool HandleDebugUpdateWorldStateCommand(ChatHandler const* handler, int32 variable, int32 value)
     {
-        handler->GetPlayer()->SendUpdateWorldState(variable, value);
+        WorldStateMgr::SetValue(variable, value, false, handler->GetPlayer()->GetMap());
         return true;
     }
 
@@ -1004,7 +1005,7 @@ public:
                 for (auto const& pair : redirectInfo)
                 {
                     Unit* unit = ObjectAccessor::GetUnit(*target, pair.first);
-                    handler->PSendSysMessage(" |-- %02u%% to %s", pair.second, unit ? unit->GetName().c_str() : pair.first.ToString().c_str());
+                    handler->PSendSysMessage(" |-- % 2.1f%% to %s", pair.second, unit ? unit->GetName().c_str() : pair.first.ToString().c_str());
                 }
             }
         }
@@ -1024,7 +1025,7 @@ public:
                     for (auto const& innerPair : outerPair.second) // (guid, pct)
                     {
                         Unit* unit = ObjectAccessor::GetUnit(*target, innerPair.first);
-                        handler->PSendSysMessage("   |-- %02u%% to %s", innerPair.second, unit ? unit->GetName().c_str() : innerPair.first.ToString().c_str());
+                        handler->PSendSysMessage("   |-- % 2.1f%% to %s", innerPair.second, unit ? unit->GetName().c_str() : innerPair.first.ToString().c_str());
                     }
                 }
             }
@@ -1197,7 +1198,7 @@ public:
         return true;
     }
 
-    static bool HandleDebugMoveflagsCommand(ChatHandler* handler, Optional<uint32> moveFlags, Optional<uint32> moveFlagsExtra, Optional<uint32> moveFlagsExtra2)
+    static bool HandleDebugMoveflagsCommand(ChatHandler* handler, Optional<uint64> moveFlags)
     {
         Unit* target = handler->getSelectedUnit();
         if (!target)
@@ -1206,17 +1207,11 @@ public:
         if (!moveFlags)
         {
             //! Display case
-            handler->PSendSysMessage(LANG_MOVEFLAGS_GET, target->GetUnitMovementFlags(), target->GetExtraUnitMovementFlags());
+            handler->PSendSysMessage(LANG_MOVEFLAGS_GET, target->GetUnitMovementFlags(), Movement::MovementFlags_ToString(target->GetUnitMovementFlags()));
         }
         else
         {
-            target->SetUnitMovementFlags(*moveFlags);
-
-            if (moveFlagsExtra)
-                target->SetExtraUnitMovementFlags(*moveFlagsExtra);
-
-            if (moveFlagsExtra2)
-                target->SetExtraUnitMovementFlags2(*moveFlagsExtra2);
+            target->SetUnitMovementFlags(MovementFlags(*moveFlags));
 
             if (target->GetTypeId() != TYPEID_PLAYER)
                 target->DestroyForNearbyPlayers();  // Force new SMSG_UPDATE_OBJECT:CreateObject
@@ -1227,7 +1222,7 @@ public:
                 target->SendMessageToSet(moveUpdate.Write(), true);
             }
 
-            handler->PSendSysMessage(LANG_MOVEFLAGS_SET, target->GetUnitMovementFlags(), target->GetExtraUnitMovementFlags());
+            handler->PSendSysMessage(LANG_MOVEFLAGS_SET, target->GetUnitMovementFlags(), Movement::MovementFlags_ToString(target->GetUnitMovementFlags()));
         }
 
         return true;
@@ -1312,7 +1307,7 @@ public:
         {
             handler->PSendSysMessage("Loading all cells (mapId: %u). Current GameObjects " SZFMTD ", Creatures " SZFMTD, map->GetId(), map->GetObjectsStore().Size<GameObject>(), map->GetObjectsStore().Size<Creature>());
 
-            map->LoadAllCells();
+            map->LoadAllGrids();
 
             handler->PSendSysMessage("Cells loaded (mapId: %u) After load - GameObject " SZFMTD ", Creatures " SZFMTD, map->GetId(), map->GetObjectsStore().Size<GameObject>(), map->GetObjectsStore().Size<Creature>());
         }

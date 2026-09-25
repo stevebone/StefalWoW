@@ -23,11 +23,14 @@ namespace LuaPlayer
 {
     /**
      * Returns 'true' if the [Player] can Titan Grip the specific [Item], 'false' otherwise.
+     *
+     * @param [Item] item
      * @return bool canTitanGrip
      */
     int CanTitanGrip(Eluna* E, Player* player)
     {
-        E->Push(player->CanTitanGrip());
+        Item* item = E->CHECKOBJ<Item>(2);
+        E->Push(player->CanTitanGrip(item));
         return 1;
     }
 
@@ -2120,8 +2123,8 @@ namespace LuaPlayer
     /**
      * Sets visible for [Item] on slot on [Player]
      *
-     * @param EquipmentSlots slotid
-     * @param Item itemid
+     * @param [EquipmentSlots] slotid
+     * @param [Item] itemid
      *
      */
     int SetVisibleItemSlot(Eluna* E, Player* player)
@@ -2284,7 +2287,7 @@ namespace LuaPlayer
      * Sends a tabard vendor window to the [Player] from the [WorldObject] specified
      *
      * @param [WorldObject] sender
-     * @param Ventor type Guild = 0, Personal = 1,
+     * @param int32 vendorType : vendor type, Guild = 0, Personal = 1
      */
     int SendTabardVendorActivate(Eluna* E, Player* player)
     {
@@ -3163,7 +3166,7 @@ namespace LuaPlayer
      *
      * @param uint32 entry : entry of the item to add
      * @param uint32 itemCount = 1 : amount of the item to add
-     * @param uint32 bonusId : item source bonus id
+     * @param uint32 bonusId = 0 : item source bonus id, optional
      * @return [Item] item : the item that was added or nil
      */
     int AddItem(Eluna* E, Player* player)
@@ -3845,7 +3848,7 @@ namespace LuaPlayer
      * @values [HUNTER_PET, 1]
      *
      * @param uint32 entryId : the ID of the pet to summon.
-     * @param petsavemode 
+     * @param int32 petsavemode : pet save mode, see the table above
      * @param float x
      * @param float y
      * @param float z

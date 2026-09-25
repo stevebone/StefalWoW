@@ -173,7 +173,7 @@ namespace WorldPackets
             float POIx                      = 0.0f;
             float POIy                      = 0.0f;
             int32 POIPriority               = 0;
-            Trinity::RaceMask<uint64> AllowableRaces = { UI64LIT(0xFFFFFFFFFFFFFFFF) };
+            Trinity::RaceMask<int32, 2> AllowableRaces = RACEMASK_ALL_v<int32, 2>;
             std::string LogTitle;
             std::string LogDescription;
             std::string QuestDescription;
@@ -459,11 +459,12 @@ namespace WorldPackets
             std::string_view LogDescription;
             std::string_view DescriptionText;
             std::vector<ConditionalQuestText> ConditionalDescriptionText;
-            bool DisplayPopup = false;
-            bool StartCheat = false;
             bool AutoLaunched = false;
             bool FromContentPush = false;
+            bool ReplayQuest = false;
             bool ResetByScheduler = false;
+            bool StartCheat = false;
+            bool DisplayPopup = false;
         };
 
         struct QuestObjectiveCollect
@@ -800,7 +801,11 @@ namespace WorldPackets
             bool HideWarboardHeader = false;
             bool KeepOpenAfterChoice = false;
             bool ShowChoicesAsList = false;
-            bool ForceDontShowChoicesAsList = false;
+            bool HasPowerChoice = false;
+            bool RequiresSelection = false;
+            bool ShowChoicesAsGrid = false;
+            bool HideAnswerArt = false;
+            bool ShowChoicesAsColumns = false;
         };
 
         class ChoiceResponse final : public ClientPacket

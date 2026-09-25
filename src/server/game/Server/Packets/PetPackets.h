@@ -226,6 +226,18 @@ namespace WorldPackets
             int32 SpellID = 0;
         };
 
+        class SetPetSpecializationClient final : public ClientPacket
+        {
+        public:
+            explicit SetPetSpecializationClient(WorldPacket&& packet) : ClientPacket(CMSG_SET_PET_SPECIALIZATION, std::move(packet)) { }
+
+            void Read() override;
+
+            uint32 PetNumber = 0;
+            uint16 SpecID = 0;
+            ObjectGuid PetGUID;
+        };
+
         class SetPetSpecialization final : public ServerPacket
         {
         public:
@@ -254,8 +266,20 @@ namespace WorldPackets
 
             WorldPacket const* Write() override;
 
-            ObjectGuid PetGUID;
+            ObjectGuid UnitGUID;
             int32 Action = 0;
+        };
+
+        class PetDismissSound final : public ServerPacket
+        {
+        public:
+            PetDismissSound() : ServerPacket(SMSG_PET_DISMISS_SOUND, 18 + 4 + 12) { }
+
+            WorldPacket const* Write() override;
+
+            ObjectGuid UnitGUID;
+            int32 CreatureDisplayInfoID = 0;
+            TaggedPosition<Position::XYZ> ModelPosition;
         };
 
         class PetTameFailure final : public ServerPacket
@@ -266,6 +290,17 @@ namespace WorldPackets
             WorldPacket const* Write() override;
 
             uint32 Result = 0;
+        };
+
+        class PetNewlyTamed final : public ServerPacket
+        {
+        public:
+            explicit PetNewlyTamed() : ServerPacket(SMSG_PET_NEWLY_TAMED, 16 + 1) { }
+
+            WorldPacket const* Write() override;
+
+            ObjectGuid UnitGUID;
+            bool PlayPingFX = false;
         };
 
         class PetMode final : public ServerPacket
@@ -301,16 +336,15 @@ namespace WorldPackets
             WorldPacket const* Write() override { return &_worldPacket; }
         };
 
-        class PetDismissSound final : public ServerPacket
+        class SetPetFavorite final : public ClientPacket
         {
         public:
-            PetDismissSound() : ServerPacket(SMSG_PET_DISMISS_SOUND) {}
+            explicit SetPetFavorite(WorldPacket&& packet) : ClientPacket(CMSG_SET_PET_FAVORITE, std::move(packet)) { }
 
-            WorldPacket const* Write() override;
+            void Read() override;
 
-            ObjectGuid PetGUID;
-            uint32 DisplayID = 0;
-            TaggedPosition<Position::XYZ> ModelPosition;
+            uint8 Slot = 0;
+            bool Favorite = false;
         };
     }
 }

@@ -478,7 +478,7 @@ struct npc_ebenlocke : public ScriptedAI
     {
         if (quest->GetQuestId() == QUEST_EMBALMERS_REVENGE)
         {
-            me->GetScheduler().Schedule(2s, [this](TaskContext /*context*/)
+            me->GetScheduler().Schedule(2s, [this](TaskContext& /*context*/)
             {
                 me->SummonCreature(NPC_STITCHES, Position(-10553.90f, -1171.27f, 27.8604f, 1.48514f), TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT, 90s, true);
             });

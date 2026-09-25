@@ -58,12 +58,17 @@ public:
         return *this;
     }
 
+    // true if any customization choice swaps the model through ChrCustomizationCondModel (upright orcs)
+    bool HasModelSwapCustomization();
+
 private:
     CreatureOutfit() {};
     uint32 id = 0;
     uint8 race;
     uint8 gender;
     uint32 displayId;
+    bool _modelSwapChecked = false;
+    bool _hasModelSwap = false;
 };
 
 #endif

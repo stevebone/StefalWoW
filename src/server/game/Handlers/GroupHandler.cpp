@@ -348,10 +348,7 @@ void WorldSession::HandleLeaveGroupOpcode(WorldPackets::Party::LeaveGroup& packe
         return;
 
     if (_player->InBattleground())
-    {
-        SendPartyResult(PARTY_OP_INVITE, "", ERR_INVITE_RESTRICTED);
         return;
-    }
 
     /** error handling **/
     /********************/
@@ -369,19 +366,33 @@ void WorldSession::HandleLeaveGroupOpcode(WorldPackets::Party::LeaveGroup& packe
     }
 }
 
-void WorldSession::HandleSetLootMethodOpcode(WorldPackets::Party::SetLootMethod& /*packet*/)
+void WorldSession::HandleSetLootMethodOpcode(WorldPackets::Party::SetLootMethod& packet)
 {
-    // not allowed to change
-    /*
+    auto sendFailed = [this](WorldPackets::Party::LootMethodFailure reason)
+    {
+        WorldPackets::Party::SetLootMethodFailed setLootMethodFailed;
+        setLootMethodFailed.Reason = reason;
+        SendPacket(setLootMethodFailed.Write());
+    };
+
     Group* group = GetPlayer()->GetGroup(packet.PartyIndex);
     if (!group)
+    {
+        sendFailed(WorldPackets::Party::LootMethodFailure::NotInGroup);
         return;
+    }
 
     if (!group->IsLeader(GetPlayer()->GetGUID()))
+    {
+        sendFailed(WorldPackets::Party::LootMethodFailure::NotLeader);
         return;
+    }
 
     if (group->isLFGGroup())
+    {
+        sendFailed(WorldPackets::Party::LootMethodFailure::LfgGroup);
         return;
+    }
 
     switch (packet.LootMethod)
     {
@@ -391,21 +402,27 @@ void WorldSession::HandleSetLootMethodOpcode(WorldPackets::Party::SetLootMethod&
         case PERSONAL_LOOT:
             break;
         default:
+            sendFailed(WorldPackets::Party::LootMethodFailure::InvalidLootMethod);
             return;
     }
 
     if (packet.LootThreshold < ITEM_QUALITY_UNCOMMON || packet.LootThreshold > ITEM_QUALITY_ARTIFACT)
+    {
+        sendFailed(WorldPackets::Party::LootMethodFailure::InvalidThreshold);
         return;
+    }
 
     if (packet.LootMethod == MASTER_LOOT && !group->IsMember(packet.LootMasterGUID))
+    {
+        sendFailed(WorldPackets::Party::LootMethodFailure::InvalidMasterLooter);
         return;
+    }
 
     // everything's fine, do it
     group->SetLootMethod(static_cast<LootMethod>(packet.LootMethod));
     group->SetMasterLooterGuid(packet.LootMasterGUID);
     group->SetLootThreshold(static_cast<ItemQualities>(packet.LootThreshold));
     group->SendUpdate();
-    */
 }
 
 void WorldSession::HandleMinimapPingOpcode(WorldPackets::Party::MinimapPingClient& packet)
@@ -590,14 +607,15 @@ void WorldSession::HandleRequestPartyMemberStatsOpcode(WorldPackets::Party::Requ
     for (ObjectGuid const& target : packet.Targets)
     {
         WorldPackets::Party::PartyMemberFullState partyMemberStats;
-        if (Player* player = ObjectAccessor::FindConnectedPlayer(target))
-        {
-            partyMemberStats.Initialize(player);
-        }
-        else
+        Player* player = ObjectAccessor::FindConnectedPlayer(target);
+        if (!player || !GetPlayer()->IsInSameRaidWith(player))
         {
             partyMemberStats.MemberGuid = target;
             partyMemberStats.MemberStats.Status = MEMBER_STATUS_OFFLINE;
+        }
+        else
+        {
+            partyMemberStats.Initialize(player);
         }
         SendPacket(partyMemberStats.Write());
     }
@@ -727,6 +745,9 @@ void WorldSession::HandleSendPingUnit(WorldPackets::Party::SendPingUnit const& p
     broadcastPingUnit.Type = pingUnit.Type;
     broadcastPingUnit.PinFrameID = pingUnit.PinFrameID;
     broadcastPingUnit.PingDuration = pingUnit.PingDuration;
+    broadcastPingUnit.Health = pingUnit.Health;
+    broadcastPingUnit.Mana = pingUnit.Mana;
+    broadcastPingUnit.IsUnitFrameStatusTextPing = pingUnit.IsUnitFrameStatusTextPing;
     broadcastPingUnit.CreatureID = pingUnit.CreatureID;
     broadcastPingUnit.SpellOverrideNameID = pingUnit.SpellOverrideNameID;
     broadcastPingUnit.Write();
@@ -767,5 +788,32 @@ void WorldSession::HandleSendPingWorldPoint(WorldPackets::Party::SendPingWorldPo
             continue;
 
         member->SendDirectMessage(broadcastPingWorldPoint.GetRawPacket());
+    }
+}
+
+void WorldSession::HandleSendPingCooldown(WorldPackets::Party::SendPingCooldown const& pingCooldown)
+{
+    Group const* group = nullptr;
+    if (!CanSendPing(*_player, pingCooldown.Type, group))
+        return;
+
+    WorldPackets::Party::ReceivePingCooldown broadcastPingCooldown;
+    broadcastPingCooldown.SenderGUID = _player->GetGUID();
+    broadcastPingCooldown.PinFrameID = pingCooldown.PinFrameID;
+    broadcastPingCooldown.SpellID = pingCooldown.SpellID;
+    broadcastPingCooldown.ItemID = pingCooldown.ItemID;
+    broadcastPingCooldown.Duration = pingCooldown.Duration;
+    broadcastPingCooldown.Remaining = pingCooldown.Remaining;
+    broadcastPingCooldown.Type = pingCooldown.Type;
+    broadcastPingCooldown.SpellCategoryID = pingCooldown.SpellCategoryID;
+    broadcastPingCooldown.Write();
+
+    for (GroupReference const& itr : group->GetMembers())
+    {
+        Player const* member = itr.GetSource();
+        if (_player == member || !_player->IsInMap(member))
+            continue;
+
+        member->SendDirectMessage(broadcastPingCooldown.GetRawPacket());
     }
 }

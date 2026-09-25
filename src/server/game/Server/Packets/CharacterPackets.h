@@ -145,6 +145,89 @@ namespace WorldPackets
             std::vector<WarbandGroup> Groups;
         };
 
+        class GetAccountCharacterList final : public ClientPacket
+        {
+        public:
+            explicit GetAccountCharacterList(WorldPacket&& packet) : ClientPacket(CMSG_GET_ACCOUNT_CHARACTER_LIST, std::move(packet)) { }
+
+            void Read() override;
+
+            uint32 Token = 0;
+            uint8 Flags = 0;
+        };
+
+        class GetAccountCharacterListResult final : public ServerPacket
+        {
+        public:
+            GetAccountCharacterListResult() : ServerPacket(SMSG_GET_ACCOUNT_CHARACTER_LIST_RESULT, 4) { }
+
+            WorldPacket const* Write() override;
+
+            struct AccountCharacterEntry
+            {
+                ObjectGuid WowAccount;
+                ObjectGuid Guid;
+                uint32 VirtualRealmAddress = 0;
+                uint8 RaceID = 0;
+                uint8 ClassID = 0;
+                uint8 SexID = 0;
+                uint8 ExperienceLevel = 0;
+                int64 LastActiveTime = 0;
+                int32 ContentSetID = 0;
+                std::string Name;
+                std::string RealmName;
+            };
+
+            uint32 Token = 0;
+            std::vector<AccountCharacterEntry> Characters;
+        };
+
+        class GetRegionwideCharacterRestrictionAndMailData final : public ClientPacket
+        {
+        public:
+            explicit GetRegionwideCharacterRestrictionAndMailData(WorldPacket&& packet) : ClientPacket(CMSG_GET_REGIONWIDE_CHARACTER_RESTRICTION_AND_MAIL_DATA, std::move(packet)) {}
+
+            void Read() override;
+
+            std::vector<ObjectGuid> CharacterGuids;
+        };
+
+        class RegionwideCharacterRestrictionsData final : public ServerPacket
+        {
+        public:
+            RegionwideCharacterRestrictionsData() : ServerPacket(SMSG_REGIONWIDE_CHARACTER_RESTRICTIONS_DATA, 4) {}
+
+            WorldPacket const* Write() override;
+
+            struct RestrictionEntry
+            {
+                ObjectGuid Guid;
+                uint8 Flags = 0;           ///< bit4 = IsRestricted, bit3 = CatchUpAvailable
+                uint32 RestrictionID = 0;
+                uint32 Unk = 1;            ///< retail 69814 sends 1 for every normal character, 0 on catch-up-flagged entries
+            };
+
+            std::vector<RestrictionEntry> Characters;
+        };
+
+        class RegionwideCharacterMailData final : public ServerPacket
+        {
+        public:
+            RegionwideCharacterMailData() : ServerPacket(SMSG_REGIONWIDE_CHARACTER_MAIL_DATA, 4) {}
+
+            WorldPacket const* Write() override;
+
+            struct MailEntry
+            {
+                ObjectGuid Guid;
+                uint8 Type = 0;             ///< retail sends 0 for characters without mail; 1 when sender list is filled
+                std::vector<std::string> MailSenders;      ///< parallel with MailSenderTypes
+                std::vector<uint32> MailSenderTypes;       ///< enum MailMessageType
+            };
+
+            std::vector<MailEntry> Characters;
+        };
+
         class EnumCharactersResult final : public ServerPacket
         {
         public:
@@ -156,8 +239,10 @@ namespace WorldPackets
                  * @brief   Initialize the struct with values from QueryResult
                  *
                  * @param   fields         Field set of CharacterDatabaseStatements::CHAR_SEL_ENUM
+                 * @param   virtualRealmAddress  address of the realm the character belongs to; 0 = this realm
+                 * @param   homeRealmId          realmlist id of the character's home realm for cross-realm entries; 0 = this realm
                  */
-                CharacterInfoBasic(Field const* fields);
+                CharacterInfoBasic(Field const* fields, uint32 virtualRealmAddress = 0, uint32 homeRealmId = 0);
 
                 ObjectGuid Guid;
                 uint32 VirtualRealmAddress = 0;
@@ -199,6 +284,7 @@ namespace WorldPackets
                     uint32 TransmogrifiedItemID = 0;
                     uint8 Subclass          = 0;
                     uint8 InvType           = 0;
+                    uint8 SheatheCategory   = 0;
                     uint32 DisplayID        = 0;
                     uint32 DisplayEnchantID = 0;
                     int32 SecondaryItemModifiedAppearanceID = 0; // also -1 is some special value
@@ -218,11 +304,12 @@ namespace WorldPackets
                 std::vector<std::string> MailSenders;
                 std::vector<uint32> MailSenderTypes;
                 bool RpeAvailable = false;
+                uint32 NoRpeReason = 4; // recently active
             };
 
             struct CharacterInfo
             {
-                CharacterInfo(Field const* fields);
+                CharacterInfo(Field const* fields, uint32 virtualRealmAddress = 0, uint32 homeRealmId = 0);
 
                 CharacterInfoBasic Basic;
                 CharacterRestrictionAndMailData RestrictionsAndMails;
@@ -230,7 +317,7 @@ namespace WorldPackets
 
             struct RegionwideCharacterListEntry
             {
-                RegionwideCharacterListEntry(Field const* fields);
+                RegionwideCharacterListEntry(Field const* fields, uint32 virtualRealmAddress = 0, uint32 homeRealmId = 0);
 
                 CharacterInfoBasic Basic;
                 uint64 Money = 0;
@@ -243,9 +330,11 @@ namespace WorldPackets
 
             struct ClassUnlock
             {
-               int8 ClassID = 0;
-               bool HasUnlockedAchievement = false;
-               uint32 AchievementID = 0;
+                int8 ClassID = 0;
+                bool HasExpansion = false;
+                bool HasUnlockedAchievement = false;
+                bool HasEntitlement = false;
+                uint32 AchievementID = 0;
             };
 
             struct RaceUnlock
@@ -254,8 +343,10 @@ namespace WorldPackets
                 bool HasUnlockedLicense = false;
                 bool HasUnlockedAchievement = false;
                 bool HasHeritageArmorUnlockAchievement = false;
+                bool HasEntitlement = false;
                 bool HideRaceOnClient = false;
                 bool FactionBalanceDisabled = false;
+                bool DoesNotHaveAvailableClasses = false;
                 std::vector<ClassUnlock> ClassUnlocks;
             };
 
@@ -840,6 +931,17 @@ namespace WorldPackets
             uint16 FactionIndex = 0;
         };
 
+        class SetFactionAtWarResult final : public ServerPacket
+        {
+        public:
+            explicit SetFactionAtWarResult() : ServerPacket(SMSG_SET_FACTION_AT_WAR, 4 + 2) {}
+
+            WorldPacket const* Write() override;
+
+            uint32 FactionIndex = 0; // RepListID, see comment above
+            uint16 Flags = 0;        // ReputationFlags; the client reads only AtWar (0x2)
+        };
+
         class SetFactionInactive final : public ClientPacket
         {
         public:
@@ -912,6 +1014,17 @@ namespace WorldPackets
             WorldPacket const* Write() override;
 
             int32 Error;
+        };
+
+        class ConvertTimerunningCharacter final : public ClientPacket
+        {
+        public:
+            explicit ConvertTimerunningCharacter(WorldPacket&& packet) : ClientPacket(CMSG_CONVERT_TIMERUNNING_CHARACTER, std::move(packet)) {}
+
+            void Read() override;
+
+            ObjectGuid CharacterGuid;
+            uint32 RaceAndFaction = 0;  // packed: low 16 bits = RaceID, high 8 bits = faction sign (see binary sub_7FF75DBB01B0)
         };
 
         class NeutralPlayerFactionSelectResult final : public ServerPacket

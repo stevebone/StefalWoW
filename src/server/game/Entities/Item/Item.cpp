@@ -1387,7 +1387,7 @@ void Item::SetCount(uint32 value)
     }
 }
 
-uint64 Item::CalculateDurabilityRepairCost(float discount) const
+uint64 Item::CalculateDurabilityRepairCost(float discount, bool useRateConfig /*= true*/) const
 {
     uint32 maxDurability = m_itemData->MaxDurability;
     if (!maxDurability)
@@ -1418,7 +1418,7 @@ uint64 Item::CalculateDurabilityRepairCost(float discount) const
         dmultiplier = durabilityCost->ArmorSubClassCost[itemTemplate->GetSubClass()];
 
     uint64 cost = std::round(lostDurability * dmultiplier * durabilityQualityEntry->Data * GetRepairCostMultiplier());
-    cost = uint64(cost * discount * sWorld->getRate(RATE_REPAIRCOST));
+    cost = uint64(cost * discount * (useRateConfig ? sWorld->getRate(RATE_REPAIRCOST) : 1));
 
     if (cost == 0) // Fix for ITEM_QUALITY_ARTIFACT
         cost = 1;
@@ -1707,7 +1707,7 @@ void Item::SendUpdateSockets()
 {
     WorldPackets::Item::SocketGemsSuccess socketGems;
     socketGems.Item = GetGUID();
-    GetOwner()->GetSession()->SendPacket(socketGems.Write());
+    GetOwner()->SendDirectMessage(socketGems.Write());
 }
 
 // Though the client has the information in the item's data field,
@@ -1722,7 +1722,7 @@ void Item::SendTimeUpdate(Player* owner)
     WorldPackets::Item::ItemTimeUpdate itemTimeUpdate;
     itemTimeUpdate.ItemGuid = GetGUID();
     itemTimeUpdate.DurationLeft = duration;
-    owner->GetSession()->SendPacket(itemTimeUpdate.Write());
+    owner->SendDirectMessage(itemTimeUpdate.Write());
 }
 
 Item* Item::CreateItem(uint32 itemEntry, uint32 count, ItemContext context, Player const* player /*= nullptr*/, bool addDefaultBonuses /*= true*/)
@@ -1771,6 +1771,28 @@ Item* Item::CloneItem(uint32 count, Player const* player /*= nullptr*/) const
     if (player)
         newItem->SetItemRandomBonusList(m_randomBonusListId);
     return newItem;
+}
+
+bool Item::IsWarbandBound() const
+{
+    ItemBondingType bonding = GetBonding();
+    if (bonding == BIND_WOW_ACCOUNT || bonding == BIND_BNET_ACCOUNT)
+        return true;
+    if (bonding == BIND_BNET_ACCOUNT_UNTIL_EQUIPPED && !HasItemFlag(ITEM_FIELD_FLAG_CONVERTED_WARBOUND))
+        return true;
+    return false;
+}
+
+void Item::ConvertToSoulbound()
+{
+    if (GetBonding() != BIND_BNET_ACCOUNT_UNTIL_EQUIPPED)
+        return;
+    if (HasItemFlag(ITEM_FIELD_FLAG_CONVERTED_WARBOUND))
+        return;
+
+    SetBinding(true);
+    SetItemFlag(ITEM_FIELD_FLAG_CONVERTED_WARBOUND);
+    SetState(ITEM_CHANGED, GetOwner());
 }
 
 bool Item::IsBindedNotWith(Player const* player) const
@@ -2048,7 +2070,7 @@ int32 const ItemTransmogrificationSlots[MAX_INVTYPE] =
     -1,                                                     // INVTYPE_THROWN
     EQUIPMENT_SLOT_MAINHAND,                                // INVTYPE_RANGEDRIGHT
     -1,                                                     // INVTYPE_QUIVER
-    -1                                                      // INVTYPE_RELIC
+    -1,                                                     // INVTYPE_RELIC
     -1,                                                     // INVTYPE_PROFESSION_TOOL
     -1,                                                     // INVTYPE_PROFESSION_GEAR
     -1,                                                     // INVTYPE_EQUIPABLE_SPELL_OFFENSIVE
@@ -2238,9 +2260,27 @@ uint32 Item::GetBuyPrice(ItemTemplate const* proto, uint32 quality, uint32 itemL
     return uint32(proto->GetPriceVariance() * typeFactor * baseFactor * qualityFactor * proto->GetPriceRandomValue());
 }
 
-uint32 Item::GetSellPrice(Player const* owner) const
+uint32 Item::GetSellPrice(Player const* owner, bool forVendor /*= false*/) const
 {
-    return Item::GetSellPrice(GetTemplate(), GetQuality(), GetItemLevel(owner));
+    ItemTemplate const* itemTemplate = GetTemplate();
+    int64 price = Item::GetSellPrice(itemTemplate, GetQuality(), GetItemLevel(owner));
+    if (price && forVendor)
+    {
+        std::span<ItemEffectEntry const* const> effects = GetEffects();
+        auto effectWithCharges = std::ranges::find_if(effects,
+            [](ItemEffectEntry const* itemEffect) { return itemEffect->SpellID && itemEffect->TriggerType == ITEM_SPELLTRIGGER_ON_USE && itemEffect->Charges < 0; });
+
+        if (effectWithCharges != effects.end())
+            price = price * GetSpellCharges(*effectWithCharges) / (*effectWithCharges)->Charges;
+
+        int64 repairCost = CalculateDurabilityRepairCost(1.0f, false);
+        if (repairCost < price)
+            price -= repairCost;
+        else
+            price = 1;
+    }
+
+    return price;
 }
 
 uint32 Item::GetSellPrice(ItemTemplate const* proto, uint32 quality, uint32 itemLevel)
@@ -2272,26 +2312,28 @@ uint32 Item::GetSellPrice(ItemTemplate const* proto, uint32 quality, uint32 item
 uint32 Item::GetItemLevel(Player const* owner) const
 {
     ItemTemplate const* itemTemplate = GetTemplate();
-    uint32 minItemLevel = owner->m_unitData->MinItemLevel;
-    uint32 minItemLevelCutoff = owner->m_unitData->MinItemLevelCutoff;
+    int32 minItemLevel = owner->m_unitData->MinItemLevel;
+    int32 minItemLevelCutoff = owner->m_unitData->MinItemLevelCutoff;
     bool pvpBonus = owner->IsUsingPvpItemLevels();
-    uint32 maxItemLevel = pvpBonus && itemTemplate->HasFlag(ITEM_FLAG3_IGNORE_ITEM_LEVEL_CAP_IN_PVP) ? 0 : owner->m_unitData->MaxItemLevel;
+    int32 maxItemLevel = pvpBonus && itemTemplate->HasFlag(ITEM_FLAG3_IGNORE_ITEM_LEVEL_CAP_IN_PVP) ? 0 : owner->m_unitData->MaxItemLevel;
     uint32 azeriteLevel = 0;
     if (AzeriteItem const* azeriteItem = ToAzeriteItem())
         azeriteLevel = azeriteItem->GetEffectiveLevel();
     return Item::GetItemLevel(itemTemplate, _bonusData, owner->GetLevel(), GetModifier(ITEM_MODIFIER_TIMEWALKER_LEVEL),
-        minItemLevel, minItemLevelCutoff, maxItemLevel, pvpBonus, azeriteLevel);
+        minItemLevel, minItemLevelCutoff, maxItemLevel, pvpBonus, azeriteLevel, GetModifier(ITEM_MODIFIER_CONTENT_TUNING_ID));
 }
 
 uint32 Item::GetItemLevel(ItemTemplate const* itemTemplate, BonusData const& bonusData, uint32 level, uint32 fixedLevel,
-    uint32 minItemLevel, uint32 minItemLevelCutoff, uint32 maxItemLevel, bool pvpBonus, uint32 azeriteLevel)
+    int32 minItemLevel, int32 minItemLevelCutoff, int32 maxItemLevel, bool pvpBonus, uint32 azeriteLevel, uint32 overrideContentTuningId, bool applySquish)
 {
     if (!itemTemplate)
         return MIN_ITEM_LEVEL;
 
-    uint32 itemLevel = bonusData.ItemLevel;
+    int32 itemLevel = bonusData.ItemLevel;
     if (AzeriteLevelInfoEntry const* azeriteLevelInfo = sAzeriteLevelInfoStore.LookupEntry(azeriteLevel))
         itemLevel = azeriteLevelInfo->ItemLevel;
+
+    bool skipSquish = false;
 
     if (!bonusData.ItemLevelOffsetCurveId)
     {
@@ -2299,21 +2341,37 @@ uint32 Item::GetItemLevel(ItemTemplate const* itemTemplate, BonusData const& bon
         {
             if (fixedLevel)
                 level = fixedLevel;
-            else if (Optional<ContentTuningLevels> levels = sDB2Manager.GetContentTuningData(bonusData.ContentTuningId, {}, true))
+            else if (Optional<ContentTuningLevels> levels = sDB2Manager.GetContentTuningData(overrideContentTuningId ? overrideContentTuningId : bonusData.ContentTuningId, {}, true))
                 level = std::min(std::max(int16(level), levels->MinLevel), levels->MaxLevel);
 
-            itemLevel = uint32(sDB2Manager.GetCurveValueAt(bonusData.PlayerLevelToItemLevelCurveId, level));
+            itemLevel = int32(std::round(sDB2Manager.GetCurveValueAt(bonusData.PlayerLevelToItemLevelCurveId, level)));
         }
 
         itemLevel += bonusData.ItemLevelBonus;
     }
     else
-        itemLevel = bonusData.ItemLevelOffset + uint32(sDB2Manager.GetCurveValueAt(bonusData.ItemLevelOffsetCurveId, bonusData.ItemLevelOffsetItemLevel));
+    {
+        // ItemLevelOffsetItemLevel set by ITEM_BONUS_SCALING_CONFIG_AND_REQ_LEVEL is the final
+        // authoritative item level (client displays it as-is); era squish must not be applied to it
+        if (bonusData.ItemLevelOffsetItemLevel)
+            skipSquish = true;
+
+        uint32 scalingLevel = bonusData.ItemLevelOffsetItemLevel;
+        if (bonusData.ScalingConfigUsesPlayerLevel)
+            scalingLevel = fixedLevel ? fixedLevel : level;
+
+        if (bonusData.RestrictScalingToContentTuning)
+            if (Optional<ContentTuningLevels> levels = sDB2Manager.GetContentTuningData(overrideContentTuningId, {}, true))
+                scalingLevel = std::min(std::max(int16(scalingLevel), levels->MinLevel), levels->MaxLevel);
+
+        itemLevel = bonusData.ItemLevelOffset + int32(std::round(sDB2Manager.GetCurveValueAt(bonusData.ItemLevelOffsetCurveId, scalingLevel)));
+        itemLevel += bonusData.ScalingConfigItemLevelBonus;
+    }
 
     for (uint32 i = 0; i < MAX_ITEM_PROTO_SOCKETS; ++i)
         itemLevel += bonusData.GemItemLevelBonus[i];
 
-    uint32 itemLevelBeforeUpgrades = itemLevel;
+    int32 itemLevelBeforeUpgrades = itemLevel;
 
     if (pvpBonus)
     {
@@ -2323,29 +2381,35 @@ uint32 Item::GetItemLevel(ItemTemplate const* itemTemplate, BonusData const& bon
         itemLevel += bonusData.PvpItemLevelBonus;
     }
 
-    if (!bonusData.IgnoreSquish)
+    if (applySquish)
     {
-        if (std::shared_ptr<Realm const> currentRealm = sRealmList->GetCurrentRealm())
+        if (!bonusData.IgnoreSquish && !skipSquish)
         {
-            int32 currentBuild = ClientBuild::GetMinorMajorBugfixVersionForBuild(currentRealm->Build);
-
-            // apply all squishes between items_squish and server_squish
-            for (uint32 squishId = bonusData.ItemSquishEraID; squishId < sItemSquishEraStore.GetNumRows(); ++squishId)
+            if (std::shared_ptr<Realm const> currentRealm = sRealmList->GetCurrentRealm())
             {
-                ItemSquishEraEntry const* squish = sItemSquishEraStore.LookupEntry(squishId);
-                if (!squish)
-                    continue;
+                int32 currentBuild = ClientBuild::GetMinorMajorBugfixVersionForBuild(currentRealm->Build);
 
-                if (squish->Patch > currentBuild)
-                    break;
+                for (uint32 squishId = bonusData.ItemSquishEraID; squishId < sItemSquishEraStore.GetNumRows(); ++squishId)
+                {
+                    ItemSquishEraEntry const* squish = sItemSquishEraStore.LookupEntry(squishId);
+                    if (!squish)
+                        continue;
 
-                if (squish->CurveID)
-                    itemLevel = uint32(sDB2Manager.GetCurveValueAt(squish->CurveID, itemLevel));
+                    if (squish->Patch > currentBuild)
+                        break;
+
+                    if (squish->CurveID)
+                        itemLevel = int32(std::round(sDB2Manager.GetCurveValueAt(squish->CurveID, itemLevel)));
+                }
             }
         }
+
     }
 
-    if (itemTemplate->GetInventoryType() != INVTYPE_NON_EQUIP)
+    if (bonusData.ItemLevelOffsetCurveId)
+        itemLevel += bonusData.ScalingConfigCraftingQualityItemLevelBonus;
+
+    if (applySquish && itemTemplate->GetInventoryType() != INVTYPE_NON_EQUIP)
     {
         if (minItemLevel && (!minItemLevelCutoff || itemLevelBeforeUpgrades >= minItemLevelCutoff) && itemLevel < minItemLevel)
             itemLevel = minItemLevel;
@@ -2354,7 +2418,7 @@ uint32 Item::GetItemLevel(ItemTemplate const* itemTemplate, BonusData const& bon
             itemLevel = maxItemLevel;
     }
 
-    return std::min(std::max(itemLevel, uint32(MIN_ITEM_LEVEL)), uint32(MAX_ITEM_LEVEL));
+    return std::min(std::max(itemLevel, int32(MIN_ITEM_LEVEL)), int32(MAX_ITEM_LEVEL));
 }
 
 int32 Item::GetItemStatType(uint32 index) const
@@ -2380,7 +2444,7 @@ int32 Item::GetItemStatType(uint32 index) const
     return itemStatType;
 }
 
-float Item::GetItemStatValue(uint32 index, Player const* owner) const
+float Item::GetItemStatValue(uint32 index, uint32 itemLevel) const
 {
     ASSERT(index < MAX_ITEM_PROTO_STATS);
     switch (GetItemStatType(index))
@@ -2392,17 +2456,21 @@ float Item::GetItemStatValue(uint32 index, Player const* owner) const
             break;
     }
 
-    uint32 itemLevel = GetItemLevel(owner);
     if (float randomPropPoints = GetRandomPropertyPoints(itemLevel, GetQuality(), GetTemplate()->GetInventoryType(), GetTemplate()->GetSubClass()))
     {
         float statValue = float(_bonusData.StatPercentEditor[index] * randomPropPoints) * 0.0001f;
         if (GtItemSocketCostPerLevelEntry const* gtCost = sItemSocketCostPerLevelGameTable.GetRow(itemLevel))
-            statValue -= float(int32(_bonusData.ItemStatSocketCostMultiplier[index] * gtCost->SocketCost));
+            statValue -= float(_bonusData.ItemStatSocketCostMultiplier[index] * gtCost->SocketCost);
 
-        return statValue;
+        return std::round(statValue);
     }
 
     return 0.0f;
+}
+
+float Item::GetItemStatValue(uint32 index, Player const* owner) const
+{
+    return GetItemStatValue(index, GetItemLevel(owner));
 }
 
 Optional<uint32> Item::GetDisenchantLootId() const
@@ -2414,7 +2482,7 @@ Optional<uint32> Item::GetDisenchantLootId() const
         return _bonusData.DisenchantLootId;
 
     // ignore temporary item level scaling (pvp or timewalking)
-    uint32 itemLevel = GetItemLevel(GetTemplate(), _bonusData, _bonusData.RequiredLevel, GetModifier(ITEM_MODIFIER_TIMEWALKER_LEVEL), 0, 0, 0, false, 0);
+    uint32 itemLevel = GetItemLevel(GetTemplate(), _bonusData, _bonusData.RequiredLevel, GetModifier(ITEM_MODIFIER_TIMEWALKER_LEVEL), 0, 0, 0, false, 0, 0);
 
     ItemDisenchantLootEntry const* disenchantLoot = GetBaseDisenchantLoot(GetTemplate(), GetQuality(), itemLevel);
     if (!disenchantLoot)
@@ -2429,7 +2497,7 @@ Optional<uint16> Item::GetDisenchantSkillRequired() const
         return {};
 
     // ignore temporary item level scaling (pvp or timewalking)
-    uint32 itemLevel = GetItemLevel(GetTemplate(), _bonusData, _bonusData.RequiredLevel, GetModifier(ITEM_MODIFIER_TIMEWALKER_LEVEL), 0, 0, 0, false, 0);
+    uint32 itemLevel = GetItemLevel(GetTemplate(), _bonusData, _bonusData.RequiredLevel, GetModifier(ITEM_MODIFIER_TIMEWALKER_LEVEL), 0, 0, 0, false, 0, 0);
 
     ItemDisenchantLootEntry const* disenchantLoot = GetBaseDisenchantLoot(GetTemplate(), GetQuality(), itemLevel);
     if (!disenchantLoot)
@@ -2958,6 +3026,8 @@ void BonusData::Initialize(ItemTemplate const* proto)
     ItemLevelOffsetItemLevel = proto->GetItemLevelOffsetItemLevel();
     ItemLevelOffset = 0;
     ItemSquishEraID = proto->GetItemSquishEraId();
+    ScalingConfigItemLevelBonus = 0;
+    ScalingConfigCraftingQualityItemLevelBonus = 0;
 
     EffectCount = 0;
     for (ItemEffectEntry const* itemEffect : proto->Effects)
@@ -2974,6 +3044,8 @@ void BonusData::Initialize(ItemTemplate const* proto)
     CanRecraft = proto->HasFlag(ITEM_FLAG4_RECRAFTABLE);
     CannotTradeBindOnPickup = proto->HasFlag(ITEM_FLAG2_NO_TRADE_BIND_ON_ACQUIRE);
     IgnoreSquish = false;
+    RestrictScalingToContentTuning = false;
+    ScalingConfigUsesPlayerLevel = false;
 
     _state.SuffixPriority = std::numeric_limits<int32>::max();
     _state.AppearanceModPriority = std::numeric_limits<int32>::max();
@@ -2984,6 +3056,8 @@ void BonusData::Initialize(ItemTemplate const* proto)
     _state.ItemLevelPriority = std::numeric_limits<int32>::max();
     _state.PvpItemLevelPriority = std::numeric_limits<int32>::max();
     _state.BondingPriority = std::numeric_limits<int32>::max();
+    _state.ScalingConfigItemLevelBonusPriority = std::numeric_limits<int32>::max();
+    _state.ScalingConfigCraftingQualityItemLevelBonusPriority = std::numeric_limits<int32>::max();
     _state.HasQualityBonus = false;
     _state.HasItemLimitCategory = false;
 }
@@ -3173,6 +3247,7 @@ void BonusData::AddBonus(uint32 type, std::array<int32, 4> const& values)
         case ITEM_BONUS_SCALING_CONFIG_AND_REQ_LEVEL:
             if (values[1] < _state.ScalingStatDistributionPriority)
             {
+                _state.ScalingStatDistributionPriority = values[1];
                 if (ItemScalingConfigEntry const* scalingConfig = sItemScalingConfigStore.LookupEntry(values[0]))
                 {
                     if (ItemOffsetCurveEntry const* itemOffsetCurve = sItemOffsetCurveStore.LookupEntry(scalingConfig->ItemOffsetCurveID))
@@ -3181,13 +3256,16 @@ void BonusData::AddBonus(uint32 type, std::array<int32, 4> const& values)
                         ItemLevelOffset = itemOffsetCurve->Offset;
                     }
 
-                    ItemLevelOffsetItemLevel = scalingConfig->ItemLevel;
+                    ScalingConfigUsesPlayerLevel = false;
                     ItemSquishEraID = scalingConfig->ItemSquishEraID;
                     if (scalingConfig->Flags & 0x1)
                         IgnoreSquish = true;
+                    if (scalingConfig->Flags & 0x2)
+                        RestrictScalingToContentTuning = true;
 
                     if (values[1] < _state.RequiredLevelCurvePriority)
                     {
+                        ItemLevelOffsetItemLevel = scalingConfig->ItemLevel;
                         RequiredLevelOverride = scalingConfig->RequiredLevel;
                         RequiredLevelCurve = 0;
                     }
@@ -3200,6 +3278,7 @@ void BonusData::AddBonus(uint32 type, std::array<int32, 4> const& values)
         case ITEM_BONUS_SCALING_CONFIG:
             if (values[1] < _state.ScalingStatDistributionPriority)
             {
+                _state.ScalingStatDistributionPriority = values[1];
                 if (ItemScalingConfigEntry const* scalingConfig = sItemScalingConfigStore.LookupEntry(values[0]))
                 {
                     if (ItemOffsetCurveEntry const* itemOffsetCurve = sItemOffsetCurveStore.LookupEntry(scalingConfig->ItemOffsetCurveID))
@@ -3208,11 +3287,45 @@ void BonusData::AddBonus(uint32 type, std::array<int32, 4> const& values)
                         ItemLevelOffset = itemOffsetCurve->Offset;
                     }
 
+                    ScalingConfigUsesPlayerLevel = true;
                     ItemLevelOffsetItemLevel = 0;
                     ItemSquishEraID = scalingConfig->ItemSquishEraID;
                     if (scalingConfig->Flags & 0x1)
                         IgnoreSquish = true;
+                    if (scalingConfig->Flags & 0x2)
+                        RestrictScalingToContentTuning = true;
                 }
+            }
+            break;
+        case ITEM_BONUS_CRAFTED_ITEM_LEVEL:
+            if (values[3] < _state.ScalingConfigCraftingQualityItemLevelBonusPriority)
+            {
+                bool isSquished = false;
+                if (std::shared_ptr<Realm const> currentRealm = sRealmList->GetCurrentRealm())
+                {
+                    int32 currentBuild = ClientBuild::GetMinorMajorBugfixVersionForBuild(currentRealm->Build);
+
+                    // apply all squishes between items_squish and server_squish
+                    for (uint32 squishId = values[1] + 1; squishId < sItemSquishEraStore.GetNumRows(); ++squishId)
+                    {
+                        ItemSquishEraEntry const* squish = sItemSquishEraStore.LookupEntry(squishId);
+                        if (!squish || squish->Flags & 0x1)
+                            continue;
+
+                        isSquished = squish->Patch <= currentBuild;
+                        break;
+                    }
+                }
+
+                ScalingConfigCraftingQualityItemLevelBonus = values[isSquished ? 2 : 0];
+                _state.ScalingConfigCraftingQualityItemLevelBonusPriority = values[3];
+            }
+            break;
+        case ITEM_BONUS_SCALING_ITEM_LEVEL_BONUS:
+            if (values[1] < _state.ScalingConfigItemLevelBonusPriority)
+            {
+                ScalingConfigItemLevelBonus = values[0];
+                _state.ScalingConfigItemLevelBonusPriority = values[1];
             }
             break;
     }

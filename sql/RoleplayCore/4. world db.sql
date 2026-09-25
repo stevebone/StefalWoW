@@ -69,6 +69,115 @@ CREATE TABLE `scrapping_loot_template`  (
   PRIMARY KEY (`Entry`, `Item`) USING BTREE
 ) ENGINE = MyISAM AUTO_INCREMENT = 1 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci COMMENT = 'Loot System' ROW_FORMAT = FIXED;
 
+-- Perks Program: Vendor items
+CREATE TABLE IF NOT EXISTS `perks_vendor_items` (
+  `VendorItemID` int NOT NULL COMMENT 'Unique vendor item ID in the perks system',
+  `MountID` int NOT NULL DEFAULT '0' COMMENT 'Mount ID (0 if not a mount)',
+  `BattlePetSpeciesID` int NOT NULL DEFAULT '0' COMMENT 'Battle pet species ID (0 if N/A)',
+  `TransmogSetID` int NOT NULL DEFAULT '0' COMMENT 'Transmog set ID (0 if N/A)',
+  `ItemModifiedAppearanceID` int NOT NULL DEFAULT '0' COMMENT 'Item modified appearance ID (0 if N/A)',
+  `TransmogIllusionID` int NOT NULL DEFAULT '0' COMMENT 'Transmog illusion ID (0 if N/A)',
+  `ToyID` int NOT NULL DEFAULT '0' COMMENT 'Toy ID (0 if N/A)',
+  `WarbandSceneID` int NOT NULL DEFAULT '0' COMMENT 'Warband scene ID (0 if N/A)',
+  `Price` int NOT NULL DEFAULT '0' COMMENT 'Cost in Traders Tender',
+  `OriginalPrice` int NOT NULL DEFAULT '0' COMMENT 'Pre-discount price (0 = no discount)',
+  `AvailableUntil` int unsigned NOT NULL DEFAULT '0' COMMENT 'Unix timestamp expiry',
+  `Disabled` tinyint unsigned NOT NULL DEFAULT '0' COMMENT '1 = item disabled',
+  `DoesNotExpire` tinyint unsigned NOT NULL DEFAULT '0' COMMENT '1 = permanent item',
+  PRIMARY KEY (`VendorItemID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Perks Program vendor item definitions';
+
+DELETE FROM `perks_vendor_items` WHERE `VendorItemID` IN (947, 1000, 1306, 1316, 1322, 1331, 1354, 1361);
+INSERT INTO `perks_vendor_items` (`VendorItemID`, `MountID`, `BattlePetSpeciesID`, `TransmogSetID`, `ItemModifiedAppearanceID`, `TransmogIllusionID`, `ToyID`, `WarbandSceneID`, `Price`, `OriginalPrice`, `AvailableUntil`, `Disabled`, `DoesNotExpire`) VALUES 
+(947, 0, 0, 0, 249023, 0, 0, 0, 200, 0, 1775055600, 0, 0),
+(1000, 1218012, 0, 0, 0, 0, 0, 0, 700, 0, 1775055600, 0, 0),
+(1306, 1270523, 0, 0, 0, 0, 0, 0, 500, 0, 1775055600, 0, 0),
+(1316, 0, 0, 0, 302232, 0, 0, 0, 100, 0, 1775055600, 0, 0),
+(1322, 0, 0, 0, 304086, 0, 0, 0, 80, 0, 1775055600, 0, 0),
+(1331, 0, 0, 5355, 0, 0, 0, 0, 150, 0, 1775055600, 0, 0),
+(1354, 0, 0, 0, 304226, 0, 0, 0, 80, 0, 1775055600, 0, 0),
+(1361, 0, 0, 0, 304091, 0, 0, 0, 80, 0, 1775055600, 0, 0);
+
+-- Perks Program: Monthly rotation
+CREATE TABLE IF NOT EXISTS `perks_monthly_rotation` (
+  `rotation_id` int unsigned NOT NULL AUTO_INCREMENT COMMENT 'Primary key',
+  `month_start` int unsigned NOT NULL COMMENT 'Unix timestamp: rotation start',
+  `month_end` int unsigned NOT NULL COMMENT 'Unix timestamp: rotation end',
+  `vendor_item_id` int NOT NULL COMMENT 'FK to perks_vendor_items.VendorItemID',
+  `comment` varchar(255) DEFAULT NULL COMMENT 'Human-readable label (e.g. March 2026)',
+  PRIMARY KEY (`rotation_id`),
+  KEY `idx_rotation_dates` (`month_start`, `month_end`),
+  KEY `idx_vendor_item` (`vendor_item_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Perks Program monthly item rotation schedule';
+
+INSERT INTO `perks_monthly_rotation` (`month_start`, `month_end`, `vendor_item_id`, `comment`) VALUES
+(1772377200, 1775055600, 1316, 'March 2026 - Transmog Appearance'),
+(1772377200, 1775055600, 1000, 'March 2026 - Mount'),
+(1772377200, 1775055600, 1322, 'March 2026 - Transmog Set'),
+(1772377200, 1775055600, 947,  'March 2026 - Unknown Item 947'),
+(1772377200, 1775055600, 1331, 'March 2026 - Unknown Item 1331'),
+(1772377200, 1775055600, 1306, 'March 2026 - Mount (Freezable)');
+
+-- Perks Program: Activity intervals
+CREATE TABLE IF NOT EXISTS `perks_activity_intervals` (
+  `interval_id`  int unsigned NOT NULL COMMENT 'IntervalID from PerksActivityXInterval.db2',
+  `month_start`  int unsigned NOT NULL COMMENT 'Unix timestamp: window open (0 = always)',
+  `month_end`    int unsigned NOT NULL COMMENT 'Unix timestamp: window close (INT_MAX = always)',
+  `is_threshold` tinyint unsigned NOT NULL DEFAULT 0
+                 COMMENT '0 = main activity list, 1 = trailing milestone slots',
+  `comment`      varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`interval_id`, `month_start`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Perks Program activity interval schedule';
+
+INSERT INTO `perks_activity_intervals` (`interval_id`, `month_start`, `month_end`, `is_threshold`, `comment`) VALUES
+(4,   0, 2147483647, 0, 'Permanent interval 4'),
+(5,   0, 2147483647, 0, 'Permanent interval 5'),
+(8,   0, 2147483647, 0, 'Permanent interval 8'),
+(37,  0, 2147483647, 0, 'Permanent interval 37'),
+(110, 0, 2147483647, 0, 'Permanent interval 110'),
+(111, 1740787200, 1743465600, 1, 'March 2026 threshold milestones (IntervalID 111)'),
+(112, 1740787200, 1743465600, 1, 'March 2026 threshold milestones (IntervalID 112)'),
+(113, 1740787200, 1743465600, 1, 'March 2026 threshold milestones (IntervalID 113)')
+ON DUPLICATE KEY UPDATE `month_end` = VALUES(`month_end`), `comment` = VALUES(`comment`);
+
+-- Perks Program: Current activities
+CREATE TABLE IF NOT EXISTS `perks_current_activities` (
+  `activity_id`  int NOT NULL COMMENT 'PerksActivity ID from PerksActivity.db2',
+  `is_threshold` tinyint unsigned NOT NULL DEFAULT '0'
+                 COMMENT '0 = main list, 1 = threshold milestone slot',
+  `month_start`  int unsigned NOT NULL COMMENT 'Unix timestamp: window open',
+  `month_end`    int unsigned NOT NULL COMMENT 'Unix timestamp: window close',
+  PRIMARY KEY (`activity_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Perks Program direct activity list per Trading Post month';
+
+INSERT INTO `perks_current_activities` (`activity_id`, `is_threshold`, `month_start`, `month_end`) VALUES
+(6,   0, 1772377200, 1775055600), (10,  0, 1772377200, 1775055600), (11,  0, 1772377200, 1775055600),
+(12,  0, 1772377200, 1775055600), (13,  0, 1772377200, 1775055600), (14,  0, 1772377200, 1775055600),
+(61,  0, 1772377200, 1775055600), (65,  0, 1772377200, 1775055600), (66,  0, 1772377200, 1775055600),
+(67,  0, 1772377200, 1775055600), (69,  0, 1772377200, 1775055600), (70,  0, 1772377200, 1775055600),
+(73,  0, 1772377200, 1775055600), (266, 0, 1772377200, 1775055600), (267, 0, 1772377200, 1775055600),
+(268, 0, 1772377200, 1775055600), (269, 0, 1772377200, 1775055600), (270, 0, 1772377200, 1775055600),
+(271, 0, 1772377200, 1775055600), (312, 0, 1772377200, 1775055600), (313, 0, 1772377200, 1775055600),
+(323, 0, 1772377200, 1775055600), (380, 0, 1772377200, 1775055600), (415, 0, 1772377200, 1775055600),
+(416, 0, 1772377200, 1775055600), (417, 0, 1772377200, 1775055600), (418, 0, 1772377200, 1775055600),
+(419, 0, 1772377200, 1775055600), (420, 0, 1772377200, 1775055600), (421, 0, 1772377200, 1775055600),
+(422, 0, 1772377200, 1775055600), (423, 0, 1772377200, 1775055600), (435, 0, 1772377200, 1775055600),
+(441, 0, 1772377200, 1775055600), (446, 0, 1772377200, 1775055600), (478, 0, 1772377200, 1775055600),
+(479, 0, 1772377200, 1775055600), (501, 0, 1772377200, 1775055600), (502, 0, 1772377200, 1775055600),
+(503, 0, 1772377200, 1775055600), (540, 0, 1772377200, 1775055600), (541, 0, 1772377200, 1775055600),
+(542, 0, 1772377200, 1775055600), (543, 0, 1772377200, 1775055600), (588, 0, 1772377200, 1775055600),
+(606, 0, 1772377200, 1775055600), (607, 0, 1772377200, 1775055600), (608, 0, 1772377200, 1775055600),
+(609, 0, 1772377200, 1775055600), (645, 0, 1772377200, 1775055600), (646, 0, 1772377200, 1775055600),
+(670, 0, 1772377200, 1775055600), (683, 0, 1772377200, 1775055600), (684, 0, 1772377200, 1775055600),
+(782, 0, 1772377200, 1775055600), (806, 0, 1772377200, 1775055600), (809, 0, 1772377200, 1775055600),
+(852, 0, 1772377200, 1775055600), (889, 0, 1772377200, 1775055600), (890, 0, 1772377200, 1775055600),
+(891, 0, 1772377200, 1775055600), (892, 0, 1772377200, 1775055600), (893, 0, 1772377200, 1775055600),
+(905, 0, 1772377200, 1775055600), (913, 0, 1772377200, 1775055600), (914, 0, 1772377200, 1775055600),
+(917, 0, 1772377200, 1775055600), (920, 0, 1772377200, 1775055600), (921, 0, 1772377200, 1775055600),
+(922, 1, 1772377200, 1775055600), (924, 1, 1772377200, 1775055600), (927, 1, 1772377200, 1775055600),
+(928, 1, 1772377200, 1775055600), (934, 1, 1772377200, 1775055600)
+ON DUPLICATE KEY UPDATE `month_start` = VALUES(`month_start`), `month_end` = VALUES(`month_end`);
+
 -- ----------------------------
 -- Records of scrapping_loot_template
 -- ----------------------------
@@ -323,6 +432,7 @@ REPLACE INTO `creature_model_info` VALUES (116539, 0, 0, 0, 0);
 REPLACE INTO `creature_model_info` VALUES (116687, 0, 0, 0, 0);
 REPLACE INTO `creature_model_info` VALUES (126177, 0, 0, 0, 0);
 REPLACE INTO `creature_model_info` VALUES (113609, 0, 0, 0, 0);
+REPLACE INTO `creature_model_info` VALUES (140847, 0, 0, 0, 0);
 
 -- ----------------------------
 -- Warlock spell fixes
@@ -483,6 +593,11 @@ REPLACE INTO `areatrigger_template` VALUES (265163, 0, 0, 0, 0, 0);
 REPLACE INTO `areatrigger_create_properties` VALUES (12863, 0, 265163, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 0, 0, 'at_hunter_wildfire_bomb', 0);
 
 REPLACE INTO `spell_script_names` VALUES (3355, 'spell_hunter_freezing_trap_aura');
+REPLACE INTO `spell_script_names` VALUES (883, 'spell_hun_call_pet');
+REPLACE INTO `spell_script_names` VALUES (83242, 'spell_hun_call_pet');
+REPLACE INTO `spell_script_names` VALUES (83243, 'spell_hun_call_pet');
+REPLACE INTO `spell_script_names` VALUES (83244, 'spell_hun_call_pet');
+REPLACE INTO `spell_script_names` VALUES (83245, 'spell_hun_call_pet');
 
 -- ----------------------------
 -- Rogue spell fixes
@@ -525,6 +640,11 @@ REPLACE INTO `areatrigger_scripts` VALUES (1489, 'at_pri_power_word_barrier');
 -- ----------------------------
 REPLACE INTO `spell_script_names` VALUES (85043, 'spell_pal_grand_crusader');
 REPLACE INTO `spell_script_names` VALUES (152261, 'spell_pal_holy_shield');
+REPLACE INTO `spell_script_names` VALUES (375576, 'spell_pal_divine_toll');
+REPLACE INTO `spell_script_names` VALUES (31935, 'spell_pal_avengers_shield');
+REPLACE INTO `spell_script_names` VALUES (378405, 'spell_pal_light_of_the_titans');
+REPLACE INTO `spell_script_names` VALUES (378412, 'spell_pal_light_of_the_titans_hot');
+REPLACE INTO `spell_linked_spell` VALUES (321136, 327510, 2, 'Shining Light aura');
 
 -- ----------------------------
 -- Monk spell fixes
@@ -676,6 +796,8 @@ REPLACE INTO `areatrigger_scripts` VALUES (9695, 'at_demon_hunter_mana_rift');
 REPLACE INTO `areatrigger_scripts` VALUES (6482, 'at_demon_hunter_demonic_trample');
 
 REPLACE INTO `areatrigger_create_properties` VALUES (6482, 1, 11107, 1, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'at_demon_hunter_demonic_trample', 40120);
+REPLACE INTO `areatrigger_scripts` VALUES (1266619, 'spell_first_in_last_out');
+REPLACE INTO `areatrigger_scripts` VALUES (1266497, 'spell_first_in_last_out'); -- It is necessary to protect against false alarms and auras.
 
 -- ----------------------------
 -- Druid spell fixes
@@ -690,16 +812,70 @@ REPLACE INTO `spell_script_names` VALUES (202157, 'aura_dru_feral_affinity');
 REPLACE INTO `spell_script_names` VALUES (159286, 'spell_dru_primal_fury');
 
 -- ----------------------------
--- Misc fix or changes
+-- Misc fix or changes (spell)
 -- ----------------------------
 
 REPLACE INTO `spell_script_names` VALUES (108897, 'spell_pandaren_faction_choice');
 REPLACE INTO `spell_script_names` VALUES (83958, 'spell_gen_guild_chest');
+REPLACE INTO `spell_script_names` VALUES (406090, 'spell_gen_calm_the_wolf');
 
 REPLACE INTO `creature_template` VALUES (102199, 0, 0, 'Stampede', '', '', NULL, '',	0, 0, 35, 0, 1, 1.14286, 1, 0, 0, 1028, 2000, 1, 1, 1, 33554944, 0, 16777216, 0, 0, 10, 0, '', 0, 1, 0, 0, 0, 0, 1, 0, 0, '', NULL, 53040);
 REPLACE INTO `creature_template` VALUES (73967, 0, 0, 'Niuzao', '', '', NULL, '', 0, 0, 35, 0, 1, 0.857143, 1, 0, 0, 1989, 2000, 1, 1, 1, 32768, 2048, 0, 0, 0, 1, 0, '', 0, 1, 0, 121, 0, 0, 1, 0, 0, '', NULL, 53040);
 
 ALTER TABLE `scrapping_loot_template` ADD `ItemType` tinyint NOT NULL DEFAULT 0 AFTER `Entry`;
+
+REPLACE INTO `spell_linked_spell` VALUES (297744, 297871, 2, 'Transport item - Water Striders');
+REPLACE INTO `spell_linked_spell` VALUES (297729, 299712, 2, 'Transport item - Light-Step Hoofplates');
+REPLACE INTO `spell_linked_spell` VALUES (299293, 300027, 2, 'Transport item - Comfortable Rider Barding');
+REPLACE INTO `spell_linked_spell` VALUES (296790, 296863, 2, 'Transport item - Inflatable Mount Shoes');
+REPLACE INTO `spell_linked_spell` VALUES (297090, 300031, 2, 'Transport item - Saddlechute');
+REPLACE INTO `spell_linked_spell` VALUES (406087, 406090, 0, 'Worgen - Calm the Wolf');
+
+-- ----------------------------
+-- Misc fix or changes
+-- ----------------------------
+
+DELETE FROM `playercreateinfo` WHERE `race` = 29 AND `class` = 12;  
+INSERT INTO `playercreateinfo`  
+(`race`, `class`, `map`, `position_x`, `position_y`, `position_z`, `orientation`,  
+ `npe_map`, `npe_position_x`, `npe_position_y`, `npe_position_z`, `npe_orientation`,  
+ `npe_transport_guid`, `intro_movie_id`, `intro_scene_id`, `npe_intro_scene_id`)  
+VALUES  
+(29, 12, 1865, 2121, 3318, 54.7061, 0.0872665, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1903, NULL);
+ 
+DELETE FROM `class_expansion_requirement` WHERE `ClassID` = 12 AND `RaceID` = 29;  
+INSERT INTO `class_expansion_requirement` (`ClassID`, `RaceID`, `ActiveExpansionLevel`, `AccountExpansionLevel`)  
+VALUES (12, 29, 0, 0); 
+ 
+DELETE FROM `playercreateinfo_action` WHERE `race` = 29 AND `class` = 12;  
+INSERT INTO `playercreateinfo_action` (`race`, `class`, `button`, `action`, `type`) VALUES  
+(29, 12, 1, 131347, 0),  
+(29, 12, 2, 188501, 0),  
+(29, 12, 3, 344865, 0),  
+(29, 12, 4, 344859, 0),  
+(29, 12, 5, 344862, 0),  
+(29, 12, 6, 256948, 0);
+
+DELETE FROM `class_expansion_requirement` WHERE `RaceID` IN (86, 91) AND `ClassID` IN (1, 3, 4, 5, 7, 8, 9, 10, 11);
+INSERT INTO `class_expansion_requirement` (`ClassID`, `RaceID`, `ActiveExpansionLevel`, `AccountExpansionLevel`) VALUES
+(1, 86, 11, 11),
+(3, 86, 11, 11),
+(4, 86, 11, 11),
+(5, 86, 11, 11),
+(7, 86, 11, 11),
+(8, 86, 11, 11),
+(9, 86, 11, 11),
+(10, 86, 11, 11),
+(11, 86, 11, 11),
+(1, 91, 11, 11),
+(3, 91, 11, 11),
+(4, 91, 11, 11),
+(5, 91, 11, 11),
+(7, 91, 11, 11),
+(8, 91, 11, 11),
+(9, 91, 11, 11),
+(10, 91, 11, 11),
+(11, 91, 11, 11);
 
 -- ----------------------------
 -- Toys fix
@@ -715,16 +891,14 @@ REPLACE INTO `spell_script_names` VALUES (232592, 'spell_twelve_string_guitar');
 
 REPLACE INTO `spell_linked_spell` VALUES (372771, 372773, 0, 'Dragonriding energy aura');
 
-REPLACE INTO `spell_script_names` VALUES (373646, 'spell_af_skyriding');
-REPLACE INTO `spell_script_names` VALUES (406095, 'spell_af_skyriding');
-REPLACE INTO `spell_script_names` VALUES (430747, 'spell_af_skyriding');
-REPLACE INTO `spell_script_names` VALUES (430833, 'spell_af_skyriding');
-REPLACE INTO `spell_script_names` VALUES (372771, 'spell_af_energy');
 REPLACE INTO `spell_script_names` VALUES (372773, 'spell_af_energy');
 REPLACE INTO `spell_script_names` VALUES (372610, 'spell_af_skyward_ascent');
 REPLACE INTO `spell_script_names` VALUES (374763, 'spell_af_skyward_ascent');
 REPLACE INTO `spell_script_names` VALUES (386451, 'spell_af_skyward_ascent');
 REPLACE INTO `spell_script_names` VALUES (372608, 'spell_af_surge_forward');
-REPLACE INTO `spell_script_names` VALUES (386449, 'spell_af_surge_forward');
 REPLACE INTO `spell_script_names` VALUES (361584, 'spell_af_whirling_surge');
 REPLACE INTO `spell_script_names` VALUES (436854, 'spell_switch_flight');
+REPLACE INTO `spell_script_names` VALUES (392752, 'spell_dragonriding_launch_boost');
+REPLACE INTO `spell_script_names` VALUES (418592, 'spell_lightning_rush');
+REPLACE INTO `spell_script_names` VALUES (447981, 'spell_af_swap_power_impulse');
+REPLACE INTO `spell_script_names` VALUES (447982, 'spell_af_swap_whirling_surge');

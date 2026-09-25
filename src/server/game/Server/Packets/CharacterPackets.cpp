@@ -22,7 +22,6 @@
 #include "ObjectMgr.h"
 #include "PacketOperators.h"
 #include "Player.h"
-#include "StringConvert.h"
 #include "World.h"
 
 namespace UF
@@ -78,6 +77,41 @@ EnumCharacters::EnumCharacters(WorldPacket&& packet) : ClientPacket(std::move(pa
     ASSERT(GetOpcode() == CMSG_ENUM_CHARACTERS || GetOpcode() == CMSG_ENUM_CHARACTERS_DELETED_BY_CLIENT);
 }
 
+void GetAccountCharacterList::Read()
+{
+    _worldPacket >> Token;
+    _worldPacket >> Flags;
+}
+
+WorldPacket const* GetAccountCharacterListResult::Write()
+{
+    _worldPacket << uint32(Token);
+    _worldPacket << Size<uint32>(Characters);
+
+    for (AccountCharacterEntry const& character : Characters)
+    {
+        _worldPacket << character.WowAccount;
+        _worldPacket << character.Guid;
+        _worldPacket << uint32(character.VirtualRealmAddress);
+        _worldPacket << uint8(character.RaceID);
+        _worldPacket << uint8(character.ClassID);
+        _worldPacket << uint8(character.SexID);
+        _worldPacket << uint8(character.ExperienceLevel);
+        _worldPacket << int64(character.LastActiveTime);
+        _worldPacket << int32(character.ContentSetID);
+
+        _worldPacket << SizedString::BitsSize<6>(character.Name);
+        _worldPacket << Bits<3>(0);
+        _worldPacket << SizedString::BitsSize<6>(character.RealmName);
+        _worldPacket.FlushBits();
+
+        _worldPacket << SizedString::Data(character.Name);
+        _worldPacket << SizedString::Data(character.RealmName);
+    }
+
+    return &_worldPacket;
+}
+
 void SetupWarbandGroups::Read()
 {
     uint32 groupCount = _worldPacket.ReadBits(5);
@@ -112,23 +146,78 @@ void SetupWarbandGroups::Read()
     }
 }
 
-EnumCharactersResult::CharacterInfoBasic::CharacterInfoBasic(Field const* fields)
+void GetRegionwideCharacterRestrictionAndMailData::Read()
+{
+    _worldPacket >> Size<uint32>(CharacterGuids);
+
+    for (ObjectGuid& guid : CharacterGuids)
+        _worldPacket >> guid;
+}
+
+WorldPacket const* RegionwideCharacterRestrictionsData::Write()
+{
+    _worldPacket << Size<uint32>(Characters);
+
+    for (RestrictionEntry const& entry : Characters)
+    {
+        _worldPacket << uint8(entry.Flags);
+        _worldPacket << entry.Guid;
+        _worldPacket << uint32(entry.RestrictionID);
+        _worldPacket << uint32(entry.Unk);
+    }
+
+    return &_worldPacket;
+}
+
+WorldPacket const* RegionwideCharacterMailData::Write()
+{
+    _worldPacket << Size<uint32>(Characters);
+
+    for (MailEntry const& entry : Characters)
+    {
+        _worldPacket << uint8(entry.Type);
+        _worldPacket << entry.Guid;
+        _worldPacket << Size<uint32>(entry.MailSenders);
+        _worldPacket << Size<uint32>(entry.MailSenderTypes);
+
+        if (!entry.MailSenderTypes.empty())
+            _worldPacket.append(entry.MailSenderTypes.data(), entry.MailSenderTypes.size());
+
+        for (std::string const& str : entry.MailSenders)
+            _worldPacket << SizedCString::BitsSize<6>(str);
+
+        _worldPacket.FlushBits();
+
+        for (std::string const& str : entry.MailSenders)
+            _worldPacket << SizedCString::Data(str);
+    }
+
+    return &_worldPacket;
+}
+
+EnumCharactersResult::CharacterInfoBasic::CharacterInfoBasic(Field const* fields, uint32 virtualRealmAddress, uint32 homeRealmId)
 {
     //         0                1                2                3                 4                  5
     // "SELECT characters.guid, characters.name, characters.race, characters.class, characters.gender, characters.level, "
     //  6                7               8                      9                      10
     // "characters.zone, characters.map, characters.position_x, characters.position_y, characters.position_z, "
-    //  11                    12                      13                   14                   15                     16                   17
-    // "guild_member.guildid, characters.playerFlags, characters.at_login, character_pet.entry, character_pet.modelid, character_pet.level, characters.equipmentCache, "
-    //  18                     19               20                     21                      22                            23
+    //  11                    12                      13                   14                   15                     16
+    // "guild_member.guildid, characters.playerFlags, characters.at_login, character_pet.entry, character_pet.modelid, character_pet.level, "
+    //  17                     18               19                     20                      21                            22
     // "character_banned.guid, characters.slot, characters.createTime, characters.logout_time, characters.activeTalentGroup, characters.lastLoginBuild, "
-    //  24                                    25                                    26                                    27                                    28
+    //  23                                    24                                    25                                    26                                    27
     // "characters.personalTabardEmblemStyle, characters.personalTabardEmblemColor, characters.personalTabardBorderStyle, characters.personalTabardBorderColor, characters.personalTabardBackgroundColor "
-    //  29
+    // 19 * 8 fields of equipment cache...
+    //  180
     // "character_declinedname.genitive"
 
-    Guid              = ObjectGuid::Create<HighGuid::Player>(fields[0].GetUInt64());
-    VirtualRealmAddress = GetVirtualRealmAddress();
+    // cross-realm entries carry their home realm in the guid, the client identifies characters
+    // by the full guid and the same character must look identical from every realm's list
+    // (subType and arg1 are zero for plain player guids)
+    Guid = homeRealmId
+        ? ObjectGuidFactory::CreatePlayer(homeRealmId, 0, 0, fields[0].GetUInt64())
+        : ObjectGuid::Create<HighGuid::Player>(fields[0].GetUInt64());
+    VirtualRealmAddress = virtualRealmAddress ? virtualRealmAddress : GetVirtualRealmAddress();
     GuildClubMemberID = ::Battlenet::Services::Clubs::CreateClubMemberId(Guid);
     Name              = fields[1].GetStringView();
     RaceID            = fields[2].GetUInt8();
@@ -160,10 +249,10 @@ EnumCharactersResult::CharacterInfoBasic::CharacterInfoBasic(Field const* fields
     if (atLoginFlags & AT_LOGIN_RENAME)
         Flags |= CHARACTER_FLAG_RENAME;
 
-    if (fields[18].GetUInt64())
+    if (fields[17].GetUInt64())
         Flags |= CHARACTER_FLAG_LOCKED_BY_BILLING;
 
-    if (sWorld->getBoolConfig(CONFIG_DECLINED_NAMES_USED) && !fields[29].GetStringView().empty())
+    if (sWorld->getBoolConfig(CONFIG_DECLINED_NAMES_USED) && !fields[182].GetStringView().empty())
         Flags |= CHARACTER_FLAG_DECLINED;
 
     if (atLoginFlags & AT_LOGIN_CUSTOMIZE)
@@ -204,31 +293,36 @@ EnumCharactersResult::CharacterInfoBasic::CharacterInfoBasic(Field const* fields
     ProfessionIds[0] = 0;
     ProfessionIds[1] = 0;
 
-    std::vector<std::string_view> equipment = Trinity::Tokenize(fields[17].GetStringView(), ' ', false);
-    ListPosition = fields[19].GetUInt8();
-    CreateTime = fields[20].GetInt64();
-    LastActiveTime = fields[21].GetInt64();
-    if (ChrSpecializationEntry const* spec = sDB2Manager.GetChrSpecializationByIndex(ClassID, fields[22].GetUInt8()))
+    ListPosition = fields[18].GetUInt8();
+    CreateTime = fields[19].GetInt64();
+    LastActiveTime = fields[20].GetInt64();
+    if (ChrSpecializationEntry const* spec = sDB2Manager.GetChrSpecializationByIndex(ClassID, fields[21].GetUInt8()))
         SpecID = spec->ID;
 
-    LastLoginVersion = fields[23].GetUInt32();
+    LastLoginVersion = fields[22].GetUInt32();
 
-    PersonalTabard.EmblemStyle = fields[24].GetInt32();
-    PersonalTabard.EmblemColor = fields[25].GetInt32();
-    PersonalTabard.BorderStyle = fields[26].GetInt32();
-    PersonalTabard.BorderColor = fields[27].GetInt32();
-    PersonalTabard.BackgroundColor = fields[28].GetInt32();
+    PersonalTabard.EmblemStyle = fields[23].GetInt32();
+    PersonalTabard.EmblemColor = fields[24].GetInt32();
+    PersonalTabard.BorderStyle = fields[25].GetInt32();
+    PersonalTabard.BorderColor = fields[26].GetInt32();
+    PersonalTabard.BackgroundColor = fields[27].GetInt32();
 
-    constexpr std::size_t equipmentFieldsPerSlot = 5;
+    TimerunningSeasonID = int32(fields[28].GetUInt32());
+    Flags4 = fields[29].GetUInt32();
 
-    for (std::size_t slot = 0; slot < VisualItems.size() && (slot + 1) * equipmentFieldsPerSlot <= equipment.size(); ++slot)
+    for (std::size_t slot = 0; slot < VisualItems.size(); ++slot)
     {
-        std::size_t visualBase = slot * equipmentFieldsPerSlot;
-        VisualItems[slot].InvType = Trinity::StringTo<uint8>(equipment[visualBase + 0]).value_or(0);
-        VisualItems[slot].DisplayID = Trinity::StringTo<uint32>(equipment[visualBase + 1]).value_or(0);
-        VisualItems[slot].DisplayEnchantID = Trinity::StringTo<uint32>(equipment[visualBase + 2]).value_or(0);
-        VisualItems[slot].Subclass = Trinity::StringTo<uint8>(equipment[visualBase + 3]).value_or(0);
-        VisualItems[slot].SecondaryItemModifiedAppearanceID = Trinity::StringTo<int32>(equipment[visualBase + 4]).value_or(0);
+        constexpr std::size_t equipmentFieldsPerSlot = 8;
+
+        std::size_t visualBase = 30 + slot * equipmentFieldsPerSlot;
+        VisualItems[slot].ItemID = fields[visualBase + 0].GetUInt32();
+        VisualItems[slot].TransmogrifiedItemID = fields[visualBase + 1].GetUInt32();
+        VisualItems[slot].Subclass = fields[visualBase + 2].GetUInt8();
+        VisualItems[slot].InvType = fields[visualBase + 3].GetUInt8();
+        VisualItems[slot].DisplayID = fields[visualBase + 4].GetUInt32();
+        VisualItems[slot].DisplayEnchantID = fields[visualBase + 5].GetUInt32();
+        VisualItems[slot].SecondaryItemModifiedAppearanceID = fields[visualBase + 6].GetInt32();
+        VisualItems[slot].SheatheCategory = fields[visualBase + 7].GetUInt8();
     }
 }
 
@@ -241,6 +335,7 @@ ByteBuffer& operator<<(ByteBuffer& data, EnumCharactersResult::CharacterInfoBasi
     data << uint32(visualItem.DisplayID);
     data << uint32(visualItem.DisplayEnchantID);
     data << int32(visualItem.SecondaryItemModifiedAppearanceID);
+    data << uint8(visualItem.SheatheCategory);
 
     return data;
 }
@@ -313,6 +408,7 @@ ByteBuffer& operator<<(ByteBuffer& data, EnumCharactersResult::CharacterRestrict
     data << uint32(restrictionsAndMails.RestrictionFlags);
     data << Size<uint32>(restrictionsAndMails.MailSenders);
     data << Size<uint32>(restrictionsAndMails.MailSenderTypes);
+    data << uint32(restrictionsAndMails.NoRpeReason);
 
     if (!restrictionsAndMails.MailSenderTypes.empty())
         data.append(restrictionsAndMails.MailSenderTypes.data(), restrictionsAndMails.MailSenderTypes.size());
@@ -353,7 +449,9 @@ ByteBuffer& operator<<(ByteBuffer& data, EnumCharactersResult::ClassUnlock const
 {
     data << int8(classUnlock.ClassID);
     data << uint32(classUnlock.AchievementID);
+    data << Bits<1>(classUnlock.HasExpansion);
     data << Bits<1>(classUnlock.HasUnlockedAchievement);
+    data << Bits<1>(classUnlock.HasEntitlement);
     data.FlushBits();
 
     return data;
@@ -363,15 +461,18 @@ ByteBuffer& operator<<(ByteBuffer& data, EnumCharactersResult::RaceUnlock const&
 {
     data << int8(raceUnlock.RaceID);
     data << Size<uint32>(raceUnlock.ClassUnlocks);
-    data << Bits<1>(raceUnlock.HasUnlockedLicense);
-    data << Bits<1>(raceUnlock.HasUnlockedAchievement);
-    data << Bits<1>(raceUnlock.HasHeritageArmorUnlockAchievement);
-    data << Bits<1>(raceUnlock.HideRaceOnClient);
-    data << Bits<1>(raceUnlock.FactionBalanceDisabled);
-    data.FlushBits();
 
     for (EnumCharactersResult::ClassUnlock const& classUnlock : raceUnlock.ClassUnlocks)
         data << classUnlock;
+
+    data << Bits<1>(raceUnlock.HasUnlockedLicense);
+    data << Bits<1>(raceUnlock.HasUnlockedAchievement);
+    data << Bits<1>(raceUnlock.HasHeritageArmorUnlockAchievement);
+    data << Bits<1>(raceUnlock.HasEntitlement);
+    data << Bits<1>(raceUnlock.HideRaceOnClient);
+    data << Bits<1>(raceUnlock.FactionBalanceDisabled);
+    data << Bits<1>(raceUnlock.DoesNotHaveAvailableClasses);
+    data.FlushBits();
 
     return data;
 }
@@ -423,11 +524,11 @@ ByteBuffer& operator<<(ByteBuffer& data, WarbandGroup const& warbandGroup)
     return data;
 }
 
-EnumCharactersResult::CharacterInfo::CharacterInfo(Field const* fields) : Basic(fields)
+EnumCharactersResult::CharacterInfo::CharacterInfo(Field const* fields, uint32 virtualRealmAddress, uint32 homeRealmId) : Basic(fields, virtualRealmAddress, homeRealmId)
 {
 }
 
-EnumCharactersResult::RegionwideCharacterListEntry::RegionwideCharacterListEntry(Field const* fields) : Basic(fields)
+EnumCharactersResult::RegionwideCharacterListEntry::RegionwideCharacterListEntry(Field const* fields, uint32 virtualRealmAddress, uint32 homeRealmId) : Basic(fields, virtualRealmAddress, homeRealmId)
 {
 }
 
@@ -456,12 +557,6 @@ WorldPacket const* EnumCharactersResult::Write()
     if (ClassDisableMask)
         _worldPacket << uint32(*ClassDisableMask);
 
-    for (UnlockedConditionalAppearance const& unlockedConditionalAppearance : UnlockedConditionalAppearances)
-        _worldPacket << unlockedConditionalAppearance;
-
-    for (RaceLimitDisableInfo const& raceLimitDisableInfo : RaceLimitDisables)
-        _worldPacket << raceLimitDisableInfo;
-
     for (CharacterInfo const& charInfo : Characters)
         _worldPacket << charInfo;
 
@@ -470,6 +565,12 @@ WorldPacket const* EnumCharactersResult::Write()
 
     for (RaceUnlock const& raceUnlock : RaceUnlockData)
         _worldPacket << raceUnlock;
+
+    for (UnlockedConditionalAppearance const& unlockedConditionalAppearance : UnlockedConditionalAppearances)
+        _worldPacket << unlockedConditionalAppearance;
+
+    for (RaceLimitDisableInfo const& raceLimitDisableInfo : RaceLimitDisables)
+        _worldPacket << raceLimitDisableInfo;
 
     for (WarbandGroup const& warbandGroup : WarbandGroups)
         _worldPacket << warbandGroup;
@@ -874,6 +975,14 @@ void SetFactionNotAtWar::Read()
     _worldPacket >> FactionIndex;
 }
 
+WorldPacket const* SetFactionAtWarResult::Write()
+{
+    _worldPacket << uint32(FactionIndex);
+    _worldPacket << uint16(Flags);
+
+    return &_worldPacket;
+}
+
 void SetFactionInactive::Read()
 {
     _worldPacket >> Index;
@@ -924,10 +1033,16 @@ WorldPacket const* PlayerSavePersonalEmblem::Write()
     return &_worldPacket;
 }
 
+void ConvertTimerunningCharacter::Read()
+{
+    _worldPacket >> CharacterGuid;
+    _worldPacket >> RaceAndFaction;
+}
+
 WorldPacket const* NeutralPlayerFactionSelectResult::Write()
 {
     _worldPacket << NewRaceID;
-    _worldPacket.WriteBit(Success);
+    _worldPacket >> Bits<1>(Success);
     _worldPacket.FlushBits();
 
     return &_worldPacket;

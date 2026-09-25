@@ -127,7 +127,11 @@ ByteBuffer& operator<<(ByteBuffer& data, AuthSuccessInfo const& successInfo)
     data << Size<uint32>(*successInfo.AvailableClasses);
     data << Size<uint32>(successInfo.Templates);
     data << uint32(successInfo.CurrencyID);
+    data << successInfo.GameTimeInfo;
     data << successInfo.Time;
+
+    for (VirtualRealmInfo const& virtualRealm : successInfo.VirtualRealms)
+        data << virtualRealm;
 
     for (RaceClassAvailability const& raceClassAvailability : *successInfo.AvailableClasses)
     {
@@ -142,31 +146,6 @@ ByteBuffer& operator<<(ByteBuffer& data, AuthSuccessInfo const& successInfo)
             data << uint8(classAvailability.MinActiveExpansionLevel);
         }
     }
-
-    data << Bits<1>(successInfo.IsExpansionTrial);
-    data << Bits<1>(successInfo.ForceCharacterTemplate);
-    data << OptionalInit(successInfo.NumPlayersHorde);
-    data << OptionalInit(successInfo.NumPlayersAlliance);
-    data << OptionalInit(successInfo.ExpansionTrialExpiration);
-    data << OptionalInit(successInfo.CurrentBuild);
-    data.FlushBits();
-
-    data << successInfo.GameTimeInfo;
-
-    if (successInfo.NumPlayersHorde)
-        data << uint16(*successInfo.NumPlayersHorde);
-
-    if (successInfo.NumPlayersAlliance)
-        data << uint16(*successInfo.NumPlayersAlliance);
-
-    if (successInfo.ExpansionTrialExpiration)
-        data << *successInfo.ExpansionTrialExpiration;
-
-    if (successInfo.CurrentBuild)
-        data << *successInfo.CurrentBuild;
-
-    for (VirtualRealmInfo const& virtualRealm : successInfo.VirtualRealms)
-        data << virtualRealm;
 
     for (CharacterTemplate const* characterTemplate : successInfo.Templates)
     {
@@ -185,6 +164,26 @@ ByteBuffer& operator<<(ByteBuffer& data, AuthSuccessInfo const& successInfo)
         data << SizedString::Data(characterTemplate->Name);
         data << SizedString::Data(characterTemplate->Description);
     }
+
+    data << Bits<1>(successInfo.IsExpansionTrial);
+    data << Bits<1>(successInfo.ForceCharacterTemplate);
+    data << OptionalInit(successInfo.NumPlayersHorde);
+    data << OptionalInit(successInfo.NumPlayersAlliance);
+    data << OptionalInit(successInfo.ExpansionTrialExpiration);
+    data << OptionalInit(successInfo.CurrentBuild);
+    data.FlushBits();
+
+    if (successInfo.NumPlayersHorde)
+        data << uint16(*successInfo.NumPlayersHorde);
+
+    if (successInfo.NumPlayersAlliance)
+        data << uint16(*successInfo.NumPlayersAlliance);
+
+    if (successInfo.ExpansionTrialExpiration)
+        data << *successInfo.ExpansionTrialExpiration;
+
+    if (successInfo.CurrentBuild)
+        data << *successInfo.CurrentBuild;
 
     return data;
 }
@@ -267,6 +266,43 @@ std::unique_ptr<Trinity::Crypto::RsaSignature> ConnectToRSA;
 std::unique_ptr<Trinity::Crypto::Ed25519> EnterEncryptedModeSigner;
 }
 
+ByteBuffer& operator<<(ByteBuffer& data, ConnectTo::BleepToken const& bleepToken)
+{
+    data << SizedString::BitsSize<5>(bleepToken.Token);
+    data << SizedCString::BitsSize<24>(bleepToken.ProxyId);
+    data << SizedString::BitsSize<6>(bleepToken.Address);
+    data << bleepToken.TokenLifespan;
+    data << SizedString::Data(bleepToken.Token);
+    data << SizedCString::Data(bleepToken.ProxyId);
+    data << SizedString::Data(bleepToken.Address);
+
+    return data;
+}
+
+ByteBuffer& operator<<(ByteBuffer& data, ConnectTo::ConnectPayload const& payload)
+{
+    data << uint8(payload.Address.Type);
+    switch (payload.Address.Type)
+    {
+        case ConnectTo::IPv4:
+            data.append(payload.Address.Address.V4.data(), payload.Address.Address.V4.size());
+            break;
+        case ConnectTo::IPv6:
+            data.append(payload.Address.Address.V6.data(), payload.Address.Address.V6.size());
+            break;
+        case ConnectTo::NamedSocket:
+            data << payload.Address.Address.Name.data();
+            break;
+        default:
+            break;
+    }
+
+    data << uint16(payload.Port);
+    data << payload.Token;
+
+    return data;
+}
+
 bool ConnectTo::InitializeEncryption()
 {
     std::unique_ptr<Trinity::Crypto::RsaSignature> rsa = std::make_unique<Trinity::Crypto::RsaSignature>();
@@ -284,41 +320,15 @@ void ConnectTo::ShutdownEncryption()
 
 WorldPacket const* ConnectTo::Write()
 {
-    ByteBuffer whereBuffer;
-    whereBuffer << uint8(Payload.Where.Type);
-    switch (Payload.Where.Type)
-    {
-        case IPv4:
-            whereBuffer.append(Payload.Where.Address.V4.data(), Payload.Where.Address.V4.size());
-            break;
-        case IPv6:
-            whereBuffer.append(Payload.Where.Address.V6.data(), Payload.Where.Address.V6.size());
-            break;
-        case NamedSocket:
-            whereBuffer << Payload.Where.Address.Name.data();
-            break;
-        default:
-            break;
-    }
-
-    ByteBuffer signBuffer;
-    signBuffer.append(whereBuffer);
-    signBuffer << uint32(Payload.Where.Type);
-    signBuffer << uint16(Payload.Port);
-
-    Trinity::Crypto::RsaSignature rsa(*ConnectToRSA);
-    Trinity::Crypto::RsaSignature::SHA256 digestGenerator;
-    std::vector<uint8> signature;
-    rsa.Sign(signBuffer.data(), signBuffer.size(), digestGenerator, signature);
-
-    _worldPacket.append(signature.data(), signature.size());
-    _worldPacket.append(whereBuffer);
-    _worldPacket << uint16(Payload.Port);
+    _worldPacket << Size<uint32>(Payload);
     _worldPacket << uint32(Serial);
     _worldPacket << uint8(Con);
     _worldPacket << uint64(Key);
     _worldPacket << uint32(NativeRealmAddress);
     _worldPacket << uint32(Key3);
+
+    for (ConnectPayload const& payload : Payload)
+        _worldPacket << payload;
 
     return &_worldPacket;
 }

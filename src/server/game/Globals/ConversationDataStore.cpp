@@ -102,7 +102,7 @@ void ConversationDataStore::LoadConversationTemplates()
 
             bool operator()(ConversationActorNoObjectTemplate& noObject) const
             {
-                if (!sObjectMgr->GetCreatureTemplate(CreatureId))
+                if (CreatureId && !sObjectMgr->GetCreatureTemplate(CreatureId))
                 {
                     TC_LOG_ERROR("sql.sql", "Table `conversation_actors` references an invalid creature id ({}) for Conversation {} and Idx {}, skipped.", CreatureId, ConversationId, ActorIndex);
                     return false;

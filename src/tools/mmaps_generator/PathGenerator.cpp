@@ -25,6 +25,7 @@
 #include "MapBuilder.h"
 #include "Memory.h"
 #include "PathCommon.h"
+#include "StringFormat.h"
 #include "Timer.h"
 #include "Util.h"
 #include "VMapManager.h"
@@ -154,7 +155,8 @@ bool handleArgs(int argc, char** argv,
                char const*& file,
                unsigned int& threads,
                boost::filesystem::path& inputDirectory,
-               boost::filesystem::path& outputDirectory)
+               boost::filesystem::path& outputDirectory,
+               bool& useCustomFiles)
 {
     char* param = nullptr;
     [[maybe_unused]] bool allowDebug = false;
@@ -326,6 +328,10 @@ bool handleArgs(int argc, char** argv,
 
             outputDirectory = param;
         }
+        else if (strcmp(argv[i], "-custom") == 0)
+        {
+            useCustomFiles = true;
+        }
         else if (strcmp(argv[i], "--allowDebug") == 0)
         {
             allowDebug = true;
@@ -389,10 +395,20 @@ std::unordered_map<uint32, uint8> LoadLiquid(boost::filesystem::path const& inpu
     return liquidData;
 }
 
-void LoadMap(boost::filesystem::path const& inputDirectory, std::string const& locale, bool silent, int32 errorExitCode)
+void LoadMap(boost::filesystem::path const& inputDirectory, std::string const& locale, bool useCustomFiles, bool silent, int32 errorExitCode)
 {
     DB2FileLoader mapDb2;
-    DB2FileSystemSource mapSource((inputDirectory / "dbc" / locale / "Map.db2").string());
+    boost::filesystem::path mapPath = (inputDirectory / "dbc" / locale / "Map.db2");
+    if (useCustomFiles)
+    {
+        // In custom mode read the modified Map.db2 from the Custom\DBFilesClient\ folder
+        // so that custom maps declared there are picked up.
+        boost::filesystem::path customMapPath = (inputDirectory / "Custom" / "DBFilesClient" / "Map.db2");
+        if (boost::filesystem::exists(customMapPath))
+            mapPath = customMapPath;
+    }
+
+    DB2FileSystemSource mapSource(mapPath.string());
     try
     {
         mapDb2.Load(&mapSource, &MapLoadInfo::Instance);
@@ -458,12 +474,13 @@ int main(int argc, char** argv)
     char const* file = nullptr;
     boost::filesystem::path inputDirectory = boost::filesystem::current_path();
     boost::filesystem::path outputDirectory = boost::filesystem::current_path();
+    bool useCustomFiles = false;
 
     bool validParam = handleArgs(argc, argv, mapnum,
                                  tileX, tileY, maxAngle, maxAngleNotSteep,
                                  skipLiquid, skipContinents, skipJunkMaps, skipBattlegrounds,
                                  debugOutput, silent, bigBaseUnit, offMeshInputPath, file, threads,
-                                 inputDirectory, outputDirectory);
+                                 inputDirectory, outputDirectory, useCustomFiles);
 
     if (!validParam)
         return silent ? -1 : finish("You have specified invalid parameters", -1);
@@ -486,7 +503,7 @@ int main(int argc, char** argv)
 
     _liquidTypes = LoadLiquid(inputDirectory, dbcLocales[0], silent, -5);
 
-    LoadMap(inputDirectory, dbcLocales[0], silent, -4);
+    LoadMap(inputDirectory, dbcLocales[0], useCustomFiles, silent, -4);
 
     MMAP::CreateVMapManager = &MMAP::VMapFactory::CreateVMapManager;
 
@@ -509,7 +526,7 @@ int main(int argc, char** argv)
     return 0;
 }
 
-#if TRINITY_PLATFORM == TRINITY_PLATFORM_WINDOWS
+#if TRINITY_COMPILER_IS_MICROSOFT
 #include "WheatyExceptionReport.h"
 // must be at end of file because of init_seg pragma
 INIT_CRASH_HANDLER();

@@ -58,7 +58,8 @@ ByteBuffer& operator>>(ByteBuffer& data, WhoRequest& request)
 {
     data >> request.MinLevel;
     data >> request.MaxLevel;
-    data >> request.RaceFilter.RawValue;
+    for (int32& rawValue : request.RaceFilter.RawValue)
+        data >> rawValue;
     data >> request.ClassFilter;
     data >> SizedString::BitsSize<6>(request.Name);
     data >> SizedString::BitsSize<9>(request.VirtualRealmName);
@@ -70,13 +71,13 @@ ByteBuffer& operator>>(ByteBuffer& data, WhoRequest& request)
     data >> Bits<1>(request.ExactName);
     data >> OptionalInit(request.ServerInfo);
 
-    for (size_t i = 0; i < request.Words.size(); ++i)
-        data >> request.Words[i];
-
     data >> SizedString::Data(request.Name);
     data >> SizedString::Data(request.VirtualRealmName);
     data >> SizedString::Data(request.Guild);
     data >> SizedString::Data(request.GuildVirtualRealmName);
+
+    for (size_t i = 0; i < request.Words.size(); ++i)
+        data >> request.Words[i];
 
     if (request.ServerInfo)
         data >> *request.ServerInfo;

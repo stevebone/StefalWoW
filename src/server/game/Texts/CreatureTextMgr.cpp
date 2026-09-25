@@ -325,3 +325,40 @@ std::string CreatureTextMgr::GetLocalizedChatString(uint32 entry, uint8 gender, 
 
     return baseText;
 }
+
+std::string CreatureTextMgr::ReplaceGenderTokens(std::string text, uint8 gender)
+{
+    size_t pos = 0;
+    while (pos < text.length())
+    {
+        size_t dollarPos = text.find('$', pos);
+        if (dollarPos == std::string::npos || dollarPos + 1 >= text.length())
+            break;
+
+        char cmd = text[dollarPos + 1];
+        if (cmd != 'g' && cmd != 'G')
+        {
+            pos = dollarPos + 1;
+            continue;
+        }
+
+        size_t semicolon = text.find(';', dollarPos + 2);
+        if (semicolon == std::string::npos)
+            break;
+
+        size_t colon = text.find(':', dollarPos + 2);
+        if (colon == std::string::npos || colon > semicolon)
+        {
+            pos = dollarPos + 2;
+            continue;
+        }
+
+        std::string maleText = text.substr(dollarPos + 2, colon - (dollarPos + 2));
+        std::string femaleText = text.substr(colon + 1, semicolon - (colon + 1));
+
+        std::string replacement = (gender == GENDER_FEMALE) ? femaleText : maleText;
+        text.replace(dollarPos, semicolon - dollarPos + 1, replacement);
+        pos = dollarPos + replacement.length();
+    }
+    return text;
+}

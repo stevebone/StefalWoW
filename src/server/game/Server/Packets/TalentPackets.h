@@ -62,7 +62,6 @@ namespace WorldPackets
             std::vector<uint16> GlyphIDs;
             int8 Role = 0;
             int32 PrimarySpecialization = 0;
-            bool Unused1125 = false;
         };
 
         struct ClassicTalentInfoUpdate
@@ -113,6 +112,16 @@ namespace WorldPackets
 
             ObjectGuid RespecMaster;
             uint8 RespecType = 0;
+        };
+
+        class TalentsInvoluntarilyReset final : public ServerPacket
+        {
+        public:
+            explicit TalentsInvoluntarilyReset(bool isPetTalents) : ServerPacket(SMSG_TALENTS_INVOLUNTARILY_RESET, 1), IsPetTalents(isPetTalents) { }
+
+            WorldPacket const* Write() override;
+
+            bool IsPetTalents = false;
         };
 
         class LearnTalentFailed final : public ServerPacket

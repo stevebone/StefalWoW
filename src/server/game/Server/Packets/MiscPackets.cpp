@@ -46,6 +46,14 @@ WorldPacket const* BindPointUpdate::Write()
     return &_worldPacket;
 }
 
+WorldPacket const* PlayerBound::Write()
+{
+    _worldPacket << BinderID;
+    _worldPacket << uint32(AreaID);
+
+    return &_worldPacket;
+}
+
 WorldPacket const* InvalidatePlayer::Write()
 {
     _worldPacket << Guid;
@@ -191,9 +199,10 @@ void TimeSyncResponse::Read()
     _worldPacket >> ClientTime;
 }
 
-WorldPacket const* ServerTimeOffset::Write()
+WorldPacket const* TriggerCinematic::Write()
 {
-    _worldPacket << Time;
+    _worldPacket << uint32(CinematicID);
+    _worldPacket << ConversationGuid;
 
     return &_worldPacket;
 }
@@ -205,10 +214,9 @@ WorldPacket const* TriggerMovie::Write()
     return &_worldPacket;
 }
 
-WorldPacket const* TriggerCinematic::Write()
+WorldPacket const* ServerTimeOffset::Write()
 {
-    _worldPacket << uint32(CinematicID);
-    _worldPacket << ConversationGuid;
+    _worldPacket << Time;
 
     return &_worldPacket;
 }
@@ -359,14 +367,6 @@ WorldPacket const* SetAnimTier::Write()
     _worldPacket << Unit;
     _worldPacket << uint8(Tier);
     _worldPacket.FlushBits();
-
-    return &_worldPacket;
-}
-
-WorldPacket const* PlayerBound::Write()
-{
-    _worldPacket << BinderID;
-    _worldPacket << uint32(AreaID);
 
     return &_worldPacket;
 }
@@ -817,7 +817,7 @@ WorldPacket const* SplashScreenShowLatest::Write()
 WorldPacket const* DisplayToast::Write()
 {
     _worldPacket << uint64(Quantity);
-    _worldPacket << As<uint8>(DisplayToastMethod);
+    _worldPacket << As<uint32>(DisplayToastMethod);
     _worldPacket << uint32(QuestID);
 
     _worldPacket << Bits<1>(Mailed);
@@ -866,6 +866,13 @@ WorldPacket const* PlayerChoiceClear::Write()
     return &_worldPacket;
 }
 
+WorldPacket const* NotifyMoney::Write()
+{
+    _worldPacket << uint64(Money);
+
+    return &_worldPacket;
+}
+
 WorldPacket const* AccountWarbandSceneUpdate::Write()
 {
     _worldPacket << Bits<1>(IsFullUpdate);
@@ -885,6 +892,11 @@ WorldPacket const* AccountWarbandSceneUpdate::Write()
     _worldPacket.FlushBits();
 
     return &_worldPacket;
+}
+
+void WorldPackets::Misc::FactionSelect::Read()
+{
+    _worldPacket >> FactionChoice;
 }
 
 void AccountNotificationAcknowledge::Read()
@@ -925,11 +937,6 @@ void ShowTradeSkill::Read()
     _worldPacket >> SkillLineID;
 }
 
-void WorldPackets::Misc::FactionSelect::Read()
-{
-    _worldPacket >> FactionChoice;
-}
-
 void WorldPackets::Misc::ActivateSoulbind::Read()
 {
     _worldPacket >> CovenantID;
@@ -945,6 +952,48 @@ WorldPacket const* WorldPackets::Misc::ActivateSoulbindFailed::Write()
 
 void ChromieTimeSelectExpansion::Read()
 {
+    _worldPacket >> Vendor;
     _worldPacket >> ExpansionID;
+}
+
+WorldPacket const* TimerunningSeasonEnded::Write()
+{
+    _worldPacket << uint32(SeasonID);
+
+    return &_worldPacket;
+}
+
+WorldPacket const* SetCtrOptions::Write()
+{
+    auto writeBlock = [&](CTROptionsBlock const& block)
+    {
+        _worldPacket << uint32(block.ConditionalFlags.size());
+        _worldPacket << uint8(block.FactionGroup);
+        _worldPacket << uint32(block.ChromieTimeExpansionMask);
+        for (uint32 flag : block.ConditionalFlags)
+            _worldPacket << uint32(flag);
+    };
+
+    writeBlock(Previous);
+    writeBlock(Current);
+
+    return &_worldPacket;
+}
+
+void RequestStoreFrontInfoUpdate::Read()
+{
+    _worldPacket >> StoreFrontID;
+    uint32 currencyCount = _worldPacket.read<uint32>();
+    CurrencyIDs.resize(currencyCount);
+    for (uint32 i = 0; i < currencyCount; ++i)
+        _worldPacket >> CurrencyIDs[i];
+}
+
+WorldPacket const* AccountStoreFrontUpdate::Write()
+{
+    _worldPacket << StoreFrontID;
+    _worldPacket << Result;
+    _worldPacket << Unknown;
+    return &_worldPacket;
 }
 }

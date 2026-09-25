@@ -62,6 +62,23 @@ std::array<TransmogOutfitSlotInfo, AsUnderlyingType(TransmogOutfitSlot::Max)> Sl
 std::array<TransmogOutfitSlotInfo const*, EQUIPMENT_SLOT_END> SlotInfoByInvSlot;
 std::vector<TransmogSituationEntry const*> DefaultSituations;
 
+constexpr ItemSheatheType TransmogSheatheMappingByCategoryAndSheatheType[AsUnderlyingType(ItemSheatheType::Max)][AsUnderlyingType(TransmogOutfitSlotOptionSheatheCategory::Max)] =
+{
+    { ItemSheatheType::None,                   ItemSheatheType::None,              ItemSheatheType::None, ItemSheatheType::None                   },
+    { ItemSheatheType::Shoulder,               ItemSheatheType::Shoulder,          ItemSheatheType::None, ItemSheatheType::ShoulderInvis          },
+    { ItemSheatheType::Inverted,               ItemSheatheType::Inverted,          ItemSheatheType::None, ItemSheatheType::InvertedInvis          },
+    { ItemSheatheType::Hip,                    ItemSheatheType::Shoulder,          ItemSheatheType::Hip,  ItemSheatheType::HipInvis               },
+    { ItemSheatheType::Shield,                 ItemSheatheType::Shield,            ItemSheatheType::None, ItemSheatheType::ShieldInvis            },
+    { ItemSheatheType::Crossbow,               ItemSheatheType::Crossbow,          ItemSheatheType::None, ItemSheatheType::CrossbowInvis          },
+    { ItemSheatheType::ShoulderInvis,          ItemSheatheType::Shoulder,          ItemSheatheType::None, ItemSheatheType::ShoulderInvis          },
+    { ItemSheatheType::InvertedInvis,          ItemSheatheType::Inverted,          ItemSheatheType::None, ItemSheatheType::InvertedInvis          },
+    { ItemSheatheType::HipInvis,               ItemSheatheType::Shoulder,          ItemSheatheType::Hip,  ItemSheatheType::HipInvis               },
+    { ItemSheatheType::ShieldInvis,            ItemSheatheType::Shield,            ItemSheatheType::None, ItemSheatheType::ShieldInvis            },
+    { ItemSheatheType::CrossbowInvis,          ItemSheatheType::Crossbow,          ItemSheatheType::None, ItemSheatheType::CrossbowInvis          },
+    { ItemSheatheType::InvertedDualWield,      ItemSheatheType::InvertedDualWield, ItemSheatheType::None, ItemSheatheType::InvertedDualWieldInvis },
+    { ItemSheatheType::InvertedDualWieldInvis, ItemSheatheType::InvertedDualWield, ItemSheatheType::None, ItemSheatheType::InvertedDualWieldInvis }
+};
+
 constexpr bool IsArtifactTransmogOutfitSlotOption(TransmogOutfitSlotOption option)
 {
     return option == TransmogOutfitSlotOption::ArtifactSpecOne
@@ -232,16 +249,21 @@ ItemModifiedAppearanceEntry const* TransmogMgr::GetItemModifiedAppearance(uint32
     if (itr != ItemModifiedAppearancesByItem.end())
         return itr->second;
 
-    // Fall back to unmodified appearance
-    if (appearanceModId)
-        return GetDefaultItemModifiedAppearance(itemId);
-
-    return nullptr;
+    return GetDefaultItemModifiedAppearance(itemId);
 }
 
 ItemModifiedAppearanceEntry const* TransmogMgr::GetDefaultItemModifiedAppearance(uint32 itemId)
 {
-    return Trinity::Containers::MapGetValuePtr(ItemModifiedAppearancesByItem, { itemId, 0 });
+    if (ItemModifiedAppearanceEntry const* entry = Trinity::Containers::MapGetValuePtr(ItemModifiedAppearancesByItem, { itemId, 0 }))
+        return entry;
+
+    for (ItemModifiedAppearanceEntry const* appearanceMod : sItemModifiedAppearanceStore)
+    {
+        if (appearanceMod->ItemID == itemId && appearanceMod->OrderIndex == 0)
+            return appearanceMod;
+    }
+
+    return nullptr;
 }
 
 TransmogIllusionEntry const* TransmogMgr::GetTransmogIllusionForSpellItemEnchantment(uint32 spellItemEnchantmentId)
@@ -379,6 +401,9 @@ bool TransmogMgr::ValidateSlots(std::span<WorldPackets::Transmogrification::Tran
         if (slot.SlotOption >= TransmogOutfitSlotOption::Max)
             return false;
 
+        if (slot.SheatheCategory >= TransmogOutfitSlotOptionSheatheCategory::Max)
+            return false;
+
         if (slot.AppearanceDisplayType >= TransmogOutfitDisplayType::Max)
             return false;
 
@@ -405,6 +430,11 @@ bool TransmogMgr::ValidateSlots(std::span<WorldPackets::Transmogrification::Tran
             if (appearanceSlotOption != slot.SlotOption
                 && (slot.SlotOption != TransmogOutfitSlotOption::FuryTwoHandedWeapon
                     || appearanceSlotOption != TransmogOutfitSlotOption::TwoHandedWeapon))
+                return false;
+
+            if (slot.SheatheCategory != TransmogOutfitSlotOptionSheatheCategory::Default &&
+                (itemTemplate->GetSheatheType() >= ItemSheatheType::Max ||
+                    TransmogSheatheMappingByCategoryAndSheatheType[AsUnderlyingType(itemTemplate->GetSheatheType())][AsUnderlyingType(slot.SheatheCategory)] == ItemSheatheType::None))
                 return false;
         }
 

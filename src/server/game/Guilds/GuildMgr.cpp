@@ -24,6 +24,7 @@
 #include "ObjectMgr.h"
 #include "Util.h"
 #include "World.h"
+#include <advstd.h>
 
 GuildMgr::GuildMgr() : NextGuildId(UI64LIT(1))
 {
@@ -119,9 +120,9 @@ void GuildMgr::LoadGuilds()
     {
         uint32 oldMSTime = getMSTime();
 
-        //          0          1       2             3              4              5              6
-        QueryResult result = CharacterDatabase.Query("SELECT g.guildid, g.name, g.leaderguid, g.EmblemStyle, g.EmblemColor, g.BorderStyle, g.BorderColor, "
-            //   7                  8       9       10            11          12
+                                                    //          0          1       2             3              4              5              6        7
+        QueryResult result = CharacterDatabase.Query("SELECT g.guildid, g.name, g.leaderguid, g.flags, g.EmblemStyle, g.EmblemColor, g.BorderStyle, g.BorderColor, "
+            //   8                  9       10       11            12          13
             "g.BackgroundColor, g.info, g.motd, g.createdate, g.BankMoney, COUNT(gbt.guildid) "
             "FROM guild g LEFT JOIN guild_bank_tab gbt ON g.guildid = gbt.guildid GROUP BY g.guildid ORDER BY g.guildid ASC");
 
@@ -512,7 +513,7 @@ void GuildMgr::LoadGuildRewards()
         Field* fields = result->Fetch();
         reward.ItemID        = fields[0].GetUInt32();
         reward.MinGuildRep   = fields[1].GetUInt8();
-        reward.RaceMask.RawValue = fields[2].GetUInt64();
+        reward.RaceMask      = { advstd::bit_cast<std::array<int32, 2>>(fields[2].GetUInt64()) };
         reward.Cost          = fields[3].GetUInt64();
 
         if (!sObjectMgr->GetItemTemplate(reward.ItemID))

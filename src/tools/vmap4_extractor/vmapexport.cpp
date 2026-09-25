@@ -20,10 +20,12 @@
 #include "Banner.h"
 #include "Common.h"
 #include "DB2CascFileSource.h"
+#include "DB2FileSystemSource.h"
 #include "ExtractorDB2LoadInfo.h"
 #include "Locales.h"
 #include "MapDefines.h"
 #include "MapUtils.h"
+#include "LocalFileDataStore.h"
 #include "Memory.h"
 #include "StringConvert.h"
 #include "StringFormat.h"
@@ -76,6 +78,7 @@ bool preciseVectorData = false;
 char const* CascProduct = "wow";
 char const* CascRegion = "eu";
 bool UseRemoteCasc = false;
+bool UseCustomFiles = false;
 uint32 DbcLocale = 0;
 uint32 Threads = std::thread::hardware_concurrency();
 
@@ -408,13 +411,47 @@ void TryLoadDB2(char const* name, DB2CascFileSource* source, DB2FileLoader* db2,
     }
 }
 
+void TryLoadDB2(char const* name, DB2FileSystemSource* source, DB2FileLoader* db2, DB2FileLoadInfo const* loadInfo)
+{
+    try
+    {
+        db2->Load(source, loadInfo);
+    }
+    catch (std::exception const& e)
+    {
+        printf("Fatal error: Invalid %s file format! %s\n", name, e.what());
+        exit(1);
+    }
+}
+
 void ReadMapTable()
 {
     printf("Read Map.dbc file... ");
 
-    DB2CascFileSource source(CascStorage, MapLoadInfo::Instance.Meta->FileDataId);
     DB2FileLoader db2;
-    TryLoadDB2("Map.db2", &source, &db2, &MapLoadInfo::Instance);
+    bool loadedFromCustom = false;
+    if (sLocalFileDataStore->IsCustomMode())
+    {
+        // In custom mode the Map.db2 is read from the local Custom\DBFilesClient\ folder
+        // so that custom maps declared there are picked up.
+        std::string mapPath = Trinity::StringFormat("{}\\DBFilesClient\\Map.db2", sLocalFileDataStore->GetCustomPath());
+        DB2FileSystemSource source(mapPath);
+        if (source.IsOpen())
+        {
+            TryLoadDB2("Map.db2", &source, &db2, &MapLoadInfo::Instance);
+            loadedFromCustom = true;
+        }
+        else
+        {
+            printf("WARNING (-custom): Custom Map.db2 not found at '%s', falling back to CASC.\n", mapPath.c_str());
+        }
+    }
+
+    if (!loadedFromCustom)
+    {
+        DB2CascFileSource source(CascStorage, MapLoadInfo::Instance.Meta->FileDataId);
+        TryLoadDB2("Map.db2", &source, &db2, &MapLoadInfo::Instance);
+    }
 
     map_ids.reserve(db2.GetRecordCount() + db2.GetRecordCopyCount());
     std::unordered_map<uint32, std::size_t> idToIndex;
@@ -558,6 +595,10 @@ bool processArgv(int argc, char ** argv, const char *versionString)
         {
             UseRemoteCasc = true;
         }
+        else if (strcmp("-custom", argv[i]) == 0)
+        {
+            UseCustomFiles = true;
+        }
         else if (strcmp("-r", argv[i]) == 0)
         {
             if (i + 1 < argc && strlen(argv[i + 1]))
@@ -601,6 +642,7 @@ bool processArgv(int argc, char ** argv, const char *versionString)
         printf("   -p  <product>: which installed product to open (wow/wowt/wow_beta)\n");
         printf("   -c  use remote casc\n");
         printf("   -r  set remote casc region - standard: eu\n");
+        printf("   -custom read custom maps from the \"Custom\" subfolder of the input path\n");
         printf("   -dl dbc locale\n");
         printf("   --threads <N> number of threads to use, default: all cpu cores\n");
         printf("   -? : This message.\n");
@@ -654,6 +696,13 @@ int main(int argc, char ** argv)
     // Use command line arguments, when some
     if (!processArgv(argc, argv, VMAP::VMAP_MAGIC))
         return 1;
+
+    // Enable custom (local) map file reading mode if requested.
+    if (UseCustomFiles)
+    {
+        sLocalFileDataStore->SetCustomPath((input_path / "Custom").string());
+        sLocalFileDataStore->LoadFileDataIDsToLocalStorage();
+    }
 
     if (!RetardCheck())
         return 1;
@@ -736,7 +785,7 @@ int main(int argc, char ** argv)
     return 0;
 }
 
-#if TRINITY_PLATFORM == TRINITY_PLATFORM_WINDOWS
+#if TRINITY_COMPILER_IS_MICROSOFT
 #include "WheatyExceptionReport.h"
 // must be at end of file because of init_seg pragma
 INIT_CRASH_HANDLER();

@@ -38,6 +38,11 @@ namespace Scripts::Pandaria::TheWanderingIsle
 {
 namespace Spells
 {
+    // Generic Vehicle Spells
+    static constexpr uint32 ForceVehicleRide = 46598;
+    static constexpr uint32 EjectPassengers = 50630;
+    static constexpr uint32 OxCartRopeLeft = 108627; // Cart on Yak
+
     // Singing Pools
     static constexpr uint32 CurseOfTheFrog = 102938;
     static constexpr uint32 CurseOfTheSkunk = 102939;
@@ -55,22 +60,55 @@ namespace Spells
     static constexpr uint32 FlyingShadowKickJump = 108943;
     static constexpr uint32 FeetOfFury = 108958;
     static constexpr uint32 FeetOfFuryDamage = 108957;
+    static constexpr uint32 BlessingOfTheRedFlame = 102508;
+    static constexpr uint32 BlessingOfTheBlueFlame = 102509;
+    static constexpr uint32 BlessingOfThePurpleFlame = 102510;
 }
 
 namespace Quests
 {
     static constexpr uint32 OnlyTheWorthyShallPass = 29421;
+    static constexpr uint32 TheSourceOfLivelihood = 29680;
+    static constexpr uint32 TheSpiritAndBodyOfShenzinsu = 29775;
+    static constexpr uint32 NewAllies = 29800;
 }
 
 namespace Creatures
 {
     static constexpr uint32 MasterLiFei = 54135;
     static constexpr uint32 MasterLiFeiCombat = 54734;
+
+    // Yak and Cart
+    static constexpr uint32 CartSingingPools = 57710;
+    static constexpr uint32 CartFarmstead = 59497;
+    static constexpr uint32 CartForest = 57741;
+
+    static constexpr uint32 CartVehicleSingingPools = 57208;
+    static constexpr uint32 CartVehicleFarmstead = 59496;
+    static constexpr uint32 CartVehicleForest = 57740;
 }
 
 namespace Talks
 {
     static constexpr uint32 LiFeiDefeat = 0;
+}
+
+namespace Paths
+{
+    // Yak and Cart
+    static constexpr uint32 CartSingingPools = 5720800;
+    static constexpr uint32 CartFarmstead = 5949600;
+    static constexpr uint32 CartForest = 5774000;
+
+    static constexpr int8 NodeCartRemovePassenger = 28;
+    static constexpr int8 NodeForestCartRemovePassenger = 34;
+}
+
+namespace Events
+{
+    // Yak and Cart
+    static constexpr int8 YakCartPathStart = 1;
+    static constexpr int8 YakCartRopes = 2;
 }
 
 enum TraineeMisc
@@ -150,12 +188,12 @@ struct npc_tushui_huojin_trainee : public ScriptedAI
             me->SetImmuneToPC(true);
             me->CombatStop();
 
-            _scheduler.Schedule(1s, [this](TaskContext /*task*/)
+            _scheduler.Schedule(1s, [this](TaskContext const& /*task*/)
             {
                 Talk(SAY_FINISH_FIGHT);
             });
 
-            _scheduler.Schedule(3s, [this](TaskContext /*task*/)
+            _scheduler.Schedule(3s, [this](TaskContext const& /*task*/)
             {
                 Position currentPosition;
                 float currentDist = 1000.0f;
@@ -186,7 +224,7 @@ struct npc_tushui_huojin_trainee : public ScriptedAI
 
     void JustEngagedWith(Unit* /*attacker*/) override
     {
-        _scheduler.Schedule(4s, [this](TaskContext task)
+        _scheduler.Schedule(4s, [this](TaskContext& task)
         {
             if (me->GetVictim())
                 DoCastVictim(SPELL_BLACKOUT_KICK);
@@ -276,7 +314,7 @@ struct npc_huojin_trainee : public npc_tushui_huojin_trainee
             _scheduler.CancelAll();
 
             me->SetEmoteState(EMOTE_ONESHOT_NONE);
-            _scheduler.Schedule(1s, [this](TaskContext /*task*/ )
+            _scheduler.Schedule(1s, [this](TaskContext const& /*task*/ )
             {
                 me->HandleEmoteCommand(EMOTE_ONESHOT_BOW);
             });
@@ -289,12 +327,12 @@ struct npc_huojin_trainee : public npc_tushui_huojin_trainee
         me->SetEmoteState(EMOTE_ONESHOT_NONE);
         me->HandleEmoteCommand(EMOTE_ONESHOT_BOW);
 
-        _scheduler.Schedule(1s, [this](TaskContext /*task*/)
+        _scheduler.Schedule(1s, [this](TaskContext const& /*task*/)
         {
             me->SetEmoteState(EMOTE_STATE_MONKOFFENSE_READYUNARMED);
         });
 
-        _scheduler.Schedule(4s, [this](TaskContext task)
+        _scheduler.Schedule(4s, [this](TaskContext& task)
         {
             PlayRandomEmote();
             task.Repeat(4s);
@@ -313,7 +351,7 @@ struct npc_huojin_trainee : public npc_tushui_huojin_trainee
     void BeginSparringDelayed(ObjectGuid partnerGuid)
     {
         _partnerGuid = partnerGuid;
-        _scheduler.Schedule(1s, [this, partnerGuid](TaskContext /*task*/)
+        _scheduler.Schedule(1s, [this, partnerGuid](TaskContext const& /*task*/)
         {
             BeginSparring(partnerGuid);
         });
@@ -394,7 +432,7 @@ struct npc_tushui_leading_trainee : public npc_tushui_huojin_trainee
 
     void ScheduleEmoteExecution()
     {
-        _scheduler.Schedule(1s, [this](TaskContext task)
+        _scheduler.Schedule(1s, [this](TaskContext& task)
         {
             Emote emote = PlayRandomEmote();
             HandleEmoteNearbyTushuiTrainees(me, emote);
@@ -426,12 +464,12 @@ struct npc_instructor_zhi : public ScriptedAI
 
     void JustAppeared() override
     {
-        _scheduler.Schedule(6s, [this](TaskContext task)
+        _scheduler.Schedule(6s, [this](TaskContext& task)
         {
             Emote emote = Trinity::Containers::SelectRandomContainerElement(TraineeEmotes);
             me->HandleEmoteCommand(emote);
 
-            task.Schedule(1s, [this, emote](TaskContext /*task*/)
+            task.Schedule(1s, [this, emote](TaskContext const& /*task*/)
             {
                 HandleEmoteNearbyTushuiTrainees(me, emote);
             });
@@ -592,7 +630,7 @@ struct npc_jaomin_ro_hawk : public ScriptedAI
             return;
 
         DoCast(SPELL_FORCE_SUMMONER_TO_RIDE);
-        _scheduler.Schedule(1s, [this, orientation = me->GetAbsoluteAngle(victim) - me->GetOrientation()](TaskContext /*context*/)
+        _scheduler.Schedule(1s, [this, orientation = me->GetAbsoluteAngle(victim) - me->GetOrientation()](TaskContext const& /*context*/)
         {
             me->GetMotionMaster()->MovePoint(POINT_RANDOM_DEST, me->GetFirstCollisionPosition(40.0f, orientation));
         });
@@ -639,7 +677,7 @@ class spell_force_summoner_to_ride_vehicle : public SpellScript
 {
     void HandleScript(SpellEffIndex /*effIndex*/) const
     {
-        GetHitUnit()->CastSpell(GetCaster(), GetEffectValue(), TRIGGERED_FULL_MASK);
+        GetHitUnit()->CastSpell(GetCaster(), GetEffectValueAsInt(), TRIGGERED_FULL_MASK);
     }
 
     void Register() override
@@ -756,7 +794,7 @@ struct npc_min_dimwind_summon : public ScriptedAI
 
         amberleafScamp5->GetMotionMaster()->MovePoint(0, amberleafPos[4]);
 
-        _scheduler.Schedule(2s, [this](TaskContext /*task*/)
+        _scheduler.Schedule(2s, [this](TaskContext const& /*task*/)
         {
             Creature* amberleafScamp4 = me->FindNearestCreatureWithOptions(20.0f, { .StringId = "npc_amberleaf_scamp_4" });
 
@@ -767,7 +805,7 @@ struct npc_min_dimwind_summon : public ScriptedAI
             amberleafScamp4->GetMotionMaster()->MovePoint(0, amberleafPos[3]);
         });
 
-        _scheduler.Schedule(5s, [this](TaskContext task)
+        _scheduler.Schedule(5s, [this](TaskContext& task)
         {
             Unit* summoner = me->ToTempSummon()->GetSummonerUnit();
 
@@ -777,11 +815,11 @@ struct npc_min_dimwind_summon : public ScriptedAI
             me->SetFacingToObject(summoner);
             Talk(SAY_MIN_DIMWIND_TEXT_0, summoner);
 
-            task.Schedule(4s, [this](TaskContext task)
+            task.Schedule(4s, [this](TaskContext& task)
             {
                 Talk(SAY_MIN_DIMWIND_TEXT_1);
 
-                task.Schedule(4s, [this](TaskContext /*task*/)
+                task.Schedule(4s, [this](TaskContext const& /*task*/)
                 {
                     me->GetMotionMaster()->MovePath(PATH_MOVE_RUN, false);
                 });
@@ -816,7 +854,7 @@ struct npc_min_dimwind_summon : public ScriptedAI
                 me->SetFacingTo(0.575958f);
                 me->DespawnOrUnsummon(2s);
 
-                _scheduler.Schedule(1s, [this](TaskContext /*task*/)
+                _scheduler.Schedule(1s, [this](TaskContext const& /*task*/)
                 {
                     if (me->IsSummon())
                     {
@@ -853,7 +891,7 @@ struct npc_amberleaf_scamp : public ScriptedAI
         {
             me->GetMotionMaster()->MoveRandom(10.0f);
 
-            _scheduler.Schedule(10s, [this](TaskContext /*task*/)
+            _scheduler.Schedule(10s, [this](TaskContext const& /*task*/)
             {
                 if (!me->IsInCombat())
                     me->GetMotionMaster()->MoveTargetedHome();
@@ -905,15 +943,15 @@ struct npc_aysa_cloudsinger_summon : public ScriptedAI
 
         Talk(SAY_GO_CAVE, summoner);
 
-        _scheduler.Schedule(3s, [this](TaskContext task)
+        _scheduler.Schedule(3s, [this](TaskContext& task)
         {
             me->GetMotionMaster()->MoveJump(EVENT_JUMP, aysaJumpPos[0], 12.0f, {}, 5.0f);
 
-            task.Schedule(1700ms, [this](TaskContext task)
+            task.Schedule(1700ms, [this](TaskContext& task)
             {
                 me->GetMotionMaster()->MoveJump(EVENT_JUMP, aysaJumpPos[1], 12.0f, {}, 5.0f);
 
-                task.Schedule(2s, [this](TaskContext /*task*/)
+                task.Schedule(2s, [this](TaskContext const& /*task*/)
                 {
                     me->GetMotionMaster()->MoveJump(POINT_JUMP, aysaJumpPos[2], 12.0f, {}, 5.0f);
                 });
@@ -1080,35 +1118,35 @@ struct npc_master_li_fei_summon : public ScriptedAI
 
         Seconds delay = 23s;
 
-        _scheduler.Schedule(delay, [this](TaskContext)
+        _scheduler.Schedule(delay, [this](TaskContext const&)
         {
             FaceToPlayer();
         });
 
         delay += 2s;
 
-        _scheduler.Schedule(delay, [this](TaskContext)
+        _scheduler.Schedule(delay, [this](TaskContext const&)
         {
             Talk(SAY_TEXT_0);
         });
 
         delay += 10s;
 
-        _scheduler.Schedule(delay, [this](TaskContext)
+        _scheduler.Schedule(delay, [this](TaskContext const&)
         {
             Talk(SAY_TEXT_1);
         });
 
         delay += 12s;
 
-        _scheduler.Schedule(delay, [this](TaskContext)
+        _scheduler.Schedule(delay, [this](TaskContext const&)
         {
             Talk(SAY_TEXT_2);
         });
 
         delay += 11s;
 
-        _scheduler.Schedule(delay, [this](TaskContext)
+        _scheduler.Schedule(delay, [this](TaskContext const&)
         {
             FaceToPlayer();
             Talk(SAY_TEXT_3);
@@ -1116,28 +1154,28 @@ struct npc_master_li_fei_summon : public ScriptedAI
 
         delay += 11s;
 
-        _scheduler.Schedule(delay, [this](TaskContext)
+        _scheduler.Schedule(delay, [this](TaskContext const&)
         {
             Talk(SAY_TEXT_4);
         });
 
         delay += 9s;
 
-        _scheduler.Schedule(delay, [this](TaskContext)
+        _scheduler.Schedule(delay, [this](TaskContext const&)
         {
             FaceToPlayer();
         });
 
         delay += 2s;
 
-        _scheduler.Schedule(delay, [this](TaskContext)
+        _scheduler.Schedule(delay, [this](TaskContext const&)
         {
             Talk(SAY_TEXT_5);
         });
 
         delay += 6s;
 
-        _scheduler.Schedule(delay, [this](TaskContext)
+        _scheduler.Schedule(delay, [this](TaskContext const&)
         {
             Creature* aysa = me->FindNearestCreatureWithOptions(40.0f, { .StringId = "npc_aysa_quest_29414" });
 
@@ -1332,7 +1370,12 @@ struct npc_li_fei : public ScriptedAI
     void OnQuestAccept(Player* player, Quest const* quest) override
     {
         if (quest->GetQuestId() == Quests::OnlyTheWorthyShallPass)
+        {
             player->CastSpell(player, Spells::FireCrashCover);
+            player->CastSpell(player, Spells::BlessingOfTheRedFlame);
+            player->CastSpell(player, Spells::BlessingOfTheBlueFlame);
+            player->CastSpell(player, Spells::BlessingOfThePurpleFlame);
+        }
     }
 };
 
@@ -1365,6 +1408,7 @@ struct npc_li_fei_combat : public ScriptedAI
 
     void Reset() override
     {
+        _events.Reset();
         _defeatTriggered = false;
     }
 
@@ -1376,30 +1420,43 @@ struct npc_li_fei_combat : public ScriptedAI
 
     void DamageTaken(Unit* attacker, uint32& damage, DamageEffectType /*damageType*/, SpellInfo const* /*spellInfo*/) override
     {
-        if (!_defeatTriggered && me->HealthBelowPctDamaged(50, damage))
+        if (!_defeatTriggered && me->HealthBelowPctDamaged(20, damage))
         {
+            if (me->GetHealth() - damage <= 0)
+                damage = me->GetHealth() - 1; // Prevent death
+
             _defeatTriggered = true;
             me->HandleEmoteCommand(EMOTE_ONESHOT_SALUTE);
 
-            Creature* liFei = me->FindNearestCreatureWithOptions(15.0f, { .CreatureId = Creatures::MasterLiFei, .IgnorePhases = true });
-            if (!liFei)
-                return;
+            // Store attacker for later use
+            Unit* storedAttacker = attacker;
 
-            for (ObjectGuid const& guid : me->GetTapList())
-            {
-                Player* player = ObjectAccessor::GetPlayer(*me, guid);
-                if (!player)
-                    continue;
+            // Schedule ALL logic with delay
+            me->m_Events.AddEventAtOffset([this, storedAttacker]()
+                {
+                    Creature* liFei = me->FindNearestCreatureWithOptions(15.0f, { .CreatureId = Creatures::MasterLiFei, .IgnorePhases = true });
+                    if (liFei)
+                    {
+                        for (ObjectGuid const& guid : me->GetTapList())
+                        {
+                            Player* player = ObjectAccessor::GetPlayer(*me, guid);
+                            if (player)
+                            {
+                                player->KilledMonsterCredit(Creatures::MasterLiFeiCombat);
+                                player->RemoveAurasDueToSpell(Spells::FireCrashCover);
+                                player->RemoveAurasDueToSpell(Spells::FireCrashInvis);
+                                player->RemoveAurasDueToSpell(Spells::FireCrashPhaseShift);
+                                player->RemoveAurasDueToSpell(Spells::BlessingOfTheRedFlame);
+                                player->RemoveAurasDueToSpell(Spells::BlessingOfTheBlueFlame);
+                                player->RemoveAurasDueToSpell(Spells::BlessingOfThePurpleFlame);
+                            }
+                        }
 
-                player->KilledMonsterCredit(Creatures::MasterLiFeiCombat, ObjectGuid::Empty);
-                player->RemoveAurasDueToSpell(Spells::FireCrashCover);
-                player->RemoveAurasDueToSpell(Spells::FireCrashInvis);
-                player->RemoveAurasDueToSpell(Spells::FireCrashPhaseShift);
-            }
+                        liFei->AI()->Talk(Talks::LiFeiDefeat, storedAttacker);
+                    }
 
-            liFei->AI()->Talk(Talks::LiFeiDefeat, attacker);
-
-            EnterEvadeMode();
+                    EnterEvadeMode();
+                }, 100ms);
         }
     }
 
@@ -1410,6 +1467,13 @@ struct npc_li_fei_combat : public ScriptedAI
             return;
 
         player->FailQuest(Quests::OnlyTheWorthyShallPass);
+        EnterEvadeMode();
+    }
+
+    void JustReachedHome() override
+    {
+        if (_defeatTriggered)
+            me->DespawnOrUnsummon(10s);
     }
 
     void UpdateAI(uint32 diff) override
@@ -1492,24 +1556,118 @@ class spell_flying_shadow_kick : public SpellScript
         OnEffectHitTarget += SpellEffectFn(spell_flying_shadow_kick::HandleHitTarget, EFFECT_1, SPELL_EFFECT_SCRIPT_EFFECT);
     }
 };
-}
 
-// 108897 - Pandaren Faction Choice
-class spell_pandaren_faction_choice : public SpellScript
+struct CartData
 {
+    uint32 Entry = 0;
+    uint32 PathId = 0;
+    Optional<uint8> EjectNodeId;
+    Optional<uint32> CreditNPC;
+    Optional<uint32> QuestId;
+    Optional<uint32> YakNPC;
+};
 
-    void HandleScriptEffect(SpellEffIndex /*effIndex*/)
+static constexpr CartData CartDataTable[] =
+{
+    // Carts
     {
-        if (Unit* caster = GetCaster())
-            if (caster->IsPlayer())
-                caster->ToPlayer()->ShowNeutralPlayerFactionSelectUI();
-    }
-
-    void Register() override
+        .Entry = Creatures::CartVehicleSingingPools,
+        .PathId = Paths::CartSingingPools,
+        .EjectNodeId = Paths::NodeCartRemovePassenger,
+        .CreditNPC = Creatures::CartSingingPools,
+        .QuestId = Quests::TheSourceOfLivelihood,
+    },
     {
-        OnEffectHit += SpellEffectFn(spell_pandaren_faction_choice::HandleScriptEffect, EFFECT_0, SPELL_EFFECT_SCRIPT_EFFECT);
+        .Entry = Creatures::CartVehicleFarmstead,
+        .PathId = Paths::CartFarmstead,
+        .EjectNodeId = Paths::NodeCartRemovePassenger,
+        .CreditNPC = Creatures::CartFarmstead,
+        .QuestId = Quests::TheSpiritAndBodyOfShenzinsu,
+    },
+    {
+        .Entry = Creatures::CartVehicleForest,
+        .PathId = Paths::CartForest,
+        .EjectNodeId = Paths::NodeForestCartRemovePassenger,
+        .CreditNPC = Creatures::CartForest,
+        .QuestId = Quests::NewAllies,
     }
 };
+
+static CartData GetCartData(uint32 entry)
+{
+    for (CartData const& data : CartDataTable)
+        if (data.Entry == entry)
+            return data;
+
+    return {};
+}
+
+// 57208 - Delivery Cart (Singing Pools)
+// 59496 - Delivery Cart (Farmstead)
+// 57740 - Delivery Cart (Forbidden Forest)
+struct npc_delivery_cart : public ScriptedAI
+{
+    npc_delivery_cart(Creature* creature) : ScriptedAI(creature), _data(GetCartData(creature->GetEntry())) { }
+
+    void Reset() override
+    {
+        _events.Reset();
+    }
+
+    void PassengerBoarded(Unit* passenger, int8 /*seat*/, bool apply) override
+    {
+        if (!apply)
+            return;
+
+        Player* player = passenger->ToPlayer();
+        if (!player)
+            return;
+
+        me->CastSpell(player, Spells::ForceVehicleRide);
+
+        _events.ScheduleEvent(Events::YakCartPathStart, 1800ms);
+        _events.ScheduleEvent(Events::YakCartRopes, 1s);
+
+        if (_data.QuestId && player->hasQuest(*_data.QuestId) && _data.CreditNPC)
+            player->KilledMonsterCredit(*_data.CreditNPC, player->GetGUID());
+    }
+
+    void WaypointReached(uint32 nodeId, uint32 /*pathId*/) override
+    {
+        if (_data.EjectNodeId && nodeId == *_data.EjectNodeId)
+            me->CastSpell(me, Spells::EjectPassengers);
+    }
+
+    void WaypointPathEnded(uint32 /*nodeId*/, uint32 /*pathId*/) override
+    {
+        me->DespawnOrUnsummon(1s);
+    }
+
+    void UpdateAI(uint32 diff) override
+    {
+        _events.Update(diff);
+
+        while (uint32 eventId = _events.ExecuteEvent())
+        {
+            switch (eventId)
+            {
+                case Events::YakCartRopes:
+                    me->CastSpell(me, Spells::OxCartRopeLeft);
+                    break;
+                case Events::YakCartPathStart:
+                    me->GetMotionMaster()->MovePath(_data.PathId, false);
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+private:
+    EventMap _events;
+    CartData _data;
+};
+}
 
 void AddSC_zone_the_wandering_isle()
 {
@@ -1549,5 +1707,5 @@ void AddSC_zone_the_wandering_isle()
     RegisterSpellScript(spell_feet_of_fury);
     RegisterSpellScript(spell_flying_shadow_kick);
 
-	RegisterSpellScript(spell_pandaren_faction_choice);
+    RegisterCreatureAI(npc_delivery_cart);
 }

@@ -268,6 +268,7 @@ private:
     void SendAllPassed();
     void SendRoll(ObjectGuid const& targetGuid, int32 rollNumber, RollVote rollType, Optional<ObjectGuid> const& rollWinner);
     void SendLootRollWon(ObjectGuid const& targetGuid, int32 rollNumber, RollVote rollType);
+    void SendDisenchantCredit(ObjectGuid const& winnerGuid);
     void FillPacket(WorldPackets::Loot::LootItemData& lootItem) const;
     void Finish(RollVoteMap::const_iterator winnerItr);
     bool AllPlayerVoted(RollVoteMap::const_iterator& winnerItr);
@@ -328,7 +329,7 @@ struct TC_GAME_API Loot
     // Inserts the item into the loot (called by LootTemplate processors)
     void AddItem(LootStoreItem const& item);
 
-    bool AutoStore(Player* player, uint8 bag, uint8 slot, bool broadcast = false, bool createdByPlayer = false);
+    bool AutoStore(Player* player, uint8 bag, uint8 slot, bool broadcast = false, bool pushed = false, bool createdByPlayer = false);
     void AutoStoreTrackingQuests(Player* player, NotNormalLootItemList& ffaItems);
 
     void LootMoney();

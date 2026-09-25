@@ -66,6 +66,13 @@ enum DemonHunterSpells
     SPELL_DH_COLLECTIVE_ANGUISH_EYE_BEAM_DAMAGE    = 391058,
     SPELL_DH_COLLECTIVE_ANGUISH_FEL_DEVASTATION    = 393831,
     SPELL_DH_CONSUME_ENERGIZE                      = 1261710,
+    SPELL_DH_CONSUME_SOUL_SPAWN                    = 1223448,
+    SPELL_DH_VOID_METAMORPHOSIS_PASSIVE            = 471306,
+    SPELL_DH_VOID_METAMORPHOSIS_COUNTER            = 1225789,
+    SPELL_DH_VOID_METAMORPHOSIS_ACTIVE             = 1217605,
+    SPELL_DH_VOID_METAMORPHOSIS_BUFF               = 1217607,
+    SPELL_DH_CAN_METAMORPHOSIS                     = 1213809,
+    SPELL_DH_VOID_RAY                              = 473728,
     SPELL_DH_CONSUME_SOUL_DEVOURER                 = 1223423,
     SPELL_DH_CONSUME_SOUL_HAVOC_DEMON              = 228556,
     SPELL_DH_CONSUME_SOUL_HAVOC_LESSER             = 228542,
@@ -74,6 +81,7 @@ enum DemonHunterSpells
     SPELL_DH_CONSUME_SOUL_VENGEANCE_DEMON          = 210050,
     SPELL_DH_CONSUME_SOUL_VENGEANCE_LESSER         = 208014,
     SPELL_DH_CONSUME_SOUL_VENGEANCE_SHATTERED      = 210047,
+    SPELL_DH_CULL_DAMAGE                           = 1245455,
     SPELL_DH_CYCLE_OF_HATRED_TALENT                = 258887,
     SPELL_DH_CYCLE_OF_HATRED_COOLDOWN_REDUCTION    = 1214887,
     SPELL_DH_CYCLE_OF_HATRED_REMOVE_STACKS         = 1214890,
@@ -97,6 +105,8 @@ enum DemonHunterSpells
     SPELL_DH_ELYSIAN_DECREE                        = 306830,
     SPELL_DH_ELYSIAN_DECREE_AOE                    = 307046,
     SPELL_DH_ENDURING_TORMENT_BUFF                 = 453314,
+    SPELL_DH_ERADICATE_DAMAGE                      = 1225827,
+    SPELL_DH_ERADICATE_DAMAGE_METAMORPHOSIS        = 1279200,
     SPELL_DH_ESSENCE_BREAK_DEBUFF                  = 320338,
     SPELL_DH_EYE_BEAM                              = 198013,
     SPELL_DH_EYE_BEAM_DAMAGE                       = 198030,
@@ -152,14 +162,15 @@ enum DemonHunterSpells
     SPELL_DH_JAGGED_SPIKES_PROC                    = 208796,
     SPELL_DH_MANA_RIFT_DMG_POWER_BURN              = 235904,
     SPELL_DH_METAMORPHOSIS                         = 191428,
-    SPELL_DH_METAMORPHOSIS_DEVOURER_TRANSFORM      = 1217607,
     SPELL_DH_METAMORPHOSIS_DUMMY                   = 191427,
     SPELL_DH_METAMORPHOSIS_IMPACT_DAMAGE           = 200166,
     SPELL_DH_METAMORPHOSIS_RESET                   = 320645,
     SPELL_DH_METAMORPHOSIS_TRANSFORM               = 162264,
     SPELL_DH_METAMORPHOSIS_VENGEANCE_TRANSFORM     = 187827,
-    SPELL_DH_MOMENTUM                              = 206476,
-    SPELL_DH_MOMENTUM_BUFF                         = 208628,
+    SPELL_DH_MOMENTUM_AURA                         = 206476,
+    SPELL_DH_MOMENTUM                              = 208628,
+    SPELL_DH_MOMENT_OF_CRAVING_TALENT              = 1238488,
+    SPELL_DH_MOMENT_OF_CRAVING_BUFF                = 1238495,
     SPELL_DH_MONSTER_RISING_AGILITY                = 452550,
     SPELL_DH_NEMESIS_ABERRATIONS                   = 208607,
     SPELL_DH_NEMESIS_BEASTS                        = 208608,
@@ -177,6 +188,8 @@ enum DemonHunterSpells
     SPELL_DH_RAIN_OF_CHAOS                         = 205628,
     SPELL_DH_RAIN_OF_CHAOS_IMPACT                  = 232538,
     SPELL_DH_RAZOR_SPIKES                          = 210003,
+    SPELL_DH_REAP                                  = 1226019,
+    SPELL_DH_REAP_DAMAGE                           = 1225823,
     SPELL_DH_REPEAT_DECREE_CONDUIT                 = 339895,
     SPELL_DH_RESTLESS_HUNTER_TALENT                = 390142,
     SPELL_DH_RESTLESS_HUNTER_BUFF                  = 390212,
@@ -288,12 +301,72 @@ enum DemonHunterSpells
     SPELL_DH_MANA_RIFT_SPELL                       = 235903,
     SPELL_DH_SOUL_FRAGMENT_HEAL_25_HAVOC           = 178963,
     SPELL_DH_BALANCED_BLADES                       = 201470,
+    SPELL_DH_REAP_FURY                             = 1261679,
+    SPELL_DH_CULL                                  = 1245453,
+    SPELL_DH_DEVOUR                                = 1217610,
+    SPELL_DH_ERADICATE_PASSIVE                     = 1226033,
+    SPELL_DH_ERADICATE                             = 1225826,
+    SPELL_DH_ERADICATE_DAMAGE_META                 = 1279200,
+    SPELL_DH_ERADICATE_OVERRIDE                    = 1239524,
+    SPELL_DH_COLLAPSING_STAR_PASSIVE               = 1221167,
+    SPELL_DH_COLLAPSING_STAR_COUNTER               = 1227702,
+    SPELL_DH_COLLAPSING_STAR                       = 1221150,
+    SPELL_DH_COLLAPSING_STAR_DAMAGE                = 1221162,
+    SPELL_DH_COLLAPSING_STAR_OVERRIDE              = 1221171,
+    SPELL_DH_COLLAPSING_STAR_FRAGMENTS             = 1240204,
+    SPELL_DH_FEAST_OF_SOULS_PASSIVE                = 1237270,
+    SPELL_DH_FEAST_OF_SOULS_BUFF                   = 1232310,
+    SPELL_DH_ENTROPY                               = 1261684,
+    SPELL_DH_HUNGERING_SLASH_PASSIVE               = 1239519,
+    SPELL_DH_HUNGERING_SLASH_OVERRIDE              = 1239525,
+    SPELL_DH_HUNGERING_SLASH                       = 1239123,
+    SPELL_DH_HUNGERING_SLASH_DAMAGE                = 1239127,
+    SPELL_DH_HUNGERING_SLASH_FURY                  = 1239507,
+    SPELL_DH_HUNGERING_SLASH_VOIDSTEP              = 1223157,
+    SPELL_DH_THE_HUNT_DAMAGE                       = 1246169,
+    SPELL_DH_VOIDSTEP_DAMAGE                       = 1239526,
+    SPELL_DH_VENGEFUL_RETREAT_DAMAGE               = 198813,
+    SPELL_DH_EMPTINESS_PASSIVE                     = 1242492,
+    SPELL_DH_EMPTINESS_BUFF                        = 1242504,
+    SPELL_DH_ROLLING_TORMENT_PASSIVE               = 1244237,
+    SPELL_DH_ROLLING_TORMENT_BUFF                  = 1244235,
+    SPELL_DH_SOUL_IMMOLATION                       = 1241937,
+    SPELL_DH_SOUL_IMMOLATION_FURY                  = 1242475,
+    SPELL_DH_SPONTANEOUS_IMMOLATION                = 1246556,
+    SPELL_DH_SPONTANEOUS_IMMOLATION_BUFF           = 1266696,
+    SPELL_DH_VOIDFALL_PASSIVE                      = 1253304,
+    SPELL_DH_VOIDFALL_STACK                        = 1256301,
+    SPELL_DH_VOIDFALL_METEOR_VENGEANCE             = 1256303,
+    SPELL_DH_VOIDFALL_METEOR_HAVOC                 = 1256304,
+    SPELL_DH_WORLD_KILLER_PASSIVE                  = 1256353,
+    SPELL_DH_WORLD_KILLER_METEOR_VENGEANCE         = 1256616,
+    SPELL_DH_WORLD_KILLER_METEOR_HAVOC             = 1256618,
+    SPELL_DH_CATASTROPHE_PASSIVE                   = 1253769,
+    SPELL_DH_CATASTROPHE_DOT                       = 1256667,
+    SPELL_DH_METEORIC_RISE_PASSIVE                 = 1253377,
+    SPELL_DH_MASS_ACCELERATION_PASSIVE             = 1256295,
+    SPELL_DH_METEORIC_FALL_PASSIVE                 = 1253391,
+    SPELL_DH_FINAL_HOUR_PASSIVE                    = 1253805,
+    SPELL_DH_FINAL_HOUR_BUFF                       = 1256322,
+    SPELL_DH_DOOMSAYER_PASSIVE                     = 1253676,
+    SPELL_DH_DOOMSAYER_BUFF                        = 1265768,
+    SPELL_DH_DARK_MATTER_PASSIVE                   = 1256307,
+    SPELL_DH_METEOR_SHOWER_DEVOURER                = 1264126,
+    SPELL_DH_METEOR_SHOWER_VENGEANCE               = 1264128,
+    SPELL_DH_MIDNIGHT_PASSIVE                      = 1250088,
+    SPELL_DH_MIDNIGHT_SOUL_ERUPT                   = 1250094,
+    SPELL_DH_DEVOURER_SPEC                         = 1213636,
+    SPELL_DH_VENGEANCE_SPEC                        = 212613,
+    SPELL_DH_HAVOC_SPEC                            = 212612,
+    SPELL_DH_FIRST_IN_LAST_OUT                     = 1266619,
+    SPELL_DH_SHIFT                                 = 1234796,
 };
 
 enum DemonHunterSpellCategories
 {
-    SPELL_CATEGORY_DH_EYE_BEAM      = 1582,
-    SPELL_CATEGORY_DH_BLADE_DANCE   = 1640
+    SPELL_CATEGORY_DH_EYE_BEAM                     = 1582,
+    SPELL_CATEGORY_DH_BLADE_DANCE                  = 1640,
+    SPELL_CATEGORY_DH_VOIDBLADE                    = 2426
 };
 
 // Called by 232893 - Felblade
@@ -446,7 +519,7 @@ class spell_dh_chaos_theory : public SpellScript
         if (!min || !max)
             return;
 
-        int32 critChance = irand(min->GetAmount(), max->GetAmount());
+        SpellEffectValue critChance = frand(min->GetAmount(), max->GetAmount());
         caster->CastSpell(caster, SPELL_DH_CHAOS_THEORY_CRIT, CastSpellExtraArgsInit{
             .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR,
             .SpellValueOverrides = { { SPELLVALUE_BASE_POINT0, critChance } }
@@ -613,15 +686,33 @@ class spell_dh_consume_energize : public SpellScript
 {
     bool Validate(SpellInfo const* /*spellInfo*/) override
     {
-        return ValidateSpellInfo ({ SPELL_DH_CONSUME_ENERGIZE });
+        return ValidateSpellInfo({ SPELL_DH_CONSUME_ENERGIZE, SPELL_DH_CONSUME_SOUL_SPAWN, SPELL_DH_SHATTERED_SOUL_DEVOURER_LESSER_RIGHT,
+            SPELL_DH_VOIDFALL_STACK, SPELL_DH_VOIDFALL_METEOR_VENGEANCE, SPELL_DH_VOIDFALL_METEOR_HAVOC });
     }
 
     void HandleAfterCast() const
     {
-        GetCaster()->CastSpell(GetCaster(), SPELL_DH_CONSUME_ENERGIZE, CastSpellExtraArgsInit{
+        Unit* caster = GetCaster();
+        Unit* target = GetExplTargetUnit();
+
+        caster->CastSpell(caster, SPELL_DH_CONSUME_ENERGIZE, CastSpellExtraArgsInit{
             .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR,
             .TriggeringSpell = GetSpell()
         });
+
+        if (target)
+        {
+            // 1223448 - lesser soul fragment (left)
+            target->CastSpell(caster, SPELL_DH_CONSUME_SOUL_SPAWN, CastSpellExtraArgsInit{
+                .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR,
+                .TriggeringSpell = GetSpell()
+                });
+            // 1223445 - lesser soul fragment (right)
+            target->CastSpell(caster, SPELL_DH_SHATTERED_SOUL_DEVOURER_LESSER_RIGHT, CastSpellExtraArgsInit{
+                .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR,
+                .TriggeringSpell = GetSpell()
+                });
+        }
     }
 
     void Register() override
@@ -648,7 +739,7 @@ class spell_dh_consume_soul_vengeance_lesser : public SpellScript
         if (!shearPassive || !shearPassive->HasEffect(EFFECT_1) || !shearPassive->HasEffect(EFFECT_2))
             return;
 
-        flatMod += std::max(CalculatePct(uint64(damageTakenTracker->CalculateAmount(GetCaster())), shearPassive->GetEffect(EFFECT_1)->GetAmount()),
+        flatMod += std::max<SpellEffectValue>(CalculatePct(damageTakenTracker->CalculateAmount(GetCaster()), shearPassive->GetEffect(EFFECT_1)->GetAmount()),
             victim->CountPctFromMaxHealth(shearPassive->GetEffect(EFFECT_2)->GetAmount()));
     }
 
@@ -661,7 +752,7 @@ class spell_dh_consume_soul_vengeance_lesser : public SpellScript
 // 320413 - Critical Chaos
 class spell_dh_critical_chaos : public AuraScript
 {
-    void CalcAmount(AuraEffect const* /*aurEff*/, int32& amount, bool const& /*canBeRecalculated*/) const
+    void CalcAmount(AuraEffect const* /*aurEff*/, SpellEffectValue& amount, bool const& /*canBeRecalculated*/) const
     {
         if (AuraEffect const* amountHolder = GetEffect(EFFECT_1))
         {
@@ -683,6 +774,28 @@ class spell_dh_critical_chaos : public AuraScript
     }
 };
 
+// 1226019 - Reap
+class spell_dh_cull : public SpellScript
+{
+    bool Validate(SpellInfo const* /*spellInfo*/) override
+    {
+        return ValidateSpellInfo({ SPELL_DH_CULL_DAMAGE });
+    }
+
+    void HandleDamage(SpellEffIndex /*effIndex*/) const
+    {
+        GetCaster()->CastSpell(GetHitUnit(), SPELL_DH_CULL_DAMAGE, CastSpellExtraArgsInit{
+            .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR,
+            .TriggeringSpell = GetSpell()
+        });
+    }
+
+    void Register() override
+    {
+        OnEffectHitTarget += SpellEffectFn(spell_dh_cull::HandleDamage, EFFECT_0, SPELL_EFFECT_DUMMY);
+    }
+};
+
 // 389718 - Cycle of Binding
 class spell_dh_cycle_of_binding : public AuraScript
 {
@@ -696,7 +809,7 @@ class spell_dh_cycle_of_binding : public AuraScript
     void HandleEffectProc(AuraEffect const* aurEff, ProcEventInfo const& /*eventInfo*/) const
     {
         SpellHistory* history = GetTarget()->GetSpellHistory();
-        SpellHistory::Duration amount = Seconds(-aurEff->GetAmount());
+        SpellHistory::Duration amount = duration_cast<SpellHistory::Duration>(FloatSeconds(-aurEff->GetAmount()));
 
         for (uint32 spellId : SigilSpellsIds)
             history->ModifyCooldown(spellId, amount);
@@ -728,7 +841,7 @@ class spell_dh_cycle_of_hatred : public SpellScript
         // First calculate cooldown then add another stack
         uint32 cycleOfHatredStack = caster->GetAuraCount(SPELL_DH_CYCLE_OF_HATRED_COOLDOWN_REDUCTION);
         AuraEffect const* cycleOfHatred = caster->GetAuraEffect(SPELL_DH_CYCLE_OF_HATRED_TALENT, EFFECT_0);
-        caster->GetSpellHistory()->ModifyCooldown(GetSpellInfo(), -Milliseconds(cycleOfHatred->GetAmount() * cycleOfHatredStack));
+        caster->GetSpellHistory()->ModifyCooldown(GetSpellInfo(), -Milliseconds(static_cast<int64>(cycleOfHatred->GetAmount() * cycleOfHatredStack)));
 
         CastSpellExtraArgs args;
         args.SetTriggerFlags(TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
@@ -820,10 +933,10 @@ class spell_dh_darkglare_boon : public AuraScript
 
         SpellHistory::Duration cooldown, categoryCooldown;
         SpellHistory::GetCooldownDurations(GetSpellInfo(), 0, &cooldown, nullptr, &categoryCooldown);
-        int32 reductionPct = irand(darkglareBoon->GetEffect(EFFECT_0)->GetAmount(), darkglareBoon->GetEffect(EFFECT_1)->GetAmount());
+        SpellEffectValue reductionPct = frand(darkglareBoon->GetEffect(EFFECT_0)->GetAmount(), darkglareBoon->GetEffect(EFFECT_1)->GetAmount());
         SpellHistory::Duration cooldownReduction(CalculatePct(std::max(cooldown, categoryCooldown).count(), reductionPct));
 
-        int32 energizeValue = irand(darkglareBoon->GetEffect(EFFECT_2)->GetAmount(), darkglareBoon->GetEffect(EFFECT_3)->GetAmount());
+        SpellEffectValue energizeValue = frand(darkglareBoon->GetEffect(EFFECT_2)->GetAmount(), darkglareBoon->GetEffect(EFFECT_3)->GetAmount());
 
         target->GetSpellHistory()->ModifyCooldown(SPELL_DH_FEL_DEVASTATION, -cooldownReduction);
 
@@ -847,7 +960,7 @@ class spell_dh_darkness : public AuraScript
         return ValidateSpellEffect({ { spellInfo->Id, EFFECT_1 } });
     }
 
-    void CalculateAmount(AuraEffect const* /*aurEff*/, int32& amount, bool& /*canBeRecalculated*/)
+    void CalculateAmount(AuraEffect const* /*aurEff*/, SpellEffectValue& amount, bool& /*canBeRecalculated*/)
     {
         // Set absorbtion amount to unlimited
         amount = -1;
@@ -856,7 +969,7 @@ class spell_dh_darkness : public AuraScript
     void Absorb(AuraEffect const* /*aurEff*/, DamageInfo& dmgInfo, uint32& absorbAmount) const
     {
         if (AuraEffect const* chanceEffect = GetEffect(EFFECT_1))
-            if (roll_chance_i(chanceEffect->GetAmount()))
+            if (roll_chance(chanceEffect->GetAmount()))
                 absorbAmount = dmgInfo.GetDamage();
     }
 
@@ -961,7 +1074,7 @@ class spell_dh_demonic : public SpellScript
         if (!demonic)
             return;
 
-        int32 duration = demonic->GetAmount() + GetSpell()->GetChannelDuration();
+        int32 duration = demonic->GetAmountAsInt() + GetSpell()->GetChannelDuration();
 
         if (Aura* aura = caster->GetAura(_transformSpellId))
         {
@@ -1095,7 +1208,7 @@ class spell_dh_enduring_torment : public AuraScript
 {
     bool Validate(SpellInfo const* /*spellInfo*/) override
     {
-        return ValidateSpellInfo({ SPELL_DH_ENDURING_TORMENT_BUFF, SPELL_DH_METAMORPHOSIS_TRANSFORM, SPELL_DH_METAMORPHOSIS_DEVOURER_TRANSFORM });
+        return ValidateSpellInfo({ SPELL_DH_ENDURING_TORMENT_BUFF, SPELL_DH_METAMORPHOSIS_TRANSFORM, SPELL_DH_VOID_METAMORPHOSIS_BUFF });
     }
 
     void HandlePeriodic(AuraEffect const* aurEff) const
@@ -1103,7 +1216,7 @@ class spell_dh_enduring_torment : public AuraScript
         Unit* target = GetTarget();
         Aura* statBuff = target->GetOwnedAura(SPELL_DH_ENDURING_TORMENT_BUFF);
 
-        if (target->HasAura(SPELL_DH_METAMORPHOSIS_TRANSFORM) || target->HasAura(SPELL_DH_METAMORPHOSIS_DEVOURER_TRANSFORM))
+        if (target->HasAura(SPELL_DH_METAMORPHOSIS_TRANSFORM) || target->HasAura(SPELL_DH_VOID_METAMORPHOSIS_BUFF))
         {
             if (statBuff)
                 target->RemoveOwnedAura(statBuff);
@@ -1163,7 +1276,7 @@ public:
 
     bool Load() override
     {
-        _maxFragmentsToCreate = sSpellMgr->AssertSpellInfo(_primarySpellId, GetCastDifficulty())->GetEffect(EFFECT_2).CalcValue(GetCaster());
+        _maxFragmentsToCreate = sSpellMgr->AssertSpellInfo(_primarySpellId, GetCastDifficulty())->GetEffect(EFFECT_2).CalcValueAsInt(GetCaster());
         _fragmentsToCreate = _maxFragmentsToCreate;
         return true;
     }
@@ -1188,6 +1301,30 @@ private:
     uint32 _primarySpellId;
     int32 _maxFragmentsToCreate = 0;
     int32 _fragmentsToCreate = 0;
+};
+
+// 1225826 - Eradicate
+class spell_dh_eradicate : public SpellScript
+{
+    bool Validate(SpellInfo const* /*spellInfo*/) override
+    {
+        return ValidateSpellInfo({ SPELL_DH_ERADICATE_DAMAGE, SPELL_DH_ERADICATE_DAMAGE_METAMORPHOSIS, SPELL_DH_VOID_METAMORPHOSIS_BUFF });
+    }
+
+    void HandleDamage(SpellEffIndex /*effIndex*/) const
+    {
+        Unit* caster = GetCaster();
+        caster->CastSpell(GetHitUnit(), caster->HasAura(SPELL_DH_VOID_METAMORPHOSIS_BUFF)
+            ? SPELL_DH_ERADICATE_DAMAGE_METAMORPHOSIS : SPELL_DH_ERADICATE_DAMAGE, CastSpellExtraArgsInit{
+            .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR,
+            .TriggeringSpell = GetSpell()
+        });
+    }
+
+    void Register() override
+    {
+        OnEffectHitTarget += SpellEffectFn(spell_dh_eradicate::HandleDamage, EFFECT_0, SPELL_EFFECT_DUMMY);
+    }
 };
 
 // 258860 - Essence Break
@@ -1471,7 +1608,7 @@ struct at_dh_glaive_tempest : AreaTriggerAI
 
     void OnCreate(Spell const* /*creatingSpell*/) override
     {
-        _scheduler.Schedule(0ms, [this](TaskContext task)
+        _scheduler.Schedule(0ms, [this](TaskContext& task)
         {
             FloatMilliseconds period = 500ms; // 500ms, affected by haste
             if (Unit* caster = at->GetCaster())
@@ -1554,7 +1691,7 @@ struct at_dh_inner_demon : AreaTriggerAI
 // 388118 - Know Your Enemy
 class spell_dh_know_your_enemy : public AuraScript
 {
-    void CalcAmount(AuraEffect const* /*aurEff*/, int32& amount, bool const& /*canBeRecalculated*/) const
+    void CalcAmount(AuraEffect const* /*aurEff*/, SpellEffectValue& amount, bool const& /*canBeRecalculated*/) const
     {
         if (AuraEffect const* amountHolder = GetEffect(EFFECT_1))
         {
@@ -1607,6 +1744,35 @@ class spell_dh_last_resort : public AuraScript
     void Register() override
     {
         OnEffectAbsorb += AuraEffectAbsorbOverkillFn(spell_dh_last_resort::HandleAbsorb, EFFECT_0);
+    }
+};
+
+// 1238488 - Moment of Craving (attached to 473728 - Void Ray)
+class spell_dh_moment_of_craving : public AuraScript
+{
+    bool Validate(SpellInfo const* /*spellInfo*/) override
+    {
+        return ValidateSpellInfo({ SPELL_DH_MOMENT_OF_CRAVING_TALENT, SPELL_DH_MOMENT_OF_CRAVING_BUFF, SPELL_DH_REAP });
+    }
+
+    bool Load() override
+    {
+        return GetUnitOwner()->HasAura(SPELL_DH_MOMENT_OF_CRAVING_TALENT);
+    }
+
+    void HandleAfterRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/) const
+    {
+        if (GetTargetApplication()->GetRemoveMode() != AURA_REMOVE_BY_EXPIRE)
+            return;
+
+        Unit* target = GetTarget();
+        target->GetSpellHistory()->RestoreCharge(sSpellMgr->AssertSpellInfo(SPELL_DH_REAP, GetCastDifficulty())->ChargeCategoryId);
+        target->CastSpell(target, SPELL_DH_MOMENT_OF_CRAVING_BUFF, TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
+    }
+
+    void Register() override
+    {
+        AfterEffectRemove += AuraEffectRemoveFn(spell_dh_moment_of_craving::HandleAfterRemove, EFFECT_0, SPELL_AURA_PERIODIC_TRIGGER_SPELL, AURA_EFFECT_HANDLE_REAL);
     }
 };
 
@@ -1855,6 +2021,28 @@ class spell_dh_glide_timer : public AuraScript
     }
 };
 
+// 1226019 - Reap
+class spell_dh_reap : public SpellScript
+{
+    bool Validate(SpellInfo const* /*spellInfo*/) override
+    {
+        return ValidateSpellInfo({ SPELL_DH_REAP_DAMAGE });
+    }
+
+    void HandleDamage(SpellEffIndex /*effIndex*/) const
+    {
+        GetCaster()->CastSpell(GetHitUnit(), SPELL_DH_REAP_DAMAGE, CastSpellExtraArgsInit{
+            .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR,
+            .TriggeringSpell = GetSpell()
+        });
+    }
+
+    void Register() override
+    {
+        OnEffectHitTarget += SpellEffectFn(spell_dh_reap::HandleDamage, EFFECT_0, SPELL_EFFECT_DUMMY);
+    }
+};
+
 // 339895 - Repeat Decree (attached to 307046 - Elysian Decree and 389860 - Sigil of Spite)
 class spell_dh_repeat_decree_conduit : public SpellScript
 {
@@ -1961,7 +2149,7 @@ class spell_dh_shattered_destiny : public AuraScript
             return false;
 
         _furySpent += procSpell->GetPowerTypeCostAmount(POWER_FURY).value_or(0);
-        return _furySpent >= GetEffect(EFFECT_1)->GetAmount();
+        return _furySpent >= GetEffect(EFFECT_1)->GetAmountAsInt();
     }
 
     void HandleProc(ProcEventInfo const& /*eventInfo*/)
@@ -1970,8 +2158,8 @@ class spell_dh_shattered_destiny : public AuraScript
         if (!metamorphosis)
             return;
 
-        int32 requiredFuryAmount = GetEffect(EFFECT_1)->GetAmount();
-        metamorphosis->SetDuration(metamorphosis->GetDuration() + _furySpent / requiredFuryAmount * GetEffect(EFFECT_0)->GetAmount());
+        int32 requiredFuryAmount = GetEffect(EFFECT_1)->GetAmountAsInt();
+        metamorphosis->SetDuration(metamorphosis->GetDuration() + _furySpent / requiredFuryAmount * GetEffect(EFFECT_0)->GetAmountAsInt());
         _furySpent %= requiredFuryAmount;
     }
 
@@ -2020,7 +2208,7 @@ public:
     void HandleProc(AuraEffect const* /*aurEff*/, ProcEventInfo const& eventInfo) const
     {
         Unit* caster = eventInfo.GetActor();
-        Unit* target = eventInfo.GetProcTarget();
+        Unit* target = eventInfo.GetActionTarget();
 
         if (!caster || !target)
             return;
@@ -2042,12 +2230,19 @@ class spell_dh_shattered_souls_devourer : public AuraScript
 {
     bool Validate(SpellInfo const* /*spellInfo*/) override
     {
-        return spell_dh_shattered_souls_base_lesser::Validate();
+        return spell_dh_shattered_souls_base_lesser::Validate()
+            && ValidateSpellInfo({ SPELL_DH_SOUL_FRAGMENT_DEVOURER });
     }
 
     static bool CheckProc(AuraScript const&, AuraEffect const* aurEff, ProcEventInfo const& /*eventInfo*/)
     {
-        return roll_chance_i(aurEff->GetAmount());
+        return roll_chance(aurEff->GetAmount());
+    }
+
+    static bool CheckReapSoulGatheringProc(AuraScript const&, AuraEffect const* /*aurEff*/, ProcEventInfo const& eventInfo)
+    {
+        // Eradicate, Reap and Cull
+        return eventInfo.GetSpellInfo()->IsAffected(SPELLFAMILY_DEMON_HUNTER, { 0x0, 0x0, 0x0, 0x40 });
     }
 
     static void HandleProc(AuraScript const&, AuraEffect const* /*aurEff*/, ProcEventInfo const& eventInfo)
@@ -2055,10 +2250,36 @@ class spell_dh_shattered_souls_devourer : public AuraScript
         spell_dh_shattered_souls_base_lesser::CreateFragments(eventInfo.GetActionTarget(), eventInfo.GetActor(), 1);
     }
 
+    static void HandleSoulsGathering(AuraScript const&, AuraEffect const* aurEff, ProcEventInfo const& eventInfo)
+    {
+        Unit* caster = eventInfo.GetActor();
+        float range = eventInfo.GetSpellInfo()->GetMaxRange();
+
+        std::vector<AreaTrigger*> soulFragments = caster->GetAreaTriggers(SPELL_DH_SOUL_FRAGMENT_DEVOURER);
+        Trinity::Containers::EraseIf(soulFragments, [caster, range](AreaTrigger const* at) { return !at->IsWithinDist(caster, range); });
+        if (soulFragments.empty())
+            return;
+
+        uint32 maxTargets = aurEff->GetAmountAsInt();
+        if (soulFragments.size() > maxTargets)
+            soulFragments.resize(maxTargets);
+
+        for (AreaTrigger* soulFragment : soulFragments)
+        {
+            caster->CastSpell(soulFragment->GetPosition(), SPELL_DH_CONSUME_SOUL_DEVOURER, CastSpellExtraArgsInit{
+                .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR,
+                .TriggeringSpell = eventInfo.GetProcSpell()
+            });
+            soulFragment->Remove();
+        }
+    }
+
     void Register() override
     {
         DoCheckEffectProc += AuraCheckEffectProcFn(spell_dh_shattered_souls_devourer::CheckProc, EFFECT_0, SPELL_AURA_DUMMY);
+        DoCheckEffectProc += AuraCheckEffectProcFn(spell_dh_shattered_souls_devourer::CheckReapSoulGatheringProc, EFFECT_1, SPELL_AURA_DUMMY);
         OnEffectProc += AuraEffectProcFn(spell_dh_shattered_souls_devourer::HandleProc, EFFECT_0, SPELL_AURA_DUMMY);
+        OnEffectProc += AuraEffectProcFn(spell_dh_shattered_souls_devourer::HandleSoulsGathering, EFFECT_1, SPELL_AURA_DUMMY);
     }
 };
 
@@ -2119,6 +2340,68 @@ private:
     uint32 _triggeredSpellIdDemon;
 };
 
+class spell_dh_feast_of_souls_tracker : public AuraScript
+{
+    bool Validate(SpellInfo const* /*spellInfo*/) override
+    {
+        return ValidateSpellInfo({ SPELL_DH_FEAST_OF_SOULS_BUFF });
+    }
+
+    void HandleRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+    {
+        GetTarget()->RemoveAura(SPELL_DH_FEAST_OF_SOULS_BUFF);
+    }
+
+public:
+    void AddStack(Unit* unit)
+    {
+        Player* player = unit ? unit->ToPlayer() : nullptr;
+        if (!player)
+            return;
+
+        // Compute effective duration: 10s base + Sweet Suffering flat modifier
+        int32 stackDuration = 10000;
+        if (SpellInfo const* buffInfo = sSpellMgr->GetSpellInfo(SPELL_DH_FEAST_OF_SOULS_BUFF, DIFFICULTY_NONE))
+            player->ApplySpellMod(buffInfo, SpellModOp::Duration, stackDuration);
+        stackDuration = std::max(stackDuration, 1000);
+
+        if (Aura* buff = player->GetAura(SPELL_DH_FEAST_OF_SOULS_BUFF))
+        {
+            buff->SetStackAmount(std::min<uint8>(buff->GetStackAmount() + 1, 20));
+            buff->SetMaxDuration(stackDuration);
+            buff->SetDuration(stackDuration);
+        }
+        else
+        {
+            player->CastSpell(player, SPELL_DH_FEAST_OF_SOULS_BUFF,
+                TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
+            if (Aura* buff = player->GetAura(SPELL_DH_FEAST_OF_SOULS_BUFF))
+            {
+                buff->SetMaxDuration(stackDuration);
+                buff->SetDuration(stackDuration);
+            }
+        }
+
+        player->m_Events.AddEventAtOffset([playerGUID = player->GetGUID()]()
+            {
+                if (Player* p = ObjectAccessor::FindConnectedPlayer(playerGUID))
+                    if (Aura* buff = p->GetAura(SPELL_DH_FEAST_OF_SOULS_BUFF))
+                    {
+                        uint8 stacks = buff->GetStackAmount();
+                        if (stacks <= 1)
+                            p->RemoveAura(SPELL_DH_FEAST_OF_SOULS_BUFF);
+                        else
+                            buff->SetStackAmount(stacks - 1);
+                    }
+            }, Milliseconds(stackDuration));
+    }
+
+    void Register() override
+    {
+        AfterEffectRemove += AuraEffectRemoveFn(spell_dh_feast_of_souls_tracker::HandleRemove, EFFECT_0, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL);
+    }
+};
+
 // 209693 - Shattered Souls, 209788 - Shattered Souls and 1223412 - Soul Fragment
 // Id - 3680, 6659 and 36671
 template<uint32 SpellId>
@@ -2126,9 +2409,55 @@ struct at_dh_shattered_souls : public AreaTriggerAI
 {
     using AreaTriggerAI::AreaTriggerAI;
 
+    uint32 _spawnDelay = 500;
+
+    void OnUpdate(uint32 diff) override
+    {
+        if (!_spawnDelay)
+            return;
+
+        if (_spawnDelay > diff)
+        {
+            _spawnDelay -= diff;
+            return;
+        }
+
+        _spawnDelay = 0;
+
+        // Check if caster is already inside now that delay expired
+        if (Unit* caster = at->GetCaster())
+            if (at->GetInsideUnits().count(caster->GetGUID()))
+                Collect(caster);
+    }
+
     void OnUnitEnter(Unit* unit) override
     {
+        if (_spawnDelay)
+            return;
+
+        Collect(unit);
+    }
+
+    void Collect(Unit * unit)
+    {
         unit->CastSpell(at->GetPosition(), SpellId, TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
+
+        if (unit->HasAura(SPELL_DH_VOID_METAMORPHOSIS_PASSIVE) && !unit->HasAura(SPELL_DH_VOID_METAMORPHOSIS_BUFF))
+            unit->CastSpell(unit, SPELL_DH_VOID_METAMORPHOSIS_COUNTER,
+                TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
+
+        if (unit->HasAura(SPELL_DH_VOID_METAMORPHOSIS_BUFF) && unit->HasAura(SPELL_DH_COLLAPSING_STAR_PASSIVE))
+            unit->CastSpell(unit, SPELL_DH_COLLAPSING_STAR_COUNTER,
+                TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
+
+        if (unit->HasAura(SPELL_DH_VOID_METAMORPHOSIS_BUFF) && unit->HasAura(SPELL_DH_EMPTINESS_PASSIVE))
+            unit->CastSpell(unit, SPELL_DH_EMPTINESS_BUFF,
+                TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
+
+        if (Aura* fos = unit->GetAura(SPELL_DH_FEAST_OF_SOULS_PASSIVE))
+            if (auto* script = fos->GetScript<spell_dh_feast_of_souls_tracker>())
+                script->AddStack(unit);
+
         at->Remove();
     }
 
@@ -2199,7 +2528,7 @@ class spell_dh_soul_carver : public SpellScript
 
     void HandleSoulFragments(SpellEffIndex /*effIndex*/) const
     {
-        spell_dh_shattered_souls_base_lesser::CreateFragments(GetHitUnit(), GetCaster(), GetEffectInfo(EFFECT_2).CalcValue(GetCaster()));
+        spell_dh_shattered_souls_base_lesser::CreateFragments(GetHitUnit(), GetCaster(), GetEffectInfo(EFFECT_2).CalcValueAsInt(GetCaster()));
     }
 
     void Register() override
@@ -2218,7 +2547,7 @@ class spell_dh_soul_carver_aura : public AuraScript
     void HandleEffectPeriodic(AuraEffect const* /*aurEff*/) const
     {
         if (Unit* caster = GetCaster())
-            spell_dh_shattered_souls_base_lesser::CreateFragments(GetTarget(), caster, GetEffectInfo(EFFECT_3).CalcValue(caster));
+            spell_dh_shattered_souls_base_lesser::CreateFragments(GetTarget(), caster, GetEffectInfo(EFFECT_3).CalcValueAsInt(caster));
     }
 
     void Register() override
@@ -2241,7 +2570,7 @@ class spell_dh_soul_fragments_damage_taken_tracker : public AuraScript
         if (!seconds)
             return false;
 
-        _damagePerSecond.resize(seconds->GetAmount());
+        _damagePerSecond.resize(seconds->GetAmountAsInt());
         return !_damagePerSecond.empty();
     }
 
@@ -2257,10 +2586,10 @@ class spell_dh_soul_fragments_damage_taken_tracker : public AuraScript
         _damagePerSecond[0] = 0;
     }
 
-    void HandleCalcAmount(AuraEffect const* /*aurEff*/, int32& amount, bool& canBeRecalculated)
+    void HandleCalcAmount(AuraEffect const* /*aurEff*/, SpellEffectValue& amount, bool& canBeRecalculated)
     {
         canBeRecalculated = true;
-        amount = int32(std::reduce(_damagePerSecond.begin(), _damagePerSecond.end(), 0u));
+        amount = std::reduce(_damagePerSecond.begin(), _damagePerSecond.end(), 0u);
     }
 
     void HandleProc(AuraEffect const* /*aurEff*/, ProcEventInfo const& eventInfo)
@@ -2296,11 +2625,11 @@ class spell_dh_soulmonger : public AuraScript
     static void HandleEffectProc(AuraScript const&, AuraEffect const* aurEff, ProcEventInfo const& eventInfo)
     {
         Unit* target = eventInfo.GetActionTarget();
-        int32 amount = eventInfo.GetHealInfo()->GetHeal();
+        SpellEffectValue amount = eventInfo.GetHealInfo()->GetHeal();
         if (AuraEffect const* existingAbsorb = target->GetAuraEffect(SPELL_DH_SOULMONGER_ABSORB, EFFECT_0))
             amount += existingAbsorb->GetAmount();
 
-        amount = std::min(amount, int32(target->CountPctFromMaxHealth(aurEff->GetAmount())));
+        amount = std::min(amount, SpellEffectValue(target->CountPctFromMaxHealth(aurEff->GetAmount())));
 
         target->CastSpell(target, SPELL_DH_SOULMONGER_ABSORB, CastSpellExtraArgsInit{
             .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR,
@@ -2344,16 +2673,12 @@ class spell_dh_soul_furnace_conduit : public AuraScript
 {
     void CalculateSpellMod(AuraEffect const* aurEff, SpellModifier*& spellMod)
     {
-        if (aurEff->GetAmount() == 10)
+        if (aurEff->GetAmountAsInt() == 10)
         {
             if (!spellMod)
             {
-                spellMod = new SpellModifierByClassMask(GetAura());
-                spellMod->op = SpellModOp::HealingAndDamage;
-                spellMod->type = SPELLMOD_PCT;
-                spellMod->spellId = GetId();
-                static_cast<SpellModifierByClassMask*>(spellMod)->mask = flag128(0x80000000);
-                static_cast<SpellModifierByClassMask*>(spellMod)->value = GetEffect(EFFECT_1)->GetAmount() + 1;
+                spellMod = new SpellPctModifierByClassMask(SpellModOp::HealingAndDamage, GetId(), GetAura(), flag128(0x80000000));
+                static_cast<SpellPctModifierByClassMask*>(spellMod)->value = GetEffect(EFFECT_1)->GetAmount() + 1;
             }
         }
     }
@@ -2369,7 +2694,7 @@ class spell_dh_soul_sigils : public AuraScript
 {
     void HandleOnProc(AuraEffect const* aurEff, ProcEventInfo const& eventInfo) const
     {
-        spell_dh_shattered_souls_base_lesser::CreateFragments(eventInfo.GetActionTarget(), eventInfo.GetActor(), aurEff->GetAmount());
+        spell_dh_shattered_souls_base_lesser::CreateFragments(eventInfo.GetActionTarget(), eventInfo.GetActor(), aurEff->GetAmountAsInt());
     }
 
     void Register() override
@@ -2527,7 +2852,7 @@ class spell_dh_vengeful_retreat_damage : public SpellScript
 {
     bool Validate(SpellInfo const* /*spellInfo*/) override
     {
-        return ValidateSpellInfo({ SPELL_DH_VENGEFUL_BONDS });
+        return ValidateSpellInfo({ SPELL_DH_VENGEFUL_BONDS, SPELL_DH_HUNGERING_SLASH_VOIDSTEP, SPELL_DH_VOIDSTEP_DAMAGE });
     }
 
     void HandleVengefulBonds(std::list<WorldObject*>& targets)
@@ -2536,9 +2861,26 @@ class spell_dh_vengeful_retreat_damage : public SpellScript
             targets.clear();
     }
 
+    void HandleVoidstep() const
+    {
+        Unit* caster = GetCaster();
+
+        // Consume the "temporary charge" (Evasive Action aura) immediately upon cast 
+        // to prevent the player from multi-casting Vengeful Retreat infinitely!
+        caster->RemoveAurasDueToSpell(444929);
+
+        if (!caster->HasAura(SPELL_DH_HUNGERING_SLASH_VOIDSTEP))
+            return;
+
+        caster->CastSpell(caster, SPELL_DH_VOIDSTEP_DAMAGE,
+            TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
+        caster->RemoveAurasDueToSpell(SPELL_DH_HUNGERING_SLASH_VOIDSTEP);
+    }
+
     void Register() override
     {
         OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_dh_vengeful_retreat_damage::HandleVengefulBonds, EFFECT_0, TARGET_UNIT_SRC_AREA_ENEMY);
+        AfterCast += SpellCastFn(spell_dh_vengeful_retreat_damage::HandleVoidstep);
     }
 };
 
@@ -2572,7 +2914,7 @@ class spell_dh_voidblade : public SpellScript
 {
     bool Validate(SpellInfo const* /*spellInfo*/) override
     {
-        return ValidateSpellInfo({ SPELL_DH_VOIDBLADE_CHARGE, SPELL_DH_VOIDBLADE_DAMAGE });
+        return ValidateSpellInfo({ SPELL_DH_VOIDBLADE_CHARGE, SPELL_DH_VOIDBLADE_DAMAGE, SPELL_DH_HUNGERING_SLASH_PASSIVE, SPELL_DH_HUNGERING_SLASH_OVERRIDE });
     }
 
     void HandleCharge(SpellEffIndex /*effIndex*/) const
@@ -2584,9 +2926,18 @@ class spell_dh_voidblade : public SpellScript
         });
     }
 
+    void HandleAfterCast() const
+    {
+        Unit* caster = GetCaster();
+        if (caster->HasAura(SPELL_DH_HUNGERING_SLASH_PASSIVE))
+            caster->CastSpell(caster, SPELL_DH_HUNGERING_SLASH_OVERRIDE,
+                TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
+    }
+
     void Register() override
     {
         OnEffectHitTarget += SpellEffectFn(spell_dh_voidblade::HandleCharge, EFFECT_0, SPELL_EFFECT_DUMMY);
+        AfterCast += SpellCastFn(spell_dh_voidblade::HandleAfterCast);
     }
 };
 
@@ -2640,26 +2991,201 @@ class spell_dh_voidglare_boon : public AuraScript
     }
 };
 
+static void SetVoidMetaReapOverride(Unit* target, bool enable)
+{
+    if (Aura* metaBuff = target->GetAura(SPELL_DH_VOID_METAMORPHOSIS_BUFF))
+        for (AuraEffect* eff : metaBuff->GetAuraEffects())
+            if (eff->GetAuraType() == SPELL_AURA_OVERRIDE_ACTIONBAR_SPELLS && uint32(eff->GetMiscValue()) == SPELL_DH_REAP)
+            {
+                eff->ChangeAmount(enable ? SPELL_DH_CULL : 0);
+                break;
+            }
+}
+
+// 1253304 - Voidfall passive: Consume hit has 35% chance to grant a stack of 1256301 (max 3)
+class spell_dh_voidfall_passive : public AuraScript
+{
+    uint32 _meteorCount = 0;
+
+    bool Validate(SpellInfo const* /*spellInfo*/) override
+    {
+        return ValidateSpellInfo({ SPELL_DH_VOIDFALL_STACK });
+    }
+
+    static bool CheckProc(AuraScript const& script, ProcEventInfo const& eventInfo)
+    {
+        if (!eventInfo.GetSpellInfo())
+            return false;
+        int32 chance = static_cast<spell_dh_voidfall_passive const&>(script).GetEffect(EFFECT_2)->GetAmount();
+        return roll_chance(chance);
+    }
+
+    void HandleProc(AuraEffect const* /*aurEff*/, ProcEventInfo const& /*eventInfo*/) const
+    {
+        GetTarget()->CastSpell(GetTarget(), SPELL_DH_VOIDFALL_STACK,
+            TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
+    }
+
+public:
+    uint32 IncrementMeteorCount() { return ++_meteorCount; }
+
+    void Register() override
+    {
+        DoCheckProc += AuraCheckProcFn(spell_dh_voidfall_passive::CheckProc);
+        OnEffectProc += AuraEffectProcFn(spell_dh_voidfall_passive::HandleProc, EFFECT_0, SPELL_AURA_DUMMY);
+    }
+};
+
+// 1253676 - Doomsayer passive: tracks combat entry time for the 10s window
+class spell_dh_doomsayer_passive : public AuraScript
+{
+    TimePoint _combatEnterTime = TimePoint::min();
+
+    void HandleProc(AuraEffect const* /*aurEff*/, ProcEventInfo const& /*eventInfo*/)
+    {
+        if (_combatEnterTime == TimePoint::min())
+            _combatEnterTime = GameTime::Now();
+        // Reset if previous combat ended (gap > window means new fight)
+        else if (std::chrono::duration_cast<Milliseconds>(GameTime::Now() - _combatEnterTime).count() > 30000)
+            _combatEnterTime = GameTime::Now();
+    }
+
+public:
+    bool IsWithinCombatWindow(Unit* target) const
+    {
+        if (_combatEnterTime == TimePoint::min())
+            return false;
+        // EFFECT_1 BP=2, 1265768 duration=5000ms -> window = 2 * 5000 = 10000ms
+        int32 multiplier = target->GetAuraEffectAmount(SPELL_DH_DOOMSAYER_PASSIVE, EFFECT_1);
+        int64 windowMs = int64(multiplier) * 5000;
+        return std::chrono::duration_cast<Milliseconds>(GameTime::Now() - _combatEnterTime).count() <= windowMs;
+    }
+
+    void Register() override
+    {
+        OnEffectProc += AuraEffectProcFn(spell_dh_doomsayer_passive::HandleProc, EFFECT_0, SPELL_AURA_DUMMY);
+    }
+};
+
+// 1265768 - Doomsayer buff: next harmful spell fires 3 meteors at target
+class spell_dh_doomsayer_buff : public AuraScript
+{
+    bool Validate(SpellInfo const* /*spellInfo*/) override
+    {
+        return ValidateSpellInfo({ SPELL_DH_VOIDFALL_METEOR_VENGEANCE, SPELL_DH_VOIDFALL_METEOR_HAVOC });
+    }
+
+    void HandleProc(AuraEffect const* /*aurEff*/, ProcEventInfo const& eventInfo) const
+    {
+        Unit* caster = GetTarget();
+        Unit* target = eventInfo.GetActionTarget();
+        if (!target)
+            return;
+
+        bool isVengeance = caster->HasAura(SPELL_DH_VENGEANCE_SPEC) && !caster->HasAura(SPELL_DH_DEVOURER_SPEC);
+        int32 meteors = caster->GetAuraEffectAmount(SPELL_DH_DOOMSAYER_PASSIVE, EFFECT_0);
+
+        auto* vfAura = caster->GetAura(SPELL_DH_VOIDFALL_PASSIVE);
+        auto* vfScript = (vfAura && caster->HasAura(SPELL_DH_WORLD_KILLER_PASSIVE)) ? vfAura->GetScript<spell_dh_voidfall_passive>() : nullptr;
+
+        for (int32 i = 0; i < meteors; ++i)
+        {
+            uint32 meteorCount = 1;
+            if (vfScript)
+                meteorCount = vfScript->IncrementMeteorCount();
+
+            bool bigMeteor = vfScript && (meteorCount % 3 == 0);
+            uint32 meteorSpell;
+            if (bigMeteor)
+                meteorSpell = isVengeance ? SPELL_DH_WORLD_KILLER_METEOR_VENGEANCE : SPELL_DH_WORLD_KILLER_METEOR_HAVOC;
+            else
+                meteorSpell = isVengeance ? SPELL_DH_VOIDFALL_METEOR_VENGEANCE : SPELL_DH_VOIDFALL_METEOR_HAVOC;
+
+            caster->CastSpell(target, meteorSpell,
+                TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
+
+            if (caster->HasAura(SPELL_DH_FINAL_HOUR_PASSIVE))
+                caster->CastSpell(caster, SPELL_DH_FINAL_HOUR_BUFF,
+                    TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
+        }
+    }
+
+    void Register() override
+    {
+        OnEffectProc += AuraEffectProcFn(spell_dh_doomsayer_buff::HandleProc, EFFECT_0, SPELL_AURA_DUMMY);
+    }
+};
+
 // 473728 - Void Ray
 class spell_dh_void_ray : public AuraScript
 {
     bool Validate(SpellInfo const* /*spellInfo*/) override
     {
-        return ValidateSpellInfo({ SPELL_DH_VOID_RAY_DAMAGE });
+        return ValidateSpellInfo({ SPELL_DH_VOID_RAY_DAMAGE, SPELL_DH_DOOMSAYER_BUFF });
+    }
+
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+    {
+        Unit* target = GetTarget();
+        if (!target->HasAura(SPELL_DH_DOOMSAYER_PASSIVE))
+            return;
+
+        if (!target->IsInCombat())
+            target->CastSpell(target, SPELL_DH_DOOMSAYER_BUFF,
+                TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
+        else if (Aura const* passive = target->GetAura(SPELL_DH_DOOMSAYER_PASSIVE))
+            if (auto* script = passive->GetScript<spell_dh_doomsayer_passive>())
+                if (script->IsWithinCombatWindow(target))
+                    target->CastSpell(target, SPELL_DH_DOOMSAYER_BUFF,
+                        TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
     }
 
     void HandleEffectPeriodic(AuraEffect const* aurEff) const
     {
-        if (Unit* caster = GetCaster())
-            caster->CastSpell(nullptr, SPELL_DH_VOID_RAY_DAMAGE, CastSpellExtraArgsInit{
-                .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR,
-                .TriggeringAura = aurEff
+        Unit* caster = GetCaster();
+        if (!caster)
+            return;
+
+        TriggerCastFlags flags = TriggerCastFlags(TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
+        if (caster->HasAura(SPELL_DH_VOID_METAMORPHOSIS_BUFF))
+            flags = TriggerCastFlags(flags | TRIGGERED_IGNORE_POWER_COST);
+
+        caster->CastSpell(nullptr, SPELL_DH_VOID_RAY_DAMAGE, CastSpellExtraArgsInit{
+            .TriggerFlags = flags,
+            .TriggeringAura = aurEff
             });
+    }
+
+    void HandleRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+    {
+        if (GetTargetApplication()->GetRemoveMode() != AURA_REMOVE_BY_EXPIRE)
+            return;
+
+        Unit* target = GetTarget();
+
+        if (target->HasAura(SPELL_DH_METEORIC_RISE_PASSIVE))
+            target->CastSpell(target, SPELL_DH_VOIDFALL_STACK,
+                TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
+
+        // Moment of Craving: reset Reap CD + apply buff (+6 fragments + Eradicate override)
+        if (target->HasAura(SPELL_DH_MOMENT_OF_CRAVING_TALENT))
+        {
+            target->GetSpellHistory()->ResetCooldown(SPELL_DH_REAP, true);
+            target->GetSpellHistory()->ResetCooldown(SPELL_DH_CULL, true);
+            target->GetSpellHistory()->ResetCooldown(SPELL_DH_ERADICATE, true);
+            target->CastSpell(target, SPELL_DH_MOMENT_OF_CRAVING_BUFF,
+                TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
+            target->CastSpell(target, SPELL_DH_ERADICATE_OVERRIDE,
+                TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
+            SetVoidMetaReapOverride(target, false);
+        }
     }
 
     void Register() override
     {
+        AfterEffectApply += AuraEffectApplyFn(spell_dh_void_ray::HandleApply, EFFECT_0, SPELL_AURA_PERIODIC_TRIGGER_SPELL, AURA_EFFECT_HANDLE_REAL);
         OnEffectPeriodic += AuraEffectPeriodicFn(spell_dh_void_ray::HandleEffectPeriodic, EFFECT_0, SPELL_AURA_PERIODIC_TRIGGER_SPELL);
+        AfterEffectRemove += AuraEffectRemoveFn(spell_dh_void_ray::HandleRemove, EFFECT_0, SPELL_AURA_PERIODIC_TRIGGER_SPELL, AURA_EFFECT_HANDLE_REAL);
     }
 };
 
@@ -2714,8 +3240,8 @@ class spell_dh_fel_rush : public SpellScript
                 caster->CastSpell(caster, SPELL_DH_FEL_RUSH_GROUND, true);
                 caster->CastSpell(caster, SPELL_DH_FEL_RUSH_DAMAGE, TRIGGERED_FULL_DEBUG_MASK);
 
-                if (caster->HasAura(SPELL_DH_MOMENTUM))
-                    caster->CastSpell(nullptr, SPELL_DH_MOMENTUM_BUFF, true);
+                if (caster->HasAura(SPELL_DH_MOMENTUM_AURA))
+                    caster->CastSpell(nullptr, SPELL_DH_MOMENTUM, true);
             }
             caster->GetSpellHistory()->AddCooldown(GetSpellInfo()->Id, 0, std::chrono::milliseconds(750));
         }
@@ -2732,8 +3258,8 @@ class spell_dh_fel_rush : public SpellScript
                 caster->CastSpell(caster, SPELL_DH_FEL_RUSH_WATER_AIR, true);
                 caster->CastSpell(caster, SPELL_DH_FEL_RUSH_DAMAGE, TRIGGERED_FULL_DEBUG_MASK);
 
-                if (caster->HasAura(SPELL_DH_MOMENTUM))
-                    caster->CastSpell(nullptr, SPELL_DH_MOMENTUM_BUFF, true);
+                if (caster->HasAura(SPELL_DH_MOMENTUM_AURA))
+                    caster->CastSpell(nullptr, SPELL_DH_MOMENTUM, true);
 
                 caster->GetSpellHistory()->AddCooldown(GetSpellInfo()->Id, 0, std::chrono::milliseconds(750));
             }
@@ -2760,14 +3286,14 @@ class spell_dh_fel_rush_dash_aura : public AuraScript
     void AfterRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         if (Unit* caster = GetCaster())
-            caster->GetScheduler().Schedule(100ms, [caster](TaskContext /*context*/)
+            caster->GetScheduler().Schedule(100ms, [caster](TaskContext& /*context*/)
                 {
                     if (!caster->HasAura(SPELL_DH_FEL_RUSH_WATER_AIR))
                         caster->SetDisableGravity(false);
                 });
     }
 
-    void CalcSpeed(AuraEffect const* /*aurEff*/, int32& amount, bool& /*canBeRecalculated*/)
+    void CalcSpeed(AuraEffect const* /*aurEff*/, SpellEffectValue& amount, bool& /*canBeRecalculated*/)
     {
         amount = 1250;
         RefreshDuration();
@@ -2806,7 +3332,7 @@ class spell_dh_fel_rush_dash_ground : public AuraScript
         }
     }
 
-    void CalcSpeed(AuraEffect const* /*aurEff*/, int32& amount, bool& /*canBeRecalculated*/)
+    void CalcSpeed(AuraEffect const* /*aurEff*/, SpellEffectValue& amount, bool& /*canBeRecalculated*/)
     {
         amount = 1250;
         RefreshDuration();
@@ -3183,6 +3709,27 @@ class spell_dh_nemesis : public AuraScript
     }
 };
 
+class event_dh_dark_matter_meteor : public BasicEvent
+{
+public:
+    event_dh_dark_matter_meteor(Unit* caster, Position dest, uint32 spellId)
+        : _casterGUID(caster->GetGUID()), _dest(dest), _spellId(spellId) {
+    }
+
+    bool Execute(uint64 /*execTime*/, uint32 /*diff*/) override
+    {
+        if (Player* caster = ObjectAccessor::FindConnectedPlayer(_casterGUID))
+            caster->CastSpell(_dest, _spellId,
+                TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
+        return true;
+    }
+
+private:
+    ObjectGuid _casterGUID;
+    Position _dest;
+    uint32 _spellId;
+};
+
 class event_dh_infernal_strike : public BasicEvent
 {
 public:
@@ -3394,7 +3941,7 @@ class spell_dh_razor_spikes : public AuraScript
 
             if (caster->HasAura(SPELL_DH_DEMON_SPIKES))
             {
-                caster->GetScheduler().Schedule(750ms, [caster, target](TaskContext /*context*/)
+                caster->GetScheduler().Schedule(750ms, [caster, target](TaskContext& /*context*/)
                     {
                         caster->CastSpell(target, SPELL_DH_RAZOR_SPIKES, true);
                     });
@@ -3413,7 +3960,7 @@ class spell_dh_razor_spikes : public AuraScript
 // Soul Barrier - 263648
 class spell_dh_soul_barrier : public AuraScript
 {
-    void CalcAmount(AuraEffect const* /*aurEff*/, int32& amount, bool& /*canBeRecalculated*/)
+    void CalcAmount(AuraEffect const* /*aurEff*/, SpellEffectValue& amount, bool& /*canBeRecalculated*/)
     {
         Unit* caster = GetCaster();
         if (!caster)
@@ -3812,7 +4359,7 @@ class spell_dh_eye_of_leotheras : public AuraScript
         {
             int32 bp = aurEff->GetAmount();
             GetAura()->RefreshDuration();
-            caster->GetScheduler().Schedule(100ms, [caster, unitTarget, bp](TaskContext /*context*/)
+            caster->GetScheduler().Schedule(100ms, [caster, unitTarget, bp](TaskContext& /*context*/)
                 {
                     caster->CastSpell(unitTarget, SPELL_DH_EYE_OF_LEOTHERAS_DMG, CastSpellExtraArgs(TRIGGERED_FULL_MASK).AddSpellBP0(bp));
                 });
@@ -4009,7 +4556,7 @@ class spell_dh_shear_proc : public AuraScript
         }
 
         if (caster->GetSpellHistory()->HasCooldown(SPELL_DH_FELBLADE))
-            if (roll_chance_i(caster->GetAuraEffectAmount(SPELL_DH_SHEAR_PROC, EFFECT_3)))
+            if (roll_chance(caster->GetAuraEffectAmount(SPELL_DH_SHEAR_PROC, EFFECT_3)))
                 caster->GetSpellHistory()->ResetCooldown(SPELL_DH_FELBLADE);
     }
 
@@ -4044,7 +4591,7 @@ class spell_dh_consume_soul_missile : public SpellScript
 class spell_dh_darkness_absorb : public AuraScript
 {
 
-    void CalculateAmount(AuraEffect const* /*aurEff*/, int32& amount, bool& /*canBeRecalculated*/)
+    void CalculateAmount(AuraEffect const* /*aurEff*/, SpellEffectValue& amount, bool& /*canBeRecalculated*/)
     {
         amount = -1;
     }
@@ -4056,7 +4603,7 @@ class spell_dh_darkness_absorb : public AuraScript
             return;
 
         int32 chance = GetSpellInfo()->GetEffect(EFFECT_1).BasePoints + caster->GetAuraEffectAmount(SPELL_DH_COVER_OF_DARKNESS, EFFECT_0);
-        if (roll_chance_i(chance))
+        if (roll_chance(chance))
             absorbAmount = dmgInfo.GetDamage();
     }
 
@@ -4346,9 +4893,11 @@ public:
             if (!caster || !caster->ToPlayer())
                 return;
 
-            caster->GetScheduler().Schedule(1750ms, [caster](TaskContext /*context*/)
+            caster->GetScheduler().Schedule(1750ms, [caster](TaskContext& /*context*/)
                 {
-                    caster->CastSpell(caster, SPELL_DK_RAIN_FROM_ABOVE_SLOWFALL, SPELLVALUE_BASE_POINT0);
+                    //SPELLVALUE_BASE_POINT0
+
+                    caster->CastSpell(caster, SPELL_DK_RAIN_FROM_ABOVE_SLOWFALL, true);
                 });
         }
 
@@ -4442,7 +4991,7 @@ class spell_demon_hunter_chaos_strike : public SpellScript
 
         // Chaos Strike and Annihilation have a mainhand and an offhand spell, but the crit chance should be the same.
         float criticalChances = caster->GetUnitCriticalChanceAgainst(BASE_ATTACK, target);
-        caster->VariableStorage.Set("Spells.ChaosStrikeCrit", roll_chance_f(criticalChances));
+        caster->VariableStorage.Set("Spells.ChaosStrikeCrit", roll_chance(criticalChances));
         caster->CastSpell(nullptr, SPELL_DH_CHAOS_STRIKE_ENERGIZE, true);
     }
 
@@ -4715,7 +5264,7 @@ struct at_demon_hunter_demonic_trample : AreaTriggerAI
     }
 };
 
-//201427
+//201427 - Annihilation
 class spell_dh_annihilation : public SpellScript
 {
 
@@ -4732,7 +5281,7 @@ class spell_dh_annihilation : public SpellScript
 
             SetHitDamage(damage + attackPower);
 
-            if (roll_chance_f(20))
+            if (roll_chance(20))
                 caster->ModifyPower(POWER_FURY, +20);
         }
     }
@@ -4817,7 +5366,7 @@ public:
         if (player->GetClass() == CLASS_DEMON_HUNTER
             && player->HasAura(SPELL_DH_DOUBLE_JUMP)
             && !player->IsMounted()
-            && !player->HasExtraUnitMovementFlag(MOVEMENTFLAG2_CAN_DOUBLE_JUMP))
+            && !player->HasUnitMovementFlag(MOVEMENTFLAG_CAN_DOUBLE_JUMP))
             player->SetCanDoubleJump(true);
     }
 };
@@ -4902,6 +5451,690 @@ struct at_dh_soul_fragment_havoc : AreaTriggerAI
     }
 };
 
+static void CollectSoulFragments(Unit* caster, uint32 maxCount, Spell const* triggeringSpell = nullptr)
+{
+    std::vector<AreaTrigger*> fragments = caster->GetAreaTriggers(SPELL_DH_SOUL_FRAGMENT_DEVOURER);
+    uint32 collected = 0;
+    for (AreaTrigger* at : fragments)
+    {
+        if (collected >= maxCount)
+            break;
+
+        CastSpellExtraArgs args(TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
+        if (triggeringSpell)
+            args.SetTriggeringSpell(triggeringSpell);
+        caster->CastSpell(at->GetPosition(), SPELL_DH_CONSUME_SOUL_DEVOURER, args);
+
+        if (caster->HasAura(SPELL_DH_VOID_METAMORPHOSIS_PASSIVE) && !caster->HasAura(SPELL_DH_VOID_METAMORPHOSIS_BUFF))
+            caster->CastSpell(caster, SPELL_DH_VOID_METAMORPHOSIS_COUNTER,
+                TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
+        if (caster->HasAura(SPELL_DH_VOID_METAMORPHOSIS_BUFF) && caster->HasAura(SPELL_DH_COLLAPSING_STAR_PASSIVE))
+            caster->CastSpell(caster, SPELL_DH_COLLAPSING_STAR_COUNTER,
+                TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
+        if (caster->HasAura(SPELL_DH_VOID_METAMORPHOSIS_BUFF) && caster->HasAura(SPELL_DH_EMPTINESS_PASSIVE))
+            caster->CastSpell(caster, SPELL_DH_EMPTINESS_BUFF,
+                TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
+        if (Aura* fos = caster->GetAura(SPELL_DH_FEAST_OF_SOULS_PASSIVE))
+            if (auto* script = fos->GetScript<spell_dh_feast_of_souls_tracker>())
+                script->AddStack(caster);
+
+        at->Remove();
+        ++collected;
+    }
+}
+
+static void TryFireVoidfallMeteors(Unit* caster, Unit* target)
+{
+    Aura* vfAura = caster->GetAura(SPELL_DH_VOIDFALL_PASSIVE);
+    if (!vfAura)
+        return;
+    Aura* stack = caster->GetAura(SPELL_DH_VOIDFALL_STACK);
+    if (!stack || stack->GetStackAmount() < 3)
+        return;
+
+    bool isVengeance = caster->HasAura(SPELL_DH_VENGEANCE_SPEC) && !caster->HasAura(SPELL_DH_DEVOURER_SPEC);
+    bool meteoricFall = caster->HasAura(SPELL_DH_METEORIC_FALL_PASSIVE);
+    uint32 meteorsToFire = meteoricFall ? stack->GetStackAmount() : 1;
+    stack->ModStackAmount(-int32(meteorsToFire));
+
+    bool hasWorldKiller = caster->HasAura(SPELL_DH_WORLD_KILLER_PASSIVE);
+    auto* vfScript = hasWorldKiller ? vfAura->GetScript<spell_dh_voidfall_passive>() : nullptr;
+
+    for (uint32 i = 0; i < meteorsToFire; ++i)
+    {
+        uint32 meteorCount = 1;
+        if (vfScript)
+            meteorCount = vfScript->IncrementMeteorCount();
+
+        bool bigMeteor = hasWorldKiller && (meteorCount % 3 == 0);
+        uint32 meteorSpell;
+        if (bigMeteor)
+            meteorSpell = isVengeance ? SPELL_DH_WORLD_KILLER_METEOR_VENGEANCE : SPELL_DH_WORLD_KILLER_METEOR_HAVOC;
+        else
+            meteorSpell = isVengeance ? SPELL_DH_VOIDFALL_METEOR_VENGEANCE : SPELL_DH_VOIDFALL_METEOR_HAVOC;
+
+        caster->CastSpell(target, meteorSpell,
+            TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
+
+        if (bigMeteor && isVengeance)
+            caster->CastSpell(caster, SPELL_DH_CONSUME_SOUL_SPAWN,
+                TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
+
+        if (caster->HasAura(SPELL_DH_FINAL_HOUR_PASSIVE))
+            caster->CastSpell(caster, SPELL_DH_FINAL_HOUR_BUFF,
+                TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
+    }
+}
+
+// 1225789 - Void Metamorphosis (stack counter)
+class spell_dh_void_metamorphosis_counter : public AuraScript
+{
+    bool Validate(SpellInfo const* /*spellInfo*/) override
+    {
+        return ValidateSpellInfo({ SPELL_DH_CAN_METAMORPHOSIS });
+    }
+
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+    {
+        if (GetStackAmount() >= static_cast<int32>(GetSpellInfo()->StackAmount))
+            GetTarget()->CastSpell(GetTarget(), SPELL_DH_CAN_METAMORPHOSIS,
+                TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
+    }
+
+    void HandleRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+    {
+        GetTarget()->RemoveAura(SPELL_DH_CAN_METAMORPHOSIS);
+    }
+
+    void Register() override
+    {
+        AfterEffectApply += AuraEffectApplyFn(spell_dh_void_metamorphosis_counter::HandleApply, EFFECT_0, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAPPLY);
+        AfterEffectRemove += AuraEffectRemoveFn(spell_dh_void_metamorphosis_counter::HandleRemove, EFFECT_0, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL);
+    }
+};
+
+// 1217607 - Void Metamorphosis (active buff)
+class spell_dh_void_metamorphosis_buff : public AuraScript
+{
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+    {
+        SetMaxDuration(-1);
+        SetDuration(-1);
+
+        Unit* target = GetTarget();
+        target->RemoveAura(SPELL_DH_VOID_METAMORPHOSIS_COUNTER);
+
+        if (target->HasAura(SPELL_DH_MASS_ACCELERATION_PASSIVE))
+        {
+            int32 stacks = target->GetAuraEffectAmount(SPELL_DH_MASS_ACCELERATION_PASSIVE, EFFECT_0);
+            for (int32 i = 0; i < stacks; ++i)
+                target->CastSpell(target, SPELL_DH_VOIDFALL_STACK,
+                    TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
+            target->GetSpellHistory()->ResetCooldown(SPELL_DH_REAP, true);
+        }
+
+        if (target->HasAura(SPELL_DH_DARK_MATTER_PASSIVE))
+            _darkMatterReady = true;
+
+        if (target->HasAura(SPELL_DH_MIDNIGHT_SOUL_ERUPT))
+        {
+            int32 fragments = target->GetAuraEffectAmount(SPELL_DH_MIDNIGHT_SOUL_ERUPT, EFFECT_0);
+            for (int32 i = 0; i < fragments; ++i)
+                target->CastSpell(target, SPELL_DH_CONSUME_SOUL_SPAWN,
+                    TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
+            target->CastSpell(target, SPELL_DH_COLLAPSING_STAR_OVERRIDE,
+                TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
+        }
+    }
+
+
+    bool _darkMatterReady = false;
+    float _drainAmount = 10.0f;
+
+public:
+    bool ConsumeDarkMatter()
+    {
+        if (!_darkMatterReady)
+            return false;
+        _darkMatterReady = false;
+        return true;
+    }
+
+private:
+    void HandlePeriodic(AuraEffect const* /*aurEff*/)
+    {
+        Unit* target = GetTarget();
+
+        if (target->HasAura(SPELL_DH_VOID_RAY))
+            return;
+
+        // Sniff: 20 Fury/sec base, +2.5/sec per tick (EFFECT_10 BP=25 / 10)
+        // Collapsing Star channel reduces drain by 70%
+        float drain = _drainAmount;
+        if (target->FindCurrentSpellBySpellId(SPELL_DH_COLLAPSING_STAR))
+            drain *= 0.3f;
+        target->ModifyPower(POWER_FURY, -int32(drain));
+        _drainAmount += 1.5f;
+
+        if (target->GetPower(POWER_FURY) <= 0)
+        {
+            target->SetPower(POWER_FURY, 0);
+            Remove();
+        }
+    }
+
+    void HandleRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+    {
+        Unit* target = GetTarget();
+
+        if (target->HasAura(SPELL_DH_ROLLING_TORMENT_PASSIVE))
+        {
+            uint32 unusedFragments = uint32(target->GetAreaTriggers(SPELL_DH_SOUL_FRAGMENT_DEVOURER).size());
+            if (Aura const* csCounter = target->GetAura(SPELL_DH_COLLAPSING_STAR_COUNTER))
+                unusedFragments += uint32(csCounter->GetStackAmount());
+            if (unusedFragments > 0)
+            {
+                int32 furyPerFragment = target->GetAuraEffectAmount(SPELL_DH_ROLLING_TORMENT_PASSIVE, EFFECT_0);
+                target->ModifyPower(POWER_FURY, furyPerFragment * int32(unusedFragments));
+                for (uint32 i = 0; i < unusedFragments; ++i)
+                    target->CastSpell(target, SPELL_DH_ROLLING_TORMENT_BUFF,
+                        TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
+            }
+        }
+
+        target->RemoveAura(SPELL_DH_VOID_METAMORPHOSIS_COUNTER);
+        target->RemoveAura(SPELL_DH_COLLAPSING_STAR_COUNTER);
+        target->RemoveAura(SPELL_DH_COLLAPSING_STAR_OVERRIDE);
+        target->RemoveAura(SPELL_DH_EMPTINESS_BUFF);
+    }
+
+    void PreventBreakableCC(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
+    {
+        PreventDefaultAction();
+    }
+
+    void Register() override
+    {
+        AfterEffectApply += AuraEffectApplyFn(spell_dh_void_metamorphosis_buff::HandleApply, EFFECT_6, SPELL_AURA_PERIODIC_DUMMY, AURA_EFFECT_HANDLE_REAL);
+        OnEffectPeriodic += AuraEffectPeriodicFn(spell_dh_void_metamorphosis_buff::HandlePeriodic, EFFECT_6, SPELL_AURA_PERIODIC_DUMMY);
+        AfterEffectRemove += AuraEffectRemoveFn(spell_dh_void_metamorphosis_buff::HandleRemove, EFFECT_6, SPELL_AURA_PERIODIC_DUMMY, AURA_EFFECT_HANDLE_REAL);
+        OnEffectProc += AuraEffectProcFn(spell_dh_void_metamorphosis_buff::PreventBreakableCC, EFFECT_11, SPELL_AURA_TRANSFORM);
+        OnEffectProc += AuraEffectProcFn(spell_dh_void_metamorphosis_buff::PreventBreakableCC, EFFECT_12, SPELL_AURA_TRANSFORM);
+    }
+};
+
+// 1217610 - Devour (enhanced Consume during Void Metamorphosis)
+class spell_dh_devour : public SpellScript
+{
+    bool Validate(SpellInfo const* /*spellInfo*/) override
+    {
+        return ValidateSpellInfo({ SPELL_DH_REAP, SPELL_DH_CONSUME_SOUL_SPAWN, SPELL_DH_SHATTERED_SOUL_DEVOURER_LESSER_RIGHT });
+    }
+
+    void HandleAfterCast()
+    {
+        Unit* caster = GetCaster();
+        Unit* target = GetExplTargetUnit();
+        if (!target)
+            return;
+
+        target->CastSpell(caster, SPELL_DH_CONSUME_SOUL_SPAWN, CastSpellExtraArgsInit{
+            .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR,
+            .TriggeringSpell = GetSpell()
+            });
+        target->CastSpell(caster, SPELL_DH_SHATTERED_SOUL_DEVOURER_LESSER_RIGHT, CastSpellExtraArgsInit{
+            .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR,
+            .TriggeringSpell = GetSpell()
+            });
+
+        caster->GetSpellHistory()->ModifyCooldown(SPELL_DH_REAP, Milliseconds(-1000));
+        caster->GetSpellHistory()->ModifyCooldown(SPELL_DH_CULL, Milliseconds(-1000));
+        caster->GetSpellHistory()->ModifyCooldown(SPELL_DH_ERADICATE, Milliseconds(-1000));
+    }
+
+    void Register() override
+    {
+        AfterCast += SpellCastFn(spell_dh_devour::HandleAfterCast);
+    }
+};
+
+class spell_dh_entropy : public AuraScript
+{
+    bool Validate(SpellInfo const* /*spellInfo*/) override
+    {
+        return ValidateSpellInfo({ SPELL_DH_CONSUME_SOUL_SPAWN, SPELL_DH_VOID_METAMORPHOSIS_COUNTER });
+    }
+
+    void HandlePeriodic(AuraEffect const* /*aurEff*/)
+    {
+        Unit* target = GetTarget();
+
+        if (target->IsInCombat())
+        {
+            target->CastSpell(target, SPELL_DH_CONSUME_SOUL_SPAWN,
+                TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
+        }
+        else if (target->HasAura(SPELL_DH_VOID_METAMORPHOSIS_PASSIVE) && !target->HasAura(SPELL_DH_VOID_METAMORPHOSIS_BUFF))
+        {
+            if (Aura* counter = target->GetAura(SPELL_DH_VOID_METAMORPHOSIS_COUNTER))
+            {
+                if (counter->GetStackAmount() < 25)
+                    target->CastSpell(target, SPELL_DH_VOID_METAMORPHOSIS_COUNTER,
+                        TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
+            }
+            else
+                target->CastSpell(target, SPELL_DH_VOID_METAMORPHOSIS_COUNTER,
+                    TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
+        }
+    }
+
+    void Register() override
+    {
+        OnEffectPeriodic += AuraEffectPeriodicFn(spell_dh_entropy::HandlePeriodic, EFFECT_0, SPELL_AURA_PERIODIC_DUMMY);
+    }
+};
+
+// 1250088 - Midnight: Collapsing Star crit damage += SpellCrit% * EFFECT_2_BP%; recalculated every 1s via PERIODIC_DUMMY
+class spell_dh_midnight_passive : public AuraScript
+{
+    void HandlePeriodic(AuraEffect const* /*aurEff*/)
+    {
+        Player* player = GetTarget()->ToPlayer();
+        if (!player)
+            return;
+
+        float critPct = *player->m_activePlayerData->SpellCritPercentage;
+        int32 scalingPct = GetEffect(EFFECT_2)->GetAmount();
+        int32 newAmount = int32(critPct * float(scalingPct) / 100.0f);
+        GetEffect(EFFECT_0)->ChangeAmount(newAmount);
+    }
+
+    void Register() override
+    {
+        OnEffectPeriodic += AuraEffectPeriodicFn(spell_dh_midnight_passive::HandlePeriodic, EFFECT_1, SPELL_AURA_PERIODIC_DUMMY);
+    }
+};
+
+// 1221167 - Collapsing Star (passive talent marker)
+class spell_dh_collapsing_star_counter : public AuraScript
+{
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+    {
+        if (GetStackAmount() >= 30)
+            GetTarget()->CastSpell(GetTarget(), SPELL_DH_COLLAPSING_STAR_OVERRIDE,
+                TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
+    }
+
+    void Register() override
+    {
+        AfterEffectApply += AuraEffectApplyFn(spell_dh_collapsing_star_counter::HandleApply, EFFECT_0, SPELL_AURA_SET_ACTION_BUTTON_SPELL_COUNT, AURA_EFFECT_HANDLE_REAPPLY);
+    }
+};
+
+// 1221150 - Collapsing Star
+class spell_dh_collapsing_star : public SpellScript
+{
+    bool Validate(SpellInfo const* /*spellInfo*/) override
+    {
+        return ValidateSpellInfo({ SPELL_DH_COLLAPSING_STAR_DAMAGE, SPELL_DH_METEOR_SHOWER_DEVOURER, SPELL_DH_METEOR_SHOWER_VENGEANCE });
+    }
+
+    void HandleDummy(SpellEffIndex /*effIndex*/)
+    {
+        Unit* caster = GetCaster();
+        Unit* target = GetHitUnit();
+        if (!target)
+            return;
+
+        caster->CastSpell(target, SPELL_DH_COLLAPSING_STAR_DAMAGE,
+            CastSpellExtraArgs(TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR)
+            .SetTriggeringSpell(GetSpell()));
+
+        if (caster->HasAura(SPELL_DH_COLLAPSING_STAR_FRAGMENTS))
+        {
+            for (uint32 i = 0; i < 3; ++i)
+                caster->CastSpell(caster, SPELL_DH_CONSUME_SOUL_SPAWN,
+                    CastSpellExtraArgs(TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR)
+                    .SetTriggeringSpell(GetSpell()));
+        }
+
+        // Dark Matter: first Collapsing Star after Void Meta fires meteor shower
+        if (Aura* metaBuff = caster->GetAura(SPELL_DH_VOID_METAMORPHOSIS_BUFF))
+        {
+            if (auto* metaScript = metaBuff->GetScript<spell_dh_void_metamorphosis_buff>())
+            {
+                if (metaScript->ConsumeDarkMatter())
+                {
+                    bool isVengeance = caster->HasAura(SPELL_DH_VENGEANCE_SPEC) && !caster->HasAura(SPELL_DH_DEVOURER_SPEC);
+                    uint32 showerSpell = isVengeance ? SPELL_DH_METEOR_SHOWER_VENGEANCE : SPELL_DH_METEOR_SHOWER_DEVOURER;
+                    int32 count = caster->GetAuraEffectAmount(SPELL_DH_DARK_MATTER_PASSIVE, EFFECT_0);
+                    for (int32 i = 0; i < count; ++i)
+                    {
+                        float angle = frand(0.0f, float(2 * M_PI));
+                        float dist = frand(0.0f, 8.0f);
+                        Position dest = target->GetPosition();
+                        dest.m_positionX += dist * std::cos(angle);
+                        dest.m_positionY += dist * std::sin(angle);
+                        caster->m_Events.AddEventAtOffset(
+                            new event_dh_dark_matter_meteor(caster, dest, showerSpell),
+                            Milliseconds(i * 500));
+                    }
+                }
+            }
+        }
+
+        caster->RemoveAura(SPELL_DH_COLLAPSING_STAR_COUNTER);
+        caster->RemoveAura(SPELL_DH_COLLAPSING_STAR_OVERRIDE);
+    }
+
+    void Register() override
+    {
+        OnEffectHitTarget += SpellEffectFn(spell_dh_collapsing_star::HandleDummy, EFFECT_0, SPELL_EFFECT_DUMMY);
+    }
+};
+
+// 1246169 - The Hunt damage
+class spell_dh_the_hunt_damage : public SpellScript
+{
+    bool Validate(SpellInfo const* /*spellInfo*/) override
+    {
+        return ValidateSpellInfo({ SPELL_DH_HUNGERING_SLASH_PASSIVE, SPELL_DH_HUNGERING_SLASH_OVERRIDE });
+    }
+
+    void HandleAfterCast() const
+    {
+        Unit* caster = GetCaster();
+        if (caster->HasAura(SPELL_DH_HUNGERING_SLASH_PASSIVE))
+            caster->CastSpell(caster, SPELL_DH_HUNGERING_SLASH_OVERRIDE,
+                TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
+    }
+
+    void Register() override
+    {
+        AfterCast += SpellCastFn(spell_dh_the_hunt_damage::HandleAfterCast);
+    }
+};
+
+// 1239123 - Hungering Slash
+class spell_dh_hungering_slash : public SpellScript
+{
+    bool Validate(SpellInfo const* /*spellInfo*/) override
+    {
+        return ValidateSpellInfo({ SPELL_DH_HUNGERING_SLASH_DAMAGE, SPELL_DH_HUNGERING_SLASH_FURY,
+            SPELL_DH_HUNGERING_SLASH_VOIDSTEP, SPELL_DH_VENGEFUL_RETREAT_TRIGGER });
+    }
+
+    void HandleAfterCast() const
+    {
+        Unit* caster = GetCaster();
+
+        caster->CastSpell(caster, SPELL_DH_HUNGERING_SLASH_DAMAGE,
+            CastSpellExtraArgs(TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR)
+            .SetTriggeringSpell(GetSpell()));
+
+        caster->CastSpell(caster, SPELL_DH_HUNGERING_SLASH_FURY,
+            CastSpellExtraArgs(TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR)
+            .SetTriggeringSpell(GetSpell()));
+
+        uint32 maxFragments = GetSpellInfo()->GetEffect(EFFECT_0).CalcValue(caster);
+        std::list<Unit*> nearbyEnemies;
+        Trinity::AnyUnfriendlyUnitInObjectRangeCheck check(caster, caster, 20.0f);
+        Trinity::UnitListSearcher<Trinity::AnyUnfriendlyUnitInObjectRangeCheck> searcher(caster, nearbyEnemies, check);
+        Cell::VisitAllObjects(caster, searcher, 20.0f);
+        nearbyEnemies.sort(Trinity::ObjectDistanceOrderPred(caster));
+
+        uint32 shattered = 0;
+        for (Unit* enemy : nearbyEnemies)
+        {
+            if (shattered >= maxFragments)
+                break;
+            enemy->CastSpell(caster, SPELL_DH_CONSUME_SOUL_SPAWN,
+                CastSpellExtraArgs(TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR)
+                .SetTriggeringSpell(GetSpell()));
+            ++shattered;
+        }
+
+        caster->CastSpell(caster, 444929, CastSpellExtraArgs(TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR).SetTriggeringSpell(GetSpell()));
+
+        if (Aura* freeCastAura = caster->GetAura(444929))
+        {
+            freeCastAura->SetDuration(6000);
+            freeCastAura->SetMaxDuration(6000);
+        }
+
+        caster->CastSpell(caster, SPELL_DH_HUNGERING_SLASH_VOIDSTEP,
+            CastSpellExtraArgs(TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR)
+            .SetTriggeringSpell(GetSpell()));
+
+        caster->RemoveAurasDueToSpell(SPELL_DH_HUNGERING_SLASH_OVERRIDE);
+    }
+
+    void Register() override
+    {
+        AfterCast += SpellCastFn(spell_dh_hungering_slash::HandleAfterCast);
+    }
+};
+
+// 1225827/1279200 - Eradicate damage
+class spell_dh_eradicate_damage : public SpellScript
+{
+    void FilterTargets(std::list<WorldObject*>& targets)
+    {
+        Unit* caster = GetCaster();
+        targets.remove_if([&](WorldObject* target) -> bool
+            {
+                return !caster->IsWithinDist(target, 25.0f) || !caster->HasInArc(float(M_PI) / 2.0f, target);
+            });
+    }
+
+    void Register() override
+    {
+        OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_dh_eradicate_damage::FilterTargets, EFFECT_0, TARGET_UNIT_LINE_CASTER_TO_DEST_ENEMY);
+    }
+};
+
+// 1242504 - Emptiness (0.25% haste per stack, up to 100 stacks = 25%)
+class spell_dh_emptiness_buff : public AuraScript
+{
+    float _appliedHaste = 0.0f;
+
+    void HandleCalcAmount(AuraEffect const* /*aurEff*/, SpellEffectValue& amount, bool& canBeRecalculated)
+    {
+        amount = 0;
+        canBeRecalculated = false;
+    }
+
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+    {
+        Unit* target = GetTarget();
+        float newHaste = 0.25f * float(GetStackAmount());
+        if (_appliedHaste > 0.0f)
+        {
+            target->ApplyCastTimePercentMod(_appliedHaste, false);
+            target->ApplyAttackTimePercentMod(BASE_ATTACK, _appliedHaste, false);
+            target->ApplyAttackTimePercentMod(OFF_ATTACK, _appliedHaste, false);
+            target->ApplyAttackTimePercentMod(RANGED_ATTACK, _appliedHaste, false);
+        }
+        target->ApplyCastTimePercentMod(newHaste, true);
+        target->ApplyAttackTimePercentMod(BASE_ATTACK, newHaste, true);
+        target->ApplyAttackTimePercentMod(OFF_ATTACK, newHaste, true);
+        target->ApplyAttackTimePercentMod(RANGED_ATTACK, newHaste, true);
+        _appliedHaste = newHaste;
+    }
+
+    void HandleRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+    {
+        if (_appliedHaste > 0.0f)
+        {
+            Unit* target = GetTarget();
+            target->ApplyCastTimePercentMod(_appliedHaste, false);
+            target->ApplyAttackTimePercentMod(BASE_ATTACK, _appliedHaste, false);
+            target->ApplyAttackTimePercentMod(OFF_ATTACK, _appliedHaste, false);
+            target->ApplyAttackTimePercentMod(RANGED_ATTACK, _appliedHaste, false);
+            _appliedHaste = 0.0f;
+        }
+    }
+
+    void Register() override
+    {
+        DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_dh_emptiness_buff::HandleCalcAmount, EFFECT_0, SPELL_AURA_MELEE_SLOW);
+        AfterEffectApply += AuraEffectApplyFn(spell_dh_emptiness_buff::HandleApply, EFFECT_0, SPELL_AURA_MELEE_SLOW, AURA_EFFECT_HANDLE_REAL_OR_REAPPLY_MASK);
+        AfterEffectRemove += AuraEffectRemoveFn(spell_dh_emptiness_buff::HandleRemove, EFFECT_0, SPELL_AURA_MELEE_SLOW, AURA_EFFECT_HANDLE_REAL);
+    }
+};
+
+// 1256305/1256306/1256617/1256619 - Voidfall/World Killer meteor damage: apply Catastrophe DoT if passive present
+class spell_dh_voidfall_meteor_damage : public SpellScript
+{
+    bool Validate(SpellInfo const* /*spellInfo*/) override
+    {
+        return ValidateSpellInfo({ SPELL_DH_CATASTROPHE_DOT });
+    }
+
+    void HandleHit(SpellEffIndex /*effIndex*/)
+    {
+        Unit* caster = GetOriginalCaster();
+        if (!caster)
+            caster = GetCaster();
+        Unit* target = GetHitUnit();
+        if (!caster || !target)
+            return;
+
+        if (!caster->HasAura(SPELL_DH_CATASTROPHE_PASSIVE))
+            return;
+
+        int32 pct = caster->GetAuraEffectAmount(SPELL_DH_CATASTROPHE_PASSIVE, EFFECT_1);
+        int32 dotDmg = int32(GetHitDamage() * pct / 100) / 4;
+        caster->CastSpell(target, SPELL_DH_CATASTROPHE_DOT,
+            CastSpellExtraArgs(TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR)
+            .AddSpellMod(SPELLVALUE_BASE_POINT0, dotDmg));
+    }
+
+    void Register() override
+    {
+        OnEffectHitTarget += SpellEffectFn(spell_dh_voidfall_meteor_damage::HandleHit, EFFECT_0, SPELL_EFFECT_SCHOOL_DAMAGE);
+    }
+};
+
+
+// 1246556 - Spontaneous Immolation: 5% chance on damaging spell cast to trigger Soul Immolation
+class spell_dh_spontaneous_immolation : public AuraScript
+{
+    bool Validate(SpellInfo const* /*spellInfo*/) override
+    {
+        return ValidateSpellInfo({ SPELL_DH_SPONTANEOUS_IMMOLATION_BUFF });
+    }
+
+    static bool CheckProc(AuraScript const& script, ProcEventInfo const& eventInfo)
+    {
+        if (!eventInfo.GetSpellInfo())
+            return false;
+        int32 chance = static_cast<spell_dh_spontaneous_immolation const&>(script).GetEffect(EFFECT_0)->GetAmount();
+        return roll_chance(chance);
+    }
+
+    void HandleProc(AuraEffect const* /*aurEff*/, ProcEventInfo const& /*eventInfo*/) const
+    {
+        GetTarget()->CastSpell(GetTarget(), SPELL_DH_SPONTANEOUS_IMMOLATION_BUFF,
+            TRIGGERED_FULL_MASK | TRIGGERED_SUPPRESS_CASTER_ANIM);
+    }
+
+    void Register() override
+    {
+        DoCheckProc += AuraCheckProcFn(spell_dh_spontaneous_immolation::CheckProc);
+        OnEffectProc += AuraEffectProcFn(spell_dh_spontaneous_immolation::HandleProc, EFFECT_0, SPELL_AURA_DUMMY);
+    }
+};
+
+// 1241937 - Soul Immolation: periodic dummy spawns soul fragments + grants Fury each tick
+class spell_dh_soul_immolation : public AuraScript
+{
+    bool Validate(SpellInfo const* /*spellInfo*/) override
+    {
+        return ValidateSpellInfo({ SPELL_DH_CONSUME_SOUL_SPAWN, SPELL_DH_SOUL_IMMOLATION_FURY });
+    }
+
+    void HandlePeriodic(AuraEffect const* aurEff)
+    {
+        Unit* target = GetTarget();
+        int32 totalFragments = aurEff->GetAmount();
+        if (int32(aurEff->GetTickNumber()) <= totalFragments)
+            target->CastSpell(target, SPELL_DH_CONSUME_SOUL_SPAWN,
+                TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
+
+        target->CastSpell(target, SPELL_DH_SOUL_IMMOLATION_FURY,
+            TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
+    }
+
+    void Register() override
+    {
+        OnEffectPeriodic += AuraEffectPeriodicFn(spell_dh_soul_immolation::HandlePeriodic, EFFECT_0, SPELL_AURA_PERIODIC_DUMMY);
+    }
+};
+
+// 1266619 - First In, Last Out
+class spell_first_in_last_out : public AuraScript
+{
+    int32 _initialAbsorb = 0;
+    int32 _decayPerTick = 0;
+
+    bool CheckProc(ProcEventInfo& eventInfo)
+    {
+        if (eventInfo.GetSpellInfo()->Id == SPELL_DH_INFERNAL_STRIKE_CAST
+            || eventInfo.GetSpellInfo()->Id == SPELL_DH_FEL_RUSH
+            || eventInfo.GetSpellInfo()->Id == SPELL_DH_SHIFT)
+            return true;
+        return false;
+    }
+
+    void CalcAmount(AuraEffect const* /*aurEff*/, SpellEffectValue& amount, bool& /*canBeRecalculated*/)
+    {
+        Unit* caster = GetCaster();
+        if (!caster)
+            return;
+
+        _initialAbsorb = CalculatePct(caster->GetMaxHealth(), 6);
+        amount = _initialAbsorb;
+
+        int32 duration = GetSpellInfo()->GetDuration();
+        int32 periodic = GetSpellInfo()->GetEffect(EFFECT_1).ApplyAuraPeriod;
+        if (periodic > 0 && duration > 0)
+            _decayPerTick = std::max<int32>(1, _initialAbsorb / (duration / periodic));
+    }
+
+    void HandlePeriodic(AuraEffect const* /*aurEff*/)
+    {
+        if (_initialAbsorb <= 0 || _decayPerTick <= 0)
+            return;
+
+        Aura* aura = GetAura();
+        if (!aura)
+            return;
+
+        AuraEffect* absorbEff = aura->GetEffect(EFFECT_0);
+        if (!absorbEff)
+            return;
+
+        int32 currentAmount = absorbEff->GetAmount();
+        if (currentAmount <= 0)
+            return;
+
+        int32 newAmount = std::max<int32>(0, currentAmount - _decayPerTick);
+        absorbEff->SetAmount(newAmount);
+
+        if (Unit* target = GetTarget())
+            if (AuraApplication* app = target->GetAuraApplication(SPELL_DH_FIRST_IN_LAST_OUT))
+                app->ClientUpdate();
+    }
+
+    void Register() override
+    {
+        DoCheckProc += AuraCheckProcFn(spell_first_in_last_out::CheckProc);
+        DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_first_in_last_out::CalcAmount, EFFECT_0, SPELL_AURA_SCHOOL_ABSORB);
+        OnEffectPeriodic += AuraEffectPeriodicFn(spell_first_in_last_out::HandlePeriodic, EFFECT_1, SPELL_AURA_PERIODIC_DUMMY);
+    }
+};
+
 void AddSC_demon_hunter_spell_scripts()
 {
     RegisterSpellScript(spell_dh_army_unto_oneself);
@@ -4918,6 +6151,7 @@ void AddSC_demon_hunter_spell_scripts()
     RegisterSpellScript(spell_dh_consume_energize);
     RegisterSpellScript(spell_dh_consume_soul_vengeance_lesser);
     RegisterSpellScript(spell_dh_critical_chaos);
+    RegisterSpellScript(spell_dh_cull);
     RegisterSpellScript(spell_dh_cycle_of_binding);
     RegisterSpellScript(spell_dh_cycle_of_hatred);
     RegisterSpellScript(spell_dh_cycle_of_hatred_remove_stacks);
@@ -4935,6 +6169,7 @@ void AddSC_demon_hunter_spell_scripts()
     RegisterAreaTriggerAI(at_dh_elysian_decree);
     RegisterSpellScript(spell_dh_enduring_torment);
     RegisterSpellScript(spell_dh_enduring_torment_buff);
+    RegisterSpellScript(spell_dh_eradicate);
     RegisterSpellScript(spell_dh_essence_break);
     RegisterSpellScript(spell_dh_eye_beam);
     RegisterSpellScript(spell_dh_feast_of_souls);
@@ -4950,9 +6185,11 @@ void AddSC_demon_hunter_spell_scripts()
     RegisterAreaTriggerAI(at_dh_inner_demon);
     RegisterSpellScript(spell_dh_know_your_enemy);
     RegisterSpellScript(spell_dh_last_resort);
+    RegisterSpellScript(spell_dh_moment_of_craving);
     RegisterSpellScript(spell_dh_monster_rising);
     RegisterSpellScript(spell_dh_painbringer);
     RegisterSpellScript(spell_dh_painbringer_reduce_damage);
+    RegisterSpellScript(spell_dh_reap);
     RegisterSpellScript(spell_dh_repeat_decree_conduit);
     RegisterSpellScript(spell_dh_restless_hunter);
     RegisterSpellScript(spell_dh_retaliation);
@@ -4990,6 +6227,11 @@ void AddSC_demon_hunter_spell_scripts()
     RegisterSpellScript(spell_dh_voidblade);
     RegisterSpellScript(spell_dh_voidblade_charge);
     RegisterSpellScript(spell_dh_voidglare_boon);
+    RegisterSpellScript(spell_dh_entropy);
+    RegisterSpellScript(spell_dh_feast_of_souls_tracker);
+    RegisterSpellScript(spell_dh_midnight_passive);
+    RegisterSpellScript(spell_dh_collapsing_star_counter);
+    RegisterSpellScript(spell_dh_collapsing_star);
     RegisterSpellScript(spell_dh_void_ray);
     RegisterSpellScript(spell_dh_wave_of_debilitation);
 
@@ -5002,16 +6244,7 @@ void AddSC_demon_hunter_spell_scripts()
 
     // Havoc
 
-    /* Spells & Auras */
-
-    /* Auras */
-
     RegisterSpellScript(spell_dh_first_blood);
-
-    /* AreaTrigger */
-
-    /* Spells */
-
     RegisterSpellScript(spell_dh_blade_dance);
     RegisterSpellScript(spell_dh_blade_dance_damage);
 
@@ -5019,7 +6252,6 @@ void AddSC_demon_hunter_spell_scripts()
     RegisterSpellScript(spell_dh_soul_furnace);
 
     // Vengeance & Havoc
-
     RegisterSpellAndAuraScriptPair(spell_dh_glide, spell_dh_glide_AuraScript);
     RegisterSpellScript(spell_dh_glide_timer);
 
@@ -5084,4 +6316,18 @@ void AddSC_demon_hunter_spell_scripts()
     RegisterPlayerScript(DH_DisableDoubleJump_OnMount);
     new DemonHunterAllowSpec();
     RegisterAreaTriggerAI(at_dh_soul_fragment_havoc);
+    RegisterSpellScript(spell_dh_void_metamorphosis_counter);
+    RegisterSpellScript(spell_dh_void_metamorphosis_buff);
+    RegisterSpellScript(spell_dh_devour);
+    RegisterSpellScript(spell_dh_eradicate_damage);
+    RegisterSpellScript(spell_dh_hungering_slash);
+    RegisterSpellScript(spell_dh_the_hunt_damage);
+    RegisterSpellScript(spell_dh_emptiness_buff);
+    RegisterSpellScript(spell_dh_soul_immolation);
+    RegisterSpellScript(spell_dh_spontaneous_immolation);
+    RegisterSpellScript(spell_dh_voidfall_passive);
+    RegisterSpellScript(spell_dh_doomsayer_passive);
+    RegisterSpellScript(spell_dh_doomsayer_buff);
+    RegisterSpellScript(spell_dh_voidfall_meteor_damage);
+    RegisterSpellScript(spell_first_in_last_out);
 }

@@ -21,6 +21,7 @@
 #include "RealmList.h"
 #include "StringFormat.h"
 #include "Util.h"
+#include <bit>
 #include <charconv>
 
 static_assert(sizeof(ObjectGuid) == sizeof(uint64) * 2, "ObjectGuid must be exactly 16 bytes");
@@ -1022,6 +1023,21 @@ ObjectGuid ObjectGuidFactory::CreateClubFinder(uint32 realmId, uint8 type, uint3
         dbId);
 }
 
+ObjectGuid ObjectGuidFactory::CreateClubFinderPosting(uint32 postingId, uint64 clubId)
+{
+    // The 12.1 client builds club finder guids as (ClubFinder << 58) | (subtype << 33) | postingId
+    // with the subtype in BIT 33 (1 = Guild, 2 = Community) - proven by its own auto-accept check,
+    // which shifts the guid right by 33 and compares against 2 for community postings. The older
+    // tag-byte-at-bit-32 layout (0x03/0x05 << 32, seen in 12.0.1 captures) decodes to the same
+    // club subtype through (hi >> 33) & 3 but is a DIFFERENT bit pattern: every guid comparison
+    // inside the client's applicant list silently mismatches against server-built guids, leaving
+    // the officer applicant list empty.
+    return ObjectGuid(uint64(uint64(HighGuid::ClubFinder) << 58)
+        | (uint64(1) << 33)  // subtype 1 = Enum.ClubFinderRequestType.Guild (this core supports guild postings only)
+        | uint64(postingId & 0xFFFFFFFF),
+        clubId);
+}
+
 ObjectGuid ObjectGuidFactory::CreateToolsClient(uint16 mapId, uint32 serverId, uint64 counter)
 {
     return ObjectGuid(uint64((uint64(HighGuid::ToolsClient) << 58)
@@ -1085,38 +1101,52 @@ ObjectGuid const ObjectGuid::TradeItem = ObjectGuid::Create<HighGuid::Uniq>(UI64
 
 ByteBuffer& operator<<(ByteBuffer& buf, ObjectGuid const& guid)
 {
-    static constexpr std::size_t NumUInt64s = 2;
+    static constexpr std::ptrdiff_t NumUInt64s = std::tuple_size_v<decltype(ObjectGuid::_data)>;
 
     std::array<uint8, NumUInt64s + ObjectGuid::BytesSize> bytes;
-    memset(bytes.data(), 0, NumUInt64s);
-    size_t packedSize = guid._data.size();
+    int32 mask = 0;
+    int32 outputByteIndex = NumUInt64s;
+    std::span<uint8 const, ObjectGuid::BytesSize> guidBytes = std::span<uint8 const, ObjectGuid::BytesSize>(reinterpret_cast<uint8 const*>(guid._data.data()), ObjectGuid::BytesSize);
 
-    for (std::size_t i = 0; i < guid._data.size(); ++i)
+    for (int32 inputByteIndex = 0; inputByteIndex < int32(ObjectGuid::BytesSize); ++inputByteIndex)
     {
-        for (uint32 b = 0; b < 8; ++b)
-        {
-            if (uint8 byte = uint8((guid._data[i] >> (b * 8)) & 0xFF))
-            {
-                bytes[packedSize++] = byte;
-                bytes[i] |= uint8(1 << b);
-            }
-        }
+        uint8 byte = guidBytes[inputByteIndex];
+        bytes[outputByteIndex] = byte;
+
+        int32 hasByte = (byte != 0) ? 1 : 0;
+        mask |= hasByte << inputByteIndex;
+        outputByteIndex += hasByte;
     }
 
-    buf.append(bytes.data(), packedSize);
+    bytes[0] = mask & 0xFF;
+    bytes[1] = (mask >> 8) & 0xFF;
+    buf.append(bytes.data(), outputByteIndex);
 
     return buf;
 }
 
 ByteBuffer& operator>>(ByteBuffer& buf, ObjectGuid& guid)
 {
-    std::array<uint8, 2> mask;
-    buf.read(mask);
+    uint16 mask = buf.read<uint16>();
+    std::span<uint8> bytes = buf.ReadBytes(std::popcount(mask));
 
-    for (std::size_t i = 0; i < guid._data.size(); ++i)
-        for (uint32 b = 0; b < 8; ++b)
-            if (mask[i] & (uint8(1) << b))
-                guid._data[i] |= uint64(buf.read<uint8>()) << (b * 8);
+    // check highest byte holding guid type
+    // if it's 0 then we consider it empty and discard all sent bytes
+    // return early to prevent reading out of bounds data
+    if (!(mask & 0x8000))
+    {
+        guid.Clear();
+        return buf;
+    }
+
+    std::span<uint8, ObjectGuid::BytesSize> guidBytes = std::span<uint8, ObjectGuid::BytesSize>(reinterpret_cast<uint8*>(guid._data.data()), ObjectGuid::BytesSize);
+
+    for (std::size_t outputByteIndex = 0, inputByteIndex = 0; outputByteIndex < ObjectGuid::BytesSize; ++outputByteIndex)
+    {
+        int32 hasByte = (mask >> outputByteIndex) & 1;
+        guidBytes[outputByteIndex] = bytes[inputByteIndex] & -hasByte;
+        inputByteIndex += hasByte;
+    }
 
     return buf;
 }

@@ -155,7 +155,7 @@ struct arena_hook_point : ArenaScript
 
     void OnPrepareStage1() override
     {
-        _scheduler.Schedule(20s, [&](TaskContext)
+        _scheduler.Schedule(20s, [&](TaskContext const&)
         {
             if (GameObject* slideDoor = battlegroundMap->GetGameObject(_slideDoorGUID))
                 slideDoor->UseDoorOrButton();
@@ -339,7 +339,7 @@ class spell_arena_reaction_trigger : public AuraScript
     void HandleProc(ProcEventInfo const& eventInfo) const
     {
         if (ZoneScript* zonescript = GetTarget()->FindZoneScript())
-            zonescript->DoAction(HookPoint::Actions::ReactionDead, eventInfo.GetActor(), eventInfo.GetProcTarget());
+            zonescript->DoAction(HookPoint::Actions::ReactionDead, eventInfo.GetActor(), eventInfo.GetActionTarget());
     }
 
     void Register() override

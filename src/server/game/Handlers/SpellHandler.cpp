@@ -52,10 +52,6 @@
 
 void WorldSession::HandleUseItemOpcode(WorldPackets::Spells::UseItem& packet)
 {
-    // ignore for remote control state
-    if (_player->GetUnitBeingMoved() != _player)
-        return;
-
     // Skip casting invalid spells right away
     SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(packet.Cast.SpellID, _player->GetMap()->GetDifficultyID());
     if (!spellInfo)
@@ -75,8 +71,9 @@ void WorldSession::HandleOpenItemOpcode(WorldPackets::Spells::OpenItem& packet)
     Player* player = GetPlayer();
 
     // ignore for remote control state
-    if (player->GetUnitBeingMoved() != player)
+    if (player->IsCharmed())
         return;
+
     TC_LOG_INFO("network", "bagIndex: {}, slot: {}", packet.Slot, packet.PackSlot);
 
     // additional check, client outputs message on its own
@@ -209,8 +206,8 @@ void WorldSession::HandleGameObjectUseOpcode(WorldPackets::GameObject::GameObjUs
     if (GameObject* obj = GetPlayer()->GetGameObjectIfCanInteractWith(packet.Guid))
     {
         // ignore for remote control state
-        if (GetPlayer()->GetUnitBeingMoved() != GetPlayer())
-            if (!(GetPlayer()->IsOnVehicle(GetPlayer()->GetUnitBeingMoved()) || GetPlayer()->IsMounted()) && !obj->GetGOInfo()->IsUsableMounted())
+        if (GetPlayer()->IsCharmed())
+            if (!(GetPlayer()->IsOnVehicle(GetPlayer()->GetCharmed()) || GetPlayer()->IsMounted()) && !obj->GetGOInfo()->IsUsableMounted())
                 return;
 
         obj->Use(GetPlayer());
@@ -220,7 +217,7 @@ void WorldSession::HandleGameObjectUseOpcode(WorldPackets::GameObject::GameObjUs
 void WorldSession::HandleGameobjectReportUse(WorldPackets::GameObject::GameObjReportUse& packet)
 {
     // ignore for remote control state
-    if (_player->GetUnitBeingMoved() != _player)
+    if (_player->IsCharmed())
         return;
 
     if (GameObject* go = GetPlayer()->GetGameObjectIfCanInteractWith(packet.Guid))
@@ -238,43 +235,30 @@ void WorldSession::HandleGameobjectReportUse(WorldPackets::GameObject::GameObjRe
     }
 }
 
-void WorldSession::HandleCastSpellOpcode(WorldPackets::Spells::CastSpell& cast)
+void WorldSession::HandleCastSpellOpcode(WorldPackets::Spells::CastSpell& castRequest)
 {
     // Skip casting invalid spells right away
-    SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(cast.Cast.SpellID, _player->GetMap()->GetDifficultyID());
+    SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(castRequest.Cast.SpellID, _player->GetMap()->GetDifficultyID());
     if (!spellInfo)
     {
-        TC_LOG_ERROR("network", "WorldSession::HandleCastSpellOpcode: attempted to cast a non-existing spell (Id: {})", cast.Cast.SpellID);
+        TC_LOG_ERROR("network", "WorldSession::HandleCastSpellOpcode: attempted to cast a non-existing spell (Id: {})", castRequest.Cast.SpellID);
         return;
     }
 
-    // ignore for remote control state (for player case)
-    Unit* mover = _player->GetUnitBeingMoved();
-    if (mover != _player && mover->GetTypeId() == TYPEID_PLAYER)
-        return;
+    if (castRequest.Cast.MoveUpdate.has_value())
+        HandleMovementOpcode(CMSG_MOVE_STOP, *castRequest.Cast.MoveUpdate);
 
-    Unit* castingUnit = mover;
-    if (castingUnit->IsCreature() && !castingUnit->ToCreature()->HasSpell(spellInfo->Id))
-    {
-        // If the vehicle creature does not have the spell but it allows the passenger to cast own spells
-        // change caster to player and let him cast
-        if (!_player->IsOnVehicle(castingUnit) || spellInfo->CheckVehicle(_player) != SPELL_CAST_OK)
-            return;
-
-        castingUnit = _player;
-    }
-
-    if (cast.Cast.MoveUpdate.has_value())
-        HandleMovementOpcode(CMSG_MOVE_STOP, *cast.Cast.MoveUpdate);
-
-    if (_player->CanRequestSpellCast(spellInfo, castingUnit))
-        _player->RequestSpellCast(std::make_unique<SpellCastRequest>(std::move(cast.Cast), castingUnit->GetGUID()));
+    if (_player->CanRequestSpellCast(spellInfo, _player))
+        _player->RequestSpellCast(std::make_unique<SpellCastRequest>(std::move(castRequest.Cast), _player->GetGUID()));
     else
-        Spell::SendCastResult(_player, spellInfo, {}, cast.Cast.CastID, SPELL_FAILED_SPELL_IN_PROGRESS);
+        Spell::SendCastResult(_player, spellInfo, {}, castRequest.Cast.CastID, SPELL_FAILED_SPELL_IN_PROGRESS);
 }
 
 void WorldSession::HandleCancelCastOpcode(WorldPackets::Spells::CancelCast& packet)
 {
+    if (_player->IsCharmed())
+        return;
+
     if (_player->IsNonMeleeSpellCast(false))
     {
         _player->InterruptNonMeleeSpells(false, packet.SpellID, false);
@@ -374,9 +358,7 @@ void WorldSession::HandleCancelModSpeedNoControlAuras(WorldPackets::Spells::Canc
 
 void WorldSession::HandleCancelAutoRepeatSpellOpcode(WorldPackets::Spells::CancelAutoRepeatSpell& /*cancelAutoRepeatSpell*/)
 {
-    // may be better send SMSG_CANCEL_AUTO_REPEAT?
-    // cancel and prepare for deleting
-    _player->InterruptSpell(CURRENT_AUTOREPEAT_SPELL);
+    _player->CancelAutoRepeatSpell();
 }
 
 void WorldSession::HandleCancelQueuedSpellOpcode(WorldPackets::Spells::CancelQueuedSpell& /*cancelQueuedSpell*/)
@@ -388,7 +370,7 @@ void WorldSession::HandleCancelChanneling(WorldPackets::Spells::CancelChannellin
 {
     // ignore for remote control state (for player case)
     Unit* mover = _player->GetUnitBeingMoved();
-    if (mover != _player && mover->GetTypeId() == TYPEID_PLAYER)
+    if (!mover)
         return;
 
     SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(cancelChanneling.ChannelSpell, mover->GetMap()->GetDifficultyID());
@@ -415,7 +397,7 @@ void WorldSession::HandleSpellEmpowerRelease(WorldPackets::Spells::SpellEmpowerR
 {
     // ignore for remote control state (for player case)
     Unit* mover = _player->GetUnitBeingMoved();
-    if (mover != _player && mover->GetTypeId() == TYPEID_PLAYER)
+    if (!mover)
         return;
 
     Spell* spell = mover->GetCurrentSpell(CURRENT_CHANNELED_SPELL);
@@ -429,7 +411,7 @@ void WorldSession::HandleSpellEmpowerRestart(WorldPackets::Spells::SpellEmpowerR
 {
     // ignore for remote control state (for player case)
     Unit* mover = _player->GetUnitBeingMoved();
-    if (mover != _player && mover->GetTypeId() == TYPEID_PLAYER)
+    if (!mover)
         return;
 
     Spell* spell = mover->GetCurrentSpell(CURRENT_CHANNELED_SPELL);
@@ -442,7 +424,7 @@ void WorldSession::HandleSpellEmpowerRestart(WorldPackets::Spells::SpellEmpowerR
 void WorldSession::HandleTotemDestroyed(WorldPackets::Totem::TotemDestroyed& totemDestroyed)
 {
     // ignore for remote control state
-    if (_player->GetUnitBeingMoved() != _player)
+    if (_player->IsCharmed())
         return;
 
     uint8 slotId = totemDestroyed.Slot;
@@ -527,6 +509,10 @@ void WorldSession::HandleMirrorImageDataRequest(WorldPackets::Spells::GetMirrorI
                 mirrorImageComponentedData.ItemDisplayID.push_back(outfit.outfitdisplays[slot]);
 
             SendPacket(mirrorImageComponentedData.Write());
+
+            // Model-swap outfits (upright orc) need a display cycle before the client applies
+            // the data; the echoed DisplayID tells whether the client has a body built yet.
+            creature->HandleOutfitRevealRequest(_player, getMirrorImageData.DisplayID == 0);
             return;
         }
     }
@@ -545,12 +531,11 @@ void WorldSession::HandleMirrorImageDataRequest(WorldPackets::Spells::GetMirrorI
         mirrorImageComponentedData.UnitGUID = guid;
         if (ChrModelEntry const* chrModel = sDB2Manager.GetChrModel(creator->GetRace(), creator->GetGender()))
             mirrorImageComponentedData.ChrModelID = chrModel->ID;
+        mirrorImageComponentedData.DisplayScale = creator->GetDisplayScale();
         mirrorImageComponentedData.RaceID = creator->GetRace();
         mirrorImageComponentedData.Gender = creator->GetGender();
         mirrorImageComponentedData.ClassID = creator->GetClass();
-
-        for (UF::ChrCustomizationChoice const& customization : player->m_playerData->Customizations)
-            mirrorImageComponentedData.Customizations.push_back(customization);
+        mirrorImageComponentedData.Customizations.assign(player->m_playerData->Customizations.begin(), player->m_playerData->Customizations.end());
 
         Guild* guild = player->GetGuild();
         mirrorImageComponentedData.GuildGUID = (guild ? guild->GetGUID() : ObjectGuid::Empty);

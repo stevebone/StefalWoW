@@ -26,6 +26,7 @@
 #include "CinematicMgr.h"
 #include "ClientConfigPackets.h"
 #include "Common.h"
+#include "ConditionMgr.h"
 #include "Conversation.h"
 #include "ConversationAI.h"
 #include "Corpse.h"
@@ -46,7 +47,9 @@
 #include "ObjectAccessor.h"
 #include "ObjectMgr.h"
 #include "OutdoorPvP.h"
+#include "PhasingHandler.h"
 #include "Player.h"
+#include "ReputationMgr.h"
 #include "RestMgr.h"
 #include "ScriptMgr.h"
 #include "Spell.h"
@@ -95,9 +98,9 @@ void WorldSession::HandleWhoOpcode(WorldPackets::Who::WhoRequestPkt& whoRequest)
 {
     WorldPackets::Who::WhoRequest& request = whoRequest.Request;
 
-    TC_LOG_DEBUG("network", "WorldSession::HandleWhoOpcode: MinLevel: {}, MaxLevel: {}, Name: {} (VirtualRealmName: {}), Guild: {} (GuildVirtualRealmName: {}), RaceFilter: {}, ClassFilter: {}, Areas: {}, Words: {}.",
+    TC_LOG_DEBUG("network", "WorldSession::HandleWhoOpcode: MinLevel: {}, MaxLevel: {}, Name: {} (VirtualRealmName: {}), Guild: {} (GuildVirtualRealmName: {}), RaceFilter: 0x{:X}{:08X}, ClassFilter: {}, Areas: {}, Words: {}.",
         request.MinLevel, request.MaxLevel, request.Name, request.VirtualRealmName, request.Guild, request.GuildVirtualRealmName,
-        request.RaceFilter.RawValue, request.ClassFilter, whoRequest.Areas.size(), request.Words.size());
+        request.RaceFilter.RawValue[1], request.RaceFilter.RawValue[0], request.ClassFilter, whoRequest.Areas.size(), request.Words.size());
 
     // zones count, client limit = 10 (2.0.10)
     // can't be received from real client or broken packet
@@ -638,7 +641,11 @@ void WorldSession::HandleAreaTriggerOpcode(WorldPackets::AreaTrigger::AreaTrigge
                 TC_LOG_DEBUG("maps", "MAP: Player '{}' has corpse in instance {} and can enter.", player->GetName(), at->Loc.GetMapId());
             }
             else
+            {
                 TC_LOG_DEBUG("maps", "Map::CanPlayerEnter - player '{}' is dead but does not have a corpse!", player->GetName());
+                SendPacket(WorldPackets::AreaTrigger::AreaTriggerNoCorpse().Write());
+                return;
+            }
         }
 
         if (TransferAbortParams denyReason = Map::PlayerCannotEnter(at->Loc.GetMapId(), player))
@@ -966,10 +973,6 @@ void WorldSession::HandleSetDungeonDifficultyOpcode(WorldPackets::Misc::SetDunge
         return;
     }
 
-    Difficulty difficultyID = Difficulty(difficultyEntry->ID);
-    if (difficultyID == _player->GetDungeonDifficultyID())
-        return;
-
     // cannot reset while in an instance
     Map* map = _player->FindMap();
     if (map && map->Instanceable())
@@ -979,9 +982,14 @@ void WorldSession::HandleSetDungeonDifficultyOpcode(WorldPackets::Misc::SetDunge
         return;
     }
 
+    Difficulty difficultyID = Difficulty(difficultyEntry->ID);
+
     Group* group = _player->GetGroup();
     if (group)
     {
+        if (difficultyID == group->GetDungeonDifficultyID())
+            return;
+
         if (!group->IsLeader(_player->GetGUID()))
             return;
 
@@ -992,12 +1000,15 @@ void WorldSession::HandleSetDungeonDifficultyOpcode(WorldPackets::Misc::SetDunge
         group->ResetInstances(InstanceResetMethod::OnChangeDifficulty, _player);
         group->SetDungeonDifficultyID(difficultyID);
     }
-    else
-    {
+
+    if (difficultyID == _player->GetDungeonDifficultyID())
+        return;
+
+    if (!group)
         _player->ResetInstances(InstanceResetMethod::OnChangeDifficulty);
-        _player->SetDungeonDifficultyID(difficultyID);
-        _player->SendDungeonDifficulty();
-    }
+
+    _player->SetDungeonDifficultyID(difficultyID);
+    _player->SendDungeonDifficulty();
 }
 
 void WorldSession::HandleSetRaidDifficultyOpcode(WorldPackets::Misc::SetRaidDifficulty& setRaidDifficulty)
@@ -1031,10 +1042,6 @@ void WorldSession::HandleSetRaidDifficultyOpcode(WorldPackets::Misc::SetRaidDiff
         return;
     }
 
-    Difficulty difficultyID = Difficulty(difficultyEntry->ID);
-    if (difficultyID == (setRaidDifficulty.Legacy ?  _player->GetLegacyRaidDifficultyID() : _player->GetRaidDifficultyID()))
-        return;
-
     // cannot reset while in an instance
     Map* map = _player->FindMap();
     if (map && map->Instanceable())
@@ -1044,9 +1051,14 @@ void WorldSession::HandleSetRaidDifficultyOpcode(WorldPackets::Misc::SetRaidDiff
         return;
     }
 
+    Difficulty difficultyID = Difficulty(difficultyEntry->ID);
+
     Group* group = _player->GetGroup();
     if (group)
     {
+        if (difficultyID == (setRaidDifficulty.Legacy ? group->GetLegacyRaidDifficultyID() : group->GetRaidDifficultyID()))
+            return;
+
         if (!group->IsLeader(_player->GetGUID()))
             return;
 
@@ -1060,16 +1072,19 @@ void WorldSession::HandleSetRaidDifficultyOpcode(WorldPackets::Misc::SetRaidDiff
         else
             group->SetRaidDifficultyID(difficultyID);
     }
-    else
-    {
-        _player->ResetInstances(InstanceResetMethod::OnChangeDifficulty);
-        if (setRaidDifficulty.Legacy)
-            _player->SetLegacyRaidDifficultyID(difficultyID);
-        else
-            _player->SetRaidDifficultyID(difficultyID);
 
-        _player->SendRaidDifficulty(setRaidDifficulty.Legacy != 0);
-    }
+    if (difficultyID == (setRaidDifficulty.Legacy ? _player->GetLegacyRaidDifficultyID() : _player->GetRaidDifficultyID()))
+        return;
+
+    if (!group)
+        _player->ResetInstances(InstanceResetMethod::OnChangeDifficulty);
+
+    if (setRaidDifficulty.Legacy)
+        _player->SetLegacyRaidDifficultyID(difficultyID);
+    else
+        _player->SetRaidDifficultyID(difficultyID);
+
+    _player->SendRaidDifficulty(setRaidDifficulty.Legacy != 0);
 }
 
 void WorldSession::HandleSetTaxiBenchmark(WorldPackets::Misc::SetTaxiBenchmarkMode& packet)
@@ -1192,7 +1207,7 @@ void WorldSession::HandleCloseInteraction(WorldPackets::Misc::CloseInteraction& 
         if (Creature* creature = _player->GetMap()->GetCreature(closeInteraction.SourceGuid))
             creature->SendMirrorSound(_player, 1);
 #endif
-	
+        
     if (_player->PlayerTalkClass->GetInteractionData().IsLaunchedByQuest)
         _player->PlayerTalkClass->GetInteractionData().IsLaunchedByQuest = false;
     else if (_player->PlayerTalkClass->GetInteractionData().SourceGuid == closeInteraction.SourceGuid)
@@ -1245,6 +1260,141 @@ void WorldSession::HandleQueryCountdownTimer(WorldPackets::Misc::QueryCountdownT
 void WorldSession::HandleSetCurrencyFlags(WorldPackets::Misc::SetCurrencyFlags const& setCurrenctFlags)
 {
     _player->SetCurrencyFlagsFromClient(setCurrenctFlags.CurrencyID, setCurrenctFlags.Flags);
+}
+
+void WorldSession::HandleSelectFactionOpcode(WorldPackets::Misc::FactionSelect& selectFaction)
+{
+    if (!_player)
+        return;
+
+    enum FactionSelection
+    {
+        JOIN_HORDE = 0,
+        JOIN_ALLIANCE = 1,
+
+        SPELL_TRIGGER_FACTION_CHOICE_ALLIANCE = 113244,
+        SPELL_TRIGGER_FACTION_CHOICE_HORDE = 113245
+    };
+
+    TC_LOG_INFO("entities.player", "HandleSelectFactionOpcode: Player {} (GUID: {}) attempting to select faction: {}",
+        _player ? _player->GetName() : "<null>",
+        _player ? _player->GetGUID().ToString() : "<null>",
+        selectFaction.FactionChoice);
+
+    if (_player->GetRace() != RACE_PANDAREN_NEUTRAL)
+    {
+        TC_LOG_WARN("entities.player", "HandleSelectFactionOpcode: Player {} (GUID: {}) is not neutral pandaren (race: {}), rejecting faction selection",
+            _player ? _player->GetName() : "<null>",
+            _player ? _player->GetGUID().ToString() : "<null>",
+            _player ? _player->GetRace() : 0);
+
+        // Send error result to client
+        WorldPackets::Character::NeutralPlayerFactionSelectResult result;
+        result.Success = false;
+        result.NewRaceID = _player ? _player->GetRace() : 0;
+        _player->GetSession()->SendPacket(result.Write());
+        return;
+    }
+
+    if (selectFaction.FactionChoice > JOIN_ALLIANCE)
+    {
+        TC_LOG_WARN("entities.player", "HandleSelectFactionOpcode: Player {} (GUID: {}) sent invalid faction choice: {}",
+            _player->GetName(), _player->GetGUID().ToString(), selectFaction.FactionChoice);
+
+        // Send error result to client
+        WorldPackets::Character::NeutralPlayerFactionSelectResult result;
+        result.Success = false;
+        result.NewRaceID = _player->GetRace();
+        _player->GetSession()->SendPacket(result.Write());
+        return;
+    }
+
+    // Additional validation: check if player already has a faction (shouldn't happen but safety check)
+    if (_player->GetRace() == RACE_PANDAREN_ALLIANCE || _player->GetRace() == RACE_PANDAREN_HORDE)
+    {
+        TC_LOG_WARN("entities.player", "HandleSelectFactionOpcode: Player {} (GUID: {}) already has faction (race: {}), rejecting faction selection",
+            _player->GetName(), _player->GetGUID().ToString(), _player->GetRace());
+
+        // Send error result to client
+        WorldPackets::Character::NeutralPlayerFactionSelectResult result;
+        result.Success = false;
+        result.NewRaceID = _player->GetRace();
+        _player->GetSession()->SendPacket(result.Write());
+        return;
+    }
+
+    Races newRace = RACE_NONE;
+    uint32 languageSpell1 = 0;
+    uint32 languageSpell2 = 0;
+    uint32 triggerSpell = 0;
+
+    switch (selectFaction.FactionChoice)
+    {
+    case JOIN_ALLIANCE:
+        newRace = RACE_PANDAREN_ALLIANCE;
+        languageSpell1 = SPELL_LEARN_LANGUAGE_COMMON;
+        languageSpell2 = SPELL_LEARN_LANGUAGE_PANDAREN_ALLIANCE;
+        triggerSpell = SPELL_TRIGGER_FACTION_CHOICE_ALLIANCE;
+        break;
+    case JOIN_HORDE:
+        newRace = RACE_PANDAREN_HORDE;
+        languageSpell1 = SPELL_LEARN_LANGUAGE_ORCISH;
+        languageSpell2 = SPELL_LEARN_LANGUAGE_PANDAREN_HORDE;
+        triggerSpell = SPELL_TRIGGER_FACTION_CHOICE_HORDE;
+        break;
+    default:
+        break;
+    }
+
+    _player->SetRace(newRace);
+    _player->SetFactionForRace(newRace);
+    _player->SaveToDB();
+    _player->LearnSpell(languageSpell1, false);
+    _player->LearnSpell(languageSpell2, false);
+    _player->CastSpell(_player, triggerSpell, true);
+
+    // Force client to refresh all reputation factions or sides
+    uint32 headerFactionId = (newRace == RACE_PANDAREN_ALLIANCE) ? 469 : 67;
+
+    for (FactionEntry const* fe : sFactionStore)
+    {
+        if (!fe->CanHaveReputation())
+            continue;
+
+        if (fe->ParentFactionID != headerFactionId)
+            continue;
+
+        _player->GetReputationMgr().SetVisible(fe);
+
+        int32 base = fe->ReputationBase[0];
+
+        // Apply the base reputation
+        _player->GetReputationMgr().SetOneFactionReputation(fe, base, false);
+
+        // Get the updated state
+        FactionState* fs = const_cast<FactionState*>(_player->GetReputationMgr().GetState(fe));
+        if (!fs)
+            continue;
+
+        // Mark for sending
+        fs->needSend = true;
+
+        // Trigger the system messages
+        fs->VisualStandingIncrease = base;
+
+        // Send the update
+        _player->GetReputationMgr().SendState(fs);
+    }
+
+    const char* sideName = (selectFaction.FactionChoice == 0) ? "Horde" : "Alliance";
+    TC_LOG_INFO("entities.player", "HandleSelectFactionOpcode: Player {} (GUID: {}) successfully joined {}",
+        _player->GetName(), _player->GetGUID().ToString(), sideName);
+
+    // Send success result to client
+    WorldPackets::Character::NeutralPlayerFactionSelectResult result;
+    result.Success = true;
+    result.NewRaceID = newRace;
+    _player->GetSession()->SendPacket(result.Write());
 }
 
 void WorldSession::HandleOverrideScreenFlash(WorldPackets::Misc::OverrideScreenFlash& overrideScreenFlash)
@@ -1313,37 +1463,6 @@ void WorldSession::HandleShowTradeSkill(WorldPackets::Misc::ShowTradeSkill& pack
     _player->SendDirectMessage(response.Write());
 }
 
-void WorldSession::HandleSelectFactionOpcode(WorldPackets::Misc::FactionSelect& selectFaction)
-{
-    enum FactionSelection
-    {
-        JOIN_HORDE = 0,
-        JOIN_ALLIANCE = 1
-    };
-
-    if (_player->GetRace() != RACE_PANDAREN_NEUTRAL)
-        return;
-
-    if (selectFaction.FactionChoice == JOIN_ALLIANCE)
-    {
-        _player->SetRace(RACE_PANDAREN_ALLIANCE);
-        _player->SetFactionForRace(RACE_PANDAREN_ALLIANCE);
-        _player->SaveToDB();
-        _player->LearnSpell(668, false);            // Language Common
-        _player->LearnSpell(108130, false);         // Language Pandaren Alliance
-        _player->CastSpell(_player, 113244, true);  // Faction Choice Trigger Spell: Alliance
-    }
-    else if (selectFaction.FactionChoice == JOIN_HORDE)
-    {
-        _player->SetRace(RACE_PANDAREN_HORDE);
-        _player->SetFactionForRace(RACE_PANDAREN_HORDE);
-        _player->SaveToDB();
-        _player->LearnSpell(669, false);            // Language Orcish
-        _player->LearnSpell(108131, false);         // Language Pandaren Horde
-        _player->CastSpell(_player, 113245, true);  // Faction Choice Trigger Spell: Horde
-    }
-}
-
 void WorldSession::HandleActivateSoulbind(WorldPackets::Misc::ActivateSoulbind& /*packet*/)
 {
     // Need IMP
@@ -1355,19 +1474,151 @@ void WorldSession::HandleChromieTimeSelectExpansion(WorldPackets::Misc::ChromieT
     if (!player)
         return;
 
-    int32 expansionId = chromieTimeSelectExpansion.ExpansionID;
-
-    // ExpansionID 0 means clearing Chromie Time selection
-    if (expansionId < 0 || expansionId > CURRENT_EXPANSION)
+    // Wire format (12.0.5): PackedGuid Vendor + int32 ExpansionID, where ExpansionID is the
+    // UIChromieTimeExpansionInfo.ID (DB2 record id), not the Expansions enum.
+    // Verify the vendor is a gossip NPC the player is actually interacting with.
+    Creature const* vendor = player->GetNPCIfCanInteractWith(chromieTimeSelectExpansion.Vendor, UNIT_NPC_FLAG_GOSSIP, UNIT_NPC_FLAG_2_NONE);
+    if (!vendor)
         return;
 
-    // Set the UiChromieTimeExpansionID update field on ActivePlayerData
-    player->SetUpdateFieldValue(player->m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::UiChromieTimeExpansionID), expansionId);
+    // Require an active ChromieTime interaction with this exact NPC, mirroring other
+    // interaction-driven handlers. The client always packages the interaction-source guid
+    // into the CMSG (SelectChromieTimeOption RVA 0xB79106), so a legitimate select can
+    // only arrive while the type-45 interaction started by the gossip option is open.
+    if (!player->PlayerTalkClass->GetInteractionData().IsInteractingWith(chromieTimeSelectExpansion.Vendor, PlayerInteractionType::ChromieTime))
+        return;
 
-    // Set the ChromieTimeExpansionMask on PlayerData::CtrOptions
-    uint32 expansionMask = expansionId > 0 ? (1u << expansionId) : 0;
-    player->SetUpdateFieldValue(player->m_values.ModifyValue(&Player::m_playerData).ModifyValue(&UF::PlayerData::CtrOptions).ModifyValue(&UF::CTROptions::ChromieTimeExpansionMask), expansionMask);
+    int32 expansionId = chromieTimeSelectExpansion.ExpansionID;
 
-    // Send success response
+    // 0 = "Return to the present"; always allowed (a chromie player above the entry
+    // ceiling - the 70..80 scaling band - must still be able to leave).
+    if (expansionId == 0)
+    {
+        player->SetChromieTime(0);
+        player->SendDirectMessage(WorldPackets::Misc::ChromieTimeSelectExpansionSuccess().Write());
+        return;
+    }
+
+    // Retail 12.0.x entry gate: level band [10, 70). The @68887 ShowPlayerConditionIDs
+    // contain no level clause, so the ceiling is server policy (see Player.h, audit R10).
+    if (player->GetLevel() < Player::ChromieTimeMinLevel || player->GetLevel() >= Player::ChromieTimeMaxEntryLevel)
+        return;
+
+    UIChromieTimeExpansionInfoEntry const* entry = sUIChromieTimeExpansionInfoStore.LookupEntry(uint32(expansionId));
+    if (!entry)
+        return;
+
+    // Do NOT require ShowPlayerConditionID here: decoded @68887 each of those conditions is
+    // ModifierTree { All -> PlayerIsInChromieTime(own id) } with PlayerCondition flags 0x21
+    // (no InvertModifierTree) - i.e. "player is ALREADY in this timeline", the client UI's
+    // alreadyOn marker, not an eligibility gate. Requiring it inverted the gate and made
+    // every first-time selection fail (audit R10 decode).
+
+    player->SetChromieTime(expansionId);
+
     player->SendDirectMessage(WorldPackets::Misc::ChromieTimeSelectExpansionSuccess().Write());
+
+    // Audit R13 FIX 1: retail completes quest 85026 "Where Legends are Made" (objective
+    // 453674 = QUEST_OBJECTIVE_MONSTER, ObjectID 167032 = Chromie, Amount 1,
+    // "Timewalking Campaign selected") by granting Chromie kill-credit on a successful
+    // selection. Always safe: KilledMonsterCredit no-ops if the player is not on the quest.
+    player->KilledMonsterCredit(167032);
+
+    // Audit R14 (G1 immersion): Chromie speaks an era-specific flavor line the instant a timeline
+    // is selected. Verified against the 12.1.0.69382 ChromieOrgrimmar capture: each of the 9
+    // CMSG_CHROMIE_TIME_SELECT_EXPANSION was immediately followed by a CHAT_MSG_MONSTER_SAY from
+    // Chromie (SMSG_CHAT) carrying the exact lines below - extracted from the sniff, not invented.
+    // The line is spoken by the interacted Chromie vendor, so it works for either faction's Chromie
+    // NPC and either capital without depending on a specific creature entry / creature_text rows.
+    // NOTE: the campaign-intro movie (id 470) also seen in the capture played only ONCE, before any
+    // select (SMSG_PLAY_MOVIE, one occurrence in the whole capture), so it is a one-time cinematic,
+    // NOT a per-select movie, and is deliberately not replayed here (replaying it every switch would
+    // be un-Blizzlike). expansionId = UiChromieTimeExpansionInfo.ID.
+    auto chromieSelectLine = [](int32 exp) -> char const*
+    {
+        switch (exp)
+        {
+        case  5: return "Who would have thought someone named Deathwing would bring about so much destruction?";
+        case  6: return "You look quite prepared!";
+        case  7: return "Do not exercise restraint when showing your great power to the Scourge!";
+        case  8: return "Whatever you do, do not get between a pandaren and their brew. It'll be unbearably painful if you do!";
+        case  9: return "If a scary orc offers you something to drink, you probably want to say no.";
+        case 10: return "If you find a powerful weapon, just make sure it isn't corrupted by the Burning Legion or Old Gods, okay?";
+        case 14: return "Death it is! And you know what they say... what doesn't kill you makes you stronger.";
+        case 15: return "This might be the most important battle of them all. For our world, worth fighting for!";
+        case 16: return "Dragons, dragons, dragons! I'm definitely not biased...";
+        default: return nullptr;
+        }
+    };
+    if (char const* line = chromieSelectLine(expansionId))
+        const_cast<Creature*>(vendor)->Say(line, LANG_UNIVERSAL, player);
+
+    // Audit R13 FIX 2: auto-offer the era's Chromie Time breadcrumb for the chosen timeline,
+    // matching retail's per-expansion intro quest. The breadcrumbs are FACTION-SPECIFIC; each
+    // expansion has an Alliance/Horde quest pair, and CanTakeQuest (AllowableRaces) rejects a
+    // wrong-faction id, so offering only one faction's id reproduces the "no breadcrumb" bug.
+    //
+    // The HORDE column is byte/temporal-verified against the 12.1.0.69382 ChromieOrgrimmar
+    // capture (C:/sniff/ymir_retail_12.1.0.69299/dumps/ChromieOrgrimmar): a Horde Undead
+    // Warlock clicked every timeline, and each CMSG_CHROMIE_TIME_SELECT_EXPANSION was followed
+    // within a handful of records by exactly ONE breadcrumb quest-add. Correlated select->quest
+    // (TCHarvest.lua quest_template titles confirm the era):
+    //   Cata(5)=60887 "Onward to Adventure in Kalimdor", TBC(6)=60123 "To Outland!",
+    //   WotLK(7)=60097 "To Northrend!", MoP(8)=60126 "To Pandaria!", WoD(9)=34398 "The Dark
+    //   Portal" (faction-neutral), Legion(10)=43926 "The Legion Returns", SL(14)=61874
+    //   "A Chilling Summons" (Meet Darion Mograine at Grommash Hold), BfA(15)=51443 "Mission
+    //   Statement" (harvest quest_accepted=51443, quest_detail offered+accepted),
+    //   DF(16)=65435 "The Dragon Isles Await".
+    // The previously-used Horde ids 60961/60963/60968/60970/53372 do NOT appear anywhere in the
+    // capture and were wrong (53372 is the BfA war-campaign "Hour of Reckoning", not the Chromie
+    // breadcrumb); corrected below to the sniff-verified ids. SL (14) Horde was deferred and is
+    // now resolved to 61874.
+    //
+    // The ALLIANCE column is branch-asserted and NOT verified by this Horde-only capture. Cata
+    // (60891) and MoP (60125) are the plausible paired counterparts of the verified Horde ids;
+    // TBC/WotLK/WoD/Legion/BfA/SL Alliance ids need an Alliance-side sniff to confirm and are
+    // suspect (the branch's Horde ids for those rows were wrong, so the Alliance ids likely are
+    // too - e.g. BfA A=53370 is the Alliance war-campaign "Hour of Reckoning", not the Chromie
+    // breadcrumb). CanTakeQuest re-validates AllowableRaces, so a wrong/absent id yields no offer
+    // rather than a wrong-faction quest, keeping this safe until an Alliance capture is taken.
+    //
+    // expansionId = UiChromieTimeExpansionInfo.ID (DB2 record id): Cata=5, TBC=6, WotLK=7,
+    // MoP=8, WoD=9, Legion=10, SL=14, BfA=15, DF=16. Excluded: The War Within - breadcrumbs
+    // 81930/78713 exist and are Chromie-started, but TWW has NO UiChromieTimeExpansionInfo row
+    // so it can never arrive as a selection.
+    struct ChromieIntroQuest { int32 ExpansionId; uint32 AllianceQuest; uint32 HordeQuest; };
+    static constexpr ChromieIntroQuest ChromieIntroQuests[] =
+    {
+        {  5, 60891, 60887 }, // Cataclysm              (H 60887 "...Kalimdor" verified; A 60891 = Eastern Kingdoms)
+        {  6, 60959, 60123 }, // Burning Crusade        (H 60123 "To Outland!" verified; A unverified)
+        {  7, 60962, 60097 }, // Wrath of the Lich King (H 60097 "To Northrend!" verified; A unverified)
+        {  8, 60125, 60126 }, // Mists of Pandaria      (H 60126 "To Pandaria!" verified)
+        {  9, 60969, 34398 }, // Warlords of Draenor    (H 34398 "The Dark Portal" verified, faction-neutral; A unverified)
+        { 10, 60971, 43926 }, // Legion                 (H 43926 "The Legion Returns" verified; A unverified)
+        { 14, 60545, 61874 }, // Shadowlands            (H 61874 "A Chilling Summons" verified; A 60545 branch-asserted)
+        { 15, 53370, 51443 }, // Battle for Azeroth     (H 51443 "Mission Statement" verified; A 53370 suspect = war-campaign)
+        { 16, 65436, 65435 }, // Dragonflight           (H 65435 "The Dragon Isles Await" verified)
+    };
+
+    for (ChromieIntroQuest const& intro : ChromieIntroQuests)
+    {
+        if (intro.ExpansionId != expansionId)
+            continue;
+
+        uint32 introQuestId = (player->GetTeam() == ALLIANCE) ? intro.AllianceQuest : intro.HordeQuest;
+        if (Quest const* introQuest = sObjectMgr->GetQuestTemplate(introQuestId))
+            if (player->GetQuestStatus(introQuestId) == QUEST_STATUS_NONE && player->CanTakeQuest(introQuest, false))
+                player->AddQuestAndCheckCompletion(introQuest, nullptr);
+
+        break;
+    }
+}
+
+void WorldSession::HandleRequestStoreFrontInfoUpdate(WorldPackets::Misc::RequestStoreFrontInfoUpdate& packet)
+{
+    WorldPackets::Misc::AccountStoreFrontUpdate response;
+    response.StoreFrontID = packet.StoreFrontID;
+    response.Result = 0;  // Success
+    response.Unknown = 0;
+    SendPacket(response.Write());
 }

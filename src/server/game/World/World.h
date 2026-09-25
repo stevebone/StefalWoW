@@ -200,6 +200,7 @@ enum WorldBoolConfigs : uint32
     CONFIG_RESPAWN_DYNAMIC_ESCORTNPC,
     CONFIG_REGEN_HP_CANNOT_REACH_TARGET_IN_RAID,
     CONFIG_ALLOW_LOGGING_IP_ADDRESSES_IN_DATABASE,
+    CONFIG_EXTENDED_ACCOUNT_NAME_LENGTH_LIMIT,
     CONFIG_CHARACTER_CREATING_DISABLE_ALLIED_RACE_ACHIEVEMENT_REQUIREMENT,
     CONFIG_BATTLEGROUNDMAP_LOAD_GRIDS,
     CONFIG_ENABLE_AE_LOOT,
@@ -270,7 +271,6 @@ enum WorldIntConfigs : uint32
     CONFIG_START_PLAYER_LEVEL,
     CONFIG_START_DEATH_KNIGHT_PLAYER_LEVEL,
     CONFIG_START_DEMON_HUNTER_PLAYER_LEVEL,
-    CONFIG_START_EVOKER_PLAYER_LEVEL,
     CONFIG_START_ALLIED_RACE_LEVEL,
     CONFIG_CURRENCY_RESET_HOUR,
     CONFIG_CURRENCY_RESET_DAY,
@@ -352,6 +352,7 @@ enum WorldIntConfigs : uint32
     CONFIG_ARENA_START_PERSONAL_RATING,
     CONFIG_ARENA_START_MATCHMAKER_RATING,
     CONFIG_MAX_WHO,
+    CONFIG_WHO_LIST_UPDATE_INTERVAL,
     CONFIG_HONOR_AFTER_DUEL,
     CONFIG_PVP_TOKEN_MAP_TYPE,
     CONFIG_PVP_TOKEN_ID,
@@ -437,6 +438,8 @@ enum WorldIntConfigs : uint32
     CONFIG_VISIBILITY_NOTIFY_PERIOD_INSTANCE,
     CONFIG_VISIBILITY_NOTIFY_PERIOD_BATTLEGROUND,
     CONFIG_VISIBILITY_NOTIFY_PERIOD_ARENA,
+    CONFIG_CLUB_STREAM_HISTORY_MAX_MESSAGES,
+    CONFIG_CLUB_STREAM_HISTORY_MAX_DAYS,
     INT_CONFIG_VALUE_COUNT
 };
 
@@ -444,6 +447,10 @@ enum WorldInt64Configs : uint32
 {
     CONFIG_CHARACTER_CREATING_DISABLED_RACEMASK,
     CONFIG_START_PLAYER_MONEY,
+    CONFIG_START_DEATH_KNIGHT_PLAYER_MONEY,
+    CONFIG_START_DEMON_HUNTER_PLAYER_MONEY,
+    CONFIG_START_EVOKER_PLAYER_MONEY,
+    CONFIG_START_ALLIED_RACE_MONEY,
     INT64_CONFIG_VALUE_COUNT
 };
 
@@ -662,8 +669,6 @@ class TC_GAME_API World
         bool SendAreaIDMessage(uint32 areaID, WorldPacket const* packet, WorldSession* self = nullptr, Optional<Team> team = { });
         void SendGlobalMessage(WorldPacket const* packet, WorldSession* self = nullptr, Optional<Team> team = { });
         void SendGlobalGMMessage(WorldPacket const* packet, WorldSession* self = nullptr, Optional<Team> team = { });
-        bool SendZoneMessage(uint32 zone, WorldPacket const* packet, WorldSession* self = nullptr, Optional<Team> team = { });
-        void SendZoneText(uint32 zone, const char *text, WorldSession* self = nullptr, Optional<Team> team = { });
 
         /// Are we in the middle of a shutdown?
         bool IsShuttingDown() const { return m_ShutdownTimer > 0; }
@@ -771,6 +776,7 @@ class TC_GAME_API World
         void UpdateAreaDependentAuras();
 
         bool IsBattlePetJournalLockAcquired(ObjectGuid battlenetAccountGuid);
+        bool IsAccountInventoryLockAcquired(ObjectGuid battlenetAccountGuid, WorldSession const* exclude);
 
         uint32 GetCleaningFlags() const { return m_CleaningFlags; }
         void SetCleaningFlags(uint32 flags) { m_CleaningFlags = flags; }
@@ -928,6 +934,29 @@ class TC_GAME_API World
 };
 
 TC_GAME_API uint32 GetVirtualRealmAddress();
+
+// Snapshot of the realmlist table taken once on first use: the regionwide character list
+// and the auth realm registry need to know the sibling realms of the connect group
+struct TC_GAME_API RealmRegistryEntry
+{
+    uint32 Id;
+    uint32 Address;
+    std::string Name;
+};
+
+TC_GAME_API std::vector<RealmRegistryEntry> const& GetRealmRegistry();
+
+// CharacterSelect.ExtraRealms = "; "-separated list of "<realmId>:<characters schema name>"
+// entries, or "auto" to read the realm -> schema registry from the auth database. Sibling
+// realm data (regionwide character list, warband bank items) is read from those schemas.
+struct TC_GAME_API CrossRealmSchema
+{
+    uint32 VirtualRealmAddress;
+    uint32 HomeRealmId;
+    std::string Schema;
+};
+
+TC_GAME_API std::vector<CrossRealmSchema> const& GetCrossRealmSchemas();
 
 #define sWorld World::instance()
 
