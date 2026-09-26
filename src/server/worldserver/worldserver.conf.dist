@@ -70,6 +70,20 @@
 RealmID = 1
 
 #
+#    CharacterSelect.ExtraRealms
+#        Description: RealmIds of sibling realms whose characters databases are merged into
+#                     this realm's character list (regionwide/warband character select) and
+#                     whose characters can redirect a login back to their home realm.
+#                     "auto" reads the realm -> characters schema registry from the auth
+#                     database (realm_character_schemas, populated by each worldserver of
+#                     the connect group that runs with "auto").
+#        Format:      "auto" or a ";" separated list of "<realmId>:<characters schema name>"
+#        Default:     "" (single realm)
+#        Example:     "auto" or "2:characters2;3:characters3"
+
+CharacterSelect.ExtraRealms = ""
+
+#
 #    DataDir
 #        Description: Data directory setting.
 #        Important:   DataDir needs to be quoted, as the string might contain space characters.

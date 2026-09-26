@@ -816,6 +816,10 @@ void HotfixDatabaseConnection::DoPrepareStatements()
     PrepareStatement(HOTFIX_SEL_GLOBAL_CURVE, "SELECT ID, CurveID, Type FROM global_curve WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
     PREPARE_MAX_ID_STMT(HOTFIX_SEL_GLOBAL_CURVE, "SELECT MAX(ID) + 1 FROM global_curve", CONNECTION_SYNCH);
 
+    PrepareStatement(HOTFIX_SEL_GLOBAL_STRINGS, "SELECT ID, BaseTag, TagText, Flags FROM global_strings WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
+    PREPARE_MAX_ID_STMT(HOTFIX_SEL_GLOBAL_STRINGS, "SELECT MAX(ID) + 1 FROM global_strings", CONNECTION_SYNCH);
+    PREPARE_LOCALE_STMT(HOTFIX_SEL_GLOBAL_STRINGS, "SELECT ID, TagText_lang FROM global_strings_locale WHERE (`VerifiedBuild` > 0) = ? AND locale = ?", CONNECTION_SYNCH);
+
     // GlyphBindableSpell.db2
     PrepareStatement(HOTFIX_SEL_GLYPH_BINDABLE_SPELL, "SELECT ID, SpellID, GlyphPropertiesID FROM glyph_bindable_spell WHERE (`VerifiedBuild` > 0) = ?", CONNECTION_SYNCH);
     PREPARE_MAX_ID_STMT(HOTFIX_SEL_GLYPH_BINDABLE_SPELL, "SELECT MAX(ID) + 1 FROM glyph_bindable_spell", CONNECTION_SYNCH);

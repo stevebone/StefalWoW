@@ -18,11 +18,6 @@
 #include "CharacterDatabase.h"
 #include "MySQLPreparedStatement.h"
 
-void CharacterDatabaseConnection::DoPrepareStatements()
-{
-    if (!m_reconnecting)
-        m_stmts.resize(MAX_CHARACTERDATABASE_STATEMENTS);
-
 #define SelectItemInstanceContent "ii.guid, ii.itemEntry, ii.creatorGuid, ii.giftCreatorGuid, ii.count, ii.duration, ii.charges, ii.flags, ii.enchantments, ii.randomBonusListId, " \
         "ii.durability, ii.playedTime, ii.createTime, ii.text, ii.battlePetSpeciesId, ii.battlePetBreedData, ii.battlePetLevel, ii.battlePetDisplayId, ii.context, ii.bonusListIDs, " \
         "iit.itemModifiedAppearanceAllSpecs, iit.itemModifiedAppearanceSpec1, iit.itemModifiedAppearanceSpec2, iit.itemModifiedAppearanceSpec3, iit.itemModifiedAppearanceSpec4, iit.itemModifiedAppearanceSpec5, " \
@@ -46,6 +41,90 @@ void CharacterDatabaseConnection::DoPrepareStatements()
     CharacterSelectEquipmentSlot(table_alias, "mainHand") "," CharacterSelectEquipmentSlot(table_alias, "offHand") "," CharacterSelectEquipmentSlot(table_alias, "ranged") "," \
     CharacterSelectEquipmentSlot(table_alias, "tabard")
 
+namespace
+{
+    // Shared by CHAR_SEL_ENUM / CHAR_SEL_ENUM_DECLINED_NAME and GetRegionwideCharacterEnumQuery,
+    // the cross-realm variant reuses the exact same column layout
+    std::string BuildCharacterEnumQuery(bool withDeclinedNames)
+    {
+        std::string query = "SELECT c.guid, c.name, c.race, c.class, c.gender, c.level, c.zone, c.map, c.position_x, c.position_y, c.position_z, "
+            "gm.guildid, c.playerFlags, c.at_login, cp.entry, cp.modelid, cp.level AS cpLevel, cb.guid AS cbGuid, c.slot, c.createTime, c.logout_time, c.activeTalentGroup, c.lastLoginBuild, "
+            "c.personalTabardEmblemStyle, c.personalTabardEmblemColor, c.personalTabardBorderStyle, c.personalTabardBorderColor, c.personalTabardBackgroundColor, "
+            "c.timerunningSeasonId, c.chromieTimeExpansionId, "
+            CharacterSelectEquipment("ceq.");
+        if (withDeclinedNames)
+            query += ", cd.genitive ";
+        query += ", c.money ";
+        query += "FROM characters AS c LEFT JOIN character_pet AS cp ON c.summonedPetNumber = cp.id LEFT JOIN guild_member AS gm ON c.guid = gm.guid "
+            "LEFT JOIN character_banned AS cb ON c.guid = cb.guid AND cb.active = 1 "
+            "LEFT JOIN character_select_screen_equipment_cache ceq ON c.guid = ceq.guid ";
+        if (withDeclinedNames)
+            query += "LEFT JOIN character_declinedname AS cd ON c.guid = cd.guid ";
+        query += "WHERE c.account = ? AND c.deleteInfos_Name IS NULL";
+        return query;
+    }
+
+    std::string QualifyTables(std::string query, std::string const& schema)
+    {
+        std::string const qualified = "`" + schema + "`.";
+        for (char const* table : { "characters AS c", "characters c", "character_pet AS cp", "guild_member AS gm", "character_banned AS cb",
+                                   "character_select_screen_equipment_cache ceq", "character_declinedname AS cd",
+                                   "character_customizations cc" })
+        {
+            std::string const token = std::string(" ") + table;
+            std::string const replacement = " " + qualified + table;
+            for (std::size_t pos = query.find(token); pos != std::string::npos; pos = query.find(token, pos + replacement.length()))
+                query.replace(pos, token.length(), replacement);
+        }
+        return query;
+    }
+}
+
+std::string GetRegionwideCharacterEnumQuery(std::string const& characterSchema, uint32 realmId, uint32 accountId, bool withDeclinedNames)
+{
+    constexpr std::string_view SelectKeyword = "SELECT ";
+
+    std::string query = BuildCharacterEnumQuery(withDeclinedNames);
+    query.erase(0, SelectKeyword.length());
+    // the query runs as plain SQL against the sibling schema, the account filter is inlined
+    std::string const placeholder = "c.account = ?";
+    std::size_t const pos = query.find(placeholder);
+    if (pos != std::string::npos)
+        query.replace(pos, placeholder.length(), "c.account = " + std::to_string(accountId));
+    return "SELECT " + std::to_string(realmId) + " AS `__realmId`, " + QualifyTables(std::move(query), characterSchema);
+}
+
+std::string GetRegionwideCharacterEnumCustomizationsQuery(std::string const& characterSchema, uint32 accountId)
+{
+    std::string query = "SELECT cc.guid, cc.chrCustomizationOptionID, cc.chrCustomizationChoiceID FROM character_customizations cc "
+        "LEFT JOIN characters c ON cc.guid = c.guid WHERE c.account = " + std::to_string(accountId) + " AND c.deleteInfos_Name IS NULL";
+    return QualifyTables(std::move(query), characterSchema);
+}
+
+std::string GetRegionwideCharacterExistsQuery(std::string const& characterSchema, uint32 accountId, uint64 characterGuid)
+{
+    return "SELECT 1 FROM `" + characterSchema + "`.characters WHERE guid = " + std::to_string(characterGuid)
+        + " AND account = " + std::to_string(accountId) + " AND deleteInfos_Name IS NULL";
+}
+
+std::string GetAccountBankItemsQuery(std::string const& authSchema, uint32 battlenetAccountId)
+{
+    // the warband bank slot map lives in the auth database, the item rows were pulled into this
+    // realm's database by the login migration before this query runs
+    std::string query = "SELECT " SelectItemInstanceContent ", abi.bag, abi.slot FROM `" + authSchema + "`.account_bank_item abi "
+        "JOIN item_instance ii ON abi.item = ii.guid "
+        "LEFT JOIN item_instance_gems ig ON ii.guid = ig.itemGuid "
+        "LEFT JOIN item_instance_transmog iit ON ii.guid = iit.itemGuid "
+        "LEFT JOIN item_instance_modifiers im ON ii.guid = im.itemGuid "
+        "WHERE abi.battlenetAccountId = " + std::to_string(battlenetAccountId) + " ORDER BY abi.bag ASC, abi.slot ASC";
+    return query;
+}
+
+void CharacterDatabaseConnection::DoPrepareStatements()
+{
+    if (!m_reconnecting)
+        m_stmts.resize(MAX_CHARACTERDATABASE_STATEMENTS);
+
     PrepareStatement(CHAR_DEL_POOL_QUEST_SAVE, "DELETE FROM pool_quest_save WHERE pool_id = ?", CONNECTION_ASYNC);
     PrepareStatement(CHAR_INS_POOL_QUEST_SAVE, "INSERT INTO pool_quest_save (pool_id, quest_id) VALUES (?, ?)", CONNECTION_ASYNC);
     PrepareStatement(CHAR_DEL_NONEXISTENT_GUILD_BANK_ITEM, "DELETE FROM guild_bank_item WHERE guildid = ? AND TabId = ? AND SlotId = ?", CONNECTION_ASYNC);
@@ -65,26 +144,8 @@ void CharacterDatabaseConnection::DoPrepareStatements()
     PrepareStatement(CHAR_SEL_MAIL_LIST_INFO, "SELECT id, sender, (SELECT name FROM characters WHERE guid = sender) AS sendername, receiver, (SELECT name FROM characters WHERE guid = receiver) AS receivername, "
                      "subject, deliver_time, expire_time, money, has_items FROM mail WHERE receiver = ? ", CONNECTION_SYNCH);
     PrepareStatement(CHAR_SEL_MAIL_LIST_ITEMS, "SELECT itemEntry,count FROM item_instance WHERE guid = ?", CONNECTION_SYNCH);
-    PrepareStatement(CHAR_SEL_ENUM, "SELECT c.guid, c.name, c.race, c.class, c.gender, c.level, c.zone, c.map, c.position_x, c.position_y, c.position_z, "
-                     "gm.guildid, c.playerFlags, c.at_login, cp.entry, cp.modelid, cp.level AS cpLevel, cb.guid AS cbGuid, c.slot, c.createTime, c.logout_time, c.activeTalentGroup, c.lastLoginBuild, "
-                     "c.personalTabardEmblemStyle, c.personalTabardEmblemColor, c.personalTabardBorderStyle, c.personalTabardBorderColor, c.personalTabardBackgroundColor, "
-                     "c.timerunningSeasonId, c.chromieTimeExpansionId, "
-                     CharacterSelectEquipment("ceq.") ", c.money "
-                     "FROM characters AS c LEFT JOIN character_pet AS cp ON c.summonedPetNumber = cp.id LEFT JOIN guild_member AS gm ON c.guid = gm.guid "
-                     "LEFT JOIN character_banned AS cb ON c.guid = cb.guid AND cb.active = 1 "
-                     "LEFT JOIN character_select_screen_equipment_cache ceq ON c.guid = ceq.guid "
-                     "WHERE c.account = ? AND c.deleteInfos_Name IS NULL", CONNECTION_ASYNC);
-    PrepareStatement(CHAR_SEL_ENUM_DECLINED_NAME, "SELECT c.guid, c.name, c.race, c.class, c.gender, c.level, c.zone, c.map, c.position_x, c.position_y, c.position_z, "
-                     "gm.guildid, c.playerFlags, c.at_login, cp.entry, cp.modelid, cp.level AS cpLevel, cb.guid AS cbGuid, c.slot, c.createTime, c.logout_time, c.activeTalentGroup, c.lastLoginBuild, "
-                     "c.personalTabardEmblemStyle, c.personalTabardEmblemColor, c.personalTabardBorderStyle, c.personalTabardBorderColor, c.personalTabardBackgroundColor, "
-                     "c.timerunningSeasonId, c.chromieTimeExpansionId, "
-                     CharacterSelectEquipment("ceq.") ", "
-                     "cd.genitive, c.money "
-                     "FROM characters AS c LEFT JOIN character_pet AS cp ON c.summonedPetNumber = cp.id LEFT JOIN guild_member AS gm ON c.guid = gm.guid "
-                     "LEFT JOIN character_banned AS cb ON c.guid = cb.guid AND cb.active = 1 "
-                     "LEFT JOIN character_select_screen_equipment_cache ceq ON c.guid = ceq.guid "
-                     "LEFT JOIN character_declinedname AS cd ON c.guid = cd.guid "
-                     "WHERE c.account = ? AND c.deleteInfos_Name IS NULL", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_SEL_ENUM, BuildCharacterEnumQuery(false), CONNECTION_ASYNC);
+    PrepareStatement(CHAR_SEL_ENUM_DECLINED_NAME, BuildCharacterEnumQuery(true), CONNECTION_ASYNC);
     PrepareStatement(CHAR_SEL_ENUM_CUSTOMIZATIONS, "SELECT cc.guid, cc.chrCustomizationOptionID, cc.chrCustomizationChoiceID FROM character_customizations cc "
                      "LEFT JOIN characters c ON cc.guid = c.guid WHERE c.account = ? AND c.deleteInfos_Name IS NULL ORDER BY cc.guid, cc.chrCustomizationOptionID", CONNECTION_ASYNC);
     PrepareStatement(CHAR_SEL_UNDELETE_ENUM, "SELECT c.guid, c.deleteInfos_Name, c.race, c.class, c.gender, c.level, c.zone, c.map, c.position_x, c.position_y, c.position_z, "
@@ -872,24 +933,8 @@ void CharacterDatabaseConnection::DoPrepareStatements()
     PrepareStatement(CHAR_DEL_CHARACTER_BANK_TAB_SETTINGS, "DELETE FROM character_bank_tab_settings WHERE characterGuid = ?", CONNECTION_ASYNC);
     PrepareStatement(CHAR_INS_CHARACTER_BANK_TAB_SETTINGS, "INSERT INTO character_bank_tab_settings (characterGuid, tabId, name, icon, description, depositFlags) VALUES (?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC);
 	
-    PrepareStatement(CHAR_SEL_ACCOUNT_BANK_TAB_SETTINGS, "SELECT tabId, name, icon, description, depositFlags FROM account_bank_tab_settings WHERE battlenetAccountId = ?", CONNECTION_ASYNC);
-    PrepareStatement(CHAR_DEL_ACCOUNT_BANK_TAB_SETTINGS, "DELETE FROM account_bank_tab_settings WHERE battlenetAccountId = ?", CONNECTION_ASYNC);
-    PrepareStatement(CHAR_INS_ACCOUNT_BANK_TAB_SETTINGS, "INSERT INTO account_bank_tab_settings (battlenetAccountId, tabId, name, icon, description, depositFlags) VALUES (?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC);
-    PrepareStatement(CHAR_SEL_ACCOUNT_BANK_ITEMS, "SELECT ii.guid, ii.itemEntry, ii.creatorGuid, ii.giftCreatorGuid, ii.count, ii.duration, ii.charges, ii.flags, ii.enchantments, ii.randomBonusListId, ii.durability, ii.playedTime, ii.createTime, ii.text, ii.battlePetSpeciesId, ii.battlePetBreedData, ii.battlePetLevel, ii.battlePetDisplayId, ii.context, ii.bonusListIDs, iit.itemModifiedAppearanceAllSpecs, iit.itemModifiedAppearanceSpec1, iit.itemModifiedAppearanceSpec2, iit.itemModifiedAppearanceSpec3, iit.itemModifiedAppearanceSpec4, iit.itemModifiedAppearanceSpec5, iit.spellItemEnchantmentAllSpecs, iit.spellItemEnchantmentSpec1, iit.spellItemEnchantmentSpec2, iit.spellItemEnchantmentSpec3, iit.spellItemEnchantmentSpec4, iit.spellItemEnchantmentSpec5, iit.secondaryItemModifiedAppearanceAllSpecs, iit.secondaryItemModifiedAppearanceSpec1, iit.secondaryItemModifiedAppearanceSpec2, iit.secondaryItemModifiedAppearanceSpec3, iit.secondaryItemModifiedAppearanceSpec4, iit.secondaryItemModifiedAppearanceSpec5, ig.gemItemId1, ig.gemBonuses1, ig.gemContext1, ig.gemScalingLevel1, ig.gemItemId2, ig.gemBonuses2, ig.gemContext2, ig.gemScalingLevel2, ig.gemItemId3, ig.gemBonuses3, ig.gemContext3, ig.gemScalingLevel3, im.fixedScalingLevel, im.artifactKnowledgeLevel, abi.bag, abi.slot FROM account_bank_item abi JOIN item_instance ii ON abi.item = ii.guid LEFT JOIN item_instance_gems ig ON ii.guid = ig.itemGuid LEFT JOIN item_instance_transmog iit ON ii.guid = iit.itemGuid LEFT JOIN item_instance_modifiers im ON ii.guid = im.itemGuid WHERE abi.battlenetAccountId = ? ORDER BY abi.bag ASC, abi.slot ASC", CONNECTION_ASYNC);
-    PrepareStatement(CHAR_REP_ACCOUNT_BANK_ITEM, "REPLACE INTO account_bank_item (battlenetAccountId, bag, slot, item) VALUES (?, ?, ?, ?)", CONNECTION_ASYNC);
-    PrepareStatement(CHAR_DEL_ACCOUNT_BANK_ITEM, "DELETE FROM account_bank_item WHERE battlenetAccountId = ? AND item = ?", CONNECTION_ASYNC);
-    PrepareStatement(CHAR_DEL_ACCOUNT_BANK_ITEMS_BY_BNET, "DELETE FROM account_bank_item WHERE battlenetAccountId = ?", CONNECTION_ASYNC);
-    PrepareStatement(CHAR_SEL_ACCOUNT_BANK_COINAGE, "SELECT coinage FROM account_bank_coinage WHERE battlenetAccountId = ?", CONNECTION_ASYNC);
-    PrepareStatement(CHAR_REP_ACCOUNT_BANK_COINAGE, "REPLACE INTO account_bank_coinage (battlenetAccountId, coinage) VALUES (?, ?)", CONNECTION_ASYNC);
-
-    PrepareStatement(CHAR_SEL_WARBAND_GROUPS, "SELECT groupId, orderIndex, warbandSceneId, flags, contentSetId, name FROM character_warband_groups WHERE battlenetAccountId = ? ORDER BY orderIndex", CONNECTION_ASYNC);
-    PrepareStatement(CHAR_SEL_WARBAND_GROUP_MEMBERS, "SELECT gm.groupId, gm.memberIndex, gm.guid, gm.warbandScenePlacementId, gm.memberType, gm.contentSetId FROM character_warband_group_members gm INNER JOIN character_warband_groups g ON gm.groupId = g.groupId WHERE g.battlenetAccountId = ? ORDER BY gm.groupId, gm.memberIndex", CONNECTION_ASYNC);
-    PrepareStatement(CHAR_INS_WARBAND_GROUP, "INSERT INTO character_warband_groups (groupId, battlenetAccountId, orderIndex, warbandSceneId, flags, contentSetId, name) VALUES (?, ?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC);
-    PrepareStatement(CHAR_UPD_WARBAND_GROUP, "UPDATE character_warband_groups SET orderIndex = ?, warbandSceneId = ?, flags = ?, contentSetId = ?, name = ? WHERE groupId = ?", CONNECTION_ASYNC);
-    PrepareStatement(CHAR_DEL_WARBAND_GROUPS_BY_ACCOUNT, "DELETE FROM character_warband_groups WHERE battlenetAccountId = ?", CONNECTION_ASYNC);
-    PrepareStatement(CHAR_INS_WARBAND_GROUP_MEMBER, "INSERT INTO character_warband_group_members (groupId, memberIndex, guid, warbandScenePlacementId, memberType, contentSetId) VALUES (?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC);
-    PrepareStatement(CHAR_DEL_WARBAND_GROUP_MEMBERS, "DELETE FROM character_warband_group_members WHERE groupId = ?", CONNECTION_ASYNC);
-    PrepareStatement(CHAR_DEL_WARBAND_MEMBER_BY_GUID, "DELETE FROM character_warband_group_members WHERE guid = ?", CONNECTION_ASYNC);
+    // the warband bank is account-global - its slot map lives in the auth database
+    // (LOGIN_*_ACCOUNT_BANK_*) and the item rows are joined through GetAccountBankItemsQuery
 
     PrepareStatement(CHAR_SEL_WARBAND_TAXI_MASK, "SELECT taximask FROM warband_taxi_mask WHERE battlenetAccountId = ?", CONNECTION_ASYNC);
     PrepareStatement(CHAR_REP_WARBAND_TAXI_MASK, "REPLACE INTO warband_taxi_mask (battlenetAccountId, taximask) VALUES (?, ?)", CONNECTION_ASYNC);

@@ -2535,6 +2535,19 @@ struct GlobalCurveLoadInfo
     static constexpr DB2LoadInfo Instance{ Fields, 3, &GlobalCurveMeta::Instance, HOTFIX_SEL_GLOBAL_CURVE };
 };
 
+struct GlobalStringsLoadInfo
+{
+    static constexpr DB2FieldMeta Fields[4] =
+    {
+        {.IsSigned = false, .Type = FT_INT, .Name = "ID" },
+        {.IsSigned = false, .Type = FT_STRING_NOT_LOCALIZED, .Name = "BaseTag" },
+        {.IsSigned = false, .Type = FT_STRING, .Name = "TagText" },
+        {.IsSigned = true, .Type = FT_INT, .Name = "Flags" },
+    };
+
+    static constexpr DB2LoadInfo Instance{ Fields, 4, &GlobalStringsMeta::Instance, HOTFIX_SEL_GLOBAL_STRINGS };
+};
+
 struct GlyphBindableSpellLoadInfo
 {
     static constexpr DB2FieldMeta Fields[3] =

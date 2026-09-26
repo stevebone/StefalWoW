@@ -168,6 +168,7 @@ DB2Storage<GarrSiteLevelPlotInstEntry>          sGarrSiteLevelPlotInstStore("Gar
 DB2Storage<GarrTalentTreeEntry>                 sGarrTalentTreeStore("GarrTalentTree.db2", &GarrTalentTreeLoadInfo::Instance);
 DB2Storage<GemPropertiesEntry>                  sGemPropertiesStore("GemProperties.db2", &GemPropertiesLoadInfo::Instance);
 DB2Storage<GlobalCurveEntry>                    sGlobalCurveStore("GlobalCurve.db2", &GlobalCurveLoadInfo::Instance);
+DB2Storage<GlobalStringsEntry>                  sGlobalStringsStore("GlobalStrings.db2", &GlobalStringsLoadInfo::Instance);
 DB2Storage<GlyphBindableSpellEntry>             sGlyphBindableSpellStore("GlyphBindableSpell.db2", &GlyphBindableSpellLoadInfo::Instance);
 DB2Storage<GlyphPropertiesEntry>                sGlyphPropertiesStore("GlyphProperties.db2", &GlyphPropertiesLoadInfo::Instance);
 DB2Storage<GlyphRequiredSpecEntry>              sGlyphRequiredSpecStore("GlyphRequiredSpec.db2", &GlyphRequiredSpecLoadInfo::Instance);
@@ -846,6 +847,7 @@ uint32 DB2Manager::LoadStores(std::string const& dataPath, LocaleConstant defaul
     LOAD_DB2(sGarrTalentTreeStore);
     LOAD_DB2(sGemPropertiesStore);
     LOAD_DB2(sGlobalCurveStore);
+    LOAD_DB2(sGlobalStringsStore);
     LOAD_DB2(sGlyphBindableSpellStore);
     LOAD_DB2(sGlyphPropertiesStore);
     LOAD_DB2(sGlyphRequiredSpecStore);

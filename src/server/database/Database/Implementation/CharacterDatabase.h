@@ -694,25 +694,6 @@ enum CharacterDatabaseStatements : uint32
     CHAR_DEL_CHARACTER_BANK_TAB_SETTINGS,
     CHAR_INS_CHARACTER_BANK_TAB_SETTINGS,
 
-    CHAR_SEL_ACCOUNT_BANK_TAB_SETTINGS,
-    CHAR_DEL_ACCOUNT_BANK_TAB_SETTINGS,
-    CHAR_INS_ACCOUNT_BANK_TAB_SETTINGS,
-    CHAR_SEL_ACCOUNT_BANK_ITEMS,
-    CHAR_REP_ACCOUNT_BANK_ITEM,
-    CHAR_DEL_ACCOUNT_BANK_ITEM,
-    CHAR_DEL_ACCOUNT_BANK_ITEMS_BY_BNET,
-    CHAR_SEL_ACCOUNT_BANK_COINAGE,
-    CHAR_REP_ACCOUNT_BANK_COINAGE,
-
-    CHAR_SEL_WARBAND_GROUPS,
-    CHAR_SEL_WARBAND_GROUP_MEMBERS,
-    CHAR_INS_WARBAND_GROUP,
-    CHAR_UPD_WARBAND_GROUP,
-    CHAR_DEL_WARBAND_GROUPS_BY_ACCOUNT,
-    CHAR_INS_WARBAND_GROUP_MEMBER,
-    CHAR_DEL_WARBAND_GROUP_MEMBERS,
-    CHAR_DEL_WARBAND_MEMBER_BY_GUID,
-
     CHAR_SEL_WARBAND_TAXI_MASK,
     CHAR_REP_WARBAND_TAXI_MASK,
     CHAR_SEL_WARBAND_MAX_LEVEL_CHARS,
@@ -753,5 +734,12 @@ public:
     //- Loads database type specific prepared statements
     void DoPrepareStatements() override;
 };
+
+// schema-qualified raw queries for the regionwide character list and the auth-side warband
+// bank - they read sibling realms' characters schemas and cannot be prepared statements
+TC_DATABASE_API std::string GetRegionwideCharacterEnumQuery(std::string const& characterSchema, uint32 realmId, uint32 accountId, bool withDeclinedNames);
+TC_DATABASE_API std::string GetRegionwideCharacterEnumCustomizationsQuery(std::string const& characterSchema, uint32 accountId);
+TC_DATABASE_API std::string GetRegionwideCharacterExistsQuery(std::string const& characterSchema, uint32 accountId, uint64 characterGuid);
+TC_DATABASE_API std::string GetAccountBankItemsQuery(std::string const& authSchema, uint32 battlenetAccountId);
 
 #endif

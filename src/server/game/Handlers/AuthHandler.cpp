@@ -48,6 +48,19 @@ void WorldSession::SendAuthResponse(uint32 code, bool queued, uint32 queuePos)
         {
             response.SuccessInfo->VirtualRealmAddress = currentRealm->Id.GetAddress();
             response.SuccessInfo->VirtualRealms.emplace_back(currentRealm->Id.GetAddress(), true, false, currentRealm->Name, currentRealm->NormalizedName);
+
+            // retail registers every sibling realm of the connect group so the client can resolve
+            // realm names of the regionwide character list entries
+            for (RealmRegistryEntry const& realmEntry : GetRealmRegistry())
+            {
+                Battlenet::RealmHandle const realmHandle(realmEntry.Address);
+                if (realmEntry.Address == currentRealm->Id.GetAddress()
+                    || (realmHandle.Region != currentRealm->Id.Region || realmHandle.Site != currentRealm->Id.Site))
+                    continue;
+
+                if (std::shared_ptr<Realm const> realm = sRealmList->GetRealm(realmHandle))
+                    response.SuccessInfo->VirtualRealms.emplace_back(realmEntry.Address, false, false, realm->Name, realm->NormalizedName);
+            }
         }
 
         if (HasPermission(rbac::RBAC_PERM_USE_CHARACTER_TEMPLATES))
@@ -143,6 +156,11 @@ void WorldSession::SendFeatureSystemStatusGlueScreen()
 
     SendPacket(features.Write());
 
+    SendMirrorVars();
+}
+
+void WorldSession::SendMirrorVars()
+{
     WorldPackets::System::MirrorVarSingle vars[] =
     {
         { "raidLockoutExtendEnabled"sv, "1"sv },

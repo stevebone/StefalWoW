@@ -19,13 +19,17 @@
 #include "BankPackets.h"
 #include "Chat.h"
 #include "Creature.h"
+#include "DatabaseEnv.h"
 #include "DB2Stores.h"
 #include "GossipDef.h"
 #include "Item.h"
 #include "Language.h"
 #include "Log.h"
 #include "NPCPackets.h"
+#include "ObjectMgr.h"
 #include "Player.h"
+#include "RealmList.h"
+#include "World.h"
 
 void WorldSession::HandleAutoBankItemOpcode(WorldPackets::Bank::AutoBankItem& packet)
 {
@@ -229,6 +233,8 @@ void WorldSession::HandleBuyBankTab(WorldPackets::Bank::BuyBankTab const& buyBan
     Item* bag = _player->EquipNewItem(inventoryPos, itemId, ItemContext::NONE, true);
     if (!bag)
         return;
+
+    _player->SendNewItem(bag, 1, true, false, false, 0, WorldPackets::Item::ItemPushResult::DISPLAY_TYPE_HIDDEN);
 
     switch (buyBankTab.BankType)
     {
@@ -434,4 +440,86 @@ void WorldSession::SendShowBank(ObjectGuid guid, PlayerInteractionType interacti
     npcInteraction.InteractionType = interactionType;
     npcInteraction.Success = true;
     SendPacket(npcInteraction.Write());
+}
+
+// The warband bank slot map is account-global (auth database) while item rows are realm-local.
+// Only one session per battle.net account can exist, so the bank is exclusively owned by the
+// online session: before it is loaded, items homed to sibling realms are pulled into this
+// realm's database and the slot map is re-pointed here.
+void WorldSession::MigrateAccountBankItems()
+{
+    // without sibling schemas every banked item is homed here - nothing can need migrating
+    if (GetCrossRealmSchemas().empty())
+        return;
+
+    uint32 const battlenetAccountId = GetBattlenetAccountId();
+    if (!battlenetAccountId)
+        return;
+
+    uint32 const currentRealmId = sRealmList->GetCurrentRealmId().Realm;
+
+    LoginDatabasePreparedStatement* sourcesStmt = LoginDatabase.GetPreparedStatement(LOGIN_SEL_ACCOUNT_BANK_ITEM_SOURCES);
+    sourcesStmt->setUInt32(0, battlenetAccountId);
+    PreparedQueryResult sources = LoginDatabase.Query(sourcesStmt);
+    if (!sources)
+        return;
+
+    std::vector<std::pair<uint64, CrossRealmSchema const*>> pendingItems; // item guid -> source realm
+    do
+    {
+        Field* fields = sources->Fetch();
+        uint32 const sourceRealm = fields[3].GetUInt32();
+        if (sourceRealm == currentRealmId)
+            continue;
+
+        auto schemaItr = std::find_if(GetCrossRealmSchemas().begin(), GetCrossRealmSchemas().end(),
+            [sourceRealm](CrossRealmSchema const& crossRealm) { return crossRealm.HomeRealmId == sourceRealm; });
+        if (schemaItr == GetCrossRealmSchemas().end())
+        {
+            TC_LOG_ERROR("entities.player", "Warband bank item {} of battle.net account {} is homed to realm {} which has no configured characters schema, skipping",
+                fields[2].GetUInt64(), battlenetAccountId, sourceRealm);
+            continue;
+        }
+
+        pendingItems.emplace_back(fields[2].GetUInt64(), &*schemaItr);
+    } while (sources->NextRow());
+
+    if (pendingItems.empty())
+        return;
+
+    std::string const authSchema = LoginDatabase.GetConnectionInfo()->database;
+    CharacterDatabaseTransaction trans = CharacterDatabase.BeginTransaction();
+
+    for (auto const& [oldGuid, sourceRealm] : pendingItems)
+    {
+        uint64 const newGuid = sObjectMgr->GetGenerator<HighGuid::Item>().Generate();
+        std::string const& sourceSchema = sourceRealm->Schema;
+
+        trans->PAppend("INSERT INTO item_instance (guid, itemEntry, owner_guid, creatorGuid, giftCreatorGuid, count, duration, charges, flags, enchantments, randomBonusListId, durability, playedTime, createTime, text, battlePetSpeciesId, battlePetBreedData, battlePetLevel, battlePetDisplayId, context, bonusListIDs) "
+            "SELECT {}, itemEntry, owner_guid, creatorGuid, giftCreatorGuid, count, duration, charges, flags, enchantments, randomBonusListId, durability, playedTime, createTime, text, battlePetSpeciesId, battlePetBreedData, battlePetLevel, battlePetDisplayId, context, bonusListIDs FROM {}.item_instance WHERE guid = {}",
+            newGuid, sourceSchema, oldGuid);
+        trans->PAppend("INSERT INTO item_instance_gems (itemGuid, gemItemId1, gemBonuses1, gemContext1, gemScalingLevel1, gemItemId2, gemBonuses2, gemContext2, gemScalingLevel2, gemItemId3, gemBonuses3, gemContext3, gemScalingLevel3) "
+            "SELECT {}, gemItemId1, gemBonuses1, gemContext1, gemScalingLevel1, gemItemId2, gemBonuses2, gemContext2, gemScalingLevel2, gemItemId3, gemBonuses3, gemContext3, gemScalingLevel3 FROM {}.item_instance_gems WHERE itemGuid = {}",
+            newGuid, sourceSchema, oldGuid);
+        trans->PAppend("INSERT INTO item_instance_transmog (itemGuid, itemModifiedAppearanceAllSpecs, itemModifiedAppearanceSpec1, itemModifiedAppearanceSpec2, itemModifiedAppearanceSpec3, itemModifiedAppearanceSpec4, itemModifiedAppearanceSpec5, spellItemEnchantmentAllSpecs, spellItemEnchantmentSpec1, spellItemEnchantmentSpec2, spellItemEnchantmentSpec3, spellItemEnchantmentSpec4, spellItemEnchantmentSpec5, secondaryItemModifiedAppearanceAllSpecs, secondaryItemModifiedAppearanceSpec1, secondaryItemModifiedAppearanceSpec2, secondaryItemModifiedAppearanceSpec3, secondaryItemModifiedAppearanceSpec4, secondaryItemModifiedAppearanceSpec5) "
+            "SELECT {}, itemModifiedAppearanceAllSpecs, itemModifiedAppearanceSpec1, itemModifiedAppearanceSpec2, itemModifiedAppearanceSpec3, itemModifiedAppearanceSpec4, itemModifiedAppearanceSpec5, spellItemEnchantmentAllSpecs, spellItemEnchantmentSpec1, spellItemEnchantmentSpec2, spellItemEnchantmentSpec3, spellItemEnchantmentSpec4, spellItemEnchantmentSpec5, secondaryItemModifiedAppearanceAllSpecs, secondaryItemModifiedAppearanceSpec1, secondaryItemModifiedAppearanceSpec2, secondaryItemModifiedAppearanceSpec3, secondaryItemModifiedAppearanceSpec4, secondaryItemModifiedAppearanceSpec5 FROM {}.item_instance_transmog WHERE itemGuid = {}",
+            newGuid, sourceSchema, oldGuid);
+        // our item_instance_modifiers lacks the craftingModifiedStat columns the contributor
+        // schema has - only the shared columns are copied
+        trans->PAppend("INSERT INTO item_instance_modifiers (itemGuid, fixedScalingLevel, artifactKnowledgeLevel) "
+            "SELECT {}, fixedScalingLevel, artifactKnowledgeLevel FROM {}.item_instance_modifiers WHERE itemGuid = {}",
+            newGuid, sourceSchema, oldGuid);
+
+        trans->PAppend("DELETE FROM {}.item_instance WHERE guid = {}", sourceSchema, oldGuid);
+        trans->PAppend("DELETE FROM {}.item_instance_gems WHERE itemGuid = {}", sourceSchema, oldGuid);
+        trans->PAppend("DELETE FROM {}.item_instance_transmog WHERE itemGuid = {}", sourceSchema, oldGuid);
+        trans->PAppend("DELETE FROM {}.item_instance_modifiers WHERE itemGuid = {}", sourceSchema, oldGuid);
+
+        // pointer update rides the same transaction so a crash can never orphan the auth row
+        trans->PAppend("UPDATE {}.account_bank_item SET item = {}, sourceRealm = {} WHERE battlenetAccountId = {} AND item = {}",
+            authSchema, newGuid, currentRealmId, battlenetAccountId, oldGuid);
+    }
+
+    CharacterDatabase.CommitTransaction(trans);
+    TC_LOG_INFO("entities.player", "Migrated {} warband bank item(s) of battle.net account {} into this realm's database", pendingItems.size(), battlenetAccountId);
 }

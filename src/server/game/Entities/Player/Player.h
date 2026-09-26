@@ -28,6 +28,7 @@
 #include "Hash.h"
 #include "ItemDefines.h"
 #include "ItemEnchantmentMgr.h"
+#include "ItemPackets.h"
 #include "MapReference.h"
 #include "Opcodes.h"
 #include "PetDefines.h"
@@ -1052,9 +1053,6 @@ enum PlayerLoginQueryIndex
     PLAYER_LOGIN_QUERY_LOAD_PERKS_PURCHASES,
     PLAYER_LOGIN_QUERY_LOAD_PERKS_FROZEN,
     PLAYER_LOGIN_QUERY_LOAD_PERKS_MILESTONES,
-    PLAYER_LOGIN_QUERY_LOAD_ACCOUNT_BANK_TAB_SETTINGS,
-    PLAYER_LOGIN_QUERY_LOAD_ACCOUNT_BANK_ITEMS,
-    PLAYER_LOGIN_QUERY_LOAD_ACCOUNT_BANK_COINAGE,
     PLAYER_LOGIN_QUERY_LOAD_WARBAND_TAXI_MASK,
     PLAYER_LOGIN_QUERY_LOAD_WARBAND_MAX_LEVEL_COUNT,
     PLAYER_LOGIN_QUERY_LOAD_ARENA_STATS,
@@ -1699,7 +1697,7 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         bool IsUseEquipedWeapon(bool mainhand) const;
         bool IsTwoHandUsed() const;
         bool IsUsingTwoHandedWeaponInOneHand() const;
-        void SendNewItem(Item* item, uint32 quantity, bool pushed, bool created, bool broadcast = false, uint32 dungeonEncounterId = 0);
+        void SendNewItem(Item* item, uint32 quantity, bool pushed, bool created, bool broadcast = false, uint32 dungeonEncounterId = 0, WorldPackets::Item::ItemPushResult::DisplayType chatNotifyType = WorldPackets::Item::ItemPushResult::DISPLAY_TYPE_NORMAL);
         bool BuyItemFromVendorSlot(ObjectGuid vendorguid, uint32 vendorslot, uint32 item, uint32 count, uint8 bag, uint8 slot);
         Optional<SellResult> CanSellItemToVendor(Item const* item, uint32 amount) const;
         Optional<SellResult> SellItemToVendor(Item* item, uint32 amount);
@@ -3326,9 +3324,9 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         void _LoadCUFProfiles(PreparedQueryResult result);
         void _LoadPlayerData(PreparedQueryResult elementsResult, PreparedQueryResult flagsResult);
         void _LoadCharacterBankTabSettings(PreparedQueryResult result);
-        void _LoadAccountBankTabSettings(PreparedQueryResult result);
-        void _LoadAccountBankItems(PreparedQueryResult result, uint32 timeDiff);
-        void _LoadAccountBankCoinage(PreparedQueryResult result);
+        void _LoadAccountBankTabSettings();
+        void _LoadAccountBankItems(uint32 timeDiff);
+        void _LoadAccountBankCoinage();
 
         /*********************************************************/
         /***                   SAVE SYSTEM                     ***/
@@ -3365,9 +3363,9 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         void _SaveCUFProfiles(CharacterDatabaseTransaction trans);
         void _SavePlayerData(CharacterDatabaseTransaction trans);
         void _SaveCharacterBankTabSettings(CharacterDatabaseTransaction trans) const;
-        void _SaveAccountBankTabSettings(CharacterDatabaseTransaction trans) const;
-        void _SaveAccountBankItems(CharacterDatabaseTransaction trans);
-        void _SaveAccountBankCoinage(CharacterDatabaseTransaction trans) const;
+        void _SaveAccountBankTabSettings(LoginDatabaseTransaction trans) const;
+        void _SaveAccountBankItems(LoginDatabaseTransaction trans);
+        void _SaveAccountBankCoinage(LoginDatabaseTransaction trans) const;
         void _SaveAccountTaxiMask(CharacterDatabaseTransaction trans) const;
 
         /*********************************************************/
