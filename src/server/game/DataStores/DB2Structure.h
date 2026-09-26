@@ -2124,6 +2124,14 @@ struct GlobalCurveEntry
     int32 Type;
 };
 
+struct GlobalStringsEntry
+{
+    uint32 ID;
+    char const* BaseTag;
+    LocalizedString Text;
+    uint32 Flags;
+};
+
 struct GlyphBindableSpellEntry
 {
     uint32 ID;

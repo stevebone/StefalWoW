@@ -400,18 +400,8 @@ bool LoginQueryHolder::Initialize()
     stmt->setUInt64(0, lowGuid);
     res &= SetPreparedQuery(PLAYER_LOGIN_QUERY_LOAD_PERKS_MILESTONES, stmt);
 
-    stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_ACCOUNT_BANK_TAB_SETTINGS);
-    stmt->setUInt32(0, m_battlenetAccountId);
-    res &= SetPreparedQuery(PLAYER_LOGIN_QUERY_LOAD_ACCOUNT_BANK_TAB_SETTINGS, stmt);
-
-    stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_ACCOUNT_BANK_ITEMS);
-    stmt->setUInt32(0, m_battlenetAccountId);
-    res &= SetPreparedQuery(PLAYER_LOGIN_QUERY_LOAD_ACCOUNT_BANK_ITEMS, stmt);
-
-    stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_ACCOUNT_BANK_COINAGE);
-    stmt->setUInt32(0, m_battlenetAccountId);
-    res &= SetPreparedQuery(PLAYER_LOGIN_QUERY_LOAD_ACCOUNT_BANK_COINAGE, stmt);
-
+    // the warband bank slot map lives in the auth database and is loaded synchronously
+    // in Player::LoadFromDB after MigrateAccountBankItems pulled foreign item rows in
     stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_WARBAND_TAXI_MASK);
     stmt->setUInt32(0, m_battlenetAccountId);
     res &= SetPreparedQuery(PLAYER_LOGIN_QUERY_LOAD_WARBAND_TAXI_MASK, stmt);
@@ -432,8 +422,6 @@ public:
     {
         CHARACTERS,
         CUSTOMIZATIONS,
-        WARBAND_GROUPS,
-        WARBAND_GROUP_MEMBERS,
 
         MAX
     };
@@ -443,10 +431,9 @@ public:
         SetSize(MAX);
     }
 
-    bool Initialize(uint32 accountId, uint32 battlenetAccountId, bool withDeclinedNames, bool isDeletedCharacters)
+    bool Initialize(uint32 accountId, bool withDeclinedNames, bool isDeletedCharacters)
     {
         _isDeletedCharacters = isDeletedCharacters;
-        _battlenetAccountId = battlenetAccountId;
 
         constexpr CharacterDatabaseStatements statements[2][3] =
         {
@@ -463,39 +450,32 @@ public:
         stmt->setUInt32(0, accountId);
         result &= SetPreparedQuery(CUSTOMIZATIONS, stmt);
 
-        if (!isDeletedCharacters)
-        {
-            stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_WARBAND_GROUPS);
-            stmt->setUInt32(0, battlenetAccountId);
-            result &= SetPreparedQuery(WARBAND_GROUPS, stmt);
-
-            stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_WARBAND_GROUP_MEMBERS);
-            stmt->setUInt32(0, battlenetAccountId);
-            result &= SetPreparedQuery(WARBAND_GROUP_MEMBERS, stmt);
-        }
-
         return result;
     }
 
     bool IsDeletedCharacters() const { return _isDeletedCharacters; }
-    uint32 GetBattlenetAccountId() const { return _battlenetAccountId; }
 
 private:
     bool _isDeletedCharacters = false;
-    uint32 _battlenetAccountId = 0;
 };
 
-void WorldSession::HandleCharEnum(CharacterDatabaseQueryHolder const& holder)
+void WorldSession::HandleCharEnum(CharacterDatabaseQueryHolder const& holder, std::vector<QueryResult> crossRealmCharacters, std::vector<QueryResult> crossRealmCustomizations)
 {
+    EnumCharactersQueryHolder const& enumHolder = static_cast<EnumCharactersQueryHolder const&>(holder);
+
     WorldPackets::Character::EnumCharactersResult charEnum;
     charEnum.Success = true;
-    charEnum.IsDeletedCharacters = static_cast<EnumCharactersQueryHolder const&>(holder).IsDeletedCharacters();
-    charEnum.Realmless = true;
+    charEnum.IsDeletedCharacters = enumHolder.IsDeletedCharacters();
+    // the undelete flow is realm-bound on the client, deleted characters are always sent as a classic per-realm list
+    charEnum.Realmless = !charEnum.IsDeletedCharacters;
     charEnum.ForceCharacterListSort = false;
     charEnum.ClassDisableMask = sWorld->getIntConfig(CONFIG_CHARACTER_CREATING_DISABLED_CLASSMASK);
 
     if (!charEnum.IsDeletedCharacters)
+    {
         _legitCharacters.clear();
+        _crossRealmCharacters.clear();
+    }
 
     std::unordered_map<ObjectGuid::LowType, std::vector<UF::ChrCustomizationChoice>> customizations;
     if (PreparedQueryResult customizationsResult = holder.GetPreparedResult(EnumCharactersQueryHolder::CUSTOMIZATIONS))
@@ -510,6 +490,96 @@ void WorldSession::HandleCharEnum(CharacterDatabaseQueryHolder const& holder)
         } while (customizationsResult->NextRow());
     }
 
+    // warband groups are account-wide (retail), the realmId column is provenance only
+    LoginDatabasePreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_SEL_ACCOUNT_WARBAND_GROUPS);
+    stmt->setUInt32(0, GetAccountId());
+
+    std::unordered_map<ObjectGuid::LowType, std::pair<uint8, uint32>> warbandMemberPlacement; // charGuid -> (group orderIndex, placement)
+
+    if (PreparedQueryResult groupsResult = LoginDatabase.Query(stmt))
+    {
+        do
+        {
+            Field* fields = groupsResult->Fetch();
+            WorldPackets::Character::WarbandGroup group;
+            group.GroupID = fields[0].GetUInt64();
+            group.OrderIndex = fields[1].GetUInt8();
+            group.Name = fields[2].GetString();
+            group.WarbandSceneID = fields[3].GetUInt32();
+            group.Flags = fields[4].GetUInt32();
+
+            charEnum.WarbandGroups.push_back(std::move(group));
+        } while (groupsResult->NextRow());
+
+        std::unordered_map<uint64, WorldPackets::Character::WarbandGroup*> groupMap;
+
+        for (auto& group : charEnum.WarbandGroups)
+            groupMap[group.GroupID] = &group;
+
+        stmt = LoginDatabase.GetPreparedStatement(LOGIN_SEL_ACCOUNT_WARBAND_GROUP_MEMBERS);
+        stmt->setUInt32(0, GetAccountId());
+
+        if (PreparedQueryResult membersResult = LoginDatabase.Query(stmt))
+        {
+            do
+            {
+                Field* fields = membersResult->Fetch();
+                uint64 groupId = fields[0].GetUInt64();
+
+                if (WorldPackets::Character::WarbandGroup* group = Trinity::Containers::MapGetValuePtr(groupMap, groupId))
+                {
+                    WorldPackets::Character::WarbandGroupMember member;
+                    ObjectGuid::LowType characterGuid = fields[1].GetUInt64();
+                    member.Guid = ObjectGuid::Create<HighGuid::Player>(characterGuid);
+                    member.WarbandScenePlacementID = fields[2].GetUInt32();
+                    member.Type = fields[3].GetUInt32();
+                    warbandMemberPlacement[characterGuid] = std::make_pair(group->OrderIndex, member.WarbandScenePlacementID);
+                    group->Members.push_back(member);
+                }
+            } while (membersResult->NextRow());
+        }
+    }
+    else
+    {
+        auto const* globalStringEntry = sGlobalStringsStore.LookupEntry(51864);
+
+        std::string localizedGroupName = "Favorites"; // Default enUS name
+
+        if (globalStringEntry)
+        {
+            char const* textPtr = globalStringEntry->Text[GetSessionDbcLocale()];
+            if (textPtr)
+                localizedGroupName = textPtr;
+            else if (GetSessionDbcLocale() != LOCALE_enUS)
+            {
+                textPtr = globalStringEntry->Text[LOCALE_enUS];
+                if (textPtr)
+                    localizedGroupName = textPtr;
+            }
+        }
+
+        // group ids are scoped to the account (the client picks new ids counting from
+        // the highest id it was sent), and the default group uses the fixed id 1 so a
+        // late-inserting default cannot show up next to a renamed first group
+        WorldPackets::Character::WarbandGroup defaultGroup;
+        defaultGroup.GroupID = 1;
+        defaultGroup.OrderIndex = 0;
+        defaultGroup.Name = localizedGroupName;
+        defaultGroup.WarbandSceneID = 1;
+        defaultGroup.Flags = 1;
+
+        charEnum.WarbandGroups.push_back(std::move(defaultGroup));
+
+        LoginDatabasePreparedStatement* insertStmt = LoginDatabase.GetPreparedStatement(LOGIN_INS_ACCOUNT_WARBAND_GROUP_DEFAULT);
+        insertStmt->setUInt32(0, GetAccountId());
+        insertStmt->setUInt32(1, sRealmList->GetCurrentRealmId().Realm);
+        insertStmt->setString(2, std::string(localizedGroupName));
+        LoginDatabase.Execute(insertStmt);
+    }
+
+    std::unordered_set<ObjectGuid::LowType> localCharacterGuids;
+    std::unordered_set<ObjectGuid::LowType> crossRealmCharacterGuids;
+
     if (PreparedQueryResult result = holder.GetPreparedResult(EnumCharactersQueryHolder::CHARACTERS))
     {
         // c.money is the last column of every character select statement
@@ -519,47 +589,139 @@ void WorldSession::HandleCharEnum(CharacterDatabaseQueryHolder const& holder)
         {
             Field* fields = result->Fetch();
 
-            WorldPackets::Character::EnumCharactersResult::RegionwideCharacterListEntry& entry = charEnum.RegionwideCharacters.emplace_back(fields);
-            entry.Money = fields[moneyFieldIndex].GetUInt64();
-            entry.Basic.RealmInfoFound = true;
+            WorldPackets::Character::EnumCharactersResult::CharacterInfoBasic* charInfo;
+            if (charEnum.IsDeletedCharacters)
+                charInfo = &charEnum.Characters.emplace_back(fields).Basic;
+            else
+            {
+                WorldPackets::Character::EnumCharactersResult::RegionwideCharacterListEntry& entry = charEnum.RegionwideCharacters.emplace_back(fields);
+                entry.Money = fields[moneyFieldIndex].GetUInt64();
+                entry.Basic.RealmInfoFound = true;
+                charInfo = &entry.Basic;
+            }
 
-            WorldPackets::Character::EnumCharactersResult::CharacterInfoBasic& charInfo = entry.Basic;
+            localCharacterGuids.insert(charInfo->Guid.GetCounter());
 
-            if (std::vector<UF::ChrCustomizationChoice>* customizationsForChar = Trinity::Containers::MapGetValuePtr(customizations, charInfo.Guid.GetCounter()))
-                charInfo.Customizations = std::move(*customizationsForChar);
+            if (std::vector<UF::ChrCustomizationChoice>* customizationsForChar = Trinity::Containers::MapGetValuePtr(customizations, charInfo->Guid.GetCounter()))
+                charInfo->Customizations = std::move(*customizationsForChar);
 
-            TC_LOG_INFO("network", "Loading char guid {} from account {}.", charInfo.Guid.ToString(), GetAccountId());
+            TC_LOG_INFO("network", "Loading char guid {} from account {}.", charInfo->Guid.ToString(), GetAccountId());
 
             if (!charEnum.IsDeletedCharacters)
             {
-                if (!ValidateAppearance(Races(charInfo.RaceID), Classes(charInfo.ClassID), Gender(charInfo.SexID), MakeChrCustomizationChoiceRange(charInfo.Customizations)))
+                if (!ValidateAppearance(Races(charInfo->RaceID), Classes(charInfo->ClassID), Gender(charInfo->SexID), MakeChrCustomizationChoiceRange(charInfo->Customizations)))
                 {
-                    TC_LOG_ERROR("entities.player.loading", "Player {} has wrong Appearance values (Hair/Skin/Color), forcing recustomize", charInfo.Guid.ToString());
+                    TC_LOG_ERROR("entities.player.loading", "Player {} has wrong Appearance values (Hair/Skin/Color), forcing recustomize", charInfo->Guid.ToString());
 
-                    charInfo.Customizations.clear();
+                    charInfo->Customizations.clear();
 
-                    if (!(charInfo.Flags2 & (CHARACTER_FLAG_2_CUSTOMIZE | CHARACTER_FLAG_2_FACTION_CHANGE | CHARACTER_FLAG_2_RACE_CHANGE)))
+                    if (!(charInfo->Flags2 & (CHARACTER_FLAG_2_CUSTOMIZE | CHARACTER_FLAG_2_FACTION_CHANGE | CHARACTER_FLAG_2_RACE_CHANGE)))
                     {
                         CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_UPD_ADD_AT_LOGIN_FLAG);
                         stmt->setUInt16(0, uint16(AT_LOGIN_CUSTOMIZE));
-                        stmt->setUInt64(1, charInfo.Guid.GetCounter());
+                        stmt->setUInt64(1, charInfo->Guid.GetCounter());
                         CharacterDatabase.Execute(stmt);
-                        charInfo.Flags2 = CHARACTER_FLAG_2_CUSTOMIZE;
+                        charInfo->Flags2 = CHARACTER_FLAG_2_CUSTOMIZE;
                     }
                 }
 
                 // Do not allow locked characters to login
-                if (!(charInfo.Flags & (CHARACTER_FLAG_LOCKED_FOR_TRANSFER | CHARACTER_FLAG_LOCKED_BY_BILLING)))
-                    _legitCharacters.insert(charInfo.Guid);
+                if (!(charInfo->Flags & (CHARACTER_FLAG_LOCKED_FOR_TRANSFER | CHARACTER_FLAG_LOCKED_BY_BILLING)))
+                    _legitCharacters.insert(charInfo->Guid);
             }
 
-            if (!sCharacterCache->HasCharacterCacheEntry(charInfo.Guid)) // This can happen if characters are inserted into the database manually. Core hasn't loaded name data yet.
-                sCharacterCache->AddCharacterCacheEntry(charInfo.Guid, GetAccountId(), charInfo.Name, charInfo.SexID, charInfo.RaceID, charInfo.ClassID, charInfo.ExperienceLevel, false);
+            if (!sCharacterCache->HasCharacterCacheEntry(charInfo->Guid)) // This can happen if characters are inserted into the database manually. Core hasn't loaded name data yet.
+                sCharacterCache->AddCharacterCacheEntry(charInfo->Guid, GetAccountId(), charInfo->Name, charInfo->SexID, charInfo->RaceID, charInfo->ClassID, charInfo->ExperienceLevel, false);
+
+            charEnum.MaxCharacterLevel = std::max<int32>(charEnum.MaxCharacterLevel, charInfo->ExperienceLevel);
+        }
+        while (result->NextRow() && (charEnum.IsDeletedCharacters ? charEnum.Characters.size() : charEnum.RegionwideCharacters.size()) < MAX_CHARACTERS_PER_REALM);
+    }
+
+    // sibling realm customizations merge into the same map, rows of guids that also exist
+    // on this realm are skipped so looks can never leak across colliding guids
+    for (QueryResult const& crossRealmCustomizationsResult : crossRealmCustomizations)
+    {
+        if (!crossRealmCustomizationsResult)
+            continue;
+
+        do
+        {
+            Field* fields = crossRealmCustomizationsResult->Fetch();
+            ObjectGuid::LowType const characterGuid = fields[0].GetUInt64();
+            if (localCharacterGuids.count(characterGuid))
+                continue;
+
+            UF::ChrCustomizationChoice& choice = customizations[characterGuid].emplace_back();
+            choice.ChrCustomizationOptionID = fields[1].GetUInt32();
+            choice.ChrCustomizationChoiceID = fields[2].GetUInt32();
+
+        } while (crossRealmCustomizationsResult->NextRow());
+    }
+
+    // sibling realm characters arrive with their realm id prepended as the first column,
+    // the character columns are shifted by one; they are never loginable from this realm
+    for (QueryResult const& crossRealmResult : crossRealmCharacters)
+    {
+        if (!crossRealmResult)
+            continue;
+
+        // c.money is the last column of every character select statement
+        std::size_t const moneyFieldIndex = crossRealmResult->GetFieldCount() - 1;
+
+        do
+        {
+            Field* fields = crossRealmResult->Fetch();
+            uint32 const homeRealmId = fields[0].GetUInt32();
+
+            // the client matches this field against the VirtualRealms registry from AUTH_RESPONSE,
+            // which carries full region/battlegroup/realm addresses, not bare realm ids
+            uint32 const virtualRealmAddress = [&]()
+            {
+                for (RealmRegistryEntry const& realm : GetRealmRegistry())
+                    if (realm.Id == homeRealmId)
+                        return realm.Address;
+
+                return homeRealmId;
+            }();
+
+            WorldPackets::Character::EnumCharactersResult::RegionwideCharacterListEntry& entry = charEnum.RegionwideCharacters.emplace_back(fields + 1, virtualRealmAddress, homeRealmId);
+            entry.Money = fields[moneyFieldIndex].GetUInt64();
+            entry.Basic.RealmInfoFound = true;
+
+            WorldPackets::Character::EnumCharactersResult::CharacterInfoBasic& charInfo = entry.Basic;
+            crossRealmCharacterGuids.insert(charInfo.Guid.GetCounter());
+            // foreign characters stay out of _legitCharacters - logging into them redirects to the
+            // home realm - but the mail data request must accept them as list members
+            _crossRealmCharacters.insert(charInfo.Guid);
+
+            if (std::vector<UF::ChrCustomizationChoice>* customizationsForChar = Trinity::Containers::MapGetValuePtr(customizations, charInfo.Guid.GetCounter()))
+                charInfo.Customizations = std::move(*customizationsForChar);
 
             charEnum.MaxCharacterLevel = std::max<int32>(charEnum.MaxCharacterLevel, charInfo.ExperienceLevel);
         }
-        while (result->NextRow() && charEnum.RegionwideCharacters.size() < MAX_CHARACTERS_PER_REALM);
+        while (crossRealmResult->NextRow() && charEnum.RegionwideCharacters.size() < MAX_CHARACTERS_PER_REALM);
     }
+
+    // warband arrangement: grouped characters first ordered by group and scene placement,
+    // ungrouped characters keep database order after them
+    std::ranges::stable_sort(charEnum.RegionwideCharacters, std::less{}, [&warbandMemberPlacement, &crossRealmCharacterGuids](WorldPackets::Character::EnumCharactersResult::RegionwideCharacterListEntry const& entry)
+    {
+        std::pair<uint8, uint32> arrangement{ std::numeric_limits<uint8>::max(), 0 };
+        if (!crossRealmCharacterGuids.count(entry.Basic.Guid.GetCounter()))
+            if (auto itr = warbandMemberPlacement.find(entry.Basic.Guid.GetCounter()); itr != warbandMemberPlacement.end())
+                arrangement = itr->second;
+        return arrangement;
+    });
+
+    // slots are per-realm database values and collide in the merged list,
+    // the client expects unique sequential positions in final display order
+    uint16 listPosition = 0;
+    for (WorldPackets::Character::EnumCharactersResult::RegionwideCharacterListEntry& entry : charEnum.RegionwideCharacters)
+        entry.Basic.ListPosition = listPosition++;
+
+    for (WorldPackets::Character::EnumCharactersResult::CharacterInfo& characterInfo : charEnum.Characters)
+        characterInfo.Basic.ListPosition = listPosition++;
 
     for (RaceClassAvailability const& requirement : sObjectMgr->GetRaceClassRequirements())
     {
@@ -587,137 +749,6 @@ void WorldSession::HandleCharEnum(CharacterDatabaseQueryHolder const& holder)
         });
     }
 
-    // warband arrangement: grouped characters first ordered by group and scene placement,
-    // ungrouped characters keep database order after them
-    std::unordered_map<ObjectGuid::LowType, std::pair<uint8, uint32>> warbandMemberPlacement; // charGuid -> (group orderIndex, placement)
-
-    if (!charEnum.IsDeletedCharacters)
-    {
-        EnumCharactersQueryHolder const& enumHolder = static_cast<EnumCharactersQueryHolder const&>(holder);
-
-        // Load existing warband groups from DB
-        std::unordered_map<uint64, WorldPackets::Character::WarbandGroup*> groupsByDbId;
-        if (PreparedQueryResult groupResult = holder.GetPreparedResult(EnumCharactersQueryHolder::WARBAND_GROUPS))
-        {
-            do
-            {
-                Field* fields = groupResult->Fetch();
-                WorldPackets::Character::WarbandGroup& group = charEnum.WarbandGroups.emplace_back();
-                group.GroupID = fields[0].GetUInt64();
-                group.OrderIndex = fields[1].GetUInt8();
-                group.WarbandSceneID = fields[2].GetUInt32();
-                group.Flags = fields[3].GetUInt32();
-                group.ContentSetID = fields[4].GetInt32();
-                group.Name = fields[5].GetString();
-                groupsByDbId[group.GroupID] = &group;
-            } while (groupResult->NextRow());
-        }
-
-        if (PreparedQueryResult memberResult = holder.GetPreparedResult(EnumCharactersQueryHolder::WARBAND_GROUP_MEMBERS))
-        {
-            do
-            {
-                Field* fields = memberResult->Fetch();
-                uint64 groupId = fields[0].GetUInt64();
-                auto it = groupsByDbId.find(groupId);
-                if (it == groupsByDbId.end())
-                    continue;
-
-                WorldPackets::Character::WarbandGroupMember member;
-                // fields[1] is memberIndex - used for ordering, implicit from vector position
-                member.Guid = ObjectGuid::Create<HighGuid::Player>(fields[2].GetUInt64());
-                member.WarbandScenePlacementID = fields[3].GetUInt32();
-                member.Type = fields[4].GetInt32();
-                member.ContentSetID = fields[5].GetInt32();
-                warbandMemberPlacement[fields[2].GetUInt64()] = std::make_pair(it->second->OrderIndex, member.WarbandScenePlacementID);
-                it->second->Members.push_back(member);
-            } while (memberResult->NextRow());
-        }
-
-        // If no warband groups exist and we have characters, create a default group
-        if (charEnum.WarbandGroups.empty() && !charEnum.RegionwideCharacters.empty())
-        {
-            // Use the first available warband scene (ID 1 = default "Campfire" scene)
-            uint32 defaultSceneId = 0;
-            for (WarbandSceneEntry const* scene : sWarbandSceneStore)
-            {
-                defaultSceneId = scene->ID;
-                break;
-            }
-
-            if (defaultSceneId != 0)
-            {
-                WorldPackets::Character::WarbandGroup& defaultGroup = charEnum.WarbandGroups.emplace_back();
-                defaultGroup.GroupID = sObjectMgr->GenerateWarbandGroupId();
-                defaultGroup.OrderIndex = 0;
-                defaultGroup.WarbandSceneID = defaultSceneId;
-                defaultGroup.Flags = 0;
-                defaultGroup.ContentSetID = 0;
-
-                // Get valid placement IDs for this scene (only character slots, type 0)
-                std::vector<uint32> characterPlacementIds;
-                if (std::vector<WarbandScenePlacementEntry const*> const* placements = sDB2Manager.GetWarbandScenePlacements(defaultSceneId))
-                {
-                    for (WarbandScenePlacementEntry const* placement : *placements)
-                    {
-                        if (placement->SlotType == 0) // Character slot
-                            characterPlacementIds.push_back(placement->ID);
-                    }
-                }
-
-                // Assign up to 4 characters (or as many as we have placement slots)
-                uint32 maxMembers = std::min<uint32>(static_cast<uint32>(charEnum.RegionwideCharacters.size()), static_cast<uint32>(characterPlacementIds.size()));
-                for (uint32 i = 0; i < maxMembers; ++i)
-                {
-                    WorldPackets::Character::WarbandGroupMember member;
-                    member.Guid = charEnum.RegionwideCharacters[i].Basic.Guid;
-                    member.WarbandScenePlacementID = characterPlacementIds[i];
-                    member.Type = 0; // Character
-                    member.ContentSetID = 0;
-                    warbandMemberPlacement[member.Guid.GetCounter()] = std::make_pair(defaultGroup.OrderIndex, member.WarbandScenePlacementID);
-                    defaultGroup.Members.push_back(member);
-                }
-
-                // Persist the default group and its members asynchronously
-                CharacterDatabaseTransaction trans = CharacterDatabase.BeginTransaction();
-
-                CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_WARBAND_GROUP);
-                stmt->setUInt64(0, defaultGroup.GroupID);
-                stmt->setUInt32(1, enumHolder.GetBattlenetAccountId());
-                stmt->setUInt8(2, 0); // orderIndex
-                stmt->setUInt32(3, defaultSceneId);
-                stmt->setUInt32(4, 0); // flags
-                stmt->setInt32(5, 0); // contentSetId
-                stmt->setString(6, std::string());
-                trans->Append(stmt);
-
-                for (uint8 memberIdx = 0; memberIdx < defaultGroup.Members.size(); ++memberIdx)
-                {
-                    WorldPackets::Character::WarbandGroupMember const& member = defaultGroup.Members[memberIdx];
-
-                    stmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_WARBAND_GROUP_MEMBER);
-                    stmt->setUInt64(0, defaultGroup.GroupID);
-                    stmt->setUInt8(1, memberIdx);
-                    stmt->setUInt64(2, member.Guid.GetCounter());
-                    stmt->setUInt32(3, member.WarbandScenePlacementID);
-                    stmt->setInt32(4, member.Type);
-                    stmt->setInt32(5, member.ContentSetID);
-                    trans->Append(stmt);
-                }
-
-                CharacterDatabase.CommitTransaction(trans);
-            }
-        }
-    }
-
-    std::ranges::stable_sort(charEnum.RegionwideCharacters, std::less{}, [&warbandMemberPlacement](WorldPackets::Character::EnumCharactersResult::RegionwideCharacterListEntry const& entry)
-    {
-        std::pair<uint8, uint32> arrangement{ std::numeric_limits<uint8>::max(), 0 };
-        if (auto itr = warbandMemberPlacement.find(entry.Basic.Guid.GetCounter()); itr != warbandMemberPlacement.end())
-            arrangement = itr->second;
-        return arrangement;
-    });
-
     SendPacket(charEnum.Write());
     SendAccountDataTimes(ObjectGuid::Empty, GLOBAL_CACHE_MASK);
 
@@ -728,7 +759,8 @@ void WorldSession::HandleCharEnum(CharacterDatabaseQueryHolder const& holder)
         for (WorldPackets::Character::EnumCharactersResult::RegionwideCharacterListEntry const& entry : charEnum.RegionwideCharacters)
             characterGuids.push_back(entry.Basic.Guid);
 
-        SendRegionwideCharacterRestrictionAndMailData(characterGuids);
+        // retail pushes only the restrictions data after the enum, the client asks for mail itself
+        SendRegionwideCharacterRestrictionsData(characterGuids);
     }
 
     if (!charEnum.IsDeletedCharacters)
@@ -741,17 +773,33 @@ void WorldSession::HandleCharEnumOpcode(WorldPackets::Character::EnumCharacters&
     CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_EXPIRED_BANS);
     CharacterDatabase.Execute(stmt);
 
+    // a fresh list request means the previous login attempt was abandoned
+    // (e.g. the client auto-swapped realms mid-login), unstick the pending state
+    m_playerLoading.Clear();
+
+    // sibling realm characters are fetched synchronously - small tables, low request rate
+    std::vector<QueryResult> crossRealmCharacters;
+    std::vector<QueryResult> crossRealmCustomizations;
+    for (CrossRealmSchema const& crossRealm : GetCrossRealmSchemas())
+    {
+        if (QueryResult characters = CharacterDatabase.Query(GetRegionwideCharacterEnumQuery(crossRealm.Schema, crossRealm.HomeRealmId, GetAccountId(), sWorld->getBoolConfig(CONFIG_DECLINED_NAMES_USED)).c_str()))
+            crossRealmCharacters.push_back(std::move(characters));
+
+        if (QueryResult customizations = CharacterDatabase.Query(GetRegionwideCharacterEnumCustomizationsQuery(crossRealm.Schema, GetAccountId()).c_str()))
+            crossRealmCustomizations.push_back(std::move(customizations));
+    }
+
     /// get all the data necessary for loading all characters (along with their pets) on the account
     std::shared_ptr<EnumCharactersQueryHolder> holder = std::make_shared<EnumCharactersQueryHolder>();
-    if (!holder->Initialize(GetAccountId(), GetBattlenetAccountId(), sWorld->getBoolConfig(CONFIG_DECLINED_NAMES_USED), false))
+    if (!holder->Initialize(GetAccountId(), sWorld->getBoolConfig(CONFIG_DECLINED_NAMES_USED), false))
     {
-        HandleCharEnum(*holder);
+        HandleCharEnum(*holder, std::move(crossRealmCharacters), std::move(crossRealmCustomizations));
         return;
     }
 
-    AddQueryHolderCallback(CharacterDatabase.DelayQueryHolder(holder)).AfterComplete([this](SQLQueryHolderBase const& result)
+    AddQueryHolderCallback(CharacterDatabase.DelayQueryHolder(holder)).AfterComplete([this, crossRealmCharacters = std::move(crossRealmCharacters), crossRealmCustomizations = std::move(crossRealmCustomizations)](SQLQueryHolderBase const& result)
     {
-        HandleCharEnum(static_cast<EnumCharactersQueryHolder const&>(result));
+        HandleCharEnum(static_cast<EnumCharactersQueryHolder const&>(result), std::move(crossRealmCharacters), std::move(crossRealmCustomizations));
     });
 }
 
@@ -759,102 +807,57 @@ void WorldSession::HandleCharUndeleteEnumOpcode(WorldPackets::Character::EnumCha
 {
     /// get all the data necessary for loading all undeleted characters (along with their pets) on the account
     std::shared_ptr<EnumCharactersQueryHolder> holder = std::make_shared<EnumCharactersQueryHolder>();
-    if (!holder->Initialize(GetAccountId(), GetBattlenetAccountId(), sWorld->getBoolConfig(CONFIG_DECLINED_NAMES_USED), true))
+    if (!holder->Initialize(GetAccountId(), sWorld->getBoolConfig(CONFIG_DECLINED_NAMES_USED), true))
     {
-        HandleCharEnum(*holder);
+        HandleCharEnum(*holder, {}, {});
         return;
     }
 
     AddQueryHolderCallback(CharacterDatabase.DelayQueryHolder(holder)).AfterComplete([this](SQLQueryHolderBase const& result)
     {
-        HandleCharEnum(static_cast<EnumCharactersQueryHolder const&>(result));
+        HandleCharEnum(static_cast<EnumCharactersQueryHolder const&>(result), {}, {});
     });
 }
 
 void WorldSession::HandleSetupWarbandGroups(WorldPackets::Character::SetupWarbandGroups& setupWarbandGroups)
 {
-    uint32 battlenetAccountId = GetBattlenetAccountId();
+    TC_LOG_DEBUG("network", "CMSG_SETUP_WARBAND_GROUPS: Received {} warband groups from account {}",
+        setupWarbandGroups.Groups.size(), GetAccountId());
 
-    // Validate: max 20 groups (retail 11.1+)
-    if (setupWarbandGroups.Groups.size() > 20)
-    {
-        TC_LOG_ERROR("network", "WorldSession::HandleSetupWarbandGroups: Account {} sent {} groups, max is 20",
-            battlenetAccountId, setupWarbandGroups.Groups.size());
-        return;
-    }
-
-    for (auto const& group : setupWarbandGroups.Groups)
-    {
-        // Validate scene ID
-        if (group.WarbandSceneID != 0 && !sWarbandSceneStore.LookupEntry(group.WarbandSceneID))
-        {
-            TC_LOG_ERROR("network", "WorldSession::HandleSetupWarbandGroups: Account {} sent invalid WarbandSceneID {}",
-                battlenetAccountId, group.WarbandSceneID);
-            return;
-        }
-
-        // Validate member GUIDs
-        for (auto const& member : group.Members)
-        {
-            if (member.Type == 0 && !member.Guid.IsEmpty())
-            {
-                if (_legitCharacters.find(member.Guid) == _legitCharacters.end())
-                {
-                    TC_LOG_ERROR("network", "WorldSession::HandleSetupWarbandGroups: Account {} sent invalid character GUID {}",
-                        battlenetAccountId, member.Guid.ToString());
-                    return;
-                }
-            }
-        }
-
-        // Validate name length
-        if (group.Name.size() > 128)
-        {
-            TC_LOG_ERROR("network", "WorldSession::HandleSetupWarbandGroups: Account {} sent group name too long ({})",
-                battlenetAccountId, group.Name.size());
-            return;
-        }
-    }
-
-    // Delete all existing groups for this account (cascade deletes members)
-    CharacterDatabaseTransaction trans = CharacterDatabase.BeginTransaction();
-
-    CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_WARBAND_GROUPS_BY_ACCOUNT);
-    stmt->setUInt32(0, battlenetAccountId);
+    uint32 accountId = GetAccountId();
+    uint32 realmId = sRealmList->GetCurrentRealmId().Realm;
+    LoginDatabaseTransaction trans = LoginDatabase.BeginTransaction();
+    // the client saves the merged account-wide list, so the previous rows of every realm are replaced
+    LoginDatabasePreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_DEL_ACCOUNT_WARBAND_GROUPS);
+    stmt->setUInt32(0, accountId);
     trans->Append(stmt);
 
-    // Insert new groups and members
     for (auto const& group : setupWarbandGroups.Groups)
     {
-        // Client sends GroupID = 0 for newly created groups - generate a globally unique id server-side
-        uint64 groupId = group.GroupID ? group.GroupID : sObjectMgr->GenerateWarbandGroupId();
-
-        stmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_WARBAND_GROUP);
-        stmt->setUInt64(0, groupId);
-        stmt->setUInt32(1, battlenetAccountId);
-        stmt->setUInt8(2, group.OrderIndex);
-        stmt->setUInt32(3, group.WarbandSceneID);
-        stmt->setUInt32(4, group.Flags);
-        stmt->setInt32(5, group.ContentSetID);
-        stmt->setString(6, group.Name);
+        stmt = LoginDatabase.GetPreparedStatement(LOGIN_INS_ACCOUNT_WARBAND_GROUP);
+        stmt->setUInt64(0, group.GroupID);
+        stmt->setUInt32(1, accountId);
+        stmt->setUInt32(2, realmId);
+        stmt->setUInt8(3, group.OrderIndex);
+        stmt->setString(4, std::string(group.Name));
+        stmt->setUInt32(5, group.WarbandSceneID);
+        stmt->setUInt32(6, group.Flags);
         trans->Append(stmt);
 
-        for (uint8 memberIdx = 0; memberIdx < group.Members.size(); ++memberIdx)
+        for (auto const& member : group.Members)
         {
-            auto const& member = group.Members[memberIdx];
-
-            stmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_WARBAND_GROUP_MEMBER);
-            stmt->setUInt64(0, groupId);
-            stmt->setUInt8(1, memberIdx);
-            stmt->setUInt64(2, member.Guid.GetCounter());
-            stmt->setUInt32(3, member.WarbandScenePlacementID);
-            stmt->setInt32(4, member.Type);
-            stmt->setInt32(5, member.ContentSetID);
+            stmt = LoginDatabase.GetPreparedStatement(LOGIN_INS_ACCOUNT_WARBAND_GROUP_MEMBER);
+            stmt->setUInt32(0, accountId);
+            stmt->setUInt32(1, realmId);
+            stmt->setUInt64(2, group.GroupID);
+            stmt->setUInt64(3, member.Guid.GetCounter());
+            stmt->setUInt32(4, member.WarbandScenePlacementID);
+            stmt->setUInt32(5, member.Type);
             trans->Append(stmt);
         }
     }
 
-    CharacterDatabase.CommitTransaction(trans);
+    LoginDatabase.CommitTransaction(trans);
 }
 
 void WorldSession::HandleGetAccountCharacterList(WorldPackets::Character::GetAccountCharacterList& getAccountCharacterList)
@@ -918,7 +921,7 @@ static std::string GetRegionwideMailSenderName(uint32 messageType, ObjectGuid::L
     return { };
 }
 
-void WorldSession::SendRegionwideCharacterRestrictionAndMailData(GuidVector const& characterGuids)
+void WorldSession::SendRegionwideCharacterRestrictionsData(GuidVector const& characterGuids)
 {
     WorldPackets::Character::RegionwideCharacterRestrictionsData restrictions;
     restrictions.Characters.reserve(characterGuids.size());
@@ -929,17 +932,64 @@ void WorldSession::SendRegionwideCharacterRestrictionAndMailData(GuidVector cons
         // Flags and RestrictionID stay 0 - no trial boost/expansion/catch-up restrictions on this server
     }
     SendPacket(restrictions.Write());
+}
+
+void WorldSession::SendRegionwideCharacterMailData(GuidVector const& characterGuids)
+{
+    // characters homed to sibling realms keep their mail in the sibling schema and their player
+    // senders resolve against the sender's own realm database; local characters are queried
+    // asynchronously through the prepared statement below
+    std::unordered_map<ObjectGuid, std::map<std::pair<uint32, ObjectGuid::LowType>, std::string>> sendersByGuid;
+    uint32 const currentRealmId = sRealmList->GetCurrentRealmId().Realm;
+    int64 const now = GameTime::GetGameTime();
+    std::vector<CrossRealmSchema> const& crossRealmSchemas = GetCrossRealmSchemas();
+    std::unordered_map<uint32, std::vector<ObjectGuid::LowType>> crossRealmReceivers;
+    for (ObjectGuid const& guid : characterGuids)
+        if (guid.GetRealmId() != currentRealmId)
+            crossRealmReceivers[guid.GetRealmId()].push_back(guid.GetCounter());
+
+    for (auto const& [homeRealmId, receivers] : crossRealmReceivers)
+    {
+        auto schemaItr = std::find_if(crossRealmSchemas.begin(), crossRealmSchemas.end(),
+            [homeRealmId](CrossRealmSchema const& crossRealm) { return crossRealm.HomeRealmId == homeRealmId; });
+        if (schemaItr == crossRealmSchemas.end())
+            continue;
+
+        std::string receiverList;
+        for (ObjectGuid::LowType receiver : receivers)
+            receiverList += (receiverList.empty() ? "" : ",") + std::to_string(receiver);
+
+        // mirrors CHAR_SEL_ACCOUNT_UNREAD_MAIL, raw queries cannot bind parameters
+        QueryResult result = CharacterDatabase.Query(Trinity::StringFormat(
+            "SELECT m.receiver, m.messageType, m.sender, (SELECT c.name FROM {}.characters AS c WHERE c.guid = m.sender) "
+            "FROM {}.mail AS m INNER JOIN {}.characters AS rc ON rc.guid = m.receiver "
+            "WHERE rc.account = {} AND rc.deleteInfos_Name IS NULL AND NOT (m.checked & 1) AND m.deliver_time <= {} AND m.expire_time > {}",
+            schemaItr->Schema, schemaItr->Schema, schemaItr->Schema, GetAccountId(), now, now).c_str());
+        if (!result)
+            continue;
+
+        do
+        {
+            Field* fields = result->Fetch();
+            uint32 messageType = fields[1].GetUInt8();
+            ObjectGuid::LowType sender = fields[2].GetUInt64();
+            std::string_view senderName = fields[3].IsNull() ? std::string_view() : fields[3].GetStringView();
+
+            // subType and arg1 are zero for plain player guids
+            ObjectGuid const receiverGuid = ObjectGuidFactory::CreatePlayer(homeRealmId, 0, 0, fields[0].GetUInt64());
+            sendersByGuid[receiverGuid].try_emplace(std::make_pair(messageType, sender),
+                GetRegionwideMailSenderName(messageType, sender, senderName));
+        } while (result->NextRow());
+    }
 
     CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_ACCOUNT_UNREAD_MAIL);
     stmt->setUInt32(0, GetAccountId());
-    stmt->setInt64(1, GameTime::GetGameTime());
-    stmt->setInt64(2, GameTime::GetGameTime());
+    stmt->setInt64(1, now);
+    stmt->setInt64(2, now);
 
     _queryProcessor.AddCallback(CharacterDatabase.AsyncQuery(stmt).WithPreparedCallback(
-        [this, characterGuids](PreparedQueryResult result)
+        [this, characterGuids, sendersByGuid = std::move(sendersByGuid)](PreparedQueryResult result) mutable
     {
-        // receiver -> distinct (messageType, sender) pairs -> display name
-        std::unordered_map<ObjectGuid::LowType, std::map<std::pair<uint32, ObjectGuid::LowType>, std::string>> sendersByReceiver;
         if (result)
         {
             do
@@ -949,7 +999,7 @@ void WorldSession::SendRegionwideCharacterRestrictionAndMailData(GuidVector cons
                 ObjectGuid::LowType sender = fields[2].GetUInt64();
                 std::string_view senderName = fields[3].IsNull() ? std::string_view() : fields[3].GetStringView();
 
-                sendersByReceiver[fields[0].GetUInt64()].try_emplace(std::make_pair(messageType, sender),
+                sendersByGuid[ObjectGuid::Create<HighGuid::Player>(fields[0].GetUInt64())].try_emplace(std::make_pair(messageType, sender),
                     GetRegionwideMailSenderName(messageType, sender, senderName));
             } while (result->NextRow());
         }
@@ -961,8 +1011,9 @@ void WorldSession::SendRegionwideCharacterRestrictionAndMailData(GuidVector cons
             WorldPackets::Character::RegionwideCharacterMailData::MailEntry& entry = mailData.Characters.emplace_back();
             entry.Guid = guid;
 
-            if (auto itr = sendersByReceiver.find(guid.GetCounter()); itr != sendersByReceiver.end())
+            if (auto itr = sendersByGuid.find(guid); itr != sendersByGuid.end())
             {
+                entry.Type = 1;
                 entry.MailSenders.reserve(itr->second.size());
                 entry.MailSenderTypes.reserve(itr->second.size());
                 for (auto const& [key, name] : itr->second)
@@ -982,10 +1033,11 @@ void WorldSession::HandleGetRegionwideCharacterRestrictionAndMailData(WorldPacke
     GuidVector characterGuids;
     characterGuids.reserve(packet.CharacterGuids.size());
     for (ObjectGuid const& guid : packet.CharacterGuids)
-        if (_legitCharacters.find(guid) != _legitCharacters.end())
+        if (_legitCharacters.find(guid) != _legitCharacters.end() || _crossRealmCharacters.count(guid))
             characterGuids.push_back(guid);
 
-    SendRegionwideCharacterRestrictionAndMailData(characterGuids);
+    SendRegionwideCharacterRestrictionsData(characterGuids);
+    SendRegionwideCharacterMailData(characterGuids);
 }
 
 bool WorldSession::MeetsChrCustomizationReq(ChrCustomizationReqEntry const* req, Races race, Classes playerClass,
@@ -1584,7 +1636,7 @@ void WorldSession::HandleCharDeleteOpcode(WorldPackets::Character::CharDelete& c
 
     // refresh the client's regionwide character data now that the list changed
     if (!_legitCharacters.empty())
-        SendRegionwideCharacterRestrictionAndMailData(GuidVector(_legitCharacters.begin(), _legitCharacters.end()));
+        SendRegionwideCharacterRestrictionsData(GuidVector(_legitCharacters.begin(), _legitCharacters.end()));
 }
 
 void WorldSession::HandlePlayerLoginOpcode(WorldPackets::Character::PlayerLogin& playerLogin)
@@ -1602,6 +1654,19 @@ void WorldSession::HandlePlayerLoginOpcode(WorldPackets::Character::PlayerLogin&
 
     if (!IsLegitCharacterForAccount(playerLogin.Guid))
     {
+        // retail cross-realm entry: the character is homed on a sibling realm of the connect
+        // group, redirect the client there - the world entry continues on the home realm
+        ObjectGuid::LowType const lowGuid = playerLogin.Guid.GetCounter();
+        for (CrossRealmSchema const& crossRealm : GetCrossRealmSchemas())
+        {
+            QueryResult result = CharacterDatabase.Query(GetRegionwideCharacterExistsQuery(crossRealm.Schema, GetAccountId(), lowGuid).c_str());
+            if (result)
+            {
+                SendConnectToHomeRealm(crossRealm.HomeRealmId, lowGuid);
+                return;
+            }
+        }
+
         TC_LOG_ERROR("network", "Account ({}) can't login with that character ({}).", GetAccountId(), playerLogin.Guid.ToString());
         KickPlayer("WorldSession::HandlePlayerLoginOpcode Trying to login with a character of another account");
         return;
@@ -1619,6 +1684,11 @@ void WorldSession::HandleContinuePlayerLogin()
     }
 
     std::shared_ptr<LoginQueryHolder> holder = std::make_shared<LoginQueryHolder>(GetAccountId(), GetBattlenetAccountId(), m_playerLoading);
+
+    // the warband bank slot map is account-global while item rows are realm-local, pull items
+    // homed to sibling realms into this realm's database before the login queries read them
+    MigrateAccountBankItems();
+
     if (!holder->Initialize())
     {
         m_playerLoading.Clear();

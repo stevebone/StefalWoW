@@ -825,6 +825,38 @@ void WorldSession::Handle_EarlyProccess(WorldPackets::Null& null)
         , GetOpcodeNameForLogging(null.GetOpcode()), GetPlayerInfo());
 }
 
+namespace
+{
+    void WriteConnectToAddress(WorldPackets::Auth::ConnectTo::ConnectPayload& payload, boost::asio::ip::address const& address)
+    {
+        if (address.is_v4())
+        {
+            memcpy(payload.Address.Address.V4.data(), address.to_v4().to_bytes().data(), 4);
+            payload.Address.Type = WorldPackets::Auth::ConnectTo::IPv4;
+        }
+        else
+        {
+            // client always uses v4 address for loopback and v4 mapped addresses
+            boost::asio::ip::address_v6 v6 = address.to_v6();
+            if (v6.is_loopback())
+            {
+                memcpy(payload.Address.Address.V4.data(), boost::asio::ip::address_v4::loopback().to_bytes().data(), 4);
+                payload.Address.Type = WorldPackets::Auth::ConnectTo::IPv4;
+            }
+            else if (v6.is_v4_mapped())
+            {
+                memcpy(payload.Address.Address.V4.data(), Trinity::Net::make_address_v4(Trinity::Net::v4_mapped, v6).to_bytes().data(), 4);
+                payload.Address.Type = WorldPackets::Auth::ConnectTo::IPv4;
+            }
+            else
+            {
+                memcpy(payload.Address.Address.V6.data(), v6.to_bytes().data(), 16);
+                payload.Address.Type = WorldPackets::Auth::ConnectTo::IPv6;
+            }
+        }
+    }
+}
+
 void WorldSession::SendConnectToInstance(WorldPackets::Auth::ConnectToSerial serial)
 {
     boost::system::error_code ignored_error;
@@ -843,34 +875,58 @@ void WorldSession::SendConnectToInstance(WorldPackets::Auth::ConnectToSerial ser
 
     WorldPackets::Auth::ConnectTo::ConnectPayload& payload = connectTo.Payload.emplace_back();
     payload.Port = sWorld->getIntConfig(CONFIG_PORT_WORLD);
-    if (instanceAddress.is_v4())
-    {
-        memcpy(payload.Address.Address.V4.data(), instanceAddress.to_v4().to_bytes().data(), 4);
-        payload.Address.Type = WorldPackets::Auth::ConnectTo::IPv4;
-    }
-    else
-    {
-        // client always uses v4 address for loopback and v4 mapped addresses
-        boost::asio::ip::address_v6 v6 = instanceAddress.to_v6();
-        if (v6.is_loopback())
-        {
-            memcpy(payload.Address.Address.V4.data(), boost::asio::ip::address_v4::loopback().to_bytes().data(), 4);
-            payload.Address.Type = WorldPackets::Auth::ConnectTo::IPv4;
-        }
-        else if (v6.is_v4_mapped())
-        {
-            memcpy(payload.Address.Address.V4.data(), Trinity::Net::make_address_v4(Trinity::Net::v4_mapped, v6).to_bytes().data(), 4);
-            payload.Address.Type = WorldPackets::Auth::ConnectTo::IPv4;
-        }
-        else
-        {
-            memcpy(payload.Address.Address.V6.data(), v6.to_bytes().data(), 16);
-            payload.Address.Type = WorldPackets::Auth::ConnectTo::IPv6;
-        }
-    }
+    WriteConnectToAddress(payload, instanceAddress);
     connectTo.Con = CONNECTION_TYPE_INSTANCE;
 
     SendPacket(connectTo.Write());
+}
+
+void WorldSession::SendConnectToHomeRealm(uint32 homeRealmId, ObjectGuid::LowType characterGuid)
+{
+    std::shared_ptr<Realm const> homeRealm = sRealmList->GetRealm(Battlenet::RealmHandle(homeRealmId));
+    if (!homeRealm)
+    {
+        KickPlayer("WorldSession::SendConnectToHomeRealm home realm not found");
+        return;
+    }
+
+    WorldSession::ConnectToKey key;
+    key.Fields.AccountId = GetAccountId();
+    // the redirected connection is the instance connection of the new session on the home realm,
+    // the stock instance-connection attach there continues the login (AddInstanceConnection)
+    key.Fields.ConnectionType = CONNECTION_TYPE_INSTANCE;
+    key.Fields.Key = urand(0, 0x7FFFFFFF);
+
+    // one-shot handoff record consumed by the home realm when the client resumes there
+    LoginDatabasePreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_INS_ACCOUNT_REALM_TRANSFER);
+    stmt->setUInt32(0, GetAccountId());
+    stmt->setUInt32(1, key.Fields.Key);
+    stmt->setUInt64(2, characterGuid);
+    stmt->setInt64(3, GameTime::GetGameTime());
+    LoginDatabase.Execute(stmt);
+
+    WorldPackets::Auth::ConnectTo connectTo;
+    connectTo.Key = key.Raw;
+    connectTo.NativeRealmAddress = homeRealm->Id.GetAddress();
+    connectTo.Serial = WorldPackets::Auth::ConnectToSerial::WorldAttempt1;
+
+    WorldPackets::Auth::ConnectTo::ConnectPayload& payload = connectTo.Payload.emplace_back();
+    payload.Port = homeRealm->Port;
+    boost::system::error_code ignored_error;
+    WriteConnectToAddress(payload, homeRealm->GetAddressForClient(Trinity::Net::make_address(GetRemoteAddress(), ignored_error)));
+
+    connectTo.Con = CONNECTION_TYPE_INSTANCE;
+
+    SendPacket(connectTo.Write());
+}
+
+void WorldSession::BeginRealmTransferLogin(ObjectGuid::LowType characterGuid)
+{
+    // the login of the transferred character is continued by AddInstanceConnection once the
+    // redirected connection is attached, m_playerLoading must be armed before that happens
+    _realmTransferCharacterGuid = characterGuid;
+    _legitCharacters.insert(ObjectGuid::Create<HighGuid::Player>(characterGuid));
+    m_playerLoading = ObjectGuid::Create<HighGuid::Player>(characterGuid);
 }
 
 void WorldSession::LoadAccountData(PreparedQueryResult result, uint32 mask)
@@ -889,14 +945,14 @@ void WorldSession::LoadAccountData(PreparedQueryResult result, uint32 mask)
         if (type >= NUM_ACCOUNT_DATA_TYPES)
         {
             TC_LOG_ERROR("misc", "Table `{}` have invalid account data type ({}), ignore.",
-                mask == GLOBAL_CACHE_MASK ? "account_data" : "character_account_data", type);
+                mask == GLOBAL_CACHE_MASK ? "account_data_global" : "character_account_data", type);
             continue;
         }
 
         if ((mask & (1 << type)) == 0)
         {
             TC_LOG_ERROR("misc", "Table `{}` have non appropriate for table account data type ({}), ignore.",
-                mask == GLOBAL_CACHE_MASK ? "account_data" : "character_account_data", type);
+                mask == GLOBAL_CACHE_MASK ? "account_data_global" : "character_account_data", type);
             continue;
         }
 
@@ -910,12 +966,12 @@ void WorldSession::SetAccountData(AccountDataType type, time_t time, std::string
 {
     if ((1 << type) & GLOBAL_CACHE_MASK)
     {
-        CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_REP_ACCOUNT_DATA);
+        LoginDatabasePreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_REP_ACCOUNT_DATA_GLOBAL);
         stmt->setUInt32(0, GetAccountId());
         stmt->setUInt8(1, type);
         stmt->setInt64(2, time);
         stmt->setString(3, data);
-        CharacterDatabase.Execute(stmt);
+        LoginDatabase.Execute(stmt);
     }
     else
     {
@@ -1286,7 +1342,6 @@ class AccountInfoQueryHolderPerRealm : public CharacterDatabaseQueryHolder
 public:
     enum
     {
-        GLOBAL_ACCOUNT_DATA = 0,
         TUTORIALS,
         INSTANCE_TIMES,
 
@@ -1299,11 +1354,7 @@ public:
     {
         bool ok = true;
 
-        CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_ACCOUNT_DATA);
-        stmt->setUInt32(0, accountId);
-        ok = SetPreparedQuery(GLOBAL_ACCOUNT_DATA, stmt) && ok;
-
-        stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_TUTORIALS);
+        CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_TUTORIALS);
         stmt->setUInt32(0, accountId);
         ok = SetPreparedQuery(TUTORIALS, stmt) && ok;
 
@@ -1328,6 +1379,7 @@ public:
         MOUNTS,
         ITEM_APPEARANCES,
         ITEM_FAVORITE_APPEARANCES,
+        GLOBAL_ACCOUNT_DATA,
         TRANSMOG_ILLUSIONS,
         TRANSMOG_OUTFITS,
         WARBAND_SCENES,
@@ -1375,6 +1427,11 @@ public:
         stmt = LoginDatabase.GetPreparedStatement(LOGIN_SEL_BNET_ITEM_FAVORITE_APPEARANCES);
         stmt->setUInt32(0, battlenetAccountId);
         ok = SetPreparedQuery(ITEM_FAVORITE_APPEARANCES, stmt) && ok;
+
+        // global cache types are shared by every realm of the account, so they live in the auth database
+        stmt = LoginDatabase.GetPreparedStatement(LOGIN_SEL_ACCOUNT_DATA_GLOBAL);
+        stmt->setUInt32(0, accountId);
+        ok = SetPreparedQuery(GLOBAL_ACCOUNT_DATA, stmt) && ok;
 
         stmt = LoginDatabase.GetPreparedStatement(LOGIN_SEL_BNET_TRANSMOG_ILLUSIONS);
         stmt->setUInt32(0, battlenetAccountId);
@@ -1441,7 +1498,9 @@ void WorldSession::InitializeSession()
 
 void WorldSession::InitializeSessionCallback(LoginDatabaseQueryHolder const& holder, CharacterDatabaseQueryHolder const& realmHolder)
 {
-    LoadAccountData(realmHolder.GetPreparedResult(AccountInfoQueryHolderPerRealm::GLOBAL_ACCOUNT_DATA), GLOBAL_CACHE_MASK);
+    bool const realmTransfer = _realmTransferCharacterGuid != 0;
+
+    LoadAccountData(holder.GetPreparedResult(AccountInfoQueryHolder::GLOBAL_ACCOUNT_DATA), GLOBAL_CACHE_MASK);
     LoadTutorialsData(realmHolder.GetPreparedResult(AccountInfoQueryHolderPerRealm::TUTORIALS));
     LoadInstanceTimeRestrictions(realmHolder.GetPreparedResult(AccountInfoQueryHolderPerRealm::INSTANCE_TIMES));
     _collectionMgr->LoadAccountToys(holder.GetPreparedResult(AccountInfoQueryHolder::GLOBAL_ACCOUNT_TOYS));
@@ -1453,16 +1512,23 @@ void WorldSession::InitializeSessionCallback(LoginDatabaseQueryHolder const& hol
     _collectionMgr->LoadAccountWarbandScenes(holder.GetPreparedResult(AccountInfoQueryHolder::WARBAND_SCENES));
     LoadPlayerDataAccount(holder.GetPreparedResult(AccountInfoQueryHolder::PLAYER_DATA_ELEMENTS_ACCOUNT), holder.GetPreparedResult(AccountInfoQueryHolder::PLAYER_DATA_FLAGS_ACCOUNT));
 
-    if (!m_inQueue)
-        SendAuthResponse(ERROR_OK, false);
-    else
+    // the auth response re-anchors the client's realm context (VirtualRealms registry, realm name)
+    // on the home realm after a cross-realm handoff, the club layer needs it to bind guild membership
+    if (!realmTransfer && m_inQueue)
         SendAuthWaitQueue(0);
+    else
+        SendAuthResponse(ERROR_OK, false);
+
+    // glue screen packets are meaningless for a resumed session that is already past the glue screen
+    if (!realmTransfer)
+    {
+        SendSetTimeZoneInformation();
+        SendFeatureSystemStatusGlueScreen();
+    }
 
     SetInQueue(false);
     ResetTimeOutTime(false);
 
-    SendSetTimeZoneInformation();
-    SendFeatureSystemStatusGlueScreen();
     SendClientCacheVersion(sWorld->getIntConfig(CONFIG_CLIENTCACHE_VERSION));
     SendAvailableHotfixes();
     SendAccountDataTimes(ObjectGuid::Empty, GLOBAL_CACHE_MASK);
