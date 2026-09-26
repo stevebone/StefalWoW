@@ -4223,9 +4223,11 @@ void Player::DeleteFromDB(ObjectGuid playerguid, uint32 accountId, bool updateRe
 
             // warband group membership lives in the auth database - it cannot ride
             // this character-database transaction
-            LoginDatabasePreparedStatement* loginStmt = LoginDatabase.GetPreparedStatement(LOGIN_DEL_ACCOUNT_WARBAND_MEMBER_BY_GUID);
-            loginStmt->setUInt64(0, guid);
-            LoginDatabase.Execute(loginStmt);
+            loginStmt = LoginDatabase.GetPreparedStatement(LOGIN_DEL_ACCOUNT_WARBAND_MEMBER_BY_GUID);
+            loginStmt->setUInt32(0, accountId);
+            loginStmt->setUInt32(1, playerguid.GetRealmId());
+            loginStmt->setUInt64(2, guid);
+            loginTransaction->Append(loginStmt);
 
             sCharacterCache->DeleteCharacterCacheEntry(playerguid, name);
             break;

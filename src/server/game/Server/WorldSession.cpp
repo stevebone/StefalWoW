@@ -883,7 +883,14 @@ void WorldSession::SendConnectToInstance(WorldPackets::Auth::ConnectToSerial ser
 
 void WorldSession::SendConnectToHomeRealm(uint32 homeRealmId, ObjectGuid::LowType characterGuid)
 {
-    std::shared_ptr<Realm const> homeRealm = sRealmList->GetRealm(Battlenet::RealmHandle(homeRealmId));
+    // RealmHandle(uint32) decodes a packed address, not a bare realmList id - resolve the
+    // realm's full address (region/site/realm) from the registry snapshot first
+    auto registryEntry = std::find_if(GetRealmRegistry().begin(), GetRealmRegistry().end(),
+        [homeRealmId](RealmRegistryEntry const& entry) { return entry.Id == homeRealmId; });
+
+    std::shared_ptr<Realm const> homeRealm = registryEntry != GetRealmRegistry().end()
+        ? sRealmList->GetRealm(Battlenet::RealmHandle(registryEntry->Address))
+        : nullptr;
     if (!homeRealm)
     {
         KickPlayer("WorldSession::SendConnectToHomeRealm home realm not found");
@@ -1519,12 +1526,15 @@ void WorldSession::InitializeSessionCallback(LoginDatabaseQueryHolder const& hol
     else
         SendAuthResponse(ERROR_OK, false);
 
-    // glue screen packets are meaningless for a resumed session that is already past the glue screen
+    // glue screen packets are meaningless for a resumed session that is already past the glue
+    // screen, but the mirror vars carry server-pushed cvars the client still needs
     if (!realmTransfer)
     {
         SendSetTimeZoneInformation();
         SendFeatureSystemStatusGlueScreen();
     }
+    else
+        SendMirrorVars();
 
     SetInQueue(false);
     ResetTimeOutTime(false);

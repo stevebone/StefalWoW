@@ -29,6 +29,21 @@ CREATE TABLE IF NOT EXISTS `account_bank_coinage` (
   PRIMARY KEY (`battlenetAccountId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- migrate existing per-realm bank data before dropping the old tables - the item
+-- rows stay in this realm's characters database, so sourceRealm = this realm's id
+-- (edit the schema name / realm id if this is not `characters` / realm 1)
+INSERT INTO `account_bank_tab_settings` (battlenetAccountId, tabId, name, icon, description, depositFlags)
+  SELECT battlenetAccountId, tabId, name, icon, description, depositFlags
+  FROM `characters`.`account_bank_tab_settings`;
+
+INSERT INTO `account_bank_item` (battlenetAccountId, bag, slot, item, sourceRealm)
+  SELECT battlenetAccountId, bag, slot, item, 1
+  FROM `characters`.`account_bank_item`;
+
+INSERT INTO `account_bank_coinage` (battlenetAccountId, coinage)
+  SELECT battlenetAccountId, coinage
+  FROM `characters`.`account_bank_coinage`;
+
 -- drop the obsolete per-realm bank tables (edit schema name if the characters
 -- database is not named `characters`; repeat for each sibling characters schema)
 DROP TABLE IF EXISTS `characters`.`account_bank_item`;

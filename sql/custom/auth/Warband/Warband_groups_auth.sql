@@ -1,7 +1,11 @@
 -- Warband account tables (auth database).
 -- Ported from RolePlay_master: group ids are scoped to the game account - the client
--- picks new ids counting from the highest id it was sent. realmId is provenance only
--- (the realm that created the row); groups are region-wide and shared by all realms.
+-- picks new ids counting from the highest id it was sent; groups are region-wide and
+-- shared by all realms.
+-- realmId semantics differ per table: on groups it is provenance only (the realm that
+-- created the row); on members it is the member character's HOME realm - character
+-- guid counters collide across realms, so the home realm is needed to rebuild the
+-- full guid on the wire.
 
 DROP TABLE IF EXISTS `account_warband_group_members`;
 DROP TABLE IF EXISTS `account_warband_groups`;

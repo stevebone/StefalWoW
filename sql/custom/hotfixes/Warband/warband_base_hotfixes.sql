@@ -128,5 +128,3 @@ CREATE TABLE `global_strings_locale` (
   PRIMARY KEY (`ID`,`locale`,`VerifiedBuild`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- "Favorites" default warband group name (id 0 tag is empty)
-INSERT IGNORE INTO `global_strings` (`ID`, `BaseTag`, `TagText`, `VerifiedBuild`) VALUES (0, '', '', 0);

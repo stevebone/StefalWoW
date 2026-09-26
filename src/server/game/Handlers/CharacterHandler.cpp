@@ -531,9 +531,10 @@ void WorldSession::HandleCharEnum(CharacterDatabaseQueryHolder const& holder, st
                         continue;
 
                     WorldPackets::Character::WarbandGroupMember member;
-                    member.Guid = ObjectGuid::Create<HighGuid::Player>(characterGuid);
-                    member.WarbandScenePlacementID = fields[2].GetUInt32();
-                    member.Type = fields[3].GetUInt32();
+                    // realmId holds the member character's home realm, not the writer's
+                    member.Guid = ObjectGuidFactory::CreatePlayer(fields[2].GetUInt32(), 0, 0, characterGuid);
+                    member.WarbandScenePlacementID = fields[3].GetUInt32();
+                    member.Type = fields[4].GetUInt32();
                     group->Members.push_back(member);
                 }
             } while (membersResult->NextRow());
@@ -822,6 +823,20 @@ void WorldSession::HandleSetupWarbandGroups(WorldPackets::Character::SetupWarban
 
     for (auto const& group : setupWarbandGroups.Groups)
     {
+        if (group.Name.size() > 256) // account_warband_groups.name is varchar(257)
+        {
+            TC_LOG_ERROR("network", "WorldSession::HandleSetupWarbandGroups: account {} sent group name too long ({}), skipping group",
+                accountId, group.Name.size());
+            continue;
+        }
+
+        if (group.WarbandSceneID != 0 && !sWarbandSceneStore.LookupEntry(group.WarbandSceneID))
+        {
+            TC_LOG_ERROR("network", "WorldSession::HandleSetupWarbandGroups: account {} sent invalid WarbandSceneID {}, skipping group",
+                accountId, group.WarbandSceneID);
+            continue;
+        }
+
         stmt = LoginDatabase.GetPreparedStatement(LOGIN_INS_ACCOUNT_WARBAND_GROUP);
         stmt->setUInt64(0, group.GroupID);
         stmt->setUInt32(1, accountId);
@@ -839,9 +854,18 @@ void WorldSession::HandleSetupWarbandGroups(WorldPackets::Character::SetupWarban
             if (member.Type != 0)
                 continue;
 
+            if (!_legitCharacters.count(member.Guid) && !_crossRealmCharacters.count(member.Guid))
+            {
+                TC_LOG_ERROR("network", "WorldSession::HandleSetupWarbandGroups: account {} sent unowned character guid {} in group {}, skipping member",
+                    accountId, member.Guid.ToString(), group.GroupID);
+                continue;
+            }
+
             stmt = LoginDatabase.GetPreparedStatement(LOGIN_INS_ACCOUNT_WARBAND_GROUP_MEMBER);
             stmt->setUInt32(0, accountId);
-            stmt->setUInt32(1, realmId);
+            // realmId records the member character's home realm (embedded in the guid),
+            // not the realm that wrote this row
+            stmt->setUInt32(1, member.Guid.GetRealmId());
             stmt->setUInt64(2, group.GroupID);
             stmt->setUInt64(3, member.Guid.GetCounter());
             stmt->setUInt32(4, member.WarbandScenePlacementID);

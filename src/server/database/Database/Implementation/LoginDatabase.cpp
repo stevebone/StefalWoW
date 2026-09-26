@@ -207,9 +207,9 @@ void LoginDatabaseConnection::DoPrepareStatements()
     PrepareStatement(LOGIN_INS_ACCOUNT_WARBAND_GROUP_DEFAULT, "INSERT INTO account_warband_groups (id, accountId, realmId, orderIndex, name, warbandSceneId, flags) VALUES (1, ?, ?, 0, ?, 1, 1) "
         "ON DUPLICATE KEY UPDATE id = id", CONNECTION_ASYNC);
     PrepareStatement(LOGIN_DEL_ACCOUNT_WARBAND_GROUPS, "DELETE FROM account_warband_groups WHERE accountId = ?", CONNECTION_ASYNC);
-    PrepareStatement(LOGIN_SEL_ACCOUNT_WARBAND_GROUP_MEMBERS, "SELECT groupId, characterGuid, placementId, type FROM account_warband_group_members WHERE accountId = ?", CONNECTION_SYNCH);
+    PrepareStatement(LOGIN_SEL_ACCOUNT_WARBAND_GROUP_MEMBERS, "SELECT groupId, characterGuid, realmId, placementId, type FROM account_warband_group_members WHERE accountId = ?", CONNECTION_SYNCH);
     PrepareStatement(LOGIN_INS_ACCOUNT_WARBAND_GROUP_MEMBER, "INSERT INTO account_warband_group_members (accountId, realmId, groupId, characterGuid, placementId, type) VALUES (?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC);
-    PrepareStatement(LOGIN_DEL_ACCOUNT_WARBAND_MEMBER_BY_GUID, "DELETE FROM account_warband_group_members WHERE accountId = ? AND characterGuid = ?", CONNECTION_ASYNC);
+    PrepareStatement(LOGIN_DEL_ACCOUNT_WARBAND_MEMBER_BY_GUID, "DELETE FROM account_warband_group_members WHERE accountId = ? AND realmId = ? AND characterGuid = ?", CONNECTION_ASYNC);
 
     PrepareStatement(LOGIN_SEL_BNET_PLAYER_DATA_ELEMENTS_ACCOUNT, "SELECT playerDataElementAccountId, floatValue, int64Value FROM battlenet_account_player_data_element WHERE battlenetAccountId = ?", CONNECTION_ASYNC);
     PrepareStatement(LOGIN_DEL_BNET_PLAYER_DATA_ELEMENTS_ACCOUNT, "DELETE FROM battlenet_account_player_data_element WHERE battlenetAccountId = ? AND playerDataElementAccountId = ?", CONNECTION_ASYNC);

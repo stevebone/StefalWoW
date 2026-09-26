@@ -448,6 +448,10 @@ void WorldSession::SendShowBank(ObjectGuid guid, PlayerInteractionType interacti
 // realm's database and the slot map is re-pointed here.
 void WorldSession::MigrateAccountBankItems()
 {
+    // without sibling schemas every banked item is homed here - nothing can need migrating
+    if (GetCrossRealmSchemas().empty())
+        return;
+
     uint32 const battlenetAccountId = GetBattlenetAccountId();
     if (!battlenetAccountId)
         return;
