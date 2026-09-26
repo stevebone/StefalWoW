@@ -1428,7 +1428,3 @@ namespace WorldPackets
 }
 
 #endif // TRINITYCORE_GUILDPACKETS_H
-    }
-}
-
-#endif // TRINITYCORE_GUILDPACKETS_H

@@ -1121,8 +1121,8 @@ InventoryResult Guild::BankMoveItemData::CanStore(Item* pItem, bool swap)
 // Guild
 Guild::Guild():
     m_id(UI64LIT(0)),
-    m_leaderGuid(),
     m_flags(0),
+    m_leaderGuid(),
     m_createdDate(0),
     m_accountsNumber(0),
     m_bankMoney(0),
