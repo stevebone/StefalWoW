@@ -26,6 +26,7 @@
 #include "CharacterPackets.h"
 #include "ChatPackets.h"
 #include "ClientConfigPackets.h"
+#include "ClubStreamHistoryMgr.h"
 #include "Containers.h"
 #include "DatabaseEnv.h"
 #include "DB2Stores.h"
@@ -658,6 +659,10 @@ void WorldSession::LogoutPlayer(bool save)
 
         ///- Leave all channels before player delete...
         _player->CleanupChannels();
+
+        // Drop the player's live club stream subscription/focus state; it is re-established on the
+        // next login by the club subscribe RPCs.
+        sClubStreamHistoryMgr->ClearSessionState(_player->GetGUID());
 
         ///- If the player is in a group (or invited), remove him. If the group if then only 1 person, disband the group.
         _player->UninviteFromGroup();
