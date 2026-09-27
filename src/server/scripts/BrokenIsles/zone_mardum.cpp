@@ -1649,8 +1649,10 @@ public:
     {
         if (newStatus == QUEST_STATUS_NONE)
         {
-            player->RemoveActiveQuest(QUEST_SEVIS_SACRIFICE_TRACKER, false);
-            player->RemoveRewardedQuest(QUEST_SEVIS_SACRIFICE_TRACKER);
+            // We need this tracking quest for later visibility
+            // Not sure why this is removed
+            //player->RemoveActiveQuest(QUEST_SEVIS_SACRIFICE_TRACKER, false);
+            //player->RemoveRewardedQuest(QUEST_SEVIS_SACRIFICE_TRACKER);
         }
     }
 };
@@ -1771,7 +1773,7 @@ struct npc_jayce_darkweaver_cryptic_hollow : public ScriptedAI
     {
         if (menuId == GOSSIP_MENU_USE_SPECTRAL_SIGHT && gossipListId == GOSSIP_OPTION_USE_SPECTRAL_SIGHT)
         {
-            Talk(SAY_JAYCE_USE_SPECTRAL_SIGHT);
+            Talk(SAY_JAYCE_USE_SPECTRAL_SIGHT, player);
             player->KilledMonsterCredit(KILLCREDIT_SPEAK_WITH_JAYCE);
             player->CastSpell(player, SPELL_GIVE_ME_SIGHT_PERIODIC_AURA);
             player->CastSpell(player, SPELL_GIVE_ME_SIGHT_PERIODIC_DUMMY);
@@ -1963,7 +1965,7 @@ CreatureAI* BasicHiddenNoMoreAISelector(Creature* creature)
 {
     if (creature->IsPrivateObject())
         return new npc_basic_hidden_no_more_private(creature);
-    return new NullCreatureAI(creature);
+    return nullptr; // defer to normal AI selection
 }
 
 // 101787 - Demon Hunter
@@ -2010,7 +2012,7 @@ CreatureAI* DemonHunterHiddenNoMoreAISelector(Creature* creature)
 {
     if (creature->IsPrivateObject())
         return new npc_demon_hunter_hidden_no_more_private(creature);
-    return new NullCreatureAI(creature);
+    return nullptr; // defer to normal AI selection
 }
 
 enum FelLordCazaData
@@ -2049,12 +2051,16 @@ struct npc_fel_lord_caza_cryptic_hollow : public ScriptedAI
 {
     npc_fel_lord_caza_cryptic_hollow(Creature* creature) : ScriptedAI(creature) { }
 
-    void JustEngagedWith(Unit* /*who*/) override
+    void JustEngagedWith(Unit* who) override
     {
         Talk(SAY_FEL_LORD_CAZA_AGGRO);
         _events.ScheduleEvent(EVENT_CAZA_SWEEPING_SLASH, 6s);
         _events.ScheduleEvent(EVENT_CAZA_FEL_INFUSION, 11s);
         _events.ScheduleEvent(EVENT_CAZA_THROW_AXE_JUMP, 23s);
+
+        if (Player* player = who->ToPlayer())
+            if (player->IsActiveQuest(39495)) // Hidden No More
+                player->CastSpell(player, 191668); // Summon Coilskar guardian
     }
 
     void Reset() override

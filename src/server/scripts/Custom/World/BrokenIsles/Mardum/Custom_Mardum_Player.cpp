@@ -20,6 +20,8 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "Conversation.h"
+#include "EventProcessor.h"
 #include "ObjectMgr.h"
 #include "Player.h"
 #include "QuestDef.h"
@@ -87,6 +89,52 @@ namespace Scripts::Custom::Mardum
                 player->CastSpell(player, Spells::SummonCoilskarSeaCaller, CastSpellExtraArgs(TRIGGERED_FULL_MASK));
         }
     };
+
+    // 38727/38819/38725 - Illidari assault quests; 569 - Illidari Foothold
+    // Once all three are taken, the last accept schedules the briefing conversation.
+    static bool IsAssaultQuest(uint32 questId)
+    {
+        return questId == Quests::StopTheBombardment
+            || questId == Quests::TheirNumbersAreLegion
+            || questId == Quests::IntoTheFoulCreche;
+    }
+
+    // "Taken" = in the quest log (not abandoned).
+    static bool AllAssaultQuestsTaken(Player* player)
+    {
+        for (uint32 questId : { Quests::StopTheBombardment, Quests::TheirNumbersAreLegion, Quests::IntoTheFoulCreche })
+        {
+            QuestStatus status = player->GetQuestStatus(questId);
+            if (status == QUEST_STATUS_NONE)
+                return false;
+        }
+        return true;
+    }
+
+    class player_mardum_illidari_foothold : public PlayerScript
+    {
+    public:
+        player_mardum_illidari_foothold() : PlayerScript("player_mardum_illidari_foothold") { }
+
+        void OnQuestStatusChange(Player* player, uint32 questId) override
+        {
+            // Only a fresh accept/re-accept of an assault quest can complete the set;
+            // this also fires on other status changes so both conditions are checked.
+            if (!IsAssaultQuest(questId) || player->GetQuestStatus(questId) != QUEST_STATUS_INCOMPLETE)
+                return;
+
+            if (!AllAssaultQuestsTaken(player))
+                return;
+
+            // Scheduled on the player's EventProcessor so it is dropped on logout;
+            // the in-log re-check cancels it if a quest is abandoned in the window.
+            player->m_Events.AddEventAtOffset([player]()
+            {
+                if (AllAssaultQuestsTaken(player))
+                    Conversation::CreateConversation(Conversations::IllidariFoothold, player, *player, player->GetGUID(), nullptr);
+            }, 30s);
+        }
+    };
 }
 
 void AddSC_custom_mardum_player()
@@ -95,4 +143,5 @@ void AddSC_custom_mardum_player()
 
     new player_mardum_assault_bonus_objective();
     new player_mardum_coilskar_forces();
+    new player_mardum_illidari_foothold();
 }

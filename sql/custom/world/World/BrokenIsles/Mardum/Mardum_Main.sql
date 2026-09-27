@@ -10,6 +10,9 @@
 -- NPC: 98486 Wrath Warrior
 -- NPC: 95226 Anguish Jailer
 -- NPC: 94654 Doomguard Eradicator
+-- NPC: 96276 Legion Razorwing
+-- NPC: 97034 Fury Champion
+-- NPC: 96494 Felguard Butcher
 
 -- NPC: 97142 Fel Spreader
 -- NPC: 93011 Kayn Sunfury <Illidari>
@@ -17,6 +20,7 @@
 -- NPC: 96884 Coilskar Sea-Caller <Servant of Illidan>
 -- NPC: 93759 Jace Darkweaver <Illidari>
 -- NPC: 100161 Legion Devastator
+-- NPC: 96499 Jace Darkweaver (Cryptic Hollow Cave)
 
 -- Quest: 39279 Assault On Mardum (Bonus Objectives)
 -- Quest: 38759 Set Them Free
@@ -25,6 +29,8 @@
 -- Quest: 39050 Meeting With the Queen
 -- Quest: 38766 Before we're overrun
 -- Quest: 38765 Enter the Illidari: Shivarra
+-- Quest: 39262 Give Me Sight Beyond Sight
+-- Quest: 39495 Hidden No More
 
 -- Spell: 191827 Destroying Fel Spreader (spell click)
 -- Spell: 199617 Assault on Mardum: Fel Spreader Fel Explosion
@@ -109,6 +115,33 @@ INSERT  INTO `conversation_actors` (`ConversationId`, `ConversationActorId`, `Id
 (558, 49825, 0, 93221, 65308, 0, 0, 69875),
 (583, 49825, 0, 93221, 65308, 0, 0, 69875);
 
+-- =========================
+DELETE FROM `conversation_template` WHERE `Id` IN (569);
+INSERT INTO `conversation_template` (`Id`, `FirstLineId`, `VerifiedBuild`) VALUES
+(569, 1476, 69875);
+
+DELETE FROM `conversation_line_template` WHERE `Id` IN (1476,1477,1478,1479,1480,1481,1736,1737,1738,1739,1828);
+INSERT INTO `conversation_line_template` (`Id`, `UiCameraID`, `ActorIdx`, `VerifiedBuild`) VALUES
+(1476, 262, 0, 69875),
+(1477, 262, 0, 69875),
+(1478, 100, 1, 69875),
+(1479, 262, 0, 69875),
+(1480, 262, 0, 69875),
+(1481, 100, 1, 69875),
+(1736, 119, 2, 69875),
+(1737, 140, 3, 69875),
+(1738, 265, 4, 69875),
+(1739, 118, 2, 69875),
+(1828, 118, 2, 69875);
+
+DELETE FROM `conversation_actors` WHERE `ConversationId` IN (569);
+INSERT  INTO `conversation_actors` (`ConversationId`, `ConversationActorId`, `Idx`, `CreatureId`, `CreatureDisplayInfoId`, `NoActorObject`, `ActivePlayerObject`, `VerifiedBuild`) VALUES
+(569, 49935, 0, 93802, 65935, 0, 0, 69875),
+(569, 49160, 1, 96420, 63986, 0, 0, 69875),
+(569, 47908, 2, 93127, 61698, 0, 0, 69875),
+(569, 49496, 3, 97676, 60790, 0, 0, 69875),
+(569, 49948, 4, 97425, 64013, 0, 0, 69875);
+
 -- ========================= Fixes for the Invasion Begins
 -- Scene: 1116 The Invasion Begins (banner planted) -> Kayn Sunfury (98229) dialogue on complete
 UPDATE `scene_template` SET `ScriptName` = 'scene_the_invasion_begins_banner_planted' WHERE `SceneId` = 1116;
@@ -154,14 +187,31 @@ DELETE FROM `smart_scripts` WHERE `entryorguid` = 93221 AND `source_type` = 0;
 UPDATE creature_template SET ScriptName='' WHERE entry=96159;
 
 -- Floating flag
-UPDATE `creature_template_difficulty` SET `StaticFlags1` = `StaticFlags1` | 0x20000000 WHERE `Entry` IN (94744);
+UPDATE `creature_template_difficulty` SET `StaticFlags1` = `StaticFlags1` | 0x20000000 WHERE `Entry` IN (94744,96276);
 
 -- SAI
-UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (98484,98486,98497,98482,95226,93112,93716,94654);
-DELETE FROM smart_scripts WHERE entryorguid IN (98484,98486,98497,98482,95226,93112,93716,94654) AND source_type = 0;
+UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (98484,98486,98497,98482,95226,93112,93716,94654,97034,102726,96494,102724);
+DELETE FROM smart_scripts WHERE entryorguid IN (98484,98486,98497,98482,95226,93112,93716,94654,97034,102726,96494,102724) AND source_type = 0;
 INSERT INTO smart_scripts (entryorguid, source_type, id, link, Difficulties, event_type, event_phase_mask, event_chance, event_flags, event_param1, event_param2, event_param3, event_param4, event_param5, event_param_string, action_type, action_param1, action_param2, action_param3, action_param4, action_param5, action_param6, action_param7, action_param_string, target_type, target_param1, target_param2, target_param3, target_param4, target_param_string, target_x, target_y, target_z, target_o, comment) VALUES
-(93112, 0, 0, 0, '', 0, 0, 100, 1, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Felguard Sentry - In Combat - Talk (No Repeat)'),
-(93112, 0, 2, 0, '', 0, 0, 100, 0, 5000, 8000, 12000, 15000, 0, '', 11, 200570, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Felguard Sentry - In Combat - Cast ''Blazing Blade'''),
+(102724, 0, 0, 0, '', 4, 0, 100, 1, 0, 0, 1000, 1000, 0, '', 1, 0, 5000, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Vile Soulmaster - In Combat - Say Line 0 (No Repeat)'),
+(102724, 0, 1, 0, '', 0, 0, 100, 0, 5000, 8000, 12000, 15000, 0, '', 11, 200674, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Vile Soulmaster - In Combat - Cast ''Corrupt Soul'''),
+(102724, 0, 2, 0, '', 2, 0, 100, 0, 0, 40, 22000, 25000, 0, '', 11, 200689, 2, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Vile Soulmaster - Between 0-40% Health - Cast ''Shattered Visage'''),
+(102724, 0, 3, 0, '', 6, 0, 100, 0, 0, 0, 0, 0, 0, '', 1, 1, 5000, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Vile Soulmaster - On Just Died - Say Line 1'),
+
+
+(96494, 0, 0, 0, '', 4, 0, 30, 1, 0, 0, 1000, 1000, 0, '', 1, 0, 5000, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Felguard Butcher - In Combat - Say Line 0 (No Repeat)'),
+(96494, 0, 1, 0, '', 0, 0, 100, 0, 5000, 8000, 12000, 15000, 0, '', 11, 200647, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Felguard Butcher - In Combat - Cast ''Shadow Blade'''),
+(96494, 0, 2, 0, '', 2, 0, 100, 1, 0, 30, 1000, 1000, 0, '', 11, 200632, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Felguard Butcher - Between 0-30% Health - Cast ''Dark Rage'' (No Repeat)'),
+
+(102726, 0, 0, 0, '', 4, 0, 30, 1, 0, 0, 1000, 1000, 0, '', 1, 0, 5000, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Eredar Sorcerer - In Combat - Say Line 0 (No Repeat)'),
+(102726, 0, 1, 0, '', 0, 0, 100, 0, 5000, 8000, 17000, 20000, 0, '', 11, 200615, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Eredar Sorcerer - In Combat - Cast ''Fel Resonance'''),
+(102726, 0, 2, 0, '', 0, 0, 100, 0, 0, 0, 3000, 3000, 0, '', 11, 200582, 64, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Eredar Sorcerer - In Combat - Cast ''Fel Blast'''),
+
+(97034, 0, 0, 0, '', 4, 0, 30, 1, 0, 0, 1000, 1000, 0, '', 1, 0, 5000, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Fury Champion- On Aggro - Say Line 0 (No Repeat)'),
+(97034, 0, 1, 0, '', 0, 0, 100, 0, 5000, 8000, 12000, 15000, 0, '', 11, 200753, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Fury Champion - In Combat - Cast ''Furious Flurry'''),
+
+(93112, 0, 0, 0, '', 0, 0, 30, 1, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Felguard Sentry - In Combat - Talk (No Repeat)'),
+(93112, 0, 1, 0, '', 0, 0, 100, 0, 5000, 8000, 12000, 15000, 0, '', 11, 200570, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Felguard Sentry - In Combat - Cast ''Blazing Blade'''),
 
 (94654, 0, 0, 0, '', 4, 0, 100, 0, 0, 0, 0, 0, 0, '', 11, 200608, 0, 0, 0, 0, 0, 0, '', 7, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Doomguard Eradicator - On Aggro - Cast ''Shadowflame'''),
 (94654, 0, 1, 0, '', 4, 0, 30, 1, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Doomguard Eradicator - On Aggro - Talk (No Repeat)'),
@@ -337,6 +387,35 @@ INSERT INTO `spell_target_position` (`ID`, `EffectIndex`, `OrderIndex`, `MapID`,
 UPDATE `creature_template` SET `ScriptName` = 'npc_legion_devastator', `AIName` = '' WHERE `entry` = 100161;
 DELETE FROM `smart_scripts` WHERE `entryorguid` = 100161 AND `source_type` = 0;
 
-DELETE FROM `areatrigger_create_properties` WHERE `Id` = 4920 AND `IsCustom` = 0;
+DELETE FROM `areatrigger_create_properties` WHERE `Id` IN (4920,5648,5659,5668) AND `IsCustom` = 0;
 INSERT INTO `areatrigger_create_properties` VALUES
-(4920, 0, 9637, 0, 16, 0, 0, 0, 0, -1, 0, 0, NULL, 0, 0, 1, 0, 0, 5, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL, '', 69814);
+(4920, 0, 9637, 0, 16, 0, 0, 0, 0, -1, 0, 0, NULL, 0, 0, 1, 0, 0, 5, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL, '', 69814),
+(5648, 0, 10356, 0, 0, 0, 0, 0, 0, -1, 0, 0, NULL, 0, 15000, 1, 0, 4, 4, 4, 4, 4, 0.3, 0.3, 0, 0, 0, 0, 0, NULL, NULL, NULL, '', 69814),
+(5659, 0, 10366, 0, 0, 0, 0, 0, 0, -1, 0, 0, NULL, 0, 10000, 1, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL, '', 69814),
+(5668, 0, 10375, 0, 0, 0, 0, 0, 0, -1, 0, 0, NULL, 0, 3000, 1, 0, 0, 3.5, 3.5, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL, '', 69814);
+
+
+-- smart_scripts (creature entry 93127, id Y = 5)
+SET @ENTRY := 93127, @ID := 5;
+
+DELETE FROM `smart_scripts` WHERE `entryorguid`=@ENTRY AND `source_type`=0 AND `id`=@ID;
+INSERT INTO `smart_scripts` (`entryorguid`,`source_type`,`id`,`link`,`event_type`,`event_phase_mask`,`event_chance`,`event_flags`,`event_param1`,`event_param2`,`event_param3`,`event_param4`,`event_param5`,`action_type`,`action_param1`,`action_param2`,`action_param3`,`target_type`,`target_param1`,`comment`) VALUES
+(@ENTRY, 0, @ID, 0, 10, 0, 100, 1, 1, 100, 0, 0, 1, 1, 2, 0, 1, 7, 0, 'NPC - OOC LOS (quest 38765 complete) - Talk 2 to invoker');
+
+-- condition on the invoker: quest 38765 status = complete
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId`=22 AND `SourceGroup`=@ID+1 AND `SourceEntry`=@ENTRY AND `SourceId`=0;
+INSERT INTO `conditions` (`SourceTypeOrReferenceId`,`SourceGroup`,`SourceEntry`,`SourceId`,`ElseGroup`,`ConditionTypeOrReference`,`ConditionTarget`,`ConditionValue1`,`ConditionValue2`,`Comment`) VALUES
+(22, @ID+1, @ENTRY, 0, 0, 47, 0, 38765, 2, 'Invoker has quest 38765 complete');
+
+-- smart_scripts (creature entry 96499, id Y = 0)
+SET @ENTRY := 96499, @ID := 0;
+
+UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` = @ENTRY;
+DELETE FROM `smart_scripts` WHERE `entryorguid`=@ENTRY AND `source_type`=0 AND `id`=@ID;
+INSERT INTO `smart_scripts` (`entryorguid`,`source_type`,`id`,`link`,`event_type`,`event_phase_mask`,`event_chance`,`event_flags`,`event_param1`,`event_param2`,`event_param3`,`event_param4`,`event_param5`,`action_type`,`action_param1`,`action_param2`,`action_param3`,`target_type`,`target_param1`,`comment`) VALUES
+(@ENTRY, 0, @ID, 0, 10, 0, 100, 1, 1, 20, 0, 0, 1, 1, 0, 0, 1, 7, 0, 'NPC - OOC LOS (quest 39495 incomplete) - Talk 0 to invoker');
+
+-- condition on the invoker: quest 39495 status = incomplete
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId`=22 AND `SourceGroup`=@ID+1 AND `SourceEntry`=@ENTRY AND `SourceId`=0;
+INSERT INTO `conditions` (`SourceTypeOrReferenceId`,`SourceGroup`,`SourceEntry`,`SourceId`,`ElseGroup`,`ConditionTypeOrReference`,`ConditionTarget`,`ConditionValue1`,`ConditionValue2`,`Comment`) VALUES
+(22, @ID+1, @ENTRY, 0, 0, 47, 0, 39495, 8, 'Invoker has quest 39495 complete');

@@ -80,6 +80,9 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 MeetingWithTheQueen      = 39050;
         static constexpr uint32 BeforeWereOverun         = 38766;
         static constexpr uint32 SevisSacrificeTracker    = 40087;
+        static constexpr uint32 StopTheBombardment       = 38727;
+        static constexpr uint32 TheirNumbersAreLegion    = 38819;
+        static constexpr uint32 IntoTheFoulCreche        = 38725;
     }
 
     namespace Objectives
@@ -116,6 +119,7 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 LegionCommunicatorReport2  = 583;
         static constexpr uint32 DoomCommanderBeliash       = 531;
         static constexpr uint32 FelBombardments            = 747;
+        static constexpr uint32 IllidariFoothold           = 569;
     }
 
     namespace CreatureText

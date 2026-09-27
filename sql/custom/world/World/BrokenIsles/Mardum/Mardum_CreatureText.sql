@@ -1,7 +1,23 @@
 -- Mardum Creature Text
-DELETE FROM `creature_text` WHERE `creatureID` IN (98484,98486,98497,98460,95226,93112,96884,93759,94654,93221,95048,93716);
+DELETE FROM `creature_text` WHERE `creatureID` IN (98484,98486,98497,98460,95226,93112,96884,93759,94654,93221,95048,93716,97034,96494,102726,96499,
+102724);
 DELETE FROM `creature_text` WHERE `creatureID` IN (98229) AND `GroupID` IN (2,3);
+DELETE FROM `creature_text` WHERE `creatureID` IN (93127) AND `GroupID` IN (2);
 INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `BroadcastTextId`, `TextRange`, `comment`) VALUES
+(102724, 0, 0, 'Kill the Illidari', 12, 0, 100, 0, 0, 56992, 96720, 0, 'Vile Soulmaster to Player'),
+(102724, 0, 1, 'Your soul will be ours.', 12, 0, 100, 0, 0, 57001, 99614, 0, 'Vile Soulmaster to Player'),
+(102724, 0, 2, 'Kill them before they can get up to the Fel Hammer.', 12, 0, 100, 0, 0, 57002, 99615, 0, 'Vile Soulmaster to Player'),
+(102724, 0, 3, 'Defend the Soul Engine.', 12, 0, 100, 0, 0, 57003, 99616, 0, 'Vile Soulmaster to Player'),
+(102724, 0, 4, 'Your death will be swift and unmerciful.', 12, 0, 100, 0, 0, 57004, 102121, 0, 'Vile Soulmaster to Player'),
+(102724, 0, 5, 'Your world will be purged!', 12, 0, 100, 0, 0, 56994, 96722, 0, 'Vile Soulmaster to Player'),
+(102724, 1, 0, 'In Sargeras''s name.', 12, 0, 100, 0, 0, 56997, 96725, 0, 'Vile Soulmaster to Player'),
+
+(96499, 0, 0, 'The fel lord is just ahead.', 12, 0, 100, 0, 0, 55237, 98272, 0, 'Jace Darkweaver to Player'),
+
+(102726, 0, 0, 'They have the spectral sight!', 12, 0, 100, 0, 0, 56999, 98223, 0, 'Eredar Sorcerer to Jace Darkweaver'),
+
+(93127, 2, 0, '$n, you made it through!', 14, 0, 100, 0, 0, 55054, 99836, 0, 'Kayn Sunfury to Player'),
+
 (93716, 0, 0, 'The Legion conquers all.', 12, 0, 100, 0, 0, 55147, 96648, 0, 'Doom Slayer to Player'),
 (93716, 0, 1, 'Succulent marrow. Crunchy bones.', 12, 0, 100, 0, 0, 55150, 96651, 0, 'Doom Slayer to Player'),
 
@@ -26,6 +42,7 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Lan
 (96884, 1, 0, 'Lady S''theno requested I join you.', 12, 0, 100, 0, 0, 55077, 99738, 0, 'Coilskar Sea-Caller to Player'),
 (96884, 1, 1, 'The Coilskar honor their allegiance.', 12, 0, 100, 0, 0, 55084, 99745, 0, 'Coilskar Sea-Caller to Player'),
 (96884, 1, 2, 'Lord Illidan leads and the Coilskar follow.', 12, 0, 100, 0, 0, 55081, 99742, 0, 'Coilskar Sea-Caller to Player'),
+(96884, 1, 3, 'The Burning Legion will be destroyed.', 12, 0, 100, 0, 0, 55079, 99740, 0, 'Coilskar Sea-Caller to Player'),
 
 (93112, 0, 0, 'For the Legion!', 12, 0, 100, 0, 0, 55192, 96663, 0, 'Felguard Sentry to Player'),
 (93112, 0, 1, 'Demon hunters? How did you get here?', 12, 0, 100, 0, 0, 55187, 94934, 0, 'Felguard Sentry to Player'),
@@ -35,6 +52,15 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Lan
 (93112, 0, 5, 'The fel you wield will not be enough.', 12, 0, 100, 0, 0, 55190, 96661, 0, 'Felguard Sentry to Demon Hunter'),
 (93112, 0, 6, 'For Brood Queen Tyranna. For the Legion!', 12, 0, 100, 0, 0, 55193, 96664, 0, 'Felguard Sentry to Demon Hunter'),
 (93112, 0, 7, 'You dare attack us here?!', 12, 0, 100, 0, 0, 55191, 96662, 0, 'Felguard Sentry to Demon Hunter'),
+
+(96494, 0, 0, 'For the Legion!', 12, 0, 100, 0, 0, 55192, 96663, 0, 'Felguard Butcher to Player'),
+(96494, 0, 1, 'Demon hunters? How did you get here?', 12, 0, 100, 0, 0, 55187, 94934, 0, 'Felguard Butcher to Player'),
+(96494, 0, 2, 'Die, Illidari fool.', 12, 0, 100, 0, 0, 55189, 94936, 0, 'Felguard Butcher to Player'),
+(96494, 0, 3, 'I''ll rend you limb from limb.', 12, 0, 100, 0, 0, 55188, 94935, 0, 'Felguard Butcher to Demon Hunter'),
+(96494, 0, 4, 'Invaders. Warn the Brood Queen!', 12, 0, 100, 0, 0, 55186, 94932, 0, 'Felguard Butcher to Demon Hunter'),
+(96494, 0, 5, 'The fel you wield will not be enough.', 12, 0, 100, 0, 0, 55190, 96661, 0, 'Felguard Butcher to Demon Hunter'),
+(96494, 0, 6, 'For Brood Queen Tyranna. For the Legion!', 12, 0, 100, 0, 0, 55193, 96664, 0, 'Felguard Butcher to Demon Hunter'),
+(96494, 0, 7, 'You dare attack us here?!', 12, 0, 100, 0, 0, 55191, 96662, 0, 'Felguard Butcher to Demon Hunter'),
 
 (95226, 0, 0, 'So eager to be enslaved.', 12, 0, 100, 0, 0, 55018, 97913, 0, 'Anguish Jailer to Player'),
 (95226, 0, 1, 'In this place, you are the hunted.', 12, 0, 100, 0, 0, 55019, 97914, 0, 'Anguish Jailer to Player'),
@@ -63,6 +89,15 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Lan
 (98486, 0, 5, 'You are outmatched and outnumbered.', 12, 0, 100, 0, 0, 55367, 98764, 0, 'Wrath Warrior to Player'),
 (98486, 0, 6, 'We will cleanse the universe in fire.', 12, 0, 100, 0, 0, 55370, 98766, 0, 'Wrath Warrior to Player'),
 (98486, 0, 7, 'My blade will cut through you.', 12, 0, 100, 0, 0, 55371, 98763, 0, 'Wrath Warrior to Player'),
+
+(97034, 0, 0, 'Brood Queen Tyranna orders your death.', 12, 0, 100, 0, 0, 55366, 98762, 0, 'Fury Champion to Player'),
+(97034, 0, 1, 'This is where you die.', 12, 0, 100, 0, 0, 55362, 98765, 0, 'Fury Champion to Player'),
+(97034, 0, 2, 'I live to serve.', 12, 0, 100, 0, 0, 55363, 98759, 0, 'Fury Champion to Player'),
+(97034, 0, 3, 'My life for the Legion', 12, 0, 100, 0, 0, 55364, 98760, 0, 'Fury Champion to Player'),
+(97034, 0, 4, 'You will not gain the keystone.', 12, 0, 100, 0, 0, 55365, 98761, 0, 'Fury Champion to Player'),
+(97034, 0, 5, 'You are outmatched and outnumbered.', 12, 0, 100, 0, 0, 55367, 98764, 0, 'Fury Champion to Player'),
+(97034, 0, 6, 'We will cleanse the universe in fire.', 12, 0, 100, 0, 0, 55370, 98766, 0, 'Fury Champion to Player'),
+(97034, 0, 7, 'My blade will cut through you.', 12, 0, 100, 0, 0, 55371, 98763, 0, 'Fury Champion to Player'),
 
 (98497, 0, 0, 'I''m so hungry.', 12, 0, 100, 0, 0, 55211, 102142, 0, 'Imp Mother to Player'),
 (98497, 0, 1, 'My meal comes to me.', 12, 0, 100, 0, 0, 55212, 102143, 0, 'Imp Mother to Player'),
