@@ -210,6 +210,10 @@ public:
     bool AddPostingDisplayFlags(uint32 postingId, uint32 flags);
     bool RemovePostingDisplayFlags(uint32 postingId, uint32 flags);
 
+    // Removes the club's posting and every application targeting it, in memory and in the
+    // database. Used when the guild backing the club is disbanded.
+    void RemovePostingForClub(uint64 clubId);
+
     static bool IsPostingExpired(ClubFinderPosting const& posting);
     static bool IsApplicationExpired(ClubFinderApplication const& application);
 

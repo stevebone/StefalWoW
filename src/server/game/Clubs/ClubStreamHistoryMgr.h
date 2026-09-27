@@ -108,6 +108,10 @@ public:
     bool IsStreamFocused(uint64 clubId, uint64 streamId, ObjectGuid member) const;
     void ClearSessionState(ObjectGuid member);
 
+    // Removes every cached and persisted trace of a club. Used when the guild backing the club is
+    // disbanded - history, read markers, mentions and live subscription state must not outlive it.
+    void RemoveClub(uint64 clubId);
+
     // Mentions. The mention view time is a single per-member value because the client's
     // AdvanceStreamMentionViewTime request carries no club or stream id at all.
     std::vector<ClubMemberMention const*> GetMentions(ObjectGuid member, uint64 fetchFrom, uint64 fetchUntil,

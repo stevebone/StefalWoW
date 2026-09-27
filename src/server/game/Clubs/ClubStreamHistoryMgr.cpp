@@ -203,6 +203,29 @@ void ClubStreamHistoryMgr::TrimStream(uint64 clubId, uint64 streamId, Stream& st
     stmt->setUInt64(3, oldest.Epoch);
     stmt->setUInt64(4, oldest.Position);
     CharacterDatabase.Execute(stmt);
+
+    // Mentions pointing at the trimmed messages would outlive them otherwise.
+    for (auto itr = _mentionsByMember.begin(); itr != _mentionsByMember.end();)
+    {
+        std::erase_if(itr->second, [&](ClubMemberMention const& mention)
+        {
+            return mention.ClubId == clubId && mention.StreamId == streamId
+                && (mention.Epoch < oldest.Epoch || (mention.Epoch == oldest.Epoch && mention.Position < oldest.Position));
+        });
+
+        if (itr->second.empty())
+            itr = _mentionsByMember.erase(itr);
+        else
+            ++itr;
+    }
+
+    stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CLUB_MENTIONS_OLDER);
+    stmt->setUInt64(0, clubId);
+    stmt->setUInt64(1, streamId);
+    stmt->setUInt64(2, oldest.Epoch);
+    stmt->setUInt64(3, oldest.Epoch);
+    stmt->setUInt64(4, oldest.Position);
+    CharacterDatabase.Execute(stmt);
 }
 
 ClubStreamHistoryMgr::Stream const* ClubStreamHistoryMgr::FindStream(uint64 clubId, uint64 streamId) const
@@ -430,6 +453,42 @@ void ClubStreamHistoryMgr::ClearSessionState(ObjectGuid member)
 {
     _subscribedStreams.erase(member.GetCounter());
     _focusedStreams.erase(member.GetCounter());
+}
+
+void ClubStreamHistoryMgr::RemoveClub(uint64 clubId)
+{
+    std::erase_if(_streams, [clubId](auto const& pair) { return pair.first.ClubId == clubId; });
+    std::erase_if(_streamViewTimes, [clubId](auto const& pair) { return pair.first.ClubId == clubId; });
+
+    for (auto itr = _mentionsByMember.begin(); itr != _mentionsByMember.end();)
+    {
+        std::erase_if(itr->second, [clubId](ClubMemberMention const& mention) { return mention.ClubId == clubId; });
+        if (itr->second.empty())
+            itr = _mentionsByMember.erase(itr);
+        else
+            ++itr;
+    }
+
+    for (auto& [member, streamIds] : _subscribedStreams)
+        std::erase_if(streamIds, [clubId](uint64 key) { return (key >> 16) == clubId; });
+    for (auto& [member, streamIds] : _focusedStreams)
+        std::erase_if(streamIds, [clubId](uint64 key) { return (key >> 16) == clubId; });
+
+    CharacterDatabaseTransaction trans = CharacterDatabase.BeginTransaction();
+
+    CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CLUB_MESSAGES_FOR_CLUB);
+    stmt->setUInt64(0, clubId);
+    trans->Append(stmt);
+
+    stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CLUB_STREAM_VIEW_MARKERS_FOR_CLUB);
+    stmt->setUInt64(0, clubId);
+    trans->Append(stmt);
+
+    stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CLUB_MENTIONS_FOR_CLUB);
+    stmt->setUInt64(0, clubId);
+    trans->Append(stmt);
+
+    CharacterDatabase.CommitTransaction(trans);
 }
 
 std::vector<ClubMemberMention const*> ClubStreamHistoryMgr::GetMentions(ObjectGuid member, uint64 fetchFrom, uint64 fetchUntil,

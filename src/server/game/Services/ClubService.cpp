@@ -143,7 +143,7 @@ uint32 ClubService::HandleSubscribe(club::v1::client::SubscribeRequest const* /*
     return ERROR_OK;
 }
 
-uint32 ClubService::HandleGetMembers(club::v1::client::GetMembersRequest const* /*request*/, club::v1::client::GetMembersResponse* response,
+uint32 ClubService::HandleGetMembers(club::v1::client::GetMembersRequest const* request, club::v1::client::GetMembersResponse* response,
     std::function<void(ServiceBase*, uint32, google::protobuf::Message const*)>& /*continuation*/)
 {
     Player const* player = _session->GetPlayer();
@@ -154,6 +154,9 @@ uint32 ClubService::HandleGetMembers(club::v1::client::GetMembersRequest const* 
     Guild const* guild = player->GetGuild();
 
     if (!guild)
+        return ERROR_CLUB_NO_CLUB;
+
+    if (request->has_club_id() && request->club_id() != guild->GetId())
         return ERROR_CLUB_NO_CLUB;
 
     response->mutable_member()->Reserve(guild->GetMembersCount());
@@ -183,7 +186,7 @@ uint32 ClubService::HandleGetMembers(club::v1::client::GetMembersRequest const* 
     return ERROR_OK;
 }
 
-uint32 ClubService::HandleGetStreams(club::v1::client::GetStreamsRequest const* /*request*/, club::v1::client::GetStreamsResponse* response,
+uint32 ClubService::HandleGetStreams(club::v1::client::GetStreamsRequest const* request, club::v1::client::GetStreamsResponse* response,
     std::function<void(ServiceBase*, uint32, google::protobuf::Message const*)>& /*continuation*/)
 {
     Player const* player = _session->GetPlayer();
@@ -194,6 +197,9 @@ uint32 ClubService::HandleGetStreams(club::v1::client::GetStreamsRequest const* 
     Guild const* guild = player->GetGuild();
 
     if (!guild)
+        return ERROR_CLUB_NO_CLUB;
+
+    if (request->has_club_id() && request->club_id() != guild->GetId())
         return ERROR_CLUB_NO_CLUB;
 
     // General guild channel.
@@ -281,6 +287,9 @@ uint32 ClubService::HandleSubscribeStream(club::v1::client::SubscribeStreamReque
     if (!guild)
         return ERROR_CLUB_NO_CLUB;
 
+    if (request->has_club_id() && request->club_id() != guild->GetId())
+        return ERROR_CLUB_NO_CLUB;
+
     // Basic sanity check until full communities are implemented.
     // 1 - Guild, 2 - Officer chat stream.
     if (request->stream_id().empty() || (request->stream_id().Get(0) != AsUnderlyingType(ClubStreamType::Guild) && request->stream_id().Get(0) != AsUnderlyingType(ClubStreamType::Officer)))
@@ -303,6 +312,9 @@ uint32 ClubService::HandleUnsubscribeStream(club::v1::client::UnsubscribeStreamR
     Guild const* guild = player->GetGuild();
 
     if (!guild)
+        return ERROR_CLUB_NO_CLUB;
+
+    if (request->has_club_id() && request->club_id() != guild->GetId())
         return ERROR_CLUB_NO_CLUB;
 
     std::vector<uint64> streamIds(request->stream_id().begin(), request->stream_id().end());
@@ -384,6 +396,9 @@ uint32 ClubService::HandleCreateMessage(club::v1::client::CreateMessageRequest c
     Guild const* guild = player->GetGuild();
 
     if (!guild)
+        return ERROR_CLUB_NO_CLUB;
+
+    if (request->has_club_id() && request->club_id() != guild->GetId())
         return ERROR_CLUB_NO_CLUB;
 
     GuildRankRights requiredRights = { };

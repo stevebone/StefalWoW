@@ -73,6 +73,9 @@ public:
     bool IsEnabled() const { return _enabled; }
     uint64 GetRenameCost() const { return _cost; }
 
+    // Drops a guild's rename record, in memory and in the database. Used when the guild is disbanded.
+    void DeleteRecord(ObjectGuid::LowType guildId);
+
 private:
     struct RenameRecord
     {
@@ -84,7 +87,6 @@ private:
 
     RenameRecord const* GetRecord(ObjectGuid::LowType guildId) const;
     void SaveRecord(ObjectGuid::LowType guildId, RenameRecord const& record);
-    void DeleteRecord(ObjectGuid::LowType guildId);
 
     void SendStatus(WorldSession* session, Guild* guild, GuildRenameError result);
 

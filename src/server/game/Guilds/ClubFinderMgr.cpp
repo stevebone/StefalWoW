@@ -329,6 +329,34 @@ ClubFinderPosting const* ClubFinderMgr::SavePosting(ClubFinderPosting posting)
     return &_postings[postingId];
 }
 
+void ClubFinderMgr::RemovePostingForClub(uint64 clubId)
+{
+    auto itr = _postingsByClub.find(clubId);
+    if (itr == _postingsByClub.end())
+        return;
+
+    uint32 const postingId = itr->second;
+
+    _postingsByClub.erase(itr);
+    _postings.erase(postingId);
+
+    _applications.erase(std::remove_if(_applications.begin(), _applications.end(),
+        [postingId](ClubFinderApplication const& application) { return application.PostingId == postingId; }),
+        _applications.end());
+
+    CharacterDatabaseTransaction trans = CharacterDatabase.BeginTransaction();
+
+    CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CLUB_FINDER_APPLICATIONS_FOR_POSTING);
+    stmt->setUInt32(0, postingId);
+    trans->Append(stmt);
+
+    stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_CLUB_FINDER_POSTING);
+    stmt->setUInt64(0, clubId);
+    trans->Append(stmt);
+
+    CharacterDatabase.CommitTransaction(trans);
+}
+
 bool ClubFinderMgr::IsPostingExpired(ClubFinderPosting const& posting)
 {
     return posting.LastUpdatedTime

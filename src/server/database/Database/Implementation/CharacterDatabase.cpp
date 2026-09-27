@@ -969,6 +969,8 @@ void CharacterDatabaseConnection::DoPrepareStatements()
     // ClubFinderMgr::CleanupApplications.
     PrepareStatement(CHAR_DEL_CLUB_FINDER_APPLICATIONS_EXPIRED, "DELETE FROM club_finder_application WHERE lastUpdatedTime < ? OR (status IN (?, ?, ?) AND lastUpdatedTime < ?) OR postingId NOT IN (SELECT postingId FROM club_finder_posting)", CONNECTION_ASYNC);
     PrepareStatement(CHAR_UPD_CLUB_FINDER_POSTING_FLAGS, "UPDATE club_finder_posting SET displayFlags = ? WHERE postingId = ?", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_DEL_CLUB_FINDER_APPLICATIONS_FOR_POSTING, "DELETE FROM club_finder_application WHERE postingId = ?", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_DEL_CLUB_FINDER_POSTING, "DELETE FROM club_finder_posting WHERE clubId = ?", CONNECTION_ASYNC);
 
     // Club stream history (guild chat scrollback)
     PrepareStatement(CHAR_INS_CLUB_MESSAGE, "INSERT INTO club_message (clubId, streamId, epoch, position, authorAccountId, authorGuid, content, createdTime) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC);
@@ -977,6 +979,10 @@ void CharacterDatabaseConnection::DoPrepareStatements()
     PrepareStatement(CHAR_REP_CLUB_MENTION_VIEW_MARKER, "REPLACE INTO club_mention_view_marker (memberGuid, lastViewTime) VALUES (?, ?)", CONNECTION_ASYNC);
     PrepareStatement(CHAR_INS_CLUB_MEMBER_MENTION, "INSERT IGNORE INTO club_member_mention (clubId, streamId, memberGuid, epoch, position, authorGuid, authorAccountId, createdTime) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC);
     PrepareStatement(CHAR_DEL_CLUB_MEMBER_MENTION, "DELETE FROM club_member_mention WHERE memberGuid = ? AND epoch = ? AND position = ?", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_DEL_CLUB_MENTIONS_OLDER, "DELETE FROM club_member_mention WHERE clubId = ? AND streamId = ? AND (epoch < ? OR (epoch = ? AND position < ?))", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_DEL_CLUB_MESSAGES_FOR_CLUB, "DELETE FROM club_message WHERE clubId = ?", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_DEL_CLUB_STREAM_VIEW_MARKERS_FOR_CLUB, "DELETE FROM club_stream_view_marker WHERE clubId = ?", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_DEL_CLUB_MENTIONS_FOR_CLUB, "DELETE FROM club_member_mention WHERE clubId = ?", CONNECTION_ASYNC);
 }
 
 CharacterDatabaseConnection::CharacterDatabaseConnection(MySQLConnectionInfo& connInfo, ConnectionFlags connectionFlags) : MySQLConnection(connInfo, connectionFlags)

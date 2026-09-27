@@ -27,6 +27,7 @@
 #include "ClubFinderMgr.h"
 #include "ClubMembershipService.h"
 #include "ClubService.h"
+#include "ClubStreamHistoryMgr.h"
 #include "ClubUtils.h"
 #include "Config.h"
 #include "DB2Stores.h"
@@ -34,6 +35,7 @@
 #include "GameTime.h"
 #include "GuildMgr.h"
 #include "GuildPackets.h"
+#include "GuildRenameMgr.h"
 #include "Language.h"
 #include "Log.h"
 #include "Map.h"
@@ -1268,6 +1270,12 @@ void Guild::Disband()
 
     CharacterDatabase.CommitTransaction(trans);
 
+    // SocialClub data keyed by the club id (= guild id) must not outlive the guild: its club finder
+    // posting and applications, stream history and read markers, and a pending rename record.
+    sClubFinderMgr->RemovePostingForClub(m_id);
+    sClubStreamHistoryMgr->RemoveClub(m_id);
+    sGuildRenameMgr->DeleteRecord(m_id);
+
     sGuildMgr->RemoveGuild(m_id);
 }
 
@@ -1328,6 +1336,14 @@ bool Guild::SetName(std::string_view name)
     guildNameChanged.GuildGUID = GetGUID();
     guildNameChanged.GuildName = m_name;
     BroadcastPacket(guildNameChanged.Write());
+
+    // The club finder caches the club name on the posting record; keep it in step with the rename.
+    if (ClubFinderPosting const* posting = sClubFinderMgr->GetPostingForClub(GetId()))
+    {
+        ClubFinderPosting updated = *posting;
+        updated.Name = m_name;
+        sClubFinderMgr->SavePosting(std::move(updated));
+    }
 
     return true;
 }
