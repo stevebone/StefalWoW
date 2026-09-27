@@ -2120,12 +2120,13 @@ void WorldSession::SendFeatureSystemStatus()
     features.CommercePricePollTimeSeconds = 300;
     features.VoiceEnabled = false;
 
-    // Enable guilds only.
     // This is required to restore old guild channel behavior for GMs.
     // The new club streams do not support sending messages through the guild channel when you are not in a guild.
     features.CommunitiesEnabled = true;
     features.BnetGroupsEnabled = false;
-    features.CharacterCommunitiesEnabled = false;
+    // Character community RPCs beyond the guild-as-club set are not implemented; the client will
+    // surface errors for community create/join, but the flag must be set for the Communities pane.
+    features.CharacterCommunitiesEnabled = true;
     features.ClubFinderEnabled = true;
     features.ClubPresenceAllowSubscribeAll = true;
     features.ClubPresenceUnsubscribeDelay = 60000;

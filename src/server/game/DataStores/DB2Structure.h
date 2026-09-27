@@ -684,6 +684,13 @@ struct ChatChannelsEntry
     ChatChannelRuleset GetRuleset() const { return static_cast<ChatChannelRuleset>(Ruleset); }
 };
 
+struct ChatProfanityEntry
+{
+    uint32 ID;
+    char const* Text;
+    int8 Language;
+};
+
 struct ChrClassUIDisplayEntry
 {
     uint32 ID;
@@ -2205,6 +2212,34 @@ struct GuildPerkSpellsEntry
 {
     uint32 ID;
     int32 SpellID;
+};
+
+struct GuildTabardEmblemEntry
+{
+    uint32 ID;
+    int32 Component;
+    int32 Color;
+    int32 FileDataID;
+    uint32 EmblemID;
+};
+
+struct GuildTabardBackgroundEntry
+{
+    uint32 ID;
+    int32 Tier;
+    int32 Component;
+    int32 FileDataID;
+    uint32 Color;
+};
+
+struct GuildTabardBorderEntry
+{
+    uint32 ID;
+    int32 BorderID;
+    int32 Tier;
+    int32 Component;
+    int32 FileDataID;
+    uint32 Color;
 };
 
 struct HeirloomEntry
