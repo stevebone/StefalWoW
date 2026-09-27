@@ -905,4 +905,17 @@ WorldPacket const* SetCtrOptions::Write()
 
     return &_worldPacket;
 }
+
+WorldPacket const* DisplayWorldText::Write()
+{
+    _worldPacket << Guid;
+    _worldPacket << uint32(Arg1);
+    _worldPacket << uint32(Arg2);
+    _worldPacket << SizedString::BitsSize<12>(Text);
+    _worldPacket.FlushBits();
+
+    _worldPacket << SizedString::Data(Text);
+
+    return &_worldPacket;
+}
 }
