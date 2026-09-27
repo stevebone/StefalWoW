@@ -18,6 +18,7 @@
 #include "WorldSession.h"
 #include "AchievementPackets.h"
 #include "Common.h"
+#include "DB2Stores.h"
 #include "GameTime.h"
 #include "GossipDef.h"
 #include "Guild.h"
