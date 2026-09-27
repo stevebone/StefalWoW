@@ -1,6 +1,8 @@
--- Housing: player houses, rooms, decor, catalog, blueprints and neighborhoods
+-- Housing (Founder's Point / Razorwind Shores) - characters database schema.
+-- Baseline file: safe to re-run; drops and recreates all housing tables.
 
-CREATE TABLE IF NOT EXISTS `account_housing_blueprint` (
+DROP TABLE IF EXISTS `account_housing_blueprint`;
+CREATE TABLE `account_housing_blueprint` (
   `id` bigint unsigned NOT NULL,
   `uuid` char(36) COLLATE utf8mb4_unicode_ci NOT NULL,
   `bnetAccountId` int unsigned NOT NULL,
@@ -15,7 +17,8 @@ CREATE TABLE IF NOT EXISTS `account_housing_blueprint` (
   KEY `idx_bnetAccountId` (`bnetAccountId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `character_housing` (
+DROP TABLE IF EXISTS `character_housing`;
+CREATE TABLE `character_housing` (
   `guid` bigint unsigned NOT NULL COMMENT 'Player GUID',
   `houseId` int unsigned NOT NULL DEFAULT '0' COMMENT 'House DB2 entry ID',
   `neighborhoodGuid` bigint unsigned NOT NULL DEFAULT '0' COMMENT 'FK to neighborhoods.guid',
@@ -36,7 +39,8 @@ CREATE TABLE IF NOT EXISTS `character_housing` (
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `character_housing_catalog` (
+DROP TABLE IF EXISTS `character_housing_catalog`;
+CREATE TABLE `character_housing_catalog` (
   `ownerGuid` bigint unsigned NOT NULL COMMENT 'Player GUID (account-wide tracking)',
   `houseDecorId` int unsigned NOT NULL COMMENT 'HouseDecor DB2 entry ID',
   `quantity` int unsigned NOT NULL DEFAULT '1' COMMENT 'Number of this decor owned/available',
@@ -46,7 +50,8 @@ CREATE TABLE IF NOT EXISTS `character_housing_catalog` (
   PRIMARY KEY (`ownerGuid`,`houseDecorId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `character_housing_decor` (
+DROP TABLE IF EXISTS `character_housing_decor`;
+CREATE TABLE `character_housing_decor` (
   `ownerGuid` bigint unsigned NOT NULL COMMENT 'FK to character_housing.guid',
   `id` bigint unsigned NOT NULL COMMENT 'Decor instance ID (unique per owner)',
   `houseDecorId` int unsigned NOT NULL COMMENT 'HouseDecor DB2 entry ID',
@@ -71,7 +76,8 @@ CREATE TABLE IF NOT EXISTS `character_housing_decor` (
   PRIMARY KEY (`ownerGuid`,`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `character_housing_fixtures` (
+DROP TABLE IF EXISTS `character_housing_fixtures`;
+CREATE TABLE `character_housing_fixtures` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique fixture assignment ID',
   `ownerGuid` bigint unsigned NOT NULL COMMENT 'FK to character_housing.guid',
   `fixturePointId` int unsigned NOT NULL COMMENT 'Predefined fixture point identifier',
@@ -80,13 +86,15 @@ CREATE TABLE IF NOT EXISTS `character_housing_fixtures` (
   KEY `idx_owner` (`ownerGuid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `character_housing_ignored_neighborhood` (
+DROP TABLE IF EXISTS `character_housing_ignored_neighborhood`;
+CREATE TABLE `character_housing_ignored_neighborhood` (
   `ownerGuid` bigint unsigned NOT NULL COMMENT 'Player character GUID counter',
   `neighborhoodGuid` bigint unsigned NOT NULL COMMENT 'Ignored neighborhood GUID counter',
   PRIMARY KEY (`ownerGuid`,`neighborhoodGuid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `character_housing_rooms` (
+DROP TABLE IF EXISTS `character_housing_rooms`;
+CREATE TABLE `character_housing_rooms` (
   `ownerGuid` bigint unsigned NOT NULL COMMENT 'FK to character_housing.guid',
   `id` bigint unsigned NOT NULL COMMENT 'Room instance ID (unique per owner)',
   `houseRoomId` int unsigned NOT NULL COMMENT 'HouseRoom DB2 entry ID',
@@ -113,14 +121,16 @@ CREATE TABLE IF NOT EXISTS `character_housing_rooms` (
   PRIMARY KEY (`ownerGuid`,`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `neighborhood_charter_signatures` (
+DROP TABLE IF EXISTS `neighborhood_charter_signatures`;
+CREATE TABLE `neighborhood_charter_signatures` (
   `charterId` bigint unsigned NOT NULL COMMENT 'FK to neighborhood_charters.id',
   `signerGuid` bigint unsigned NOT NULL COMMENT 'Player GUID of the signer',
   `signTime` int unsigned NOT NULL DEFAULT '0' COMMENT 'Unix timestamp when the signature was made',
   PRIMARY KEY (`charterId`,`signerGuid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `neighborhood_charters` (
+DROP TABLE IF EXISTS `neighborhood_charters`;
+CREATE TABLE `neighborhood_charters` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique charter ID',
   `creatorGuid` bigint unsigned NOT NULL COMMENT 'Player GUID of the charter creator',
   `name` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Proposed neighborhood name (max HOUSING_MAX_NAME_LENGTH)',
@@ -132,7 +142,8 @@ CREATE TABLE IF NOT EXISTS `neighborhood_charters` (
   KEY `idx_creator` (`creatorGuid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `neighborhood_initiative_contributions` (
+DROP TABLE IF EXISTS `neighborhood_initiative_contributions`;
+CREATE TABLE `neighborhood_initiative_contributions` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `initiativeDbId` bigint unsigned NOT NULL COMMENT 'FK to neighborhood_initiatives.id',
   `playerGuid` bigint unsigned NOT NULL COMMENT 'Player character GUID',
@@ -144,7 +155,8 @@ CREATE TABLE IF NOT EXISTS `neighborhood_initiative_contributions` (
   KEY `idx_player` (`playerGuid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `neighborhood_initiative_milestones` (
+DROP TABLE IF EXISTS `neighborhood_initiative_milestones`;
+CREATE TABLE `neighborhood_initiative_milestones` (
   `initiativeDbId` bigint unsigned NOT NULL COMMENT 'FK to neighborhood_initiatives.id',
   `milestoneIndex` int unsigned NOT NULL COMMENT 'Milestone index (0, 1, 2)',
   `reached` tinyint unsigned NOT NULL DEFAULT '0' COMMENT '1 = milestone has been reached',
@@ -152,7 +164,8 @@ CREATE TABLE IF NOT EXISTS `neighborhood_initiative_milestones` (
   PRIMARY KEY (`initiativeDbId`,`milestoneIndex`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `neighborhood_initiative_reward_claims` (
+DROP TABLE IF EXISTS `neighborhood_initiative_reward_claims`;
+CREATE TABLE `neighborhood_initiative_reward_claims` (
   `initiativeDbId` bigint unsigned NOT NULL COMMENT 'FK to neighborhood_initiatives.id',
   `milestoneIndex` int unsigned NOT NULL COMMENT 'Milestone index (0, 1, 2)',
   `playerGuid` bigint unsigned NOT NULL COMMENT 'Player character GUID',
@@ -161,7 +174,8 @@ CREATE TABLE IF NOT EXISTS `neighborhood_initiative_reward_claims` (
   KEY `idx_player` (`playerGuid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `neighborhood_initiative_task_progress` (
+DROP TABLE IF EXISTS `neighborhood_initiative_task_progress`;
+CREATE TABLE `neighborhood_initiative_task_progress` (
   `initiativeDbId` bigint unsigned NOT NULL COMMENT 'FK to neighborhood_initiatives.id',
   `taskId` int unsigned NOT NULL COMMENT 'InitiativeTask DB2 entry ID',
   `progress` int unsigned NOT NULL DEFAULT '0' COMMENT 'Current progress count towards TargetCount',
@@ -169,7 +183,8 @@ CREATE TABLE IF NOT EXISTS `neighborhood_initiative_task_progress` (
   PRIMARY KEY (`initiativeDbId`,`taskId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `neighborhood_initiatives` (
+DROP TABLE IF EXISTS `neighborhood_initiatives`;
+CREATE TABLE `neighborhood_initiatives` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique initiative instance ID',
   `neighborhoodGuid` bigint unsigned NOT NULL COMMENT 'FK to neighborhoods.guid',
   `initiativeId` int unsigned NOT NULL COMMENT 'NeighborhoodInitiative DB2 entry ID',
@@ -180,7 +195,8 @@ CREATE TABLE IF NOT EXISTS `neighborhood_initiatives` (
   KEY `idx_neighborhood` (`neighborhoodGuid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `neighborhood_invites` (
+DROP TABLE IF EXISTS `neighborhood_invites`;
+CREATE TABLE `neighborhood_invites` (
   `neighborhoodGuid` bigint unsigned NOT NULL COMMENT 'FK to neighborhoods.guid',
   `inviteeGuid` bigint unsigned NOT NULL COMMENT 'Player GUID of the invited player',
   `inviterGuid` bigint unsigned NOT NULL COMMENT 'Player GUID of the player who sent the invite',
@@ -188,7 +204,8 @@ CREATE TABLE IF NOT EXISTS `neighborhood_invites` (
   PRIMARY KEY (`neighborhoodGuid`,`inviteeGuid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `neighborhood_members` (
+DROP TABLE IF EXISTS `neighborhood_members`;
+CREATE TABLE `neighborhood_members` (
   `neighborhoodGuid` bigint unsigned NOT NULL COMMENT 'FK to neighborhoods.guid',
   `playerGuid` bigint unsigned NOT NULL COMMENT 'Player GUID of the member',
   `role` tinyint unsigned NOT NULL DEFAULT '0' COMMENT 'NeighborhoodMemberRole: 0=Resident, 1=Manager, 2=Owner',
@@ -198,7 +215,8 @@ CREATE TABLE IF NOT EXISTS `neighborhood_members` (
   KEY `idx_player` (`playerGuid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `neighborhoods` (
+DROP TABLE IF EXISTS `neighborhoods`;
+CREATE TABLE `neighborhoods` (
   `guid` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique neighborhood instance ID',
   `name` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Neighborhood display name (max HOUSING_MAX_NAME_LENGTH)',
   `neighborhoodMapId` int unsigned NOT NULL COMMENT 'NeighborhoodMap DB2 entry ID',

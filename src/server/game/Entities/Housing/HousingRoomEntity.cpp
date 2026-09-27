@@ -153,7 +153,7 @@ void HousingRoomEntity::BuildValuesCreate(UF::UpdateFieldFlag /*flags*/, ByteBuf
     // Not used — BuildCreateUpdateBlockForPlayer handles everything via entity fragments.
 }
 
-void HousingRoomEntity::BuildValuesUpdate(UF::UpdateFieldFlag flags, ByteBuffer& data, Player const* target) const
+void HousingRoomEntity::BuildValuesUpdate(UF::UpdateFieldFlag /*flags*/, ByteBuffer& /*data*/, Player const* /*target*/) const
 {
     // VALUES updates use the standard fragment change mask system
 }

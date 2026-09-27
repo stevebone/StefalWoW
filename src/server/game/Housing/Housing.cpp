@@ -3169,8 +3169,8 @@ void Housing::OnQuestCompleted(uint32 questId)
     {
         uint32 previousLevel = _level;
         _level++;
-        TC_LOG_DEBUG("housing", "Housing::OnQuestCompleted: Player {} house leveled up to {} (quest {}) in house {}",
-            _owner->GetName(), _level, questId, _houseGuid.ToString());
+        TC_LOG_DEBUG("housing", "Housing::OnQuestCompleted: Player {} house leveled up {} -> {} (quest {}) in house {}",
+            _owner->GetName(), previousLevel, _level, questId, _houseGuid.ToString());
 
         // Persist level change and recalculate budgets
         CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_UPD_CHARACTER_HOUSING_LEVEL_FAVOR);

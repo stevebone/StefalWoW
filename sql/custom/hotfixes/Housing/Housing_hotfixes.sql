@@ -1,7 +1,8 @@
--- Housing: DB2 stores the core loads for houses, rooms, decor, exterior components,
--- neighborhoods and initiatives. They stay empty; the data comes from the client DB2 files.
+-- Housing (Founder's Point / Razorwind Shores) - hotfixes database schema.
+-- Baseline file: safe to re-run; drops and recreates all housing hotfix tables.
 
-CREATE TABLE IF NOT EXISTS `data_tag_x_house_decor_record` (
+DROP TABLE IF EXISTS `data_tag_x_house_decor_record`;
+CREATE TABLE `data_tag_x_house_decor_record` (
   `ID` int unsigned NOT NULL DEFAULT '0',
   `DataTagID` int NOT NULL DEFAULT '0',
   `HouseDecorID` int unsigned NOT NULL DEFAULT '0',
@@ -9,7 +10,8 @@ CREATE TABLE IF NOT EXISTS `data_tag_x_house_decor_record` (
   PRIMARY KEY (`ID`,`VerifiedBuild`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `decor_category` (
+DROP TABLE IF EXISTS `decor_category`;
+CREATE TABLE `decor_category` (
   `Name` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `ID` int unsigned NOT NULL DEFAULT '0',
   `IconFileDataID` int NOT NULL DEFAULT '0',
@@ -18,7 +20,8 @@ CREATE TABLE IF NOT EXISTS `decor_category` (
   PRIMARY KEY (`ID`,`VerifiedBuild`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `decor_category_locale` (
+DROP TABLE IF EXISTS `decor_category_locale`;
+CREATE TABLE `decor_category_locale` (
   `ID` int unsigned NOT NULL DEFAULT '0',
   `locale` varchar(4) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `Name_lang` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
@@ -37,7 +40,8 @@ CREATE TABLE IF NOT EXISTS `decor_category_locale` (
  PARTITION zhCN VALUES IN ('zhCN') ENGINE = InnoDB,
  PARTITION zhTW VALUES IN ('zhTW') ENGINE = InnoDB) */;
 
-CREATE TABLE IF NOT EXISTS `decor_dye_slot` (
+DROP TABLE IF EXISTS `decor_dye_slot`;
+CREATE TABLE `decor_dye_slot` (
   `ID` int unsigned NOT NULL DEFAULT '0',
   `SlotIndex` int NOT NULL DEFAULT '0',
   `HouseDecorID` int unsigned NOT NULL DEFAULT '0',
@@ -47,7 +51,8 @@ CREATE TABLE IF NOT EXISTS `decor_dye_slot` (
   PRIMARY KEY (`ID`,`VerifiedBuild`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `decor_subcategory` (
+DROP TABLE IF EXISTS `decor_subcategory`;
+CREATE TABLE `decor_subcategory` (
   `Name` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `ID` int unsigned NOT NULL DEFAULT '0',
   `IconFileDataID` int NOT NULL DEFAULT '0',
@@ -57,7 +62,8 @@ CREATE TABLE IF NOT EXISTS `decor_subcategory` (
   PRIMARY KEY (`ID`,`VerifiedBuild`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `decor_subcategory_locale` (
+DROP TABLE IF EXISTS `decor_subcategory_locale`;
+CREATE TABLE `decor_subcategory_locale` (
   `ID` int unsigned NOT NULL DEFAULT '0',
   `locale` varchar(4) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `Name_lang` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
@@ -76,7 +82,8 @@ CREATE TABLE IF NOT EXISTS `decor_subcategory_locale` (
  PARTITION zhCN VALUES IN ('zhCN') ENGINE = InnoDB,
  PARTITION zhTW VALUES IN ('zhTW') ENGINE = InnoDB) */;
 
-CREATE TABLE IF NOT EXISTS `decor_x_decor_subcategory` (
+DROP TABLE IF EXISTS `decor_x_decor_subcategory`;
+CREATE TABLE `decor_x_decor_subcategory` (
   `ID` int unsigned NOT NULL DEFAULT '0',
   `DecorSubcategoryID` int unsigned NOT NULL DEFAULT '0',
   `HouseDecorID` int NOT NULL DEFAULT '0',
@@ -84,7 +91,8 @@ CREATE TABLE IF NOT EXISTS `decor_x_decor_subcategory` (
   PRIMARY KEY (`ID`,`VerifiedBuild`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `dye_color` (
+DROP TABLE IF EXISTS `dye_color`;
+CREATE TABLE `dye_color` (
   `Name` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `ID` int unsigned NOT NULL DEFAULT '0',
   `DyeColorCategoryID` int NOT NULL DEFAULT '0',
@@ -97,14 +105,16 @@ CREATE TABLE IF NOT EXISTS `dye_color` (
   PRIMARY KEY (`ID`,`VerifiedBuild`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `dye_color_category` (
+DROP TABLE IF EXISTS `dye_color_category`;
+CREATE TABLE `dye_color_category` (
   `Name` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `ID` int unsigned NOT NULL DEFAULT '0',
   `VerifiedBuild` int NOT NULL DEFAULT '0',
   PRIMARY KEY (`ID`,`VerifiedBuild`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `dye_color_category_locale` (
+DROP TABLE IF EXISTS `dye_color_category_locale`;
+CREATE TABLE `dye_color_category_locale` (
   `ID` int unsigned NOT NULL DEFAULT '0',
   `locale` varchar(4) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `Name_lang` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
@@ -123,7 +133,8 @@ CREATE TABLE IF NOT EXISTS `dye_color_category_locale` (
  PARTITION zhCN VALUES IN ('zhCN') ENGINE = InnoDB,
  PARTITION zhTW VALUES IN ('zhTW') ENGINE = InnoDB) */;
 
-CREATE TABLE IF NOT EXISTS `dye_color_locale` (
+DROP TABLE IF EXISTS `dye_color_locale`;
+CREATE TABLE `dye_color_locale` (
   `ID` int unsigned NOT NULL DEFAULT '0',
   `locale` varchar(4) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `Name_lang` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
@@ -142,7 +153,8 @@ CREATE TABLE IF NOT EXISTS `dye_color_locale` (
  PARTITION zhCN VALUES IN ('zhCN') ENGINE = InnoDB,
  PARTITION zhTW VALUES IN ('zhTW') ENGINE = InnoDB) */;
 
-CREATE TABLE IF NOT EXISTS `exterior_component` (
+DROP TABLE IF EXISTS `exterior_component`;
+CREATE TABLE `exterior_component` (
   `Name` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `PositionX` float NOT NULL DEFAULT '0',
   `PositionY` float NOT NULL DEFAULT '0',
@@ -171,7 +183,8 @@ CREATE TABLE IF NOT EXISTS `exterior_component` (
   PRIMARY KEY (`ID`,`VerifiedBuild`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `exterior_component_exit_point` (
+DROP TABLE IF EXISTS `exterior_component_exit_point`;
+CREATE TABLE `exterior_component_exit_point` (
   `PositionX` float NOT NULL DEFAULT '0',
   `PositionY` float NOT NULL DEFAULT '0',
   `PositionZ` float NOT NULL DEFAULT '0',
@@ -184,7 +197,8 @@ CREATE TABLE IF NOT EXISTS `exterior_component_exit_point` (
   PRIMARY KEY (`ID`,`VerifiedBuild`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `exterior_component_group` (
+DROP TABLE IF EXISTS `exterior_component_group`;
+CREATE TABLE `exterior_component_group` (
   `PositionX` float NOT NULL DEFAULT '0',
   `PositionY` float NOT NULL DEFAULT '0',
   `PositionZ` float NOT NULL DEFAULT '0',
@@ -194,7 +208,8 @@ CREATE TABLE IF NOT EXISTS `exterior_component_group` (
   PRIMARY KEY (`ID`,`VerifiedBuild`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `exterior_component_group_x_hook` (
+DROP TABLE IF EXISTS `exterior_component_group_x_hook`;
+CREATE TABLE `exterior_component_group_x_hook` (
   `ID` int unsigned NOT NULL DEFAULT '0',
   `ExteriorComponentGroupID` int unsigned NOT NULL DEFAULT '0',
   `ExteriorComponentHookID` int NOT NULL DEFAULT '0',
@@ -202,7 +217,8 @@ CREATE TABLE IF NOT EXISTS `exterior_component_group_x_hook` (
   PRIMARY KEY (`ID`,`VerifiedBuild`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `exterior_component_hook` (
+DROP TABLE IF EXISTS `exterior_component_hook`;
+CREATE TABLE `exterior_component_hook` (
   `PositionX` float NOT NULL DEFAULT '0',
   `PositionY` float NOT NULL DEFAULT '0',
   `PositionZ` float NOT NULL DEFAULT '0',
@@ -216,7 +232,8 @@ CREATE TABLE IF NOT EXISTS `exterior_component_hook` (
   PRIMARY KEY (`ID`,`VerifiedBuild`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `exterior_component_locale` (
+DROP TABLE IF EXISTS `exterior_component_locale`;
+CREATE TABLE `exterior_component_locale` (
   `ID` int unsigned NOT NULL DEFAULT '0',
   `locale` varchar(4) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `Name_lang` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
@@ -235,7 +252,8 @@ CREATE TABLE IF NOT EXISTS `exterior_component_locale` (
  PARTITION zhCN VALUES IN ('zhCN') ENGINE = InnoDB,
  PARTITION zhTW VALUES IN ('zhTW') ENGINE = InnoDB) */;
 
-CREATE TABLE IF NOT EXISTS `exterior_component_type` (
+DROP TABLE IF EXISTS `exterior_component_type`;
+CREATE TABLE `exterior_component_type` (
   `Name` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `ID` int unsigned NOT NULL DEFAULT '0',
   `Flags` int NOT NULL DEFAULT '0',
@@ -243,7 +261,8 @@ CREATE TABLE IF NOT EXISTS `exterior_component_type` (
   PRIMARY KEY (`ID`,`VerifiedBuild`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `exterior_component_type_locale` (
+DROP TABLE IF EXISTS `exterior_component_type_locale`;
+CREATE TABLE `exterior_component_type_locale` (
   `ID` int unsigned NOT NULL DEFAULT '0',
   `locale` varchar(4) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `Name_lang` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
@@ -262,7 +281,8 @@ CREATE TABLE IF NOT EXISTS `exterior_component_type_locale` (
  PARTITION zhCN VALUES IN ('zhCN') ENGINE = InnoDB,
  PARTITION zhTW VALUES IN ('zhTW') ENGINE = InnoDB) */;
 
-CREATE TABLE IF NOT EXISTS `exterior_component_x_group` (
+DROP TABLE IF EXISTS `exterior_component_x_group`;
+CREATE TABLE `exterior_component_x_group` (
   `ID` int unsigned NOT NULL DEFAULT '0',
   `ExteriorComponentID` int NOT NULL DEFAULT '0',
   `ExteriorComponentGroupID` int NOT NULL DEFAULT '0',
@@ -270,7 +290,8 @@ CREATE TABLE IF NOT EXISTS `exterior_component_x_group` (
   PRIMARY KEY (`ID`,`VerifiedBuild`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `house` (
+DROP TABLE IF EXISTS `house`;
+CREATE TABLE `house` (
   `ID` int unsigned NOT NULL DEFAULT '0',
   `InternalName` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `HouseTypeID` int NOT NULL DEFAULT '0',
@@ -280,7 +301,8 @@ CREATE TABLE IF NOT EXISTS `house` (
   PRIMARY KEY (`ID`,`VerifiedBuild`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `house_decor` (
+DROP TABLE IF EXISTS `house_decor`;
+CREATE TABLE `house_decor` (
   `Name` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `InitialRotationX` float NOT NULL DEFAULT '0',
   `InitialRotationY` float NOT NULL DEFAULT '0',
@@ -305,7 +327,8 @@ CREATE TABLE IF NOT EXISTS `house_decor` (
   PRIMARY KEY (`ID`,`VerifiedBuild`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `house_decor_locale` (
+DROP TABLE IF EXISTS `house_decor_locale`;
+CREATE TABLE `house_decor_locale` (
   `ID` int unsigned NOT NULL DEFAULT '0',
   `locale` varchar(4) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `Name_lang` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
@@ -324,7 +347,8 @@ CREATE TABLE IF NOT EXISTS `house_decor_locale` (
  PARTITION zhCN VALUES IN ('zhCN') ENGINE = InnoDB,
  PARTITION zhTW VALUES IN ('zhTW') ENGINE = InnoDB) */;
 
-CREATE TABLE IF NOT EXISTS `house_decor_material` (
+DROP TABLE IF EXISTS `house_decor_material`;
+CREATE TABLE `house_decor_material` (
   `ID` int unsigned NOT NULL DEFAULT '0',
   `MaterialGUID` bigint unsigned NOT NULL DEFAULT '0',
   `HouseDecorID` int NOT NULL DEFAULT '0',
@@ -335,7 +359,8 @@ CREATE TABLE IF NOT EXISTS `house_decor_material` (
   PRIMARY KEY (`ID`,`VerifiedBuild`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `house_decor_theme_set` (
+DROP TABLE IF EXISTS `house_decor_theme_set`;
+CREATE TABLE `house_decor_theme_set` (
   `ID` int unsigned NOT NULL DEFAULT '0',
   `Name` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `ThemeID` int NOT NULL DEFAULT '0',
@@ -344,7 +369,8 @@ CREATE TABLE IF NOT EXISTS `house_decor_theme_set` (
   PRIMARY KEY (`ID`,`VerifiedBuild`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `house_decor_theme_set_locale` (
+DROP TABLE IF EXISTS `house_decor_theme_set_locale`;
+CREATE TABLE `house_decor_theme_set_locale` (
   `ID` int unsigned NOT NULL DEFAULT '0',
   `locale` varchar(4) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `Name_lang` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
@@ -363,7 +389,8 @@ CREATE TABLE IF NOT EXISTS `house_decor_theme_set_locale` (
  PARTITION zhCN VALUES IN ('zhCN') ENGINE = InnoDB,
  PARTITION zhTW VALUES IN ('zhTW') ENGINE = InnoDB) */;
 
-CREATE TABLE IF NOT EXISTS `house_exterior_wmo_data` (
+DROP TABLE IF EXISTS `house_exterior_wmo_data`;
+CREATE TABLE `house_exterior_wmo_data` (
   `Name` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `ID` int unsigned NOT NULL DEFAULT '0',
   `Flags` int NOT NULL DEFAULT '0',
@@ -371,7 +398,8 @@ CREATE TABLE IF NOT EXISTS `house_exterior_wmo_data` (
   PRIMARY KEY (`ID`,`VerifiedBuild`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `house_exterior_wmo_data_locale` (
+DROP TABLE IF EXISTS `house_exterior_wmo_data_locale`;
+CREATE TABLE `house_exterior_wmo_data_locale` (
   `ID` int unsigned NOT NULL DEFAULT '0',
   `locale` varchar(4) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `Name_lang` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
@@ -390,7 +418,8 @@ CREATE TABLE IF NOT EXISTS `house_exterior_wmo_data_locale` (
  PARTITION zhCN VALUES IN ('zhCN') ENGINE = InnoDB,
  PARTITION zhTW VALUES IN ('zhTW') ENGINE = InnoDB) */;
 
-CREATE TABLE IF NOT EXISTS `house_level_data` (
+DROP TABLE IF EXISTS `house_level_data`;
+CREATE TABLE `house_level_data` (
   `ID` int unsigned NOT NULL DEFAULT '0',
   `Level` int NOT NULL DEFAULT '0',
   `QuestID` int NOT NULL DEFAULT '0',
@@ -398,7 +427,8 @@ CREATE TABLE IF NOT EXISTS `house_level_data` (
   PRIMARY KEY (`ID`,`VerifiedBuild`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `house_level_reward_info` (
+DROP TABLE IF EXISTS `house_level_reward_info`;
+CREATE TABLE `house_level_reward_info` (
   `Name` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `Description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `ID` int unsigned NOT NULL DEFAULT '0',
@@ -409,7 +439,8 @@ CREATE TABLE IF NOT EXISTS `house_level_reward_info` (
   PRIMARY KEY (`ID`,`VerifiedBuild`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `house_level_reward_info_locale` (
+DROP TABLE IF EXISTS `house_level_reward_info_locale`;
+CREATE TABLE `house_level_reward_info_locale` (
   `ID` int unsigned NOT NULL DEFAULT '0',
   `locale` varchar(4) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `Name_lang` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
@@ -429,7 +460,8 @@ CREATE TABLE IF NOT EXISTS `house_level_reward_info_locale` (
  PARTITION zhCN VALUES IN ('zhCN') ENGINE = InnoDB,
  PARTITION zhTW VALUES IN ('zhTW') ENGINE = InnoDB) */;
 
-CREATE TABLE IF NOT EXISTS `house_room` (
+DROP TABLE IF EXISTS `house_room`;
+CREATE TABLE `house_room` (
   `ID` int unsigned NOT NULL DEFAULT '0',
   `Name` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `Size` tinyint NOT NULL DEFAULT '0',
@@ -442,7 +474,8 @@ CREATE TABLE IF NOT EXISTS `house_room` (
   PRIMARY KEY (`ID`,`VerifiedBuild`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `house_room_locale` (
+DROP TABLE IF EXISTS `house_room_locale`;
+CREATE TABLE `house_room_locale` (
   `ID` int unsigned NOT NULL DEFAULT '0',
   `locale` varchar(4) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `Name_lang` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
@@ -461,7 +494,8 @@ CREATE TABLE IF NOT EXISTS `house_room_locale` (
  PARTITION zhCN VALUES IN ('zhCN') ENGINE = InnoDB,
  PARTITION zhTW VALUES IN ('zhTW') ENGINE = InnoDB) */;
 
-CREATE TABLE IF NOT EXISTS `house_theme` (
+DROP TABLE IF EXISTS `house_theme`;
+CREATE TABLE `house_theme` (
   `Name` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `ID` int unsigned NOT NULL DEFAULT '0',
   `Flags` int NOT NULL DEFAULT '0',
@@ -470,7 +504,8 @@ CREATE TABLE IF NOT EXISTS `house_theme` (
   PRIMARY KEY (`ID`,`VerifiedBuild`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `house_theme_locale` (
+DROP TABLE IF EXISTS `house_theme_locale`;
+CREATE TABLE `house_theme_locale` (
   `ID` int unsigned NOT NULL DEFAULT '0',
   `locale` varchar(4) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `Name_lang` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
@@ -489,7 +524,8 @@ CREATE TABLE IF NOT EXISTS `house_theme_locale` (
  PARTITION zhCN VALUES IN ('zhCN') ENGINE = InnoDB,
  PARTITION zhTW VALUES IN ('zhTW') ENGINE = InnoDB) */;
 
-CREATE TABLE IF NOT EXISTS `initiative_cycle` (
+DROP TABLE IF EXISTS `initiative_cycle`;
+CREATE TABLE `initiative_cycle` (
   `ID` int unsigned NOT NULL DEFAULT '0',
   `RewardGroupID` int NOT NULL DEFAULT '0',
   `CycleIndex` int NOT NULL DEFAULT '0',
@@ -500,7 +536,8 @@ CREATE TABLE IF NOT EXISTS `initiative_cycle` (
   PRIMARY KEY (`ID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `initiative_cycle_priority` (
+DROP TABLE IF EXISTS `initiative_cycle_priority`;
+CREATE TABLE `initiative_cycle_priority` (
   `ID` int unsigned NOT NULL DEFAULT '0',
   `Priority` int NOT NULL DEFAULT '0',
   `Weight` int NOT NULL DEFAULT '0',
@@ -510,7 +547,8 @@ CREATE TABLE IF NOT EXISTS `initiative_cycle_priority` (
   PRIMARY KEY (`ID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `initiative_milestone` (
+DROP TABLE IF EXISTS `initiative_milestone`;
+CREATE TABLE `initiative_milestone` (
   `ID` int unsigned NOT NULL DEFAULT '0',
   `MilestoneIndex` int NOT NULL DEFAULT '0',
   `ProgressRequired` float NOT NULL DEFAULT '0',
@@ -520,7 +558,8 @@ CREATE TABLE IF NOT EXISTS `initiative_milestone` (
   PRIMARY KEY (`ID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `initiative_reward` (
+DROP TABLE IF EXISTS `initiative_reward`;
+CREATE TABLE `initiative_reward` (
   `RewardData` bigint NOT NULL DEFAULT '0',
   `Name` text COLLATE utf8mb4_unicode_ci,
   `Description` text COLLATE utf8mb4_unicode_ci,
@@ -534,7 +573,8 @@ CREATE TABLE IF NOT EXISTS `initiative_reward` (
   PRIMARY KEY (`ID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `initiative_reward_locale` (
+DROP TABLE IF EXISTS `initiative_reward_locale`;
+CREATE TABLE `initiative_reward_locale` (
   `ID` int unsigned NOT NULL DEFAULT '0',
   `locale` varchar(4) COLLATE utf8mb4_unicode_ci NOT NULL,
   `Name_lang` text COLLATE utf8mb4_unicode_ci,
@@ -543,7 +583,8 @@ CREATE TABLE IF NOT EXISTS `initiative_reward_locale` (
   PRIMARY KEY (`ID`,`locale`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `initiative_reward_x_milestone` (
+DROP TABLE IF EXISTS `initiative_reward_x_milestone`;
+CREATE TABLE `initiative_reward_x_milestone` (
   `ID` int unsigned NOT NULL AUTO_INCREMENT,
   `InitiativeRewardID` int NOT NULL DEFAULT '0',
   `InitiativeMilestoneID` int unsigned NOT NULL DEFAULT '0',
@@ -551,7 +592,8 @@ CREATE TABLE IF NOT EXISTS `initiative_reward_x_milestone` (
   PRIMARY KEY (`ID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `initiative_task` (
+DROP TABLE IF EXISTS `initiative_task`;
+CREATE TABLE `initiative_task` (
   `Name` text COLLATE utf8mb4_unicode_ci,
   `Description` text COLLATE utf8mb4_unicode_ci,
   `ID` int unsigned NOT NULL DEFAULT '0',
@@ -565,7 +607,8 @@ CREATE TABLE IF NOT EXISTS `initiative_task` (
   PRIMARY KEY (`ID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `initiative_task_locale` (
+DROP TABLE IF EXISTS `initiative_task_locale`;
+CREATE TABLE `initiative_task_locale` (
   `ID` int unsigned NOT NULL DEFAULT '0',
   `locale` varchar(4) COLLATE utf8mb4_unicode_ci NOT NULL,
   `Name_lang` text COLLATE utf8mb4_unicode_ci,
@@ -574,7 +617,8 @@ CREATE TABLE IF NOT EXISTS `initiative_task_locale` (
   PRIMARY KEY (`ID`,`locale`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `initiative_x_task` (
+DROP TABLE IF EXISTS `initiative_x_task`;
+CREATE TABLE `initiative_x_task` (
   `ID` int unsigned NOT NULL AUTO_INCREMENT,
   `InitiativeTaskID` int NOT NULL DEFAULT '0',
   `SortOrder` int NOT NULL DEFAULT '0',
@@ -583,7 +627,8 @@ CREATE TABLE IF NOT EXISTS `initiative_x_task` (
   PRIMARY KEY (`ID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `neighborhood_initiative` (
+DROP TABLE IF EXISTS `neighborhood_initiative`;
+CREATE TABLE `neighborhood_initiative` (
   `Name` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `Description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `ID` int unsigned NOT NULL DEFAULT '0',
@@ -595,7 +640,8 @@ CREATE TABLE IF NOT EXISTS `neighborhood_initiative` (
   PRIMARY KEY (`ID`,`VerifiedBuild`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `neighborhood_initiative_locale` (
+DROP TABLE IF EXISTS `neighborhood_initiative_locale`;
+CREATE TABLE `neighborhood_initiative_locale` (
   `ID` int unsigned NOT NULL DEFAULT '0',
   `locale` varchar(4) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `Name_lang` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
@@ -615,7 +661,8 @@ CREATE TABLE IF NOT EXISTS `neighborhood_initiative_locale` (
  PARTITION zhCN VALUES IN ('zhCN') ENGINE = InnoDB,
  PARTITION zhTW VALUES IN ('zhTW') ENGINE = InnoDB) */;
 
-CREATE TABLE IF NOT EXISTS `neighborhood_map` (
+DROP TABLE IF EXISTS `neighborhood_map`;
+CREATE TABLE `neighborhood_map` (
   `PositionX` float NOT NULL DEFAULT '0',
   `PositionY` float NOT NULL DEFAULT '0',
   `PositionZ` float NOT NULL DEFAULT '0',
@@ -628,7 +675,8 @@ CREATE TABLE IF NOT EXISTS `neighborhood_map` (
   PRIMARY KEY (`ID`,`VerifiedBuild`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `neighborhood_name_gen` (
+DROP TABLE IF EXISTS `neighborhood_name_gen`;
+CREATE TABLE `neighborhood_name_gen` (
   `ID` int unsigned NOT NULL DEFAULT '0',
   `Prefix` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `Suffix` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
@@ -638,7 +686,8 @@ CREATE TABLE IF NOT EXISTS `neighborhood_name_gen` (
   PRIMARY KEY (`ID`,`VerifiedBuild`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `neighborhood_name_gen_locale` (
+DROP TABLE IF EXISTS `neighborhood_name_gen_locale`;
+CREATE TABLE `neighborhood_name_gen_locale` (
   `ID` int unsigned NOT NULL DEFAULT '0',
   `locale` varchar(4) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `Prefix_lang` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
@@ -659,7 +708,8 @@ CREATE TABLE IF NOT EXISTS `neighborhood_name_gen_locale` (
  PARTITION zhCN VALUES IN ('zhCN') ENGINE = InnoDB,
  PARTITION zhTW VALUES IN ('zhTW') ENGINE = InnoDB) */;
 
-CREATE TABLE IF NOT EXISTS `neighborhood_plot` (
+DROP TABLE IF EXISTS `neighborhood_plot`;
+CREATE TABLE `neighborhood_plot` (
   `Cost` bigint unsigned NOT NULL DEFAULT '0',
   `Name` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `HousePositionX` float NOT NULL DEFAULT '0',
@@ -690,7 +740,8 @@ CREATE TABLE IF NOT EXISTS `neighborhood_plot` (
   PRIMARY KEY (`ID`,`VerifiedBuild`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `room_component` (
+DROP TABLE IF EXISTS `room_component`;
+CREATE TABLE `room_component` (
   `OffsetPosX` float NOT NULL DEFAULT '0',
   `OffsetPosY` float NOT NULL DEFAULT '0',
   `OffsetPosZ` float NOT NULL DEFAULT '0',
@@ -708,7 +759,8 @@ CREATE TABLE IF NOT EXISTS `room_component` (
   PRIMARY KEY (`ID`,`VerifiedBuild`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `room_component_option` (
+DROP TABLE IF EXISTS `room_component_option`;
+CREATE TABLE `room_component_option` (
   `ID` int unsigned NOT NULL DEFAULT '0',
   `Type` tinyint unsigned NOT NULL DEFAULT '0',
   `SubType` tinyint unsigned NOT NULL DEFAULT '0',
@@ -721,7 +773,8 @@ CREATE TABLE IF NOT EXISTS `room_component_option` (
   PRIMARY KEY (`ID`,`VerifiedBuild`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `room_component_option_texture` (
+DROP TABLE IF EXISTS `room_component_option_texture`;
+CREATE TABLE `room_component_option_texture` (
   `ID` int unsigned NOT NULL DEFAULT '0',
   `RoomComponentOptionID` int NOT NULL DEFAULT '0',
   `RoomComponentTextureID` int NOT NULL DEFAULT '0',
@@ -730,7 +783,8 @@ CREATE TABLE IF NOT EXISTS `room_component_option_texture` (
   PRIMARY KEY (`ID`,`VerifiedBuild`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `room_component_texture` (
+DROP TABLE IF EXISTS `room_component_texture`;
+CREATE TABLE `room_component_texture` (
   `Name` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `ID` int unsigned NOT NULL DEFAULT '0',
   `Type` int NOT NULL DEFAULT '0',
@@ -742,7 +796,8 @@ CREATE TABLE IF NOT EXISTS `room_component_texture` (
   PRIMARY KEY (`ID`,`VerifiedBuild`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `room_component_texture_locale` (
+DROP TABLE IF EXISTS `room_component_texture_locale`;
+CREATE TABLE `room_component_texture_locale` (
   `ID` int unsigned NOT NULL DEFAULT '0',
   `locale` varchar(4) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `Name_lang` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
@@ -761,7 +816,8 @@ CREATE TABLE IF NOT EXISTS `room_component_texture_locale` (
  PARTITION zhCN VALUES IN ('zhCN') ENGINE = InnoDB,
  PARTITION zhTW VALUES IN ('zhTW') ENGINE = InnoDB) */;
 
-CREATE TABLE IF NOT EXISTS `room_wmo_data` (
+DROP TABLE IF EXISTS `room_wmo_data`;
+CREATE TABLE `room_wmo_data` (
   `ID` int unsigned NOT NULL DEFAULT '0',
   `BoundingBoxMinX` float NOT NULL DEFAULT '0',
   `BoundingBoxMinY` float NOT NULL DEFAULT '0',
@@ -776,6 +832,7 @@ CREATE TABLE IF NOT EXISTS `room_wmo_data` (
 
 -- Neighborhood and house interior maps have no MapDifficulty.db2 rows; without one the core
 -- drops every spawn difficulty on these maps and nothing spawns.
+
 DELETE FROM `map_difficulty` WHERE `ID` BETWEEN 900001 AND 900006;
 INSERT INTO `map_difficulty` (`ID`, `DifficultyID`, `LockID`, `ResetInterval`, `MaxPlayers`, `ItemContext`, `ItemContextPickerID`, `Flags`, `ContentTuningID`, `WorldStateExpressionID`, `MapID`, `VerifiedBuild`) VALUES
 (900001, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2735, -1), -- Founder's Point
