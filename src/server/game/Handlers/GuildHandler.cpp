@@ -19,6 +19,7 @@
 #include "AchievementPackets.h"
 #include "Common.h"
 #include "DB2Stores.h"
+#include "DatabaseEnv.h"
 #include "GameTime.h"
 #include "GossipDef.h"
 #include "Guild.h"
@@ -26,8 +27,10 @@
 #include "GuildPackets.h"
 #include "GuildRenameMgr.h"
 #include "Log.h"
+#include "ObjectAccessor.h"
 #include "ObjectMgr.h"
 #include "Player.h"
+#include "StringFormat.h"
 
 void WorldSession::HandleGuildQueryOpcode(WorldPackets::Guild::QueryGuildInfo& query)
 {
