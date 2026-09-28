@@ -335,13 +335,6 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 (378412, 'spell_pal_light_of_the_titans_hot');
 
 -- =========================================================================
--- Judgment of Justice (403495) - attached to Judgment (20271)
--- =========================================================================
-DELETE FROM `spell_script_names` WHERE `ScriptName`='spell_pal_judgment_of_justice';
-INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
-(20271, 'spell_pal_judgment_of_justice');
-
--- =========================================================================
 -- Punishment (403530) - procs on Rebuke/Avenger's Shield interrupt
 -- EFFECT_0 DUMMY: casts extra Blessed Hammer/HoTR/Holy Shock/Crusader Strike
 -- EFFECT_1 PROC_TRIGGER_SPELL: TriggerSpell=0, suppressed by PreventDefaultAction

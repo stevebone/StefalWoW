@@ -2519,40 +2519,6 @@ namespace Scripts::Custom::Paladin
         }
     };
 
-    // 403495 - Judgment of Justice (attached to 20271 - Judgment)
-    class spell_pal_judgment_of_justice : public SpellScript
-    {
-        bool Validate(SpellInfo const* spellInfo) override
-        {
-            return ValidateSpellInfo({ Spells::JudgmentOfJusticeTalent, Spells::JudgmentOfJustice })
-                && ValidateSpellEffect({ { spellInfo->Id, EFFECT_1 } })
-                && spellInfo->GetEffect(EFFECT_1).IsEffect(SPELL_EFFECT_APPLY_AURA);
-        }
-
-        void PreventSpeed(WorldObject*& target) const
-        {
-            if (!GetCaster()->HasAura(Spells::JudgmentOfJusticeTalent))
-                target = nullptr;
-        }
-
-        void HandleDummy(SpellEffIndex /*effIndex*/) const
-        {
-            Unit* caster = GetCaster();
-
-            if (caster->HasAura(Spells::JudgmentOfJusticeTalent))
-                caster->CastSpell(GetHitUnit(), Spells::JudgmentOfJustice, CastSpellExtraArgsInit{
-                    .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR,
-                    .TriggeringSpell = GetSpell()
-                });
-        }
-
-        void Register() override
-        {
-            OnObjectTargetSelect += SpellObjectTargetSelectFn(spell_pal_judgment_of_justice::PreventSpeed, EFFECT_1, TARGET_UNIT_CASTER);
-            OnEffectHitTarget += SpellEffectFn(spell_pal_judgment_of_justice::HandleDummy, EFFECT_0, SPELL_EFFECT_SCHOOL_DAMAGE);
-        }
-    };
-
     // 403530 - Punishment
     // EFFECT_0: DUMMY (APPLY_AREA_AURA_PARTY) - trigger aura, handles the extra cast
     // EFFECT_1: PROC_TRIGGER_SPELL - trigger aura, TriggerSpell=0 (warning suppressed by script)
@@ -2737,7 +2703,6 @@ void AddSC_custom_paladin_spell_fixes()
     RegisterSpellScript(spell_pal_crusading_strikes_damage);
     RegisterSpellScript(spell_pal_light_of_the_titans);
     RegisterSpellScript(spell_pal_light_of_the_titans_hot);
-    RegisterSpellScript(spell_pal_judgment_of_justice);
     RegisterSpellScript(spell_pal_punishment);
     RegisterSpellScript(spell_pal_guided_prayer);
 }

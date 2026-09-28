@@ -1274,6 +1274,7 @@ WorldPacket const* MoveAddImpulse::Write()
     _worldPacket << Direction;
 
     return &_worldPacket;
+}
 
 void MoveAddImpulseAck::Read()
 {
