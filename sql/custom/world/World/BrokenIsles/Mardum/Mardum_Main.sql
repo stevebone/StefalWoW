@@ -419,3 +419,11 @@ INSERT INTO `smart_scripts` (`entryorguid`,`source_type`,`id`,`link`,`event_type
 DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId`=22 AND `SourceGroup`=@ID+1 AND `SourceEntry`=@ENTRY AND `SourceId`=0;
 INSERT INTO `conditions` (`SourceTypeOrReferenceId`,`SourceGroup`,`SourceEntry`,`SourceId`,`ElseGroup`,`ConditionTypeOrReference`,`ConditionTarget`,`ConditionValue1`,`ConditionValue2`,`Comment`) VALUES
 (22, @ID+1, @ENTRY, 0, 0, 47, 0, 39495, 8, 'Invoker has quest 39495 complete');
+
+-- Conditions needed to decide which Sevis NPC is shown based on whether he was sacrificed OR player
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 32 AND `SourceGroup` = 5 AND `SourceEntry` IN (105945, 99920) AND `ConditionValue1` = 40087;
+INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `NegativeCondition`, `ErrorType`, `ErrorTextId`, `ScriptName`, `Comment`) VALUES
+-- Sevis Brightflame (105945) - visible only while 40087 NOT rewarded
+(32, 5, 105945, 0, 0, 8, 0, 40087, 0, 0, 0, 0, 0, '', 'Sevis Brightflame visible if quest 40087 is rewarded'),
+-- Sevis Brightflame (99920) - visible only once 40087 IS rewarded
+(32, 5, 99920, 0, 0, 8, 0, 40087, 0, 0, 1, 0, 0, '', 'Sevis Brightflame visible if quest 40087 NOT rewarded');
