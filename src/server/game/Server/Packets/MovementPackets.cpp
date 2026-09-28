@@ -1243,6 +1243,29 @@ WorldPacket const* MoveUpdateRemoveInertia::Write()
     return &_worldPacket;
 }
 
+void MoveForceGravityModifierChangeAck::Read()
+{
+    _worldPacket >> Ack;
+    _worldPacket >> GravityModifier;
+}
+
+WorldPacket const* MoveSetGravityModifier::Write()
+{
+    _worldPacket << MoverGUID;
+    _worldPacket << uint32(SequenceIndex);
+    _worldPacket << float(GravityModifier);
+
+    return &_worldPacket;
+}
+
+WorldPacket const* MoveUpdateSetGravityModifier::Write()
+{
+    _worldPacket << *Status;
+    _worldPacket << float(GravityModifier);
+
+    return &_worldPacket;
+}
+
 // StefalWoW
 WorldPacket const* MoveAddImpulse::Write()
 {
@@ -1251,7 +1274,6 @@ WorldPacket const* MoveAddImpulse::Write()
     _worldPacket << Direction;
 
     return &_worldPacket;
-}
 
 void MoveAddImpulseAck::Read()
 {
