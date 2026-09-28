@@ -9230,16 +9230,18 @@ void Unit::UpdateAdvFlyingSpeed(AdvFlyingRateTypeRange speedType, bool clientUpd
     if (!flightCapabilityEntry)
         flightCapabilityEntry = sFlightCapabilityStore.AssertEntry(1);
 
+    // FlightCapability.db2 stores banking/pitching rates in degrees, but the client expects
+    // radians on the wire (retail sniffs: 1.5708 = 90deg, 2.4435 = 140deg, 6.2832 = 360deg).
     auto [opcode, min, max, rateAura] = [&]
     {
         switch (speedType)
         {
             case ADV_FLYING_BANKING_RATE:
-                return std::tuple(SMSG_MOVE_SET_ADV_FLYING_BANKING_RATE, flightCapabilityEntry->BankingRateMin, flightCapabilityEntry->BankingRateMax, SPELL_AURA_MOD_ADV_FLYING_BANKING_RATE);
+                return std::tuple(SMSG_MOVE_SET_ADV_FLYING_BANKING_RATE, G3D::toRadians(flightCapabilityEntry->BankingRateMin), G3D::toRadians(flightCapabilityEntry->BankingRateMax), SPELL_AURA_MOD_ADV_FLYING_BANKING_RATE);
             case ADV_FLYING_PITCHING_RATE_DOWN:
-                return std::tuple(SMSG_MOVE_SET_ADV_FLYING_PITCHING_RATE_DOWN, flightCapabilityEntry->PitchingRateDownMin, flightCapabilityEntry->PitchingRateDownMax, SPELL_AURA_MOD_ADV_FLYING_PITCHING_RATE_DOWN);
+                return std::tuple(SMSG_MOVE_SET_ADV_FLYING_PITCHING_RATE_DOWN, G3D::toRadians(flightCapabilityEntry->PitchingRateDownMin), G3D::toRadians(flightCapabilityEntry->PitchingRateDownMax), SPELL_AURA_MOD_ADV_FLYING_PITCHING_RATE_DOWN);
             case ADV_FLYING_PITCHING_RATE_UP:
-                return std::tuple(SMSG_MOVE_SET_ADV_FLYING_PITCHING_RATE_UP, flightCapabilityEntry->PitchingRateUpMin, flightCapabilityEntry->PitchingRateUpMax, SPELL_AURA_MOD_ADV_FLYING_PITCHING_RATE_UP);
+                return std::tuple(SMSG_MOVE_SET_ADV_FLYING_PITCHING_RATE_UP, G3D::toRadians(flightCapabilityEntry->PitchingRateUpMin), G3D::toRadians(flightCapabilityEntry->PitchingRateUpMax), SPELL_AURA_MOD_ADV_FLYING_PITCHING_RATE_UP);
             case ADV_FLYING_TURN_VELOCITY_THRESHOLD:
                 return std::tuple(SMSG_MOVE_SET_ADV_FLYING_TURN_VELOCITY_THRESHOLD, flightCapabilityEntry->TurnVelocityThresholdMin, flightCapabilityEntry->TurnVelocityThresholdMax, SPELL_AURA_NONE);
             default:
