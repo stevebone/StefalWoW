@@ -521,6 +521,12 @@ namespace FSBGenAIPrompts
         FSB_ChatterCategory category = isSelfBuff ? FSB_ChatterCategory::botBuffSelf : FSB_ChatterCategory::botBuffTarget;
         FSB_ChatterType chatterType = FSBMgr::Get()->GetBotChatterTypeForEntry(bot->GetEntry());
 
+        if (chatterType == FSB_ChatterType::None)
+        {
+            TC_LOG_WARN("scripts.fsb.genai", "FSB GenAI: bot entry {} has no chatter type, falling back to Neutral", bot->GetEntry());
+            chatterType = FSB_ChatterType::Neutral;
+        }
+
         if (!FSBGenAI::IsEnabled())
         {
             if (isSelfBuff)

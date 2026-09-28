@@ -88,7 +88,20 @@ namespace FSBChatter
 
     std::string GetRandomReply(Creature* bot, Unit* target, FSB_ChatterCategory category, FSB_ChatterType chatterType, uint32 spellId, uint8 duration)
     {
+        if (!bot)
+            return "";
+
         Player* player = FSBMgr::Get()->GetBotOwner(bot);
+
+        if (chatterType == FSB_ChatterType::None)
+        {
+            chatterType = FSBMgr::Get()->GetBotChatterTypeForEntry(bot->GetEntry());
+            if (chatterType == FSB_ChatterType::None)
+            {
+                TC_LOG_WARN("scripts.fsb.chatter", "FSB: bot entry {} has no chatter type, falling back to Neutral (category {})", bot->GetEntry(), static_cast<uint8>(category));
+                chatterType = FSB_ChatterType::Neutral;
+            }
+        }
 
         // DB-driven path (all categories)
         uint32 key = (static_cast<uint32>(category) << 8) | static_cast<uint32>(chatterType);
