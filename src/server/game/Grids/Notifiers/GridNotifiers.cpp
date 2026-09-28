@@ -17,9 +17,11 @@
 
 #include "GridNotifiers.h"
 #include "CellImpl.h"
+#include "Creature.h"
 #include "CreatureAI.h"
 #include "GridNotifiersImpl.h"
 #include "ObjectAccessor.h"
+#include "ScriptHelpers.h"
 #include "Transport.h"
 #include "UpdateData.h"
 #include "WorldPacket.h"
@@ -70,6 +72,15 @@ void VisibleNotifier::SendToSelf()
 
     for (ObjectGuid const& outOfRangeGuid : vis_guids)
     {
+        // FSB bots live in fake party/raid rosters - the 12.1 client
+        // dereferences the member unit on destroy, so clear the roster first.
+        // Covers the owner's party roster and BG teammates' raid rosters.
+        if (outOfRangeGuid.IsCreatureOrVehicle())
+            if (Creature* creature = ObjectAccessor::GetCreatureOrPetOrVehicle(i_player, outOfRangeGuid); creature && creature->IsBot() &&
+                (creature->GetOwnerGUID() == i_player.GetGUID() ||
+                 (i_player.InBattleground() && ScriptHelpers::GetBotTeam(creature) == i_player.GetTeam())))
+                ScriptHelpers::SendForceClearFakeParty(&i_player);
+
         i_player.m_clientGUIDs.erase(outOfRangeGuid);
         i_data.AddOutOfRangeGUID(outOfRangeGuid);
 

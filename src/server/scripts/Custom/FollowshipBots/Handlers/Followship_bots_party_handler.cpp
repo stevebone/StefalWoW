@@ -48,6 +48,7 @@
 #include "Timer.h"
 
 #include <unordered_map>
+#include <unordered_set>
 
 namespace FSBParty
 {
@@ -130,9 +131,12 @@ namespace FSBParty
 		if (!botsPtr)
 			return result;
 
+		// Stale/colliding runtimeGuids must not produce duplicate roster
+		// entries - the client merges them and drops members.
+		std::unordered_set<ObjectGuid> seen;
 		for (auto const& botData : *botsPtr)
 		{
-			if (botData.runtimeGuid.IsEmpty())
+			if (botData.runtimeGuid.IsEmpty() || !seen.insert(botData.runtimeGuid).second)
 				continue;
 
 			if (Creature* bot = ObjectAccessor::GetCreatureOrPetOrVehicle(*player, botData.runtimeGuid))
@@ -227,10 +231,6 @@ namespace FSBParty
         // ------------------------------------------------------------
 
         ScriptHelpers::SendFakePartyUpdate(player, safeBots, botClasses, botRaces, botRoles);
-
-        TC_LOG_DEBUG("scripts.fsb.party",
-            "FSB: SendFakePartyUpdate sent to player {} with {} bots",
-            player->GetName(), safeBots.size());
     }
 
     void SendBattlegroundRaidUpdate(Player* player, std::vector<Creature*> const& bots)
@@ -336,6 +336,21 @@ namespace FSBParty
         TC_LOG_DEBUG("scripts.fsb.party", "FSB: SendClearFakeParty sent to player {}", player->GetName());
     }
 
+    // Drops the cached roster state for a player. Called on session start so
+    // the first maintenance tick always emits a fresh full PartyUpdate - bot
+    // creature GUIDs can be identical across relogs (DB-spawned bots keep
+    // spawnId as their counter), which would otherwise suppress the resend.
+    void ClearPartyThrottle(Player* player)
+    {
+        if (!player)
+            return;
+
+        s_partyThrottle.erase(player->GetGUID().GetCounter());
+
+        for (auto& [_, bgState] : s_bgRaidThrottle)
+            bgState.rosterHashByPlayer.erase(player->GetGUID().GetCounter());
+    }
+
     void PeriodicPartyNeededCheck(Creature* bot)
     {
         if (!bot || !bot->IsInWorld())
@@ -368,6 +383,12 @@ namespace FSBParty
             return;
         }
 
+        // Don't emit a roster while the owner is still loading into the world.
+        // If we sent (and hashed) it now, the client can drop the packet and
+        // later ticks would suppress the resend.
+        if (owner->GetSession()->PlayerLoading())
+            return;
+
         // One driver bot per owner - avoids N PartyUpdate spam / second.
         if (!IsPartyUpdateDriver(bot, activeBots))
             return;
@@ -380,12 +401,29 @@ namespace FSBParty
 
         ObjectGuid::LowType ownerKey = owner->GetGUID().GetCounter();
         PartyThrottleState& throttle = s_partyThrottle[ownerKey];
+
+        // A destroy hook may have cleared the client roster while the
+        // composition hash stayed the same (e.g. a dismissed bot despawns).
+        // Consume the flag so the roster resends below.
+        bool rosterWasCleared = ScriptHelpers::ConsumeFakePartyCleared(owner);
+
+        // If the client lost any bot's unit object (out of range / teleport)
+        // the roster was cleared by the destroy hooks. Defer sends until every
+        // bot is back at the client, then the cleared hash forces a resend.
+        bool allAtClient = std::all_of(activeBots.begin(), activeBots.end(),
+            [owner](Creature const* b) { return b && owner->HaveAtClient(b); });
+        if (!allAtClient)
+        {
+            throttle.hadBots = false;
+            return;
+        }
+
         uint32 hash = HashActiveBots(activeBots);
 
         // Full PartyUpdate only when the bot roster changes. Rebuilding the
         // client party frame every second is what hitching the main thread /
         // client FPS on the 1s cadence.
-        if (!throttle.hadBots || throttle.compositionHash != hash)
+        if (!throttle.hadBots || throttle.compositionHash != hash || rosterWasCleared)
         {
             SendFakePartyUpdate(owner, bot);
             throttle.compositionHash = hash;
@@ -454,6 +492,14 @@ namespace FSBParty
 
             ObjectGuid::LowType const playerKey = player->GetGUID().GetCounter();
             uint32& sentHash = throttle.rosterHashByPlayer[playerKey];
+
+            // A bot going out of range gets its unit destroyed client-side and
+            // the roster cleared - invalidate so the raid roster resends.
+            bool allAtClient = std::all_of(bots.begin(), bots.end(),
+                [player](Creature const* b) { return b && player->HaveAtClient(b); });
+            if (!allAtClient || ScriptHelpers::ConsumeFakePartyCleared(player))
+                sentHash = 0;
+
             if (sentHash != hash)
             {
                 SendBattlegroundRaidUpdate(player, bots);
@@ -493,7 +539,11 @@ namespace FSBParty
             // Get the first active bot for this player to use as the base AI
             std::vector<Creature*> activeBots = CollectActiveBots(player);
             if (!activeBots.empty())
-                SendFakePartyUpdate(player, activeBots[0]);
+            {
+                if (auto* ai = dynamic_cast<FSB_BaseAI*>(activeBots.front()->GetAI()))
+                    ai->partyBots = activeBots;
+                SendFakePartyUpdate(player, activeBots.front());
+            }
         }
 
         // Also update for existing members who have bots
@@ -515,7 +565,11 @@ namespace FSBParty
                 {
                     std::vector<Creature*> activeBots = CollectActiveBots(member);
                     if (!activeBots.empty())
-                        SendFakePartyUpdate(member, activeBots[0]);
+                    {
+                        if (auto* ai = dynamic_cast<FSB_BaseAI*>(activeBots.front()->GetAI()))
+                            ai->partyBots = activeBots;
+                        SendFakePartyUpdate(member, activeBots.front());
+                    }
                 }
             }
         }
@@ -544,7 +598,13 @@ namespace FSBParty
             if (botsPtr && !botsPtr->empty())
             {
                 // Re-send as standalone fake party (player + bots only)
-                FSBParty::SendFakePartyUpdate(player);
+                std::vector<Creature*> activeBots = CollectActiveBots(player);
+                if (!activeBots.empty())
+                {
+                    if (auto* ai = dynamic_cast<FSB_BaseAI*>(activeBots.front()->GetAI()))
+                        ai->partyBots = activeBots;
+                    SendFakePartyUpdate(player, activeBots.front());
+                }
             }
         }
 
@@ -564,7 +624,15 @@ namespace FSBParty
 
                 auto botsPtr = FSBMgr::Get()->GetPersistentBotsForPlayer(member);
                 if (botsPtr && !botsPtr->empty())
-                    FSBParty::SendFakePartyUpdate(member);
+                {
+                    std::vector<Creature*> activeBots = CollectActiveBots(member);
+                    if (!activeBots.empty())
+                    {
+                        if (auto* ai = dynamic_cast<FSB_BaseAI*>(activeBots.front()->GetAI()))
+                            ai->partyBots = activeBots;
+                        SendFakePartyUpdate(member, activeBots.front());
+                    }
+                }
             }
         }
     }

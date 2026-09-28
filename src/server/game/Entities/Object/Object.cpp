@@ -21,6 +21,7 @@
 #include "CinematicMgr.h"
 #include "CombatLogPackets.h"
 #include "Corpse.h"
+#include "Creature.h"
 #include "CreatureGroups.h"
 #include "DB2Stores.h"
 #include "DynamicObject.h"
@@ -37,6 +38,7 @@
 #include "PhasingHandler.h"
 #include "Player.h"
 #include "ReputationMgr.h"
+#include "ScriptHelpers.h"
 #include "SmoothPhasing.h"
 #include "Spell.h"
 #include "SpellAuraEffects.h"
@@ -3033,6 +3035,14 @@ struct WorldObjectClientDestroyWork
 
         if (Unit const* unit = object->ToUnit(); unit && unit->GetCharmerGUID() == player->GetGUID()) /// @todo this is for puppet
             return;
+
+        // FSB bots live in fake party/raid rosters - the 12.1 client
+        // dereferences the member unit on destroy, so clear the roster first.
+        // Covers the owner's party roster and BG teammates' raid rosters.
+        if (Creature* creature = object->ToCreature(); creature && creature->IsBot() &&
+            (creature->GetOwnerGUID() == player->GetGUID() ||
+             (player->InBattleground() && ScriptHelpers::GetBotTeam(creature) == player->GetTeam())))
+            ScriptHelpers::SendForceClearFakeParty(player);
 
         object->DestroyForPlayer(player);
         player->m_clientGUIDs.erase(object->GetGUID());

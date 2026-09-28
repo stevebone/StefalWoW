@@ -120,6 +120,7 @@
 #include "ReputationMgr.h"
 #include "RestMgr.h"
 #include "Scenario.h"
+#include "ScriptHelpers.h"
 #include "SkillDiscovery.h"
 #include "SocialMgr.h"
 #include "Spell.h"
@@ -25632,6 +25633,14 @@ inline void BeforeVisibilityDestroy<Creature>(Creature* t, Player* p)
             p->SendDirectMessage(vignetteUpdate.Write());
         }
     }
+
+    // FSB bots live in fake party/raid rosters - the 12.1 client
+    // dereferences the member unit on destroy, so clear the roster first.
+    // Covers the owner's party roster and BG teammates' raid rosters.
+    if (t->IsBot() &&
+        (t->GetOwnerGUID() == p->GetGUID() ||
+         (p->InBattleground() && ScriptHelpers::GetBotTeam(t) == p->GetTeam())))
+        ScriptHelpers::SendForceClearFakeParty(p);
 }
 
 template<>

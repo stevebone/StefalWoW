@@ -321,9 +321,41 @@ void FSBMgr::RegisterBotSpawn(Creature* bot, Player* owner)
     if (!botsPtr)
         return;
 
+    // spawnId uniquely identifies a DB-spawned creature. Matching by entry
+    // alone collapses every record sharing the template onto the last bot.
+    ObjectGuid::LowType spawnId = bot->GetSpawnId();
+    if (spawnId != 0)
+    {
+        for (auto& botData : *botsPtr)
+        {
+            if (botData.spawnId == spawnId)
+            {
+                botData.runtimeGuid = bot->GetGUID();
+                return;
+            }
+        }
+    }
+
+    // Fallback for runtime summons (no spawnId): bind the first unbound
+    // record for this entry.
     for (auto& botData : *botsPtr)
-        if (botData.entry == bot->GetEntry())
+    {
+        if (botData.entry == bot->GetEntry() && botData.runtimeGuid.IsEmpty())
+        {
             botData.runtimeGuid = bot->GetGUID();
+            return;
+        }
+    }
+}
+
+void FSBMgr::ClearBotRuntimeGuids(Player* player)
+{
+    if (!player)
+        return;
+
+    if (auto* bots = GetPersistentBotsForPlayer(player))
+        for (auto& botData : *bots)
+            botData.runtimeGuid = ObjectGuid::Empty;
 }
 
 void FSBMgr::RestoreBotOwnership(Player* player, Creature* bot, uint32 hireTimeLeft)
@@ -337,6 +369,12 @@ void FSBMgr::RestoreBotOwnership(Player* player, Creature* bot, uint32 hireTimeL
 
     // Set owner
     bot->SetOwnerGUID(player->GetGUID());
+
+    // Hired bots stay visible at any distance (UNIT_FLAG2_INFINITE_AOI): the
+    // client never destroys their unit object for range, so party frames stay
+    // bound to them across same-map teleports instead of crash-dereferencing
+    // a destroyed member unit.
+    bot->SetVisibilityDistanceOverride(VisibilityDistanceType::Infinite);
 
     bot->AI()->SetData(FSB_DATA_HIRED, 1);
     bot->AI()->SetData(FSB_DATA_HIRE_TIME_LEFT, hireTimeLeft);
@@ -533,6 +571,7 @@ void FSBMgr::DismissPersistentBot(Creature* bot)
     uint32 botEntry = bot->GetEntry();
 
     bot->RemoveNpcFlag(UNIT_NPC_FLAG_GOSSIP);
+    bot->SetVisibilityDistanceOverride(VisibilityDistanceType::Normal);
     bot->StopMoving();
     bot->GetMotionMaster()->Clear();
     if (player)
@@ -575,6 +614,9 @@ void FSBMgr::SetInitialBotState(Creature* bot)
         baseAI->botMoveState = FSB_MOVE_STATE_IDLE;
         baseAI->botFollowDistance = frand(2.f, 8.f);
         baseAI->botFollowAngle = frand(0.0f, float(M_PI * 2.0f));
+
+        // Unhired bots go back to normal visibility range.
+        bot->SetVisibilityDistanceOverride(VisibilityDistanceType::Normal);
     }
 
     auto& botClass = baseAI->botClass;

@@ -28,6 +28,7 @@
 #include "NPCPackets.h"
 #include "DelvePackets.h"
 #include "Group.h"
+#include "PhasingHandler.h"
 #include "WorldSession.h"
 #include "GossipDef.h"
 
@@ -37,6 +38,56 @@
 
 namespace ScriptHelpers
 {
+    // Empties one party channel (HOME or INSTANCE). Unlike SendClearFakeParty
+    // this does not check the real group - callers use it to wipe a stale fake
+    // roster while a real group owns the other channel.
+    static void SendClearPartyChannel(Player* player, GroupCategory category)
+    {
+        WorldPackets::Party::PartyUpdate clear;
+        clear.PartyFlags = GROUP_FLAG_NONE;
+        clear.PartyIndex = category;
+        clear.PartyType = GROUP_TYPE_NONE;
+        clear.PartyGUID = ObjectGuid::Empty;
+        clear.LeaderGUID = ObjectGuid::Empty;
+        clear.LeaderFactionGroup = Player::GetFactionGroupForRace(player->GetRace());
+        clear.SequenceNum = player->NextGroupUpdateSequenceNumber(category);
+        clear.MyIndex = -1;
+
+        player->SendDirectMessage(clear.Write());
+    }
+
+    static void SendClearHomeParty(Player* player)
+    {
+        SendClearPartyChannel(player, GroupCategory(GROUP_CATEGORY_HOME));
+    }
+
+    // Players whose fake roster was cleared by a destroy hook - the FSB tick
+    // consumes this to know the client roster is empty even when the bot
+    // composition hash is unchanged.
+    static std::unordered_set<uint64> s_forceClearedPlayers;
+
+    void SendForceClearFakeParty(Player* player)
+    {
+        if (!player || !player->GetSession() || !player->IsInWorld())
+            return;
+
+        // Only wipe channels the fake roster could own. A real HOME group
+        // keeps its channel; in BGs the fake raid owns INSTANCE.
+        Group* group = player->GetGroup();
+        if (!group || group->GetMembersCount() <= 1 || group->GetGroupCategory() != GROUP_CATEGORY_HOME)
+            SendClearPartyChannel(player, GroupCategory(GROUP_CATEGORY_HOME));
+
+        if (player->InBattleground())
+            SendClearPartyChannel(player, GroupCategory(GROUP_CATEGORY_INSTANCE));
+
+        s_forceClearedPlayers.insert(player->GetGUID().GetCounter());
+    }
+
+    bool ConsumeFakePartyCleared(Player* player)
+    {
+        return player && s_forceClearedPlayers.erase(player->GetGUID().GetCounter()) > 0;
+    }
+
     void SendClearFakeParty(Player* player)
     {
         if (!player || !player->GetSession() || player->IsBeingTeleportedNear() || player->IsBeingTeleported() || player->IsBeingTeleportedFar() || !player->IsInWorld())
@@ -46,22 +97,12 @@ namespace ScriptHelpers
         if (player->GetGroup() && player->GetGroup()->GetMembersCount() > 1)
             return;
 
-        WorldPackets::Party::PartyUpdate partyUpdate;
-        partyUpdate.PartyFlags = GROUP_FLAG_NONE;
-        partyUpdate.PartyIndex = GROUP_CATEGORY_HOME;
-        partyUpdate.PartyType = GROUP_TYPE_NONE;
-        partyUpdate.PartyGUID = ObjectGuid::Empty;
-        partyUpdate.LeaderGUID = ObjectGuid::Empty;
-        partyUpdate.LeaderFactionGroup = Player::GetFactionGroupForRace(player->GetRace());
-        partyUpdate.SequenceNum = player->NextGroupUpdateSequenceNumber(GROUP_CATEGORY_HOME);
-        partyUpdate.MyIndex = -1;
-
-        player->SendDirectMessage(partyUpdate.Write());
+        SendClearHomeParty(player);
     }
 
     void SendBotMemberState(Player* player, Creature* bot, uint32 level, uint32 currentHealth, uint32 maxHealth, 
                            uint8 powerType, uint32 currentPower, uint32 maxPower, uint32 zoneID, 
-                           float positionX, float positionY, float positionZ, 
+                           float positionX, float positionY, float positionZ,
                            std::vector<uint32> const& auraSpellIds)
     {
         if (!player || !player->GetSession() || !player->IsInWorld() || player->IsBeingTeleportedNear() || player->IsBeingTeleported() || player->IsBeingTeleportedFar())
@@ -76,11 +117,33 @@ namespace ScriptHelpers
         if (player->GetMapId() != bot->GetMapId())
             return;
 
+        // Never send member state for a unit the client doesn't have - on
+        // 12.1 the client dereferences the unit when applying the state and
+        // crashes on a null object. Out-of-range raid members stay visible in
+        // the roster (greyed) and simply get no state until they return.
+        if (!player->HaveAtClient(bot))
+            return;
+
         WorldPackets::Party::PartyMemberFullState packet;
         packet.ForEnemy = false;
         packet.MemberGuid = bot->GetGUID();
 
         auto& stats = packet.MemberStats;
+
+        // Match PartyMemberFullState::Initialize: a member that reports no
+        // status is OFFLINE - the client stops refreshing the frame and can
+        // leave the member shown as unknown. Phases/ChromieTime let the client
+        // correlate the member with the unit it sees in the world.
+        stats.Status = MEMBER_STATUS_ONLINE;
+        if (bot->IsPvP())
+            stats.Status |= MEMBER_STATUS_PVP;
+        if (bot->IsFFAPvP())
+            stats.Status |= MEMBER_STATUS_PVP_FFA;
+        if (!bot->IsAlive())
+            stats.Status |= MEMBER_STATUS_DEAD;
+        if (bot->GetVehicle())
+            stats.Status |= MEMBER_STATUS_VEHICLE;
+
         stats.Level = level;
         stats.CurrentHealth = currentHealth;
         stats.MaxHealth = maxHealth;
@@ -105,6 +168,12 @@ namespace ScriptHelpers
             stats.PartyType[1] = GROUP_CATEGORY_INSTANCE;
         else
             stats.PartyType[1] = GROUP_CATEGORY_HOME;
+
+        PhasingHandler::FillPartyMemberPhase(&stats.Phases, bot->GetPhaseShift());
+
+        stats.ChromieTime.ConditionalFlags = player->m_playerData->CtrOptions->ConditionalFlags;
+        stats.ChromieTime.FactionGroup = player->m_playerData->CtrOptions->FactionGroup;
+        stats.ChromieTime.ChromieTimeExpansionMask = player->m_playerData->CtrOptions->ChromieTimeExpansionMask;
 
         // Populate auras
         for (uint32 spellId : auraSpellIds)
@@ -218,6 +287,11 @@ namespace ScriptHelpers
             partyUpdate.LeaderFactionGroup = Player::GetFactionGroupForRace(player->GetRace());
             partyUpdate.SequenceNum = player->NextGroupUpdateSequenceNumber(realGroup->GetGroupCategory());
 
+            // An instance-category group (LFG/BG) lives on a different channel
+            // than the fake HOME party - clear the stale fake roster.
+            if (realGroup->GetGroupCategory() != GROUP_CATEGORY_HOME)
+                SendClearHomeParty(player);
+
             int32 myIndex = -1;
             uint8 index = 0;
 
@@ -272,7 +346,7 @@ namespace ScriptHelpers
         }
         else
         {
-            // Player is solo - create a fake party with bots
+            // Player is solo - create a fake party with bots.
             partyUpdate.PartyFlags = GROUP_FLAG_NONE;
             partyUpdate.PartyIndex = GROUP_CATEGORY_HOME;
             partyUpdate.PartyType = GROUP_TYPE_NORMAL;
@@ -342,6 +416,12 @@ namespace ScriptHelpers
         partyUpdate.PartyType = GROUP_TYPE_NORMAL;
         partyUpdate.LeaderFactionGroup = Player::GetFactionGroupForRace(player->GetRace());
         partyUpdate.SequenceNum = player->NextGroupUpdateSequenceNumber(GROUP_CATEGORY_INSTANCE);
+
+        // A fake party may still exist on the HOME channel from the world map -
+        // clear it or the client can render the small party frame instead of
+        // the raid frame. Skip when a real group already owns HOME.
+        if (!realGroup || realGroup->GetGroupCategory() != GROUP_CATEGORY_HOME)
+            SendClearHomeParty(player);
 
         // Track per-subgroup occupancy so bots fill sequentially into the
         // lowest subgroup that still has room (< MAX_GROUP_SIZE members).

@@ -57,6 +57,17 @@ namespace ScriptHelpers
     // This constructs the packet internally in the core to avoid linking issues with dynamic loading
     TC_GAME_API void SendClearFakeParty(Player* player);
 
+    // Sends a fake-party roster clear even while the player is teleporting.
+    // Used by the object destroy paths: the 12.1 client dereferences party-
+    // frame member units when they are destroyed, so the roster must be
+    // cleared before the destroy packet goes out.
+    TC_GAME_API void SendForceClearFakeParty(Player* player);
+
+    // Returns true once after SendForceClearFakeParty cleared the roster for
+    // this player - lets the FSB tick know it must resend the roster even
+    // when the bot composition hash is unchanged.
+    TC_GAME_API bool ConsumeFakePartyCleared(Player* player);
+
     // Wrapper function to send a party member full state packet for a bot to a player
     // This constructs the packet internally in the core to avoid linking issues with dynamic loading
     // Takes raw bot data instead of PartyMemberStats to avoid needing PartyPackets.h in scripts

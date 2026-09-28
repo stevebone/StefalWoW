@@ -45,8 +45,18 @@ public:
 
     void OnLogin(Player* player, bool /*firstLogin*/) override
     {
+        // Fresh session: drop cached roster state so the first maintenance
+        // tick always sends a full fake party update (bot GUIDs can be
+        // identical across relogs since DB spawns keep their spawnId counter).
+        FSBParty::ClearPartyThrottle(player);
         FSBMgr::Get()->SyncBotPhasingWithOwner(player);
         FSBMgr::Get()->UpdateHiredBotCount(player);
+    }
+
+    void OnLogout(Player* player) override
+    {
+        FSBParty::ClearPartyThrottle(player);
+        FSBMgr::Get()->ClearBotRuntimeGuids(player);
     }
 
     void OnMapChanged(Player* player) override

@@ -56,6 +56,10 @@ namespace FSBParty
     // Sends an empty party update to clear the fake group (on dismiss/logout)
     void SendClearFakeParty(Player* player);
 
+    // Drops cached party-throttle state so the next tick sends a full roster.
+    // Must be called when the player's session starts (login / BG rejoin).
+    void ClearPartyThrottle(Player* player);
+
     void OnMemberAdd(Group* group, ObjectGuid guid);
     void OnMemberRemove(Group* group, ObjectGuid guid);
 

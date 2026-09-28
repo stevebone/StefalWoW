@@ -71,6 +71,9 @@ public:
     void DismissPersistentBot(Creature* bot);
 
     void RegisterBotSpawn(Creature* bot, Player* owner);
+    // Clears in-memory runtimeGuids (e.g. on logout) so stale creature
+    // GUIDs can't leak into a fake party roster after relog/respawn.
+    void ClearBotRuntimeGuids(Player* player);
 
     bool CheckPlayerHasBotWithEntry(Player* player, uint32 entry);
     bool IsBotOwnedByPlayer(Player* player, Creature* bot);
