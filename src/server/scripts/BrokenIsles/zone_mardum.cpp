@@ -1645,7 +1645,7 @@ class quest_enter_the_illidari_shivarra : public QuestScript
 public:
     quest_enter_the_illidari_shivarra() : QuestScript("quest_enter_the_illidari_shivarra") { }
 
-    void OnQuestStatusChange(Player* player, Quest const* /*quest*/, QuestStatus /*oldStatus*/, QuestStatus newStatus) override
+    void OnQuestStatusChange(Player* /*player*/, Quest const* /*quest*/, QuestStatus /*oldStatus*/, QuestStatus newStatus) override
     {
         if (newStatus == QUEST_STATUS_NONE)
         {
