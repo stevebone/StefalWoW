@@ -3049,10 +3049,14 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         void DeleteHousing(ObjectGuid neighborhoodGuid);
         Housing* GetHousing() const;
         Housing* GetHousingForNeighborhood(ObjectGuid neighborhoodGuid) const;
+        // Houses belong to the account (retail 12.1.0.69933): _housings also holds the other characters' houses.
+        Housing* GetHousingByOwner(ObjectGuid ownerGuid) const;
+        Housing* GetHousingByHouseGuid(ObjectGuid houseGuid) const;
         std::vector<Housing const*> GetAllHousings() const;
         void SetHousingEditorModeUpdateField(uint8 mode);
         void UpdateHousingMapId(ObjectGuid houseGuid, int32 mapId);
         void UpdateInitiativeFavor(uint32 favor);
+        void UpdateHousingLevelFavor(ObjectGuid houseGuid, uint32 level, uint32 favor);
 
         // 12.0.5 plot-entry mechanism: writes PlayerHouseInfoComponentData.CurrentHouse to
         // the given house GUID (or ObjectGuid::Empty on plot-leave). Client tracks plot
@@ -3159,6 +3163,10 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
 
         void AddIllusionBlock(uint32 blockValue) { AddDynamicUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::TransmogIllusions)) = blockValue; }
         void AddIllusionFlag(uint32 slot, uint32 flag) { SetUpdateFieldFlagValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::TransmogIllusions, slot), flag); }
+
+        // Account-wide HouseRoom collection (ActivePlayerData::HouseRooms, one bit per HouseRoom ID).
+        bool HasHouseRoom(uint32 houseRoomId) const;
+        void LearnHouseRoom(uint32 houseRoomId);
 
         void AddWarbandScenesBlock(uint32 blockValue) { AddDynamicUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::WarbandScenes)) = blockValue; }
         void AddWarbandScenesFlag(uint32 slot, uint32 flag) { SetUpdateFieldFlagValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::WarbandScenes, slot), flag); }
@@ -3357,6 +3365,11 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         void _LoadPerksMilestones(PreparedQueryResult result);
         void _LoadCUFProfiles(PreparedQueryResult result);
         void _LoadPlayerData(PreparedQueryResult elementsResult, PreparedQueryResult flagsResult);
+        void _LoadHouseRooms();
+        void _LoadAccountHousings();
+        void SetHouseRoomBit(uint32 houseRoomId);
+        std::vector<uint32> m_houseRoomCollection;   // for the login SMSG_ACCOUNT_ROOM_COLLECTION_UPDATE
+        bool m_houseRoomCollectionSent = false;
         void _LoadCharacterBankTabSettings(PreparedQueryResult result);
         void _LoadAccountBankTabSettings();
         void _LoadAccountBankItems(uint32 timeDiff);

@@ -49,6 +49,7 @@
 #include "VMapManager.h"
 #include "World.h"
 #include <G3D/Vector3.h>
+#include <algorithm>
 #include <sstream>
 
 constexpr float VisibilityDistances[AsUnderlyingType(VisibilityDistanceType::Max)] =
@@ -125,6 +126,21 @@ void Object::BuildEntityFragmentsForValuesUpdateForPlayerWithMask(ByteBuffer& da
     data << uint8(flags.HasFlag(UF::UpdateFieldFlag::Owner));
     data << uint8(false);                                  // m_entityFragments.IdsChanged
     data << uint8(contentsChangedMask);
+}
+
+void Object::SetHousingDecorDyeSlots(std::array<uint32, 3> const& dyeSlots)
+{
+    if (!m_housingDecorData.has_value())
+        return;
+
+    // Retail: the decor's FHousingDecor_C PersistedData gets HasDyeSlots + DyeSlots when dyed.
+    auto persistedRef = m_values.ModifyValue(&Object::m_housingDecorData, 0)
+        .ModifyValue(&UF::HousingDecorData::PersistedData, 0);
+    if (std::ranges::any_of(dyeSlots, [](uint32 dye) { return dye != 0; }))
+        SetUpdateFieldValue(persistedRef.ModifyValue(&UF::DecorStoragePersistedData::DyeSlots, 0)
+            .ModifyValue(&UF::DecorDyeSlots::DyeColorID), { int32(dyeSlots[0]), int32(dyeSlots[1]), int32(dyeSlots[2]) });
+    else
+        RemoveOptionalUpdateFieldValue(persistedRef.ModifyValue(&UF::DecorStoragePersistedData::DyeSlots));
 }
 
 void Object::ClearValuesChangesMask()

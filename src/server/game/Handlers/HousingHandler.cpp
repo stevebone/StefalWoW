@@ -108,8 +108,9 @@ namespace
 
         // Own interior: interior instances are per-owner, so being inside an
         // interior whose owner is this player proves ownership of that house.
+        // Houses belong to the account: the buyer is housing->GetOwnerGuid(), which may be another character.
         if (HouseInteriorMap* interiorMap = dynamic_cast<HouseInteriorMap*>(map))
-            return interiorMap->GetOwnerGuid() == player->GetGUID();
+            return interiorMap->GetOwnerGuid() == housing->GetOwnerGuid() && interiorMap->IsHouseOwnerAccount(player);
 
         // Neighborhood exterior: require the player to be standing on their own
         // occupied plot, and that plot's house to be the one being edited.
@@ -127,7 +128,7 @@ namespace
             if (!plotInfo)
                 return false;
 
-            return plotInfo->OwnerGuid == player->GetGUID()
+            return plotInfo->OwnerGuid == housing->GetOwnerGuid()
                 && plotInfo->HouseGuid == housing->GetHouseGuid();
         }
 
@@ -514,7 +515,7 @@ void WorldSession::LeaveHouseInterior()
     // positional data comes from the HouseInteriorMap's stored source fields.
     Housing* housing = player->GetHousing();
     HouseInteriorMap* interiorMap = dynamic_cast<HouseInteriorMap*>(player->GetMap());
-    bool isVisit = interiorMap && interiorMap->GetOwnerGuid() != player->GetGUID();
+    bool isVisit = interiorMap && !interiorMap->IsHouseOwnerAccount(player);
 
     // Clear editing mode and interior state — only own housing carries that
     // state (visitors can't be in edit mode in someone else's house anyway).
@@ -558,7 +559,7 @@ void WorldSession::LeaveHouseInterior()
     {
         statusResponse.HouseGuid = housing->GetHouseGuid();
         statusResponse.AccountGuid = GetBattlenetAccountGUID();
-        statusResponse.OwnerPlayerGuid = player->GetGUID();
+        statusResponse.OwnerPlayerGuid = housing->GetOwnerGuid();
     }
     SendPacket(statusResponse.Write());
 
@@ -1479,6 +1480,17 @@ void WorldSession::HandleHousingDecorSetDyeSlots(WorldPackets::Housing::HousingD
         dyeSlots[i] = static_cast<uint32>(housingDecorSetDyeSlots.DyeColorID[i]);
 
     HousingResult result = housing->CommitDecorDyes(housingDecorSetDyeSlots.DecorGuid, dyeSlots);
+    if (result == HOUSING_RESULT_SUCCESS)
+    {
+        // Retail: the decor's own FHousingDecor_C PersistedData and the account storage entry
+        // both get the dyes in the next UPDATE_OBJECT.
+        if (HousingMap* housingMap = dynamic_cast<HousingMap*>(player->GetMap()))
+            housingMap->UpdateDecorDyes(housingDecorSetDyeSlots.DecorGuid, dyeSlots);
+        else if (HouseInteriorMap* interiorMap = dynamic_cast<HouseInteriorMap*>(player->GetMap()))
+            interiorMap->UpdateDecorDyes(housingDecorSetDyeSlots.DecorGuid, dyeSlots);
+
+        GetBattlenetAccount().SendUpdateToPlayer(player);
+    }
 
     WorldPackets::Housing::HousingDecorSystemSetDyeSlotsResponse response;
     response.DecorGuid = housingDecorSetDyeSlots.DecorGuid;
@@ -2470,6 +2482,16 @@ void WorldSession::HandleHousingFixtureSetHouseSize(WorldPackets::Housing::Housi
 
         TC_LOG_INFO("housing", "CMSG_HOUSING_FIXTURE_SET_HOUSE_SIZE HouseGuid: {}, Size: {} REJECTED (invalid size)",
             housingFixtureSetHouseSize.HouseGuid.ToString(), requestedSize);
+        return;
+    }
+
+    // HouseLevelRewardInfo: medium exterior fixtures unlock at house level 8, large ones at 12.
+    if ((requestedSize == HOUSING_FIXTURE_SIZE_MEDIUM && housing->GetLevel() < 8) ||
+        (requestedSize == HOUSING_FIXTURE_SIZE_LARGE && housing->GetLevel() < 12))
+    {
+        WorldPackets::Housing::HousingFixtureSetHouseSizeResponse response;
+        response.Result = static_cast<uint8>(HOUSING_RESULT_HOUSE_EXTERIOR_SIZE_NOT_AVAILABLE);
+        SendPacket(response.Write());
         return;
     }
 
@@ -3685,7 +3707,7 @@ void WorldSession::HandleHousingSvcsGetPlayerHousesInfo(WorldPackets::Housing::H
     for (Housing const* housing : player->GetAllHousings())
     {
         WorldPackets::Housing::JamCliHouse house;
-        house.OwnerGUID = player->GetGUID();
+        house.OwnerGUID = housing->GetOwnerGuid(); // retail: the buying character (CosmeticOwner)
         house.HouseGUID = housing->GetHouseGuid();
         house.NeighborhoodGUID = housing->GetNeighborhoodGuid();
         house.HouseSettingFlags = housing->GetSettingsFlags();
@@ -3748,7 +3770,7 @@ void WorldSession::HandleHousingSvcsTeleportToPlot(WorldPackets::Housing::Housin
             WorldPackets::Housing::HousingHouseStatusResponse statusResponse;
             statusResponse.HouseGuid = interiorHousing->GetHouseGuid();
             statusResponse.AccountGuid = GetBattlenetAccountGUID();
-            statusResponse.OwnerPlayerGuid = player->GetGUID();
+            statusResponse.OwnerPlayerGuid = interiorHousing->GetOwnerGuid();
             statusResponse.Status = 0;
             SendPacket(statusResponse.Write());
         }
@@ -3763,9 +3785,13 @@ void WorldSession::HandleHousingSvcsTeleportToPlot(WorldPackets::Housing::Housin
         return;
     }
 
+    // A house the account owns in this neighborhood (possibly bought by another character, even of the other
+    // faction) makes the player its owner: retail 12.1.0.69933 teleports home there without access checks.
+    Housing const* accountHousing = player->GetHousingForNeighborhood(neighborhood->GetGuid());
+
     // Access check: verify the player has permission to visit this neighborhood
     // Owner/member always allowed; non-members must check house settings
-    if (!neighborhood->IsMember(player->GetGUID()))
+    if (!accountHousing && !neighborhood->IsMember(player->GetGUID()))
     {
         // Non-member: check if the neighborhood is public
         if (!neighborhood->IsPublic())
@@ -3816,7 +3842,7 @@ void WorldSession::HandleHousingSvcsTeleportToPlot(WorldPackets::Housing::Housin
         // Per-house access check: verify visitor has permission to access this plot.
         // Owner can be offline — fall back to the persisted plotInfo->HouseSettingsFlags
         // (mirrored from character_housing.settingsFlags at neighborhood preload).
-        if (!neighborhood->IsMember(player->GetGUID()))
+        if (!accountHousing && !neighborhood->IsMember(player->GetGUID()))
         {
             Neighborhood::PlotInfo const* plotInfo = neighborhood->GetPlotInfo(static_cast<uint8>(plotIndex));
             if (plotInfo && plotInfo->IsOccupied())
@@ -3838,10 +3864,8 @@ void WorldSession::HandleHousingSvcsTeleportToPlot(WorldPackets::Housing::Housin
             }
         }
 
-        // Own house: "Teleport Home"; anyone else's plot: "Visit House".
-        Housing const* ownHousing = player->GetHousing();
-        bool const home = ownHousing && ownHousing->GetNeighborhoodGuid() == neighborhood->GetGuid()
-            && ownHousing->GetPlotIndex() == plotIndex;
+        // A house of the account: "Teleport Home"; anyone else's plot: "Visit House".
+        bool const home = accountHousing && accountHousing->GetPlotIndex() == plotIndex;
         StartHousingPlotTeleport(player, home ? SPELL_HOUSING_TELEPORT_HOME : SPELL_HOUSING_VISIT_HOUSE,
             HousingMgr::GetPlotTeleportLocation(mapData->MapID, *targetPlot));
 
@@ -4438,7 +4462,9 @@ void WorldSession::HandleHousingHouseStatus(WorldPackets::Housing::HousingHouseS
         Neighborhood* neighborhood = housingMap->GetNeighborhood();
         Neighborhood::PlotInfo const* plotInfo = neighborhood->GetPlotInfo(static_cast<uint8>(visitedPlot));
 
-        if (plotInfo && plotInfo->OwnerGuid != player->GetGUID())
+        // A plot of the account's houses (any of its characters bought it) is the player's own house.
+        Housing* plotAccountHousing = plotInfo ? player->GetHousingByOwner(plotInfo->OwnerGuid) : nullptr;
+        if (plotInfo && !plotAccountHousing)
         {
             // Visiting someone else's plot — return that plot's house data
             response.HouseGuid = plotInfo->HouseGuid;
@@ -4446,20 +4472,21 @@ void WorldSession::HandleHousingHouseStatus(WorldPackets::Housing::HousingHouseS
             response.OwnerPlayerGuid = plotInfo->OwnerGuid;
             response.Status = 0;
         }
-        else if (ownHousing)
+        else if (Housing* statusHousing = plotAccountHousing ? plotAccountHousing : ownHousing)
         {
-            response.HouseGuid = ownHousing->GetHouseGuid();
+            // Retail: HouseOwnerGUID is the buying character (CosmeticOwner), the account is the requester's.
+            response.HouseGuid = statusHousing->GetHouseGuid();
             response.AccountGuid = GetBattlenetAccountGUID();
-            response.OwnerPlayerGuid = player->GetGUID();
+            response.OwnerPlayerGuid = statusHousing->GetOwnerGuid();
             response.Status = 0;
-            response.EditModeFlags = ownHousing->GetEditModeStatusFlags();
+            response.EditModeFlags = statusHousing->GetEditModeStatusFlags();
         }
     }
     else if (ownHousing)
     {
         response.HouseGuid = ownHousing->GetHouseGuid();
         response.AccountGuid = GetBattlenetAccountGUID();
-        response.OwnerPlayerGuid = player->GetGUID();
+        response.OwnerPlayerGuid = ownHousing->GetOwnerGuid();
         response.Status = 0;
         response.EditModeFlags = ownHousing->GetEditModeStatusFlags();
     }
@@ -4491,8 +4518,11 @@ void WorldSession::HandleHousingGetPlayerPermissions(WorldPackets::Housing::Hous
 
         // Client sends the HouseGuid it wants permissions for.
         // If it matches our house, we're the owner.
+        // Any house of the account gives owner rights (retail 12.1.0.69933: 254 in the other character's house).
         ObjectGuid requestedHouseGuid = housingGetPlayerPermissions.HouseGuid.value_or(housing->GetHouseGuid());
-        bool isOwner = (requestedHouseGuid == housing->GetHouseGuid());
+        bool isOwner = player->GetHousingByHouseGuid(requestedHouseGuid) != nullptr;
+        if (isOwner)
+            response.HouseGuid = requestedHouseGuid;
 
         if (isOwner)
         {
@@ -4579,11 +4609,10 @@ void WorldSession::HandleHousingGetCurrentHouseInfo(WorldPackets::Housing::Housi
         if (plotInfo && plotInfo->IsOccupied())
         {
             // Find the plot owner's housing data for AccessFlags
-            Housing* plotHousing = nullptr;
-            if (plotInfo->OwnerGuid == player->GetGUID())
-                plotHousing = player->GetHousing();
-            else if (Player* ownerPlayer = ObjectAccessor::FindPlayer(plotInfo->OwnerGuid))
-                plotHousing = ownerPlayer->GetHousing();
+            Housing* plotHousing = player->GetHousingByOwner(plotInfo->OwnerGuid);
+            if (!plotHousing)
+                if (Player* ownerPlayer = ObjectAccessor::FindPlayer(plotInfo->OwnerGuid))
+                    plotHousing = ownerPlayer->GetHousingByOwner(plotInfo->OwnerGuid);
 
             response.House.HouseGUID = plotInfo->HouseGuid;
             response.House.OwnerGUID = plotInfo->OwnerGuid;
@@ -4603,7 +4632,7 @@ void WorldSession::HandleHousingGetCurrentHouseInfo(WorldPackets::Housing::Housi
     {
         // Not on any tracked plot — fall back to player's own house data
         response.House.HouseGUID = housing->GetHouseGuid();
-        response.House.OwnerGUID = player->GetGUID();
+        response.House.OwnerGUID = housing->GetOwnerGuid();
         response.House.NeighborhoodGUID = housing->GetNeighborhoodGuid();
         response.House.PlotIndex = housing->GetPlotIndex();
         response.House.HouseSettingFlags = housing->GetSettingsFlags();
@@ -5353,7 +5382,7 @@ void WorldSession::HandleHousingBlueprintExport(WorldPackets::Housing::HousingBl
         if (type == HousingBlueprintType::Room && !inInterior)
             return HOUSING_RESULT_BLUEPRINT_TYPE_LOCATION_INVALID;
 
-        if (!sHousingMgr.CanVisitorExportBlueprint(player, housing->GetOwner()->GetGUID(), housing->GetSettingsFlags()))
+        if (!sHousingMgr.CanVisitorExportBlueprint(player, housing->GetOwnerGuid(), housing->GetSettingsFlags()))
             return HOUSING_RESULT_PERMISSION_DENIED;
 
         if (sHousingBlueprintMgr.GetPlayerMadeCount(GetBattlenetAccountId()) >= HOUSING_BLUEPRINTS_MAX_PER_BNET_ACCOUNT)

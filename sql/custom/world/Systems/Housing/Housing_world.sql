@@ -5344,11 +5344,12 @@ INSERT INTO `spell_target_position` (`ID`, `EffectIndex`, `OrderIndex`, `MapID`,
 (1258484, 0, 0, 2736, 2053.6, 175.468, 175.12, 0, 57388);
 
 -- Spell scripts
-DELETE FROM `spell_script_names` WHERE `ScriptName` IN ('spell_housing_leave_house', 'spell_housing_plot_teleport');
+DELETE FROM `spell_script_names` WHERE `ScriptName` IN ('spell_housing_leave_house', 'spell_housing_plot_teleport', 'spell_housing_neighborhood_charter');
 INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 (1234193, 'spell_housing_leave_house'),
 (1233637, 'spell_housing_plot_teleport'),
-(1265142, 'spell_housing_plot_teleport');
+(1265142, 'spell_housing_plot_teleport'),
+(1225512, 'spell_housing_neighborhood_charter');
 
 -- TDB has these NPCs without faction, NPC and unit flags: retail 12.1.0.69933 values where sniffed, older sniffs otherwise
 UPDATE `creature_template` SET `faction` = 35, `npcflag` = 8193, `BaseAttackTime` = 2000, `unit_flags2` = 2048 WHERE `entry` = 227878;
@@ -5504,6 +5505,7 @@ UPDATE `creature_template` SET `faction` = 35, `npcflag` = 128, `BaseAttackTime`
 UPDATE `creature_template` SET `faction` = 35, `unit_flags` = 33536, `unit_flags2` = 67667968, `unit_flags3` = 1090551808 WHERE `entry` = 256825;
 UPDATE `creature_template` SET `faction` = 35, `speed_run` = 1, `BaseAttackTime` = 2000, `unit_flags` = 33555200, `unit_flags2` = 67110912, `unit_flags3` = 1090551808 WHERE `entry` = 257229;
 UPDATE `creature_template` SET `ScriptName` = 'npc_housing_steward' WHERE `entry` IN (233063, 233708);
+UPDATE `creature_template` SET `ScriptName` = 'npc_housing_house_upgrade' WHERE `entry` = 255104;
 
 -- Housing: charter neighborhood founding support.
 -- Retail wires charter founding to quest 89450 "Create a Neighborhood": the housing
@@ -5526,3 +5528,35 @@ INSERT IGNORE INTO `creature_questender` (`id`, `quest`)
 SELECT c.entry, 89450
 FROM (SELECT 233063 AS entry UNION ALL SELECT 233708) AS c
 WHERE EXISTS (SELECT 1 FROM `quest_template` WHERE `ID` = 89450);
+
+-- GameObjects behind HouseDecor.GameObjectID that TDB lacks (retail 12.1.0.69933 query responses).
+-- Decor whose GameObject has no template spawns as a plain mesh and cannot be used.
+DELETE FROM `gameobject_template` WHERE `entry` IN (527736, 547193, 554708, 563484, 565054, 565537, 572483, 574894, 584163, 612070);
+INSERT INTO `gameobject_template` (`entry`, `type`, `displayId`, `name`, `IconName`, `castBarCaption`, `unk1`, `size`, `Data0`, `Data1`, `Data2`, `Data3`, `Data4`, `Data5`, `Data6`, `Data7`, `Data8`, `Data9`, `Data10`, `Data11`, `Data12`, `Data13`, `Data14`, `Data15`, `Data16`, `Data17`, `Data18`, `Data19`, `Data20`, `Data21`, `Data22`, `Data23`, `Data24`, `Data25`, `Data26`, `Data27`, `Data28`, `Data29`, `Data30`, `Data31`, `Data32`, `Data33`, `Data34`, `ContentTuningId`, `RequiredLevel`, `AIName`, `ScriptName`, `StringId`, `VerifiedBuild`) VALUES
+(527736, 0, 103856, 'Sturdy Wooden Door (Interior)', '', '', '', 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', 'go_housing_decor_door', NULL, 69933),
+(547193, 10, 106202, 'Sturdy Fireplace', '', '', '', 1, 93, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', '', NULL, 69933),
+(554708, 7, 107830, 'Sturdy Wooden Bench', '', '', '', 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', '', NULL, 69933),
+(563484, 7, 46157, 'Tired Troll''s Bench', '', '', '', 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', '', NULL, 69933),
+(565054, 7, 110022, 'Charming Couch', '', '', '', 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', '', NULL, 69933),
+(565537, 7, 120841, 'Stormwind Wooden Bench', '', '', '', 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', '', NULL, 69933),
+(572483, 10, 112640, 'Tusked Candleholder', '', '', '', 1, 93, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', '', NULL, 69933),
+(574894, 7, 113464, 'Plush-Trimmed Chair', '', '', '', 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', '', NULL, 69933),
+(584163, 10, 114481, 'Root-Woven Window', '', '', '', 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, '', '', NULL, 69933),
+(612070, 7, 116300, 'Small Elegant Padded Chair', '', '', '', 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', '', NULL, 69933);
+
+DELETE FROM `gameobject_template_locale` WHERE `locale` = 'ruRU' AND `entry` IN (527736, 547193, 554708, 563484, 565054, 565537, 572483, 574894, 584163, 612070);
+INSERT INTO `gameobject_template_locale` (`entry`, `locale`, `name`, `castBarCaption`, `unk1`, `VerifiedBuild`) VALUES
+(527736, 'ruRU', 'Прочная деревянная дверь (интерьер)', '', '', 69933),
+(547193, 'ruRU', 'Прочный очаг', '', '', 69933),
+(554708, 'ruRU', 'Прочная деревянная скамья', '', '', 69933),
+(563484, 'ruRU', 'Скамья усталого тролля', '', '', 69933),
+(565054, 'ruRU', 'Прелестный диван', '', '', 69933),
+(565537, 'ruRU', 'Штормградская деревянная скамья', '', '', 69933),
+(572483, 'ruRU', 'Клыкастый подсвечник', '', '', 69933),
+(574894, 'ruRU', 'Стул с плюшевыми вставками', '', '', 69933),
+(584163, 'ruRU', 'Увитое корнями окно', '', '', 69933),
+(612070, 'ruRU', 'Маленький элегантный мягкий стул', '', '', 69933);
+
+DELETE FROM `gameobject_template_addon` WHERE `entry` = 527736;
+INSERT INTO `gameobject_template_addon` (`entry`, `faction`, `flags`) VALUES
+(527736, 0, 32); -- GO_FLAG_NODESPAWN like the retail door

@@ -48,6 +48,8 @@ public:
     // FNeighborhoodMirrorData_C is on the Housing/4 entity (HousingNeighborhoodMirrorEntity).
     void SetHousingDecorStorageEntry(ObjectGuid decorGuid, ObjectGuid houseGuid, uint8 sourceType, std::string sourceValue = {});
     void RemoveHousingDecorStorageEntry(ObjectGuid decorGuid);
+    // DyeColor.db2 IDs per DecorDyeSlot (0 = undyed); all zero drops the optional DyeSlots.
+    void SetHousingDecorDyeSlots(ObjectGuid decorGuid, std::array<uint32, 3> const& dyeSlots);
 
     UF::UpdateField<UF::HousingStorageData, int32(WowCS::EntityFragment::FHousingStorage_C), 0> m_housingStorageData;
 

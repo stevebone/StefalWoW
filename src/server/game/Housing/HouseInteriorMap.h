@@ -50,6 +50,8 @@ public:
 
     /// Get the Housing data for the owner (needed for room/decor state).
     Housing* GetOwnerHousing();
+    // The house belongs to the player's account (the owner or another character of the same account).
+    bool IsHouseOwnerAccount(Player const* player) const;
 
     /// The neighborhood map ID the owner came from (for exit teleport).
     uint32 GetSourceNeighborhoodMapId() const { return _sourceNeighborhoodMapId; }
@@ -113,6 +115,7 @@ public:
 
     /// Update position/rotation of a single interior decor item.
     void UpdateDecorPosition(ObjectGuid decorGuid, Position const& pos, QuaternionData const& rot, float scale = 1.0f);
+    void UpdateDecorDyes(ObjectGuid decorGuid, std::array<uint32, MAX_HOUSING_DYE_SLOTS> const& dyeSlots);
 
     /// Despawn a single decor item by its Housing decor GUID.
     void DespawnDecorItem(ObjectGuid decorGuid);

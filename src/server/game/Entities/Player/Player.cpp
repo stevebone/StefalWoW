@@ -16039,10 +16039,6 @@ void Player::RewardQuest(Quest const* quest, LootItemType rewardType, uint32 rew
     sScriptMgr->OnQuestStatusChange(this, quest_id);
     sScriptMgr->OnQuestStatusChange(this, quest, oldStatus, QUEST_STATUS_REWARDED);
 
-    // Housing level progression: quest-based level-up
-    if (Housing* housing = GetHousing())
-        housing->OnQuestCompleted(quest_id);
-
     if (updateVisibility)
         UpdateObjectVisibility();
 }
@@ -19667,6 +19663,9 @@ bool Player::LoadFromDB(ObjectGuid guid, CharacterDatabaseQueryHolder const& hol
         holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_HOUSING_FIXTURES),
         holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_HOUSING_CATALOG)))
         _housings.push_back(std::move(housing));
+
+    _LoadAccountHousings();
+    _LoadHouseRooms();
 
     // The client Lua UI sets FrameTutorialAccount bits individually as the player completes each
     // tutorial step. We set exactly one of them up front - HousingModesUnlocked (38), which the editor
@@ -26829,11 +26828,20 @@ void Player::SendInitialPacketsAfterAddToMap()
 
     UpdateVisibilityForPlayer();
 
-    // Track the BNetAccount entity as "at client" so that subsequent
-    // SendUpdateToPlayer() calls use VALUES_UPDATE instead of a duplicate CREATE.
-    // The Account entity CREATE is embedded in the player's own create block
-    // (Player::BuildCreateUpdateBlockForPlayer), which was just sent by
-    // UpdateVisibilityForPlayer() above.
+    // Retail sends the full account room collection once at login (non-incremental, state bits 0).
+    if (!m_houseRoomCollectionSent)
+    {
+        m_houseRoomCollectionSent = true;
+        WorldPackets::Housing::AccountRoomCollectionUpdate roomCollection;
+        roomCollection.IsIncrementalUpdate = false;
+        for (uint32 houseRoomId : m_houseRoomCollection)
+            roomCollection.AddSingle(houseRoomId, false);
+        SendDirectMessage(roomCollection.Write());
+
+        // Houses leveled before the awards were granted get them now.
+        for (std::unique_ptr<Housing> const& ownedHousing : _housings)
+            ownedHousing->GrantLevelAwards(2, ownedHousing->GetLevel());
+    }
 
     // Send map wide vignettes before UpdateZone, that will send zone wide vignettes
     // But first send on new map will wipe all vignettes on client
@@ -32707,7 +32715,15 @@ Housing* Player::GetHousing() const
         }
     }
 
-    // Default: return first housing
+    // Inside a house interior: the house of that interior (any character of the account may be in it)
+    if (IsInWorld())
+        if (HouseInteriorMap* interiorMap = dynamic_cast<HouseInteriorMap*>(GetMap()))
+            if (Housing* interiorHousing = GetHousingByOwner(interiorMap->GetOwnerGuid()))
+                return interiorHousing;
+
+    // Default: this character's own house, then the account's first
+    if (Housing* own = GetHousingByOwner(GetGUID()))
+        return own;
     return _housings[0].get();
 }
 
@@ -32715,6 +32731,22 @@ Housing* Player::GetHousingForNeighborhood(ObjectGuid neighborhoodGuid) const
 {
     for (auto const& h : _housings)
         if (h && h->GetNeighborhoodGuid() == neighborhoodGuid)
+            return h.get();
+    return nullptr;
+}
+
+Housing* Player::GetHousingByOwner(ObjectGuid ownerGuid) const
+{
+    for (auto const& h : _housings)
+        if (h && h->GetOwnerGuid() == ownerGuid)
+            return h.get();
+    return nullptr;
+}
+
+Housing* Player::GetHousingByHouseGuid(ObjectGuid houseGuid) const
+{
+    for (auto const& h : _housings)
+        if (h && h->GetHouseGuid() == houseGuid)
             return h.get();
     return nullptr;
 }
@@ -32824,6 +32856,113 @@ void Player::SetCurrentHouse(ObjectGuid houseGuid)
 
     TC_LOG_DEBUG("housing", "Player::SetCurrentHouse: player={} currentHouse={}",
         GetGUID().ToString(), houseGuid.IsEmpty() ? "<empty>" : houseGuid.ToString());
+}
+
+void Player::_LoadAccountHousings()
+{
+    // Retail 12.1.0.69933 (sniff 19-48-29): houses belong to the account. Every character lists, visits and
+    // edits the houses the account's other characters bought (the buyer stays the house's CosmeticOwner).
+    CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_ACCOUNT_HOUSING_OWNERS);
+    stmt->setUInt32(0, GetSession()->GetAccountId());
+    stmt->setUInt64(1, GetGUID().GetCounter());
+    PreparedQueryResult owners = CharacterDatabase.Query(stmt);
+    if (!owners)
+        return;
+
+    do
+    {
+        ObjectGuid::LowType const ownerLow = (*owners)[0].GetUInt64();
+        auto query = [ownerLow](CharacterDatabaseStatements index)
+            {
+                CharacterDatabasePreparedStatement* ownerStmt = CharacterDatabase.GetPreparedStatement(index);
+                ownerStmt->setUInt64(0, ownerLow);
+                return CharacterDatabase.Query(ownerStmt);
+            };
+
+        std::unique_ptr<Housing> housing = std::make_unique<Housing>(this, ObjectGuid::Create<HighGuid::Player>(ownerLow));
+        if (housing->LoadFromDB(query(CHAR_SEL_CHARACTER_HOUSING), query(CHAR_SEL_CHARACTER_HOUSING_DECOR),
+            query(CHAR_SEL_CHARACTER_HOUSING_ROOMS), query(CHAR_SEL_CHARACTER_HOUSING_FIXTURES), query(CHAR_SEL_CHARACTER_HOUSING_CATALOG)))
+            _housings.push_back(std::move(housing));
+    } while (owners->NextRow());
+}
+
+void Player::_LoadHouseRooms()
+{
+    CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_ACCOUNT_HOUSING_ROOMS);
+    stmt->setUInt32(0, GetSession()->GetBattlenetAccountId());
+    if (PreparedQueryResult result = CharacterDatabase.Query(stmt))
+    {
+        do
+        {
+            uint32 const houseRoomId = (*result)[0].GetUInt32();
+            SetHouseRoomBit(houseRoomId);
+            m_houseRoomCollection.push_back(houseRoomId);
+        } while (result->NextRow());
+    }
+}
+
+void Player::SetHouseRoomBit(uint32 houseRoomId)
+{
+    uint32 const block = houseRoomId / 32;
+    while (m_activePlayerData->HouseRooms.size() <= block)
+        AddDynamicUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::HouseRooms)) = 0;
+
+    SetUpdateFieldFlagValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::HouseRooms, block), 1u << (houseRoomId % 32));
+}
+
+bool Player::HasHouseRoom(uint32 houseRoomId) const
+{
+    uint32 const block = houseRoomId / 32;
+    return block < m_activePlayerData->HouseRooms.size() && (m_activePlayerData->HouseRooms[block] & (1u << (houseRoomId % 32))) != 0;
+}
+
+void Player::LearnHouseRoom(uint32 houseRoomId)
+{
+    if (HasHouseRoom(houseRoomId))
+        return;
+
+    // Retail 12.1.0.69933: a learned room only sets its HouseRooms bit (no collection packet).
+    SetHouseRoomBit(houseRoomId);
+
+    CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_ACCOUNT_HOUSING_ROOM);
+    stmt->setUInt32(0, GetSession()->GetBattlenetAccountId());
+    stmt->setUInt32(1, houseRoomId);
+    CharacterDatabase.Execute(stmt);
+}
+
+void Player::UpdateHousingLevelFavor(ObjectGuid houseGuid, uint32 level, uint32 favor)
+{
+    if (!m_playerHouseInfoComponentData.has_value())
+        return;
+
+    // Houses[] is a dynamic field of plain structs: rebuild it with the new level/favor for this house.
+    UF::PlayerHouseInfoComponentData const& data = *m_playerHouseInfoComponentData;
+    std::vector<UF::PlayerMirrorHouse> houses;
+    houses.reserve(data.Houses.size());
+    for (uint32 i = 0; i < data.Houses.size(); ++i)
+        houses.push_back(data.Houses[i]);
+    bool found = false;
+    for (UF::PlayerMirrorHouse& house : houses)
+    {
+        if (house.HouseGUID != houseGuid)
+            continue;
+
+        if (house.Level == level && house.Favor == favor)
+            return;
+
+        house.Level = level;
+        house.Favor = favor;
+        found = true;
+    }
+
+    if (!found)
+        return;
+
+    ClearDynamicUpdateFieldValues(m_values.ModifyValue(&Player::m_playerHouseInfoComponentData, 0)
+        .ModifyValue(&UF::PlayerHouseInfoComponentData::Houses));
+    for (UF::PlayerMirrorHouse const& house : houses)
+        AddDynamicUpdateFieldValue(m_values.ModifyValue(&Player::m_playerHouseInfoComponentData, 0)
+            .ModifyValue(&UF::PlayerHouseInfoComponentData::Houses)) = house;
 }
 
 void Player::UpdateInitiativeFavor(uint32 favor)

@@ -5041,5 +5041,13 @@ Housing.MaxHousesPerAccount = 2
 
 Housing.CharterFoundingCost = 0
 
+#    Housing.CharterRequiredSignatures
+#        Description: Signatures a neighborhood charter needs before it can be finalized, the
+#                      creator's own included. Sent to the client, which only enables founding
+#                      once they are collected. 1 = the creator alone can found.
+#        Default:     10 - (retail)
+
+Housing.CharterRequiredSignatures = 10
+
 #
 ###################################################################################################
