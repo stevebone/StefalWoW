@@ -24,6 +24,13 @@ CREATE TABLE IF NOT EXISTS `account_housing_room` (
   PRIMARY KEY (`bnetAccountId`,`roomId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+DROP TABLE IF EXISTS `account_housing_house_type`;
+CREATE TABLE IF NOT EXISTS `account_housing_house_type` (
+  `bnetAccountId` int unsigned NOT NULL,
+  `houseExteriorWmoDataId` int unsigned NOT NULL COMMENT 'HouseExteriorWmoData.db2 ID unlocked for the account (item facades)',
+  PRIMARY KEY (`bnetAccountId`,`houseExteriorWmoDataId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 DROP TABLE IF EXISTS `character_housing`;
 CREATE TABLE `character_housing` (
   `guid` bigint unsigned NOT NULL COMMENT 'Player GUID',

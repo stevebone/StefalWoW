@@ -80,27 +80,6 @@ namespace
         return rot;
     }
 
-    std::string HexDumpPacket(WorldPacket const* packet, size_t maxBytes = 128)
-    {
-        if (!packet || packet->size() == 0)
-            return "(empty)";
-        size_t len = std::min(packet->size(), maxBytes);
-        std::string result;
-        result.reserve(len * 3 + 32);
-        uint8 const* raw = packet->data();
-        for (size_t i = 0; i < len; ++i)
-        {
-            if (i > 0 && i % 32 == 0)
-                result += "\n  ";
-            else if (i > 0)
-                result += ' ';
-            result += fmt::format("{:02X}", raw[i]);
-        }
-        if (len < packet->size())
-            result += fmt::format(" ...({} more)", packet->size() - len);
-        return result;
-    }
-
     // Recurring event that sends the housing WorldState counters 13436/13437/13438 every ~5 s,
     // +1333 per tick (12.1.0.69933 sniff 11-13-10).
     class HousingWorldStateCounterEvent : public BasicEvent

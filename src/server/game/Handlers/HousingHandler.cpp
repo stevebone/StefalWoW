@@ -81,11 +81,6 @@ namespace
         return result;
     }
 
-    std::string GuidHex(ObjectGuid const& guid)
-    {
-        return fmt::format("lo={:016X} hi={:016X}", guid.GetRawValue(0), guid.GetRawValue(1));
-    }
-
     // C1 anti-abuse gate (SERVER-CORE GAP-1 / anti-abuse A1). Authoritative
     // server-side authorization for every decor/fixture EDIT operation.
     // Player::GetHousing() falls back to _housings[0] (a house in a *different*
@@ -283,25 +278,6 @@ namespace
         sHousingMgr.SetPendingPlotTeleport(player->GetGUID(), dest);
         player->CastSpell(player, spellId, CastSpellExtraArgs());
     }
-
-    // Refreshes all room MeshObjects in the player's interior instance after a room
-    // data change (add, remove, rotate, move, theme, material, door, ceiling).
-    void RefreshInteriorRoomVisuals(Player* player, Housing* housing)
-    {
-        HouseInteriorMap* interiorMap = dynamic_cast<HouseInteriorMap*>(player->GetMap());
-        if (!interiorMap)
-            return;
-
-        // Use player's team for faction theme, matching HouseInteriorMap::AddPlayerToMap pattern.
-        // NeighborhoodMapData::FactionRestriction is a bitmask (3 = both factions) and doesn't
-        // map to the enum values expected by GetFactionDefaultThemeID().
-        int32 faction = (player->GetTeamId() == TEAM_ALLIANCE)
-            ? NEIGHBORHOOD_FACTION_ALLIANCE : NEIGHBORHOOD_FACTION_HORDE;
-
-        interiorMap->DespawnAllRoomMeshObjects();
-        interiorMap->SpawnRoomMeshObjects(housing, faction);
-    }
-
 
     // Checks whether the player is eligible for housing features.
     // Returns a bitmask of HousingWarningFlag reasons if restrictions apply.

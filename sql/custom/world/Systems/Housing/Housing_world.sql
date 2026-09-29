@@ -9,6 +9,7 @@
 SET @CGUID := 90000000;
 SET @OGUID := 90000000;
 SET @ATSPAWN := 90000000;
+SET @NPCTEXTID := 90000000;
 
 -- Creature spawns
 DELETE FROM `creature` WHERE `map` IN (2735, 2736) OR `guid` BETWEEN @CGUID+0 AND @CGUID+2808;
@@ -4067,7 +4068,7 @@ INSERT INTO `gameobject_template` (`entry`, `type`, `displayId`, `name`, `IconNa
 (527311, 48, 110660, 'Cornerstone - Plot 13 (Horde)', 'buy', '', '', 1, 4, 0, 1, 0, 10, 0, 0, 70, 1266097, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', '', NULL, 65617),
 (527313, 48, 110660, 'Cornerstone - Plot 34 (Horde)', 'buy', '', '', 1, 4, 0, 1, 0, 10, 0, 0, 70, 1266097, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', '', NULL, 65617),
 (527314, 48, 110660, 'Cornerstone - Plot 22 (Horde)', 'buy', '', '', 1, 4, 0, 1, 0, 10, 0, 0, 70, 1266097, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', '', NULL, 65617),
-(527890, 10, 103913, 'Tusked Fireplace', '', '', '', 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', '', NULL, 69933),
+(527890, 10, 103913, 'Tusked Fireplace', '', '', '', 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', 'go_housing_decor_toggle', NULL, 69933),
 (529653, 5, 15466, 'Wood Pile', 'axe', '', '', 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', '', NULL, 69933),
 (531766, 22, 66649, 'Portal to Orgrimmar', '', '', '', 2, 1235764, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', '', NULL, 65940),
 (531941, 7, 107678, 'Stool', '', '', '', 1, 1, 1, 0, 0, 0, 500, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', '', NULL, 69933),
@@ -5049,41 +5050,91 @@ INSERT INTO `creature_equip_template` (`CreatureID`, `ID`, `ItemID1`, `Appearanc
 (244850, 1, 187518, 0, 0, 0, 0, 0, 0, 0, 0, 0),
 (246336, 2, 187518, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
+-- Gossip (retail 12.1.0.69933 where sniffed)
+DELETE FROM `npc_text` WHERE `ID` BETWEEN @NPCTEXTID+0 AND @NPCTEXTID+8;
+INSERT INTO `npc_text` (`ID`, `Probability0`, `Probability1`, `Probability2`, `Probability3`, `Probability4`, `Probability5`, `Probability6`, `Probability7`, `BroadcastTextId0`, `BroadcastTextId1`, `BroadcastTextId2`, `BroadcastTextId3`, `BroadcastTextId4`, `BroadcastTextId5`, `BroadcastTextId6`, `BroadcastTextId7`, `VerifiedBuild`) VALUES
+(@NPCTEXTID+0, 1, 0, 0, 0, 0, 0, 0, 0, 297053, 0, 0, 0, 0, 0, 0, 0, 69933), -- Lyssabel Dawnpetal
+(@NPCTEXTID+1, 1, 0, 0, 0, 0, 0, 0, 0, 297060, 0, 0, 0, 0, 0, 0, 0, 69933), -- Lyssabel Dawnpetal
+(@NPCTEXTID+2, 1, 0, 0, 0, 0, 0, 0, 0, 303291, 0, 0, 0, 0, 0, 0, 0, 69933), -- Lyssabel Dawnpetal
+(@NPCTEXTID+3, 1, 0, 0, 0, 0, 0, 0, 0, 25033, 0, 0, 0, 0, 0, 0, 0, 69933), -- flight masters
+(@NPCTEXTID+4, 1, 0, 0, 0, 0, 0, 0, 0, 303793, 0, 0, 0, 0, 0, 0, 0, 69933), -- Jorvan Longmoor
+(@NPCTEXTID+5, 1, 0, 0, 0, 0, 0, 0, 0, 303795, 0, 0, 0, 0, 0, 0, 0, 69933), -- Jorvan Longmoor
+(@NPCTEXTID+6, 1, 0, 0, 0, 0, 0, 0, 0, 303798, 0, 0, 0, 0, 0, 0, 0, 69933), -- Jorvan Longmoor
+(@NPCTEXTID+7, 1, 0, 0, 0, 0, 0, 0, 0, 303834, 0, 0, 0, 0, 0, 0, 0, 69933), -- Helmi Cooper
+(@NPCTEXTID+8, 1, 0, 0, 0, 0, 0, 0, 0, 297057, 0, 0, 0, 0, 0, 0, 0, 69933); -- Lyssabel Dawnpetal
+
 -- Gossip
-DELETE FROM `gossip_menu` WHERE (`MenuID`, `TextID`) IN ((41365, 1));
+DELETE FROM `gossip_menu` WHERE (`MenuID`, `TextID`) IN ((40502, @NPCTEXTID+0), (40508, @NPCTEXTID+8), (40509, @NPCTEXTID+1), (41190, @NPCTEXTID+2), (35728, @NPCTEXTID+3), (41352, @NPCTEXTID+4), (41353, @NPCTEXTID+5), (41354, @NPCTEXTID+6), (41379, @NPCTEXTID+7), (41365, 1));
 INSERT INTO `gossip_menu` (`MenuID`, `TextID`, `VerifiedBuild`) VALUES
+(40502, @NPCTEXTID+0, 69933),
+(40508, @NPCTEXTID+8, 69933),
+(40509, @NPCTEXTID+1, 69933),
+(41190, @NPCTEXTID+2, 69933),
+(35728, @NPCTEXTID+3, 69933),
+(41352, @NPCTEXTID+4, 69933),
+(41353, @NPCTEXTID+5, 69933),
+(41354, @NPCTEXTID+6, 69933),
+(41379, @NPCTEXTID+7, 69933),
 (41365, 1, 64797);
-DELETE FROM `gossip_menu_option` WHERE `MenuID` IN (35728, 40076, 41191, 41196, 41352, 41354, 41365, 41367, 41379, 41385);
+
+DELETE FROM `gossip_menu_option` WHERE `MenuID` IN (35728, 40076, 40502, 40508, 40509, 41190, 41191, 41196, 41352, 41353, 41354, 41365, 41367, 41379, 41385);
 INSERT INTO `gossip_menu_option` (`MenuID`, `GossipOptionID`, `OptionID`, `OptionNpc`, `OptionText`, `OptionBroadcastTextID`, `Language`, `Flags`, `ActionMenuID`, `ActionPoiID`, `GossipNpcOptionID`, `BoxCoded`, `BoxMoney`, `BoxText`, `BoxBroadcastTextID`, `SpellID`, `OverrideIconID`, `VerifiedBuild`) VALUES
-(35728, 123435, 0, 8, 'Show me where I can fly.', 0, 0, 0, 0, 0, NULL, 0, 0, NULL, 0, NULL, NULL, 64797),
+(35728, 123435, 0, 2, 'Show me where I can fly.', 0, 0, 0, 0, 0, NULL, 0, 0, NULL, 0, NULL, NULL, 69933),
 (40076, 136778, 0, 0, 'Who are you?', 0, 0, 0, 0, 0, NULL, 0, 0, NULL, 0, NULL, NULL, 64797),
 (40076, 136776, 1, 0, 'Where can I find decor?', 0, 0, 0, 0, 0, NULL, 0, 0, NULL, 0, NULL, NULL, 64797),
 (40076, 136775, 2, 0, 'Are you really giving away treasure?', 0, 0, 0, 0, 0, NULL, 0, 0, NULL, 0, NULL, NULL, 64797),
+-- OptionID 1 (OptionNpc 63 HousingOpenCharterConfirmation) is hidden in every retail sniff: no retail charter was filled, so
+-- GossipOptionID and text are custom; GossipNpcOptionID 59992 is a GossipNPCOption row of type 63 (opens interaction 77)
+(40502, 135751, 1, 63, 'I\'m ready to found my neighborhood.', 0, 0, 0, 0, 0, 59992, 0, 0, NULL, 0, NULL, NULL, 0),
+(40502, 137598, 2, 0, 'I need directions.', 0, 0, 0, 0, 0, NULL, 0, 0, NULL, 0, NULL, NULL, 69933),
+(40502, 135752, 3, 0, 'I\'d like to look at other neighborhood options.', 0, 0, 0, 40508, 0, NULL, 0, 0, NULL, 0, NULL, NULL, 69933),
+(40508, 135774, 0, 65, '<Open the house finder.>', 0, 0, 0, 0, 0, 59711, 0, 0, NULL, 0, NULL, NULL, 69933),
+(40508, 135773, 1, 0, 'I\'d like to talk about something else.', 0, 0, 0, 40502, 0, NULL, 0, 0, NULL, 0, NULL, NULL, 69933),
+(40502, 135750, 4, 0, 'I want to found my own neighborhood.', 0, 0, 0, 40509, 0, NULL, 0, 0, NULL, 0, NULL, NULL, 69933),
+-- OptionID 0 is hidden in every retail sniff (no guild on the sniffed characters): PlayerCondition 138075 (ModifierTree
+-- 391025 "player is in a guild") is the only guild gate in the housing trees. GossipOptionID 135776 sits between the
+-- retail 135775/135777 of this menu; the text is custom. GossipNPCOption 59977 (type 60) pairs with the charter's 59978.
+(40509, 135776, 0, 60, 'I\'d like to found a guild neighborhood.', 0, 0, 0, 0, 0, 59977, 0, 0, NULL, 0, NULL, NULL, 0),
+(40509, 135777, 1, 0, 'Tell me about charter neighborhoods.', 0, 0, 0, 41190, 0, NULL, 0, 0, NULL, 0, NULL, NULL, 69933),
+(40509, 135775, 2, 0, 'I\'d like to talk about something else.', 0, 0, 0, 40502, 0, NULL, 0, 0, NULL, 0, NULL, NULL, 69933),
+(41190, 136949, 0, 61, '<Purchase a charter.>', 0, 0, 0, 0, 0, 59978, 0, 0, NULL, 0, NULL, NULL, 69933),
+(41190, 136948, 1, 0, 'I\'d like to talk about something else.', 0, 0, 0, 40502, 0, NULL, 0, 0, NULL, 0, NULL, NULL, 69933),
 (41191, 136950, 0, 0, 'I\'m interested in founding my own neighborhood.', 0, 0, 0, 0, 0, NULL, 0, 0, NULL, 0, NULL, NULL, 64978),
 (41196, 136961, 0, 0, 'I\'d like to talk about something else.', 0, 0, 0, 0, 0, NULL, 0, 0, NULL, 0, NULL, NULL, 64978),
-(41352, 137143, 0, 0, 'I\'d like to upgrade my house.', 0, 0, 0, 0, 0, NULL, 0, 0, NULL, 0, NULL, NULL, 64978),
-(41354, 137142, 0, 0, 'I\'ll be back.', 0, 0, 0, 0, 0, NULL, 0, 0, NULL, 0, NULL, NULL, 64978),
+(41352, 137141, 0, 0, 'I\'d like to upgrade my house.', 0, 0, 0, 41353, 0, NULL, 0, 0, NULL, 0, NULL, NULL, 69933),
+(41352, 137143, 1, 0, 'I\'d like to upgrade my house.', 0, 0, 0, 41354, 0, NULL, 0, 0, NULL, 0, NULL, NULL, 69933),
+(41352, 139907, 2, 1, 'I\'d like to see the creative room blueprints.', 0, 0, 0, 0, 0, NULL, 0, 0, NULL, 0, NULL, NULL, 69933),
+(41353, 137139, 0, 0, 'Let\'s go!', 0, 0, 0, 0, 0, NULL, 0, 0, NULL, 0, NULL, NULL, 69933),
+(41354, 137142, 0, 0, 'I\'ll be back.', 0, 0, 0, 0, 0, NULL, 0, 0, NULL, 0, NULL, NULL, 69933),
 (41365, 137155, 0, 0, 'I\'d like to upgrade my house.', 0, 0, 0, 41367, 0, NULL, 0, 0, NULL, 0, NULL, NULL, 64797),
 (41367, 137154, 0, 0, 'I\'ll be back.', 0, 0, 0, 0, 0, NULL, 0, 0, NULL, 0, NULL, NULL, 64797),
-(41379, 137165, 0, 0, 'Can I use this device to make dyes?', 0, 0, 0, 0, 0, NULL, 0, 0, NULL, 0, NULL, NULL, 64978),
-(41379, 137172, 1, 0, 'Where else can I obtain dyes?', 0, 0, 0, 0, 0, NULL, 0, 0, NULL, 0, NULL, NULL, 64978),
-(41379, 137366, 2, 3, 'I\'d like to learn the basics of Inscription or Alchemy.', 0, 0, 0, 0, 0, NULL, 0, 0, NULL, 0, NULL, NULL, 64978),
+(41379, 137165, 1, 0, 'Can I use this device to make dyes?', 0, 0, 0, 0, 0, NULL, 0, 0, NULL, 0, NULL, NULL, 69933),
+(41379, 137172, 2, 0, 'Where else can I obtain dyes?', 0, 0, 0, 0, 0, NULL, 0, 0, NULL, 0, NULL, NULL, 69933),
+(41379, 137366, 3, 3, 'I\'d like to learn the basics of Inscription or Alchemy.', 0, 0, 0, 0, 0, NULL, 0, 0, NULL, 0, NULL, NULL, 69933),
 (41385, 137178, 0, 0, 'Can I use this device to make dyes?', 0, 0, 0, 0, 0, NULL, 0, 0, NULL, 0, NULL, NULL, 64797),
 (41385, 137177, 1, 0, 'Where else can I obtain dyes?', 0, 0, 0, 0, 0, NULL, 0, 0, NULL, 0, NULL, NULL, 64797),
 (41385, 137571, 2, 5, 'I\'d like to learn the basics of Inscription or Alchemy.', 0, 0, 0, 0, 0, NULL, 0, 0, NULL, 0, NULL, NULL, 64797);
-DELETE FROM `creature_template_gossip` WHERE (`CreatureID`, `MenuID`) IN ((236111, 35728), (236112, 35728), (236113, 35728), (236115, 35728), (236116, 35728), (236117, 35728), (236118, 35728), (236119, 35728), (248854, 40076), (255104, 41352), (255126, 41379));
+
+-- The charter founding option needs the Neighborhood Charter item (retail PlayerCondition trees 420508/432428 check it too)
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 15 AND ((`SourceGroup` = 40502 AND `SourceEntry` = 1) OR (`SourceGroup` = 40509 AND `SourceEntry` = 0));
+INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `ConditionStringValue1`, `NegativeCondition`, `ErrorType`, `ErrorTextId`, `ScriptName`, `Comment`) VALUES
+(15, 40502, 1, 0, 0, 2, 0, 239098, 1, 0, '', 0, 0, 0, '', 'Lyssabel Dawnpetal - found neighborhood option requires Neighborhood Charter'),
+(15, 40509, 0, 0, 0, 56, 0, 138075, 0, 0, '', 0, 0, 0, '', 'Lyssabel Dawnpetal - guild neighborhood option requires a guild (PlayerCondition 138075)');
+
+DELETE FROM `creature_template_gossip` WHERE (`CreatureID`, `MenuID`) IN ((233063, 40502), (236111, 35728), (236112, 35728), (236113, 35728), (236115, 35728), (236116, 35728), (236117, 35728), (236118, 35728), (236119, 35728), (248854, 40076), (255104, 41352), (255126, 41379));
 INSERT INTO `creature_template_gossip` (`CreatureID`, `MenuID`, `VerifiedBuild`) VALUES
+(233063, 40502, 69933),
 (236111, 35728, 0),
-(236112, 35728, 0),
+(236112, 35728, 69933),
 (236113, 35728, 0),
 (236115, 35728, 0),
-(236116, 35728, 0),
+(236116, 35728, 69933),
 (236117, 35728, 0),
 (236118, 35728, 0),
 (236119, 35728, 0),
 (248854, 40076, 0),
-(255104, 41352, 0),
-(255126, 41379, 0);
+(255104, 41352, 69933),
+(255126, 41379, 69933);
 
 -- Vendors
 DELETE FROM `npc_vendor` WHERE `entry` IN (244681, 255203, 255213, 255216, 255218, 255519);
@@ -5271,6 +5322,7 @@ INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES
 (253596, 93087, 64797),
 (253596, 93104, 65940),
 (256078, 93057, 0);
+
 DELETE FROM `creature_questender` WHERE (`id`, `quest`) IN ((233063, 91863), (233063, 91968), (233063, 91969), (233063, 93057), (233708, 91863), (233708, 94210), (233708, 94379), (248854, 92982), (253596, 93087), (255125, 94995), (255520, 93647));
 INSERT INTO `creature_questender` (`id`, `quest`, `VerifiedBuild`) VALUES
 (233063, 91863, 65940),
@@ -5284,12 +5336,26 @@ INSERT INTO `creature_questender` (`id`, `quest`, `VerifiedBuild`) VALUES
 (253596, 93087, 64797),
 (255125, 94995, 65940),
 (255520, 93647, 65940);
+
 DELETE FROM `quest_template_addon` WHERE `ID` IN (91863, 91968, 91969, 93057);
 INSERT INTO `quest_template_addon` (`ID`, `MaxLevel`, `AllowableClasses`, `SourceSpellID`, `PrevQuestID`, `NextQuestID`, `ExclusiveGroup`, `BreadcrumbForQuestId`, `RewardMailTemplateID`, `RewardMailDelay`, `RequiredSkillID`, `RequiredSkillPoints`, `RequiredMinRepFaction`, `RequiredMaxRepFaction`, `RequiredMinRepValue`, `RequiredMaxRepValue`, `ProvidedItemCount`, `SpecialFlags`, `ScriptName`) VALUES
 (91863, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ''),
 (91968, 0, 0, 0, 91863, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ''),
 (91969, 0, 0, 0, 91968, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ''),
 (93057, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '');
+
+-- House level award quests (HouseLevelData.QuestID): the house upgrade UI shows the rewards of levels without
+-- HouseLevelRewardInfo rows from these lists (retail 12.1.0.69933 SMSG_QUERY_QUEST_INFO_RESPONSE)
+DELETE FROM `quest_reward_house_room` WHERE `QuestID` IN (93901, 93902, 94431, 94437);
+INSERT INTO `quest_reward_house_room` (`QuestID`, `OrderIndex`, `HouseRoomID`, `VerifiedBuild`) VALUES
+(93901, 0, 11, 69933),
+(93902, 0, 15, 69933),
+(94431, 0, 223, 69933),
+(94437, 0, 12, 69933),
+(94437, 1, 233, 69933);
+DELETE FROM `quest_reward_house_decor` WHERE `QuestID` = 95043;
+INSERT INTO `quest_reward_house_decor` (`QuestID`, `OrderIndex`, `HouseDecorID`, `VerifiedBuild`) VALUES
+(95043, 0, 14583, 69933);
 
 -- AreaTriggers: plot trigger 37358 and the tour stops of quest 91863
 DELETE FROM `areatrigger_template` WHERE (`Id`, `IsCustom`) IN ((37358, 0), (38951, 1), (38952, 1), (38953, 1), (38954, 1), (38955, 1), (38956, 1), (38957, 1), (38958, 1), (38959, 1), (38960, 1), (38961, 1), (38962, 1), (39001, 1), (39002, 1), (39003, 1), (39004, 1), (39005, 1), (39006, 1));
@@ -5313,6 +5379,7 @@ INSERT INTO `areatrigger_template` (`Id`, `IsCustom`, `Flags`, `ActionSetId`, `A
 (39004, 1, 0, 0, 0, 64978),
 (39005, 1, 0, 0, 0, 64978),
 (39006, 1, 0, 0, 0, 64978);
+
 DELETE FROM `areatrigger_create_properties` WHERE (`Id`, `IsCustom`) IN ((37358, 0), (38951, 1), (38952, 1), (38953, 1), (38954, 1), (38955, 1), (38956, 1), (38957, 1), (38958, 1), (38959, 1), (38960, 1), (38961, 1), (38962, 1), (39001, 1), (39002, 1), (39003, 1), (39004, 1), (39005, 1), (39006, 1));
 INSERT INTO `areatrigger_create_properties` (`Id`, `IsCustom`, `AreaTriggerId`, `IsAreatriggerCustom`, `Flags`, `MoveCurveId`, `ScaleCurveId`, `MorphCurveId`, `FacingCurveId`, `AnimId`, `AnimKitId`, `DecalPropertiesId`, `SpellForVisuals`, `PositionalSoundKitId`, `TimeToTargetScale`, `Speed`, `SpeedIsTime`, `Shape`, `ShapeData0`, `ShapeData1`, `ShapeData2`, `ShapeData3`, `ShapeData4`, `ShapeData5`, `ShapeData6`, `ShapeData7`, `Roll`, `Pitch`, `Yaw`, `TargetRoll`, `TargetPitch`, `TargetYaw`, `ScriptName`, `VerifiedBuild`) VALUES
 (37358, 0, 37358, 0, 0, 0, 0, 0, 0, 0, 0, 621, 1282351, 0, 0, 1, 0, 1, 35, 30, 94, 35, 30, 94, 0, 0, 0, 0, 0, NULL, NULL, NULL, 'at_housing_plot', 0),
@@ -5531,20 +5598,24 @@ WHERE EXISTS (SELECT 1 FROM `quest_template` WHERE `ID` = 89450);
 
 -- GameObjects behind HouseDecor.GameObjectID that TDB lacks (retail 12.1.0.69933 query responses).
 -- Decor whose GameObject has no template spawns as a plain mesh and cannot be used.
-DELETE FROM `gameobject_template` WHERE `entry` IN (527736, 547193, 554708, 563484, 565054, 565537, 572483, 574894, 584163, 612070);
+DELETE FROM `gameobject_template` WHERE `entry` IN (527736, 547193, 554708, 563484, 565054, 565537, 572483, 574894, 584163, 612070,547194,558397,560338,619004);
 INSERT INTO `gameobject_template` (`entry`, `type`, `displayId`, `name`, `IconName`, `castBarCaption`, `unk1`, `size`, `Data0`, `Data1`, `Data2`, `Data3`, `Data4`, `Data5`, `Data6`, `Data7`, `Data8`, `Data9`, `Data10`, `Data11`, `Data12`, `Data13`, `Data14`, `Data15`, `Data16`, `Data17`, `Data18`, `Data19`, `Data20`, `Data21`, `Data22`, `Data23`, `Data24`, `Data25`, `Data26`, `Data27`, `Data28`, `Data29`, `Data30`, `Data31`, `Data32`, `Data33`, `Data34`, `ContentTuningId`, `RequiredLevel`, `AIName`, `ScriptName`, `StringId`, `VerifiedBuild`) VALUES
 (527736, 0, 103856, 'Sturdy Wooden Door (Interior)', '', '', '', 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', 'go_housing_decor_door', NULL, 69933),
-(547193, 10, 106202, 'Sturdy Fireplace', '', '', '', 1, 93, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', '', NULL, 69933),
+(547193, 10, 106202, 'Sturdy Fireplace', '', '', '', 1, 93, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', 'go_housing_decor_toggle', NULL, 69933),
 (554708, 7, 107830, 'Sturdy Wooden Bench', '', '', '', 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', '', NULL, 69933),
 (563484, 7, 46157, 'Tired Troll''s Bench', '', '', '', 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', '', NULL, 69933),
 (565054, 7, 110022, 'Charming Couch', '', '', '', 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', '', NULL, 69933),
 (565537, 7, 120841, 'Stormwind Wooden Bench', '', '', '', 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', '', NULL, 69933),
-(572483, 10, 112640, 'Tusked Candleholder', '', '', '', 1, 93, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', '', NULL, 69933),
+(572483, 10, 112640, 'Tusked Candleholder', '', '', '', 1, 93, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', 'go_housing_decor_door', NULL, 69933),
 (574894, 7, 113464, 'Plush-Trimmed Chair', '', '', '', 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', '', NULL, 69933),
 (584163, 10, 114481, 'Root-Woven Window', '', '', '', 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, '', '', NULL, 69933),
-(612070, 7, 116300, 'Small Elegant Padded Chair', '', '', '', 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', '', NULL, 69933);
+(612070, 7, 116300, 'Small Elegant Padded Chair', '', '', '', 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', '', NULL, 69933),
+(547194, 0, 106203, 'Iron-Reinforced Door', '', '', '', 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', 'go_housing_decor_door', NULL, 0),
+(558397, 0, 109422, 'Elegant Carved Door', '', '', '', 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', 'go_housing_decor_door', NULL, 0),
+(560338, 0, 10442, 'Iron Dragonmaw Gate', '', '', '', 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', 'go_housing_decor_door', NULL, 0),
+(619004, 0, 8308, 'Dalaran Sewer Gate', '', '', '', 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', 'go_housing_decor_door', NULL, 0);
 
-DELETE FROM `gameobject_template_locale` WHERE `locale` = 'ruRU' AND `entry` IN (527736, 547193, 554708, 563484, 565054, 565537, 572483, 574894, 584163, 612070);
+DELETE FROM `gameobject_template_locale` WHERE `locale` = 'ruRU' AND `entry` IN (527736, 547193, 547194, 554708, 558397, 560338, 563484, 565054, 565537, 572483, 574894, 584163, 612070, 619004);
 INSERT INTO `gameobject_template_locale` (`entry`, `locale`, `name`, `castBarCaption`, `unk1`, `VerifiedBuild`) VALUES
 (527736, 'ruRU', 'Прочная деревянная дверь (интерьер)', '', '', 69933),
 (547193, 'ruRU', 'Прочный очаг', '', '', 69933),
@@ -5555,8 +5626,75 @@ INSERT INTO `gameobject_template_locale` (`entry`, `locale`, `name`, `castBarCap
 (572483, 'ruRU', 'Клыкастый подсвечник', '', '', 69933),
 (574894, 'ruRU', 'Стул с плюшевыми вставками', '', '', 69933),
 (584163, 'ruRU', 'Увитое корнями окно', '', '', 69933),
-(612070, 'ruRU', 'Маленький элегантный мягкий стул', '', '', 69933);
+(612070, 'ruRU', 'Маленький элегантный мягкий стул', '', '', 69933),
+(547194, 'ruRU', 'Укрепленная железом дверь', '', '', 0),
+(558397, 'ruRU', 'Элегантная резная дверь', '', '', 0),
+(560338, 'ruRU', 'Железные ворота Драконьей Пасти', '', '', 0),
+(619004, 'ruRU', 'Ворота из стоков Даларана', '', '', 0);
 
-DELETE FROM `gameobject_template_addon` WHERE `entry` = 527736;
+DELETE FROM `gameobject_template_addon` WHERE `entry` IN (527736, 547194, 558397, 560338, 619004);
 INSERT INTO `gameobject_template_addon` (`entry`, `faction`, `flags`) VALUES
-(527736, 0, 32); -- GO_FLAG_NODESPAWN like the retail door
+(527736, 0, 32), -- GO_FLAG_NODESPAWN like the retail door
+(547194, 0, 32),
+(558397, 0, 32),
+(560338, 0, 32),
+(619004, 0, 32);
+
+-- Decor GameObjects the client can use (retail 12.1.0.69933 query responses, sniff 14-43-07). Lights and fireplaces
+-- toggle State 1 <-> 0 on every use and stay that way (go_housing_decor_toggle); the bookcase wall behaves as a decor door.
+DELETE FROM `gameobject_template` WHERE `entry` IN (527693, 527892, 527893, 535963, 554835, 566777, 567418, 567758, 570876, 570990, 576308, 602757, 612071, 527886, 549363, 570438, 571613, 578092, 621771, 625765, 629139, 670659);
+INSERT INTO `gameobject_template` (`entry`, `type`, `displayId`, `name`, `IconName`, `castBarCaption`, `unk1`, `size`, `Data0`, `Data1`, `Data2`, `Data3`, `Data4`, `Data5`, `Data6`, `Data7`, `Data8`, `Data9`, `Data10`, `Data11`, `Data12`, `Data13`, `Data14`, `Data15`, `Data16`, `Data17`, `Data18`, `Data19`, `Data20`, `Data21`, `Data22`, `Data23`, `Data24`, `Data25`, `Data26`, `Data27`, `Data28`, `Data29`, `Data30`, `Data31`, `Data32`, `Data33`, `Data34`, `ContentTuningId`, `RequiredLevel`, `AIName`, `ScriptName`, `StringId`, `VerifiedBuild`) VALUES
+(527693, 10, 103841, 'Wrought Iron Floor Lamp', '', '', 0, 1, 93, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 527693, 1, 0, 0, 0, 0, 0, '', 'go_housing_decor_toggle', NULL, 69814),
+(527886, 10, 103912, 'Ornate Stonework Fireplace', '', '', 0, 1, 93, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 527886, 1, 0, 0, 0, 0, 0, '', 'go_housing_decor_toggle', NULL, 69814),
+(527892, 10, 103914, 'Three-Candle Wrought Iron Chandelier', '', '', 0, 1, 93, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 527892, 1, 0, 0, 0, 0, 0, '', 'go_housing_decor_toggle', NULL, 69814),
+(527893, 10, 103915, 'Wrought Iron Chandelier', '', '', 0, 1, 93, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 527893, 1, 0, 0, 0, 0, 0, '', 'go_housing_decor_toggle', NULL, 69814),
+(549363, 10, 107268, 'Tidesage''s Fireplace', '', '', 0, 1, 93, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 549363, 1, 0, 0, 0, 0, 0, '', 'go_housing_decor_toggle', NULL, 69814),
+(567758, 10, 110920, 'Wooden Chamberstick', '', '', 0, 1, 93, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 567758, 1, 0, 0, 0, 0, 0, '', 'go_housing_decor_toggle', NULL, 69814),
+(570438, 10, 26309, 'Tirisgarde Candle', '', '', 0, 1, 93, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 570438, 1, 0, 0, 0, 0, 0, '', 'go_housing_decor_toggle', NULL, 69814),
+(576308, 7, 88777, 'Earthen Etched Throne', '', '', '', 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', '', NULL, 69814),
+(535963, 0, 104925, 'Secret Bookcase Wall', '', '', '', 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', 'go_housing_decor_door', NULL, 69933),
+(554835, 7, 107870, 'Wide Charming Couch', '', '', '', 1, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', '', NULL, 69933),
+(566777, 7, 110444, 'Rough Wooden Chair', '', '', '', 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', '', NULL, 69933),
+(567418, 7, 110680, 'Elegant Padded Footstool', '', '', '', 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', '', NULL, 69933),
+(570876, 7, 112221, 'Elegant Padded Couch', '', '', '', 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', '', NULL, 69933),
+(570990, 7, 112264, 'Elegant Padded Chair', '', '', '', 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', '', NULL, 69933),
+(602757, 7, 115646, 'Elegant Padded Armchair', '', '', '', 1, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', '', NULL, 69933),
+(612071, 7, 116301, 'Majestic Elven Bench', '', '', '', 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', '', NULL, 69933),
+-- Lights and fireplaces without a retail sniff (VerifiedBuild 0): Goober like the sniffed ones, displayId is the
+-- GameObjectDisplayInfo of HouseDecor.ModelFileDataID
+(571613, 10, 112423, 'Spring Blossom Ceiling Light', '', '', '', 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', 'go_housing_decor_toggle', NULL, 0),
+(578092, 10, 113971, 'Lush Garden Butterfly Sconce', '', '', '', 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', 'go_housing_decor_toggle', NULL, 0),
+(621771, 10, 120256, 'Spring Blossom Lantern', '', '', '', 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', 'go_housing_decor_toggle', NULL, 0),
+(625765, 10, 120748, 'Purified Folk Candle', '', '', '', 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', 'go_housing_decor_toggle', NULL, 0),
+(629139, 10, 121864, 'Sin\'dorei Tiffin-Style Lamp', '', '', '', 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', 'go_housing_decor_toggle', NULL, 0),
+(670659, 10, 128838, 'Color-Curious Candle', '', '', '', 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '', 'go_housing_decor_toggle', NULL, 0);
+
+DELETE FROM `gameobject_template_locale` WHERE `locale` = 'ruRU' AND `entry` IN (527693, 527892, 527893, 535963, 554835, 566777, 567418, 567758, 570876, 570990, 576308, 602757, 612071, 527886, 549363, 570438, 571613, 578092, 621771, 625765, 629139, 670659);
+INSERT INTO `gameobject_template_locale` (`entry`, `locale`, `name`, `castBarCaption`, `unk1`, `VerifiedBuild`) VALUES
+(527693, 'ruRU', 'Напольная лампа из кованого железа', '', '', 69933),
+(527892, 'ruRU', 'Люстра из кованого железа на три свечи', '', '', 69933),
+(527893, 'ruRU', 'Люстра из кованого железа', '', '', 69933),
+(535963, 'ruRU', 'Стена с потайным книжным шкафом', '', '', 69933),
+(554835, 'ruRU', 'Широкий очаровательный диван', '', '', 69933),
+(566777, 'ruRU', 'Грубый деревянный стул', '', '', 69933),
+(567418, 'ruRU', 'Элегантный мягкий пуф', '', '', 69933),
+(567758, 'ruRU', 'Деревянный подсвечник', '', '', 69933),
+(570876, 'ruRU', 'Элегантный мягкий диван', '', '', 69933),
+(570990, 'ruRU', 'Элегантный мягкий стул', '', '', 69933),
+(576308, 'ruRU', 'Резной трон земельников', '', '', 69933),
+(602757, 'ruRU', 'Элегантное мягкое кресло', '', '', 69933),
+(612071, 'ruRU', 'Величественная эльфийская скамья', '', '', 69933),
+(527886, 'ruRU', 'Украшенный каменный очаг', '', '', 0),
+(549363, 'ruRU', 'Очаг жреца моря', '', '', 0),
+(570438, 'ruRU', 'Свеча Стражей Тирисфаля', '', '', 0),
+(571613, 'ruRU', 'Люстра весенних цветов', '', '', 0),
+(578092, 'ruRU', 'Светильник с бабочками роскошного сада', '', '', 0),
+(621771, 'ruRU', 'Фонарь весенних цветов', '', '', 0),
+(625765, 'ruRU', 'Очищенная народная свеча', '', '', 0),
+(629139, 'ruRU', 'Синдорайская лампа в стиле Тиффин', '', '', 0),
+(670659, 'ruRU', 'Свеча необычного цвета', '', '', 0);
+
+DELETE FROM `gameobject_template_addon` WHERE `entry` = 535963;
+INSERT INTO `gameobject_template_addon` (`entry`, `faction`, `flags`) VALUES
+(535963, 0, 32); -- GO_FLAG_NODESPAWN like the retail bookcase wall
+
