@@ -38,10 +38,6 @@
 
 namespace
 {
-    [[maybe_unused]] constexpr uint32 HOUSING_DOOR_ENTRY    = 586576;  // retail "Founder's Point Front Door"
-    // HOUSE_INTERIOR_MAP_ID now comes from HousingDefines.h (merged from ADV e004d7a4bf) — removed
-    // the local duplicate that used to live here to avoid two independent copies of the same 2783.
-
     // Interior spawn position from NeighborhoodMap ID=7 (sniff-confirmed)
     constexpr float INTERIOR_SPAWN_X = -1000.0f;
     constexpr float INTERIOR_SPAWN_Y = -1000.0f;
@@ -176,7 +172,7 @@ public:
                     if (nbh)
                     {
                         uint32 nbhMapId = nbh->GetNeighborhoodMapID();
-                        std::vector<NeighborhoodPlotData const*> plots = sHousingMgr.GetPlotsForMap(nbhMapId);
+                        std::vector<NeighborhoodPlotData const*> const& plots = sHousingMgr.GetPlotsForMap(nbhMapId);
                         float bestDist = std::numeric_limits<float>::max();
                         for (NeighborhoodPlotData const* plot : plots)
                         {
@@ -269,11 +265,6 @@ public:
             {
                 TC_LOG_ERROR("housing", "go_housing_door: TeleportTo FAILED — player {} → map {} "
                     "from plot {}",
-                    player->GetGUID().ToString(), HOUSE_INTERIOR_MAP_ID, plotIndex);
-            }
-            else
-            {
-                TC_LOG_INFO("housing", "go_housing_door: Player {} entering interior map {} from plot {}",
                     player->GetGUID().ToString(), HOUSE_INTERIOR_MAP_ID, plotIndex);
             }
 

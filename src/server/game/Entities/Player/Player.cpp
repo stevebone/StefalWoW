@@ -9603,9 +9603,6 @@ void Player::SendInitWorldStates(uint32 zoneId, uint32 areaId) const
 
     WorldStateMgr::FillInitialWorldStates(packet, GetMap(), areaId);
 
-    TC_LOG_INFO("housing", "Player::SendInitWorldStates: Map={} Zone={} Area={} WorldStateCount={}",
-        mapId, zoneId, areaId, uint32(packet.Worldstates.size()));
-
     SendDirectMessage(packet.Write());
 }
 
@@ -19983,8 +19980,6 @@ bool Player::LoadFromDB(ObjectGuid guid, CharacterDatabaseQueryHolder const& hol
             nh->UpdatePlotHouseInfo(primeHousing->GetPlotIndex(),
                                     primeHousing->GetHouseGuid(),
                                     bnetGuid);
-            TC_LOG_INFO("housing", "Player::LoadFromDB PRIMING: UpdatePlotHouseInfo plot={} HouseGuid={} BnetGuid={} (before mirror read)",
-                primeHousing->GetPlotIndex(), primeHousing->GetHouseGuid().ToString(), bnetGuid.ToString());
         }
 
         Neighborhood const* neighborhood = sNeighborhoodMgr.GetNeighborhood(primeHousing->GetNeighborhoodGuid());
@@ -20020,28 +20015,13 @@ bool Player::LoadFromDB(ObjectGuid guid, CharacterDatabaseQueryHolder const& hol
             // ships with real Houses data in the FNeighborhoodMirrorData_C
             // fragment on the first frame — correct pins paint on first map
             // open, no interaction required.
-            ObjectGuid const sessionHouse3 = GetSession()->GetHousingPlayerHouseEntity().GetGUID();
             mirrorEntity.ClearHouses();
-            uint8 plotIdx = 0;
             for (auto const& plot : neighborhood->GetPlots())
             {
-                if (plot.IsOccupied())
-                {
-                    bool ownPlot = (plot.OwnerGuid == GetGUID());
-                    bool emptyHouse = plot.HouseGuid.IsEmpty();
-                    bool matchesSession = ownPlot && !emptyHouse && plot.HouseGuid == sessionHouse3;
-                    TC_LOG_INFO("housing",
-                        "Player::LoadFromDB mirror[{}]: OWN={} HouseGuid={} OwnerGuid={} OwnerBnetGuid={} "
-                        "SessionH3={} matchesSessionH3={} emptyHouseGuid={}",
-                        plotIdx, ownPlot,
-                        plot.HouseGuid.ToString(), plot.OwnerGuid.ToString(), plot.OwnerBnetGuid.ToString(),
-                        sessionHouse3.ToString(), matchesSession, emptyHouse);
-                }
                 if (plot.IsOccupied() && !plot.HouseGuid.IsEmpty())
                     mirrorEntity.AddHouse(plot.HouseGuid, plot.OwnerGuid);
                 else
                     mirrorEntity.AddHouse(ObjectGuid::Empty, ObjectGuid::Empty);
-                ++plotIdx;
             }
 
             // Add managers
@@ -27013,10 +26993,6 @@ void Player::SendInitialPacketsAfterAddToMap()
                 // Player CREATE bundle via BNetAccount BuildCreateUpdateBlock.
                 housing->PopulateCatalogStorageEntries();
             }
-
-            TC_LOG_INFO("housing", "Player {} entered neighborhood map {} - state set on session entities. Neighborhood='{}' {}, Members={}, Plots={}, HasHouse={}",
-                GetGUID().ToString(), GetMapId(), neighborhood->GetName(), neighborhood->GetGuid().ToString(),
-                neighborhood->GetMembers().size(), neighborhood->GetOccupiedPlotCount(), housing ? "yes" : "no");
 
             // The setter-only refresh above leaves the mirror fields riding a VALUES_UPDATE, which
             // never re-runs the client's map-icon build — after leaving and re-opening the
