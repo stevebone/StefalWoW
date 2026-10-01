@@ -562,8 +562,6 @@ AreaTrigger* HousingMap::SpawnPlotAreaTrigger(NeighborhoodPlotData const* plot)
     if (AreaTrigger* existing = GetPlotAreaTrigger(plotIndex))
         return existing;
 
-    Neighborhood::PlotInfo const* plotInfo = _neighborhood ? _neighborhood->GetPlotInfo(plotIndex) : nullptr;
-
     float hx = plot->HousePosition[0];
     float hy = plot->HousePosition[1];
     float hz = plot->HousePosition[2];
