@@ -895,9 +895,6 @@ void HousingMgr::LoadNeighborhoodInitiativeData()
 
 void HousingMgr::LoadRoomComponentData()
 {
-    uint32 doorwayCount = 0;
-    uint32 totalCount = 0;
-
     for (RoomComponentEntry const* entry : sRoomComponentStore)
     {
         // Store all components indexed by RoomWmoDataID for room spawning
@@ -917,7 +914,6 @@ void HousingMgr::LoadRoomComponentData()
         compData.Flags = entry->Flags;
 
         _roomComponentsByWmoData[entry->RoomWmoDataID].push_back(compData);
-        ++totalCount;
 
         // Also index doorway components separately for connectivity checks
         if (entry->Type == HOUSING_ROOM_COMPONENT_DOORWAY)
@@ -933,7 +929,6 @@ void HousingMgr::LoadRoomComponentData()
             door.ConnectionType = entry->ConnectionType;
 
             _roomDoorMap[entry->RoomWmoDataID].push_back(door);
-            ++doorwayCount;
         }
     }
 

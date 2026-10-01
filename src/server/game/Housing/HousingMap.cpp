@@ -398,7 +398,7 @@ void HousingMap::SpawnPlotGameObjects()
                 if (optionId != 0)
                     continue;
                 ExteriorComponentEntry const* comp = sExteriorComponentStore.LookupEntry(pointId);
-                if (comp && comp->ParentComponentID == 0 && comp->HouseExteriorWmoDataID == static_cast<int32>(plotInfo->HouseType))
+                if (comp && comp->ParentComponentID == 0 && comp->HouseExteriorWmoDataID == plotInfo->HouseType)
                 {
                     exteriorComponentID = static_cast<int32>(pointId);
                     break;
