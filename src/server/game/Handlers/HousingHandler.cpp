@@ -873,51 +873,6 @@ void WorldSession::HandleHousingDecorSetEditMode(WorldPackets::Housing::HousingD
             GetHousingPlayerHouseEntity().ClearUpdateMask(true);
         }
 
-        // Diagnostic: log placed decor GUIDs from Housing vs what's on spawned MeshObjects.
-        // This helps identify mismatches between MeshObject FHousingDecor_C.DecorGUID
-        // and Account FHousingStorage_C.Decor map keys that prevent click targeting.
-        {
-            uint32 meshDecorCount = 0;
-            uint32 meshInWorld = 0;
-            uint32 meshHasFrag = 0;
-            uint32 meshAtClient = 0;
-
-            // Collect the decor GUID map from whichever map type the player is on
-            std::unordered_map<ObjectGuid, ObjectGuid> const* decorMap = nullptr;
-            Map* playerMap = player->GetMap();
-            if (HousingMap* housingMap = dynamic_cast<HousingMap*>(playerMap))
-                decorMap = &housingMap->GetDecorGuidMap();
-            else if (HouseInteriorMap* interiorMap = dynamic_cast<HouseInteriorMap*>(playerMap))
-                decorMap = &interiorMap->GetDecorGuidMap();
-
-            if (decorMap)
-            {
-                for (auto const& [decorGuid, meshObjGuid] : *decorMap)
-                {
-                    MeshObject* meshObj = playerMap->GetMeshObject(meshObjGuid);
-                    bool inWorld = meshObj && meshObj->IsInWorld();
-                    bool hasFrag = meshObj && meshObj->HasHousingDecorData();
-                    bool atClient = player->m_clientGUIDs.count(meshObjGuid) > 0;
-                    if (inWorld) ++meshInWorld;
-                    if (hasFrag) ++meshHasFrag;
-                    if (atClient) ++meshAtClient;
-
-                    ++meshDecorCount;
-                }
-            }
-
-            // Also log the placed decor GUIDs from the Housing object (what's in the Account storage)
-            uint32 totalPlaced = 0;
-            uint32 matchCount = 0;
-            for (auto const& [decorGuid, decor] : housing->GetPlacedDecorMap())
-            {
-                bool hasMeshObject = decorMap && decorMap->count(decorGuid) > 0;
-                if (hasMeshObject) ++matchCount;
-                ++totalPlaced;
-            }
-
-        }
-
         // Play the plot boundary spell visual on the player's plot AT.
         // This activates the glowing border decal around the plot when in edit mode.
         if (HousingMap* housingMap = dynamic_cast<HousingMap*>(player->GetMap()))
