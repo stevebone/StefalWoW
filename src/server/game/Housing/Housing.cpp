@@ -3070,7 +3070,7 @@ void Housing::AddLevel(uint32 amount)
     SendLevelFavorUpdate(int32(_level), -1);
 }
 
-void Housing::AddFavor(uint64 amount, HousingFavorUpdateSource source /*= HOUSING_FAVOR_SOURCE_UNKNOWN*/, bool emitUpdate /*= true*/)
+void Housing::AddFavor(uint64 amount, HousingFavorUpdateSource /*source*/ /*= HOUSING_FAVOR_SOURCE_UNKNOWN*/, bool emitUpdate /*= true*/)
 {
     _favor64 += amount;
     _favor = static_cast<uint32>(std::min<uint64>(_favor64, std::numeric_limits<uint32>::max()));
