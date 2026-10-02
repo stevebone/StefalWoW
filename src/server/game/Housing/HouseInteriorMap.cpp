@@ -894,7 +894,7 @@ void HouseInteriorMap::SpawnInteriorDecorFromList(std::vector<Housing::PlacedDec
         if (decorData->GameObjectID > 0)
         {
             uint32 goEntry = static_cast<uint32>(decorData->GameObjectID);
-            if (GameObjectTemplate const* goTemplate = sObjectMgr->GetGameObjectTemplate(goEntry))
+            if (sObjectMgr->GetGameObjectTemplate(goEntry))
             {
                 float orientation = 2.0f * std::atan2(rot.z, rot.w);
                 Position goWorldPos(worldX, worldY, worldZ, orientation);
@@ -1062,7 +1062,7 @@ void HouseInteriorMap::SpawnSingleInteriorDecor(Housing::PlacedDecor const& deco
     if (decorData->GameObjectID > 0)
     {
         uint32 goEntry = static_cast<uint32>(decorData->GameObjectID);
-        if (GameObjectTemplate const* goTemplate = sObjectMgr->GetGameObjectTemplate(goEntry))
+        if (sObjectMgr->GetGameObjectTemplate(goEntry))
         {
             float orientation = 2.0f * std::atan2(rot.z, rot.w);
             Position goWorldPos(worldX, worldY, worldZ, orientation);
@@ -1181,7 +1181,7 @@ void HouseInteriorMap::ApplyDecorPetBinding(WorldObject* obj, ObjectGuid decorGu
     if (!battlePetGuid.IsEmpty() && creatureId != 0)
     {
         // Spawn the companion creature beside the decor (passive until pet AI is tuned).
-        if (CreatureTemplate const* creatureTemplate = sObjectMgr->GetCreatureTemplate(creatureId))
+        if (sObjectMgr->GetCreatureTemplate(creatureId))
         {
             Position petPos = obj->GetPosition();
             float const escapeDistance = 1.5f;
@@ -1444,13 +1444,8 @@ bool HouseInteriorMap::AddPlayerToMap(Player* player, bool initPlayer /*= true*/
             // (mirrors the exterior map's deferred ENTER_PLOT pattern).
             {
                 ObjectGuid playerGuid = player->GetGUID();
-                ObjectGuid houseGuid = housing->GetHouseGuid();
-                ObjectGuid neighborhoodGuid = housing->GetNeighborhoodGuid();
-                ObjectGuid accountGuid = player->GetSession()->GetBattlenetAccountGUID();
-                uint8 plotIndex = housing->GetPlotIndex();
-                uint32 settingsFlags = housing->GetSettingsFlags();
 
-                player->m_Events.AddEventAtOffset([this, playerGuid, houseGuid, neighborhoodGuid, accountGuid, plotIndex, settingsFlags]()
+                player->m_Events.AddEventAtOffset([this, playerGuid]()
                 {
                     Player* p = ObjectAccessor::FindPlayer(playerGuid);
                     if (!p || !p->IsInWorld())

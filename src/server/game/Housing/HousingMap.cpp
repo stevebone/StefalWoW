@@ -865,9 +865,7 @@ bool HousingMap::AddPlayerToMap(Player* player, bool initPlayer /*= true*/)
         SetPlayerCurrentPlot(player->GetGUID(), plotIndex);
 
         ObjectGuid playerGuid = player->GetGUID();
-        ObjectGuid houseGuid = housing->GetHouseGuid();
-        ObjectGuid neighborhoodGuid = housing->GetNeighborhoodGuid();
-        player->m_Events.AddEventAtOffset([playerGuid, plotIndex, houseGuid, neighborhoodGuid]()
+        player->m_Events.AddEventAtOffset([playerGuid, plotIndex]()
         {
             Player* p = ObjectAccessor::FindPlayer(playerGuid);
             if (!p || !p->IsInWorld())
@@ -1057,7 +1055,7 @@ void HousingMap::RemovePlayerFromMap(Player* player, bool remove)
 {
     // Remove plot auras first; the house is registered under its buyer, possibly another character of the account.
     Housing const* leavingHousing = _neighborhood ? player->GetHousingForNeighborhood(_neighborhood->GetGuid()) : nullptr;
-    if (Housing const* housing = leavingHousing ? GetHousingForPlayer(leavingHousing->GetOwnerGuid()) : nullptr)
+    if (leavingHousing && GetHousingForPlayer(leavingHousing->GetOwnerGuid()))
         SendPlotLeaveAuraRemoval(player);
 
     // Cleared for EVERY player leaving: the map never unloads, so a visitor's stale entry would live forever.
@@ -2845,7 +2843,7 @@ bool HousingMap::SpawnDecorItem(uint8 plotIndex, Housing::PlacedDecor const& dec
     if (decorData->GameObjectID > 0)
     {
         uint32 goEntry = static_cast<uint32>(decorData->GameObjectID);
-        if (GameObjectTemplate const* goTemplate = sObjectMgr->GetGameObjectTemplate(goEntry))
+        if (sObjectMgr->GetGameObjectTemplate(goEntry))
         {
             // Orientation from the quaternion: the packed quat drives rendering, the yaw the stationary direction.
             float orientation = 2.0f * std::atan2(rot.z, rot.w);
@@ -3091,7 +3089,7 @@ void HousingMap::UpdateDecorPet(ObjectGuid decorGuid, ObjectGuid battlePetGuid, 
     if (!battlePetGuid.IsEmpty() && creatureId != 0)
     {
         // Spawn the companion creature beside the decor (passive until pet AI is tuned).
-        if (CreatureTemplate const* creatureTemplate = sObjectMgr->GetCreatureTemplate(creatureId))
+        if (sObjectMgr->GetCreatureTemplate(creatureId))
         {
             Position petPos = decorObj->GetPosition();
             float const escapeDistance = 1.5f;
