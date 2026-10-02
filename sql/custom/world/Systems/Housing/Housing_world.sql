@@ -5406,7 +5406,7 @@ INSERT INTO `areatrigger_create_properties` (`Id`, `IsCustom`, `AreaTriggerId`, 
 DELETE FROM `spell_target_position` WHERE `ID` IN (1235590, 1235595, 1258476, 1258484);
 INSERT INTO `spell_target_position` (`ID`, `EffectIndex`, `OrderIndex`, `MapID`, `PositionX`, `PositionY`, `PositionZ`, `Orientation`, `VerifiedBuild`) VALUES
 (1235590, 0, 0, 2736, 2053.6, 175.468, 175.12, 0, 57388),
-(1235595, 0, 0, 2735, 3807.76, -160.427, 194.111, 0, 57388),
+(1235595, 0, 0, 2735, 3774.97, -151.89, 191.22, 2.725157, 69933),
 (1258476, 0, 0, 2735, 3807.76, -160.427, 194.111, 0, 57388),
 (1258484, 0, 0, 2736, 2053.6, 175.468, 175.12, 0, 57388);
 
