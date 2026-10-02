@@ -462,7 +462,6 @@ namespace WorldPackets
 
     namespace Housing
     {
-        // Patch 12.1.0 (build 69299) blueprint packets (HousingBlueprintPackets.h)
         class HousingBlueprintRequestCollection;
         class HousingBlueprintRequestContents;
         class HousingBlueprintExport;
@@ -1195,27 +1194,14 @@ class TC_GAME_API WorldSession
         ObjectGuid GetBattlenetAccountGUID() const;
         Battlenet::Account& GetBattlenetAccount() const { return *_battlenetAccount; }
         bool HasHousingPlayerHouseEntity() const { return _housingPlayerHouseEntity != nullptr; }
-        /// Whether the client may hold the Housing/3 entity of the player's own house right now. Retail 12.1.0.69933
-        /// (sniff 09-29 13-25-41) never sends it in a neighborhood where the account has no house: the client marks
-        /// the entity's PlotIndex as the player's own plot in whatever neighborhood the player stands in.
+        /// Retail only sends the player's own Housing/3 entity in neighborhoods where the account has a house.
         bool CanSeeHousingPlayerHouseEntity() const;
         bool HasHousingNeighborhoodMirrorEntity() const { return _housingNeighborhoodMirrorEntity != nullptr; }
         HousingPlayerHouseEntity& GetHousingPlayerHouseEntity() const { return *_housingPlayerHouseEntity; }
         HousingNeighborhoodMirrorEntity& GetHousingNeighborhoodMirrorEntity() const { return *_housingNeighborhoodMirrorEntity; }
-        // Appends the Account (FHousingStorage_C) and HousingPlayerHouseEntity blocks for `player`:
-        // a values update when the client already holds the entity, a CREATE otherwise.
-        // accountAsCreate forces a full CREATE even when the client already holds the entities:
-        // retail re-issues CreateObject1 for the BNetAccount entity on every storage ingest point
-        // (storage request response, editor open) — a values-only re-send of the Decor map is not
-        // re-ingested by the client, which left the budgets at 0 after a relog.
+        // accountAsCreate forces a full CREATE: the client only re-ingests the Decor map on a CreateObject1.
         void BuildHousingAccountEntitiesUpdate(UpdateData* data, Player* player, bool accountAsCreate = false);
-        // Re-primes the neighborhood map state on every map entry: re-sends the roster (the
-        // client's HousingNeighborhoodState singleton is only filled by the roster response and
-        // is not re-requested on mid-session re-entry), feeds the JamCliNeighborhoodName
-        // DataCache, re-pushes the Housing/4 mirror (VALUES when the client holds it, CREATE
-        // otherwise) and pre-pushes plot-owner names for the NameCache. Without this the
-        // map pins lose their name prefix and ownership state after leaving and re-opening
-        // the neighborhood map.
+        // Re-sends the roster on every map entry (the client's HousingNeighborhoodState singleton only fills from it).
         void SendNeighborhoodMapRefresh();
         // SMSG_NEIGHBORHOOD_CHARTER_OPEN_UI_RESPONSE with the player's pending charter (charter item use).
         void SendNeighborhoodCharterOpenUI();
@@ -1712,11 +1698,10 @@ class TC_GAME_API WorldSession
         void HandleHouseInteriorLeaveHouse(WorldPackets::Housing::HouseInteriorLeaveHouse const& houseInteriorLeaveHouse);
 
         // Housing - Decor System
-        // m3/A6: returns false (and consumes no budget) when the per-session
-        // decoration throttle is exceeded; handlers then reply TOO_MANY_REQUESTS.
+        // False (no budget consumed) when the per-session decoration throttle trips.
         bool CheckHousingDecorThrottle();
 
-        // H-25: a charter may only be signed by someone who was asked to sign it.
+        // A charter may only be signed by someone who was asked to sign it.
         void AddPendingCharterSignatureRequest(uint64 charterId) { _pendingCharterSignatureRequests.insert(charterId); }
         bool HasPendingCharterSignatureRequest(uint64 charterId) const { return _pendingCharterSignatureRequests.contains(charterId); }
         void ClearPendingCharterSignatureRequest(uint64 charterId) { _pendingCharterSignatureRequests.erase(charterId); }
@@ -1776,8 +1761,6 @@ class TC_GAME_API WorldSession
         void HandleHousingSvcsGetPlayerHousesInfo(WorldPackets::Housing::HousingSvcsGetPlayerHousesInfo const& housingSvcsGetPlayerHousesInfo);
         void HandleHousingSvcsTeleportToPlot(WorldPackets::Housing::HousingSvcsTeleportToPlot const& housingSvcsTeleportToPlot);
         void HandleHousingSvcsStartTutorial(WorldPackets::Housing::HousingSvcsStartTutorial const& housingSvcsStartTutorial);
-        // Removed 2026-04-24: HandleHousingSvcsSetTutorialState / CompleteTutorialStep /
-        // SkipTutorial / QueryPendingInvites � no matching 12.0.5 Lua API exists.
         void HandleHousingSvcsAcceptNeighborhoodOwnership(WorldPackets::Housing::HousingSvcsAcceptNeighborhoodOwnership const& housingSvcsAcceptNeighborhoodOwnership);
         void HandleHousingSvcsRejectNeighborhoodOwnership(WorldPackets::Housing::HousingSvcsRejectNeighborhoodOwnership const& housingSvcsRejectNeighborhoodOwnership);
         void HandleHousingSvcsGetPotentialHouseOwners(WorldPackets::Housing::HousingSvcsGetPotentialHouseOwners const& housingSvcsGetPotentialHouseOwners);
@@ -1833,11 +1816,7 @@ class TC_GAME_API WorldSession
         void HandleNeighborhoodGetRoster(WorldPackets::Neighborhood::NeighborhoodGetRoster const& neighborhoodGetRoster);
         void HandleNeighborhoodEvictPlot(WorldPackets::Neighborhood::NeighborhoodEvictPlot const& neighborhoodEvictPlot);
 
-        // Phase 7 Neighborhood Charter handlers
-        // (fake CMSGs 0x370002 + 0x370005 � STUB-OK only, no client senders).
-
-        // Phase 7 Neighborhood handlers
-
+        // Neighborhood - Initiative System
         void HandleNeighborhoodInitiativeServiceStatusCheck(WorldPackets::Neighborhood::NeighborhoodInitiativeServiceStatusCheck const& packet);
         void HandleGetAvailableInitiativeRequest(WorldPackets::Neighborhood::GetAvailableInitiativeRequest const& getAvailableInitiativeRequest);
         void HandleGetInitiativeActivityLogRequest(WorldPackets::Neighborhood::GetInitiativeActivityLogRequest const& getInitiativeActivityLogRequest);
@@ -2466,25 +2445,14 @@ class TC_GAME_API WorldSession
         ConnectToKey _instanceConnectKey;
         ObjectGuid::LowType _realmTransferCharacterGuid = 0; // character selected before a cross-realm handoff, entered into the world after the session resume
 
-        // Housing: client's last-used PlotIndex from OpenCornerstoneUI,
-        // cached for the subsequent BuyHouse CMSG which doesn't include it.
-        // The client's PlotIndex may differ from our DB2 PlotIndex values.
+        // Client's last-used PlotIndex from OpenCornerstoneUI, cached for the subsequent BuyHouse CMSG.
         uint32 _lastClientPlotIndex = 0;
 
-        // m3/A6 per-session decoration throttle. Each decor place/move/remove is
-        // an AddToMap + synchronous DB write; without a limit a scripted client
-        // can amplify GO-spawn / DB load. Sliding fixed window: up to
-        // HOUSING_DECOR_THROTTLE_BURST edits per HOUSING_DECOR_THROTTLE_WINDOW_MS.
+        // Sliding window: HOUSING_DECOR_THROTTLE_BURST edits per HOUSING_DECOR_THROTTLE_WINDOW_MS.
         uint32 _housingDecorThrottleWindowStart = 0;
         uint32 _housingDecorThrottleCount = 0;
 
-        // H-25: charter ids this session has actually been asked to sign.
-        // CMSG_NEIGHBORHOOD_CHARTER_ADD_SIGNATURE takes the charter id from the client
-        // and charter ids are creator GUID counters, so without this any player could
-        // sign any charter on the realm by enumerating ids, and
-        // CMSG_NEIGHBORHOOD_CHARTER_SEND_SIGNATURE_REQUEST - which exists to invite a
-        // signer - was decorative. Session-scoped on purpose: a signature request is an
-        // in-the-moment offer, so it does not survive a relog, and nothing is persisted.
+        // Charter ids this session was actually asked to sign; blocks signing unrequested (enumerated) ids.
         std::unordered_set<uint64> _pendingCharterSignatureRequests;
 
         WorldSession(WorldSession const& right) = delete;
