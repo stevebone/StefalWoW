@@ -240,6 +240,15 @@ public:
                         "(owner {} flags 0x{:X})",
                         player->GetGUID().ToString(), plotIndex, plotInfo->OwnerGuid.ToString(),
                         settingsFlags);
+                    // Push a permissions refresh with flags 0 for this house: the client derives
+                    // HouseEditorPlayerType.None from it ("without even sufficient visiting
+                    // permissions") and shows its own ERR_HOUSING_ACTION_NOENTRY
+                    // ("This house is closed to visitors.") — no server text is sent.
+                    WorldPackets::Housing::HousingGetPlayerPermissionsResponse response;
+                    response.HouseGuid = plotInfo->HouseGuid;
+                    response.ResultCode = 0;
+                    response.PermissionFlags = 0;
+                    player->SendDirectMessage(response.Write());
                     return true;
                 }
 

@@ -19,6 +19,7 @@
 #define TRINITYCORE_HOUSING_DEFINES_H
 
 #include "Define.h"
+#include "Duration.h"
 
 // HousingResult enum - 12.1.0.69587 client values (Enum.HousingResult, 112 values). 12.1 inserted AccountBanned and the
 // Blueprint* results near the top, shifting every later value; the client's blueprint system itself returns 3, 7, 8,
@@ -412,7 +413,7 @@ enum HouseSettingFlags : uint32
     HOUSE_SETTING_BLUEPRINT_EXPORT_PARTY    = 0x4000
 };
 
-constexpr uint32 HOUSE_SETTING_DEFAULT    = HOUSE_SETTING_PLOT_ACCESS_ANYONE; // 0x020 — sniff-verified default
+constexpr uint32 HOUSE_SETTING_DEFAULT    = HOUSE_SETTING_PLOT_ACCESS_ANYONE | HOUSE_SETTING_HOUSE_ACCESS_ANYONE; // 0x021 — sniff-verified default
 constexpr uint32 HOUSE_SETTING_VALID_MASK = 0x7FFF; // bits 0-14
 
 // HousingDecorPlacementFlags enum - 5 values (bitmask)
@@ -429,6 +430,17 @@ enum HousingDecorPlacementFlags : int32
 // own house; 0x10 in 8 of the 16 for other houses (the rest 0x18 or 0, rules not yet known).
 constexpr uint8 HOUSING_PERMISSIONS_OWNER   = 0xFE;
 constexpr uint8 HOUSING_PERMISSIONS_VISITOR = 0x10;
+
+// TrinityString entry for the plot-eviction warning (ID chosen to match the live DB).
+// Retail sends it as CHAT_MSG_RAID_BOSS_WHISPER with the sender set to the visitor
+// (dump 2026-10-02 12:25: packet #20314, HasBroadcastTextID=false — the text is
+// server-side, not a GlobalString).
+constexpr uint32 HOUSING_STRING_PLOT_ACCESS_DENIED = 304665;
+
+// Plot eviction sequence (dump 2026-10-02 12:25: SPELL_GO #20308 + AURA_UPDATE with
+// Duration=5000, then the whisper, then MOVE_TELEPORT_ACK ~5s later when the aura expires).
+constexpr uint32 SPELL_HOUSING_PLOT_EVICT_WARNING = 1245416;
+constexpr Milliseconds HOUSING_PLOT_EVICT_DELAY = 5s;
 
 // HouseDecor.db2 Flags bit carried by licensed (shop / promotional) decor. Retail 12.1.0.69933 lists only such
 // entries in SMSG_GET_ALL_LICENSED_DECOR_QUANTITIES_RESPONSE (all 8 captured have Flags 0x503 or 0x403);
