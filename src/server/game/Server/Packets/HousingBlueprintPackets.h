@@ -21,6 +21,7 @@
 #define TRINITYCORE_HOUSING_BLUEPRINT_PACKETS_H
 
 #include "ObjectGuid.h"
+#include "Optional.h"
 #include "Packet.h"
 #include <string>
 #include <vector>
