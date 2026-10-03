@@ -2406,7 +2406,6 @@ void HousingMap::SendPlotMeshObjectsToPlayers(uint8 plotIndex)
             continue;
 
         UpdateData updateData(GetId());
-        uint32 created = 0;
         for (ObjectGuid const& meshGuid : meshItr->second)
         {
             MeshObject* meshObj = GetMeshObject(meshGuid);
@@ -2422,7 +2421,6 @@ void HousingMap::SendPlotMeshObjectsToPlayers(uint8 plotIndex)
 
             meshObj->BuildCreateUpdateBlockForPlayer(&updateData, p);
             p->m_clientGUIDs.insert(meshGuid);
-            ++created;
         }
 
         if (!updateData.HasData())
@@ -2442,7 +2440,6 @@ void HousingMap::SendPlotGeometryEntitiesToPlayer(uint8 plotIndex, Player* playe
 
     // The client validates placement/moves against these geometry entities, which grid visibility never delivers.
     UpdateData updateData(GetId());
-    uint32 created = 0, updated = 0;
 
     auto pushEntity = [&](BaseEntity* entity)
     {
@@ -2450,15 +2447,11 @@ void HousingMap::SendPlotGeometryEntitiesToPlayer(uint8 plotIndex, Player* playe
             return;
         // No IsInWorld check — Group B mirrors are never map-added and only reach the client via hand-built bundles.
         if (player->HaveAtClient(entity))
-        {
             entity->BuildValuesUpdateBlockForPlayer(&updateData, player);
-            ++updated;
-        }
         else
         {
             entity->BuildCreateUpdateBlockForPlayer(&updateData, player);
             player->m_clientGUIDs.insert(entity->GetGUID());
-            ++created;
         }
     };
 
