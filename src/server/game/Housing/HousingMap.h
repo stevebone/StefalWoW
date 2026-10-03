@@ -135,9 +135,10 @@ public:
     // Finds and removes the MeshObject at the given hookID, sending DESTROY to nearby players.
     MeshObject* FindMeshObjectByHookID(uint8 plotIndex, int32 hookID);
     void DespawnSingleMeshObject(uint8 plotIndex, ObjectGuid meshGuid);
-    // Spawn a single fixture at a hook and send CREATE to a specific player.
+    // Spawn a single fixture at a hook; parentHint is the client-named parent mesh (variant re-keys invalidate the DB2 lookup).
     MeshObject* SpawnFixtureAtHook(uint8 plotIndex, uint32 hookID, uint32 componentID,
-        ObjectGuid houseGuid, int32 houseExteriorWmoDataID, Player* target);
+        ObjectGuid houseGuid, int32 houseExteriorWmoDataID, Player* target,
+        ObjectGuid parentHint = ObjectGuid::Empty);
 
     // Room entity management (provides Geobox for client OutsidePlotBounds check)
     void SpawnRoomForPlot(uint8 plotIndex, Position const& housePos,

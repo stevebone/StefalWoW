@@ -3058,6 +3058,12 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         // Writes PlayerHouseInfoComponentData.CurrentHouse (empty on plot-leave); the client tracks plot occupancy from it.
         void SetCurrentHouse(ObjectGuid houseGuid);
 
+        // The housing tutorial runs while Housing.TutorialsEnabled is set and the character has
+        // not rewarded the whole HOUSING_TUTORIAL_QUEST_CHAIN.
+        bool HousingTutorialChainComplete() const;
+        // Updates housingTutorialsEnabled in GLOBAL_CONFIG_CACHE and re-sends the account data timestamps.
+        void UpdateHousingTutorialCVars();
+
         uint8 GetWarbandMaxLevelCharCount() const { return _warbandMaxLevelCharCount; }
 
         bool IsAdvancedCombatLoggingEnabled() const { return _advancedCombatLoggingEnabled; }

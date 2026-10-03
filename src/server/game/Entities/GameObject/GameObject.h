@@ -465,6 +465,11 @@ class TC_GAME_API GameObject : public WorldObject, public GridObject<GameObject>
         // Housing cornerstone fragment (only set on cornerstone GameObjects)
         UF::OptionalUpdateField<UF::HousingCornerstoneData, int32(WowCS::EntityFragment::FJamHousingCornerstone_C), 0> m_housingCornerstoneData;
         void InitHousingCornerstoneData(uint64 cost, int32 plotIndex);
+        // -1 when this GO is not a cornerstone (all plots share one Cornerstone GO entry)
+        int32 GetHousingCornerstonePlotIndex() const
+        {
+            return m_housingCornerstoneData.has_value() ? m_housingCornerstoneData->PlotIndex : -1;
+        }
 
         // Housing decor fragment (only set on decor item GameObjects)
         void InitHousingDecorData(ObjectGuid decorGuid, ObjectGuid houseGuid,

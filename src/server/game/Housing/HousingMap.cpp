@@ -180,14 +180,15 @@ void HousingMap::SpawnPlotGameObjects()
 
         LoadGrid(x, y);
 
-        // Ownership state via GOState: 0 (ACTIVE) = Owned/Claimed, 1 (READY) = ForSale sign.
+        // Retail spawns the same "Cornerstone" GO on every plot; GOState: 0 = owned, 1 = ForSale sign.
         Neighborhood::PlotInfo const* plotInfo = _neighborhood->GetPlotInfo(static_cast<uint8>(plot->PlotIndex));
-        uint32 goEntry = static_cast<uint32>(plot->CornerstoneGameObjectID);
+        uint32 const goEntry = HOUSING_CORNERSTONE_GAMEOBJECT_ENTRY;
+        uint32 const anchorEntry = static_cast<uint32>(plot->CornerstoneGameObjectID);
         bool isOwned = plotInfo && !plotInfo->OwnerGuid.IsEmpty();
 
-        if (!goEntry)
+        if (!anchorEntry)
         {
-            TC_LOG_ERROR("housing", "HousingMap::SpawnPlotGameObjects: Plot {} has CornerstoneGameObjectID=0 - skipping",
+            TC_LOG_ERROR("housing", "HousingMap::SpawnPlotGameObjects: Plot {} has CornerstoneGameObjectID=0 - no position anchor, skipping",
                 plot->PlotIndex);
             continue;
         }
@@ -195,7 +196,7 @@ void HousingMap::SpawnPlotGameObjects()
         // Cornerstone transform: prefer the GameObjects.db2 anchor row (NeighborhoodPlot rows are unreliable); fall back to CornerstoneRotation+PI.
         float rotZ;
         QuaternionData rot;
-        if (GameObjectsEntry const* goData = sGameObjectsStore.LookupEntry(goEntry))
+        if (GameObjectsEntry const* goData = sGameObjectsStore.LookupEntry(anchorEntry))
         {
             x = goData->Pos.X;
             y = goData->Pos.Y;
@@ -317,7 +318,7 @@ void HousingMap::SpawnPlotGameObjects()
                 if (optionId != 0)
                     continue;
                 ExteriorComponentEntry const* comp = sExteriorComponentStore.LookupEntry(pointId);
-                if (comp && comp->ParentComponentID == 0 && comp->HouseExteriorWmoDataID == plotInfo->HouseType)
+                if (comp && comp->ParentComponentID == 0 && comp->HouseExteriorWmoDataID == static_cast<int32>(plotInfo->HouseType))
                 {
                     exteriorComponentID = static_cast<int32>(pointId);
                     break;
@@ -2555,7 +2556,7 @@ void HousingMap::DespawnSingleMeshObject(uint8 plotIndex, ObjectGuid meshGuid)
 }
 
 MeshObject* HousingMap::SpawnFixtureAtHook(uint8 plotIndex, uint32 hookID, uint32 componentID,
-    ObjectGuid houseGuid, int32 houseExteriorWmoDataID, Player* target)
+    ObjectGuid houseGuid, int32 houseExteriorWmoDataID, Player* target, ObjectGuid parentHint)
 {
     ExteriorComponentHookEntry const* hookEntry = sExteriorComponentHookStore.LookupEntry(hookID);
     if (!hookEntry)
@@ -2564,19 +2565,28 @@ MeshObject* HousingMap::SpawnFixtureAtHook(uint8 plotIndex, uint32 hookID, uint3
         return nullptr;
     }
 
-    // Find the parent mesh that owns this hook (the hook's ExteriorComponentID is the parent)
+    // The client's parent hint wins: facade variants re-key the parent mesh's ExteriorComponentID.
     MeshObject* parentMesh = nullptr;
     auto meshItr = _meshObjects.find(plotIndex);
     if (meshItr != _meshObjects.end())
     {
-        for (ObjectGuid const& guid : meshItr->second)
+        if (!parentHint.IsEmpty())
         {
-            if (MeshObject* mesh = GetMeshObject(guid))
+            if (std::find(meshItr->second.begin(), meshItr->second.end(), parentHint) != meshItr->second.end())
+                parentMesh = GetMeshObject(parentHint);
+        }
+
+        if (!parentMesh)
+        {
+            for (ObjectGuid const& guid : meshItr->second)
             {
-                if (mesh->GetExteriorComponentID() == static_cast<int32>(hookEntry->ExteriorComponentID))
+                if (MeshObject* mesh = GetMeshObject(guid))
                 {
-                    parentMesh = mesh;
-                    break;
+                    if (mesh->GetExteriorComponentID() == static_cast<int32>(hookEntry->ExteriorComponentID))
+                    {
+                        parentMesh = mesh;
+                        break;
+                    }
                 }
             }
         }
@@ -2584,8 +2594,8 @@ MeshObject* HousingMap::SpawnFixtureAtHook(uint8 plotIndex, uint32 hookID, uint3
 
     if (!parentMesh)
     {
-        TC_LOG_ERROR("housing", "HousingMap::SpawnFixtureAtHook: Parent mesh for hook {} (parent comp {}) not found on plot {}",
-            hookID, hookEntry->ExteriorComponentID, plotIndex);
+        TC_LOG_ERROR("housing", "HousingMap::SpawnFixtureAtHook: Parent mesh for hook {} (parent comp {}, client hint {}) not found on plot {}",
+            hookID, hookEntry->ExteriorComponentID, parentHint.ToString(), plotIndex);
         return nullptr;
     }
 

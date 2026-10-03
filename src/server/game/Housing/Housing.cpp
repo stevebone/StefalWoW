@@ -1872,7 +1872,7 @@ bool Housing::RoomFits(std::vector<Room const*> const& rooms, uint32 roomEntryId
         return true;
 
     // RoomGridLine rects include wall thickness: legitimate door-adjacent placements overlap by a few yards, real overlaps by ~11yd.
-    constexpr float TOLERANCE = 0.5f;
+    constexpr float TOLERANCE = 5.0f;
     for (Room const* other : rooms)
     {
         if (!other || other->Guid == ignoreRoom || other->FloorIndex != floorIndex)

@@ -333,7 +333,7 @@ void HousingGetPlayerPermissions::Read()
 
 void HousingSvcsGetPotentialHouseOwners::Read()
 {
-    _worldPacket >> NeighborhoodGuid;
+    _worldPacket >> HouseGuid;
 }
 
 

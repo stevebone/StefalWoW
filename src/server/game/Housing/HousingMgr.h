@@ -30,6 +30,7 @@
 #include <vector>
 
 class Neighborhood;
+class WorldObject;
 struct ExteriorComponentEntry;
 struct ExteriorComponentExitPointEntry;
 struct ExteriorComponentHookEntry;
@@ -278,7 +279,7 @@ public:
     NeighborhoodPlotData const* GetPlotByCornerstoneEntry(uint32 neighborhoodMapId, uint32 cornerstoneGoEntry) const;
 
     // Resolves the DB2 PlotIndex from a client-supplied cornerstone GO GUID (sent as "NeighborhoodGuid" in many CMSGs); -1 on failure.
-    int32 ResolvePlotIndex(ObjectGuid cornerstoneGuid, Neighborhood const* neighborhood) const;
+    int32 ResolvePlotIndex(WorldObject const* searcher, ObjectGuid cornerstoneGuid, Neighborhood const* neighborhood) const;
 
     // Get the NeighborhoodMapData for a world MapID (returns nullptr if not a neighborhood)
     NeighborhoodMapData const* GetNeighborhoodMapDataForWorldMap(uint32 mapId) const;
