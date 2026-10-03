@@ -1557,7 +1557,7 @@ GameObject* HousingMap::SpawnHouseForPlot(uint8 plotIndex, Position const* custo
     }
 
     // Ground-clamp a Z to the walkable surface (DB2 Z and dragging-client Z can sit below ground).
-    auto groundClamp = [this, plotIndex](Position& p)
+    auto groundClamp = [this](Position& p)
     {
         LoadGrid(p.GetPositionX(), p.GetPositionY());
         PhaseShift tempPhase;
