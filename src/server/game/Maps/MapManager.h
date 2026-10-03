@@ -21,6 +21,7 @@
 #include "GridDefines.h"
 #include "IteratorPair.h"
 #include "MapUpdater.h"
+#include "ObjectGuid.h"
 #include "Optional.h"
 #include "Position.h"
 #include "SharedDefines.h"
