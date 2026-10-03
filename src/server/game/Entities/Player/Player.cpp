@@ -19808,7 +19808,13 @@ void Player::_LoadInventory(PreparedQueryResult result, PreparedQueryResult arti
     //NOTE2: the "order by `slot`" is needed because mainhand weapons are (wrongly?)
     //expected to be equipped before offhand items (@todo fixme)
 
-    UpdateInventorySlotCount();
+    // NOTE: do NOT call UpdateInventorySlotCount() here. PLAYER_LOCAL_FLAG_ACCOUNT_SECURED is a
+    // session-local flag applied only after LoadFromDB returns (OnLogin script), so recomputing
+    // always drops the secured/alpaca bonus and forces NumBackpackSlots back to 16 before items
+    // are placed - their contents then get sent back by mail on every relog.
+    // The persisted characters.inventorySlots value (SetInventorySlotCount in LoadFromDB) is the
+    // authoritative bound while placing stored items.
+    //UpdateInventorySlotCount();
 
     std::unordered_map<ObjectGuid::LowType, ItemAdditionalLoadInfo> additionalData;
     ItemAdditionalLoadInfo::Init(&additionalData, artifactsResult, azeriteResult, azeriteItemMilestonePowersResult,
