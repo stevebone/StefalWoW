@@ -38,6 +38,7 @@
 #include "PhasingHandler.h"
 #include "Player.h"
 #include "TemporarySummon.h"
+#include "UpdateData.h"
 #include "World.h"
 #include "WorldSession.h"
 #include <algorithm>
