@@ -239,9 +239,8 @@ Player::Player(WorldSession* session) : Unit(true), m_sceneMgr(this)
     m_DailyQuestChanged = false;
     m_lastDailyQuestTime = 0;
 
-    m_MirrorTimer.fill(DISABLED_MIRROR_TIMER);
+    m_environmentalDamageTimer = 1 * IN_MILLISECONDS;
     m_MirrorTimerFlags = UNDERWATER_NONE;
-    m_MirrorTimerFlagsLast = UNDERWATER_NONE;
 
     m_hostileReferenceCheckTimer = 0;
     m_drunkTimer = 0;
@@ -603,22 +602,19 @@ bool Player::StoreNewItemInBestSlots(uint32 itemId, uint32 amount, ItemContext c
     return false;
 }
 
-void Player::SendMirrorTimer(MirrorTimerType Type, uint32 MaxValue, uint32 CurrentValue, int32 Regen, uint32 SpellID)
+void Player::SendMirrorTimer(MirrorTimerType type, int32 value, int32 maxValue, int32 scale, int32 spellId, bool paused)
 {
-    if (int(MaxValue) == DISABLED_MIRROR_TIMER)
-    {
-        if (int(CurrentValue) != DISABLED_MIRROR_TIMER)
-            StopMirrorTimer(Type);
-        return;
-    }
-
-    SendDirectMessage(WorldPackets::Misc::StartMirrorTimer(Type, CurrentValue, MaxValue, Regen, SpellID, false).Write());
+    SendDirectMessage(WorldPackets::Misc::StartMirrorTimer(type, value, maxValue, scale, spellId, paused).Write());
 }
 
-void Player::StopMirrorTimer(MirrorTimerType Type)
+void Player::PauseMirrorTimer(MirrorTimerType type, bool paused)
 {
-    m_MirrorTimer[Type] = DISABLED_MIRROR_TIMER;
-    SendDirectMessage(WorldPackets::Misc::StopMirrorTimer(Type).Write());
+    SendDirectMessage(WorldPackets::Misc::PauseMirrorTimer(type, paused).Write());
+}
+
+void Player::StopMirrorTimer(MirrorTimerType type)
+{
+    SendDirectMessage(WorldPackets::Misc::StopMirrorTimer(type).Write());
 }
 
 bool Player::IsImmuneToEnvironmentalDamage() const
@@ -685,57 +681,55 @@ uint32 Player::EnvironmentalDamage(EnviromentalDamage type, uint32 damage)
     return final_damage;
 }
 
-int32 Player::getMaxTimer(MirrorTimerType timer) const
+int32 Player::GetMirrorTimerMaxValue(MirrorTimerType type) const
 {
-    switch (timer)
+    switch (type)
     {
-        case FATIGUE_TIMER:
+        case MIRROR_TIMER_FATIGUE:
             return MINUTE * IN_MILLISECONDS;
-        case BREATH_TIMER:
+        case MIRROR_TIMER_BREATH:
+            return std::max(int32(3 * MINUTE * IN_MILLISECONDS * GetTotalAuraMultiplier(SPELL_AURA_MOD_WATER_BREATHING)), 1);
+        case MIRROR_TIMER_FEIGN_DEATH:
         {
-            if (!IsAlive() || HasAuraType(SPELL_AURA_WATER_BREATHING) || GetSession()->GetSecurity() >= AccountTypes(sWorld->getIntConfig(CONFIG_DISABLE_BREATHING)))
-                return DISABLED_MIRROR_TIMER;
-
-            int32 UnderWaterTime = 3 * MINUTE * IN_MILLISECONDS;
-            UnderWaterTime *= GetTotalAuraMultiplier(SPELL_AURA_MOD_WATER_BREATHING);
-            return UnderWaterTime;
-        }
-        case FIRE_TIMER:
-        {
-            if (!IsAlive())
-                return DISABLED_MIRROR_TIMER;
-            return 1 * IN_MILLISECONDS;
+            AuraEffectList const& feignDeathAuras = GetAuraEffectsByType(SPELL_AURA_FEIGN_DEATH);
+            return feignDeathAuras.empty() ? 0
+                : std::ranges::max(feignDeathAuras, {}, [](AuraEffect const* aurEff) { return aurEff->GetBase()->GetDuration(); })->GetBase()->GetMaxDuration();
         }
         default:
             return 0;
     }
 }
 
-void Player::UpdateMirrorTimers()
-{
-    // Desync flags for update on next HandleDrowning
-    if (m_MirrorTimerFlags)
-        m_MirrorTimerFlagsLast = ~m_MirrorTimerFlags;
-}
-
-void Player::StopMirrorTimers()
-{
-    StopMirrorTimer(FATIGUE_TIMER);
-    StopMirrorTimer(BREATH_TIMER);
-    StopMirrorTimer(FIRE_TIMER);
-}
-
 bool Player::IsMirrorTimerActive(MirrorTimerType type) const
 {
-    return m_MirrorTimer[type] == getMaxTimer(type);
+    return m_mirrorTimers[type].IsActive();
 }
 
-void Player::HandleDrowning(uint32 time_diff)
+void Player::UpdateMirrorTimers(uint32 diff)
 {
-    if (!m_MirrorTimerFlags)
-        return;
+    auto shouldMirrorTimerBeActive = [this](MirrorTimerType type)
+    {
+        switch (type)
+        {
+            case MIRROR_TIMER_FATIGUE:
+                if (!IsAlive() && !HasPlayerFlag(PLAYER_FLAGS_GHOST))
+                    return false;
+                return ((m_MirrorTimerFlags & UNDERWATER_INDARKWATER) != 0
+                    || m_mirrorTimers[type].GetValue() < m_mirrorTimers[type].GetMaxValue());
+            case MIRROR_TIMER_BREATH:
+                if (!IsAlive() || GetSession()->GetSecurity() >= AccountTypes(sWorld->getIntConfig(CONFIG_DISABLE_BREATHING)))
+                    return false;
+                return ((m_MirrorTimerFlags & UNDERWATER_INWATER) != 0
+                    || HasAuraType(SPELL_AURA_FORCE_BREATH_BAR)
+                    || m_mirrorTimers[type].GetValue() < m_mirrorTimers[type].GetMaxValue());
+            case MIRROR_TIMER_FEIGN_DEATH:
+                return HasAuraType(SPELL_AURA_FEIGN_DEATH);
+            default:
+                return false;
+        }
+    };
 
-    auto getEnvironmentalDamage = [&](EnviromentalDamage damageType)
+    auto getEnvironmentalDamage = [this](EnviromentalDamage damageType)
     {
         uint8 damagePercent = 10;
         if (damageType == DAMAGE_DROWNING || damageType == DAMAGE_EXHAUSTED)
@@ -749,115 +743,87 @@ void Player::HandleDrowning(uint32 time_diff)
         return damage;
     };
 
-    // In water
-    if (m_MirrorTimerFlags & UNDERWATER_INWATER)
+    for (MirrorTimerType type = MIRROR_TIMER_FATIGUE; type < m_mirrorTimers.size(); type = MirrorTimerType(type + 1))
     {
-        // Breath timer not activated - activate it
-        if (m_MirrorTimer[BREATH_TIMER] == DISABLED_MIRROR_TIMER)
+        MirrorTimer& timer = m_mirrorTimers[type];
+        bool isActive = timer.IsActive();
+        bool shouldBeActive = shouldMirrorTimerBeActive(type);
+        if (isActive)
         {
-            m_MirrorTimer[BREATH_TIMER] = getMaxTimer(BREATH_TIMER);
-            SendMirrorTimer(BREATH_TIMER, m_MirrorTimer[BREATH_TIMER], m_MirrorTimer[BREATH_TIMER], -1, 0);
-        }
-        else                                                              // If activated - do tick
-        {
-            m_MirrorTimer[BREATH_TIMER] -= time_diff;
-            // Timer limit - need deal damage
-            if (m_MirrorTimer[BREATH_TIMER] < 0)
+            if (shouldBeActive)
             {
-                m_MirrorTimer[BREATH_TIMER] += 1 * IN_MILLISECONDS;
-                // Calculate and deal damage
-                uint32 damage = getEnvironmentalDamage(DAMAGE_DROWNING);
-                EnvironmentalDamage(DAMAGE_DROWNING, damage);
-            }
-            else if (!(m_MirrorTimerFlagsLast & UNDERWATER_INWATER))      // Update time in client if need
-                SendMirrorTimer(BREATH_TIMER, getMaxTimer(BREATH_TIMER), m_MirrorTimer[BREATH_TIMER], -1, 0);
-        }
-    }
-    else if (m_MirrorTimer[BREATH_TIMER] != DISABLED_MIRROR_TIMER)        // Regen timer
-    {
-        int32 UnderWaterTime = getMaxTimer(BREATH_TIMER);
-        // Need breath regen
-        m_MirrorTimer[BREATH_TIMER] += 10 * time_diff;
-        if (m_MirrorTimer[BREATH_TIMER] >= UnderWaterTime || !IsAlive())
-            StopMirrorTimer(BREATH_TIMER);
-        else if (m_MirrorTimerFlagsLast & UNDERWATER_INWATER)
-            SendMirrorTimer(BREATH_TIMER, UnderWaterTime, m_MirrorTimer[BREATH_TIMER], 10, 0);
-    }
-
-    // In dark water
-    if (m_MirrorTimerFlags & UNDERWATER_INDARKWATER)
-    {
-        // Fatigue timer not activated - activate it
-        if (m_MirrorTimer[FATIGUE_TIMER] == DISABLED_MIRROR_TIMER)
-        {
-            m_MirrorTimer[FATIGUE_TIMER] = getMaxTimer(FATIGUE_TIMER);
-            SendMirrorTimer(FATIGUE_TIMER, m_MirrorTimer[FATIGUE_TIMER], m_MirrorTimer[FATIGUE_TIMER], -1, 0);
-        }
-        else
-        {
-            m_MirrorTimer[FATIGUE_TIMER] -= time_diff;
-            // Timer limit - need deal damage or teleport ghost to graveyard
-            if (m_MirrorTimer[FATIGUE_TIMER] < 0)
-            {
-                m_MirrorTimer[FATIGUE_TIMER] += 1 * IN_MILLISECONDS;
-                if (IsAlive())                                            // Calculate and deal damage
+                if (timer.Update(diff) == MirrorTimer::UpdateResult::ExpiredTicked)
                 {
-                    uint32 damage = getEnvironmentalDamage(DAMAGE_EXHAUSTED);
-                    EnvironmentalDamage(DAMAGE_EXHAUSTED, damage);
+                    // do env damage tick
+                    switch (type)
+                    {
+                        case MIRROR_TIMER_FATIGUE:
+                            if (IsAlive())                                    // Calculate and deal damage
+                                EnvironmentalDamage(DAMAGE_EXHAUSTED, getEnvironmentalDamage(DAMAGE_EXHAUSTED));
+                            else if (HasPlayerFlag(PLAYER_FLAGS_GHOST))       // Teleport ghost to graveyard
+                                RepopAtGraveyard();
+                            break;
+                        case MIRROR_TIMER_BREATH:
+                            EnvironmentalDamage(DAMAGE_DROWNING, getEnvironmentalDamage(DAMAGE_DROWNING));
+                            break;
+                        default:
+                            break;
+                    }
                 }
-                else if (HasPlayerFlag(PLAYER_FLAGS_GHOST))       // Teleport ghost to graveyard
-                    RepopAtGraveyard();
             }
-            else if (!(m_MirrorTimerFlagsLast & UNDERWATER_INDARKWATER))
-                SendMirrorTimer(FATIGUE_TIMER, getMaxTimer(FATIGUE_TIMER), m_MirrorTimer[FATIGUE_TIMER], -1, 0);
+            else
+                timer.Stop();
         }
-    }
-    else if (m_MirrorTimer[FATIGUE_TIMER] != DISABLED_MIRROR_TIMER)       // Regen timer
-    {
-        int32 DarkWaterTime = getMaxTimer(FATIGUE_TIMER);
-        m_MirrorTimer[FATIGUE_TIMER] += 10 * time_diff;
-        if (m_MirrorTimer[FATIGUE_TIMER] >= DarkWaterTime || !IsAlive())
-            StopMirrorTimer(FATIGUE_TIMER);
-        else if (m_MirrorTimerFlagsLast & UNDERWATER_INDARKWATER)
-            SendMirrorTimer(FATIGUE_TIMER, DarkWaterTime, m_MirrorTimer[FATIGUE_TIMER], 10, 0);
+        else if (shouldBeActive)
+        {
+            switch (type)
+            {
+                case MIRROR_TIMER_FATIGUE:
+                case MIRROR_TIMER_BREATH:
+                    timer.Start(GetMirrorTimerMaxValue(type), 0);
+                    break;
+                case MIRROR_TIMER_FEIGN_DEATH:
+                {
+                    Aura const* longestFeign = std::ranges::max(GetAuraEffectsByType(SPELL_AURA_FEIGN_DEATH), {}, [](AuraEffect const* aurEff) { return aurEff->GetBase()->GetDuration(); })->GetBase();
+                    timer.Start(longestFeign->GetDuration(), longestFeign->GetMaxDuration(), longestFeign->GetId());
+                    break;
+                }
+                default:
+                    break;
+            }
+        }
+
+        if (timer.IsChanged())
+        {
+            if (timer.IsActive())
+                SendMirrorTimer(type, timer.GetValue(), timer.GetMaxValue(), timer.GetScale(), timer.GetSpellId(), timer.IsPaused());
+            else
+                StopMirrorTimer(type);
+        }
+        else if (timer.IsPausedChanged())
+            PauseMirrorTimer(type, timer.IsPaused());
+
+        timer.ClearChanged();
     }
 
-    if (m_MirrorTimerFlags & (UNDERWATER_INLAVA /*| UNDERWATER_INSLIME*/) && !(_lastLiquid && _lastLiquid->SpellID))
+    if (m_MirrorTimerFlags & (UNDERWATER_INLAVA /*| UNDERWATER_INSLIME*/) && !(_lastLiquid && _lastLiquid->SpellID) && IsAlive())
     {
-        // Breath timer not activated - activate it
-        if (m_MirrorTimer[FIRE_TIMER] == DISABLED_MIRROR_TIMER)
-            m_MirrorTimer[FIRE_TIMER] = getMaxTimer(FIRE_TIMER);
-        else
+        m_environmentalDamageTimer -= diff;
+        if (m_environmentalDamageTimer < 0)
         {
-            m_MirrorTimer[FIRE_TIMER] -= time_diff;
-            if (m_MirrorTimer[FIRE_TIMER] < 0)
-            {
-                m_MirrorTimer[FIRE_TIMER] += 1 * IN_MILLISECONDS;
-                // Calculate and deal damage
-                uint32 damage = getEnvironmentalDamage(DAMAGE_LAVA);
-                if (m_MirrorTimerFlags & UNDERWATER_INLAVA)
-                    EnvironmentalDamage(DAMAGE_LAVA, damage);
-                // need to skip Slime damage in Undercity,
-                // maybe someone can find better way to handle environmental damage
-                //else if (m_zoneUpdateId != 1497)
-                //    EnvironmentalDamage(DAMAGE_SLIME, damage);
-            }
+            m_environmentalDamageTimer += 1 * IN_MILLISECONDS;
+            // Calculate and deal damage
+            uint32 damage = getEnvironmentalDamage(DAMAGE_LAVA);
+            if (m_MirrorTimerFlags & UNDERWATER_INLAVA)
+                EnvironmentalDamage(DAMAGE_LAVA, damage);
+            // need to skip Slime damage in Undercity,
+            // maybe someone can find better way to handle environmental damage
+            //else if (m_zoneUpdateId != 1497)
+            //    EnvironmentalDamage(DAMAGE_SLIME, damage);
         }
     }
     else
-        m_MirrorTimer[FIRE_TIMER] = DISABLED_MIRROR_TIMER;
-
-    // Recheck timers flag
-    m_MirrorTimerFlags &= ~UNDERWATER_EXIST_TIMERS;
-    for (uint8 i = 0; i < MAX_TIMERS; ++i)
-    {
-        if (m_MirrorTimer[i] != DISABLED_MIRROR_TIMER)
-        {
-            m_MirrorTimerFlags |= UNDERWATER_EXIST_TIMERS;
-            break;
-        }
-    }
-    m_MirrorTimerFlagsLast = m_MirrorTimerFlags;
+        m_environmentalDamageTimer = 1 * IN_MILLISECONDS;
 }
 
 ///The player sobers by 1% every 9 seconds
@@ -1053,7 +1019,7 @@ void Player::Update(uint32 p_time)
     }
 
     //Handle Water/drowning
-    HandleDrowning(p_time);
+    UpdateMirrorTimers(p_time);
 
     // Played time
     if (now > m_Last_tick)
@@ -4356,8 +4322,6 @@ void Player::BuildPlayerRepop()
     // to prevent cheating
     corpse->ResetGhostTime();
 
-    StopMirrorTimers();                                     //disable timers(bars)
-
     // OnPlayerRepop hook
     sScriptMgr->OnPlayerRepop(this);
 }
@@ -4449,8 +4413,6 @@ void Player::KillPlayer()
         GetMotionMaster()->MoveFall();
 
     SetRooted(true);
-
-    StopMirrorTimers();                                     //disable timers(bars)
 
     setDeathState(CORPSE);
     //SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_IN_PVP);
@@ -17844,12 +17806,12 @@ void Player::SendQuestReward(Quest const* quest, Creature const* questGiver, uin
         if (questGiver->IsGossip())
             packet.LaunchGossip = quest->HasFlag(QUEST_FLAGS_LAUNCH_GOSSIP_COMPLETE);
 
-        if (questGiver->IsQuestGiver())
-            packet.LaunchQuest = (GetQuestDialogStatus(questGiver) & ~QuestGiverStatusFutureMask) != QuestGiverStatus::None;
-
         if (!quest->HasFlag(QUEST_FLAGS_AUTO_COMPLETE))
             if (Quest const* rewardQuest = GetNextQuest(questGiver, quest))
                 packet.UseQuestReward = CanTakeQuest(rewardQuest, false);
+
+        if (questGiver->IsQuestGiver())
+            packet.LaunchQuest = !packet.UseQuestReward && (GetQuestDialogStatus(questGiver) & ~QuestGiverStatusFutureMask) != QuestGiverStatus::None;
     }
 
     packet.HideChatMessage = hideChatMessage;
@@ -27953,8 +27915,22 @@ void Player::UpdateLiquidMirrorTimerFlagsOnPositionChange(Optional<LiquidData> c
                 m_MirrorTimerFlags |= UNDERWATER_INSLIME;
     }
 
-    if (HasAuraType(SPELL_AURA_FORCE_BREATH_BAR))
-        m_MirrorTimerFlags |= UNDERWATER_INWATER;
+    m_mirrorTimers[MIRROR_TIMER_FATIGUE].SetScale((m_MirrorTimerFlags & UNDERWATER_INDARKWATER) != 0 ? -1 : 10);
+    m_mirrorTimers[MIRROR_TIMER_BREATH].SetScale(
+        ((m_MirrorTimerFlags & UNDERWATER_INWATER) != 0 || HasAuraType(SPELL_AURA_FORCE_BREATH_BAR)) && !HasAuraType(SPELL_AURA_WATER_BREATHING)
+        ? -1 : 10);
+}
+
+void Player::UpdateLiquidMirrorTimerValuesOnAura()
+{
+    if (m_mirrorTimers[MIRROR_TIMER_BREATH].IsActive())
+    {
+        int32 oldMaxValue = m_mirrorTimers[MIRROR_TIMER_BREATH].GetMaxValue();
+        int32 newMaxValue = GetMirrorTimerMaxValue(MIRROR_TIMER_BREATH);
+        m_mirrorTimers[MIRROR_TIMER_BREATH].SetMaxValue(newMaxValue);
+        int32 valueDiff = newMaxValue - oldMaxValue;
+        m_mirrorTimers[MIRROR_TIMER_BREATH].SetValue(m_mirrorTimers[MIRROR_TIMER_BREATH].GetValue() + valueDiff);
+    }
 }
 
 void Player::AtEnterCombat()
