@@ -5709,5 +5709,5 @@ INSERT INTO `gameobject_template_addon` (`entry`, `faction`, `flags`) VALUES
 -- aura expires. The interior-door denial needs no server string: the client shows its own
 -- ERR_HOUSING_ACTION_NOENTRY when the permissions response carries flags 0 (see go_housing_door.cpp).
 DELETE FROM `trinity_string` WHERE `entry` = 304665;
-INSERT INTO `trinity_string` (`entry`, `content_default`, `content_loc8`, `VerifiedBuild`) VALUES
-(304665, 'Attention! You are violating private property rights. You will be removed shortly.', 'Внимание! Вы нарушаете право частной собственности. Вскоре вы будете выдворены.', 69933);
+INSERT INTO `trinity_string` (`entry`, `content_default`, `content_loc8`) VALUES
+(304665, 'Attention! You are violating private property rights. You will be removed shortly.', 'Внимание! Вы нарушаете право частной собственности. Вскоре вы будете выдворены.');
