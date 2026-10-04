@@ -243,24 +243,39 @@ void ReturnPoolToStorage(Player* player, DecorPool const& pool)
 void TakeDecorOut(Housing* housing, bool exterior, DecorPool& pool, HousingBlueprintApplyResult& result)
 {
     std::vector<ObjectGuid> toRemove;
+    std::unordered_map<ObjectGuid, uint32> entryByGuid;
     toRemove.reserve(housing->GetPlacedDecorMap().size());
     for (auto const& [guid, decor] : housing->GetPlacedDecorMap())
         if (Housing::IsExteriorDecorPlacement(decor.RoomGuid) == exterior)
+        {
             toRemove.push_back(guid);
+            entryByGuid.emplace(guid, decor.DecorEntryId);
+        }
 
     for (ObjectGuid const& guid : toRemove)
     {
         Housing::PlacedDecor const* decor = housing->GetPlacedDecor(guid);
         if (!decor)
-            continue;
+            continue;   // already removed with a stacked parent
 
         PooledDecor pooled{ guid, decor->SourceType, decor->SourceValue };
         uint32 const entryId = decor->DecorEntryId;
-        if (housing->RemoveDecor(guid) != HOUSING_RESULT_SUCCESS)
+        std::vector<std::pair<ObjectGuid, std::pair<uint8, std::string>>> removedChildren;
+        if (housing->RemoveDecor(guid, &removedChildren) != HOUSING_RESULT_SUCCESS)
             continue;
 
         pool[entryId].push_back(std::move(pooled));
         result.RemovedDecor.push_back(guid);
+
+        // Stacked children ride out with the root; their guids stay reusable for the blueprint.
+        for (auto const& [childGuid, source] : removedChildren)
+        {
+            auto entryItr = entryByGuid.find(childGuid);
+            if (entryItr == entryByGuid.end())
+                continue;
+            pool[entryItr->second].push_back(PooledDecor{ childGuid, source.first, source.second });
+            result.RemovedDecor.push_back(childGuid);
+        }
     }
 }
 }

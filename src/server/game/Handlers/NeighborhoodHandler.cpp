@@ -111,6 +111,15 @@ void WorldSession::SendNeighborhoodCharterOpenUI()
     PreparedQueryResult charterResult = CharacterDatabase.Query(stmt);
     if (!charterResult)
     {
+        // Retail: using the charter item opens the panel from scratch — the name/map are chosen in
+        // the UI, which then sends CHARTER_CREATE. No row yet means a fresh charter, not an error.
+        WorldPackets::Neighborhood::NeighborhoodCharterOpenUIResponse openUI;
+        openUI.Result = static_cast<uint8>(HOUSING_RESULT_SUCCESS);
+        openUI.CharterGuid = player->GetGUID();
+        openUI.MapID = 0;
+        openUI.SignatureCount = 1; // the creator counts
+        openUI.Unknown = sWorld->getIntConfig(CONFIG_HOUSING_CHARTER_REQUIRED_SIGNATURES);
+        SendPacket(openUI.Write());
         return;
     }
 
