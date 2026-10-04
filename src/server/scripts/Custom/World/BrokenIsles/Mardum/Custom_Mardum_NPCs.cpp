@@ -684,6 +684,77 @@ namespace Scripts::Custom::Mardum
         GuidUnorderedSet _conversedPlayers;
         bool _bombardmentActive = false;
     };
+
+    // 97059 - King Voras
+    struct npc_king_voras : public ScriptedAI
+    {
+        npc_king_voras(Creature* creature) : ScriptedAI(creature) { }
+
+        void Reset() override
+        {
+            _events.Reset();
+            _lowHealthTalked = false;
+        }
+
+        void JustEngagedWith(Unit* who) override
+        {
+            Talk(CreatureText::VorasAggro, who);
+            _events.ScheduleEvent(Events::VorasAcidSpit, 4s, 5s);
+        }
+
+        void DamageTaken(Unit* /*attacker*/, uint32& /*damage*/, DamageEffectType /*damageType*/, SpellInfo const* /*spellInfo*/) override
+        {
+            if (!_lowHealthTalked && me->HealthBelowPct(50))
+            {
+                _lowHealthTalked = true;
+                Talk(CreatureText::VorasLowHealth);
+            }
+        }
+
+        void JustDied(Unit* killer) override
+        {
+            Talk(CreatureText::VorasDeathEmote);
+            Talk(CreatureText::VorasDeath);
+
+            // covers kills by pets/summons/controlled units, not just the player directly
+            if (killer)
+                if (Player* player = killer->GetCharmerOrOwnerPlayerOrPlayerItself())
+                    player->m_Events.AddEventAtOffset([player]()
+                        {
+                            Conversation::CreateConversation(Conversations::KingVorasDeath, player, player->GetPosition(), { player->GetGUID() });
+                        }, 5s);
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _events.Update(diff);
+
+            while (uint32 eventId = _events.ExecuteEvent())
+            {
+                switch (eventId)
+                {
+                    case Events::VorasAcidSpit:
+                        DoCastVictim(Spells::AcidSpit);
+                        _events.Repeat(4s, 5s);
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            if (!UpdateVictim())
+                return;
+
+            if (me->HasUnitState(UNIT_STATE_CASTING))
+                return;
+
+            me->DoMeleeAttackIfReady();
+        }
+
+    private:
+        EventMap _events;
+        bool _lowHealthTalked = false;
+    };
 }
 
 void AddSC_custom_mardum_npcs()
@@ -696,4 +767,5 @@ void AddSC_custom_mardum_npcs()
     RegisterCreatureAI(npc_coilskar_sea_caller);
     RegisterCreatureAI(npc_doom_commander_beliash);
     RegisterCreatureAI(npc_legion_devastator);
+    RegisterCreatureAI(npc_king_voras);
 }

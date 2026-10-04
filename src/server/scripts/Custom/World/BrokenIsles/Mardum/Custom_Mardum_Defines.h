@@ -110,6 +110,7 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 ShadowRetreat            = 196625;
         static constexpr uint32 BroodQueenTyrannaTeleport = 188658;
         static constexpr uint32 FelBombardment         = 194689;
+        static constexpr uint32 AcidSpit               = 198163;
     }
 
     namespace Conversations
@@ -120,6 +121,7 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 DoomCommanderBeliash       = 531;
         static constexpr uint32 FelBombardments            = 747;
         static constexpr uint32 IllidariFoothold           = 569;
+        static constexpr uint32 KingVorasDeath             = 567;
     }
 
     namespace CreatureText
@@ -163,6 +165,12 @@ namespace Scripts::Custom::Mardum
 
         // Brood Queen Tyranna (95048) - creature_text GroupID
         static constexpr uint8 QueenTyrannaAggro = 0;
+
+        // King Voras (97059) - creature_text GroupIDs
+        static constexpr uint8 VorasAggro      = 0; // 'Want your little, broken draenei back?'
+        static constexpr uint8 VorasLowHealth  = 1; // 'My queen's brood will hatch soon.'
+        static constexpr uint8 VorasDeathEmote = 2; // 'Nearby [Spider Eggs] will hatch soon if not destroyed!'
+        static constexpr uint8 VorasDeath      = 3; // 'They've slain me, my queen...'
     }
 
     namespace Events
@@ -179,6 +187,9 @@ namespace Scripts::Custom::Mardum
         // Legion Devastator (100161) - EventMap IDs
         static constexpr int8 DevastatorBombardment             = 1;
         static constexpr int8 DevastatorBombardmentConversation = 2;
+
+        // King Voras (97059) - EventMap IDs
+        static constexpr int8 VorasAcidSpit = 1;
     }
 
     namespace Misc

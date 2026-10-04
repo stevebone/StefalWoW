@@ -1,9 +1,20 @@
 -- Mardum Creature Text
 DELETE FROM `creature_text` WHERE `creatureID` IN (98484,98486,98497,98460,95226,93112,96884,93759,94654,93221,95048,93716,97034,96494,102726,96499,
-102724);
+102724,97706,97059);
 DELETE FROM `creature_text` WHERE `creatureID` IN (98229) AND `GroupID` IN (2,3);
 DELETE FROM `creature_text` WHERE `creatureID` IN (93127) AND `GroupID` IN (2);
 INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `BroadcastTextId`, `TextRange`, `comment`) VALUES
+(97059, 0, 0, 'Want your little, broken draenei back?', 12, 0, 100, 0, 0, 55281, 99173, 0, 'King Voras to Player'),
+(97059, 1, 0, 'My queen''s brood will hatch soon.', 14, 0, 100, 0, 0, 55283, 103500, 0, 'King Voras to Player'),
+(97059, 2, 0, '|TInterface\Icons\inv_misc_monsterspidercarapace_01:20|tNearby |cFFFF0000|Hspell:198235|h[Spider Eggs]|h|r will hatch soon if not destroyed!.', 41, 0, 100, 0, 0, 0, 103110, 0, 'King Voras to Player'),
+(97059, 3, 0, 'They''ve slain me, my queen...', 14, 0, 100, 0, 0, 55282, 99206, 0, 'King Voras to Player'),
+
+(97706, 0, 0, 'Warn King Voras!', 12, 0, 100, 0, 0, 55175, 103526, 0, 'Fel Weaver to Player'),
+(97706, 0, 1, 'Quickly, kill the demon hunter!', 12, 0, 100, 0, 0, 55185, 103528, 0, 'Fel Weaver to Player'),
+(97706, 0, 2, 'Come closer, my little friend.', 12, 0, 100, 0, 0, 55178, 103519, 0, 'Fel Weaver to Player'),
+(97706, 0, 3, 'Embrace the inevitable.', 12, 0, 100, 0, 0, 55179, 103520, 0, 'Fel Weaver to Player'),
+(97706, 0, 4, 'All worlds fall to the Legion.', 12, 0, 100, 0, 0, 55180, 103521, 0, 'Fel Weaver to Player'),
+
 (102724, 0, 0, 'Kill the Illidari', 12, 0, 100, 0, 0, 56992, 96720, 0, 'Vile Soulmaster to Player'),
 (102724, 0, 1, 'Your soul will be ours.', 12, 0, 100, 0, 0, 57001, 99614, 0, 'Vile Soulmaster to Player'),
 (102724, 0, 2, 'Kill them before they can get up to the Fel Hammer.', 12, 0, 100, 0, 0, 57002, 99615, 0, 'Vile Soulmaster to Player'),

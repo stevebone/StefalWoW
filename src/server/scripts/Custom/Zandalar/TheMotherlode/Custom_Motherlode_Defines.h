@@ -26,6 +26,7 @@
 #include "Creature.h"
 #include "Position.h"
 #include "Spell.h"
+#include "SpellInfo.h"
 #include "SpellMgr.h"
 #include "Unit.h"
 

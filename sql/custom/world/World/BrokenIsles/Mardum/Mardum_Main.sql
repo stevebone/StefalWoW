@@ -190,10 +190,14 @@ UPDATE creature_template SET ScriptName='' WHERE entry=96159;
 UPDATE `creature_template_difficulty` SET `StaticFlags1` = `StaticFlags1` | 0x20000000 WHERE `Entry` IN (94744,96276);
 
 -- SAI
-UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (98484,98486,98497,98482,95226,93112,93716,94654,97034,102726,96494,102724);
-DELETE FROM smart_scripts WHERE entryorguid IN (98484,98486,98497,98482,95226,93112,93716,94654,97034,102726,96494,102724) AND source_type = 0;
+UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (98484,98486,98497,98482,95226,93112,93716,94654,97034,102726,96494,102724,97706);
+DELETE FROM smart_scripts WHERE entryorguid IN (98484,98486,98497,98482,95226,93112,93716,94654,97034,102726,96494,102724,97706) AND source_type = 0;
 INSERT INTO smart_scripts (entryorguid, source_type, id, link, Difficulties, event_type, event_phase_mask, event_chance, event_flags, event_param1, event_param2, event_param3, event_param4, event_param5, event_param_string, action_type, action_param1, action_param2, action_param3, action_param4, action_param5, action_param6, action_param7, action_param_string, target_type, target_param1, target_param2, target_param3, target_param4, target_param_string, target_x, target_y, target_z, target_o, comment) VALUES
-(102724, 0, 0, 0, '', 4, 0, 100, 1, 0, 0, 1000, 1000, 0, '', 1, 0, 5000, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Vile Soulmaster - In Combat - Say Line 0 (No Repeat)'),
+(97706, 0, 0, 0, '', 0, 0, 100, 0, 5000, 8000, 12000, 15000, 0, '', 11, 200748, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Fel Weaver - In Combat - Cast ''Fel Weaving'''),
+(97706, 0, 1, 0, '', 0, 0, 100, 0, 0, 0, 2000, 2500, 0, '', 11, 200751, 64, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Fel Weaver - In Combat - Cast ''Lob Poison'''),
+(97706, 0, 2, 0, '', 4, 0, 100, 1, 0, 0, 1000, 1000, 0, '', 1, 0, 5000, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Fel Weaver - On Aggro - Say Line 0 (No Repeat)'),
+
+(102724, 0, 0, 0, '', 4, 0, 100, 1, 0, 0, 1000, 1000, 0, '', 1, 0, 5000, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Vile Soulmaster - On Aggro - Say Line 0 (No Repeat)'),
 (102724, 0, 1, 0, '', 0, 0, 100, 0, 5000, 8000, 12000, 15000, 0, '', 11, 200674, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Vile Soulmaster - In Combat - Cast ''Corrupt Soul'''),
 (102724, 0, 2, 0, '', 2, 0, 100, 0, 0, 40, 22000, 25000, 0, '', 11, 200689, 2, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Vile Soulmaster - Between 0-40% Health - Cast ''Shattered Visage'''),
 (102724, 0, 3, 0, '', 6, 0, 100, 0, 0, 0, 0, 0, 0, '', 1, 1, 5000, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Vile Soulmaster - On Just Died - Say Line 1'),
@@ -427,3 +431,21 @@ INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry
 (32, 5, 105945, 0, 0, 8, 0, 40087, 0, 0, 0, 0, 0, '', 'Sevis Brightflame visible if quest 40087 is rewarded'),
 -- Sevis Brightflame (99920) - visible only once 40087 IS rewarded
 (32, 5, 99920, 0, 0, 8, 0, 40087, 0, 0, 1, 0, 0, '', 'Sevis Brightflame visible if quest 40087 NOT rewarded');
+
+-- Remove immune flags for 97706 as they should be attackable
+UPDATE `creature_template` SET `unit_flags` = `unit_flags` & ~0x300 WHERE `entry` = 97706;
+
+-- NPC: 97059 King Voras -> npc_king_voras C++ script
+UPDATE `creature_template` SET `ScriptName` = 'npc_king_voras', `AIName` = '' WHERE `entry` = 97059;
+
+DELETE FROM `conversation_template` WHERE `Id` IN (567);
+INSERT INTO `conversation_template` (`Id`, `FirstLineId`, `VerifiedBuild`) VALUES
+(567, 1469, 69875);
+
+DELETE FROM `conversation_line_template` WHERE `Id` IN (1469);
+INSERT INTO `conversation_line_template` (`Id`, `UiCameraID`, `VerifiedBuild`) VALUES
+(1469, 262, 69875);
+
+DELETE FROM `conversation_actors` WHERE `ConversationId` IN (567);
+INSERT  INTO `conversation_actors` (`ConversationId`, `ConversationActorId`, `Idx`, `CreatureId`, `CreatureDisplayInfoId`, `NoActorObject`, `ActivePlayerObject`, `VerifiedBuild`) VALUES
+(567, 49935, 0, 93802, 65935, 0, 0, 69875);
