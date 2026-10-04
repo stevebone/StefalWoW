@@ -120,6 +120,14 @@ void AddSC_boss_degentrius();
 void AddSC_npc_magister_umbric_mt();
 void AddSC_magisters_terrace_12_trash();
 
+// The MOTHERLODE!! (Map 1594)
+void AddSC_custom_instance_motherlode();
+void AddSC_custom_boss_crowd_pummeler();
+void AddSC_custom_boss_azerokk();
+void AddSC_custom_boss_rixxa_fluxflame();
+void AddSC_custom_boss_mogul_razdunk();
+void AddSC_custom_zone_the_motherlode();
+
 // ==================== Creature Codex Scripts =============== //
 //void AddSC_creature_codex_sniffer();
 //void AddSC_creature_codex_commands();
@@ -240,6 +248,14 @@ void AddCustomScripts()
     AddSC_boss_degentrius();
     AddSC_npc_magister_umbric_mt();
     AddSC_magisters_terrace_12_trash();
+
+    // The MOTHERLODE!! (Map 1594)
+    AddSC_custom_instance_motherlode();
+    AddSC_custom_boss_crowd_pummeler();
+    AddSC_custom_boss_azerokk();
+    AddSC_custom_boss_rixxa_fluxflame();
+    AddSC_custom_boss_mogul_razdunk();
+    AddSC_custom_zone_the_motherlode();
 
     // Delves
     AddSC_delve_system();
