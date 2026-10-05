@@ -22,6 +22,7 @@
 #include "ObjectGuid.h"
 #include <memory>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 #include <vector>
 
@@ -70,6 +71,10 @@ public:
 
     // Resolve by the counter that is persisted in the DB (neighborhoods.guid and every FK to it).
     Neighborhood* GetNeighborhoodByCounter(uint64 counter) const;
+    Neighborhood* FindNeighborhoodByName(std::string_view name);
+    /// Reassigns a charter neighborhood to another character (one-neighborhood-per-character
+    /// invariant enforced; guild neighborhoods are rejected). False when the transfer is invalid.
+    bool SetNeighborhoodOwner(Neighborhood& neighborhood, ObjectGuid newOwnerGuid);
 
     // Expansion
     void CheckAndExpandNeighborhoods();
