@@ -24,6 +24,7 @@
 #define CUSTOM_MOTHERLODE_DEFINES_H
 
 #include "Creature.h"
+#include "Map.h"
 #include "Position.h"
 #include "Spell.h"
 #include "SpellInfo.h"
