@@ -13,7 +13,7 @@ INSERT INTO `rbac_default_permissions` (`secId`, `permissionId`) VALUES (2, 1000
 -- group 192, so every security level >= 3 (GM and up) gets them; lower levels do not.
 -- Apply order: apply to the AUTH database before restarting worldserver with the new binary.
 
-DELETE FROM `rbac_permissions` WHERE `id` BETWEEN 886 AND 891;
+DELETE FROM `rbac_permissions` WHERE `id` BETWEEN 1001 AND 1006;
 INSERT INTO `rbac_permissions` (`id`, `name`) VALUES
 (1001,'Command: housing'),
 (1002,'Command: housing set level'),

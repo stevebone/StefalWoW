@@ -3231,7 +3231,7 @@ void HousingMap::UpdateDecorPosition(uint8 plotIndex, ObjectGuid decorGuid, Posi
         return true;
     };
 
-    auto toLocal = [this, &anchorFor, decorGuid, roomId, &identityYaw](Position const& worldPos) -> Position
+    auto toLocal = [&anchorFor, decorGuid, roomId, &identityYaw](Position const& worldPos) -> Position
     {
         Position anchorPos;
         float anchorLocalYaw = 0.0f;
