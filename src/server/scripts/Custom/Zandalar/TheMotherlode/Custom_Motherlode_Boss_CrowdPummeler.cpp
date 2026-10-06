@@ -39,6 +39,7 @@
 #include "ScriptedCreature.h"
 #include "ScriptMgr.h"
 #include "SpellAuraEffects.h"
+#include "TemporarySummon.h"
 #include "ThreatManager.h"
 
 #include "Custom_Motherlode_Defines.h"
