@@ -21,6 +21,7 @@
 void AddSC_custom_player_inventory();
 void AddSC_custom_player_mails();
 void AddSC_custom_player_chromie();
+void AddSC_custom_housing_player();
 
 // ==================== Class Scripts ========================= //
 void AddSC_custom_deathknight_spell_fixes();
@@ -153,6 +154,7 @@ void AddCustomScripts()
     AddSC_custom_player_inventory();
     AddSC_custom_player_mails();
     AddSC_custom_player_chromie();
+    AddSC_custom_housing_player();
 
     AddSC_custom_deathknight_spell_fixes();
     AddSC_custom_demonhunter_spell_fixes();

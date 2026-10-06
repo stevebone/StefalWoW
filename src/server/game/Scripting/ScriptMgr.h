@@ -797,6 +797,12 @@ class TC_GAME_API PlayerScript : public ScriptObject
 
         // Called when a player completes a movie
         virtual void OnMovieComplete(Player* player, uint32 movieId);
+
+        // Called when a player places decor in a house
+        virtual void OnPlayerHousingDecorAdd(Player* player, uint32 decorEntryId);
+
+        // Called when a player removes decor from a house
+        virtual void OnPlayerHousingDecorRemove(Player* player, uint32 decorEntryId);
 };
 
 class TC_GAME_API AccountScript : public ScriptObject
@@ -1253,6 +1259,8 @@ class TC_GAME_API ScriptMgr
         void OnQuestStatusChange(Player* player, uint32 questId);
         void OnPlayerRepop(Player* player);
         void OnMovieComplete(Player* player, uint32 movieId);
+        void OnPlayerHousingDecorAdd(Player* player, uint32 decorEntryId);
+        void OnPlayerHousingDecorRemove(Player* player, uint32 decorEntryId);
         void OnPlayerChoiceResponse(WorldObject* object, Player* player, PlayerChoice const* choice, PlayerChoiceResponse const* response, uint16 clientIdentifier);
 
     public: /* AccountScript */
