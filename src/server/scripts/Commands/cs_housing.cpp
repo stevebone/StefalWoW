@@ -20,6 +20,7 @@
 #include "Chat.h"
 #include "ChatCommand.h"
 #include "CharacterDatabase.h"
+#include "DatabaseEnv.h"
 #include "Housing.h"
 #include "HousingDefines.h"
 #include "HousingMgr.h"
