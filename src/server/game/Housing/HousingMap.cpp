@@ -1495,11 +1495,8 @@ HousingPlotOwnerType HousingMap::GetPlotOwnerTypeForPlayer(Player const* player,
             return HOUSING_PLOT_OWNER_SELF;
     }
 
-    if (PlayerSocial* social = player->GetSocial())
-    {
-        if (social->HasFriend(plotInfo->OwnerGuid))
-            return HOUSING_PLOT_OWNER_FRIEND;
-    }
+    if (sHousingMgr.IsFriendOfOwner(player, plotInfo->OwnerGuid))
+        return HOUSING_PLOT_OWNER_FRIEND;
 
     return HOUSING_PLOT_OWNER_STRANGER;
 }

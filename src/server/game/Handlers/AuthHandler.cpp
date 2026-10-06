@@ -169,6 +169,7 @@ void WorldSession::SendMirrorVars()
         { "shop2Enabled"sv, "0"sv },
         { "bpayStoreEnable"sv, "0"sv },
         { "recentAlliesEnabledClient"sv, "0"sv },
+        { "legacyFriendSystemEnabledClient"sv, "1"sv },
         { "browserEnabled"sv, "0"sv },
         // Advanced flying keyboard turn factors - client defaults (5.0/8.0) multiply the
         // banking turn rate and make A/D snap-turn during skyriding; 1.0 is the sane base.
