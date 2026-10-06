@@ -1635,8 +1635,8 @@ bool HouseInteriorMap::AddPlayerToMap(Player* player, bool initPlayer /*= true*/
 
         // The player stays where the transfer put them: the entry hall at the interior origin.
 
-        TC_LOG_ERROR("housing", "HouseInteriorMap::AddPlayerToMap: PRE-SPAWNED rooms+decor+storage "
-            "(%u rooms, %u decor) before Map::AddPlayerToMap",
+        TC_LOG_DEBUG("housing", "HouseInteriorMap::AddPlayerToMap: PRE-SPAWNED rooms+decor+storage "
+            "({} rooms, {} decor) before Map::AddPlayerToMap",
             uint32(_roomMeshObjects.size()), uint32(_decorGuidToObjGuid.size()));
     }
 
@@ -1645,7 +1645,7 @@ bool HouseInteriorMap::AddPlayerToMap(Player* player, bool initPlayer /*= true*/
     if (IsHouseOwnerAccount(player))
         _loadingPlayer = nullptr;
 
-    TC_LOG_ERROR("housing", "HouseInteriorMap::AddPlayerToMap: Map::AddPlayerToMap returned {} for player={}",
+    TC_LOG_DEBUG("housing", "HouseInteriorMap::AddPlayerToMap: Map::AddPlayerToMap returned {} for player={}",
         result, player->GetGUID().ToString());
 
     if (result)
