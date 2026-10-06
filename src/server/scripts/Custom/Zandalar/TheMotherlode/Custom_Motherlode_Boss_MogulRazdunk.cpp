@@ -35,6 +35,7 @@
 
 #include "AreaTrigger.h"
 #include "GameTime.h"
+#include "G3DPosition.hpp"
 #include "MotionMaster.h"
 #include "ObjectAccessor.h"
 #include "ScriptedCreature.h"
@@ -361,8 +362,7 @@ namespace Scripts::Zandalar::TheMotherlode
                     next.m_positionY = missile.Pos.GetPositionY() + std::sin(angle) * step;
                     next.m_positionZ = missile.Pos.GetPositionZ();
                     if (at)
-                        at->InitSplines({ { missile.Pos.GetPositionX(), missile.Pos.GetPositionY(), missile.Pos.GetPositionZ() },
-                                          { next.GetPositionX(), next.GetPositionY(), next.GetPositionZ() } }, MissileSpeed, false);
+                        at->InitSplines({ PositionToVector3(missile.Pos), PositionToVector3(next) }, MissileSpeed, false);
                     missile.Pos = next;
                     return false;
                 }), _missiles.end());
