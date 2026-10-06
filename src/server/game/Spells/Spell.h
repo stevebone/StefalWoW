@@ -468,6 +468,14 @@ class TC_GAME_API Spell
         void EffectSetPlayerDataFlagCharacter();
         void EffectEquipTransmogOutfit();
         void EffectScrapItem();
+        void EffectGiveHouseLevel();
+        void EffectCollectHousingDecor();
+        void EffectLearnHouseRoom();
+        void EffectLearnHouseExteriorComponent();
+        void EffectLearnHouseType();
+        void EffectLearnHouseTheme();
+        void EffectLearnHouseRoomComponentTexture();
+        void EffectSetNeighborhoodInitiative();
         void EffectLootWithToast();
         void EffectForceEquipItem();
         void EffectIncreaseSkill();
