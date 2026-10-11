@@ -401,6 +401,7 @@ private:
 
     // Populate starter fixtures (Base + Roof) on house creation
     void PopulateStarterFixtures();
+    void PopulateStarterDecor();
 
     // Fixtures of every house type stay stored (switching back restores them); these pick out the current one's.
     bool IsCurrentTypeComponent(ExteriorComponentEntry const* comp) const;

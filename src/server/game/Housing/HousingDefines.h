@@ -20,6 +20,7 @@
 
 #include "Define.h"
 #include "Duration.h"
+#include <array>
 
 // Enum.HousingResult client values, sent as uint8
 enum HousingResult : uint8
@@ -942,6 +943,32 @@ inline bool IsStarterDoorDecor(uint32 decorEntryId)
 }
 static constexpr uint32 INTERIOR_DOOR_GO_ALLIANCE = 575017; // displayId 113554
 static constexpr uint32 INTERIOR_DOOR_GO_HORDE    = 587318;
+
+// Decor auto-placed in the entry hall for newly created houses. Offsets are
+// entry-room-local (rotated by the room's orientation); Yaw adds on top of it.
+// Faction is a NEIGHBORHOOD_FACTION_* value; NONE places for both factions.
+struct StarterDecorPlacement
+{
+    uint32 DecorEntry;
+    uint8 Faction;
+    float OffsetX, OffsetY, OffsetZ;
+    float Yaw;
+};
+
+// Bump the size when adding pieces, e.g.:
+// inline constexpr std::array<StarterDecorPlacement, 1> STARTER_DECOR_SET{{
+//     { 9144, NEIGHBORHOOD_FACTION_NONE, 1.5f, 2.0f, 0.0f, 0.0f },
+// }};
+inline constexpr std::array<StarterDecorPlacement, 8> STARTER_DECOR_SET{ {
+    { 80,   NEIGHBORHOOD_FACTION_ALLIANCE,  9.914f, -9.62f,  0.0201f, 1.5708f }, // fireplace
+    { 81,   NEIGHBORHOOD_FACTION_HORDE,     9.914f, -9.62f,  0.0201f, 1.5708f }, // fireplace
+    { 1994,  NEIGHBORHOOD_FACTION_ALLIANCE,     4.751f,  6.587f, 0.0625f, 0.0f    }, // crates/boxes
+    { 2549,  NEIGHBORHOOD_FACTION_HORDE,     4.751f,  6.587f, 0.0625f, 0.0f    }, // crates/boxes
+    { 389,  NEIGHBORHOOD_FACTION_ALLIANCE, 26.48f,   7.191f, 1.7901f, 3.1444f }, // window
+    { 1700,  NEIGHBORHOOD_FACTION_HORDE, 26.48f,   7.191f, 1.7901f, 3.1444f }, // window
+    { 388,  NEIGHBORHOOD_FACTION_ALLIANCE, 26.438f, -7.02f,  3.1126f, 3.1388f }, // painting
+    { 769,  NEIGHBORHOOD_FACTION_HORDE, 26.438f, -7.02f,  3.1126f, 3.1388f }, // painting
+} };
 
 // Housing blueprints: enum values are the client's; limits are the Constants.HousingConsts values.
 

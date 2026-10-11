@@ -742,6 +742,10 @@ HousingResult Housing::Create(ObjectGuid neighborhoodGuid, uint8 plotIndex)
     // Starter fixtures (Base + Roof) are persisted so spawning only reads what is stored.
     PopulateStarterFixtures();
 
+    // Default decor pieces placed in the entry hall (each is granted to the catalog first,
+    // so a failed placement still leaves the piece in the player's storage).
+    PopulateStarterDecor();
+
     return HOUSING_RESULT_SUCCESS;
 }
 
@@ -4003,6 +4007,76 @@ void Housing::PopulateStarterFixtures()
             }
         }
     }
+}
+
+void Housing::PopulateStarterDecor()
+{
+    if (STARTER_DECOR_SET.empty())
+        return;
+
+    Room const* entryRoom = nullptr;
+    for (auto const& [guid, room] : _rooms)
+        if (room.SlotIndex == 0)
+        {
+            entryRoom = &room;
+            break;
+        }
+
+    NeighborhoodMapData const* interior = sHousingMgr.GetNeighborhoodMapDataForWorldMap(HOUSE_INTERIOR_MAP_ID);
+    if (!entryRoom || !interior)
+    {
+        TC_LOG_ERROR("housing", "Housing::PopulateStarterDecor: entry hall or interior data missing for house {} (entryRoom={})",
+            _houseGuid.ToString(), entryRoom ? "yes" : "no");
+        return;
+    }
+
+    // Same frame the starter door uses: interior origin + room grid offset, yaw from room orientation.
+    constexpr float QUARTER_TURN = 1.57079632679f;
+    Position const roomPos(interior->Origin[0] + float(entryRoom->GridX), interior->Origin[1] + float(entryRoom->GridY),
+        interior->Origin[2] + float(entryRoom->FloorIndex) * HOUSE_INTERIOR_FLOOR_HEIGHT,
+        float(entryRoom->Orientation) * QUARTER_TURN);
+    float const roomYaw = roomPos.GetOrientation();
+    float const cosY = std::cos(roomYaw);
+    float const sinY = std::sin(roomYaw);
+
+    int32 const faction = GetNeighborhoodFaction();
+    uint32 placed = 0;
+    for (StarterDecorPlacement const& starter : STARTER_DECOR_SET)
+    {
+        if (starter.Faction != NEIGHBORHOOD_FACTION_NONE && starter.Faction != faction)
+            continue;
+
+        if (!sHousingMgr.GetHouseDecorData(starter.DecorEntry))
+        {
+            TC_LOG_ERROR("housing", "Housing::PopulateStarterDecor: unknown decor entry {} - skipped",
+                starter.DecorEntry);
+            continue;
+        }
+
+        float const wx = roomPos.GetPositionX() + cosY * starter.OffsetX - sinY * starter.OffsetY;
+        float const wy = roomPos.GetPositionY() + sinY * starter.OffsetX + cosY * starter.OffsetY;
+        float const wz = roomPos.GetPositionZ() + starter.OffsetZ;
+        float const yaw = roomYaw + starter.Yaw;
+
+        // A granted copy PlaceDecor can consume; on failure the piece stays in storage.
+        CatalogEntry& grant = _catalog[starter.DecorEntry];
+        grant.DecorEntryId = starter.DecorEntry;
+        grant.Count += 1;
+        grant.SourceType = DECOR_SOURCE_STANDARD;
+
+        if (PlaceDecor(starter.DecorEntry, wx, wy, wz, 0.0f, 0.0f, std::sin(yaw * 0.5f), std::cos(yaw * 0.5f), entryRoom->Guid) != HOUSING_RESULT_SUCCESS)
+        {
+            TC_LOG_ERROR("housing", "Housing::PopulateStarterDecor: failed to place decor {} for house {} - granted to storage instead",
+                starter.DecorEntry, _houseGuid.ToString());
+            continue;
+        }
+
+        ++placed;
+    }
+
+    if (placed)
+        TC_LOG_DEBUG("housing", "Housing::PopulateStarterDecor: placed {}/{} starter decor for house {}",
+            placed, STARTER_DECOR_SET.size(), _houseGuid.ToString());
 }
 
 Housing::Room const* Housing::GetRoom(ObjectGuid roomGuid) const
