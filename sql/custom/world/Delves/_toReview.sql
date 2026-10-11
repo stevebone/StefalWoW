@@ -16,7 +16,7 @@ INSERT INTO scenarios (map, difficulty, scenario_A, scenario_H) VALUES
 -- Delve Handler
 UPDATE creature_template SET ScriptName = 'npc_enter_delve', npcflag = npcflag | 1 WHERE entry = 212407;
 -- Perks Vendor
-UPDATE creature_template SET ScriptName = 'npc_perks_program_vendor', npcflag = npcflag | 1 WHERE entry = 249042;
+UPDATE creature_template SET npcflag = npcflag | 1 WHERE entry = 249042;
 -- Atal'Aman Delve
 UPDATE creature_template SET ScriptName = 'npc_fleek' WHERE entry = 252930;
 UPDATE creature_template SET ScriptName = 'npc_hexbound_ritualist' WHERE entry = 253321;

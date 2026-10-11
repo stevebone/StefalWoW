@@ -11,5 +11,5 @@
 INSERT IGNORE INTO `creature_questender` VALUES
 (185468, 66858, 0);
 
--- cleanup
+-- cleanup previous existing perks program script - no longer needed
 UPDATE `creature_template` SET `ScriptName` = '' WHERE `ScriptName` = 'npc_perks_program_vendor';
