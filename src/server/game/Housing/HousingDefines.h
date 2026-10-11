@@ -956,9 +956,7 @@ struct StarterDecorPlacement
 };
 
 // Bump the size when adding pieces, e.g.:
-// inline constexpr std::array<StarterDecorPlacement, 1> STARTER_DECOR_SET{{
-//     { 9144, NEIGHBORHOOD_FACTION_NONE, 1.5f, 2.0f, 0.0f, 0.0f },
-// }};
+// Starter decor can be added for specific faction or NEIGHBORHOOD_FACTION_NONE
 inline constexpr std::array<StarterDecorPlacement, 8> STARTER_DECOR_SET{ {
     { 80,   NEIGHBORHOOD_FACTION_ALLIANCE,  9.914f, -9.62f,  0.0201f, 1.5708f }, // fireplace
     { 81,   NEIGHBORHOOD_FACTION_HORDE,     9.914f, -9.62f,  0.0201f, 1.5708f }, // fireplace
