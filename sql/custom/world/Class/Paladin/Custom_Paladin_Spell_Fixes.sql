@@ -375,3 +375,5 @@ INSERT INTO `spell_proc` (`SpellId`, `SchoolMask`, `SpellFamilyName`, `SpellFami
 -- Remove deprecated / non existing spell scripts
 -- Spell 20217/19740 no longer exists and current ones are core handled
 DELETE FROM `spell_script_names` WHERE `spell_id` IN (20217,19740);
+DELETE FROM `spell_script_names` WHERE `ScriptName` = 'spell_pal_expurgation_custom'; -- used in the past as custom, now handled in TC native
+
