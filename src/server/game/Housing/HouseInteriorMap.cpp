@@ -1795,6 +1795,33 @@ bool HouseInteriorMap::AddPlayerToMap(Player* player, bool initPlayer /*= true*/
                 "cannot spawn rooms/decor", player->GetGUID().ToString());
         }
 
+        // Nothing resolved for this player: no owner-account housing and no offline-owner snapshot.
+        // Never leave the player standing in an empty void - run the standard interior exit path,
+        // which sends them to the house's plot (or homebind when nothing resolves).
+        if (_roomMeshObjects.empty() && _decorGuidToObjGuid.empty())
+        {
+            std::string sessionHousingOwners;
+            for (Housing const* h : player->GetAllHousings())
+                sessionHousingOwners += (sessionHousingOwners.empty() ? "" : ", ") + h->GetOwnerGuid().ToString();
+
+            TC_LOG_ERROR("housing", "HouseInteriorMap::AddPlayerToMap: nothing spawned for player {} "
+                "(map owner={}) - housing owners on session: [{}] - evicting via LeaveHouseInterior",
+                player->GetGUID().ToString(), _owner.ToString(), sessionHousingOwners.empty() ? "none" : sessionHousingOwners);
+
+            ObjectGuid const evicteeGuid = player->GetGUID();
+            player->m_Events.AddEventAtOffset([this, evicteeGuid]()
+            {
+                Player* evictee = ObjectAccessor::FindPlayer(evicteeGuid);
+                if (!evictee || evictee->GetMap() != this || evictee->IsBeingTeleported())
+                    return;
+
+                // A later entrant may have populated the interior meanwhile.
+                if (_roomMeshObjects.empty() && _decorGuidToObjGuid.empty())
+                    if (WorldSession* session = evictee->GetSession())
+                        session->LeaveHouseInterior();
+            }, Seconds(1));
+        }
+
         // Toggle WS[30906]=1 for EVERYONE entering (a houseless visitor needs it too), synchronously.
         player->SendUpdateWorldState(WORLDSTATE_HOUSING_INTERIOR, 1);
 
