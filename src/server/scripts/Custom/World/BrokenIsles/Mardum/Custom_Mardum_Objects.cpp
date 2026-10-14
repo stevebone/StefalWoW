@@ -21,6 +21,7 @@
  */
 
 #include "Conversation.h"
+#include "Creature.h"
 #include "GameObject.h"
 #include "GameObjectAI.h"
 #include "Player.h"
@@ -85,6 +86,66 @@ namespace Scripts::Custom::Mardum
             }
         }
     };
+
+    /*######
+    ## 243968 Banner Doom Fortress      -> 96562 Ashtongue Stalker
+    ## 243967 Banner Forge of Corruption -> 96564 Priestess of Dementia
+    ## 243965 Banner Soul Engine         -> 96561 Coilskar Harpooner
+    ## CMSG_GAMEOBJECT_REPORT_USE -> SetData on the trigger npc, which then
+    ## sabotages the nearby Legion Devastator (npc_illidari_banner_trigger)
+    ######*/
+
+    struct go_mardum_illidari_banner : public GameObjectAI
+    {
+        go_mardum_illidari_banner(GameObject* go) : GameObjectAI(go)
+        {
+            DetermineTrigger();
+        }
+
+        bool OnReportUse(Player* player) override
+        {
+            if (_used)
+                return true;
+
+            _used = true;
+            me->SetFlag(GO_FLAG_NOT_SELECTABLE);
+
+            player->KilledMonsterCredit(_killCreditEntry);
+
+            std::list<Creature*> triggers;
+            player->GetCreatureListWithEntryInGrid(triggers, _triggerEntry, Misc::SearchRange);
+            for (Creature* trigger : triggers)
+                trigger->AI()->SetData(Misc::BannerTriggered, 1);
+
+            return false;
+        }
+
+    private:
+        bool _used = false;
+        uint32 _triggerEntry = 0;
+        uint32 _killCreditEntry = 0;
+
+        void DetermineTrigger()
+        {
+            switch (me->GetEntry())
+            {
+            case GameObjects::BannerDoomFortress:
+                _triggerEntry = Creatures::AshtongueStalker;
+                _killCreditEntry = Creatures::BannerKillCreditDoomFortress;
+                break;
+            case GameObjects::BannerForgeOfCorruption:
+                _triggerEntry = Creatures::PriestessOfDementia;
+                _killCreditEntry = Creatures::BannerKillCreditForgeOfCorruption;
+                break;
+            case GameObjects::BannerSoulEngine:
+                _triggerEntry = Creatures::CoilskarHarpooner;
+                _killCreditEntry = Creatures::BannerKillCreditSoulEngine;
+                break;
+            default:
+                break;
+            }
+        }
+    };
 }
 
 void AddSC_custom_mardum_objects()
@@ -92,4 +153,5 @@ void AddSC_custom_mardum_objects()
     using namespace Scripts::Custom::Mardum;
 
     RegisterGameObjectAI(go_legion_communicator);
+    RegisterGameObjectAI(go_mardum_illidari_banner);
 }

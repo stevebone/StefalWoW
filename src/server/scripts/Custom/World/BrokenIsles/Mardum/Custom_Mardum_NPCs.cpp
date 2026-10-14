@@ -25,6 +25,7 @@
 #include "CreatureAI.h"
 #include "EventMap.h"
 #include "Map.h"
+#include "MotionMaster.h"
 #include "ObjectAccessor.h"
 #include "ObjectGuid.h"
 #include "PhasingHandler.h"
@@ -755,6 +756,96 @@ namespace Scripts::Custom::Mardum
         EventMap _events;
         bool _lowHealthTalked = false;
     };
+
+    // 96562 Ashtongue Stalker / 96564 Priestess of Dementia / 96561 Coilskar Harpooner
+    // "Stop the Bombardment" (38727) - sabotage trigger npcs, activated by
+    // SetData from go_mardum_illidari_banner
+    struct npc_illidari_banner_trigger : public ScriptedAI
+    {
+        npc_illidari_banner_trigger(Creature* creature) : ScriptedAI(creature)
+        {
+            DetermineTargets();
+        }
+
+        void SetData(uint32 id, uint32 value) override
+        {
+            if (_activated || id != Misc::BannerTriggered || value != 1)
+                return;
+
+            Creature* devastator = me->FindNearestCreature(_devastatorEntry, Misc::SearchRange);
+            if (!devastator)
+                return;
+
+            _activated = true;
+            _devastatorGuid = devastator->GetGUID();
+
+            _scheduler.Schedule(3s, [this](TaskContext const& /*context*/)
+            {
+                if (Creature* devastator = ObjectAccessor::GetCreature(*me, _devastatorGuid))
+                    me->GetMotionMaster()->MoveCloserAndStop(Misc::PointReachedDevastator, devastator, Misc::DevastatorStandoff);
+            });
+        }
+
+        void MovementInform(uint32 type, uint32 id) override
+        {
+            if (type != POINT_MOTION_TYPE || id != Misc::PointReachedDevastator)
+                return;
+
+            Creature* devastator = ObjectAccessor::GetCreature(*me, _devastatorGuid);
+            if (!devastator)
+                return;
+
+            devastator->CastSpell(devastator, Spells::StopBombardmentDevastator, true);
+            devastator->CastSpell(devastator, Spells::StopBombardmentKnockback, true);
+
+            _scheduler.Schedule(3s, [this](TaskContext const& /*context*/)
+            {
+                Creature* devastator = ObjectAccessor::GetCreature(*me, _devastatorGuid);
+                if (!devastator)
+                    return;
+
+                std::vector<Player*> players;
+                devastator->GetPlayerListInGrid(players, Misc::SearchRange);
+                for (Player* player : players)
+                    player->KilledMonsterCredit(_devastatorEntry);
+
+                // TO-DO The devastator should play a special anim when dies/dead
+                // devastator->KillSelf();
+                devastator->DisappearAndDie();
+            });
+
+            me->GetMotionMaster()->MoveTargetedHome();
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _scheduler.Update(diff);
+        }
+
+    private:
+        bool _activated = false;
+        uint32 _devastatorEntry = 0;
+        ObjectGuid _devastatorGuid;
+        TaskScheduler _scheduler;
+
+        void DetermineTargets()
+        {
+            switch (me->GetEntry())
+            {
+            case Creatures::AshtongueStalker:
+                _devastatorEntry = Creatures::DevastatorDoomFortress;
+                break;
+            case Creatures::PriestessOfDementia:
+                _devastatorEntry = Creatures::DevastatorForgeOfCorruption;
+                break;
+            case Creatures::CoilskarHarpooner:
+                _devastatorEntry = Creatures::DevastatorSoulEngine;
+                break;
+            default:
+                break;
+            }
+        }
+    };
 }
 
 void AddSC_custom_mardum_npcs()
@@ -768,4 +859,5 @@ void AddSC_custom_mardum_npcs()
     RegisterCreatureAI(npc_doom_commander_beliash);
     RegisterCreatureAI(npc_legion_devastator);
     RegisterCreatureAI(npc_king_voras);
+    RegisterCreatureAI(npc_illidari_banner_trigger);
 }

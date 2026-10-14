@@ -449,3 +449,11 @@ INSERT INTO `conversation_line_template` (`Id`, `UiCameraID`, `VerifiedBuild`) V
 DELETE FROM `conversation_actors` WHERE `ConversationId` IN (567);
 INSERT  INTO `conversation_actors` (`ConversationId`, `ConversationActorId`, `Idx`, `CreatureId`, `CreatureDisplayInfoId`, `NoActorObject`, `ActivePlayerObject`, `VerifiedBuild`) VALUES
 (567, 49935, 0, 93802, 65935, 0, 0, 69875);
+
+-- "Stop the Bombardment" (38727) - Illidari Banners -> go_mardum_illidari_banner
+-- 243968 Doom Fortress / 243967 Forge of Corruption / 243965 Soul Engine
+UPDATE `gameobject_template` SET `ScriptName` = 'go_mardum_illidari_banner' WHERE `entry` IN (243965,243967,243968);
+
+-- Sabotage trigger npcs -> npc_illidari_banner_trigger
+-- 96562 Ashtongue Stalker / 96564 Priestess of Dementia / 96561 Coilskar Harpooner
+UPDATE `creature_template` SET `ScriptName` = 'npc_illidari_banner_trigger', `AIName` = '' WHERE `entry` IN (96561,96562,96564);

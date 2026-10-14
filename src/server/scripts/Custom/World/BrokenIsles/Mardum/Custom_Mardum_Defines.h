@@ -45,6 +45,16 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 QueenTyranna        = 95048; // RP version beside Beliash; 93802 is the boss at the Seat of Command
         static constexpr uint32 BeliashKillCredit   = 106003;
         static constexpr uint32 LegionDevastator    = 100161;
+        // "Stop the Bombardment" (38727) - Illidari Banner sabotage
+        static constexpr uint32 AshtongueStalker       = 96562; // trigger, Banner Doom Fortress
+        static constexpr uint32 PriestessOfDementia    = 96564; // trigger, Banner Forge of Corruption
+        static constexpr uint32 CoilskarHarpooner      = 96561; // trigger, Banner Soul Engine
+        static constexpr uint32 DevastatorDoomFortress      = 96732;
+        static constexpr uint32 DevastatorForgeOfCorruption = 96731;
+        static constexpr uint32 DevastatorSoulEngine        = 93762;
+        static constexpr uint32 BannerKillCreditDoomFortress      = 96734;
+        static constexpr uint32 BannerKillCreditForgeOfCorruption = 96733;
+        static constexpr uint32 BannerKillCreditSoulEngine        = 96692;
     }
 
     namespace Maps
@@ -62,6 +72,9 @@ namespace Scripts::Custom::Mardum
     {
         static constexpr uint32 LegionCommunicator1 = 244439;
         static constexpr uint32 LegionCommunicator2 = 244440;
+        static constexpr uint32 BannerDoomFortress      = 243968;
+        static constexpr uint32 BannerForgeOfCorruption = 243967;
+        static constexpr uint32 BannerSoulEngine        = 243965;
     }
 
     namespace Scenes
@@ -111,6 +124,8 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 BroodQueenTyrannaTeleport = 188658;
         static constexpr uint32 FelBombardment         = 194689;
         static constexpr uint32 AcidSpit               = 198163;
+        static constexpr uint32 StopBombardmentDevastator = 191454;
+        static constexpr uint32 StopBombardmentKnockback  = 198908;
     }
 
     namespace Conversations
@@ -196,6 +211,9 @@ namespace Scripts::Custom::Mardum
     {
         static constexpr float SearchRange         = 50.0f;
         static constexpr float TalkDistance        = 5.0f;
+        static constexpr float DevastatorStandoff  = 5.0f;
+        static constexpr uint32 BannerTriggered    = 1; // SetData id: banner used -> trigger npc
+        static constexpr uint32 PointReachedDevastator = 1;
         static constexpr float CaptiveGreetingRange = 10.0f;
         static constexpr float JaceGreetingRange    = 10.0f;
         static constexpr float BeliashConversationRange = 100.0f;
