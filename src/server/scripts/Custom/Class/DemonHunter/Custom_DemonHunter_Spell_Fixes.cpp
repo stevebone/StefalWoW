@@ -1511,7 +1511,7 @@ namespace Scripts::Custom::DemonHunter
             );
         }
 
-        bool targetHit;
+        bool targetHit = false;
 
         void FilterTargets(std::list<WorldObject*>& targets)
         {
