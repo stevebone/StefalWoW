@@ -151,7 +151,8 @@ namespace Scripts::Custom::Mardum
 
     /*######
     ## 245995 Spire Stabilizer ("Their Numbers Are Legion" 38819)
-    ## On spawn/respawn: every Spire of Woe Fire (101318) in range channels
+    ## 246012 Spire Stabilizer ("Their Numbers Are Legion" 38819)
+    ## On spawn/respawn: every Spire of Woe Fire (101318,101321) in range channels
     ## 199707 Fel Beam onto the nearest Spire of Woe Bunny (101320).
     ## On use: the fire npcs and bunny despawn, the stabilizer follows 1s later.
     ######*/
@@ -213,6 +214,7 @@ namespace Scripts::Custom::Mardum
 
             std::list<Creature*> fires;
             me->GetCreatureListWithEntryInGrid(fires, Creatures::SpireOfWoeFire, Misc::SearchRange);
+            me->GetCreatureListWithEntryInGrid(fires, Creatures::SpireOfWoeFire2, Misc::SearchRange);
             for (Creature* fire : fires)
             {
                 _fireGuids.push_back(fire->GetGUID());

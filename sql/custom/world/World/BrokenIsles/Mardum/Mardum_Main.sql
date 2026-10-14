@@ -35,10 +35,13 @@
 -- Spell: 191827 Destroying Fel Spreader (spell click)
 -- Spell: 199617 Assault on Mardum: Fel Spreader Fel Explosion
 -- Spell: 191668 Enter the Illidari: Summon Coilskar Sea-Caller
+-- Spell: 191671 Summon Shivarra Destroyer
+-- Spell: 203369 Summon Matron Mother Malevolence
 -- Spell: 194689 Fel Bombardment
 
 -- Generic Creature Template fixes
-UPDATE `creature_template` SET `faction` = 2843 WHERE `entry` IN (98157,99787,100545);
+UPDATE `creature_template` SET `faction` = 2843 WHERE `entry` IN (98157,98160,99787,100545);
+UPDATE `creature_template` SET `faction` = 4 WHERE `entry` = 102923;
 
 -- ========================= Fixes for the quest 38765 Enter the Illidari: Shivarra / Fel Bombardments
 DELETE FROM `conversation_template` WHERE `Id` = 747;
@@ -193,36 +196,39 @@ UPDATE creature_template SET ScriptName='' WHERE entry=96159;
 UPDATE `creature_template_difficulty` SET `StaticFlags1` = `StaticFlags1` | 0x20000000 WHERE `Entry` IN (94744,96276);
 
 -- SAI
-UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (98484,98486,98497,98482,95226,93112,93716,94654,97034,102726,96494,102724,97706,99759,96277,96402);
-DELETE FROM smart_scripts WHERE entryorguid IN (98484,98486,98497,98482,95226,93112,93716,94654,97034,102726,96494,102724,97706,99759,96277,96402) AND source_type = 0;
+UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (98484,98486,98497,98482,95226,93112,93716,94654,97034,102726,96494,102724,97706,99759,96277,96402,102923,96888);
+DELETE FROM smart_scripts WHERE entryorguid IN (98484,98486,98497,98482,95226,93112,93716,94654,97034,102726,96494,102724,97706,99759,96277,96402,102923,96888) AND source_type = 0;
 INSERT INTO smart_scripts (entryorguid, source_type, id, link, Difficulties, event_type, event_phase_mask, event_chance, event_flags, event_param1, event_param2, event_param3, event_param4, event_param5, event_param_string, action_type, action_param1, action_param2, action_param3, action_param4, action_param5, action_param6, action_param7, action_param_string, target_type, target_param1, target_param2, target_param3, target_param4, target_param_string, target_x, target_y, target_z, target_o, comment) VALUES
-(96402, 0, 0, 4, '', 0, 0, 100, 1, 0, 0, 1000, 1000, 0, '', 1, 1, 5000, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Hulking Forgefiend - On Aggro - Say Line 1 (No Repeat)'),
+(96888, 0, 0, 0, '', 11, 0, 100, 1, 0, 0, 0, 0, 0, '', 1, 0, 5000, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Shivarra Destroyer - On Spawn - Say Line 0 (No Repeat)'),
+
+(102923, 0, 0, 0, '', 11, 0, 100, 1, 0, 0, 0, 0, 0, '', 1, 0, 5000, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Matron Mother Malevolence - On Spawn - Say Line 0 (No Repeat)'),
+
+(96402, 0, 0, 0, '', 4, 0, 30, 1, 0, 0, 0, 0, 0, '', 1, 0, 5000, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Hulking Forgefiend - On Aggro - Say Line 0 (No Repeat)'),
 (96402, 0, 1, 0, '', 0, 0, 100, 0, 5000, 8000, 12000, 15000, 0, '', 11, 200781, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Hulking Forgefiend - In Combat - Cast ''Bad Breath'''),
 
 (96277, 0, 0, 0, '', 0, 0, 100, 0, 5000, 8000, 12000, 15000, 0, '', 11, 200805, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Queen''s Centurion - In Combat - Cast ''Dark Communion'''),
-(96277, 0, 1, 4, '', 0, 0, 100, 1, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Queen''s Centurion - On Aggro - Talk (No Repeat)'),
+(96277, 0, 1, 0, '', 4, 0, 30, 1, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Queen''s Centurion - On Aggro - Talk (No Repeat)'),
 
 (99759, 0, 0, 0, '', 0, 0, 100, 0, 5000, 8000, 12000, 15000, 0, '', 11, 200570, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Fiendish Creeper - In Combat - Cast ''Demon Spit'''),
 
 (97706, 0, 0, 0, '', 0, 0, 100, 0, 5000, 8000, 12000, 15000, 0, '', 11, 200748, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Fel Weaver - In Combat - Cast ''Fel Weaving'''),
 (97706, 0, 1, 0, '', 0, 0, 100, 0, 0, 0, 2000, 2500, 0, '', 11, 200751, 64, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Fel Weaver - In Combat - Cast ''Lob Poison'''),
-(97706, 0, 2, 0, '', 4, 0, 100, 1, 0, 0, 1000, 1000, 0, '', 1, 0, 5000, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Fel Weaver - On Aggro - Say Line 0 (No Repeat)'),
+(97706, 0, 2, 0, '', 4, 0, 30, 1, 0, 0, 0, 0, 0, '', 1, 0, 5000, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Fel Weaver - On Aggro - Say Line 0 (No Repeat)'),
 
-(102724, 0, 0, 0, '', 4, 0, 100, 1, 0, 0, 1000, 1000, 0, '', 1, 0, 5000, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Vile Soulmaster - On Aggro - Say Line 0 (No Repeat)'),
+(102724, 0, 0, 0, '', 4, 0, 30, 1, 0, 0, 0, 0, 0, '', 1, 0, 5000, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Vile Soulmaster - On Aggro - Say Line 0 (No Repeat)'),
 (102724, 0, 1, 0, '', 0, 0, 100, 0, 5000, 8000, 12000, 15000, 0, '', 11, 200674, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Vile Soulmaster - In Combat - Cast ''Corrupt Soul'''),
 (102724, 0, 2, 0, '', 2, 0, 100, 0, 0, 40, 22000, 25000, 0, '', 11, 200689, 2, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Vile Soulmaster - Between 0-40% Health - Cast ''Shattered Visage'''),
 (102724, 0, 3, 0, '', 6, 0, 100, 0, 0, 0, 0, 0, 0, '', 1, 1, 5000, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Vile Soulmaster - On Just Died - Say Line 1'),
 
-
-(96494, 0, 0, 0, '', 4, 0, 30, 1, 0, 0, 1000, 1000, 0, '', 1, 0, 5000, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Felguard Butcher - In Combat - Say Line 0 (No Repeat)'),
+(96494, 0, 0, 0, '', 4, 0, 30, 1, 0, 0, 0, 0, 0, '', 1, 0, 5000, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Felguard Butcher - In Combat - Say Line 0 (No Repeat)'),
 (96494, 0, 1, 0, '', 0, 0, 100, 0, 5000, 8000, 12000, 15000, 0, '', 11, 200647, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Felguard Butcher - In Combat - Cast ''Shadow Blade'''),
 (96494, 0, 2, 0, '', 2, 0, 100, 1, 0, 30, 1000, 1000, 0, '', 11, 200632, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Felguard Butcher - Between 0-30% Health - Cast ''Dark Rage'' (No Repeat)'),
 
-(102726, 0, 0, 0, '', 4, 0, 30, 1, 0, 0, 1000, 1000, 0, '', 1, 0, 5000, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Eredar Sorcerer - In Combat - Say Line 0 (No Repeat)'),
+(102726, 0, 0, 0, '', 4, 0, 30, 1, 0, 0, 0, 0, 0, '', 1, 0, 5000, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Eredar Sorcerer - In Combat - Say Line 0 (No Repeat)'),
 (102726, 0, 1, 0, '', 0, 0, 100, 0, 5000, 8000, 17000, 20000, 0, '', 11, 200615, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Eredar Sorcerer - In Combat - Cast ''Fel Resonance'''),
 (102726, 0, 2, 0, '', 0, 0, 100, 0, 0, 0, 3000, 3000, 0, '', 11, 200582, 64, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Eredar Sorcerer - In Combat - Cast ''Fel Blast'''),
 
-(97034, 0, 0, 0, '', 4, 0, 30, 1, 0, 0, 1000, 1000, 0, '', 1, 0, 5000, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Fury Champion- On Aggro - Say Line 0 (No Repeat)'),
+(97034, 0, 0, 0, '', 4, 0, 30, 1, 0, 0, 0, 0, 0, '', 1, 0, 5000, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Fury Champion- On Aggro - Say Line 0 (No Repeat)'),
 (97034, 0, 1, 0, '', 0, 0, 100, 0, 5000, 8000, 12000, 15000, 0, '', 11, 200753, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Fury Champion - In Combat - Cast ''Furious Flurry'''),
 
 (93112, 0, 0, 0, '', 0, 0, 30, 1, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Felguard Sentry - In Combat - Talk (No Repeat)'),
@@ -239,15 +245,14 @@ INSERT INTO smart_scripts (entryorguid, source_type, id, link, Difficulties, eve
 (95226, 0, 1, 0, '', 6, 0, 100, 0, 0, 0, 0, 0, 0, '', 11, 200521, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Anguish Jailer - On Just Died - Cast ''Well of Souls Soul Visual'''),
 (95226, 0, 2, 0, '', 4, 0, 30, 1, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Anguis Jailer - In Combat - Talk (No Repeat)'),
 
-
 (98484, 0, 0, 0, '', 0, 0, 100, 0, 1000, 2000, 8000, 9000, 0, '', 11, 200425, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Mo''arg Brute - In Combat - Cast ''Brutal Slam'''),
-(98484, 0, 1, 4, '', 0, 0, 30, 1, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Mo Arg Brute - In Combat - Talk (No Repeat)'),
+(98484, 0, 1, 0, '', 4, 0, 30, 1, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Mo Arg Brute - In Combat - Talk (No Repeat)'),
 
-(98486, 0, 0, 4, '', 0, 0, 30, 1, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Wrath Warrior - In Combat - Talk (No Repeat)'),
+(98486, 0, 0, 0, '', 4, 0, 30, 1, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Wrath Warrior - In Combat - Talk (No Repeat)'),
 
 (98497, 0, 0, 0, '', 1, 0, 100, 1, 1000, 1000, 0, 0, 0, '', 11, 188485, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Time = 1 seconds (OOC) - Self: Cast spell  188485 on Self'),
 (98497, 0, 1, 0, '', 0, 0, 100, 0, 2000, 3000, 15000, 18000, 0, '', 11, 200393, 2, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Imp Mother - In Combat - Cast ''Rain of Imp'''),
-(98497, 0, 2, 4, '', 0, 0, 30, 1, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Imp Mother - In Combat - Talk (No Repeat)'),
+(98497, 0, 2, 0, '', 4, 0, 30, 1, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Imp Mother - In Combat - Talk (No Repeat)'),
 
 (98482, 0, 0, 0, '', 0, 0, 100, 0, 5000, 8000, 12000, 15000, 0, '', 11, 200417, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Foul Felstalker - In Combat - Cast ''Foul Fel''');
 
@@ -496,4 +501,9 @@ INSERT INTO `conditions` (`SourceTypeOrReferenceId`,`SourceGroup`,`SourceEntry`,
 UPDATE `creature_template` SET `ScriptName` = 'npc_doom_fortress_stabilizer' WHERE `entry` = 101947;
 
 -- Spire Stabilizer (245995) -> go_spire_stabilizer (Spire of Woe beams + use-despawn)
-UPDATE `gameobject_template` SET `ScriptName` = 'go_spire_stabilizer' WHERE `entry` = 245995;
+UPDATE `gameobject_template` SET `ScriptName` = 'go_spire_stabilizer' WHERE `entry` IN (245995,246012);
+
+-- Floating flag
+UPDATE `creature_template_difficulty` SET `StaticFlags1` = `StaticFlags1` | 0x20000000 WHERE `Entry` IN (101320);
+-- Overseer Brutarg (97057) -> npc_overseer_brutarg
+UPDATE `creature_template` SET `ScriptName` = 'npc_overseer_brutarg', `AIName` = '' WHERE `entry` = 97057;

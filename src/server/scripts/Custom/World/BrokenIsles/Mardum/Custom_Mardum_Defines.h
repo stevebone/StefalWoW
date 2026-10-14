@@ -59,7 +59,9 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 DoomFortressStabilizer     = 101947;
         static constexpr uint32 FirstStabilizerKillCredit  = 97409;
         static constexpr uint32 SpireOfWoeFire             = 101318;
+        static constexpr uint32 SpireOfWoeFire2            = 101321;
         static constexpr uint32 SpireOfWoeBunny            = 101320;
+        static constexpr uint32 OverseerBrutarg            = 97057;
     }
 
     namespace Maps
@@ -111,7 +113,6 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 LegionCommunicator2       = 281334; // quest 39279
         static constexpr uint32 SoulSacrificed            = 280770; // quest 40379
         static constexpr uint32 CoilskarForces            = 280771; // quest 40379
-        static constexpr uint32 FirstStabilizerDestroyed  = 280006; // quest 38819
     }
 
     namespace Spells
@@ -136,6 +137,12 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 DestroyingStabilizer      = 201112;
         static constexpr uint32 StabilizerFelExplosion    = 202948;
         static constexpr uint32 SpireOfWoeFelBeam         = 199707;
+        static constexpr uint32 BrutargCharge                  = 198497;
+        static constexpr uint32 BrutargEquipSword              = 198573;
+        static constexpr uint32 BrutargMeatGrinder             = 198518;
+        static constexpr uint32 BrutargDizzy                   = 198524;
+        static constexpr uint32 SummonShivarraDestroyer        = 191671;
+        static constexpr uint32 SummonMatronMotherMalevolence  = 203369;
     }
 
     namespace Conversations
@@ -197,6 +204,11 @@ namespace Scripts::Custom::Mardum
         static constexpr uint8 VorasLowHealth  = 1; // 'My queen's brood will hatch soon.'
         static constexpr uint8 VorasDeathEmote = 2; // 'Nearby [Spider Eggs] will hatch soon if not destroyed!'
         static constexpr uint8 VorasDeath      = 3; // 'They've slain me, my queen...'
+
+        // Overseer Brutarg (97057) - creature_text GroupIDs
+        static constexpr uint8 BrutargAggro      = 0;
+        static constexpr uint8 BrutargEquipSword = 1;
+        static constexpr uint8 BrutargDeath      = 2;
     }
 
     namespace Events
@@ -216,6 +228,9 @@ namespace Scripts::Custom::Mardum
 
         // King Voras (97059) - EventMap IDs
         static constexpr int8 VorasAcidSpit = 1;
+
+        // Overseer Brutarg (97057) - EventMap IDs
+        static constexpr int8 BrutargMeatGrinder = 1;
     }
 
     namespace Misc

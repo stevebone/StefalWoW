@@ -1,9 +1,17 @@
 -- Mardum Creature Text
 DELETE FROM `creature_text` WHERE `creatureID` IN (98484,98486,98497,98460,95226,93112,96884,93759,94654,93221,95048,93716,97034,96494,102726,96499,
-102724,97706,97059,96402,96277);
+102724,97706,97059,96402,96277,97057,102923,96888);
 DELETE FROM `creature_text` WHERE `creatureID` IN (98229) AND `GroupID` IN (2,3);
 DELETE FROM `creature_text` WHERE `creatureID` IN (93127) AND `GroupID` IN (2);
 INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `BroadcastTextId`, `TextRange`, `comment`) VALUES
+(96888, 0, 0, 'The Matron Mother bid me come to help.', 12, 0, 100, 0, 0, 55355, 99747, 0, 'Shivarra Destroyer to Player'),
+
+(102923, 0, 0, 'Don''t worry, mother''s here... Oh my, he''s a big one.', 12, 0, 100, 0, 0, 55321, 99153, 0, 'Matron Mother Malevolence to Player'),
+
+(97057, 0, 0, 'I''ll hammer you into shape.', 14, 0, 100, 0, 0, 55336, 99170, 0, 'Overseer Brutarg to Player'),
+(97057, 1, 0, 'Like my new sword? Take a closer look.', 14, 0, 100, 0, 0, 55335, 103494, 0, 'Overseer Brutarg to Player'),
+(97057, 2, 0, 'Stupid, tiny things...', 14, 0, 100, 0, 0, 55337, 99167, 0, 'Overseer Brutarg to Player'),
+
 (96402, 0, 0, 'Pitiful.', 12, 0, 100, 0, 0, 55324, 97904, 0, 'Hulking Forgefiend to Player'),
 (96402, 0, 1, 'Die in glorious battle!', 12, 0, 100, 0, 0, 55330, 97905, 0, 'Hulking Forgefiend to Player'),
 (96402, 0, 2, 'Taste my blade.', 12, 0, 100, 0, 0, 55327, 97902, 0, 'Hulking Forgefiend to Player'),

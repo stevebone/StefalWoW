@@ -28,6 +28,8 @@
 #include "MotionMaster.h"
 #include "ObjectAccessor.h"
 #include "ObjectGuid.h"
+#include "ObjectMgr.h"
+#include "QuestDef.h"
 #include "PhasingHandler.h"
 #include "Player.h"
 #include "ScriptedCreature.h"
@@ -865,14 +867,105 @@ namespace Scripts::Custom::Mardum
             if (!player)
                 return;
 
+            // "first stabilizer" = the tracked stabilizer counter still reads 0 before this credit
+            // (objective 280006 stores no progress and cannot be queried for completion)
+            bool firstStabilizer = false;
+            if (player->GetQuestStatus(Quests::TheirNumbersAreLegion) == QUEST_STATUS_INCOMPLETE)
+                if (Quest const* quest = sObjectMgr->GetQuestTemplate(Quests::TheirNumbersAreLegion))
+                    for (QuestObjective const& obj : quest->GetObjectives())
+                        if (obj.IsStoringValue() && obj.ObjectID == int32(Creatures::DoomFortressStabilizer))
+                            firstStabilizer = player->GetQuestObjectiveData(obj) == 0;
+
             player->KilledMonsterCredit(Creatures::DoomFortressStabilizer);
 
-            if (!player->IsQuestObjectiveComplete(Quests::TheirNumbersAreLegion, Objectives::FirstStabilizerDestroyed))
+            if (firstStabilizer)
             {
                 player->KilledMonsterCredit(Creatures::FirstStabilizerKillCredit);
                 Conversation::CreateConversation(Conversations::DoomFortressStabilizer, player, *player, player->GetGUID());
             }
         }
+    };
+
+    // 97057 - Overseer Brutarg
+    struct npc_overseer_brutarg : public ScriptedAI
+    {
+        npc_overseer_brutarg(Creature* creature) : ScriptedAI(creature) { }
+
+        void Reset() override
+        {
+            _events.Reset();
+            _equippedSword = false;
+        }
+
+        void JustEngagedWith(Unit* who) override
+        {
+            Talk(CreatureText::BrutargAggro, who);
+            me->CastSpell(who, Spells::BrutargCharge);
+
+            // who may be a companion/minion that pulled aggro first - resolve the owning player
+            if (Player* player = who->GetCharmerOrOwnerPlayerOrPlayerItself())
+            {
+                if (!player->HasAura(Spells::SummonCoilskarSeaCaller))
+                    player->CastSpell(player, Spells::SummonCoilskarSeaCaller, true);
+                if (!player->HasAura(Spells::SummonShivarraDestroyer))
+                    player->CastSpell(player, Spells::SummonShivarraDestroyer, true);
+                if (!player->HasAura(Spells::SummonMatronMotherMalevolence))
+                    player->CastSpell(player, Spells::SummonMatronMotherMalevolence, true);
+            }
+
+            _events.ScheduleEvent(Events::BrutargMeatGrinder, 10s, 15s);
+        }
+
+        void DamageTaken(Unit* /*attacker*/, uint32& /*damage*/, DamageEffectType /*damageType*/, SpellInfo const* /*spellInfo*/) override
+        {
+            if (!_equippedSword && me->HealthBelowPct(50))
+            {
+                _equippedSword = true;
+                Talk(CreatureText::BrutargEquipSword, me->GetVictim());
+                me->CastSpell(me, Spells::BrutargEquipSword, true);
+            }
+        }
+
+        void JustDied(Unit* killer) override
+        {
+            Talk(CreatureText::BrutargDeath, killer);
+        }
+
+        void OnChannelFinished(SpellInfo const* spellInfo) override
+        {
+            if (spellInfo->Id == Spells::BrutargMeatGrinder)
+                DoCastSelf(Spells::BrutargDizzy);
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _events.Update(diff);
+
+            while (uint32 eventId = _events.ExecuteEvent())
+            {
+                switch (eventId)
+                {
+                    case Events::BrutargMeatGrinder:
+                        DoCastSelf(Spells::BrutargMeatGrinder);
+                        _events.Repeat(10s, 15s);
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            if (!UpdateVictim())
+                return;
+
+            if (me->HasUnitState(UNIT_STATE_CASTING))
+                return;
+
+            me->DoMeleeAttackIfReady();
+        }
+
+    private:
+        EventMap _events;
+        bool _equippedSword = false;
     };
 }
 
@@ -889,4 +982,5 @@ void AddSC_custom_mardum_npcs()
     RegisterCreatureAI(npc_king_voras);
     RegisterCreatureAI(npc_illidari_banner_trigger);
     RegisterCreatureAI(npc_doom_fortress_stabilizer);
+    RegisterCreatureAI(npc_overseer_brutarg);
 }
