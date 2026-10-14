@@ -37,6 +37,9 @@
 -- Spell: 191668 Enter the Illidari: Summon Coilskar Sea-Caller
 -- Spell: 194689 Fel Bombardment
 
+-- Generic Creature Template fixes
+UPDATE `creature_template` SET `faction` = 2843 WHERE `entry` IN (98157,99787,100545);
+
 -- ========================= Fixes for the quest 38765 Enter the Illidari: Shivarra / Fel Bombardments
 DELETE FROM `conversation_template` WHERE `Id` = 747;
 INSERT INTO `conversation_template` (`Id`, `FirstLineId`, `VerifiedBuild`) VALUES
@@ -190,9 +193,17 @@ UPDATE creature_template SET ScriptName='' WHERE entry=96159;
 UPDATE `creature_template_difficulty` SET `StaticFlags1` = `StaticFlags1` | 0x20000000 WHERE `Entry` IN (94744,96276);
 
 -- SAI
-UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (98484,98486,98497,98482,95226,93112,93716,94654,97034,102726,96494,102724,97706);
-DELETE FROM smart_scripts WHERE entryorguid IN (98484,98486,98497,98482,95226,93112,93716,94654,97034,102726,96494,102724,97706) AND source_type = 0;
+UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (98484,98486,98497,98482,95226,93112,93716,94654,97034,102726,96494,102724,97706,99759,96277,96402);
+DELETE FROM smart_scripts WHERE entryorguid IN (98484,98486,98497,98482,95226,93112,93716,94654,97034,102726,96494,102724,97706,99759,96277,96402) AND source_type = 0;
 INSERT INTO smart_scripts (entryorguid, source_type, id, link, Difficulties, event_type, event_phase_mask, event_chance, event_flags, event_param1, event_param2, event_param3, event_param4, event_param5, event_param_string, action_type, action_param1, action_param2, action_param3, action_param4, action_param5, action_param6, action_param7, action_param_string, target_type, target_param1, target_param2, target_param3, target_param4, target_param_string, target_x, target_y, target_z, target_o, comment) VALUES
+(96402, 0, 0, 4, '', 0, 0, 100, 1, 0, 0, 1000, 1000, 0, '', 1, 1, 5000, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Hulking Forgefiend - On Aggro - Say Line 1 (No Repeat)'),
+(96402, 0, 1, 0, '', 0, 0, 100, 0, 5000, 8000, 12000, 15000, 0, '', 11, 200781, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Hulking Forgefiend - In Combat - Cast ''Bad Breath'''),
+
+(96277, 0, 0, 0, '', 0, 0, 100, 0, 5000, 8000, 12000, 15000, 0, '', 11, 200805, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Queen''s Centurion - In Combat - Cast ''Dark Communion'''),
+(96277, 0, 1, 4, '', 0, 0, 100, 1, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Queen''s Centurion - On Aggro - Talk (No Repeat)'),
+
+(99759, 0, 0, 0, '', 0, 0, 100, 0, 5000, 8000, 12000, 15000, 0, '', 11, 200570, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Fiendish Creeper - In Combat - Cast ''Demon Spit'''),
+
 (97706, 0, 0, 0, '', 0, 0, 100, 0, 5000, 8000, 12000, 15000, 0, '', 11, 200748, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Fel Weaver - In Combat - Cast ''Fel Weaving'''),
 (97706, 0, 1, 0, '', 0, 0, 100, 0, 0, 0, 2000, 2500, 0, '', 11, 200751, 64, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Fel Weaver - In Combat - Cast ''Lob Poison'''),
 (97706, 0, 2, 0, '', 4, 0, 100, 1, 0, 0, 1000, 1000, 0, '', 1, 0, 5000, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Fel Weaver - On Aggro - Say Line 0 (No Repeat)'),
@@ -457,3 +468,32 @@ UPDATE `gameobject_template` SET `ScriptName` = 'go_mardum_illidari_banner' WHER
 -- Sabotage trigger npcs -> npc_illidari_banner_trigger
 -- 96562 Ashtongue Stalker / 96564 Priestess of Dementia / 96561 Coilskar Harpooner
 UPDATE `creature_template` SET `ScriptName` = 'npc_illidari_banner_trigger', `AIName` = '' WHERE `entry` IN (96561,96562,96564);
+
+-- "Their Numbers Are Legion" (38819) Stabilizer objective
+DELETE FROM `conversation_template` WHERE `Id` = 573;
+INSERT INTO `conversation_template` (`Id`, `FirstLineId`, `VerifiedBuild`) VALUES
+(573, 1491, 69875);
+
+DELETE FROM `conversation_line_template` WHERE `Id` IN (1491,1492);
+INSERT INTO `conversation_line_template` (`Id`, `UiCameraID`, `VerifiedBuild`) VALUES
+(1491, 99, 69875),
+(1492, 99, 69875);
+
+DELETE FROM `conversation_actors` WHERE `ConversationId` = 573;
+INSERT  INTO `conversation_actors` (`ConversationId`, `ConversationActorId`, `Idx`, `CreatureId`, `CreatureDisplayInfoId`, `NoActorObject`, `ActivePlayerObject`, `VerifiedBuild`) VALUES
+(573, 49821, 0, 93759, 60791, 0, 0, 69875);
+-- "Their Numbers Are Legion" (38819) - Doom Fortress Stabilizer spellclick
+-- clicker casts 201112 Destroying Stabilizer on it (cast_flags 1 = caster is clicker)
+DELETE FROM `npc_spellclick_spells` WHERE `npc_entry` = 101947;
+INSERT INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES
+(101947,201112,1,0);
+
+-- Only clickable while Their Numbers Are Legion (38819) is in the quest log
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 18 AND `SourceGroup` = 101947 AND `SourceEntry` = 201112;
+INSERT INTO `conditions` (`SourceTypeOrReferenceId`,`SourceGroup`,`SourceEntry`,`SourceId`,`ElseGroup`,`ConditionTypeOrReference`,`ConditionTarget`,`ConditionValue1`,`ConditionValue2`,`ConditionValue3`,`NegativeCondition`,`ErrorType`,`ErrorTextId`,`ScriptName`,`Comment`) VALUES
+(18,101947,201112,0,0,9,0,38819,0,0,0,0,0,'','Doom Fortress Stabilizer - spellclick requires quest 38819 Their Numbers Are Legion in log');
+
+UPDATE `creature_template` SET `ScriptName` = 'npc_doom_fortress_stabilizer' WHERE `entry` = 101947;
+
+-- Spire Stabilizer (245995) -> go_spire_stabilizer (Spire of Woe beams + use-despawn)
+UPDATE `gameobject_template` SET `ScriptName` = 'go_spire_stabilizer' WHERE `entry` = 245995;

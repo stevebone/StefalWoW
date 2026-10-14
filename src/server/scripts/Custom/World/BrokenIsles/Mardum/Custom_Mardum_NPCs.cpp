@@ -846,6 +846,34 @@ namespace Scripts::Custom::Mardum
             }
         }
     };
+
+    // 101947 - Doom Fortress Stabilizer ("Their Numbers Are Legion" 38819)
+    // npc_spellclick: player casts 201112 Destroying Stabilizer on it
+    struct npc_doom_fortress_stabilizer : public ScriptedAI
+    {
+        npc_doom_fortress_stabilizer(Creature* creature) : ScriptedAI(creature) { }
+
+        void SpellHit(WorldObject* caster, SpellInfo const* spellInfo) override
+        {
+            if (spellInfo->Id != Spells::DestroyingStabilizer)
+                return;
+
+            caster->CastSpell(me, Spells::StabilizerFelExplosion, true);
+            me->DespawnOrUnsummon(1s);
+
+            Player* player = caster->ToPlayer();
+            if (!player)
+                return;
+
+            player->KilledMonsterCredit(Creatures::DoomFortressStabilizer);
+
+            if (!player->IsQuestObjectiveComplete(Quests::TheirNumbersAreLegion, Objectives::FirstStabilizerDestroyed))
+            {
+                player->KilledMonsterCredit(Creatures::FirstStabilizerKillCredit);
+                Conversation::CreateConversation(Conversations::DoomFortressStabilizer, player, *player, player->GetGUID());
+            }
+        }
+    };
 }
 
 void AddSC_custom_mardum_npcs()
@@ -860,4 +888,5 @@ void AddSC_custom_mardum_npcs()
     RegisterCreatureAI(npc_legion_devastator);
     RegisterCreatureAI(npc_king_voras);
     RegisterCreatureAI(npc_illidari_banner_trigger);
+    RegisterCreatureAI(npc_doom_fortress_stabilizer);
 }

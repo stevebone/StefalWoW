@@ -24,8 +24,10 @@
 #include "Creature.h"
 #include "GameObject.h"
 #include "GameObjectAI.h"
+#include "ObjectAccessor.h"
 #include "Player.h"
 #include "ScriptMgr.h"
+#include "TaskScheduler.h"
 
 #include "Custom_Mardum_Defines.h"
 
@@ -146,6 +148,78 @@ namespace Scripts::Custom::Mardum
             }
         }
     };
+
+    /*######
+    ## 245995 Spire Stabilizer ("Their Numbers Are Legion" 38819)
+    ## On spawn/respawn: every Spire of Woe Fire (101318) in range channels
+    ## 199707 Fel Beam onto the nearest Spire of Woe Bunny (101320).
+    ## On use: the fire npcs and bunny despawn, the stabilizer follows 1s later.
+    ######*/
+
+    struct go_spire_stabilizer : public GameObjectAI
+    {
+        go_spire_stabilizer(GameObject* go) : GameObjectAI(go) { }
+
+        void Reset() override
+        {
+            _used = false;
+            _fireGuids.clear();
+            _bunnyGuid.Clear();
+
+            // Deferred one tick: Reset runs before AddToMap, and at initial
+            // spawn the creatures may not be loaded in the grid yet.
+            _scheduler.Schedule(1s, [this](TaskContext const& /*context*/)
+            {
+                SetupBeams();
+            });
+        }
+
+        bool OnReportUse(Player* /*player*/) override
+        {
+            if (_used)
+                return true;
+
+            _used = true;
+
+            for (ObjectGuid const& fireGuid : _fireGuids)
+                if (Creature* fire = ObjectAccessor::GetCreature(*me, fireGuid))
+                    fire->DespawnOrUnsummon();
+
+            if (Creature* bunny = ObjectAccessor::GetCreature(*me, _bunnyGuid))
+                bunny->DespawnOrUnsummon();
+
+            me->DespawnOrUnsummon(7200s, 1s);
+            return false;
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _scheduler.Update(diff);
+        }
+
+    private:
+        bool _used = false;
+        std::vector<ObjectGuid> _fireGuids;
+        ObjectGuid _bunnyGuid;
+        TaskScheduler _scheduler;
+
+        void SetupBeams()
+        {
+            Creature* bunny = me->FindNearestCreature(Creatures::SpireOfWoeBunny, Misc::SearchRange);
+            if (!bunny)
+                return;
+
+            _bunnyGuid = bunny->GetGUID();
+
+            std::list<Creature*> fires;
+            me->GetCreatureListWithEntryInGrid(fires, Creatures::SpireOfWoeFire, Misc::SearchRange);
+            for (Creature* fire : fires)
+            {
+                _fireGuids.push_back(fire->GetGUID());
+                fire->CastSpell(bunny, Spells::SpireOfWoeFelBeam, true);
+            }
+        }
+    };
 }
 
 void AddSC_custom_mardum_objects()
@@ -154,4 +228,5 @@ void AddSC_custom_mardum_objects()
 
     RegisterGameObjectAI(go_legion_communicator);
     RegisterGameObjectAI(go_mardum_illidari_banner);
+    RegisterGameObjectAI(go_spire_stabilizer);
 }

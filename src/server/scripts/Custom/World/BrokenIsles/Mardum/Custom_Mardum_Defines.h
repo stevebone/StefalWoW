@@ -55,6 +55,11 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 BannerKillCreditDoomFortress      = 96734;
         static constexpr uint32 BannerKillCreditForgeOfCorruption = 96733;
         static constexpr uint32 BannerKillCreditSoulEngine        = 96692;
+        // "Their Numbers Are Legion" (38819)
+        static constexpr uint32 DoomFortressStabilizer     = 101947;
+        static constexpr uint32 FirstStabilizerKillCredit  = 97409;
+        static constexpr uint32 SpireOfWoeFire             = 101318;
+        static constexpr uint32 SpireOfWoeBunny            = 101320;
     }
 
     namespace Maps
@@ -75,6 +80,7 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 BannerDoomFortress      = 243968;
         static constexpr uint32 BannerForgeOfCorruption = 243967;
         static constexpr uint32 BannerSoulEngine        = 243965;
+        static constexpr uint32 SpireStabilizer         = 245995;
     }
 
     namespace Scenes
@@ -105,6 +111,7 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 LegionCommunicator2       = 281334; // quest 39279
         static constexpr uint32 SoulSacrificed            = 280770; // quest 40379
         static constexpr uint32 CoilskarForces            = 280771; // quest 40379
+        static constexpr uint32 FirstStabilizerDestroyed  = 280006; // quest 38819
     }
 
     namespace Spells
@@ -126,6 +133,9 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 AcidSpit               = 198163;
         static constexpr uint32 StopBombardmentDevastator = 191454;
         static constexpr uint32 StopBombardmentKnockback  = 198908;
+        static constexpr uint32 DestroyingStabilizer      = 201112;
+        static constexpr uint32 StabilizerFelExplosion    = 202948;
+        static constexpr uint32 SpireOfWoeFelBeam         = 199707;
     }
 
     namespace Conversations
@@ -137,6 +147,7 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 FelBombardments            = 747;
         static constexpr uint32 IllidariFoothold           = 569;
         static constexpr uint32 KingVorasDeath             = 567;
+        static constexpr uint32 DoomFortressStabilizer     = 573;
     }
 
     namespace CreatureText

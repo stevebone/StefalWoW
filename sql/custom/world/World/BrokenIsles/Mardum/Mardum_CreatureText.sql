@@ -1,9 +1,17 @@
 -- Mardum Creature Text
 DELETE FROM `creature_text` WHERE `creatureID` IN (98484,98486,98497,98460,95226,93112,96884,93759,94654,93221,95048,93716,97034,96494,102726,96499,
-102724,97706,97059);
+102724,97706,97059,96402,96277);
 DELETE FROM `creature_text` WHERE `creatureID` IN (98229) AND `GroupID` IN (2,3);
 DELETE FROM `creature_text` WHERE `creatureID` IN (93127) AND `GroupID` IN (2);
 INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `BroadcastTextId`, `TextRange`, `comment`) VALUES
+(96402, 0, 0, 'Pitiful.', 12, 0, 100, 0, 0, 55324, 97904, 0, 'Hulking Forgefiend to Player'),
+(96402, 0, 1, 'Die in glorious battle!', 12, 0, 100, 0, 0, 55330, 97905, 0, 'Hulking Forgefiend to Player'),
+(96402, 0, 2, 'Taste my blade.', 12, 0, 100, 0, 0, 55327, 97902, 0, 'Hulking Forgefiend to Player'),
+(96402, 0, 3, 'Death comes soon.', 12, 0, 100, 0, 0, 55332, 97901, 0, 'Hulking Forgefiend to Player'),
+(96402, 0, 4, 'Hunt this.', 12, 0, 100, 0, 0, 55328, 97903, 0, 'Hulking Forgefiend to Player'),
+(96402, 0, 5, 'For Tyranna!', 12, 0, 100, 0, 0, 55329, 97906, 0, 'Hulking Forgefiend to Player'),
+(96402, 0, 6, 'I''m going to destroy you, little demon hunter.', 12, 0, 100, 0, 0, 55325, 97907, 0, 'Hulking Forgefiend to Player'),
+
 (97059, 0, 0, 'Want your little, broken draenei back?', 12, 0, 100, 0, 0, 55281, 99173, 0, 'King Voras to Player'),
 (97059, 1, 0, 'My queen''s brood will hatch soon.', 14, 0, 100, 0, 0, 55283, 103500, 0, 'King Voras to Player'),
 (97059, 2, 0, '|TInterface\Icons\inv_misc_monsterspidercarapace_01:20|tNearby |cFFFF0000|Hspell:198235|h[Spider Eggs]|h|r will hatch soon if not destroyed!.', 41, 0, 100, 0, 0, 0, 103110, 0, 'King Voras to Player'),
@@ -63,6 +71,15 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Lan
 (93112, 0, 5, 'The fel you wield will not be enough.', 12, 0, 100, 0, 0, 55190, 96661, 0, 'Felguard Sentry to Demon Hunter'),
 (93112, 0, 6, 'For Brood Queen Tyranna. For the Legion!', 12, 0, 100, 0, 0, 55193, 96664, 0, 'Felguard Sentry to Demon Hunter'),
 (93112, 0, 7, 'You dare attack us here?!', 12, 0, 100, 0, 0, 55191, 96662, 0, 'Felguard Sentry to Demon Hunter'),
+
+(96277, 0, 0, 'For the Legion!', 12, 0, 100, 0, 0, 55192, 96663, 0, 'Queen''s Centurion to Player'),
+(96277, 0, 1, 'Demon hunters? How did you get here?', 12, 0, 100, 0, 0, 55187, 94934, 0, 'Queen''s Centurion to Player'),
+(96277, 0, 2, 'Die, Illidari fool.', 12, 0, 100, 0, 0, 55189, 94936, 0, 'Queen''s Centurion to Player'),
+(96277, 0, 3, 'I''ll rend you limb from limb.', 12, 0, 100, 0, 0, 55188, 94935, 0, 'Queen''s Centurion to Demon Hunter'),
+(96277, 0, 4, 'Invaders. Warn the Brood Queen!', 12, 0, 100, 0, 0, 55186, 94932, 0, 'Queen''s Centurion to Demon Hunter'),
+(96277, 0, 5, 'The fel you wield will not be enough.', 12, 0, 100, 0, 0, 55190, 96661, 0, 'Queen''s Centurion to Demon Hunter'),
+(96277, 0, 6, 'For Brood Queen Tyranna. For the Legion!', 12, 0, 100, 0, 0, 55193, 96664, 0, 'Queen''s Centurion to Demon Hunter'),
+(96277, 0, 7, 'You dare attack us here?!', 12, 0, 100, 0, 0, 55191, 96662, 0, 'Queen''s Centurion to Demon Hunter'),
 
 (96494, 0, 0, 'For the Legion!', 12, 0, 100, 0, 0, 55192, 96663, 0, 'Felguard Butcher to Player'),
 (96494, 0, 1, 'Demon hunters? How did you get here?', 12, 0, 100, 0, 0, 55187, 94934, 0, 'Felguard Butcher to Player'),
