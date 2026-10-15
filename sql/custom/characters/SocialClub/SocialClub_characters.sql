@@ -6,8 +6,15 @@
 -- `club_finder_post` / `club_finder_applicant` (incompatible schema, dropped).
 -- ============================================================================
 
--- Guild flag field (GUILD_FLAG_RENAME etc.)
-ALTER TABLE `guild` ADD `flags` INT(11) NOT NULL DEFAULT 0 AFTER `leaderguid`;
+-- Guild flag field (GUILD_FLAG_RENAME etc.) - idempotent add
+SET @guildFlagsAddSql := (SELECT IF(COUNT(*) = 0,
+    'ALTER TABLE `guild` ADD `flags` INT(11) NOT NULL DEFAULT 0 AFTER `leaderguid`',
+    'SELECT 1')
+FROM `information_schema`.`COLUMNS`
+WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = 'guild' AND `COLUMN_NAME` = 'flags');
+PREPARE guildFlagsAddStmt FROM @guildFlagsAddSql;
+EXECUTE guildFlagsAddStmt;
+DEALLOCATE PREPARE guildFlagsAddStmt;
 
 -- ---------------------------------------------------------------------------
 -- Club Finder (guild recruitment)
