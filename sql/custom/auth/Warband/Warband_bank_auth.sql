@@ -29,6 +29,32 @@ CREATE TABLE IF NOT EXISTS `account_bank_coinage` (
   PRIMARY KEY (`battlenetAccountId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- ensure legacy source tables exist so the migration below is a no-op on
+-- schemas that never had the per-realm bank (fresh installs, re-runs)
+CREATE TABLE IF NOT EXISTS `characters`.`account_bank_tab_settings` (
+  `battlenetAccountId` int unsigned NOT NULL,
+  `tabId` tinyint unsigned NOT NULL,
+  `name` varchar(16) NOT NULL DEFAULT '',
+  `icon` varchar(64) NOT NULL DEFAULT '',
+  `description` varchar(2048) NOT NULL DEFAULT '',
+  `depositFlags` int NOT NULL DEFAULT '0',
+  PRIMARY KEY (`battlenetAccountId`, `tabId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `characters`.`account_bank_item` (
+  `battlenetAccountId` int unsigned NOT NULL,
+  `bag` tinyint unsigned NOT NULL,
+  `slot` tinyint unsigned NOT NULL,
+  `item` bigint unsigned NOT NULL,
+  PRIMARY KEY (`battlenetAccountId`, `bag`, `slot`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `characters`.`account_bank_coinage` (
+  `battlenetAccountId` int unsigned NOT NULL,
+  `coinage` bigint unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`battlenetAccountId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- migrate existing per-realm bank data before dropping the old tables - the item
 -- rows stay in this realm's characters database, so sourceRealm = this realm's id
 -- (edit the schema name / realm id if this is not `characters` / realm 1)
