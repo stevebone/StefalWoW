@@ -233,6 +233,7 @@ public:
     std::vector<Room const*> GetRooms() const;
     Room const* GetRoom(ObjectGuid roomGuid) const;
     ObjectGuid GetBaseRoomGuid() const { return FindBaseRoomGuid(); }
+    ObjectGuid GetEntryHallRoomGuid() const { return FindEntryHallRoomGuid(); }
     uint32 GetNextRoomSlotIndex() const;
     // Blueprint imports: drop every room but the base room (their decor must already be removed).
     void RemoveAllNonBaseRooms();
@@ -388,6 +389,9 @@ private:
 
     // Room connectivity helpers
     ObjectGuid FindBaseRoomGuid() const;
+    // The interior entry hall: the room whose RoomEntryId is the mgr's entry-hall entry (unlike
+    // FindBaseRoomGuid, which matches the exterior geobox entry as well).
+    ObjectGuid FindEntryHallRoomGuid() const;
     bool IsRoomGraphConnectedWithout(ObjectGuid excludeRoomGuid) const;
     bool IsRoomGraphConnectedWithout(std::unordered_set<ObjectGuid> const& excludeRoomGuids) const;
     // Room budget cost at this spot: the upper half of a stairwell is free, the stairwell was paid for once.

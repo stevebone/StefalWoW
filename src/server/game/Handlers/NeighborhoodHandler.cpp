@@ -22,6 +22,7 @@
 #include "Guild.h"
 #include "GuildMgr.h"
 #include "Housing.h"
+#include "HouseInteriorMap.h"
 #include "HousingDefines.h"
 #include "HousingMap.h"
 #include "HousingMgr.h"
@@ -31,6 +32,7 @@
 #include "HousingRoomEntity.h"
 #include "InitiativeManager.h"
 #include "Log.h"
+#include "MapManager.h"
 #include "Neighborhood.h"
 #include "NeighborhoodCharter.h"
 #include "NeighborhoodMgr.h"
@@ -1160,6 +1162,18 @@ void WorldSession::HandleNeighborhoodBuyHouse(WorldPackets::Neighborhood::Neighb
             }
             // No auto-placement; the set stays in storage for the player to place.
         }
+
+        // Form the interior at purchase: create the interior instance and spawn the whole
+        // layout immediately, so the first entry walks into an already-built house. An idle formed
+        // instance unloads on the standard empty-instance delay and re-forms on the next entry.
+        // (Starter decor was already placed by Housing::Create inside CreateHousing.)
+        if (housing)
+            if (Map* interiorMap = sMapMgr->CreateMap(HOUSE_INTERIOR_MAP_ID, player))
+                if (HouseInteriorMap* houseInterior = dynamic_cast<HouseInteriorMap*>(interiorMap))
+                {
+                    houseInterior->FormOwnerLayout(player);
+                    houseInterior->ScheduleUnloadWhenEmpty();
+                }
 
         // 1b. No FirstTimeDecorAcquisition - it would double-count the chest UI and dupe the starter set via REDEEM.
         // 2. Build buy response with HouseInfo

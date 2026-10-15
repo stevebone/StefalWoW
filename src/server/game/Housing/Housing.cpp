@@ -2354,6 +2354,16 @@ ObjectGuid Housing::FindBaseRoomGuid() const
     return ObjectGuid::Empty;
 }
 
+ObjectGuid Housing::FindEntryHallRoomGuid() const
+{
+    uint32 const entryHallEntry = sHousingMgr.GetEntryHallRoomEntryId();
+    for (auto const& [guid, room] : _rooms)
+        if (room.RoomEntryId == entryHallEntry)
+            return guid;
+
+    return ObjectGuid::Empty;
+}
+
 bool Housing::IsRoomGraphConnectedWithout(ObjectGuid excludeRoomGuid) const
 {
     // A stairwell half is excluded together with its partner (a pair rises and falls as one).
@@ -3425,13 +3435,7 @@ Housing::PlacedDecor const* Housing::EnsureStarterDoorPlaced()
     uint32 const doorDecorId = GetNeighborhoodFaction() == NEIGHBORHOOD_FACTION_HORDE
         ? STARTER_DOOR_DECOR_ID_HORDE : STARTER_DOOR_DECOR_ID_ALLIANCE;
 
-    Room const* entryRoom = nullptr;
-    for (auto const& [guid, room] : _rooms)
-        if (room.SlotIndex == 0)
-        {
-            entryRoom = &room;
-            break;
-        }
+    Room const* entryRoom = GetRoom(GetEntryHallRoomGuid());
 
     NeighborhoodMapData const* interior = sHousingMgr.GetNeighborhoodMapDataForWorldMap(HOUSE_INTERIOR_MAP_ID);
     if (!entryRoom || !interior)
@@ -4014,13 +4018,7 @@ void Housing::PopulateStarterDecor()
     if (STARTER_DECOR_SET.empty())
         return;
 
-    Room const* entryRoom = nullptr;
-    for (auto const& [guid, room] : _rooms)
-        if (room.SlotIndex == 0)
-        {
-            entryRoom = &room;
-            break;
-        }
+    Room const* entryRoom = GetRoom(GetEntryHallRoomGuid());
 
     NeighborhoodMapData const* interior = sHousingMgr.GetNeighborhoodMapDataForWorldMap(HOUSE_INTERIOR_MAP_ID);
     if (!entryRoom || !interior)
