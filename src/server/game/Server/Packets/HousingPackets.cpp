@@ -87,7 +87,7 @@ void HousingDecorLock::Read()
     _worldPacket >> Bits<1>(Field_49);
 }
 
-void HousingDecorSetPet::Read()
+void HousingDecorSetBattlePet::Read()
 {
     _worldPacket >> DecorGuid;
     _worldPacket >> PetGuid;
