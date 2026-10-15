@@ -192,10 +192,10 @@ namespace WorldPackets::Housing
     };
 
     // Empty PetGuid clears the binding.
-    class HousingDecorSetPet final : public ClientPacket
+    class HousingDecorSetBattlePet final : public ClientPacket
     {
     public:
-        explicit HousingDecorSetPet(WorldPacket&& packet) : ClientPacket(CMSG_HOUSING_DECOR_SET_PET, std::move(packet)) { }
+        explicit HousingDecorSetBattlePet(WorldPacket&& packet) : ClientPacket(CMSG_HOUSING_DECOR_SET_BATTLE_PET, std::move(packet)) { }
 
         void Read() override;
 
