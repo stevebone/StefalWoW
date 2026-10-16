@@ -936,7 +936,8 @@ static constexpr uint8 HOUSE_DECOR_MODEL_TYPE_WMO = 2; // HouseDecor.ModelType: 
 static constexpr uint32 STARTER_DOOR_DECOR_ID_ALLIANCE = 9144;   // Founders' Front Door (GO 575017)
 static constexpr uint32 STARTER_DOOR_DECOR_ID_HORDE    = 10952;  // Thornwind Front Door (GO 587318)
 
-// Both starter doors are granted to every house; the placed one anchors the interior entry point.
+// The faction-matching door is placed into the entry hall by STARTER_DECOR_SET (they are excluded
+// from the StartingQuantity grant); the placed one anchors the interior entry point.
 inline bool IsStarterDoorDecor(uint32 decorEntryId)
 {
     return decorEntryId == STARTER_DOOR_DECOR_ID_ALLIANCE || decorEntryId == STARTER_DOOR_DECOR_ID_HORDE;
@@ -957,7 +958,7 @@ struct StarterDecorPlacement
 
 // Bump the size when adding pieces, e.g.:
 // Starter decor can be added for specific faction or NEIGHBORHOOD_FACTION_NONE
-inline constexpr std::array<StarterDecorPlacement, 8> STARTER_DECOR_SET{ {
+inline constexpr std::array<StarterDecorPlacement, 10> STARTER_DECOR_SET{ {
     { 1435,   NEIGHBORHOOD_FACTION_ALLIANCE,  9.914f, -9.62f,  0.0201f, 1.5708f }, // fireplace
     { 81,   NEIGHBORHOOD_FACTION_HORDE,     9.914f, -9.62f,  0.0201f, 1.5708f }, // fireplace
     { 1994,  NEIGHBORHOOD_FACTION_ALLIANCE,     4.751f,  6.587f, 0.0625f, 0.0f    }, // crates/boxes
@@ -966,6 +967,8 @@ inline constexpr std::array<StarterDecorPlacement, 8> STARTER_DECOR_SET{ {
     { 1700,  NEIGHBORHOOD_FACTION_HORDE, 26.48f,   7.191f, 1.7901f, 3.1444f }, // window
     { 388,  NEIGHBORHOOD_FACTION_ALLIANCE, 26.438f, -7.02f,  3.1126f, 3.1388f }, // painting
     { 769,  NEIGHBORHOOD_FACTION_HORDE, 26.438f, -7.02f,  3.1126f, 3.1388f }, // painting
+    { 9144,  NEIGHBORHOOD_FACTION_ALLIANCE, -2.07f,  0.322f, 0.02f,   0.0f    }, // front door
+    { 10952, NEIGHBORHOOD_FACTION_HORDE,   -2.07f,  0.322f, 0.02f,   0.0f    }, // front door
 } };
 
 // Housing blueprints: enum values are the client's; limits are the Constants.HousingConsts values.

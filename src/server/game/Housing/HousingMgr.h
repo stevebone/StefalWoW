@@ -365,7 +365,8 @@ public:
     // Find the first HouseRoom entry with visual components (not the base room 18)
     uint32 GetDefaultVisualRoomEntry() const;
 
-    // Starter decor (items granted on first purchase): every StartingQuantity > 0 row, no faction filter.
+    // Starter decor (items granted on first purchase): every StartingQuantity > 0 row, no faction
+    // filter, minus the starter doors - those are placed by STARTER_DECOR_SET, not stocked.
     std::vector<std::pair<uint32, int32>> GetStarterDecorWithQuantities(uint32 teamId) const;
 
     // Checks if a visitor can access a plot/house per the owner's settings; works with the owner offline.

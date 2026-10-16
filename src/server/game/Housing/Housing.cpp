@@ -3420,63 +3420,6 @@ void Housing::SyncUpdateFields()
     );
 }
 
-Housing::PlacedDecor const* Housing::EnsureStarterDoorPlaced()
-{
-    for (auto const& [decorGuid, decor] : _placedDecor)
-        if (IsStarterDoorDecor(decor.DecorEntryId))
-            return nullptr;
-
-    // The owner withdrew the door to storage on purpose - a relog must not re-place it
-    // (the withdrawn copy stayed in storage while a second door spawned at the default wall: a dupe).
-    for (auto const& [entryId, entry] : _catalog)
-        if (IsStarterDoorDecor(entryId))
-            return nullptr;
-
-    uint32 const doorDecorId = GetNeighborhoodFaction() == NEIGHBORHOOD_FACTION_HORDE
-        ? STARTER_DOOR_DECOR_ID_HORDE : STARTER_DOOR_DECOR_ID_ALLIANCE;
-
-    Room const* entryRoom = GetRoom(GetEntryHallRoomGuid());
-
-    NeighborhoodMapData const* interior = sHousingMgr.GetNeighborhoodMapDataForWorldMap(HOUSE_INTERIOR_MAP_ID);
-    if (!entryRoom || !interior)
-    {
-        TC_LOG_ERROR("housing", "StarterDoor: entry hall or interior data missing for house {} (entryRoom={})",
-            _houseGuid.ToString(), entryRoom ? "yes" : "no");
-        return nullptr;
-    }
-
-    // Default spot: the entry hall's door wall, in the room's current frame.
-    constexpr float QUARTER_TURN = 1.57079632679f;
-    Position const roomPos(interior->Origin[0] + float(entryRoom->GridX), interior->Origin[1] + float(entryRoom->GridY),
-        interior->Origin[2] + float(entryRoom->FloorIndex) * HOUSE_INTERIOR_FLOOR_HEIGHT,
-        float(entryRoom->Orientation) * QUARTER_TURN);
-    float const cosY = std::cos(roomPos.GetOrientation());
-    float const sinY = std::sin(roomPos.GetOrientation());
-    float const wx = roomPos.GetPositionX() + cosY * -2.52f - sinY * 0.006f;
-    float const wy = roomPos.GetPositionY() + sinY * -2.52f + cosY * 0.006f;
-    float const wz = roomPos.GetPositionZ() + 0.02f;
-
-    // A granted copy PlaceDecor can consume; on failure the grant never happened.
-    CatalogEntry& grant = _catalog[doorDecorId];
-    grant.DecorEntryId = doorDecorId;
-    grant.Count = 1;
-    grant.SourceType = DECOR_SOURCE_DEFERRED; // mirrors the loader's starter catalog fixup
-
-    if (PlaceDecor(doorDecorId, wx, wy, wz, 0.0f, 0.0f, 0.0f, 1.0f, entryRoom->Guid) != HOUSING_RESULT_SUCCESS)
-    {
-        _catalog.erase(doorDecorId);
-        TC_LOG_ERROR("housing", "StarterDoor: failed to place decor {} for house {}",
-            doorDecorId, _houseGuid.ToString());
-        return nullptr;
-    }
-
-    for (auto const& [decorGuid, decor] : _placedDecor)
-        if (decor.DecorEntryId == doorDecorId)
-            return &decor;
-
-    return nullptr;
-}
-
 Position Housing::ComputeInteriorEntryPosition(PlacedDecor const& decor, std::vector<Room const*> const& rooms)
 {
     // Arrive inside the room the door hangs on, facing away from it: a turned door

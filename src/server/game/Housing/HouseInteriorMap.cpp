@@ -1791,30 +1791,8 @@ bool HouseInteriorMap::AddPlayerToMap(Player* player, bool initPlayer /*= true*/
 
                     // No plot AreaTrigger, plot-enter auras or CurrentHouse inside the house.
 
-                    // Starter door: houses from before the door grant get one placed into the entry
-                    // hall once. It is normal placed decor from here on - the owner can move or
-                    // withdraw it freely, and the interior entry point (GetEntryPosition) anchors
-                    // to its live position.
-                    {
-                        Housing* ownerHousing = p->GetHousingByOwner(_owner);
-                        if (!ownerHousing)
-                            if (Player* ownerPlayer = ObjectAccessor::FindPlayer(_owner))
-                                ownerHousing = ownerPlayer->GetHousingByOwner(_owner);
-
-                        if (!ownerHousing)
-                            TC_LOG_WARN("housing", "StarterDoor: owner housing unavailable (owner offline?) for {}",
-                                playerGuid.ToString());
-                        else if (Housing::PlacedDecor const* placedDoor = ownerHousing->EnsureStarterDoorPlaced())
-                        {
-                            // Spawn the just-placed door for this session (decor rows spawn on next load).
-                            SpawnSingleInteriorDecor(*placedDoor, ownerHousing->GetHouseGuid());
-                            TC_LOG_INFO("housing", "StarterDoor: placed starter door decor {} into entry hall for {}",
-                                placedDoor->DecorEntryId, playerGuid.ToString());
-                        }
-                    }
-
                     TC_LOG_ERROR("housing", "HouseInteriorMap deferred: Complete — "
-                        "HouseInfo+Status+Perms+Auras+Account+Initiative+PlotAT+ENTER_PLOT+Door for {}",
+                        "HouseInfo+Status+Perms+Auras+Account+Initiative+PlotAT+ENTER_PLOT for {}",
                         playerGuid.ToString());
                 }, Milliseconds(500));
             }

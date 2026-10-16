@@ -370,9 +370,6 @@ public:
     bool IsStoragePopulated() const { return _storagePopulated; }
     void ResetStoragePopulated() { _storagePopulated = false; }
 
-    // Houses from before the door grant get the front door placed into the entry hall once;
-    // a door already placed or withdrawn to storage is never re-placed. Returns the placed row.
-    PlacedDecor const* EnsureStarterDoorPlaced();
     // Interior arrival point: anchored to the placed front door, entry hall origin without one.
     Position GetInteriorEntryPosition() const;
     // Same arrival math over caller-supplied rooms; serves visitors to an offline owner

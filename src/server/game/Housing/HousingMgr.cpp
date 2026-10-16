@@ -751,10 +751,11 @@ uint32 HousingMgr::GetRoomWeightCost(uint32 roomEntryId) const
 std::vector<std::pair<uint32, int32>> HousingMgr::GetStarterDecorWithQuantities(uint32 /*teamId*/) const
 {
     // No faction filter: the client credits StartingQuantity for every SQ > 0 row regardless of faction; teamId selects nothing.
+    // Starter doors are skipped - they are placed into the entry hall by STARTER_DECOR_SET, not stocked in the chest.
     std::vector<std::pair<uint32, int32>> result;
     for (auto const& [id, decor] : _houseDecorStore)
     {
-        if (decor.StartingQuantity <= 0)
+        if (decor.StartingQuantity <= 0 || IsStarterDoorDecor(id))
             continue;
 
         result.push_back({ id, decor.StartingQuantity });
