@@ -182,6 +182,8 @@ bool CollectionMgr::AddToy(uint32 itemId, bool isFavourite, bool hasFanfare)
     if (UpdateAccountToys(itemId, isFavourite, hasFanfare))
     {
         _owner->GetPlayer()->AddToy(itemId, GetToyFlags(isFavourite, hasFanfare).AsUnderlyingType());
+        _owner->GetPlayer()->UpdateCriteria(CriteriaType::LearnToy, itemId);
+        _owner->GetPlayer()->UpdateCriteria(CriteriaType::LearnAnyToy, 1);
         return true;
     }
 
@@ -828,6 +830,7 @@ void CollectionMgr::AddItemAppearance(ItemModifiedAppearanceEntry const* itemMod
     }
 
     owner->UpdateCriteria(CriteriaType::LearnAnyTransmog, 1);
+    owner->UpdateCriteria(CriteriaType::LearnTransmog, itemModifiedAppearance->ID);
 
     if (ItemEntry const* item = sItemStore.LookupEntry(itemModifiedAppearance->ItemID))
     {
