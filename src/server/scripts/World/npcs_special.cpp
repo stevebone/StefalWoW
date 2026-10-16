@@ -2116,9 +2116,26 @@ enum ChromieTimewalkingGossip
     GOSSIP_OPTION_CHROMIE_RETURN_TO_PRESENT = 51903 // "I'd like to return to the present timeline, Chromie." (capture A rec 4675)
 };
 
+enum ChromieQuests
+{
+    NPC_QUEST50305_CREDIT = 167032,
+    QUEST_STRANGER_IN_A_STRANGE_LAND = 50305
+};
+
 struct npc_chromie_timewalking : public ScriptedAI
 {
     npc_chromie_timewalking(Creature* creature) : ScriptedAI(creature) { }
+
+    bool OnGossipHello(Player* player) override
+    {
+        if (player->GetQuestStatus(QUEST_STRANGER_IN_A_STRANGE_LAND) == QUEST_STATUS_INCOMPLETE)
+        {
+            player->KilledMonsterCredit(NPC_QUEST50305_CREDIT);
+            player->TalkedToCreature(me->GetEntry(), me->GetGUID());
+        }
+
+        return false;
+    }
 
     bool OnGossipSelect(Player* player, uint32 /*menuId*/, uint32 gossipListId) override
     {
