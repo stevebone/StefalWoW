@@ -693,6 +693,7 @@ void CriteriaHandler::UpdateCriteria(Criteria const* criteria, uint64 miscValue1
             SetCriteriaProgress(criteria, miscValue1, referencePlayer);
             break;
         case CriteriaType::EarnAchievement:
+        case CriteriaType::EarnTitle:
         case CriteriaType::CompleteQuest:
         case CriteriaType::LearnOrKnowSpell:
         case CriteriaType::RevealWorldMapOverlay:
@@ -847,7 +848,6 @@ void CriteriaHandler::UpdateCriteria(Criteria const* criteria, uint64 miscValue1
         // FIXME: not triggered in code as result, need to implement
         case CriteriaType::RunInstance:
         case CriteriaType::EarnTeamArenaRating:
-        case CriteriaType::EarnTitle:
         case CriteriaType::MoneySpentOnGuildRepair:
         case CriteriaType::CreatedItemsByCastingSpell:
         case CriteriaType::FishInAnyPool:
@@ -1305,6 +1305,7 @@ bool CriteriaHandler::IsCompletedCriteria(Criteria const* criteria, uint64 requi
         case CriteriaType::ExhaustAnyResearchSite:
             return progress->Counter >= requiredAmount;
         case CriteriaType::EarnAchievement:
+        case CriteriaType::EarnTitle:
         case CriteriaType::CompleteQuest:
         case CriteriaType::LearnOrKnowSpell:
         case CriteriaType::RevealWorldMapOverlay:
@@ -1495,6 +1496,10 @@ bool CriteriaHandler::RequirementsSatisfied(Criteria const* criteria, uint64 mis
             break;
         case CriteriaType::EarnAchievement:
             if (!RequiredAchievementSatisfied(criteria->Entry->Asset.AchievementID))
+                return false;
+            break;
+        case CriteriaType::EarnTitle:
+            if (!referencePlayer->HasTitle(uint32(criteria->Entry->Asset.ID)))
                 return false;
             break;
         case CriteriaType::WinBattleground:
@@ -4629,6 +4634,7 @@ inline bool IsCriteriaTypeStoredByAsset(CriteriaType type)
         case CriteriaType::CompleteResearchProject:
         case CriteriaType::SkillRaised:
         case CriteriaType::EarnAchievement:
+        case CriteriaType::EarnTitle:
         case CriteriaType::CompleteQuestsInZone:
         case CriteriaType::ParticipateInBattleground:
         case CriteriaType::KilledByCreature:
@@ -5044,7 +5050,7 @@ std::span<CriteriaType const> CriteriaMgr::GetRetroactivelyUpdateableCriteriaTyp
         CriteriaType::EarnPersonalArenaRating,
         CriteriaType::AchieveSkillStep,
         CriteriaType::RevealWorldMapOverlay,
-        //CriteriaType::EarnTitle,  /*NYI*/
+        CriteriaType::EarnTitle,
         CriteriaType::BankSlotsPurchased,
         CriteriaType::ReputationGained,
         CriteriaType::TotalExaltedFactions,

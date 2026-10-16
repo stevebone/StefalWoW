@@ -590,7 +590,7 @@ enum class CriteriaType : int16
     UseItem                                        = 41,  // Use item "{Item}"
     LootItem                                       = 42,  // Loot "{Item}" via corpse, pickpocket, fishing, disenchanting, etc.
     RevealWorldMapOverlay                          = 43,  // Reveal world map overlay "{WorldMapOverlay}"
-    EarnTitle                                      = 44,  /*NYI*/ // Deprecated PVP Titles
+    EarnTitle                                      = 44,  // Earn character title "{CharTitles}" (classic PvP honor ranks)
     BankSlotsPurchased                             = 45,  // Bank slots purchased
     ReputationGained                               = 46,  // Reputation gained with faction "{Faction}"
     TotalExaltedFactions                           = 47,  // Total exalted factions

@@ -26721,6 +26721,15 @@ void Player::SendInitialPacketsAfterAddToMap()
     // StefalWoW
 
     GetSceneMgr().TriggerDelayedScenes();
+
+    // A vehicle mount re-applied while loading (Unit::Mount before the player is in a map) defers its accessories
+    // to the client's ack, but the SMSG_MOVE_SET_VEHICLE_REC_ID sent then, before the client was in the world, is
+    // never acked: send it again now, so the ack (WorldSession::HandleMoveSetVehicleRecAck) installs them.
+    if (Vehicle* vehicle = GetVehicleKit())
+    {
+        if (vehicle->AccessoriesAwaitClientAck())
+            SendSetVehicleRecId(vehicle->GetVehicleInfo()->ID);
+    }
 }
 
 void Player::SendUpdateToOutOfRangeGroupMembers()
@@ -28644,6 +28653,8 @@ void Player::SetTitle(CharTitlesEntry const* title, bool lost)
             return;
 
         SetUpdateFieldFlagValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::KnownTitles, fieldIndexOffset), flag);
+
+        UpdateCriteria(CriteriaType::EarnTitle, title->MaskID);
     }
 
     WorldPackets::Character::TitleEarned packet(lost ? SMSG_TITLE_LOST : SMSG_TITLE_EARNED);
