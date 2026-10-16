@@ -1,9 +1,42 @@
 -- Mardum Creature Text
 DELETE FROM `creature_text` WHERE `creatureID` IN (98484,98486,98497,98460,95226,93112,96884,93759,94654,93221,95048,93716,97034,96494,102726,96499,
-102724,97706,97059,96402,96277,97057,102923,96888);
+102724,97706,97059,96402,96277,97057,102923,96888,100549,100545,100543,96279,96280,97058);
 DELETE FROM `creature_text` WHERE `creatureID` IN (98229) AND `GroupID` IN (2,3);
 DELETE FROM `creature_text` WHERE `creatureID` IN (93127) AND `GroupID` IN (2);
 INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `BroadcastTextId`, `TextRange`, `comment`) VALUES
+(97058, 0, 0, 'Oh good, another soul for my engine.', 12, 0, 100, 0, 0, 55086, 99575, 0, 'Count Nefarious to Player'),
+(97058, 0, 1, 'My swarm will feast on your soul!', 14, 0, 100, 0, 0, 55088, 103510, 0, 'Count Nefarious to Player'),
+(97058, 0, 2, '|TInterface\Icons\spell_shadow_carrionswarm:20|t%s begins to cast |cFFFF0000|Hspell:198947|h[Carrion Storm]|h|r!', 41, 0, 100, 0, 0, 0, 103413, 0, 'Count Nefarious to Player'),
+
+(96280, 0, 0, 'Help! Baddies here!', 12, 0, 100, 0, 0, 55204, 96655, 0, 'Demon Hunter to Player'),
+(96280, 0, 1, 'Another morsel has come to say, hello.', 12, 0, 100, 0, 0, 55203, 96654, 0, 'Demon Hunter to Player'),
+(96280, 0, 2, 'We''ll feast on your flesh and devour your soul.', 12, 0, 100, 0, 0, 55205, 96656, 0, 'Demon Hunter to Player'),
+(96280, 0, 3, 'Hey! You''re not supposed to be here.', 12, 0, 100, 0, 0, 55206, 96657, 0, 'Demon Hunter to Player'),
+(96280, 0, 4, 'Tasty meats for me to eats.', 12, 0, 100, 0, 0, 55207, 96658, 0, 'Demon Hunter to Player'),
+(96280, 0, 5, 'Warn the Brood Queen!', 12, 0, 100, 0, 0, 55208, 96659, 0, 'Demon Hunter to Player'),
+
+(100549, 0, 0, 'I will repay my debt to you.', 12, 0, 100, 0, 0, 56813, 102551, 0, 'Demon Hunter to Player'),
+(100549, 0, 1, 'The Burning Legion will fall!', 12, 0, 100, 0, 0, 56814, 102552, 0, 'Demon Hunter to Player'),
+(100549, 0, 2, 'I will not let you down.', 12, 0, 100, 0, 0, 56815, 102553, 0, 'Demon Hunter to Player'),
+(100549, 0, 3, 'For Lord Illidan!', 12, 0, 100, 0, 0, 56816, 102554, 0, 'Demon Hunter to Player'),
+(100549, 0, 4, 'We WILL take the keystone!', 12, 0, 100, 0, 0, 56817, 102555, 0, 'Demon Hunter to Player'),
+(100549, 0, 5, 'Die demons!', 12, 0, 100, 0, 0, 56818, 102556, 0, 'Demon Hunter to Player'),
+(100549, 0, 6, 'I did not make it this far just to die on this rock.', 12, 0, 100, 0, 0, 56819, 102557, 0, 'Demon Hunter to Player'),
+(100545, 0, 0, 'I will repay my debt to you.', 12, 0, 100, 0, 0, 56813, 102551, 0, 'Demon Hunter to Player'),
+(100545, 0, 1, 'The Burning Legion will fall!', 12, 0, 100, 0, 0, 56814, 102552, 0, 'Demon Hunter to Player'),
+(100545, 0, 2, 'I will not let you down.', 12, 0, 100, 0, 0, 56815, 102553, 0, 'Demon Hunter to Player'),
+(100545, 0, 3, 'For Lord Illidan!', 12, 0, 100, 0, 0, 56816, 102554, 0, 'Demon Hunter to Player'),
+(100545, 0, 4, 'We WILL take the keystone!', 12, 0, 100, 0, 0, 56817, 102555, 0, 'Demon Hunter to Player'),
+(100545, 0, 5, 'Die demons!', 12, 0, 100, 0, 0, 56818, 102556, 0, 'Demon Hunter to Player'),
+(100545, 0, 6, 'I did not make it this far just to die on this rock.', 12, 0, 100, 0, 0, 56819, 102557, 0, 'Demon Hunter to Player'),
+(100543, 0, 0, 'I will repay my debt to you.', 12, 0, 100, 0, 0, 56813, 102551, 0, 'Demon Hunter to Player'),
+(100543, 0, 1, 'The Burning Legion will fall!', 12, 0, 100, 0, 0, 56814, 102552, 0, 'Demon Hunter to Player'),
+(100543, 0, 2, 'I will not let you down.', 12, 0, 100, 0, 0, 56815, 102553, 0, 'Demon Hunter to Player'),
+(100543, 0, 3, 'For Lord Illidan!', 12, 0, 100, 0, 0, 56816, 102554, 0, 'Demon Hunter to Player'),
+(100543, 0, 4, 'We WILL take the keystone!', 12, 0, 100, 0, 0, 56817, 102555, 0, 'Demon Hunter to Player'),
+(100543, 0, 5, 'Die demons!', 12, 0, 100, 0, 0, 56818, 102556, 0, 'Demon Hunter to Player'),
+(100543, 0, 6, 'I did not make it this far just to die on this rock.', 12, 0, 100, 0, 0, 56819, 102557, 0, 'Demon Hunter to Player'),
+
 (96888, 0, 0, 'The Matron Mother bid me come to help.', 12, 0, 100, 0, 0, 55355, 99747, 0, 'Shivarra Destroyer to Player'),
 
 (102923, 0, 0, 'Don''t worry, mother''s here... Oh my, he''s a big one.', 12, 0, 100, 0, 0, 55321, 99153, 0, 'Matron Mother Malevolence to Player'),
@@ -106,6 +139,15 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Lan
 (95226, 0, 5, 'A new prisoner for the taking.', 12, 0, 100, 0, 0, 55014, 97909, 0, 'Anguish Jailer to Player'),
 (95226, 0, 6, 'Your soul will be mine.', 12, 0, 100, 0, 0, 55013, 97908, 0, 'Anguish Jailer to Player'),
 (95226, 0, 7, 'Your armies are nothing, demon hunter.', 12, 0, 100, 0, 0, 55015, 97910, 0, 'Anguish Jailer to Player'),
+
+(96279, 0, 0, 'So eager to be enslaved.', 12, 0, 100, 0, 0, 55018, 97913, 0, 'Mardum Executioner to Player'),
+(96279, 0, 1, 'In this place, you are the hunted.', 12, 0, 100, 0, 0, 55019, 97914, 0, 'Mardum Executioner to Player'),
+(96279, 0, 2, 'I am your judge, jury, and executioner.', 12, 0, 100, 0, 0, 55020, 97915, 0, 'Mardum Executioner to Player'),
+(96279, 0, 3, 'Into my cage you go.', 12, 0, 100, 0, 0, 55017, 97912, 0, 'Mardum Executioner to Player'),
+(96279, 0, 4, 'I''ll crack open your flesh and feed upon your soul.', 12, 0, 100, 0, 0, 55016, 97911, 0, 'Mardum Executioner to Player'),
+(96279, 0, 5, 'A new prisoner for the taking.', 12, 0, 100, 0, 0, 55014, 97909, 0, 'Mardum Executioner to Player'),
+(96279, 0, 6, 'Your soul will be mine.', 12, 0, 100, 0, 0, 55013, 97908, 0, 'Mardum Executioner to Player'),
+(96279, 0, 7, 'Your armies are nothing, demon hunter.', 12, 0, 100, 0, 0, 55015, 97910, 0, 'Mardum Executioner to Player'),
 
 (98229, 2, 0, 'Cyana, Jace, Allari... find the keystone.', 12, 0, 100, 0, 0, 55144, 100341, 0, 'Kayn Sunfury <Illidari> to Player'),
 (98229, 3, 0, 'Now, let''s see about activating that gateway.', 12, 0, 100, 0, 0, 55143, 100136, 0, 'Kayn Sunfury <Illidari> to Player'),

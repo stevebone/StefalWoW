@@ -41,6 +41,7 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 ELMGeneralPurposeBunny = 24021;
         static constexpr uint32 JaceDarkweaver      = 93759;
         static constexpr uint32 CoilskarSeaCaller   = 96884;
+        static constexpr uint32 ShivarraDestroyer   = 96888;
         static constexpr uint32 DoomCommanderBeliash = 93221;
         static constexpr uint32 QueenTyranna        = 95048; // RP version beside Beliash; 93802 is the boss at the Seat of Command
         static constexpr uint32 BeliashKillCredit   = 106003;
@@ -62,6 +63,15 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 SpireOfWoeFire2            = 101321;
         static constexpr uint32 SpireOfWoeBunny            = 101320;
         static constexpr uint32 OverseerBrutarg            = 97057;
+        static constexpr uint32 CountNefarious             = 97058;
+        static constexpr uint32 WoundedDemonHunter         = 100549;
+        static constexpr uint32 WoundedDemonHunter2        = 100545;
+        static constexpr uint32 CreditWoundedDemonHunter   = 97395;
+    }
+
+    namespace Factions
+    {
+        static constexpr uint32 Illidari = 2843; // friendly faction for freed Illidari
     }
 
     namespace Maps
@@ -143,6 +153,10 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 BrutargDizzy                   = 198524;
         static constexpr uint32 SummonShivarraDestroyer        = 191671;
         static constexpr uint32 SummonMatronMotherMalevolence  = 203369;
+        static constexpr uint32 WoundedDemonHunterRescue       = 192262;
+        static constexpr uint32 NefariousVampiricCleave        = 198894;
+        static constexpr uint32 NefariousCarrionStorm          = 198947;
+        static constexpr uint32 NefariousFelShield             = 199103;
     }
 
     namespace Conversations
@@ -155,6 +169,7 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 IllidariFoothold           = 569;
         static constexpr uint32 KingVorasDeath             = 567;
         static constexpr uint32 DoomFortressStabilizer     = 573;
+        static constexpr uint32 CountNefarious             = 576;
     }
 
     namespace CreatureText
@@ -209,6 +224,14 @@ namespace Scripts::Custom::Mardum
         static constexpr uint8 BrutargAggro      = 0;
         static constexpr uint8 BrutargEquipSword = 1;
         static constexpr uint8 BrutargDeath      = 2;
+
+        // Wounded Demon Hunter (100549) - creature_text GroupID
+        static constexpr uint8 WoundedDemonHunterAwakened = 0;
+
+        // Count Nefarious (97058) - creature_text GroupIDs
+        static constexpr uint8 NefariousAggro              = 0;
+        static constexpr uint8 NefariousCarrionAfterCast   = 1;
+        static constexpr uint8 NefariousCarrionBeforeCast  = 2;
     }
 
     namespace Events
@@ -231,6 +254,12 @@ namespace Scripts::Custom::Mardum
 
         // Overseer Brutarg (97057) - EventMap IDs
         static constexpr int8 BrutargMeatGrinder = 1;
+
+        // Count Nefarious (97058) - EventMap IDs
+        static constexpr int8 NefariousVampiricCleave = 1;
+        static constexpr int8 NefariousCarrionStorm   = 2;
+        static constexpr int8 NefariousFelShield      = 3;
+        static constexpr int8 NefariousConversation   = 4;
     }
 
     namespace Misc

@@ -900,7 +900,6 @@ namespace Scripts::Custom::Mardum
         void JustEngagedWith(Unit* who) override
         {
             Talk(CreatureText::BrutargAggro, who);
-            me->CastSpell(who, Spells::BrutargCharge);
 
             // who may be a companion/minion that pulled aggro first - resolve the owning player
             if (Player* player = who->GetCharmerOrOwnerPlayerOrPlayerItself())
@@ -912,6 +911,8 @@ namespace Scripts::Custom::Mardum
                 if (!player->HasAura(Spells::SummonMatronMotherMalevolence))
                     player->CastSpell(player, Spells::SummonMatronMotherMalevolence, true);
             }
+
+            me->CastSpell(who, Spells::BrutargCharge);
 
             _events.ScheduleEvent(Events::BrutargMeatGrinder, 10s, 15s);
         }
@@ -929,6 +930,15 @@ namespace Scripts::Custom::Mardum
         void JustDied(Unit* killer) override
         {
             Talk(CreatureText::BrutargDeath, killer);
+
+            // dismiss the player's Shivarra Destroyer companion once Brutarg falls
+            if (Player* player = killer->GetCharmerOrOwnerPlayerOrPlayerItself())
+            {
+                std::list<TempSummon*> minions;
+                player->GetAllMinionsByEntry(minions, Creatures::ShivarraDestroyer);
+                for (TempSummon* minion : minions)
+                    minion->UnSummon();
+            }
         }
 
         void OnChannelFinished(SpellInfo const* spellInfo) override
@@ -967,6 +977,123 @@ namespace Scripts::Custom::Mardum
         EventMap _events;
         bool _equippedSword = false;
     };
+
+    // 97058 - Count Nefarious
+    struct npc_count_nefarious : public ScriptedAI
+    {
+        npc_count_nefarious(Creature* creature) : ScriptedAI(creature) { }
+
+        void Reset() override
+        {
+            _events.Reset();
+            _felShieldActive = false;
+            _aggroPlayerGuid = ObjectGuid::Empty;
+        }
+
+        void JustEngagedWith(Unit* who) override
+        {
+            Talk(CreatureText::NefariousAggro);
+
+            if (Player* player = who->GetCharmerOrOwnerPlayerOrPlayerItself())
+                _aggroPlayerGuid = player->GetGUID();
+
+            _events.ScheduleEvent(Events::NefariousConversation, 5s);
+            _events.ScheduleEvent(Events::NefariousVampiricCleave, 3s, 5s);
+            _events.ScheduleEvent(Events::NefariousCarrionStorm, 10s, 15s);
+        }
+
+        void DamageTaken(Unit* /*attacker*/, uint32& /*damage*/, DamageEffectType /*damageType*/, SpellInfo const* /*spellInfo*/) override
+        {
+            if (!_felShieldActive && me->HealthBelowPct(30))
+            {
+                _felShieldActive = true;
+                _events.ScheduleEvent(Events::NefariousFelShield, 0s);
+            }
+        }
+
+        void OnSpellCast(SpellInfo const* spellInfo) override
+        {
+            if (spellInfo->Id == Spells::NefariousCarrionStorm)
+                Talk(CreatureText::NefariousCarrionAfterCast);
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _events.Update(diff);
+
+            while (uint32 eventId = _events.ExecuteEvent())
+            {
+                switch (eventId)
+                {
+                    case Events::NefariousConversation:
+                        if (Player* player = ObjectAccessor::GetPlayer(*me, _aggroPlayerGuid))
+                            Conversation::CreateConversation(Conversations::CountNefarious, player, *player, player->GetGUID());
+                        break;
+                    case Events::NefariousVampiricCleave:
+                        DoCastVictim(Spells::NefariousVampiricCleave);
+                        _events.Repeat(12s, 15s);
+                        break;
+                    case Events::NefariousCarrionStorm:
+                        Talk(CreatureText::NefariousCarrionBeforeCast);
+                        DoCastVictim(Spells::NefariousCarrionStorm);
+                        _events.Repeat(18s, 22s);
+                        break;
+                    case Events::NefariousFelShield:
+                        DoCastSelf(Spells::NefariousFelShield);
+                        _events.Repeat(22s, 25s);
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            if (!UpdateVictim())
+                return;
+
+            if (me->HasUnitState(UNIT_STATE_CASTING))
+                return;
+
+            me->DoMeleeAttackIfReady();
+        }
+
+    private:
+        EventMap _events;
+        ObjectGuid _aggroPlayerGuid;
+        bool _felShieldActive = false;
+    };
+
+    // 100549 - Wounded Demon Hunter
+    // 100545 - Wounded Demon Hunter
+    // 100543 - Wounded Demon Hunter
+    // npc_spellclick_spells makes the clicker cast 192262 on it; the spell lands and wakes it.
+    struct npc_wounded_demon_hunter : public ScriptedAI
+    {
+        npc_wounded_demon_hunter(Creature* creature) : ScriptedAI(creature)
+        {
+            me->SetNpcFlag(UNIT_NPC_FLAG_SPELLCLICK);
+            me->SetStandState(UNIT_STAND_STATE_DEAD);
+        }
+
+        void SpellHit(WorldObject* caster, SpellInfo const* spellInfo) override
+        {
+            if (spellInfo->Id != Spells::WoundedDemonHunterRescue || _awakened)
+                return;
+
+            _awakened = true;
+
+            if (caster->IsPlayer())
+                caster->ToPlayer()->KilledMonsterCredit(Creatures::CreditWoundedDemonHunter);
+
+            me->RemoveNpcFlag(UNIT_NPC_FLAG_SPELLCLICK);
+            me->SetStandState(UNIT_STAND_STATE_STAND);
+            me->SetFaction(Factions::Illidari);
+            Talk(CreatureText::WoundedDemonHunterAwakened);
+            me->DespawnOrUnsummon(60min);
+        }
+
+    private:
+        bool _awakened = false;
+    };
 }
 
 void AddSC_custom_mardum_npcs()
@@ -983,4 +1110,6 @@ void AddSC_custom_mardum_npcs()
     RegisterCreatureAI(npc_illidari_banner_trigger);
     RegisterCreatureAI(npc_doom_fortress_stabilizer);
     RegisterCreatureAI(npc_overseer_brutarg);
+    RegisterCreatureAI(npc_count_nefarious);
+    RegisterCreatureAI(npc_wounded_demon_hunter);
 }

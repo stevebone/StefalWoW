@@ -40,8 +40,10 @@
 -- Spell: 194689 Fel Bombardment
 
 -- Generic Creature Template fixes
-UPDATE `creature_template` SET `faction` = 2843 WHERE `entry` IN (98157,98160,99787,100545);
+UPDATE `creature_template` SET `faction` = 2843 WHERE `entry` IN (98157,98160,99787);
 UPDATE `creature_template` SET `faction` = 4 WHERE `entry` = 102923;
+UPDATE `creature_template` SET `faction` = 35 WHERE `entry` IN (100545,100543,100549);
+UPDATE `creature_template` SET `faction` = 1786 WHERE `entry` IN (97769);
 
 -- ========================= Fixes for the quest 38765 Enter the Illidari: Shivarra / Fel Bombardments
 DELETE FROM `conversation_template` WHERE `Id` = 747;
@@ -196,9 +198,18 @@ UPDATE creature_template SET ScriptName='' WHERE entry=96159;
 UPDATE `creature_template_difficulty` SET `StaticFlags1` = `StaticFlags1` | 0x20000000 WHERE `Entry` IN (94744,96276);
 
 -- SAI
-UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (98484,98486,98497,98482,95226,93112,93716,94654,97034,102726,96494,102724,97706,99759,96277,96402,102923,96888);
-DELETE FROM smart_scripts WHERE entryorguid IN (98484,98486,98497,98482,95226,93112,93716,94654,97034,102726,96494,102724,97706,99759,96277,96402,102923,96888) AND source_type = 0;
+UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (98484,98486,98497,98482,95226,93112,93716,94654,97034,102726,96494,102724,
+97706,99759,96277,96402,102923,96888,96279,96280);
+DELETE FROM smart_scripts WHERE entryorguid IN (98484,98486,98497,98482,95226,93112,93716,94654,97034,102726,96494,102724,
+97706,99759,96277,96402,102923,96888,96279,96280) AND source_type = 0;
 INSERT INTO smart_scripts (entryorguid, source_type, id, link, Difficulties, event_type, event_phase_mask, event_chance, event_flags, event_param1, event_param2, event_param3, event_param4, event_param5, event_param_string, action_type, action_param1, action_param2, action_param3, action_param4, action_param5, action_param6, action_param7, action_param_string, target_type, target_param1, target_param2, target_param3, target_param4, target_param_string, target_x, target_y, target_z, target_o, comment) VALUES
+(96280, 0, 0, 0, '', 6, 0, 100, 1, 0, 0, 0, 0, 0, '', 11, 200757, 3, 0, 0, 0, 0, 0, '', 0, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Volatile Minion - On Just Died - Cast ''Explosive Minion on Death'' (No Repeat)'),
+(96280, 0, 1, 0, '', 11, 0, 100, 0, 0, 0, 0, 0, 0, '', 11, 200756, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Volatile Minion - On Respawn - Cast ''Volatile Minion'' (No Repeat)'),
+(96280, 0, 2, 0, '', 4, 0, 100, 1, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Volatile Minion - On Aggro - Talk (No Repeat)'),
+
+(96279, 0, 0, 0, '', 0, 0, 100, 0, 5000, 8000, 12000, 15000, 0, '', 11, 200827, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Mardum Executioner - In Combat - Cast ''Tortured Souls'''),
+(96279, 0, 1, 0, '', 4, 0, 100, 1, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Mardum Executioner - On Aggro - Talk (No Repeat)'),
+
 (96888, 0, 0, 0, '', 11, 0, 100, 1, 0, 0, 0, 0, 0, '', 1, 0, 5000, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Shivarra Destroyer - On Spawn - Say Line 0 (No Repeat)'),
 
 (102923, 0, 0, 0, '', 11, 0, 100, 1, 0, 0, 0, 0, 0, '', 1, 0, 5000, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Matron Mother Malevolence - On Spawn - Say Line 0 (No Repeat)'),
@@ -475,23 +486,30 @@ UPDATE `gameobject_template` SET `ScriptName` = 'go_mardum_illidari_banner' WHER
 UPDATE `creature_template` SET `ScriptName` = 'npc_illidari_banner_trigger', `AIName` = '' WHERE `entry` IN (96561,96562,96564);
 
 -- "Their Numbers Are Legion" (38819) Stabilizer objective
-DELETE FROM `conversation_template` WHERE `Id` = 573;
+DELETE FROM `conversation_template` WHERE `Id` IN (573,576);
 INSERT INTO `conversation_template` (`Id`, `FirstLineId`, `VerifiedBuild`) VALUES
-(573, 1491, 69875);
+(573, 1491, 69875),
+(576, 1496, 69875);
 
-DELETE FROM `conversation_line_template` WHERE `Id` IN (1491,1492);
+DELETE FROM `conversation_line_template` WHERE `Id` IN (1491,1492,1496);
 INSERT INTO `conversation_line_template` (`Id`, `UiCameraID`, `VerifiedBuild`) VALUES
 (1491, 99, 69875),
-(1492, 99, 69875);
+(1492, 99, 69875),
+(1496, 120, 69875);
 
-DELETE FROM `conversation_actors` WHERE `ConversationId` = 573;
+DELETE FROM `conversation_actors` WHERE `ConversationId` IN (573,576);
 INSERT  INTO `conversation_actors` (`ConversationId`, `ConversationActorId`, `Idx`, `CreatureId`, `CreatureDisplayInfoId`, `NoActorObject`, `ActivePlayerObject`, `VerifiedBuild`) VALUES
-(573, 49821, 0, 93759, 60791, 0, 0, 69875);
+(573, 49821, 0, 93759, 60791, 0, 0, 69875),
+(576, 49945, 0, 96655, 60079, 0, 0, 69875);
+
 -- "Their Numbers Are Legion" (38819) - Doom Fortress Stabilizer spellclick
 -- clicker casts 201112 Destroying Stabilizer on it (cast_flags 1 = caster is clicker)
-DELETE FROM `npc_spellclick_spells` WHERE `npc_entry` = 101947;
+DELETE FROM `npc_spellclick_spells` WHERE `npc_entry` IN (101947,100545,100543,100549);
 INSERT INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES
-(101947,201112,1,0);
+(101947,201112,1,0),
+(100549,192262,1,0),
+(100545,192262,1,0),
+(100543,192262,1,0);
 
 -- Only clickable while Their Numbers Are Legion (38819) is in the quest log
 DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 18 AND `SourceGroup` = 101947 AND `SourceEntry` = 201112;
@@ -507,3 +525,9 @@ UPDATE `gameobject_template` SET `ScriptName` = 'go_spire_stabilizer' WHERE `ent
 UPDATE `creature_template_difficulty` SET `StaticFlags1` = `StaticFlags1` | 0x20000000 WHERE `Entry` IN (101320);
 -- Overseer Brutarg (97057) -> npc_overseer_brutarg
 UPDATE `creature_template` SET `ScriptName` = 'npc_overseer_brutarg', `AIName` = '' WHERE `entry` = 97057;
+
+-- Wounded Demon Hunter (100549) spellclick 192262 -> npc_wounded_demon_hunter
+UPDATE `creature_template` SET `ScriptName` = 'npc_wounded_demon_hunter', `AIName` = '' WHERE `entry` IN (100545,100543,100549);
+
+-- Count Nefarious (97058) -> npc_count_nefarious
+UPDATE `creature_template` SET `ScriptName` = 'npc_count_nefarious', `AIName` = '' WHERE `entry` = 97058;
