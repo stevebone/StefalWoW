@@ -22456,6 +22456,9 @@ void Player::_SaveQuestStatus(CharacterDatabaseTransaction trans)
 
                 for (QuestObjective const& obj : quest->GetObjectives())
                 {
+                    if (obj.StorageIndex < 0)
+                        continue;
+
                     int32 count = GetQuestSlotObjectiveData(qData.Slot, obj);
                     if (!count)
                         continue;
