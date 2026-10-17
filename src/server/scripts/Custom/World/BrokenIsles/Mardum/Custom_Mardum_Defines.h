@@ -65,6 +65,9 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 OverseerBrutarg            = 97057;
         static constexpr uint32 CountNefarious             = 97058;
         static constexpr uint32 WellOfSouls                = 102916;
+        static constexpr uint32 GeneralVolroth             = 97370;
+        static constexpr uint32 CoilskarMyrmidon           = 96502; // Volroth captive
+        static constexpr uint32 CoilskarSeaCallerCaptive   = 96503; // Volroth captive
         static constexpr uint32 SummonedAshtongueStalker   = 96877; // player companion summoned by 191662
         static constexpr uint32 WoundedDemonHunter         = 100549;
         static constexpr uint32 WoundedDemonHunter2        = 100545;
@@ -126,6 +129,7 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 LegionCommunicator2       = 281334; // quest 39279
         static constexpr uint32 SoulSacrificed            = 280770; // quest 40379
         static constexpr uint32 CoilskarForces            = 280771; // quest 40379
+        static constexpr uint32 FirstStabilizerDestroyed  = 280006; // quest 38819
     }
 
     namespace Spells
@@ -166,6 +170,8 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 NefariousTorrentOfSouls        = 192714;
         static constexpr uint32 NefariousTorrentOfSoulsBeam    = 192715;
         static constexpr uint32 SummonAshtongueStalker         = 191662;
+        static constexpr uint32 VolrothBurnWithin              = 197749;
+        static constexpr uint32 VolrothFelBreath               = 197750;
     }
 
     namespace Conversations
@@ -241,6 +247,12 @@ namespace Scripts::Custom::Mardum
         static constexpr uint8 NefariousAggro              = 0;
         static constexpr uint8 NefariousCarrionAfterCast   = 1;
         static constexpr uint8 NefariousCarrionBeforeCast  = 2;
+
+        // General Volroth (97370) - creature_text GroupIDs
+        static constexpr uint8 VolrothAggro      = 0;
+        static constexpr uint8 VolrothBurnWithin = 1;
+        static constexpr uint8 VolrothDeath      = 2;
+        static constexpr uint8 VolrothCaptiveReleased = 0; // PLACEHOLDER: captive creature_text GroupID
     }
 
     namespace Events
@@ -269,6 +281,16 @@ namespace Scripts::Custom::Mardum
         static constexpr int8 NefariousCarrionStorm   = 2;
         static constexpr int8 NefariousFelShield      = 3;
         static constexpr int8 NefariousConversation   = 4;
+
+        // General Volroth (97370) - EventMap IDs
+        static constexpr int8 VolrothBurnWithin = 1;
+        static constexpr int8 VolrothFelBreath  = 2;
+    }
+
+    namespace Movement
+    {
+        static constexpr uint32 ReachedDevastator = 1;
+        static constexpr uint32 CaptivesDespawn = 2;
     }
 
     namespace Misc
@@ -278,7 +300,6 @@ namespace Scripts::Custom::Mardum
         static constexpr float DevastatorStandoff  = 5.0f;
         static constexpr uint32 BannerTriggered    = 1; // SetData id: banner used -> trigger npc
         static constexpr uint32 WellOfSoulsOpened  = 1; // SetData id: well of souls opened -> count nefarious
-        static constexpr uint32 PointReachedDevastator = 1;
         static constexpr float CaptiveGreetingRange = 10.0f;
         static constexpr float JaceGreetingRange    = 10.0f;
         static constexpr float BeliashConversationRange = 100.0f;

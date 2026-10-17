@@ -1,9 +1,15 @@
 -- Mardum Creature Text
 DELETE FROM `creature_text` WHERE `creatureID` IN (98484,98486,98497,98460,95226,93112,96884,93759,94654,93221,95048,93716,97034,96494,102726,96499,
-102724,97706,97059,96402,96277,97057,102923,96888,100549,100545,100543,96279,96280,97058,96877);
+102724,97706,97059,96402,96277,97057,102923,96888,100549,100545,100543,96279,96280,97058,96877,97370,96503);
 DELETE FROM `creature_text` WHERE `creatureID` IN (98229) AND `GroupID` IN (2,3);
 DELETE FROM `creature_text` WHERE `creatureID` IN (93127) AND `GroupID` IN (2);
 INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `BroadcastTextId`, `TextRange`, `comment`) VALUES
+(96503, 0, 0, 'My thanks. Come, my brothers... back to the battle!', 12, 0, 100, 0, 0, 55076, 99093, 0, 'Coilskar Sea-Caller to General Volroth'),
+
+(97370, 0, 0, 'You cannot have them. They are mine!', 14, 0, 100, 0, 0, 55199, 99071, 0, 'General Volroth to Player'),
+(97370, 1, 0, 'My fire will leave only your bones behind.', 14, 0, 100, 0, 0, 55201, 103509, 0, 'General Volroth to Player'),
+(97370, 2, 0, 'Impossible!', 14, 0, 100, 0, 0, 55200, 99092, 0, 'General Volroth to Player'),
+
 (96877, 0, 0, 'This demon will fall.', 12, 0, 100, 0, 0, 55040, 99734, 0, 'Ashtongue Stalker to Player'),
 (96877, 1, 0, 'The Battlelord sent me.', 12, 0, 100, 0, 0, 55036, 99730, 0, 'Ashtongue Stalker to Player'),
 (96877, 1, 1, 'We will destroy the Burning Legion.', 12, 0, 100, 0, 0, 55037, 99731, 0, 'Ashtongue Stalker to Player'),

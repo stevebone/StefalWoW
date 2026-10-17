@@ -174,6 +174,11 @@ DELETE FROM `creature_template_difficulty` WHERE `DifficultyID` = 1 AND `Entry` 
  103432, 96279, 97370, 102724, 97058, 97057, 100243, 100244, 93802, 98497, 98986
 );
 
+-- ========================= Fixes for The Imp Mother's Tome
+DELETE FROM `creature_queststarter` WHERE `quest` = 40222;
+INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES
+(98711, 40222, 69587);
+
 -- ========================= Fixes for Before We're Overrun
 DELETE FROM `creature_queststarter` WHERE `quest` = 38766;
 INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES
@@ -210,14 +215,14 @@ DELETE FROM smart_scripts WHERE entryorguid IN (98484,98486,98497,98482,95226,93
 97706,99759,96277,96402,102923,96888,96279,96280,96877) AND source_type = 0;
 INSERT INTO smart_scripts (entryorguid, source_type, id, link, Difficulties, event_type, event_phase_mask, event_chance, event_flags, event_param1, event_param2, event_param3, event_param4, event_param5, event_param_string, action_type, action_param1, action_param2, action_param3, action_param4, action_param5, action_param6, action_param7, action_param_string, target_type, target_param1, target_param2, target_param3, target_param4, target_param_string, target_x, target_y, target_z, target_o, comment) VALUES
 (96877, 0, 0, 0, '', 11, 0, 100, 0, 0, 0, 0, 0, 0, '', 1, 1, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Ashtongue Stalker - On Respawn - Talk 1 (No Repeat)'),
-(96877, 0, 1, 0, '', 4, 0, 100, 1, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Ashtongue Stalker - On Aggro - Talk 0 (No Repeat)'),
+(96877, 0, 1, 0, '', 4, 0, 30, 1, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Ashtongue Stalker - On Aggro - Talk 0 (No Repeat)'),
 
 (96280, 0, 0, 0, '', 6, 0, 100, 1, 0, 0, 0, 0, 0, '', 11, 200757, 3, 0, 0, 0, 0, 0, '', 0, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Volatile Minion - On Just Died - Cast ''Explosive Minion on Death'' (No Repeat)'),
 (96280, 0, 1, 0, '', 11, 0, 100, 0, 0, 0, 0, 0, 0, '', 11, 200756, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Volatile Minion - On Respawn - Cast ''Volatile Minion'' (No Repeat)'),
-(96280, 0, 2, 0, '', 4, 0, 100, 1, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Volatile Minion - On Aggro - Talk (No Repeat)'),
+(96280, 0, 2, 0, '', 4, 0, 30, 1, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Volatile Minion - On Aggro - Talk (No Repeat)'),
 
 (96279, 0, 0, 0, '', 0, 0, 100, 0, 5000, 8000, 12000, 15000, 0, '', 11, 200827, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Mardum Executioner - In Combat - Cast ''Tortured Souls'''),
-(96279, 0, 1, 0, '', 4, 0, 100, 1, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Mardum Executioner - On Aggro - Talk (No Repeat)'),
+(96279, 0, 1, 0, '', 4, 0, 30, 1, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Mardum Executioner - On Aggro - Talk (No Repeat)'),
 
 (96888, 0, 0, 0, '', 11, 0, 100, 1, 0, 0, 0, 0, 0, '', 1, 0, 5000, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Shivarra Destroyer - On Spawn - Say Line 0 (No Repeat)'),
 
@@ -550,4 +555,7 @@ UPDATE `creature_template` SET `ScriptName` = 'npc_well_of_souls', `AIName` = ''
 DELETE FROM `npc_spellclick_spells` WHERE `npc_entry` = 102916;
 INSERT INTO `npc_spellclick_spells` (`npc_entry`, `spell_id`, `cast_flags`, `user_type`) VALUES
 (102916, 198185, 1, 0); -- clicker casts Opening on the Well
+
+-- General Volroth (97370) -> npc_general_volroth (spawns captives, companion summon on engage)
+UPDATE `creature_template` SET `ScriptName` = 'npc_general_volroth', `AIName` = '' WHERE `entry` = 97370;
 

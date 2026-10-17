@@ -28,8 +28,6 @@
 #include "MotionMaster.h"
 #include "ObjectAccessor.h"
 #include "ObjectGuid.h"
-#include "ObjectMgr.h"
-#include "QuestDef.h"
 #include "PhasingHandler.h"
 #include "Player.h"
 #include "ScriptedCreature.h"
@@ -785,13 +783,13 @@ namespace Scripts::Custom::Mardum
             _scheduler.Schedule(3s, [this](TaskContext const& /*context*/)
             {
                 if (Creature* devastator = ObjectAccessor::GetCreature(*me, _devastatorGuid))
-                    me->GetMotionMaster()->MoveCloserAndStop(Misc::PointReachedDevastator, devastator, Misc::DevastatorStandoff);
+                    me->GetMotionMaster()->MoveCloserAndStop(Movement::ReachedDevastator, devastator, Misc::DevastatorStandoff);
             });
         }
 
         void MovementInform(uint32 type, uint32 id) override
         {
-            if (type != POINT_MOTION_TYPE || id != Misc::PointReachedDevastator)
+            if (type != POINT_MOTION_TYPE || id != Movement::ReachedDevastator)
                 return;
 
             Creature* devastator = ObjectAccessor::GetCreature(*me, _devastatorGuid);
@@ -868,18 +866,9 @@ namespace Scripts::Custom::Mardum
             if (!player)
                 return;
 
-            // "first stabilizer" = the tracked stabilizer counter still reads 0 before this credit
-            // (objective 280006 stores no progress and cannot be queried for completion)
-            bool firstStabilizer = false;
-            if (player->GetQuestStatus(Quests::TheirNumbersAreLegion) == QUEST_STATUS_INCOMPLETE)
-                if (Quest const* quest = sObjectMgr->GetQuestTemplate(Quests::TheirNumbersAreLegion))
-                    for (QuestObjective const& obj : quest->GetObjectives())
-                        if (obj.IsStoringValue() && obj.ObjectID == int32(Creatures::DoomFortressStabilizer))
-                            firstStabilizer = player->GetQuestObjectiveData(obj) == 0;
-
             player->KilledMonsterCredit(Creatures::DoomFortressStabilizer);
 
-            if (firstStabilizer)
+            if (!player->IsQuestObjectiveComplete(Quests::TheirNumbersAreLegion, Objectives::FirstStabilizerDestroyed))
             {
                 player->KilledMonsterCredit(Creatures::FirstStabilizerKillCredit);
                 Conversation::CreateConversation(Conversations::DoomFortressStabilizer, player, *player, player->GetGUID());
@@ -1174,6 +1163,198 @@ namespace Scripts::Custom::Mardum
                 nefarious->AI()->SetData(Misc::WellOfSoulsOpened, 1);
         }
     };
+
+    /*######
+    ## 97370 - General Volroth (Molten Shore rare)
+    ## Summons captive Coilskar guards in the constructor. On death one
+    ## captive says a line, then they run off and despawn - the delayed
+    ## work is scheduled on the captives' own event processors because
+    ## this AI stops ticking once the boss is dead.
+    ######*/
+    struct VolrothCaptiveSpawn
+    {
+        uint32 Entry;
+        Position Pos;
+    };
+
+    static VolrothCaptiveSpawn const VolrothCaptiveSpawns[] =
+    {
+        { Creatures::CoilskarSeaCallerCaptive, {1904.889f, 1444.656f, 108.0866f, 1.915215f } },
+        { Creatures::CoilskarHarpooner, { 1901.706f, 1444.352f, 108.0862f, 2.292977f } },
+        { Creatures::CoilskarMyrmidon,  { 1903.295f, 1449.102f, 108.0872f, 2.523181f } },
+        { Creatures::CoilskarMyrmidon,  { 1905.094f, 1454.895f, 108.8267f, 3.366357f } },
+        { Creatures::CoilskarHarpooner, { 1899.933f, 1451.458f, 108.0863f, 2.292977f } },
+        // { PLACEHOLDER captive entry, { x, y, z, o } },
+    };
+
+    static Position const VolrothCaptiveExitPos = { 1762.78f, 1515.98f, 64.753f };
+
+    struct npc_general_volroth : public ScriptedAI
+    {
+        npc_general_volroth(Creature* creature) : ScriptedAI(creature)
+        {
+            SpawnCaptives();
+        }
+
+        void Reset() override
+        {
+            _events.Reset();
+            _scheduler.CancelAll();
+            _engagerGuid = ObjectGuid::Empty;
+        }
+
+        void JustEngagedWith(Unit* who) override
+        {
+            Talk(CreatureText::VolrothAggro);
+
+            // who may be a companion/minion that pulled aggro first - resolve the owning player
+            if (Player* player = who->GetCharmerOrOwnerPlayerOrPlayerItself())
+                _engagerGuid = player->GetGUID();
+
+            _scheduler.Schedule(4s, [this](TaskContext const& /*context*/)
+            {
+                Player* player = ObjectAccessor::GetPlayer(*me, _engagerGuid);
+                if (!player)
+                    return;
+
+                std::list<TempSummon*> minions;
+                player->GetAllMinionsByEntry(minions, Creatures::CoilskarSeaCaller);
+                if (minions.empty())
+                    player->CastSpell(player, Spells::SummonCoilskarSeaCaller, true);
+            });
+
+            CombatCaptives();
+
+            _events.ScheduleEvent(Events::VolrothBurnWithin, 10s);
+            _events.ScheduleEvent(Events::VolrothFelBreath, 5s);
+        }
+
+        void JustDied(Unit* killer) override
+        {
+            Talk(CreatureText::VolrothDeath);
+
+            // the killing blow may come from a captive or the player's own minion -
+            // fall back through the threat list and the stored engager
+            Player* player = killer ? killer->GetCharmerOrOwnerPlayerOrPlayerItself() : nullptr;
+
+            if (!player)
+                for (ThreatReference const* ref : me->GetThreatManager().GetUnsortedThreatList())
+                    if ((player = ref->GetVictim()->GetCharmerOrOwnerPlayerOrPlayerItself()))
+                        break;
+
+            if (!player)
+                player = ObjectAccessor::GetPlayer(*me, _engagerGuid);
+
+            if (player)
+            {
+                std::list<TempSummon*> minions;
+                player->GetAllMinionsByEntry(minions, Creatures::CoilskarSeaCaller);
+                for (TempSummon* minion : minions)
+                    minion->UnSummon();
+            }
+
+            ReleaseCaptives();
+        }
+
+        void OnSpellCast(SpellInfo const* spellInfo) override
+        {
+            if (spellInfo->Id == Spells::VolrothBurnWithin)
+                Talk(CreatureText::VolrothBurnWithin);
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _scheduler.Update(diff);
+
+            if (!UpdateVictim())
+                return;
+
+            _events.Update(diff);
+
+            if (me->HasUnitState(UNIT_STATE_CASTING))
+                return;
+
+            while (uint32 eventId = _events.ExecuteEvent())
+            {
+                switch (eventId)
+                {
+                    case Events::VolrothBurnWithin:
+                        DoCastVictim(Spells::VolrothBurnWithin);
+                        _events.Repeat(18s, 25s);
+                        break;
+                    case Events::VolrothFelBreath:
+                        DoCastVictim(Spells::VolrothFelBreath);
+                        _events.Repeat(12s, 15s);
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            me->DoMeleeAttackIfReady();
+        }
+
+    private:
+        EventMap _events;
+        TaskScheduler _scheduler;
+        ObjectGuid _engagerGuid;
+        std::vector<ObjectGuid> _captiveGUIDs;
+
+        void SpawnCaptives()
+        {
+            for (VolrothCaptiveSpawn const& spawn : VolrothCaptiveSpawns)
+                if (Creature* captive = me->SummonCreature(spawn.Entry, spawn.Pos))
+                {
+                    _captiveGUIDs.push_back(captive->GetGUID());
+                    captive->SetReactState(REACT_PASSIVE);
+                    captive->SetSessile(true);
+                    PhasingHandler::SetAlwaysVisible(captive, true, true);
+                }
+        }
+
+        void CombatCaptives()
+        {
+            for (ObjectGuid guid : _captiveGUIDs)
+                if (Creature* captive = ObjectAccessor::GetCreature(*me, guid))
+                    if (captive->IsAlive())
+                    {
+                        captive->SetReactState(REACT_AGGRESSIVE);
+                        captive->RemoveUnitFlag(UNIT_FLAG_IMMUNE_TO_NPC);
+                    }
+        }
+
+        void ReleaseCaptives()
+        {
+            std::vector<Creature*> captives;
+            for (ObjectGuid guid : _captiveGUIDs)
+                if (Creature* captive = ObjectAccessor::GetCreature(*me, guid))
+                    if (captive->IsAlive())
+                        captives.push_back(captive);
+
+            if (captives.empty())
+                return;
+
+            if (captives.front()->AI())
+                captives.front()->AI()->Talk(CreatureText::VolrothCaptiveReleased);
+
+            for (Creature* captive : captives)
+            {
+                captive->m_Events.AddEventAtOffset([captive]()
+                {
+                    captive->SetSessile(false);
+                    captive->SetControlled(false, UNIT_STATE_ROOT);   // sessile unroot never fires without a gravity aura
+                    captive->SetDisableGravity(false, false, true);   // restore gravity disabled by sessile
+                    captive->GetMotionMaster()->Clear();
+                    captive->GetMotionMaster()->MovePoint(Movement::CaptivesDespawn, VolrothCaptiveExitPos);
+
+                    captive->m_Events.AddEventAtOffset([captive]()
+                    {
+                        captive->DespawnOrUnsummon();
+                    }, 30s);
+                }, 5s);
+            }
+        }
+    };
 }
 
 void AddSC_custom_mardum_npcs()
@@ -1193,4 +1374,5 @@ void AddSC_custom_mardum_npcs()
     RegisterCreatureAI(npc_count_nefarious);
     RegisterCreatureAI(npc_wounded_demon_hunter);
     RegisterCreatureAI(npc_well_of_souls);
+    RegisterCreatureAI(npc_general_volroth);
 }
