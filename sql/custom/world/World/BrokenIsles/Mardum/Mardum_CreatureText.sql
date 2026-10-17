@@ -1,12 +1,21 @@
 -- Mardum Creature Text
 DELETE FROM `creature_text` WHERE `creatureID` IN (98484,98486,98497,98460,95226,93112,96884,93759,94654,93221,95048,93716,97034,96494,102726,96499,
-102724,97706,97059,96402,96277,97057,102923,96888,100549,100545,100543,96279,96280,97058);
+102724,97706,97059,96402,96277,97057,102923,96888,100549,100545,100543,96279,96280,97058,96877);
 DELETE FROM `creature_text` WHERE `creatureID` IN (98229) AND `GroupID` IN (2,3);
 DELETE FROM `creature_text` WHERE `creatureID` IN (93127) AND `GroupID` IN (2);
 INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `BroadcastTextId`, `TextRange`, `comment`) VALUES
+(96877, 0, 0, 'This demon will fall.', 12, 0, 100, 0, 0, 55040, 99734, 0, 'Ashtongue Stalker to Player'),
+(96877, 1, 0, 'The Battlelord sent me.', 12, 0, 100, 0, 0, 55036, 99730, 0, 'Ashtongue Stalker to Player'),
+(96877, 1, 1, 'We will destroy the Burning Legion.', 12, 0, 100, 0, 0, 55037, 99731, 0, 'Ashtongue Stalker to Player'),
+(96877, 1, 2, 'It is an honor to kill in Lord Illidan''s name.', 12, 0, 100, 0, 0, 55038, 99732, 0, 'Ashtongue Stalker to Player'),
+(96877, 1, 3, 'Lord Illidan commands and I follow.', 12, 0, 100, 0, 0, 55039, 99733, 0, 'Ashtongue Stalker to Player'),
+(96877, 1, 4, 'I am here to assist you.', 12, 0, 100, 0, 0, 55041, 99735, 0, 'Ashtongue Stalker to Player'),
+(96877, 1, 5, 'The Ashtongue serve.', 12, 0, 100, 0, 0, 55042, 99736, 0, 'Ashtongue Stalker to Player'),
+(96877, 1, 6, 'The Legion must be stopped.', 12, 0, 100, 0, 0, 55043, 99737, 0, 'Ashtongue Stalker to Player'),
+
 (97058, 0, 0, 'Oh good, another soul for my engine.', 12, 0, 100, 0, 0, 55086, 99575, 0, 'Count Nefarious to Player'),
-(97058, 0, 1, 'My swarm will feast on your soul!', 14, 0, 100, 0, 0, 55088, 103510, 0, 'Count Nefarious to Player'),
-(97058, 0, 2, '|TInterface\Icons\spell_shadow_carrionswarm:20|t%s begins to cast |cFFFF0000|Hspell:198947|h[Carrion Storm]|h|r!', 41, 0, 100, 0, 0, 0, 103413, 0, 'Count Nefarious to Player'),
+(97058, 1, 0, 'My swarm will feast on your soul!', 14, 0, 100, 0, 0, 55088, 103510, 0, 'Count Nefarious to Player'),
+(97058, 2, 0, '|TInterface\Icons\spell_shadow_carrionswarm:20|t%s begins to cast |cFFFF0000|Hspell:198947|h[Carrion Storm]|h|r!', 41, 0, 100, 0, 0, 0, 103413, 0, 'Count Nefarious to Player'),
 
 (96280, 0, 0, 'Help! Baddies here!', 12, 0, 100, 0, 0, 55204, 96655, 0, 'Demon Hunter to Player'),
 (96280, 0, 1, 'Another morsel has come to say, hello.', 12, 0, 100, 0, 0, 55203, 96654, 0, 'Demon Hunter to Player'),
@@ -103,6 +112,8 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Lan
 (96884, 1, 1, 'The Coilskar honor their allegiance.', 12, 0, 100, 0, 0, 55084, 99745, 0, 'Coilskar Sea-Caller to Player'),
 (96884, 1, 2, 'Lord Illidan leads and the Coilskar follow.', 12, 0, 100, 0, 0, 55081, 99742, 0, 'Coilskar Sea-Caller to Player'),
 (96884, 1, 3, 'The Burning Legion will be destroyed.', 12, 0, 100, 0, 0, 55079, 99740, 0, 'Coilskar Sea-Caller to Player'),
+(96884, 1, 4, 'Legion magic is nothing compared to that of the naga.', 12, 0, 100, 0, 0, 55080, 99741, 0, 'Coilskar Sea-Caller to Player'),
+(96884, 1, 5, 'I have come to your aid.', 12, 0, 100, 0, 0, 55083, 99744, 0, 'Coilskar Sea-Caller to Player'),
 
 (93112, 0, 0, 'For the Legion!', 12, 0, 100, 0, 0, 55192, 96663, 0, 'Felguard Sentry to Player'),
 (93112, 0, 1, 'Demon hunters? How did you get here?', 12, 0, 100, 0, 0, 55187, 94934, 0, 'Felguard Sentry to Player'),

@@ -64,6 +64,8 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 SpireOfWoeBunny            = 101320;
         static constexpr uint32 OverseerBrutarg            = 97057;
         static constexpr uint32 CountNefarious             = 97058;
+        static constexpr uint32 WellOfSouls                = 102916;
+        static constexpr uint32 SummonedAshtongueStalker   = 96877; // player companion summoned by 191662
         static constexpr uint32 WoundedDemonHunter         = 100549;
         static constexpr uint32 WoundedDemonHunter2        = 100545;
         static constexpr uint32 CreditWoundedDemonHunter   = 97395;
@@ -93,6 +95,7 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 BannerForgeOfCorruption = 243967;
         static constexpr uint32 BannerSoulEngine        = 243965;
         static constexpr uint32 SpireStabilizer         = 245995;
+        static constexpr uint32 CylinderCollision       = 246280;
     }
 
     namespace Scenes
@@ -156,7 +159,13 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 WoundedDemonHunterRescue       = 192262;
         static constexpr uint32 NefariousVampiricCleave        = 198894;
         static constexpr uint32 NefariousCarrionStorm          = 198947;
-        static constexpr uint32 NefariousFelShield             = 199103;
+        static constexpr uint32 NefariousCarrionStormVisual    = 199032;
+        static constexpr uint32 NefariousCarrionStormAura      = 199035; // applied by AT 10195
+        static constexpr uint32 NefariousFelShield             = 191170; // 199103;
+        static constexpr uint32 WellOfSoulsOpening             = 198185;
+        static constexpr uint32 NefariousTorrentOfSouls        = 192714;
+        static constexpr uint32 NefariousTorrentOfSoulsBeam    = 192715;
+        static constexpr uint32 SummonAshtongueStalker         = 191662;
     }
 
     namespace Conversations
@@ -268,6 +277,7 @@ namespace Scripts::Custom::Mardum
         static constexpr float TalkDistance        = 5.0f;
         static constexpr float DevastatorStandoff  = 5.0f;
         static constexpr uint32 BannerTriggered    = 1; // SetData id: banner used -> trigger npc
+        static constexpr uint32 WellOfSoulsOpened  = 1; // SetData id: well of souls opened -> count nefarious
         static constexpr uint32 PointReachedDevastator = 1;
         static constexpr float CaptiveGreetingRange = 10.0f;
         static constexpr float JaceGreetingRange    = 10.0f;

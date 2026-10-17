@@ -26,9 +26,11 @@
 #include "GameObject.h"
 #include "GameObjectAI.h"
 #include "ObjectAccessor.h"
+#include "PhasingHandler.h"
 #include "Player.h"
 #include "ScriptMgr.h"
 #include "TaskScheduler.h"
+#include "TemporarySummon.h"
 
 #include "Custom_Mardum_Defines.h"
 
@@ -223,6 +225,22 @@ namespace Scripts::Custom::Mardum
             }
         }
     };
+
+    /*######
+    ## 246280 Cylinder Collision ("Their Numbers Are Legion" 38819)
+    ## On spawn: summons the Well of Souls (102916) at the cylinder's position.
+    ## GameObject::Create sets map/position before AIM_Initialize, so the
+    ## position is already valid in the constructor.
+    ######*/
+
+    struct go_cylinder_collision : public GameObjectAI
+    {
+        go_cylinder_collision(GameObject* go) : GameObjectAI(go)
+        {
+            if (Creature* well = me->SummonCreature(Creatures::WellOfSouls, me->GetPosition()))
+                PhasingHandler::SetAlwaysVisible(well, true, true);
+        }
+    };
 }
 
 void AddSC_custom_mardum_objects()
@@ -232,4 +250,5 @@ void AddSC_custom_mardum_objects()
     RegisterGameObjectAI(go_legion_communicator);
     RegisterGameObjectAI(go_mardum_illidari_banner);
     RegisterGameObjectAI(go_spire_stabilizer);
+    RegisterGameObjectAI(go_cylinder_collision);
 }

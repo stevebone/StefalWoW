@@ -35,6 +35,7 @@
 #include "ScriptedCreature.h"
 #include "ScriptedGossip.h"
 #include "ScriptMgr.h"
+#include "SpellAuras.h"
 #include "SpellInfo.h"
 #include "Spell.h"
 #include "TaskScheduler.h"
@@ -986,20 +987,71 @@ namespace Scripts::Custom::Mardum
         void Reset() override
         {
             _events.Reset();
+            _scheduler.CancelAll();
+            me->RemoveUnitFlag(UNIT_FLAG_PET_IN_COMBAT);
             _felShieldActive = false;
             _aggroPlayerGuid = ObjectGuid::Empty;
         }
 
         void JustEngagedWith(Unit* who) override
         {
-            Talk(CreatureText::NefariousAggro);
-
+            ObjectGuid engagerGuid;
             if (Player* player = who->GetCharmerOrOwnerPlayerOrPlayerItself())
-                _aggroPlayerGuid = player->GetGUID();
+                engagerGuid = player->GetGUID();
+
+            _scheduler.Schedule(500ms, [this, engagerGuid](TaskContext const& /*context*/)
+                {
+                    Player* player = ObjectAccessor::GetPlayer(*me, engagerGuid);
+                    if (!player)
+                        return;
+
+                    _aggroPlayerGuid = engagerGuid;
+
+                    std::list<TempSummon*> minions;
+                    player->GetAllMinionsByEntry(minions, Creatures::SummonedAshtongueStalker);
+                    if (minions.empty())
+                        player->CastSpell(player, Spells::SummonAshtongueStalker, true);
+                });
+
+            Talk(CreatureText::NefariousAggro);
 
             _events.ScheduleEvent(Events::NefariousConversation, 5s);
             _events.ScheduleEvent(Events::NefariousVampiricCleave, 3s, 5s);
             _events.ScheduleEvent(Events::NefariousCarrionStorm, 10s, 15s);
+        }
+
+        void JustDied(Unit* killer) override
+        {
+            if (Player* player = killer->GetCharmerOrOwnerPlayerOrPlayerItself())
+            {
+                std::list<TempSummon*> minions;
+                player->GetAllMinionsByEntry(minions, Creatures::SummonedAshtongueStalker);
+                for (TempSummon* minion : minions)
+                    minion->UnSummon();
+            }
+        }
+
+        void SetData(uint32 id, uint32 /*value*/) override
+        {
+            if (id == Misc::WellOfSoulsOpened)
+            {
+                me->InterruptNonMeleeSpells(false);
+                DoCastSelf(Spells::NefariousTorrentOfSouls);
+            }
+        }
+
+        void OnAuraApplied(AuraApplication const* aurApp) override
+        {
+            if (aurApp->GetBase()->GetId() == Spells::NefariousCarrionStorm)
+                me->AddAura(Spells::NefariousCarrionStormVisual, me);
+        }
+
+        void OnAuraRemoved(AuraApplication const* aurApp) override
+        {
+            if (aurApp->GetBase()->GetId() == Spells::NefariousTorrentOfSouls)
+                me->RemoveAurasDueToSpell(Spells::NefariousTorrentOfSoulsBeam);
+            else if (aurApp->GetBase()->GetId() == Spells::NefariousCarrionStorm)
+                me->RemoveAurasDueToSpell(Spells::NefariousCarrionStormVisual);
         }
 
         void DamageTaken(Unit* /*attacker*/, uint32& /*damage*/, DamageEffectType /*damageType*/, SpellInfo const* /*spellInfo*/) override
@@ -1015,11 +1067,21 @@ namespace Scripts::Custom::Mardum
         {
             if (spellInfo->Id == Spells::NefariousCarrionStorm)
                 Talk(CreatureText::NefariousCarrionAfterCast);
+            else if (spellInfo->Id == Spells::NefariousTorrentOfSouls)
+                me->AddAura(Spells::NefariousTorrentOfSoulsBeam, me);
         }
 
         void UpdateAI(uint32 diff) override
         {
+            _scheduler.Update(diff);
+
+            if (!UpdateVictim())
+                return;
+
             _events.Update(diff);
+
+            if (me->HasUnitState(UNIT_STATE_CASTING))
+                return;
 
             while (uint32 eventId = _events.ExecuteEvent())
             {
@@ -1034,12 +1096,12 @@ namespace Scripts::Custom::Mardum
                         _events.Repeat(12s, 15s);
                         break;
                     case Events::NefariousCarrionStorm:
-                        Talk(CreatureText::NefariousCarrionBeforeCast);
-                        DoCastVictim(Spells::NefariousCarrionStorm);
+                        if (DoCastSelf(Spells::NefariousCarrionStorm) == SPELL_CAST_OK)
+                            Talk(CreatureText::NefariousCarrionBeforeCast);
                         _events.Repeat(18s, 22s);
                         break;
                     case Events::NefariousFelShield:
-                        DoCastSelf(Spells::NefariousFelShield);
+                        me->CastSpell(me, Spells::NefariousFelShield);
                         _events.Repeat(22s, 25s);
                         break;
                     default:
@@ -1047,17 +1109,12 @@ namespace Scripts::Custom::Mardum
                 }
             }
 
-            if (!UpdateVictim())
-                return;
-
-            if (me->HasUnitState(UNIT_STATE_CASTING))
-                return;
-
             me->DoMeleeAttackIfReady();
         }
 
     private:
         EventMap _events;
+        TaskScheduler _scheduler;
         ObjectGuid _aggroPlayerGuid;
         bool _felShieldActive = false;
     };
@@ -1094,6 +1151,29 @@ namespace Scripts::Custom::Mardum
     private:
         bool _awakened = false;
     };
+
+    /*######
+    ## 102916 - Well of Souls ("Their Numbers Are Legion" 38819)
+    ## Summoned by the Cylinder Collision gameobjects around Count Nefarious.
+    ## npc_spellclick_spells makes the clicker cast 198185 Opening on it;
+    ## when the spell lands it notifies Count Nefarious via SetData.
+    ######*/
+    struct npc_well_of_souls : public ScriptedAI
+    {
+        npc_well_of_souls(Creature* creature) : ScriptedAI(creature)
+        {
+            me->SetNpcFlag(UNIT_NPC_FLAG_SPELLCLICK);
+        }
+
+        void SpellHit(WorldObject* /*caster*/, SpellInfo const* spellInfo) override
+        {
+            if (spellInfo->Id != Spells::WellOfSoulsOpening)
+                return;
+
+            if (Creature* nefarious = me->FindNearestCreature(Creatures::CountNefarious, Misc::SearchRange))
+                nefarious->AI()->SetData(Misc::WellOfSoulsOpened, 1);
+        }
+    };
 }
 
 void AddSC_custom_mardum_npcs()
@@ -1112,4 +1192,5 @@ void AddSC_custom_mardum_npcs()
     RegisterCreatureAI(npc_overseer_brutarg);
     RegisterCreatureAI(npc_count_nefarious);
     RegisterCreatureAI(npc_wounded_demon_hunter);
+    RegisterCreatureAI(npc_well_of_souls);
 }
