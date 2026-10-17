@@ -5,7 +5,7 @@ UPDATE `creature_template` SET `faction` = 35 WHERE `faction` = 0;
 UPDATE `creature_loot_template` SET `Chance` = 1 WHERE `Chance` < 1;
 
 -- Fix missing MovementType 1 for creatures with wander_distance > 0 and reverse
-UPDATE `creature` SET `MovementType` = 1 WHERE `wander_distance` > 0;
+UPDATE `creature` SET `MovementType` = 1 WHERE `wander_distance` > 0 AND `MovementType` != 2;
 UPDATE `creature` SET `MovementType` = 0 WHERE `wander_distance` = 0 AND `MovementType` != 2;
 UPDATE `creature` SET `wander_distance` = 0 WHERE `MovementType` = 0 AND `wander_distance` > 0;
 
@@ -56,3 +56,11 @@ UPDATE `creature` SET `curHealthPct` = NULL WHERE `curHealthPct` IS NOT NULL AND
 -- Remove Invalid SAI
 DELETE FROM `smart_scripts` WHERE `entryorguid` = 0;
 
+UPDATE `creature_template` ct
+SET ct.`npcflag` = ct.`npcflag` | 0x2
+WHERE (ct.`npcflag` & 0x2) = 0
+  AND ct.`entry` IN (
+      SELECT `id` FROM `creature_queststarter`
+      UNION
+      SELECT `id` FROM `creature_questender`
+  );
