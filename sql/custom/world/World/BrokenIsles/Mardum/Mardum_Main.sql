@@ -44,7 +44,8 @@
 
 -- Generic Creature Template fixes
 UPDATE `creature_template` SET `faction` = 2843 WHERE `entry` IN (98157,98160,99787);
-UPDATE `creature_template` SET `faction` = 4 WHERE `entry` = 102923;
+UPDATE `creature_template` SET `faction` = 4 WHERE `entry` IN (102923);
+UPDATE `creature_template` SET `faction` = 73 WHERE `entry` IN (100286);
 UPDATE `creature_template` SET `faction` = 35 WHERE `entry` IN (100545,100543,100549);
 UPDATE `creature_template` SET `faction` = 1786 WHERE `entry` IN (97769);
 UPDATE `creature_template` SET `unit_flags` = 0 WHERE `entry` IN (96877); -- Summoned Ashtongue should not be immune
@@ -179,6 +180,40 @@ DELETE FROM `creature_queststarter` WHERE `quest` = 40222;
 INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES
 (98711, 40222, 69587);
 
+-- Kor'vas Bloodthorn (98711) -> npc_korvas_bloodthorn (quest-accept dialog, delayed Shivarra summon)
+UPDATE `creature_template` SET `ScriptName` = 'npc_korvas_bloodthorn_foul_creche', `AIName` = '' WHERE `entry` = 98711;
+
+-- Prolifica (98986) -> npc_prolifica (Foul Creche, Secret Tome visibility)
+UPDATE `creature_template` SET `ScriptName` = 'npc_prolifica', `AIName` = '' WHERE `entry` = 98986;
+
+-- Fel Geyser (100257) -> SmartAI, passive on spawn
+UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` = 100257;
+
+DELETE FROM `smart_scripts` WHERE `entryorguid` = 100257 AND `source_type` = 0;
+INSERT INTO smart_scripts (entryorguid, source_type, id, link, Difficulties, event_type, event_phase_mask, event_chance, event_flags, event_param1, event_param2, event_param3, event_param4, event_param5, event_param_string, action_type, action_param1, action_param2, action_param3, action_param4, action_param5, action_param6, action_param7, action_param_string, target_type, target_param1, target_param2, target_param3, target_param4, target_param_string, target_x, target_y, target_z, target_o, comment) VALUES
+(100257, 0, 0, 0, '', 11, 0, 100, 0, 0, 0, 0, 0, 0, '', 8, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Fel Geyser - On Respawn - Set React State Passive');
+
+DELETE FROM `conversation_template` WHERE `Id` IN (585);
+INSERT INTO `conversation_template` (`Id`, `FirstLineId`, `VerifiedBuild`) VALUES
+(585, 1519, 69875);
+
+DELETE FROM `conversation_line_template` WHERE `Id` IN (1519);
+INSERT INTO `conversation_line_template` (`Id`, `UiCameraID`, `VerifiedBuild`) VALUES
+(1519, 262, 69875);
+
+DELETE FROM `conversation_actors` WHERE `ConversationId` IN (585);
+INSERT  INTO `conversation_actors` (`ConversationId`, `ConversationActorId`, `Idx`, `CreatureId`, `CreatureDisplayInfoId`, `NoActorObject`, `ActivePlayerObject`, `VerifiedBuild`) VALUES
+(585, 49935, 0, 93802, 65935, 0, 0, 69875);
+
+DELETE FROM `phase_area` WHERE `PhaseId` IN (5344);
+INSERT INTO `phase_area` (`AreaId`, `PhaseId`, `Comment`) VALUES
+(7912, 5344, 'Mardum - Kor''vas Bloodthorn at Imp Mother cave');
+
+-- Condition: phase switch 5344
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` IN (5344);
+INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `NegativeCondition`, `ErrorType`, `ErrorTextId`, `ScriptName`, `Comment`) VALUES
+(26, 5344, 0, 0, 0, 47, 0, 40222, 66, 0, 1, 0, 0, '', 'Phase 5344 Foul Creche active when quest 40222 The Imp Mother''s Tome is NOT complete');
+
 -- ========================= Fixes for Before We're Overrun
 DELETE FROM `creature_queststarter` WHERE `quest` = 38766;
 INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES
@@ -210,10 +245,12 @@ UPDATE `creature_template_difficulty` SET `StaticFlags1` = `StaticFlags1` | 0x20
 
 -- SAI
 UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (98484,98486,98497,98482,95226,93112,93716,94654,97034,102726,96494,102724,
-97706,99759,96277,96402,102923,96888,96279,96280,96877);
+97706,99759,96277,96402,102923,96888,96279,96280,96877,96503);
 DELETE FROM smart_scripts WHERE entryorguid IN (98484,98486,98497,98482,95226,93112,93716,94654,97034,102726,96494,102724,
-97706,99759,96277,96402,102923,96888,96279,96280,96877) AND source_type = 0;
+97706,99759,96277,96402,102923,96888,96279,96280,96877,96503) AND source_type = 0;
 INSERT INTO smart_scripts (entryorguid, source_type, id, link, Difficulties, event_type, event_phase_mask, event_chance, event_flags, event_param1, event_param2, event_param3, event_param4, event_param5, event_param_string, action_type, action_param1, action_param2, action_param3, action_param4, action_param5, action_param6, action_param7, action_param_string, target_type, target_param1, target_param2, target_param3, target_param4, target_param_string, target_x, target_y, target_z, target_o, comment) VALUES
+(96503, 0, 0, 0, '', 0, 0, 100, 0, 3000, 3000, 5000, 5000, 0, '', 11, 197745, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Coilskar Sea-Caller - In Combat - Cast ''Lightning Bolt'''),
+
 (96877, 0, 0, 0, '', 11, 0, 100, 0, 0, 0, 0, 0, 0, '', 1, 1, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Ashtongue Stalker - On Respawn - Talk 1 (No Repeat)'),
 (96877, 0, 1, 0, '', 4, 0, 30, 1, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Ashtongue Stalker - On Aggro - Talk 0 (No Repeat)'),
 
@@ -432,13 +469,14 @@ INSERT INTO `spell_target_position` (`ID`, `EffectIndex`, `OrderIndex`, `MapID`,
 UPDATE `creature_template` SET `ScriptName` = 'npc_legion_devastator', `AIName` = '' WHERE `entry` = 100161;
 DELETE FROM `smart_scripts` WHERE `entryorguid` = 100161 AND `source_type` = 0;
 
-DELETE FROM `areatrigger_create_properties` WHERE `Id` IN (4920,5648,5659,5668,5494) AND `IsCustom` = 0;
+DELETE FROM `areatrigger_create_properties` WHERE `Id` IN (4920,5648,5659,5668,5494,5319) AND `IsCustom` = 0;
 INSERT INTO `areatrigger_create_properties` VALUES
 (4920, 0, 9637, 0, 16, 0, 0, 0, 0, -1, 0, 0, 192604, 0, 0, 1, 0, 0, 5, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL, '', 69814),
 (5648, 0, 10356, 0, 0, 0, 0, 0, 0, -1, 0, 0, 200525, 0, 15000, 1, 0, 4, 4, 4, 4, 4, 0.3, 0.3, 0, 0, 0, 0, 0, NULL, NULL, NULL, '', 69814),
 (5659, 0, 10366, 0, 0, 0, 0, 0, 0, -1, 0, 0, 200647, 0, 10000, 1, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL, '', 69814),
 (5668, 0, 10375, 0, 0, 0, 0, 0, 0, -1, 0, 0, 200753, 0, 3000, 1, 0, 0, 3.5, 3.5, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL, '', 69814),
-(5494, 0, 10195, 0, 0, 0, 0, 0, 0, -1, 0, 0, 198947, 0, 8000, 1, 0, 0, 35, 35, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL, 'at_nefarious_carrion_storm', 69814);
+(5494, 0, 10195, 0, 0, 0, 0, 0, 0, -1, 0, 0, 198947, 0, 8000, 1, 0, 0, 35, 35, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL, 'at_nefarious_carrion_storm', 69814),
+(5319, 0, 10041, 0, 0, 0, 0, 0, 0, -1, 0, 0, 197245, 0, 15000, 1, 0, 0, 7, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL, '', 69814);
 
 
 -- smart_scripts (creature entry 93127, id Y = 5)

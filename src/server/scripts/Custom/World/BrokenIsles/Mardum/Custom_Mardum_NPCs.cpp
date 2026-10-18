@@ -20,10 +20,12 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "Containers.h"
 #include "Conversation.h"
 #include "Creature.h"
 #include "CreatureAI.h"
 #include "EventMap.h"
+#include "GameObject.h"
 #include "Map.h"
 #include "MotionMaster.h"
 #include "ObjectAccessor.h"
@@ -768,6 +770,23 @@ namespace Scripts::Custom::Mardum
             DetermineTargets();
         }
 
+        void Reset() override
+        {
+            _scheduler.CancelAll();
+        }
+
+        void JustEngagedWith(Unit* /*who*/) override
+        {
+            if (me->GetEntry() != Creatures::CoilskarHarpooner)
+                return;
+
+            _scheduler.Schedule(5s, [this](TaskContext context)
+            {
+                DoCastVictim(Spells::CoilskarThrowSpear);
+                context.Repeat();
+            });
+        }
+
         void SetData(uint32 id, uint32 value) override
         {
             if (_activated || id != Misc::BannerTriggered || value != 1)
@@ -1355,6 +1374,189 @@ namespace Scripts::Custom::Mardum
             }
         }
     };
+
+    // 98711 - Kor'vas Bloodthorn (Foul Creche)
+    struct npc_korvas_bloodthorn_foul_creche : public ScriptedAI
+    {
+        npc_korvas_bloodthorn_foul_creche(Creature* creature) : ScriptedAI(creature) { }
+
+        void OnQuestAccept(Player* player, Quest const* quest) override
+        {
+            if (quest->GetQuestId() != Quests::TheImpMothersTome)
+                return;
+
+            ObjectGuid playerGuid = player->GetGUID();
+
+            _scheduler.Schedule(3s, [this, playerGuid](TaskContext const& /*context*/)
+            {
+                if (Player* player = ObjectAccessor::GetPlayer(*me, playerGuid))
+                {
+                    Talk(CreatureText::KorvasImpMothersTomeAccept, player);
+
+                    _scheduler.Schedule(5s, [this, playerGuid](TaskContext const& /*context*/)
+                    {
+                        if (Player* player = ObjectAccessor::GetPlayer(*me, playerGuid))
+                            Talk(CreatureText::KorvasImpMothersTomeAccept2, player);
+                    });
+                }
+            });
+
+            // Scheduled on the player's EventProcessor so it is dropped on logout
+            player->m_Events.AddEventAtOffset([player]()
+            {
+                std::list<TempSummon*> minions;
+                player->GetAllMinionsByEntry(minions, Creatures::ShivarraDestroyer);
+                if (minions.empty())
+                    player->CastSpell(player, Spells::SummonShivarraDestroyer, CastSpellExtraArgs(TRIGGERED_FULL_MASK));
+            }, 30s);
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _scheduler.Update(diff);
+        }
+
+    private:
+        TaskScheduler _scheduler;
+    };
+
+    // 98986 - Prolifica (Foul Creche rare)
+    struct npc_prolifica : public ScriptedAI
+    {
+        npc_prolifica(Creature* creature) : ScriptedAI(creature)
+        {
+            me->SetSessile(true);
+
+            // the tome can spawn after us in the same grid load - retry once deferred
+            if (!SetTomeVisibility(true))
+                _scheduler.Schedule(1s, [this](TaskContext const& /*context*/)
+                {
+                    SetTomeVisibility(true);
+                });
+        }
+
+        void Reset() override
+        {
+            _events.Reset();
+            _engagerGuid = ObjectGuid::Empty;
+            _lowHealthTalked = false;
+        }
+
+        void EnterEvadeMode(EvadeReason why) override
+        {
+            SetTomeVisibility(true);
+            ScriptedAI::EnterEvadeMode(why);
+        }
+
+        void JustEngagedWith(Unit* who) override
+        {
+            Talk(CreatureText::ProlificaAggro, who);
+
+            if (Player* player = who->GetCharmerOrOwnerPlayerOrPlayerItself())
+                _engagerGuid = player->GetGUID();
+
+            SetTomeVisibility(false);
+
+            _events.ScheduleEvent(Events::ProlificaFelGeyser, 10s);
+            _events.ScheduleEvent(Events::ProlificaGaseousBreath, 10s);
+        }
+
+        void DamageTaken(Unit* /*attacker*/, uint32& /*damage*/, DamageEffectType /*damageType*/, SpellInfo const* /*spellInfo = nullptr*/) override
+        {
+            if (_lowHealthTalked || !me->HealthBelowPct(50))
+                return;
+
+            _lowHealthTalked = true;
+
+            if (Player* player = ObjectAccessor::GetPlayer(*me, _engagerGuid))
+                Talk(CreatureText::ProlificaLowHealth, player);
+        }
+
+        void JustDied(Unit* killer) override
+        {
+            // since we do not know the phase id for this npc we force it always visible before death for loot
+            // it is now part of the quest giver phase 5344
+            // current phase ends when quest is complete so we need to extend to be visible also when dead
+            // a second respawn will no longer be visible for the same player
+            PhasingHandler::SetAlwaysVisible(me, true, true);
+
+            Talk(CreatureText::ProlificaDeath, killer);
+
+            // the killing blow may come from a companion - resolve the owning player
+            if (Player* player = killer->GetCharmerOrOwnerPlayerOrPlayerItself())
+            {
+                PhasingHandler::OnConditionChange(player, true);
+
+                std::list<TempSummon*> minions;
+                player->GetAllMinionsByEntry(minions, Creatures::ShivarraDestroyer);
+                for (TempSummon* minion : minions)
+                    minion->UnSummon();
+            }
+
+            // Scheduled on the player's EventProcessor so it is dropped on logout
+            if (Player* player = ObjectAccessor::GetPlayer(*me, _engagerGuid))
+                player->m_Events.AddEventAtOffset([player]()
+                {
+                    Conversation::CreateConversation(Conversations::ProlificaDeath, player, *player, player->GetGUID());
+                }, 10s);
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _scheduler.Update(diff);
+
+            if (!UpdateVictim())
+                return;
+
+            if (me->HasUnitState(UNIT_STATE_CASTING))
+                return;
+
+            _events.Update(diff);
+
+            while (uint32 eventId = _events.ExecuteEvent())
+            {
+                switch (eventId)
+                {
+                    case Events::ProlificaFelGeyser:
+                    {
+                        std::list<Creature*> geysers;
+                        me->GetCreatureListWithEntryInGrid(geysers, Creatures::FelGeyser, Misc::FelGeyserSearchRange);
+                        if (Creature* geyser = Trinity::Containers::SelectRandomContainerElement(geysers))
+                            DoCast(geyser, Spells::ProlificaFelGeyser);
+                        _events.Repeat(15s, 20s);
+                        break;
+                    }
+                    case Events::ProlificaGaseousBreath:
+                        DoCastVictim(Spells::ProlificaGaseousBreath);
+                        _events.Repeat(10s, 15s);
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+
+    private:
+        bool SetTomeVisibility(bool visible)
+        {
+            FindGameObjectOptions options;
+            options.GameObjectId = GameObjects::SecretTome;
+            options.IgnorePhases = true;
+
+            if (GameObject* tome = me->FindNearestGameObjectWithOptions(Misc::SearchRange, options))
+            {
+                PhasingHandler::SetAlwaysVisible(tome, visible, true);
+                return true;
+            }
+
+            return false;
+        }
+
+        EventMap _events;
+        TaskScheduler _scheduler;
+        ObjectGuid _engagerGuid;
+        bool _lowHealthTalked = false;
+    };
 }
 
 void AddSC_custom_mardum_npcs()
@@ -1375,4 +1577,6 @@ void AddSC_custom_mardum_npcs()
     RegisterCreatureAI(npc_wounded_demon_hunter);
     RegisterCreatureAI(npc_well_of_souls);
     RegisterCreatureAI(npc_general_volroth);
+    RegisterCreatureAI(npc_korvas_bloodthorn_foul_creche);
+    RegisterCreatureAI(npc_prolifica);
 }

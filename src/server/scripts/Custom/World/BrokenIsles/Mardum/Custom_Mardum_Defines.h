@@ -72,6 +72,9 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 WoundedDemonHunter         = 100549;
         static constexpr uint32 WoundedDemonHunter2        = 100545;
         static constexpr uint32 CreditWoundedDemonHunter   = 97395;
+        static constexpr uint32 KorvasBloodthorn           = 98711;
+        static constexpr uint32 Prolifica                  = 98986;
+        static constexpr uint32 FelGeyser                  = 100257;
     }
 
     namespace Factions
@@ -99,6 +102,7 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 BannerSoulEngine        = 243965;
         static constexpr uint32 SpireStabilizer         = 245995;
         static constexpr uint32 CylinderCollision       = 246280;
+        static constexpr uint32 SecretTome              = 245169;
     }
 
     namespace Scenes
@@ -120,6 +124,7 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 StopTheBombardment       = 38727;
         static constexpr uint32 TheirNumbersAreLegion    = 38819;
         static constexpr uint32 IntoTheFoulCreche        = 38725;
+        static constexpr uint32 TheImpMothersTome        = 40222;
     }
 
     namespace Objectives
@@ -172,6 +177,9 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 SummonAshtongueStalker         = 191662;
         static constexpr uint32 VolrothBurnWithin              = 197749;
         static constexpr uint32 VolrothFelBreath               = 197750;
+        static constexpr uint32 ProlificaFelGeyser             = 197217;
+        static constexpr uint32 ProlificaGaseousBreath         = 197240;
+        static constexpr uint32 CoilskarThrowSpear             = 198723;
     }
 
     namespace Conversations
@@ -185,6 +193,7 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 KingVorasDeath             = 567;
         static constexpr uint32 DoomFortressStabilizer     = 573;
         static constexpr uint32 CountNefarious             = 576;
+        static constexpr uint32 ProlificaDeath             = 585;
     }
 
     namespace CreatureText
@@ -253,6 +262,15 @@ namespace Scripts::Custom::Mardum
         static constexpr uint8 VolrothBurnWithin = 1;
         static constexpr uint8 VolrothDeath      = 2;
         static constexpr uint8 VolrothCaptiveReleased = 0; // PLACEHOLDER: captive creature_text GroupID
+
+        // Kor'vas Bloodthorn (98711) - creature_text GroupIDs
+        static constexpr uint8 KorvasImpMothersTomeAccept  = 0;
+        static constexpr uint8 KorvasImpMothersTomeAccept2 = 1;
+
+        // Prolifica (98986) - creature_text GroupIDs
+        static constexpr uint8 ProlificaAggro     = 0;
+        static constexpr uint8 ProlificaLowHealth = 1;
+        static constexpr uint8 ProlificaDeath     = 2;
     }
 
     namespace Events
@@ -285,6 +303,10 @@ namespace Scripts::Custom::Mardum
         // General Volroth (97370) - EventMap IDs
         static constexpr int8 VolrothBurnWithin = 1;
         static constexpr int8 VolrothFelBreath  = 2;
+
+        // Prolifica (98986) - EventMap IDs
+        static constexpr int8 ProlificaFelGeyser     = 1;
+        static constexpr int8 ProlificaGaseousBreath = 2;
     }
 
     namespace Movement
@@ -296,6 +318,7 @@ namespace Scripts::Custom::Mardum
     namespace Misc
     {
         static constexpr float SearchRange         = 50.0f;
+        static constexpr float FelGeyserSearchRange = 30.0f;
         static constexpr float TalkDistance        = 5.0f;
         static constexpr float DevastatorStandoff  = 5.0f;
         static constexpr uint32 BannerTriggered    = 1; // SetData id: banner used -> trigger npc

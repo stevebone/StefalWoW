@@ -1,10 +1,19 @@
 -- Mardum Creature Text
 DELETE FROM `creature_text` WHERE `creatureID` IN (98484,98486,98497,98460,95226,93112,96884,93759,94654,93221,95048,93716,97034,96494,102726,96499,
-102724,97706,97059,96402,96277,97057,102923,96888,100549,100545,100543,96279,96280,97058,96877,97370,96503);
+102724,97706,97059,96402,96277,97057,102923,96888,100549,100545,100543,96279,96280,97058,96877,97370,96503,98711,98986,97676);
 DELETE FROM `creature_text` WHERE `creatureID` IN (98229) AND `GroupID` IN (2,3);
 DELETE FROM `creature_text` WHERE `creatureID` IN (93127) AND `GroupID` IN (2);
 INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `BroadcastTextId`, `TextRange`, `comment`) VALUES
-(96503, 0, 0, 'My thanks. Come, my brothers... back to the battle!', 12, 0, 100, 0, 0, 55076, 99093, 0, 'Coilskar Sea-Caller to General Volroth'),
+(97676, 0, 0, 'Beware, $n. There is a dreadlord inside that Soul Engine.', 12, 0, 100, 0, 0, 55304, 99574, 0, 'Lady S''Theno to Player'),
+
+(98986, 0, 0, 'Get away. You cannot have my tome!', 14, 0, 100, 0, 0, 55338, 100840, 0, 'Prolifica to Player'),
+(98986, 1, 0, 'My fel secrets will consume you!', 14, 0, 100, 0, 0, 55340, 103490, 0, 'Prolifica to Player'),
+(98986, 2, 0, 'They''re stealing our secrets, my queen...', 14, 0, 100, 0, 0, 55339, 100841, 0, 'Prolifica to Player'),
+
+(98711, 0, 0, 'The imp mother is in that cave, right there.', 12, 0, 100, 0, 0, 55290, 100666, 0, 'Kor''vas Bloodthorn to Player'),
+(98711, 1, 0, 'I have to go. Kayn''s called me back to handle something. He probably needs help killing a demon.', 12, 0, 100, 0, 0, 55291, 98845, 0, 'Kor''vas Bloodthorn to Player'),
+
+(96503, 0, 0, 'My thanks. Come, my brothers... back to the battle!', 12, 0, 100, 0, 0, 55076, 99093, 0, 'Coilskar Sea-Caller to Player'),
 
 (97370, 0, 0, 'You cannot have them. They are mine!', 14, 0, 100, 0, 0, 55199, 99071, 0, 'General Volroth to Player'),
 (97370, 1, 0, 'My fire will leave only your bones behind.', 14, 0, 100, 0, 0, 55201, 103509, 0, 'General Volroth to Player'),
