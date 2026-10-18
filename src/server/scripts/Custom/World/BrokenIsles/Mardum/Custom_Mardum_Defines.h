@@ -75,6 +75,10 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 KorvasBloodthorn           = 98711;
         static constexpr uint32 Prolifica                  = 98986;
         static constexpr uint32 FelGeyser                  = 100257;
+        static constexpr uint32 LadyStheno                 = 97676;
+        static constexpr uint32 VileSoulmaster             = 102724;
+        static constexpr uint32 VileSoulmaster2            = 97014;
+        static constexpr uint32 BurningSoulstalker         = 96278;
     }
 
     namespace Factions
@@ -180,6 +184,7 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 ProlificaFelGeyser             = 197217;
         static constexpr uint32 ProlificaGaseousBreath         = 197240;
         static constexpr uint32 CoilskarThrowSpear             = 198723;
+        static constexpr uint32 SthenoAqueousShield            = 201268;
     }
 
     namespace Conversations
@@ -271,6 +276,9 @@ namespace Scripts::Custom::Mardum
         static constexpr uint8 ProlificaAggro     = 0;
         static constexpr uint8 ProlificaLowHealth = 1;
         static constexpr uint8 ProlificaDeath     = 2;
+
+        // Lady S'theno (97676) - creature_text GroupIDs
+        static constexpr uint8 SthenoGreeting = 0;
     }
 
     namespace Events
@@ -307,6 +315,10 @@ namespace Scripts::Custom::Mardum
         // Prolifica (98986) - EventMap IDs
         static constexpr int8 ProlificaFelGeyser     = 1;
         static constexpr int8 ProlificaGaseousBreath = 2;
+
+        // Lady S'theno (97676) - EventMap IDs
+        static constexpr int8 SthenoAqueousShield = 1;
+        static constexpr int8 SthenoHealingWave   = 2;
     }
 
     namespace Movement
@@ -319,6 +331,8 @@ namespace Scripts::Custom::Mardum
     {
         static constexpr float SearchRange         = 50.0f;
         static constexpr float FelGeyserSearchRange = 30.0f;
+        static constexpr uint32 SthenoAttackerCount    = 5;
+        static constexpr float  SthenoAttackerSpawnRange = 5.0f;
         static constexpr float TalkDistance        = 5.0f;
         static constexpr float DevastatorStandoff  = 5.0f;
         static constexpr uint32 BannerTriggered    = 1; // SetData id: banner used -> trigger npc

@@ -175,6 +175,11 @@ DELETE FROM `creature_template_difficulty` WHERE `DifficultyID` = 1 AND `Entry` 
  103432, 96279, 97370, 102724, 97058, 97057, 100243, 100244, 93802, 98497, 98986
 );
 
+-- ========================= Fixes for Fel Secrets
+DELETE FROM `creature_queststarter` WHERE `quest` = 40051;
+INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES
+(99045, 40051, 69587);
+
 -- ========================= Fixes for The Imp Mother's Tome
 DELETE FROM `creature_queststarter` WHERE `quest` = 40222;
 INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES
@@ -596,4 +601,7 @@ INSERT INTO `npc_spellclick_spells` (`npc_entry`, `spell_id`, `cast_flags`, `use
 
 -- General Volroth (97370) -> npc_general_volroth (spawns captives, companion summon on engage)
 UPDATE `creature_template` SET `ScriptName` = 'npc_general_volroth', `AIName` = '' WHERE `entry` = 97370;
+
+-- Lady S'theno (97676) -> npc_lady_stheno (greeting, attacker pack, combat spells)
+UPDATE `creature_template` SET `ScriptName` = 'npc_lady_stheno', `AIName` = '' WHERE `entry` = 97676;
 

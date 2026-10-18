@@ -1557,6 +1557,134 @@ namespace Scripts::Custom::Mardum
         ObjectGuid _engagerGuid;
         bool _lowHealthTalked = false;
     };
+
+    // 97676 - Lady S'theno (Soul Engine)
+    struct npc_lady_stheno : public ScriptedAI
+    {
+        npc_lady_stheno(Creature* creature) : ScriptedAI(creature)
+        {
+            _scheduler.Schedule(5s, [this](TaskContext context)
+            {
+                MaintainAttackers();
+                context.Repeat();
+            });
+        }
+
+        void JustAppeared() override
+        {
+            SpawnAttackers();
+        }
+
+        void Reset() override
+        {
+            _events.Reset();
+        }
+
+        void MoveInLineOfSight(Unit* who) override
+        {
+            if (_greetingOnCooldown || !who->IsPlayer())
+                return;
+
+            _greetingOnCooldown = true;
+            Talk(CreatureText::SthenoGreeting, who);
+
+            _scheduler.Schedule(10min, [this](TaskContext const& /*context*/)
+            {
+                _greetingOnCooldown = false;
+            });
+        }
+
+        void JustEngagedWith(Unit* /*who*/) override
+        {
+            _events.ScheduleEvent(Events::SthenoAqueousShield, 1s);
+            _events.ScheduleEvent(Events::SthenoHealingWave, 15s);
+        }
+
+        void DamageTaken(Unit* attacker, uint32& damage, DamageEffectType /*damageType*/, SpellInfo const* /*spellInfo*/) override
+        {
+            if (attacker->IsCreature() && me->HealthBelowPct(90))
+                damage = 1;
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _scheduler.Update(diff);
+
+            if (!UpdateVictim())
+                return;
+
+            if (me->HasUnitState(UNIT_STATE_CASTING))
+                return;
+
+            _events.Update(diff);
+
+            while (uint32 eventId = _events.ExecuteEvent())
+            {
+                switch (eventId)
+                {
+                    case Events::SthenoAqueousShield:
+                        DoCastSelf(Spells::SthenoAqueousShield);
+                        _events.Repeat(15s);
+                        break;
+                    case Events::SthenoHealingWave:
+                        if (me->HealthBelowPct(50))
+                            DoCastSelf(Spells::SeaCallerHealingWave);
+                        _events.Repeat(15s);
+                        break;
+                    default:
+                        break;
+                }
+
+                if (me->HasUnitState(UNIT_STATE_CASTING))
+                    return;
+            }
+
+            me->DoMeleeAttackIfReady();
+        }
+
+    private:
+        static constexpr uint32 AttackerPool[] =
+        {
+            Creatures::VileSoulmaster,
+            Creatures::BurningSoulstalker,
+            Creatures::VileSoulmaster2,
+            Creatures::BurningSoulstalker,
+            Creatures::BurningSoulstalker
+        };
+
+        void SpawnAttackers()
+        {
+            for (uint32 i = 0; i < Misc::SthenoAttackerCount; ++i)
+                SpawnAttacker();
+        }
+
+        void SpawnAttacker()
+        {
+            uint32 entry = Trinity::Containers::SelectRandomContainerElement(AttackerPool);
+            if (Creature* attacker = me->SummonCreature(entry, me->GetRandomNearPosition(Misc::SthenoAttackerSpawnRange)))
+            {
+                attacker->EngageWithTarget(me);
+                _attackerGuids.push_back(attacker->GetGUID());
+            }
+        }
+
+        void MaintainAttackers()
+        {
+            std::erase_if(_attackerGuids, [this](ObjectGuid guid)
+            {
+                Creature* attacker = ObjectAccessor::GetCreature(*me, guid);
+                return !attacker || !attacker->IsAlive();
+            });
+
+            if (_attackerGuids.size() < Misc::SthenoAttackerCount)
+                SpawnAttacker();
+        }
+
+        EventMap _events;
+        TaskScheduler _scheduler;
+        std::vector<ObjectGuid> _attackerGuids;
+        bool _greetingOnCooldown = false;
+    };
 }
 
 void AddSC_custom_mardum_npcs()
@@ -1579,4 +1707,5 @@ void AddSC_custom_mardum_npcs()
     RegisterCreatureAI(npc_general_volroth);
     RegisterCreatureAI(npc_korvas_bloodthorn_foul_creche);
     RegisterCreatureAI(npc_prolifica);
+    RegisterCreatureAI(npc_lady_stheno);
 }
