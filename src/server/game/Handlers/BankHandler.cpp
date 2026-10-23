@@ -31,6 +31,65 @@
 #include "RealmList.h"
 #include "World.h"
 
+bool WorldSession::CanUseBank(ObjectGuid bankerGUID) const
+{
+    // bankerGUID parameter is optional, set to 0 by default.
+    if (!bankerGUID)
+        bankerGUID = _player->PlayerTalkClass->GetInteractionData().SourceGuid;
+
+    bool isUsingBankCommand = (bankerGUID == GetPlayer()->GetGUID() && bankerGUID == _player->PlayerTalkClass->GetInteractionData().SourceGuid);
+
+    if (!isUsingBankCommand)
+    {
+        Creature* creature = GetPlayer()->GetNPCIfCanInteractWith(bankerGUID, UNIT_NPC_FLAG_BANKER, UNIT_NPC_FLAG_2_NONE);
+        if (!creature)
+            return false;
+    }
+
+    return true;
+}
+
+void WorldSession::HandleBankerActivateOpcode(WorldPackets::Bank::BankerActivate const& bankerActivate)
+{
+    if (bankerActivate.InteractionType != PlayerInteractionType::Banker
+        && bankerActivate.InteractionType != PlayerInteractionType::CharacterBanker
+        && bankerActivate.InteractionType != PlayerInteractionType::AccountBanker)
+        return;
+
+    Creature* unit = GetPlayer()->GetNPCIfCanInteractWith(bankerActivate.Banker, UNIT_NPC_FLAG_ACCOUNT_BANKER | UNIT_NPC_FLAG_BANKER, UNIT_NPC_FLAG_2_NONE);
+    if (!unit)
+    {
+        TC_LOG_ERROR("network", "WORLD: HandleBankerActivateOpcode - {} not found or you can not interact with him.", bankerActivate.Banker);
+        return;
+    }
+
+    switch (bankerActivate.InteractionType)
+    {
+        case PlayerInteractionType::Banker:
+            if (!unit->HasNpcFlag(UNIT_NPC_FLAG_ACCOUNT_BANKER) || !unit->HasNpcFlag(UNIT_NPC_FLAG_BANKER))
+                return;
+            break;
+        case PlayerInteractionType::CharacterBanker:
+            if (!unit->HasNpcFlag(UNIT_NPC_FLAG_BANKER))
+                return;
+            break;
+        case PlayerInteractionType::AccountBanker:
+            if (!unit->HasNpcFlag(UNIT_NPC_FLAG_ACCOUNT_BANKER))
+                return;
+            break;
+        default:
+            break;
+    }
+
+    // remove fake death
+    if (GetPlayer()->HasUnitState(UNIT_STATE_DIED))
+        GetPlayer()->RemoveAurasByType(SPELL_AURA_FEIGN_DEATH);
+
+    // set currentBankerGUID for other bank action
+
+    SendShowBank(bankerActivate.Banker, bankerActivate.InteractionType);
+}
+
 void WorldSession::HandleAutoBankItemOpcode(WorldPackets::Bank::AutoBankItem& packet)
 {
     TC_LOG_DEBUG("network", "STORAGE: receive bag = {}, slot = {}", packet.Bag, packet.Slot);
@@ -74,47 +133,6 @@ void WorldSession::HandleAutoBankItemOpcode(WorldPackets::Bank::AutoBankItem& pa
     _player->RemoveItem(packet.Bag, packet.Slot, true);
     _player->ItemRemovedQuestCheck(item->GetEntry(), item->GetCount());
     _player->BankItem(dest, item, true);
-}
-
-void WorldSession::HandleBankerActivateOpcode(WorldPackets::Bank::BankerActivate const& bankerActivate)
-{
-    if (bankerActivate.InteractionType != PlayerInteractionType::Banker
-        && bankerActivate.InteractionType != PlayerInteractionType::CharacterBanker
-        && bankerActivate.InteractionType != PlayerInteractionType::AccountBanker)
-        return;
-
-    Creature* unit = GetPlayer()->GetNPCIfCanInteractWith(bankerActivate.Banker, UNIT_NPC_FLAG_ACCOUNT_BANKER | UNIT_NPC_FLAG_BANKER, UNIT_NPC_FLAG_2_NONE);
-    if (!unit)
-    {
-        TC_LOG_ERROR("network", "WORLD: HandleBankerActivateOpcode - {} not found or you can not interact with him.", bankerActivate.Banker);
-        return;
-    }
-
-    switch (bankerActivate.InteractionType)
-    {
-        case PlayerInteractionType::Banker:
-            if (!unit->HasNpcFlag(UNIT_NPC_FLAG_ACCOUNT_BANKER) || !unit->HasNpcFlag(UNIT_NPC_FLAG_BANKER))
-                return;
-            break;
-        case PlayerInteractionType::CharacterBanker:
-            if (!unit->HasNpcFlag(UNIT_NPC_FLAG_BANKER))
-                return;
-            break;
-        case PlayerInteractionType::AccountBanker:
-            if (!unit->HasNpcFlag(UNIT_NPC_FLAG_ACCOUNT_BANKER))
-                return;
-            break;
-        default:
-            break;
-    }
-
-    // remove fake death
-    if (GetPlayer()->HasUnitState(UNIT_STATE_DIED))
-        GetPlayer()->RemoveAurasByType(SPELL_AURA_FEIGN_DEATH);
-
-    // set currentBankerGUID for other bank action
-
-    SendShowBank(bankerActivate.Banker, bankerActivate.InteractionType);
 }
 
 void WorldSession::HandleAutoStoreBankItemOpcode(WorldPackets::Bank::AutoStoreBankItem& packet)
