@@ -185,6 +185,8 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 ProlificaGaseousBreath         = 197240;
         static constexpr uint32 CoilskarThrowSpear             = 198723;
         static constexpr uint32 SthenoAqueousShield            = 201268;
+        static constexpr uint32 FelSecretsHavocChosen          = 194939;
+        static constexpr uint32 FelSecretsVengeanceChosen      = 194940;
     }
 
     namespace Conversations
@@ -199,6 +201,13 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 DoomFortressStabilizer     = 573;
         static constexpr uint32 CountNefarious             = 576;
         static constexpr uint32 ProlificaDeath             = 585;
+    }
+
+    namespace PlayerChoices
+    {
+        // PlayerChoice 231 - Fel Secrets (quest 40051) - ResponseIds
+        static constexpr uint32 FelSecretsHavocResponse     = 478;
+        static constexpr uint32 FelSecretsVengeanceResponse = 479;
     }
 
     namespace CreatureText

@@ -21,9 +21,12 @@
  */
 
 #include "Conversation.h"
+#include "DB2Stores.h"
+#include "DBCEnums.h"
 #include "EventProcessor.h"
 #include "ObjectMgr.h"
 #include "Player.h"
+#include "PlayerChoice.h"
 #include "QuestDef.h"
 #include "ScriptMgr.h"
 #include "Spell.h"
@@ -135,6 +138,39 @@ namespace Scripts::Custom::Mardum
             }, 30s);
         }
     };
+
+    // PlayerChoice 231 - Fel Secrets (quest 40051)
+    class playerchoice_fel_secrets : public PlayerChoiceScript
+    {
+    public:
+        playerchoice_fel_secrets() : PlayerChoiceScript("playerchoice_fel_secrets") { }
+
+        void OnResponse(WorldObject* /*object*/, Player* player, PlayerChoice const* /*choice*/,
+            PlayerChoiceResponse const* response, uint16 /*clientIdentifier*/) override
+        {
+            uint32 choiceSpell;
+            ChrSpecialization spec;
+            switch (response->ResponseId)
+            {
+                case PlayerChoices::FelSecretsHavocResponse:
+                    choiceSpell = Spells::FelSecretsHavocChosen;
+                    spec = ChrSpecialization::DemonHunterHavoc;
+                    break;
+                case PlayerChoices::FelSecretsVengeanceResponse:
+                    choiceSpell = Spells::FelSecretsVengeanceChosen;
+                    spec = ChrSpecialization::DemonHunterVengeance;
+                    break;
+                default:
+                    return;
+            }
+
+            // spec-chosen spell: grants the quest kill credit and completes the tracking quest
+            player->CastSpell(player, choiceSpell, CastSpellExtraArgs(TRIGGERED_FULL_MASK));
+
+            if (ChrSpecializationEntry const* specEntry = sChrSpecializationStore.LookupEntry(uint32(spec)))
+                player->ActivateTalentGroup(specEntry);
+        }
+    };
 }
 
 void AddSC_custom_mardum_player()
@@ -144,4 +180,5 @@ void AddSC_custom_mardum_player()
     new player_mardum_assault_bonus_objective();
     new player_mardum_coilskar_forces();
     new player_mardum_illidari_foothold();
+    new playerchoice_fel_secrets();
 }

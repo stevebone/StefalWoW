@@ -180,6 +180,87 @@ DELETE FROM `creature_queststarter` WHERE `quest` = 40051;
 INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES
 (99045, 40051, 69587);
 
+-- PlayerChoice 231 (DH spec choice) -> playerchoice_fel_secrets
+DELETE FROM `playerchoice` WHERE `ChoiceId` = 231;
+INSERT INTO `playerchoice` (`ChoiceId`, `Question`, `ScriptName`, `VerifiedBuild`) VALUES
+(231, 'Which demon hunter specialization do you want to learn?', 'playerchoice_fel_secrets', 69814);
+
+DELETE FROM `playerchoice_response` WHERE `ChoiceId` = 231 AND `ResponseId` IN (478, 479);
+INSERT INTO `playerchoice_response` (`ChoiceId`, `ResponseId`, `Index`, `ChoiceArtFileId`, `Flags`, `WidgetSetID`, `UiTextureAtlasElementID`, `SoundKitID`, `GroupID`, `UiTextureKitID`, `Header`, `SubHeader`, `ButtonTooltip`, `Answer`, `Description`, `Confirmation`, `RewardQuestID`, `VerifiedBuild`) VALUES
+(231, 478, 0, 1274664, 0, 0, 0, 0, 0, 0, 'Havoc', 'Havoc', '', 'Havoc', 'Continue your mastery of Havoc.\n\nHavoc specialized demon hunters can use Metamorphosis to turn into winged demons. They focus on Melee DPS.\n\nChoosing Havoc grants |cFFFF0000|Hspell:162264|h[Metamorphosis]|h|r as well as |cFFFF0000|Hspell:185164|h[Mastery: Demonic Presence]|h|r.', '', NULL, 69814),
+(231, 479, 1, 1274665, 0, 0, 0, 0, 0, 0, 'Vengeance', 'Vengeance', '', 'Vengeance', 'Change to mastery of Vengeance.\n\nVengeance specialized demon hunters can use Metamorphosis to turn into spiked demons. They focus on Tanking.\n\nChoosing Vengeance grants |cFFFF0000|Hspell:187827|h[Metamorphosis]|h|r as well as |cFFFF0000|Hspell:203747|h[Mastery: Fel Blood]|h|r.\n\nYour |cFFFF0000|Hspell:198013|h[Eye Beam]|h|r will change into |cFFFF0000|Hspell:212084|h[Fel Devastation]|h|r.', '', NULL, 69814);
+
+DELETE FROM `phase_area` WHERE `PhaseId` IN (5343,5357);
+INSERT INTO `phase_area` (`AreaId`, `PhaseId`, `Comment`) VALUES
+(7712, 5343, 'Mardum - Kor''vas at Illidari Foothold'),
+(7712, 5357, 'Mardum - Mannethrel Darkstar at Illidari Foothold');
+
+-- Condition: phase switch 5343 - Kor'vas at Illidari Foothold
+-- Condition: phase switch 5357 - Mannethrel Darkstar at Illidari Foothold // not sure when this starts
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` IN (5343,5357);
+INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `NegativeCondition`, `ErrorType`, `ErrorTextId`, `ScriptName`, `Comment`) VALUES
+(26, 5343, 0, 0, 0, 47, 0, 40222, 66, 0, 0, 0, 0, '', 'Phase 5343 Kor''vas at Illidari Foothold active when quest 40222 The Imp Mother''s Tome is complete/rewarded'),
+(26, 5357, 0, 0, 0, 47, 0, 40222, 66, 0, 0, 0, 0, '', 'Phase 5357 Mannethrel Darkstar at Illidari Foothold active when quest 40222 The Imp Mother''s Tome is complete/rewarded');
+
+-- ========================= Fixes Cry Havoc and Let Slip the Illidari! & Vengeance Will Be Mine!
+-- TO-DO: When each npc is "taught" via the gossip option the spell that gives credit triggers also a scripted event
+-- TO-DO: Implement said game events for all involved NPCs. They need to cast some spell and say some lines.
+
+DELETE FROM `creature_queststarter` WHERE `quest` IN (39515,39516);
+INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES
+(93127, 39515, 69587),
+(93127, 39516, 69587);
+
+DELETE FROM `quest_template_addon` WHERE `ID` IN (39515,39516);
+INSERT INTO `quest_template_addon` (`ID`, `PrevQuestID`, `NextQuestID`, `ExclusiveGroup`) VALUES
+(39515, 39518, 39663, 0),
+(39516, 39517, 39663, 0);
+
+-- Allari the Souleater (96655) - secrets gossip kill credit (MenuID 18935)
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 15 AND `SourceGroup` = 18935 AND `SourceEntry` IN (0, 1);
+INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `NegativeCondition`, `ErrorType`, `ErrorTextId`, `ScriptName`, `Comment`) VALUES
+(15, 18935, 0, 0, 0, 47, 0, 39515, 8, 0, 0, 0, 0, '', 'Allari gossip option 0 shown when quest 39515 Vengeance Will Be Mine! is in progress'),
+(15, 18935, 1, 0, 0, 47, 0, 39516, 8, 0, 0, 0, 0, '', 'Allari gossip option 1 shown when quest 39516 Cry Havoc and Let Slip the Illidari! is in progress');
+
+DELETE FROM `smart_scripts` WHERE `entryorguid` = 96655 AND `source_type` = 0 AND `id` IN (2,3);
+INSERT INTO `smart_scripts` (entryorguid, source_type, id, link, Difficulties, event_type, event_phase_mask, event_chance, event_flags, event_param1, event_param2, event_param3, event_param4, event_param5, event_param_string, action_type, action_param1, action_param2, action_param3, action_param4, action_param5, action_param6, action_param7, action_param_string, target_type, target_param1, target_param2, target_param3, target_param4, target_param_string, target_x, target_y, target_z, target_o, comment) VALUES
+(96655, 0, 2, 0, '', 62, 0, 100, 0, 18935, 0, 0, 0, 0, '', 134, 194996, 2, 0, 0, 0, 0, 0, '', 7, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Allari gossip option 0 -> invoker casts 194996 (kill credit Allari)'),
+(96655, 0, 3, 0, '', 62, 0, 100, 0, 18935, 1, 0, 0, 0, '', 134, 194996, 2, 0, 0, 0, 0, 0, '', 7, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Allari gossip option 1 -> invoker casts 194996 (kill credit Allari)');
+
+-- Remaining secrets gossip NPCs - Kor'vas (99045) and Mannethrel (96652) need SmartAI
+UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (99045, 96652);
+
+-- Condition: secrets gossip options shown only while the matching quest is in progress
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 15 AND (
+    (`SourceGroup` = 18936 AND `SourceEntry` IN (0, 1)) OR
+    (`SourceGroup` = 18435 AND `SourceEntry` IN (1, 2)) OR
+    (`SourceGroup` = 18937 AND `SourceEntry` IN (0, 1)) OR
+    (`SourceGroup` = 18823 AND `SourceEntry` IN (0, 1)));
+INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `NegativeCondition`, `ErrorType`, `ErrorTextId`, `ScriptName`, `Comment`) VALUES
+(15, 18936, 0, 0, 0, 47, 0, 39515, 8, 0, 0, 0, 0, '', 'Cyana gossip option 0 shown when quest 39515 Vengeance Will Be Mine! is in progress'),
+(15, 18936, 1, 0, 0, 47, 0, 39516, 8, 0, 0, 0, 0, '', 'Cyana gossip option 1 shown when quest 39516 Cry Havoc and Let Slip the Illidari! is in progress'),
+(15, 18435, 1, 0, 0, 47, 0, 39515, 8, 0, 0, 0, 0, '', 'Kayn gossip option 1 shown when quest 39515 Vengeance Will Be Mine! is in progress'),
+(15, 18435, 2, 0, 0, 47, 0, 39516, 8, 0, 0, 0, 0, '', 'Kayn gossip option 2 shown when quest 39516 Cry Havoc and Let Slip the Illidari! is in progress'),
+(15, 18937, 0, 0, 0, 47, 0, 39515, 8, 0, 0, 0, 0, '', 'Kor''vas gossip option 0 shown when quest 39515 Vengeance Will Be Mine! is in progress'),
+(15, 18937, 1, 0, 0, 47, 0, 39516, 8, 0, 0, 0, 0, '', 'Kor''vas gossip option 1 shown when quest 39516 Cry Havoc and Let Slip the Illidari! is in progress'),
+(15, 18823, 0, 0, 0, 47, 0, 39515, 8, 0, 0, 0, 0, '', 'Mannethrel gossip option 0 shown when quest 39515 Vengeance Will Be Mine! is in progress'),
+(15, 18823, 1, 0, 0, 47, 0, 39516, 8, 0, 0, 0, 0, '', 'Mannethrel gossip option 1 shown when quest 39516 Cry Havoc and Let Slip the Illidari! is in progress');
+
+DELETE FROM `smart_scripts` WHERE `entryorguid` = 96420 AND `source_type` = 0 AND `id` IN (2, 3);
+DELETE FROM `smart_scripts` WHERE `entryorguid` = 93127 AND `source_type` = 0 AND `id` IN (8, 9);
+DELETE FROM `smart_scripts` WHERE `entryorguid` = 99045 AND `source_type` = 0 AND `id` IN (0, 1);
+DELETE FROM `smart_scripts` WHERE `entryorguid` = 96652 AND `source_type` = 0 AND `id` IN (0, 1);
+INSERT INTO `smart_scripts` (entryorguid, source_type, id, link, Difficulties, event_type, event_phase_mask, event_chance, event_flags, event_param1, event_param2, event_param3, event_param4, event_param5, event_param_string, action_type, action_param1, action_param2, action_param3, action_param4, action_param5, action_param6, action_param7, action_param_string, target_type, target_param1, target_param2, target_param3, target_param4, target_param_string, target_x, target_y, target_z, target_o, comment) VALUES
+(96420, 0, 2, 0, '', 62, 0, 100, 0, 18936, 0, 0, 0, 0, '', 134, 195019, 2, 0, 0, 0, 0, 0, '', 7, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Cyana gossip option 0 -> invoker casts 195019 (kill credit Cyana)'),
+(96420, 0, 3, 0, '', 62, 0, 100, 0, 18936, 1, 0, 0, 0, '', 134, 195019, 2, 0, 0, 0, 0, 0, '', 7, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Cyana gossip option 1 -> invoker casts 195019 (kill credit Cyana)'),
+(93127, 0, 8, 0, '', 62, 0, 100, 0, 18435, 1, 0, 0, 0, '', 134, 195020, 2, 0, 0, 0, 0, 0, '', 7, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Kayn gossip option 1 -> invoker casts 195020 (kill credit Kayn)'),
+(93127, 0, 9, 0, '', 62, 0, 100, 0, 18435, 2, 0, 0, 0, '', 134, 195020, 2, 0, 0, 0, 0, 0, '', 7, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Kayn gossip option 2 -> invoker casts 195020 (kill credit Kayn)'),
+(99045, 0, 0, 0, '', 62, 0, 100, 0, 18937, 0, 0, 0, 0, '', 134, 195021, 2, 0, 0, 0, 0, 0, '', 7, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Kor''vas gossip option 0 -> invoker casts 195021 (kill credit Kor''vas)'),
+(99045, 0, 1, 0, '', 62, 0, 100, 0, 18937, 1, 0, 0, 0, '', 134, 195021, 2, 0, 0, 0, 0, 0, '', 7, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Kor''vas gossip option 1 -> invoker casts 195021 (kill credit Kor''vas)'),
+(96652, 0, 0, 0, '', 62, 0, 100, 0, 18823, 0, 0, 0, 0, '', 134, 195022, 2, 0, 0, 0, 0, 0, '', 7, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Mannethrel gossip option 0 -> invoker casts 195022 (kill credit Mannethrel)'),
+(96652, 0, 1, 0, '', 62, 0, 100, 0, 18823, 1, 0, 0, 0, '', 134, 195022, 2, 0, 0, 0, 0, 0, '', 7, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Mannethrel gossip option 1 -> invoker casts 195022 (kill credit Mannethrel)');
+
+
 -- ========================= Fixes for The Imp Mother's Tome
 DELETE FROM `creature_queststarter` WHERE `quest` = 40222;
 INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES
@@ -251,9 +332,13 @@ UPDATE `creature_template_difficulty` SET `StaticFlags1` = `StaticFlags1` | 0x20
 -- SAI
 UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (98484,98486,98497,98482,95226,93112,93716,94654,97034,102726,96494,102724,
 97706,99759,96277,96402,102923,96888,96279,96280,96877,96503);
-DELETE FROM smart_scripts WHERE entryorguid IN (98484,98486,98497,98482,95226,93112,93716,94654,97034,102726,96494,102724,
+DELETE FROM `smart_scripts` WHERE `entryorguid` IN (98484,98486,98497,98482,95226,93112,93716,94654,97034,102726,96494,102724,
 97706,99759,96277,96402,102923,96888,96279,96280,96877,96503) AND source_type = 0;
+DELETE FROM `smart_scripts` WHERE `entryorguid` = 93127 AND source_type = 0 AND `id` IN (6,7);
 INSERT INTO smart_scripts (entryorguid, source_type, id, link, Difficulties, event_type, event_phase_mask, event_chance, event_flags, event_param1, event_param2, event_param3, event_param4, event_param5, event_param_string, action_type, action_param1, action_param2, action_param3, action_param4, action_param5, action_param6, action_param7, action_param_string, target_type, target_param1, target_param2, target_param3, target_param4, target_param_string, target_x, target_y, target_z, target_o, comment) VALUES
+(93127, 0, 6, 0, '', 19, 0, 100, 0, 39515, 0, 0, 0, 0, '', 1, 3, 0, 0, 0, 0, 0, 0, '', 7, 0, 0, 0, 0, '', 0, 0, 0, 0, 'On player accepted quest (39515) - Player who accepted quest: Talk 3 to invoker'),
+(93127, 0, 7, 0, '', 19, 0, 100, 0, 39516, 0, 0, 0, 0, '', 1, 3, 0, 0, 0, 0, 0, 0, '', 7, 0, 0, 0, 0, '', 0, 0, 0, 0, 'On player accepted quest (39516) - Player who accepted quest: Talk 3 to invoker'),
+
 (96503, 0, 0, 0, '', 0, 0, 100, 0, 3000, 3000, 5000, 5000, 0, '', 11, 197745, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Coilskar Sea-Caller - In Combat - Cast ''Lightning Bolt'''),
 
 (96877, 0, 0, 0, '', 11, 0, 100, 0, 0, 0, 0, 0, 0, '', 1, 1, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Ashtongue Stalker - On Respawn - Talk 1 (No Repeat)'),
@@ -475,13 +560,13 @@ UPDATE `creature_template` SET `ScriptName` = 'npc_legion_devastator', `AIName` 
 DELETE FROM `smart_scripts` WHERE `entryorguid` = 100161 AND `source_type` = 0;
 
 DELETE FROM `areatrigger_create_properties` WHERE `Id` IN (4920,5648,5659,5668,5494,5319) AND `IsCustom` = 0;
-INSERT INTO `areatrigger_create_properties` VALUES
-(4920, 0, 9637, 0, 16, 0, 0, 0, 0, -1, 0, 0, 192604, 0, 0, 1, 0, 0, 5, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL, '', 69814),
-(5648, 0, 10356, 0, 0, 0, 0, 0, 0, -1, 0, 0, 200525, 0, 15000, 1, 0, 4, 4, 4, 4, 4, 0.3, 0.3, 0, 0, 0, 0, 0, NULL, NULL, NULL, '', 69814),
-(5659, 0, 10366, 0, 0, 0, 0, 0, 0, -1, 0, 0, 200647, 0, 10000, 1, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL, '', 69814),
-(5668, 0, 10375, 0, 0, 0, 0, 0, 0, -1, 0, 0, 200753, 0, 3000, 1, 0, 0, 3.5, 3.5, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL, '', 69814),
-(5494, 0, 10195, 0, 0, 0, 0, 0, 0, -1, 0, 0, 198947, 0, 8000, 1, 0, 0, 35, 35, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL, 'at_nefarious_carrion_storm', 69814),
-(5319, 0, 10041, 0, 0, 0, 0, 0, 0, -1, 0, 0, 197245, 0, 15000, 1, 0, 0, 7, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL, '', 69814);
+INSERT INTO `areatrigger_create_properties` (Id, IsCustom, AreaTriggerId, IsAreatriggerCustom, Flags, MoveCurveId, ScaleCurveId, MorphCurveId, FacingCurveId, AnimId, AnimKitId, DecalPropertiesId, SpellForVisuals, MaxSummons, MaxUnits, PositionalSoundKitId, TimeToTargetScale, Speed, SpeedIsTime, Shape, ShapeData0, ShapeData1, ShapeData2, ShapeData3, ShapeData4, ShapeData5, ShapeData6, ShapeData7, Roll, Pitch, Yaw, TargetRoll, TargetPitch, TargetYaw, ScriptName, VerifiedBuild) VALUES
+(4920, 0, 9637,  0, 16, 0, 0, 0, 0, -1, 0, 0, 192604, NULL, NULL, 0,     0, 1, 0, 0,   5,   5, 0, 0, 0,   0,   0,   0, 0, 0, 0, NULL, NULL, NULL, '',                            69814),
+(5648, 0, 10356, 0, 0,  0, 0, 0, 0, -1, 0, 0, 200525, NULL, NULL, 0, 15000, 1, 0, 4,   4,   4, 4, 4, 0.3, 0.3, 0,   0, 0, 0, 0, NULL, NULL, NULL, '',                            69814),
+(5659, 0, 10366, 0, 0,  0, 0, 0, 0, -1, 0, 0, 200647, NULL, NULL, 0, 10000, 1, 0, 3,   0,   0, 0, 0, 0,   0,   0,   0, 0, 0, 0, NULL, NULL, NULL, '',                            69814),
+(5668, 0, 10375, 0, 0,  0, 0, 0, 0, -1, 0, 0, 200753, NULL, NULL, 0,  3000, 1, 0, 0, 3.5, 3.5, 0, 0, 0,   0,   0,   0, 0, 0, 0, NULL, NULL, NULL, '',                            69814),
+(5494, 0, 10195, 0, 0,  0, 0, 0, 0, -1, 0, 0, 198947, NULL, NULL, 0,  8000, 1, 0, 0,  35,  35, 0, 0, 0,   0,   0,   0, 0, 0, 0, NULL, NULL, NULL, 'at_nefarious_carrion_storm', 69814),
+(5319, 0, 10041, 0, 0,  0, 0, 0, 0, -1, 0, 0, 197245, NULL, NULL, 0, 15000, 1, 0, 0,   7,   7, 0, 0, 0,   0,   0,   0, 0, 0, 0, NULL, NULL, NULL, '',                            69814);
 
 
 -- smart_scripts (creature entry 93127, id Y = 5)

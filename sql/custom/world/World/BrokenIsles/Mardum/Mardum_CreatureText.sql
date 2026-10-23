@@ -2,7 +2,7 @@
 DELETE FROM `creature_text` WHERE `creatureID` IN (98484,98486,98497,98460,95226,93112,96884,93759,94654,93221,95048,93716,97034,96494,102726,96499,
 102724,97706,97059,96402,96277,97057,102923,96888,100549,100545,100543,96279,96280,97058,96877,97370,96503,98711,98986,97676);
 DELETE FROM `creature_text` WHERE `creatureID` IN (98229) AND `GroupID` IN (2,3);
-DELETE FROM `creature_text` WHERE `creatureID` IN (93127) AND `GroupID` IN (2);
+DELETE FROM `creature_text` WHERE `creatureID` IN (93127) AND `GroupID` IN (2,3);
 INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `BroadcastTextId`, `TextRange`, `comment`) VALUES
 (97676, 0, 0, 'Beware, $n. There is a dreadlord inside that Soul Engine.', 12, 0, 100, 0, 0, 55304, 99574, 0, 'Lady S''Theno to Player'),
 
@@ -101,6 +101,7 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Lan
 (102726, 0, 0, 'They have the spectral sight!', 12, 0, 100, 0, 0, 56999, 98223, 0, 'Eredar Sorcerer to Jace Darkweaver'),
 
 (93127, 2, 0, '$n, you made it through!', 14, 0, 100, 0, 0, 55054, 99836, 0, 'Kayn Sunfury to Player'),
+(93127, 3, 0, 'Teach us what you have learned, $n.', 12, 0, 100, 0, 0, 55265, 100722, 0, 'Kayn Sunfury to Player'),
 
 (93716, 0, 0, 'The Legion conquers all.', 12, 0, 100, 0, 0, 55147, 96648, 0, 'Doom Slayer to Player'),
 (93716, 0, 1, 'Succulent marrow. Crunchy bones.', 12, 0, 100, 0, 0, 55150, 96651, 0, 'Doom Slayer to Player'),
