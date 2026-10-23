@@ -29,6 +29,7 @@
 #include "MapManager.h"
 #include "MotionMaster.h"
 #include "ObjectAccessor.h"
+#include "PhasingHandler.h"
 #include "Player.h"
 #include "ReputationMgr.h"
 #include "InstanceScenario.h"
@@ -433,7 +434,7 @@ class instance_atal_aman_delve : public InstanceMapScript
             void SpawnGameObject(uint32 entry, Position const& pos)
             {
                 QuaternionData rot = QuaternionData::fromEulerAnglesZYX(pos.GetOrientation(), 0.0f, 0.0f);
-                if (GameObject* go = GameObject::CreateGameObject(entry, instance, pos, rot, 255, GO_STATE_READY))
+                if (GameObject* go = GameObject::CreateGameObject(entry, instance, pos, rot, InitialPhaseShift(), 255, GO_STATE_READY))
                     instance->AddToMap(go);
             }
 
