@@ -175,6 +175,58 @@ DELETE FROM `creature_template_difficulty` WHERE `DifficultyID` = 1 AND `Entry` 
  103432, 96279, 97370, 102724, 97058, 97057, 100243, 100244, 93802, 98497, 98986
 );
 
+-- ========================= Fixes for On Felbat Wings
+DELETE FROM `creature_queststarter` WHERE `quest` = 39663;
+INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES
+(93127, 39663, 69587);
+
+DELETE FROM `quest_template_addon` WHERE `ID` = 39663;
+INSERT INTO `quest_template_addon` (`ID`, `ScriptName`) VALUES
+(39663, 'quest_on_felbat_wings');
+
+-- Izal Whitemoon (96653) - fel bat gossip + SetData talk (MenuID 18776)
+UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` = 96653;
+
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 15 AND `SourceGroup` = 18776 AND `SourceEntry` = 0;
+INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `NegativeCondition`, `ErrorType`, `ErrorTextId`, `ScriptName`, `Comment`) VALUES
+(15, 18776, 0, 0, 0, 47, 0, 39663, 8, 0, 0, 0, 0, '', 'Izal gossip option 0 shown when quest 39663 On Felbat Wings is in progress');
+
+DELETE FROM `smart_scripts` WHERE `entryorguid` = 96653 AND `source_type` = 0;
+INSERT INTO `smart_scripts` (entryorguid, source_type, id, link, Difficulties, event_type, event_phase_mask, event_chance, event_flags, event_param1, event_param2, event_param3, event_param4, event_param5, event_param_string, action_type, action_param1, action_param2, action_param3, action_param4, action_param5, action_param6, action_param7, action_param_string, target_type, target_param1, target_param2, target_param3, target_param4, target_param_string, target_x, target_y, target_z, target_o, comment) VALUES
+(96653, 0, 0, 0, '', 62, 0, 100, 0, 18776, 0, 0, 0, 0, '', 134, 192136, 2, 0, 0, 0, 0, 0, '', 7, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Izal gossip option 0 -> invoker casts 192136 (taxi to Fel Hammer)'),
+(96653, 0, 1, 0, '', 38, 0, 100, 0, 1, 1, 0, 0, 0, '', 1, 0, 0, 0, 0, 0, 0, 0, '', 21, 50, 0, 0, 0, '', 0, 0, 0, 0, 'Izal SetData(1,1) -> Talk 0 to closest player');
+
+-- Kayn Sunfury (93127) - path end chain: dismount, SetData on Illidari, mount 65203, fly off, despawn
+DELETE FROM `smart_scripts` WHERE `entryorguid` = 93127 AND `source_type` = 0 AND `id` IN (11,12,13,14,15,16,17,18,19);
+INSERT INTO `smart_scripts` (entryorguid, source_type, id, link, Difficulties, event_type, event_phase_mask, event_chance, event_flags, event_param1, event_param2, event_param3, event_param4, event_param5, event_param_string, action_type, action_param1, action_param2, action_param3, action_param4, action_param5, action_param6, action_param7, action_param_string, target_type, target_param1, target_param2, target_param3, target_param4, target_param_string, target_x, target_y, target_z, target_o, comment) VALUES
+(93127, 0, 11, 12, '', 58, 0, 100, 0, 1, 9312700, 0, 0, 0, '', 43, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Kayn - waypoint path 9312700 ended - dismount'),
+(93127, 0, 12, 13, '', 61, 0, 100, 0, 0, 0, 0, 0, 0, '', 45, 1, 1, 0, 0, 0, 0, 0, '', 19, 96653, 0, 0, 0, '', 0, 0, 0, 0, 'link -> SetData(1,1) Izal Whitemoon 96653'),
+(93127, 0, 13, 14, '', 61, 0, 100, 0, 0, 0, 0, 0, 0, '', 45, 1, 1, 0, 0, 0, 0, 0, '', 10, 70033191, 0, 0, 0, '', 0, 0, 0, 0, 'link -> SetData(1,1) Korvas guid 70033191'),
+(93127, 0, 14, 15, '', 61, 0, 100, 0, 0, 0, 0, 0, 0, '', 45, 1, 1, 0, 0, 0, 0, 0, '', 19, 96420, 0, 0, 0, '', 0, 0, 0, 0, 'link -> SetData(1,1) Cyana 96420'),
+(93127, 0, 15, 16, '', 61, 0, 100, 0, 0, 0, 0, 0, 0, '', 45, 1, 1, 0, 0, 0, 0, 0, '', 19, 96655, 0, 0, 0, '', 0, 0, 0, 0, 'link -> SetData(1,1) Allari 96655'),
+(93127, 0, 16, 17, '', 61, 0, 100, 0, 0, 0, 0, 0, 0, '', 43, 0, 65203, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'link -> mount model 65203'),
+(93127, 0, 17, 18, '', 61, 0, 100, 0, 0, 0, 0, 0, 0, '', 60, 1, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'link -> disable gravity'),
+(93127, 0, 18, 19, '', 61, 0, 100, 0, 0, 0, 0, 0, 0, '', 69, 0, 0, 1, 0, 0, 0, 0, '', 8, 0, 0, 0, 0, '', 1687.663, 1476.996, 253.776, 0, 'link -> move to point (no pathfinding)'),
+(93127, 0, 19, 0, '', 61, 0, 100, 0, 0, 0, 0, 0, 0, '', 41, 30000, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'link -> force despawn 30s');
+
+-- Followers - SetData(1,1) chain: dismount, mount 65203, disable gravity, despawn
+DELETE FROM `smart_scripts` WHERE `entryorguid` = 96420 AND `source_type` = 0 AND `id` IN (4,5,6,7);
+DELETE FROM `smart_scripts` WHERE `entryorguid` = 96655 AND `source_type` = 0 AND `id` IN (4,5,6,7);
+DELETE FROM `smart_scripts` WHERE `entryorguid` = 99045 AND `source_type` = 0 AND `id` IN (2,3,4,5);
+INSERT INTO `smart_scripts` (entryorguid, source_type, id, link, Difficulties, event_type, event_phase_mask, event_chance, event_flags, event_param1, event_param2, event_param3, event_param4, event_param5, event_param_string, action_type, action_param1, action_param2, action_param3, action_param4, action_param5, action_param6, action_param7, action_param_string, target_type, target_param1, target_param2, target_param3, target_param4, target_param_string, target_x, target_y, target_z, target_o, comment) VALUES
+(96420, 0, 4, 5, '', 38, 0, 100, 0, 1, 1, 0, 0, 0, '', 43, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Cyana - SetData(1,1) - dismount'),
+(96420, 0, 5, 6, '', 61, 0, 100, 0, 0, 0, 0, 0, 0, '', 43, 0, 65203, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'link -> mount model 65203'),
+(96420, 0, 6, 7, '', 61, 0, 100, 0, 0, 0, 0, 0, 0, '', 60, 1, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'link -> disable gravity'),
+(96420, 0, 7, 0, '', 61, 0, 100, 0, 0, 0, 0, 0, 0, '', 41, 30000, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'link -> force despawn 30s'),
+(96655, 0, 4, 5, '', 38, 0, 100, 0, 1, 1, 0, 0, 0, '', 43, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Allari - SetData(1,1) - dismount'),
+(96655, 0, 5, 6, '', 61, 0, 100, 0, 0, 0, 0, 0, 0, '', 43, 0, 65203, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'link -> mount model 65203'),
+(96655, 0, 6, 7, '', 61, 0, 100, 0, 0, 0, 0, 0, 0, '', 60, 1, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'link -> disable gravity'),
+(96655, 0, 7, 0, '', 61, 0, 100, 0, 0, 0, 0, 0, 0, '', 41, 30000, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'link -> force despawn 30s'),
+(99045, 0, 2, 3, '', 38, 0, 100, 0, 1, 1, 0, 0, 0, '', 43, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Korvas - SetData(1,1) - dismount'),
+(99045, 0, 3, 4, '', 61, 0, 100, 0, 0, 0, 0, 0, 0, '', 43, 0, 65203, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'link -> mount model 65203'),
+(99045, 0, 4, 5, '', 61, 0, 100, 0, 0, 0, 0, 0, 0, '', 60, 1, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'link -> disable gravity'),
+(99045, 0, 5, 0, '', 61, 0, 100, 0, 0, 0, 0, 0, 0, '', 41, 30000, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'link -> force despawn 30s');
+
 -- ========================= Fixes for Fel Secrets
 DELETE FROM `creature_queststarter` WHERE `quest` = 40051;
 INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES
@@ -200,7 +252,17 @@ INSERT INTO `phase_area` (`AreaId`, `PhaseId`, `Comment`) VALUES
 DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` IN (5343,5357);
 INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `NegativeCondition`, `ErrorType`, `ErrorTextId`, `ScriptName`, `Comment`) VALUES
 (26, 5343, 0, 0, 0, 47, 0, 40222, 66, 0, 0, 0, 0, '', 'Phase 5343 Kor''vas at Illidari Foothold active when quest 40222 The Imp Mother''s Tome is complete/rewarded'),
+(26, 5343, 0, 0, 0, 47, 0, 39663, 66, 0, 1, 0, 0, '', 'Phase 5343 Kor''vas at Illidari Foothold NOT active when quest 39663 On Felbat Wings is complete/rewarded'),
 (26, 5357, 0, 0, 0, 47, 0, 40222, 66, 0, 0, 0, 0, '', 'Phase 5357 Mannethrel Darkstar at Illidari Foothold active when quest 40222 The Imp Mother''s Tome is complete/rewarded');
+
+-- Phase 5160 - Illidari at Illidari Foothold (Kayn, Cyana, Allari): drops once On Felbat Wings is done
+DELETE FROM `phase_area` WHERE `AreaId` = 7712 AND `PhaseId` = 5160;
+INSERT INTO `phase_area` (`AreaId`, `PhaseId`, `Comment`) VALUES
+(7712, 5160, 'Mardum - Illidari at Illidari Foothold');
+
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` = 5160 AND `ConditionValue1` = 39663;
+INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `NegativeCondition`, `ErrorType`, `ErrorTextId`, `ScriptName`, `Comment`) VALUES
+(26, 5160, 0, 0, 0, 47, 0, 39663, 66, 0, 1, 0, 0, '', 'Phase 5160 Illidari at Illidari Foothold NOT active when quest 39663 On Felbat Wings is complete/rewarded');
 
 -- ========================= Fixes Cry Havoc and Let Slip the Illidari! & Vengeance Will Be Mine!
 -- TO-DO: When each npc is "taught" via the gossip option the spell that gives credit triggers also a scripted event
@@ -334,10 +396,11 @@ UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (98484,9848
 97706,99759,96277,96402,102923,96888,96279,96280,96877,96503);
 DELETE FROM `smart_scripts` WHERE `entryorguid` IN (98484,98486,98497,98482,95226,93112,93716,94654,97034,102726,96494,102724,
 97706,99759,96277,96402,102923,96888,96279,96280,96877,96503) AND source_type = 0;
-DELETE FROM `smart_scripts` WHERE `entryorguid` = 93127 AND source_type = 0 AND `id` IN (6,7);
+DELETE FROM `smart_scripts` WHERE `entryorguid` = 93127 AND source_type = 0 AND `id` IN (6,7,10);
 INSERT INTO smart_scripts (entryorguid, source_type, id, link, Difficulties, event_type, event_phase_mask, event_chance, event_flags, event_param1, event_param2, event_param3, event_param4, event_param5, event_param_string, action_type, action_param1, action_param2, action_param3, action_param4, action_param5, action_param6, action_param7, action_param_string, target_type, target_param1, target_param2, target_param3, target_param4, target_param_string, target_x, target_y, target_z, target_o, comment) VALUES
 (93127, 0, 6, 0, '', 19, 0, 100, 0, 39515, 0, 0, 0, 0, '', 1, 3, 0, 0, 0, 0, 0, 0, '', 7, 0, 0, 0, 0, '', 0, 0, 0, 0, 'On player accepted quest (39515) - Player who accepted quest: Talk 3 to invoker'),
 (93127, 0, 7, 0, '', 19, 0, 100, 0, 39516, 0, 0, 0, 0, '', 1, 3, 0, 0, 0, 0, 0, 0, '', 7, 0, 0, 0, 0, '', 0, 0, 0, 0, 'On player accepted quest (39516) - Player who accepted quest: Talk 3 to invoker'),
+(93127, 0, 10, 0, '', 19, 0, 100, 0, 39663, 0, 0, 0, 0, '', 1, 4, 0, 0, 0, 0, 0, 0, '', 7, 0, 0, 0, 0, '', 0, 0, 0, 0, 'On player accepted quest (39663) - Player who accepted quest: Talk 4 to invoker'),
 
 (96503, 0, 0, 0, '', 0, 0, 100, 0, 3000, 3000, 5000, 5000, 0, '', 11, 197745, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Coilskar Sea-Caller - In Combat - Cast ''Lightning Bolt'''),
 

@@ -79,6 +79,11 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 VileSoulmaster             = 102724;
         static constexpr uint32 VileSoulmaster2            = 97014;
         static constexpr uint32 BurningSoulstalker         = 96278;
+        // "On Felbat Wings" (39663) - Illidari Foothold versions
+        static constexpr uint32 KaynFoothold   = 93127;
+        static constexpr uint32 CyanaFoothold  = 96420;
+        static constexpr uint32 KorvasFoothold = 99045;
+        static constexpr uint32 AllariFoothold = 96655;
     }
 
     namespace Factions
@@ -129,6 +134,7 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 TheirNumbersAreLegion    = 38819;
         static constexpr uint32 IntoTheFoulCreche        = 38725;
         static constexpr uint32 TheImpMothersTome        = 40222;
+        static constexpr uint32 OnFelbatWings            = 39663;
     }
 
     namespace Objectives
@@ -355,5 +361,8 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 MysticAnimKit            = 9256;
         static constexpr uint32 SoulMissileTargetSpawnId = 6000619;
         static constexpr uint32 SoulMissileTargetEntry   = 24021;
+        static constexpr uint32 FelSaberMountDisplay       = 64385;
+        static constexpr uint32 FelbatWingsPathId        = 9312700;
+        static constexpr float  FelbatWingsFollowDist    = 2.0f;
     }
 }
