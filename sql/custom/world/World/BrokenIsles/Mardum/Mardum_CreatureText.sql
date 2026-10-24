@@ -1,9 +1,23 @@
 -- Mardum Creature Text
 DELETE FROM `creature_text` WHERE `creatureID` IN (98484,98486,98497,98460,95226,93112,96884,93759,94654,93221,95048,93716,97034,96494,102726,96499,
-102724,97706,97059,96402,96277,97057,102923,96888,100549,100545,100543,96279,96280,97058,96877,97370,96503,98711,98986,97676,96653);
+102724,97706,97059,96402,96277,97057,102923,96888,100549,100545,100543,96279,96280,97058,96877,97370,96503,98711,98986,97676,96653,97297,93802,97303,97244);
 DELETE FROM `creature_text` WHERE `creatureID` IN (98229) AND `GroupID` IN (2,3);
 DELETE FROM `creature_text` WHERE `creatureID` IN (93127) AND `GroupID` IN (2,3,4);
 INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `BroadcastTextId`, `TextRange`, `comment`) VALUES
+(97303, 0, 0, 'Hurry, $n. Use the keystone to activate the portal. We must rejoin the fight at the Black Temple.', 12, 0, 100, 1, 0, 55259, 99013, 0, 'Kayn Sunfury to Player'),
+
+(97244, 0, 0, 'Grab the keystone! Let''s get to the portal down below and back to the Black Temple!', 14, 0, 100, 1, 0, 55268, 102063, 0, 'Kayn Sunfury to Player'),
+
+(93802, 0, 0, '$n! You and your demon hunters are nothing.', 12, 0, 100, 0, 0, 55064, 99826, 0, 'Brood Queen Tyranna to Player'),
+(93802, 1, 0, 'The keystone was entrusted to me by Sargeras himself. You will not have it!', 12, 0, 100, 0, 0, 55065, 99827, 0, 'Brood Queen Tyranna to Player'),
+(93802, 2, 0, 'None can resist my kiss.', 14, 0, 100, 0, 0, 55068, 103514, 0, 'Brood Queen Tyranna to Player'),
+(93802, 3, 0, 'Come forth, my children. Feast upon our enemies.', 14, 0, 100, 0, 0, 55069, 103517, 0, 'Brood Queen Tyranna to Player'),
+(93802, 4, 0, '|TInterface\Icons\inv_misc_monsterspidercarapace_01:20|t%s disappears |cFFFF0000|Hspell:197414|h[Into the Shadows]|h|r!', 41, 0, 100, 0, 0, 0, 102140, 0, 'Brood Queen Tyranna to Player'),
+(93802, 5, 0, 'My Lord Sargeras, no!!!', 14, 0, 100, 0, 0, 55055, 99012, 0, 'Brood Queen Tyranna to Player'),
+
+(97297, 0, 0, 'I''ll secure the exit portal back to the Black Temple once the others fly up here.', 12, 0, 100, 1, 0, 55096, 100418, 0, 'Cyana Nightglaive to Player'),
+(97297, 1, 0, 'Hurry. Kayn has already launched the attack on Tyranna.', 12, 0, 100, 5, 0, 55095, 99829, 0, 'Cyana Nightglaive to Player'),
+
 (96653, 0, 0, 'Good luck to all of you. I will get the rest of us up there, $n.', 12, 0, 100, 0, 0, 55228, 99837, 0, 'Izal Whitemoon to Player'),
 
 (97676, 0, 0, 'Beware, $n. There is a dreadlord inside that Soul Engine.', 12, 0, 100, 0, 0, 55304, 99574, 0, 'Lady S''Theno to Player'),

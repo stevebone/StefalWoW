@@ -21,6 +21,7 @@
  */
 
 #include "Define.h"
+#include "Position.h"
 
 namespace Scripts::Custom::Mardum
 {
@@ -84,6 +85,19 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 CyanaFoothold  = 96420;
         static constexpr uint32 KorvasFoothold = 99045;
         static constexpr uint32 AllariFoothold = 96655;
+        // "The Keystone" (38728) - Fel Hammer versions
+        static constexpr uint32 CyanaFelHammer   = 97297;
+        static constexpr uint32 KorvasFelHammer  = 98712;
+        static constexpr uint32 JaceFelHammer    = 97959;
+        static constexpr uint32 KaynFelHammer    = 97244;
+        static constexpr uint32 AllariFelHammer  = 97962;
+        static constexpr uint32 BroodQueenTyranna = 93802; // boss on the Fel Hammer; QueenTyranna (95048) is the Beliash RP version
+        static constexpr uint32 SkitteringBroodling = 100333;
+        static constexpr uint32 TyrannasSpawn       = 100334;
+        static constexpr uint32 KeystoneKillCredit  = 101760;
+        static constexpr uint32 KaynKeystone        = 97303;
+        static constexpr uint32 KeystoneFelBeamBunny    = 23837;  // ELM General Purpose Bunny (phase 0 pair beside the keystone)
+        static constexpr uint32 KeystoneActivatedCredit = 100651;
     }
 
     namespace Factions
@@ -112,6 +126,13 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 SpireStabilizer         = 245995;
         static constexpr uint32 CylinderCollision       = 246280;
         static constexpr uint32 SecretTome              = 245169;
+        static constexpr uint32 SargeriteKeystone       = 245728;
+        static constexpr uint32 FelPortal               = 244466;
+    }
+
+    namespace Positions
+    {
+        static constexpr Position SargeriteKeystone = { 1629.44f, 1414.21f, 210.363f, 0.f };
     }
 
     namespace Scenes
@@ -135,6 +156,8 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 IntoTheFoulCreche        = 38725;
         static constexpr uint32 TheImpMothersTome        = 40222;
         static constexpr uint32 OnFelbatWings            = 39663;
+        static constexpr uint32 TheKeystone              = 38728;
+        static constexpr uint32 ReturnToTheBlackTemple   = 38729;
     }
 
     namespace Objectives
@@ -145,6 +168,7 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 SoulSacrificed            = 280770; // quest 40379
         static constexpr uint32 CoilskarForces            = 280771; // quest 40379
         static constexpr uint32 FirstStabilizerDestroyed  = 280006; // quest 38819
+        static constexpr uint32 KeystoneMakeYourWayDownstairs = 278675; // quest 38728
     }
 
     namespace Spells
@@ -162,6 +186,10 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 ShadowBoltVolley         = 196403;
         static constexpr uint32 ShadowRetreat            = 196625;
         static constexpr uint32 BroodQueenTyrannaTeleport = 188658;
+        static constexpr uint32 TheKeystoneQuestCompletion = 193387; // 'The Keystone: Quest Completion - Play Metamorphosis Scene'
+        static constexpr uint32 KeystoneFelBeam            = 189952;
+        static constexpr uint32 BackToBlackTemple          = 192140;
+        static constexpr uint32 TeleportVaultOfWardens     = 205395;
         static constexpr uint32 FelBombardment         = 194689;
         static constexpr uint32 AcidSpit               = 198163;
         static constexpr uint32 StopBombardmentDevastator = 191454;
@@ -193,6 +221,9 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 SthenoAqueousShield            = 201268;
         static constexpr uint32 FelSecretsHavocChosen          = 194939;
         static constexpr uint32 FelSecretsVengeanceChosen      = 194940;
+        static constexpr uint32 QueensBite                     = 197486;
+        static constexpr uint32 BroodSwarm                     = 197627;
+        static constexpr uint32 IntoTheShadows                 = 197414;
     }
 
     namespace Conversations
@@ -294,6 +325,18 @@ namespace Scripts::Custom::Mardum
 
         // Lady S'theno (97676) - creature_text GroupIDs
         static constexpr uint8 SthenoGreeting = 0;
+
+        // Cyana Nightglaive (97297) - creature_text GroupIDs (Fel Hammer)
+        static constexpr uint8 CyanaFelHammerAccept  = 0; // 'I'll secure the exit portal...'
+        static constexpr uint8 CyanaFelHammerAccept2 = 1; // 'Hurry. Kayn has already launched the attack on Tyranna.'
+
+        // Brood Queen Tyranna (93802) - creature_text GroupIDs (Fel Hammer)
+        static constexpr uint8 TyrannaGreeting       = 0; // '$n! You and your demon hunters are nothing.'
+        static constexpr uint8 TyrannaGreeting2      = 1; // 'The keystone was entrusted to me by Sargeras himself...'
+        static constexpr uint8 TyrannaQueensBite     = 2; // 'None can resist my kiss.'
+        static constexpr uint8 TyrannaBroodSwarm     = 3; // 'Come forth, my children...'
+        static constexpr uint8 TyrannaIntoTheShadows = 4; // '%s disappears Into the Shadows!'
+        static constexpr uint8 TyrannaDeath          = 5; // 'My Lord Sargeras, no!!!'
     }
 
     namespace Events
@@ -334,6 +377,10 @@ namespace Scripts::Custom::Mardum
         // Lady S'theno (97676) - EventMap IDs
         static constexpr int8 SthenoAqueousShield = 1;
         static constexpr int8 SthenoHealingWave   = 2;
+
+        // Brood Queen Tyranna (93802) - EventMap IDs
+        static constexpr int8 TyrannaQueensBite = 1;
+        static constexpr int8 TyrannaBroodSwarm = 2;
     }
 
     namespace Movement
@@ -364,5 +411,10 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 FelSaberMountDisplay       = 64385;
         static constexpr uint32 FelbatWingsPathId        = 9312700;
         static constexpr float  FelbatWingsFollowDist    = 2.0f;
+        static constexpr float  FelHammerSearchRange     = 150.0f; // Cyana -> Tyranna is ~103y on the Fel Hammer deck
+        static constexpr float  TyrannaBiteTargetRange   = 50.0f;
+        static constexpr float  KeystoneKillCreditRange  = 10.0f;
+        static constexpr float  KeystoneBunnySearchRange = 30.0f;
+        static constexpr uint32 KeystoneReturnBindArea   = 7873;
     }
 }

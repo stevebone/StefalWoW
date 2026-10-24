@@ -43,7 +43,7 @@
 -- Spell: 192715 Their Numbers Are Legion: Torrent of Souls Beam
 
 -- Generic Creature Template fixes
-UPDATE `creature_template` SET `faction` = 2843 WHERE `entry` IN (98157,98160,99787);
+UPDATE `creature_template` SET `faction` = 2843 WHERE `entry` IN (98157,98160,99787,97959);
 UPDATE `creature_template` SET `faction` = 4 WHERE `entry` IN (102923);
 UPDATE `creature_template` SET `faction` = 73 WHERE `entry` IN (100286);
 UPDATE `creature_template` SET `faction` = 35 WHERE `entry` IN (100545,100543,100549);
@@ -174,6 +174,32 @@ DELETE FROM `creature_template_difficulty` WHERE `DifficultyID` = 1 AND `Entry` 
  96473, 102726, 97034, 97706, 97059, 96277, 96402, 96280, 96278, 97014,
  103432, 96279, 97370, 102724, 97058, 97057, 100243, 100244, 93802, 98497, 98986
 );
+
+-- ========================= Fixes for Return to the Black Temple
+DELETE FROM `creature_queststarter` WHERE `quest` = 38729;
+INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES
+(97303, 38729, 69587);
+
+-- ========================= Fixes for The Keystone
+DELETE FROM `creature_queststarter` WHERE `quest` = 38728;
+INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES
+(97297, 38728, 69587);
+
+DELETE FROM `scene_template` WHERE `SceneId` = 1142;
+INSERT INTO `scene_template` (`SceneId`, `Flags`, `ScriptPackageID`, `Encrypted`, `ScriptName`) VALUES
+(1142, 20, 1512, 0, '');
+
+UPDATE `creature_template` SET `ScriptName` = 'npc_cyana_nightglaive_fel_hammer', `AIName` = '' WHERE `entry` = 97297;
+UPDATE `creature_template` SET `ScriptName` = 'npc_brood_queen_tyranna', `AIName` = '' WHERE `entry` = 93802;
+UPDATE `creature_template` SET `ScriptName` = 'npc_keystone_downstairs_kill_credit', `AIName` = '' WHERE `entry` = 101760;
+UPDATE `creature_template` SET `ScriptName` = 'npc_kayn_sunfury_keystone', `AIName` = '' WHERE `entry` = 97303;
+UPDATE `gameobject_template` SET `ScriptName` = 'go_sargerite_keystone' WHERE `entry` = 245728;
+UPDATE `gameobject_template` SET `ScriptName` = 'go_fel_portal' WHERE `entry` = 244466;
+
+-- Teleport: Vault of the Wardens destination (TARGET_DEST_DB)
+DELETE FROM `spell_target_position` WHERE `ID` = 205395;
+INSERT INTO `spell_target_position` (`ID`, `EffectIndex`, `OrderIndex`, `MapID`, `PositionX`, `PositionY`, `PositionZ`, `Orientation`, `VerifiedBuild`) VALUES
+(205395, 0, 0, 1468, 4325.46, -620.53, -281.40, 1.517563, 69587);
 
 -- ========================= Fixes for On Felbat Wings
 DELETE FROM `creature_queststarter` WHERE `quest` = 39663;
@@ -389,7 +415,7 @@ DELETE FROM `smart_scripts` WHERE `entryorguid` = 93221 AND `source_type` = 0;
 UPDATE creature_template SET ScriptName='' WHERE entry=96159;
 
 -- Floating flag
-UPDATE `creature_template_difficulty` SET `StaticFlags1` = `StaticFlags1` | 0x20000000 WHERE `Entry` IN (94744,96276);
+UPDATE `creature_template_difficulty` SET `StaticFlags1` = `StaticFlags1` | 0x20000000 WHERE `Entry` IN (94744,96276,100333,100334);
 
 -- SAI
 UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (98484,98486,98497,98482,95226,93112,93716,94654,97034,102726,96494,102724,

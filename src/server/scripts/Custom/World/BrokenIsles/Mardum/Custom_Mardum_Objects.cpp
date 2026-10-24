@@ -241,6 +241,76 @@ namespace Scripts::Custom::Mardum
                 PhasingHandler::SetAlwaysVisible(well, true, true);
         }
     };
+
+    /*######
+    ## 245728 Sargerite Keystone ("Return to the Black Temple" 38729)
+    ## On use: 5s later the two phase-0 ELM bunnies beside it link with
+    ## Fel Beam (first -> second); 5s after that the user is credited.
+    ######*/
+
+    struct go_sargerite_keystone : public GameObjectAI
+    {
+        go_sargerite_keystone(GameObject* go) : GameObjectAI(go) { }
+
+        bool OnReportUse(Player* player) override
+        {
+            if (_used)
+                return true;
+
+            _used = true;
+            me->SetFlag(GO_FLAG_NOT_SELECTABLE);
+
+            ObjectGuid playerGuid = player->GetGUID();
+            _scheduler.Schedule(5s, [this](TaskContext const& /*context*/)
+            {
+                std::list<Creature*> bunnies;
+                me->GetCreatureListWithEntryInGrid(bunnies, Creatures::KeystoneFelBeamBunny, Misc::KeystoneBunnySearchRange);
+                if (bunnies.size() >= 2)
+                    bunnies.front()->CastSpell(bunnies.back(), Spells::KeystoneFelBeam, true);
+            });
+            _scheduler.Schedule(10s, [this, playerGuid](TaskContext const& /*context*/)
+            {
+                if (Player* player = ObjectAccessor::GetPlayer(*me, playerGuid))
+                    player->KilledMonsterCredit(Creatures::KeystoneActivatedCredit);
+            });
+            return false;
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _scheduler.Update(diff);
+        }
+
+    private:
+        bool _used = false;
+        TaskScheduler _scheduler;
+    };
+
+    /*######
+    ## 244466 Fel Portal ("Return to the Black Temple" 38729)
+    ## On reward: Back to Black Temple cast; 5s later the aura is removed,
+    ## the player's homebind is set to the Fel Hammer, and they teleport out.
+    ######*/
+
+    struct go_fel_portal : public GameObjectAI
+    {
+        go_fel_portal(GameObject* go) : GameObjectAI(go) { }
+
+        void OnQuestReward(Player* player, Quest const* quest, LootItemType /*type*/, uint32 /*opt*/) override
+        {
+            if (quest->GetQuestId() != Quests::ReturnToTheBlackTemple)
+                return;
+
+            player->CastSpell(player, Spells::TeleportVaultOfWardens, true);
+            player->CastSpell(player, Spells::BackToBlackTemple, true);
+            player->m_Events.AddEventAtOffset([player]()
+            {
+                player->RemoveAurasDueToSpell(Spells::BackToBlackTemple);
+                player->SetHomebind(player->GetWorldLocation(), Misc::KeystoneReturnBindArea);
+                player->SendMovieStart(471);
+            }, 1s);
+        }
+    };
 }
 
 void AddSC_custom_mardum_objects()
@@ -251,4 +321,6 @@ void AddSC_custom_mardum_objects()
     RegisterGameObjectAI(go_mardum_illidari_banner);
     RegisterGameObjectAI(go_spire_stabilizer);
     RegisterGameObjectAI(go_cylinder_collision);
+    RegisterGameObjectAI(go_sargerite_keystone);
+    RegisterGameObjectAI(go_fel_portal);
 }

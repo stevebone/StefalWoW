@@ -1685,6 +1685,336 @@ namespace Scripts::Custom::Mardum
         std::vector<ObjectGuid> _attackerGuids;
         bool _greetingOnCooldown = false;
     };
+
+    // 97297 - Cyana Nightglaive (Fel Hammer)
+    // On accepting "The Keystone" (38728) she talks, then the Fel Hammer
+    // Illidari engage Brood Queen Tyranna.
+    struct npc_cyana_nightglaive_fel_hammer : public ScriptedAI
+    {
+        npc_cyana_nightglaive_fel_hammer(Creature* creature) : ScriptedAI(creature) { }
+
+        void OnQuestAccept(Player* player, Quest const* quest) override
+        {
+            if (quest->GetQuestId() != Quests::TheKeystone)
+                return;
+
+            Talk(CreatureText::CyanaFelHammerAccept, player);
+
+            ObjectGuid playerGuid = player->GetGUID();
+            _scheduler.Schedule(5s, [this, playerGuid](TaskContext const& /*context*/)
+            {
+                if (Player* player = ObjectAccessor::GetPlayer(*me, playerGuid))
+                    Talk(CreatureText::CyanaFelHammerAccept2, player);
+            });
+
+            EngageIllidariOnTyranna();
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _scheduler.Update(diff);
+        }
+
+    private:
+        static constexpr uint32 IllidariEntries[] =
+        {
+            Creatures::KorvasFelHammer,
+            Creatures::JaceFelHammer,
+            Creatures::KaynFelHammer,
+            Creatures::AllariFelHammer
+        };
+
+        void EngageIllidariOnTyranna()
+        {
+            FindCreatureOptions tyrannaOptions;
+            tyrannaOptions.CreatureId = Creatures::BroodQueenTyranna;
+            tyrannaOptions.IgnorePhases = true;
+
+            Creature* tyranna = me->FindNearestCreatureWithOptions(Misc::FelHammerSearchRange, tyrannaOptions);
+            if (!tyranna)
+                return;
+
+            for (uint32 entry : IllidariEntries)
+            {
+                FindCreatureOptions options;
+                options.CreatureId = entry;
+                options.IgnorePhases = true;
+
+                if (Creature* illidari = me->FindNearestCreatureWithOptions(Misc::FelHammerSearchRange, options))
+                    illidari->EngageWithTarget(tyranna);
+            }
+        }
+
+        TaskScheduler _scheduler;
+    };
+
+    // 93802 - Brood Queen Tyranna (Fel Hammer boss)
+    struct npc_brood_queen_tyranna : public ScriptedAI
+    {
+        npc_brood_queen_tyranna(Creature* creature) : ScriptedAI(creature)
+        {
+            GatherSpiderSpawns();
+
+            // the spiders can spawn after us in the same grid load - retry once deferred
+            if (!_spidersGathered)
+                _scheduler.Schedule(1s, [this](TaskContext const& /*context*/)
+                {
+                    GatherSpiderSpawns();
+                });
+        }
+
+        void Reset() override
+        {
+            _events.Reset();
+            _scheduler.CancelAll();
+            ReleaseGrabbedPlayer();
+            DespawnBrood();
+        }
+
+        void MoveInLineOfSight(Unit* who) override
+        {
+            if (Player* player = who->ToPlayer())
+            {
+                if (_greetedPlayers.insert(player->GetGUID()).second)
+                {
+                    Talk(CreatureText::TyrannaGreeting, player);
+
+                    ObjectGuid playerGuid = player->GetGUID();
+                    _scheduler.Schedule(5s, [this, playerGuid](TaskContext const& /*context*/)
+                    {
+                        if (Player* player = ObjectAccessor::GetPlayer(*me, playerGuid))
+                            Talk(CreatureText::TyrannaGreeting2, player);
+                    });
+                }
+            }
+
+            ScriptedAI::MoveInLineOfSight(who);
+        }
+
+        void JustEngagedWith(Unit* /*who*/) override
+        {
+            _events.ScheduleEvent(Events::TyrannaQueensBite, 15s, 20s);
+            _events.ScheduleEvent(Events::TyrannaBroodSwarm, 30s);
+        }
+
+        void JustDied(Unit* /*killer*/) override
+        {
+            Talk(CreatureText::TyrannaDeath);
+            ReleaseGrabbedPlayer();
+            DespawnBrood();
+
+            FindCreatureOptions options;
+            options.IgnorePhases = true;
+            options.CreatureId = Creatures::KaynFelHammer;
+
+            if (Creature* kayn = me->FindNearestCreatureWithOptions(Misc::FelHammerSearchRange, options))
+            {
+                kayn->m_Events.AddEventAtOffset([kayn]()
+                {
+                    kayn->AI()->Talk(0);
+
+                    FindCreatureOptions options;
+                    options.CreatureId = Creatures::KaynKeystone;
+                    options.IgnorePhases = true;
+                    if (Creature* keystoneKayn = kayn->FindNearestCreatureWithOptions(Misc::FelHammerSearchRange, options))
+                        kayn->GetMotionMaster()->MovePoint(0, keystoneKayn->GetPosition());
+                }, 3s);
+
+                kayn->DespawnOrUnsummon(30s);
+            }
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _scheduler.Update(diff);
+
+            if (!UpdateVictim())
+                return;
+
+            _events.Update(diff);
+
+            if (me->HasUnitState(UNIT_STATE_CASTING))
+                return;
+
+            while (uint32 eventId = _events.ExecuteEvent())
+            {
+                switch (eventId)
+                {
+                    case Events::TyrannaQueensBite:
+                    {
+                        Unit* biteTarget = me->GetVictim() && me->GetVictim()->IsPlayer()
+                            ? me->GetVictim()
+                            : me->SelectNearestTarget(Misc::TyrannaBiteTargetRange, true);
+
+                        _events.Repeat(15s, 20s);
+
+                        if (!biteTarget)
+                            break;
+
+                        // she is a vehicle npc (VehicleId 4497) - the bite seizes the player in her jaws
+                        Talk(CreatureText::TyrannaQueensBite);
+                        //DoCastSelf(Spells::QueensBite);
+                        me->AddAura(Spells::QueensBite, biteTarget);
+                        me->CastSpell(biteTarget, 197493, true); // Tyranna's Bite (buff)
+                        biteTarget->EnterVehicle(me);
+                        _grabbedTarget = biteTarget->GetGUID();
+                        _scheduler.Schedule(5s, [this](TaskContext const& /*context*/)
+                        {
+                            ReleaseGrabbedPlayer();
+                        });
+                        break;
+                    }
+                    case Events::TyrannaBroodSwarm:
+                        DoCastVictim(Spells::BroodSwarm);
+                        Talk(CreatureText::TyrannaBroodSwarm);
+                        SummonBrood();
+                        _scheduler.Schedule(1s, [this](TaskContext const& /*context*/)
+                        {
+                            Talk(CreatureText::TyrannaIntoTheShadows);
+                            me->CastSpell(me, Spells::IntoTheShadows, true);
+                        });
+                        _events.Repeat(30s);
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            me->DoMeleeAttackIfReady();
+        }
+
+    private:
+        static constexpr uint32 SpiderEntries[] =
+        {
+            Creatures::SkitteringBroodling,
+            Creatures::TyrannasSpawn
+        };
+
+        void GatherSpiderSpawns()
+        {
+            if (_spidersGathered)
+                return;
+
+            _spidersGathered = true;
+
+            for (uint32 entry : SpiderEntries)
+            {
+                std::list<Creature*> spiders;
+                me->GetCreatureListWithEntryInGrid(spiders, entry, Misc::FelHammerSearchRange);
+                if (spiders.empty())
+                {
+                    _spidersGathered = false;
+                    continue;
+                }
+
+                for (Creature* spider : spiders)
+                {
+                    _spiderSpawns[entry].push_back(spider->GetPosition());
+                    spider->SetVisible(false);
+                    spider->SetReactState(REACT_PASSIVE);
+                    spider->SetUnitFlag(UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_IMMUNE_TO_PC | UNIT_FLAG_IMMUNE_TO_NPC);
+                }
+            }
+        }
+
+        void SummonBrood()
+        {
+            for (auto const& [entry, positions] : _spiderSpawns)
+                for (Position const& pos : positions)
+                    if (Creature* spider = me->SummonCreature(entry, pos))
+                    {
+                        _broodGuids.push_back(spider->GetGUID());
+
+                        spider->SetReactState(REACT_PASSIVE);
+
+                        ObjectGuid spiderGuid = spider->GetGUID();
+                        _scheduler.Schedule(1s, 5s, [this, spiderGuid](TaskContext const& /*context*/)
+                        {
+                            if (Creature* spider = ObjectAccessor::GetCreature(*me, spiderGuid))
+                            {
+                                spider->SetReactState(REACT_AGGRESSIVE);
+                                if (Unit* target = spider->SelectNearestTarget(Misc::FelHammerSearchRange))
+                                    spider->EngageWithTarget(target);
+                            }
+                        });
+                    }
+        }
+
+        void DespawnBrood()
+        {
+            for (ObjectGuid guid : _broodGuids)
+                if (Creature* spider = ObjectAccessor::GetCreature(*me, guid))
+                    spider->DespawnOrUnsummon();
+
+            _broodGuids.clear();
+        }
+
+        void ReleaseGrabbedPlayer()
+        {
+            if (Unit* grabbed = ObjectAccessor::GetUnit(*me, _grabbedTarget))
+            {
+                grabbed->ExitVehicle();
+                grabbed->RemoveAurasDueToSpell(Spells::QueensBite);
+            }
+
+            _grabbedTarget.Clear();
+        }
+
+        EventMap _events;
+        TaskScheduler _scheduler;
+        GuidUnorderedSet _greetedPlayers;
+        ObjectGuid _grabbedTarget;
+        std::unordered_map<uint32, std::vector<Position>> _spiderSpawns;
+        std::vector<ObjectGuid> _broodGuids;
+        bool _spidersGathered = false;
+    };
+
+    // 101760 - "The Keystone" Make Your Way Downstairs Quest Kill Credit
+    struct npc_keystone_downstairs_kill_credit : public ScriptedAI
+    {
+        npc_keystone_downstairs_kill_credit(Creature* creature) : ScriptedAI(creature) { }
+
+        void MoveInLineOfSight(Unit* who) override
+        {
+            if (Player* player = who->ToPlayer())
+            {
+                if (me->IsWithinDist(player, Misc::KeystoneKillCreditRange)
+                    && player->GetQuestStatus(Quests::TheKeystone) == QUEST_STATUS_INCOMPLETE
+                    && player->IsQuestObjectiveComplete(Quests::TheKeystone, Objectives::KeystoneMakeYourWayDownstairs)
+                    && _creditedPlayers.insert(player->GetGUID()).second)
+                {
+                    player->KilledMonsterCredit(Creatures::KeystoneKillCredit, me->GetGUID());
+                }
+            }
+
+            ScriptedAI::MoveInLineOfSight(who);
+        }
+
+    private:
+        GuidUnorderedSet _creditedPlayers;
+    };
+
+    // 97303 - Kayn Sunfury (The Keystone turn-in / Return to the Black Temple)
+    struct npc_kayn_sunfury_keystone : public ScriptedAI
+    {
+        npc_kayn_sunfury_keystone(Creature* creature) : ScriptedAI(creature) { }
+
+        void OnQuestReward(Player* player, Quest const* quest, LootItemType /*type*/, uint32 /*opt*/) override
+        {
+            if (quest->GetQuestId() == Quests::TheKeystone)
+                player->CastSpell(player, Spells::TheKeystoneQuestCompletion, true);
+        }
+
+        void OnQuestAccept(Player* player, Quest const* quest) override
+        {
+            if (quest->GetQuestId() == Quests::ReturnToTheBlackTemple)
+            {
+                Talk(0, player);
+                me->SummonGameObject(GameObjects::SargeriteKeystone, Positions::SargeriteKeystone,
+                    QuaternionData(), 0s, GO_SUMMON_TIMED_OR_CORPSE_DESPAWN, player->GetGUID());
+            }
+        }
+    };
 }
 
 void AddSC_custom_mardum_npcs()
@@ -1708,4 +2038,8 @@ void AddSC_custom_mardum_npcs()
     RegisterCreatureAI(npc_korvas_bloodthorn_foul_creche);
     RegisterCreatureAI(npc_prolifica);
     RegisterCreatureAI(npc_lady_stheno);
+    RegisterCreatureAI(npc_cyana_nightglaive_fel_hammer);
+    RegisterCreatureAI(npc_brood_queen_tyranna);
+    RegisterCreatureAI(npc_keystone_downstairs_kill_credit);
+    RegisterCreatureAI(npc_kayn_sunfury_keystone);
 }
