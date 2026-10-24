@@ -27,6 +27,7 @@
 #include <map>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 
 class WorldObject;
 enum SpellEffIndex : uint8;
@@ -1748,6 +1749,8 @@ typedef std::unordered_map<int64, SmartAIEventList> SmartAIEventMap;
 typedef std::map<uint32 /*entry*/, std::pair<uint32 /*spellId*/, SpellEffIndex /*effIndex*/> > CacheSpellContainer;
 typedef std::pair<CacheSpellContainer::const_iterator, CacheSpellContainer::const_iterator> CacheSpellContainerBounds;
 
+class SmartScript;
+
 class TC_GAME_API SmartAIMgr
 {
     private:
@@ -1764,6 +1767,12 @@ class TC_GAME_API SmartAIMgr
 
         void LoadSmartAIFromDB();
 
+        // Long-lived SmartScript objects (owned by creature/gameobject/areatrigger AIs) register
+        // themselves so .reload smart_scripts can re-initialize them against the fresh DB store
+        void RegisterScriptObject(SmartScript* script);
+        void UnregisterScriptObject(SmartScript* script);
+        uint32 NotifyScriptsUpdated();
+
         SmartAIEventList GetScript(int32 entry, SmartScriptType type);
 
         static SmartScriptHolder& FindLinkedSourceEvent(SmartAIEventList& list, uint32 eventId);
@@ -1773,6 +1782,8 @@ class TC_GAME_API SmartAIMgr
     private:
         //event stores
         SmartAIEventMap mEventMap[SMART_SCRIPT_TYPE_MAX];
+
+        std::unordered_set<SmartScript*> _registeredScripts;
 
         static bool EventHasInvoker(SMART_EVENT event);
 

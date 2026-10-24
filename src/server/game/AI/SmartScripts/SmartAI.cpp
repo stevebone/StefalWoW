@@ -38,6 +38,7 @@ SmartAI::SmartAI(Creature* creature, uint32 scriptId) : CreatureAI(creature, scr
     _OOCReached(false), _waypointPathEnded(false), _run(true), _evadeDisabled(false), _canCombatMove(true), _invincibilityHPLevel(0), _despawnTime(0), _despawnState(0), _vehicleConditionsTimer(0),
     _gossipReturn(false), _escortQuestId(0)
 {
+    sSmartScriptMgr->RegisterScriptObject(&_script);
     _vehicleConditions = sConditionMgr->HasConditionsForNotGroupedEntry(CONDITION_SOURCE_TYPE_CREATURE_TEMPLATE_VEHICLE, creature->GetEntry());
 }
 
@@ -1136,6 +1137,16 @@ class SmartTrigger : public AreaTriggerScript
             return true;
         }
 };
+
+SmartAreaTriggerAI::SmartAreaTriggerAI(AreaTrigger* a, uint32 scriptId) : AreaTriggerAI(a, scriptId)
+{
+    sSmartScriptMgr->RegisterScriptObject(&mScript);
+}
+
+SmartAreaTriggerAI::~SmartAreaTriggerAI()
+{
+    sSmartScriptMgr->UnregisterScriptObject(&mScript);
+}
 
 void SmartAreaTriggerAI::OnInitialize()
 {

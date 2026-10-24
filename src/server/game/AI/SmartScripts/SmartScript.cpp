@@ -4072,6 +4072,38 @@ void SmartScript::FillScript(SmartAIEventList&& e, WorldObject* obj, AreaTrigger
     }
 }
 
+bool SmartScript::ReloadScript()
+{
+    switch (mScriptType)
+    {
+        case SMART_SCRIPT_TYPE_CREATURE:
+            if (!me)
+                return false;
+            break;
+        case SMART_SCRIPT_TYPE_GAMEOBJECT:
+            if (!go)
+                return false;
+            break;
+        case SMART_SCRIPT_TYPE_AREATRIGGER_ENTITY:
+        case SMART_SCRIPT_TYPE_AREATRIGGER_ENTITY_CUSTOM:
+            if (!areaTrigger)
+                return false;
+            break;
+        default:
+            return false;
+    }
+
+    mEvents.clear();
+    mAllEventFlags = 0;
+    GetScript();
+
+    for (SmartScriptHolder& event : mEvents)
+        InitTimer(event);
+
+    OnReset();
+    return true;
+}
+
 void SmartScript::GetScript()
 {
     SmartAIEventList e;

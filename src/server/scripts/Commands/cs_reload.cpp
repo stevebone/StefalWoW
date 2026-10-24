@@ -1081,7 +1081,8 @@ public:
     {
         TC_LOG_INFO("misc", "Re-Loading Smart Scripts...");
         sSmartScriptMgr->LoadSmartAIFromDB();
-        handler->SendGlobalGMSysMessage("Smart Scripts reloaded.");
+        uint32 count = sSmartScriptMgr->NotifyScriptsUpdated();
+        handler->PSendSysMessage("Smart Scripts reloaded. %u active scripts re-initialized.", count);
         return true;
     }
 

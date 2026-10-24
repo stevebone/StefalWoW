@@ -42,7 +42,7 @@ static float constexpr SMART_MAX_AID_DIST = SMART_ESCORT_MAX_PLAYER_DIST / 2.f;
 class TC_GAME_API SmartAI : public CreatureAI
 {
     public:
-        ~SmartAI() { }
+        ~SmartAI() { sSmartScriptMgr->UnregisterScriptObject(&_script); }
         explicit SmartAI(Creature* creature, uint32 scriptId = {});
 
         // core related
@@ -290,8 +290,8 @@ class TC_GAME_API SmartAI : public CreatureAI
 class TC_GAME_API SmartGameObjectAI : public GameObjectAI
 {
     public:
-        SmartGameObjectAI(GameObject* go, uint32 scriptId = {}) : GameObjectAI(go, scriptId), _gossipReturn(false) { }
-        ~SmartGameObjectAI() { }
+        SmartGameObjectAI(GameObject* go, uint32 scriptId = {}) : GameObjectAI(go, scriptId), _gossipReturn(false) { sSmartScriptMgr->RegisterScriptObject(&_script); }
+        ~SmartGameObjectAI() { sSmartScriptMgr->UnregisterScriptObject(&_script); }
 
         void UpdateAI(uint32 diff) override;
         void InitializeAI() override;
@@ -343,7 +343,8 @@ class TC_GAME_API SmartGameObjectAI : public GameObjectAI
 class TC_GAME_API SmartAreaTriggerAI : public AreaTriggerAI
 {
 public:
-    using AreaTriggerAI::AreaTriggerAI;
+    explicit SmartAreaTriggerAI(AreaTrigger* a, uint32 scriptId = {});
+    ~SmartAreaTriggerAI() override;
 
     void OnInitialize() override;
     void OnUpdate(uint32 diff) override;

@@ -93,6 +93,7 @@ class TC_GAME_API SmartScript
 
         void OnReset();
         void ResetBaseObject();
+        bool ReloadScript();
 
         void SetTimedActionList(SmartScriptHolder& e, uint32 entry, Unit* invoker, uint32 startFromEventId = 0);
         Unit* GetLastInvoker(Unit* invoker = nullptr) const;

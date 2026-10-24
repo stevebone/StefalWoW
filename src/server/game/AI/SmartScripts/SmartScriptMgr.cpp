@@ -16,6 +16,7 @@
  */
 
 #include "SmartScriptMgr.h"
+#include "SmartScript.h"
 #include "AreaTriggerDataStore.h"
 #include "AreaTriggerTemplate.h"
 #include "ConversationDataStore.h"
@@ -56,6 +57,31 @@ SmartAIMgr* SmartAIMgr::instance()
 {
     static SmartAIMgr instance;
     return &instance;
+}
+
+void SmartAIMgr::RegisterScriptObject(SmartScript* script)
+{
+    _registeredScripts.insert(script);
+}
+
+void SmartAIMgr::UnregisterScriptObject(SmartScript* script)
+{
+    _registeredScripts.erase(script);
+}
+
+uint32 SmartAIMgr::NotifyScriptsUpdated()
+{
+    // ReloadScript can trigger script events whose actions may destroy the AI
+    // (and unregister its script) mid-iteration, so work on a snapshot and
+    // verify the pointer is still registered before touching it.
+    std::vector<SmartScript*> scripts(_registeredScripts.begin(), _registeredScripts.end());
+    uint32 count = 0;
+    for (SmartScript* script : scripts)
+        if (_registeredScripts.contains(script) && script->ReloadScript())
+            ++count;
+
+    TC_LOG_INFO("misc", "SmartAIMgr: Re-initialized {} active SmartScript objects.", count);
+    return count;
 }
 
 void SmartAIMgr::LoadSmartAIFromDB()
