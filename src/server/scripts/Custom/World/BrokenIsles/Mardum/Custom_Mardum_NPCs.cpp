@@ -1987,6 +1987,7 @@ namespace Scripts::Custom::Mardum
                     && _creditedPlayers.insert(player->GetGUID()).second)
                 {
                     player->KilledMonsterCredit(Creatures::KeystoneKillCredit, me->GetGUID());
+                    PhasingHandler::OnConditionChange(player, true);
                 }
             }
 

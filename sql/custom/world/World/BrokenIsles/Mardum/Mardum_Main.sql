@@ -49,6 +49,7 @@ UPDATE `creature_template` SET `faction` = 73 WHERE `entry` IN (100286);
 UPDATE `creature_template` SET `faction` = 35 WHERE `entry` IN (100545,100543,100549);
 UPDATE `creature_template` SET `faction` = 1786 WHERE `entry` IN (97769);
 UPDATE `creature_template` SET `unit_flags` = 0 WHERE `entry` IN (96877); -- Summoned Ashtongue should not be immune
+UPDATE `creature_template` SET `unit_flags` = 0 WHERE `entry` IN (100244); -- Aranasi Maiden should not be immune
 UPDATE `creature_template` SET `IconName` = 'questinteract' WHERE `entry` = 102916; -- Well of Souls should have quest interract
 
 
@@ -180,10 +181,18 @@ DELETE FROM `creature_queststarter` WHERE `quest` = 38729;
 INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES
 (97303, 38729, 69587);
 
+DELETE FROM `quest_template_addon` WHERE `ID` = 38729;
+INSERT INTO `quest_template_addon` (`ID`, `PrevQuestID`, `NextQuestID`) VALUES
+(38729, 38728, 0);
+
 -- ========================= Fixes for The Keystone
 DELETE FROM `creature_queststarter` WHERE `quest` = 38728;
 INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES
 (97297, 38728, 69587);
+
+DELETE FROM `quest_template_addon` WHERE `ID` = 38728;
+INSERT INTO `quest_template_addon` (`ID`, `PrevQuestID`, `NextQuestID`) VALUES
+(38728, 39663, 38729);
 
 DELETE FROM `scene_template` WHERE `SceneId` = 1142;
 INSERT INTO `scene_template` (`SceneId`, `Flags`, `ScriptPackageID`, `Encrypted`, `ScriptName`) VALUES
@@ -207,8 +216,8 @@ INSERT INTO `creature_queststarter` (`id`, `quest`, `VerifiedBuild`) VALUES
 (93127, 39663, 69587);
 
 DELETE FROM `quest_template_addon` WHERE `ID` = 39663;
-INSERT INTO `quest_template_addon` (`ID`, `ScriptName`) VALUES
-(39663, 'quest_on_felbat_wings');
+INSERT INTO `quest_template_addon` (`ID`, `NextQuestID`, `ScriptName`) VALUES
+(39663, 38728, 'quest_on_felbat_wings');
 
 -- Izal Whitemoon (96653) - fel bat gossip + SetData talk (MenuID 18776)
 UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` = 96653;
@@ -779,3 +788,19 @@ UPDATE `creature_template` SET `ScriptName` = 'npc_general_volroth', `AIName` = 
 -- Lady S'theno (97676) -> npc_lady_stheno (greeting, attacker pack, combat spells)
 UPDATE `creature_template` SET `ScriptName` = 'npc_lady_stheno', `AIName` = '' WHERE `entry` = 97676;
 
+-- ========================= The Fel Hammer phasing (area 7749)
+-- Phase 101: active once On Felbat Wings (39663) is done, until The Keystone
+--            (38728) completes - the boss fight / keystone window
+-- Phase 102: active once The Keystone (38728) is done, until Return to the
+--            Black Temple (38729) is rewarded
+DELETE FROM `phase_area` WHERE `AreaId` = 7749 AND `PhaseId` IN (101, 102);
+INSERT INTO `phase_area` (`AreaId`, `PhaseId`, `Comment`) VALUES
+(7749, 101, 'Mardum - The Fel Hammer: after On Felbat Wings until The Keystone'),
+(7749, 102, 'Mardum - The Fel Hammer: after The Keystone until Return to the Black Temple');
+
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 26 AND `SourceGroup` IN (101, 102);
+INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `NegativeCondition`, `ErrorType`, `ErrorTextId`, `ScriptName`, `Comment`) VALUES
+(26, 101, 0, 0, 0, 47, 0, 39663, 66, 0, 0, 0, 0, '', 'Phase 101 Fel Hammer active when quest 39663 On Felbat Wings is complete/rewarded'),
+(26, 101, 0, 0, 0, 47, 0, 38728, 66, 0, 1, 0, 0, '', 'Phase 101 Fel Hammer NOT active when quest 38728 The Keystone is complete/rewarded'),
+(26, 102, 0, 0, 0, 47, 0, 38728, 66, 0, 0, 0, 0, '', 'Phase 102 Fel Hammer active when quest 38728 The Keystone is complete/rewarded'),
+(26, 102, 0, 0, 0, 47, 0, 38729, 64, 0, 1, 0, 0, '', 'Phase 102 Fel Hammer NOT active when quest 38729 Return to the Black Temple is rewarded');
