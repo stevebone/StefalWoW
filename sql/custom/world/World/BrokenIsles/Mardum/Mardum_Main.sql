@@ -424,7 +424,7 @@ DELETE FROM `smart_scripts` WHERE `entryorguid` = 93221 AND `source_type` = 0;
 UPDATE creature_template SET ScriptName='' WHERE entry=96159;
 
 -- Floating flag
-UPDATE `creature_template_difficulty` SET `StaticFlags1` = `StaticFlags1` | 0x20000000 WHERE `Entry` IN (94744,96276,100333,100334);
+UPDATE `creature_template_difficulty` SET `StaticFlags1` = `StaticFlags1` | 0x20000000 WHERE `Entry` IN (94744,96276,100333,100334,98191);
 
 -- SAI
 UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (98484,98486,98497,98482,95226,93112,93716,94654,97034,102726,96494,102724,
