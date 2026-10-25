@@ -106,7 +106,7 @@ namespace FSBBattleground
             case BATTLEGROUND_BRHA3:
             case BATTLEGROUND_MC3:
             case BATTLEGROUND_HP:
-            case BATTLEGROUND_NNA:
+            case BATTLEGROUND_NA_NEW:
             case BATTLEGROUND_MB:
             case BATTLEGROUND_TR:
             case BATTLEGROUND_AA:
