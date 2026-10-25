@@ -1485,7 +1485,7 @@ namespace Scripts::Custom::Paladin
 
         void Register() override
         {
-            OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_pal_suns_avatar_damage::FilterTargets, EFFECT_0, TARGET_UNIT_LINE_CASTER_TO_DEST_ENEMY);
+            OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_pal_suns_avatar_damage::FilterTargets, EFFECT_0, TARGET_UNIT_RECT_CASTER_TO_DEST_ENEMY);
         }
     };
 
@@ -1506,7 +1506,7 @@ namespace Scripts::Custom::Paladin
 
         void Register() override
         {
-            OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_pal_suns_avatar_heal::FilterTargets, EFFECT_0, TARGET_UNIT_LINE_CASTER_TO_DEST_ALLY);
+            OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_pal_suns_avatar_heal::FilterTargets, EFFECT_0, TARGET_UNIT_RECT_CASTER_TO_DEST_ALLY);
         }
     };
 
