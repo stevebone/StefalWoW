@@ -745,6 +745,13 @@ void Creature::ApplyAllStaticFlags(CreatureStaticFlagsHolder const& flags)
 
     // Apply all other side effects of flag changes
     m_updateFlag.NoBirthAnim = flags.HasFlag(CREATURE_STATIC_FLAG_4_NO_BIRTH_ANIM);
+
+    if (flags.HasFlag(CREATURE_STATIC_FLAG_LARGE_AOI))
+        SetVisibilityDistanceOverride(VisibilityDistanceType::Large);
+    if (flags.HasFlag(CREATURE_STATIC_FLAG_3_GIGANTIC_AOI))
+        SetVisibilityDistanceOverride(VisibilityDistanceType::Gigantic);
+    if (flags.HasFlag(CREATURE_STATIC_FLAG_3_INFINITE_AOI))
+        SetVisibilityDistanceOverride(VisibilityDistanceType::Infinite);
 }
 
 void Creature::Update(uint32 diff)
