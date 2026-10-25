@@ -288,8 +288,9 @@ namespace Scripts::Custom::Mardum
 
     /*######
     ## 244466 Fel Portal ("Return to the Black Temple" 38729)
-    ## On reward: Back to Black Temple cast; 5s later the aura is removed,
-    ## the player's homebind is set to the Fel Hammer, and they teleport out.
+    ## On reward: Back to Black Temple (192140) applies the fel screen effect and
+    ## plays movie 471. player_mardum_back_to_black_temple::OnMovieComplete then
+    ## removes the aura, teleports the player out and sets their homebind.
     ######*/
 
     struct go_fel_portal : public GameObjectAI
@@ -301,14 +302,18 @@ namespace Scripts::Custom::Mardum
             if (quest->GetQuestId() != Quests::ReturnToTheBlackTemple)
                 return;
 
-            player->CastSpell(player, Spells::TeleportVaultOfWardens, true);
             player->CastSpell(player, Spells::BackToBlackTemple, true);
+
+            // Fallback: if the client kills the movie without ever sending
+            // CMSG_COMPLETE_MOVIE, run the completion once it can no longer be
+            // playing anyway so the player is not stranded under the overlay.
+            // This was an observed bug within the client where after movie plays
+            // for the first time it will stop working on subsequent runs
             player->m_Events.AddEventAtOffset([player]()
             {
-                player->RemoveAurasDueToSpell(Spells::BackToBlackTemple);
-                player->SetHomebind(player->GetWorldLocation(), Misc::KeystoneReturnBindArea);
-                player->SendMovieStart(471);
-            }, 1s);
+                if (player->HasAura(Spells::BackToBlackTemple))
+                    sScriptMgr->OnMovieComplete(player, Movies::BackToBlackTemple);
+            }, 180s);
         }
     };
 }

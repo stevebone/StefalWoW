@@ -139,6 +139,39 @@ namespace Scripts::Custom::Mardum
         }
     };
 
+    // 38729 - Return to the Black Temple
+    // Spell 192140 applies the fel screen effect (aura 260, misc 827) and
+    // triggers movie 471. When the client reports the movie finished or
+    // skipped, the player is teleported to the Fel Hammer and bound there.
+    class player_mardum_back_to_black_temple : public PlayerScript
+    {
+    public:
+        player_mardum_back_to_black_temple() : PlayerScript("player_mardum_back_to_black_temple") { }
+
+        void OnMovieComplete(Player* player, uint32 movieId) override
+        {
+            // The aura marks a player mid-sequence; removing it makes re-entry safe.
+            if (movieId != Movies::BackToBlackTemple || !player->HasAura(Spells::BackToBlackTemple))
+                return;
+
+            player->RemoveAurasDueToSpell(Spells::BackToBlackTemple);
+            player->CastSpell(player, Spells::TeleportVaultOfWardens, true);
+            player->m_Events.AddEventAtOffset([player]()
+            {
+                player->SetHomebind(player->GetWorldLocation(), Misc::KeystoneReturnBindArea);
+            }, 1s);
+        }
+
+        // Covers relogging while the movie was playing - the aura survives the
+        // logout but CMSG_COMPLETE_MOVIE will never arrive for it.
+        void OnLogin(Player* player, bool /*firstLogin*/) override
+        {
+            if (player->HasAura(Spells::BackToBlackTemple) &&
+                player->GetQuestRewardStatus(Quests::ReturnToTheBlackTemple))
+                OnMovieComplete(player, Movies::BackToBlackTemple);
+        }
+    };
+
     // PlayerChoice 231 - Fel Secrets (quest 40051)
     class playerchoice_fel_secrets : public PlayerChoiceScript
     {
@@ -180,5 +213,6 @@ void AddSC_custom_mardum_player()
     new player_mardum_assault_bonus_objective();
     new player_mardum_coilskar_forces();
     new player_mardum_illidari_foothold();
+    new player_mardum_back_to_black_temple();
     new playerchoice_fel_secrets();
 }

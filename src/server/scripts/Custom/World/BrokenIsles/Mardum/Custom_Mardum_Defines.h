@@ -247,6 +247,12 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 FelSecretsVengeanceResponse = 479;
     }
 
+    namespace Movies
+    {
+        // Movie.db2 IDs played by SPELL_EFFECT_PLAY_MOVIE
+        static constexpr uint32 BackToBlackTemple = 471; // triggered by spell 192140
+    }
+
     namespace CreatureText
     {
         // Kayn Sunfury (98229) - creature_text GroupIDs (Mardum_CreatureText.sql)
