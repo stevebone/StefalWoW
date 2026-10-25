@@ -1775,6 +1775,9 @@ namespace Scripts::Custom::Mardum
         {
             if (Player* player = who->ToPlayer())
             {
+                if (player->GetQuestStatus(Quests::TheKeystone) != QUEST_STATUS_INCOMPLETE)
+                    return;
+
                 if (_greetedPlayers.insert(player->GetGUID()).second)
                 {
                     Talk(CreatureText::TyrannaGreeting, player);
