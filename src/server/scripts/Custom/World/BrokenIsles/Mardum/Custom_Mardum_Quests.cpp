@@ -28,6 +28,7 @@
 #include "QuestDef.h"
 #include "ScriptMgr.h"
 #include "Spell.h"
+#include "TemporarySummon.h"
 #include "WaypointDefines.h"
 
 #include "Custom_Mardum_Defines.h"
@@ -53,7 +54,10 @@ namespace Scripts::Custom::Mardum
             // the login check in player_mardum_coilskar_forces covers that case.
             player->m_Events.AddEventAtOffset([player]()
             {
-                player->CastSpell(player, Spells::SummonCoilskarSeaCaller, CastSpellExtraArgs(TRIGGERED_FULL_MASK));
+                std::list<TempSummon*> minions;
+                player->GetAllMinionsByEntry(minions, Creatures::CoilskarSeaCaller);
+                if (minions.empty())
+                    player->CastSpell(player, Spells::SummonCoilskarSeaCaller, CastSpellExtraArgs(TRIGGERED_FULL_MASK));
             }, 30s);
         }
     };
@@ -79,7 +83,10 @@ namespace Scripts::Custom::Mardum
                 // the login check in player_mardum_coilskar_forces covers that case.
                 player->m_Events.AddEventAtOffset([player]()
                     {
-                        player->CastSpell(player, Spells::SummonCoilskarSeaCaller, CastSpellExtraArgs(TRIGGERED_FULL_MASK));
+                        std::list<TempSummon*> minions;
+                        player->GetAllMinionsByEntry(minions, Creatures::CoilskarSeaCaller);
+                        if (minions.empty())
+                            player->CastSpell(player, Spells::SummonCoilskarSeaCaller, CastSpellExtraArgs(TRIGGERED_FULL_MASK));
                     }, 30s);
             }
         }

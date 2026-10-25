@@ -30,6 +30,7 @@
 #include "QuestDef.h"
 #include "ScriptMgr.h"
 #include "Spell.h"
+#include "TemporarySummon.h"
 
 #include "Custom_Mardum_Defines.h"
 
@@ -89,7 +90,12 @@ namespace Scripts::Custom::Mardum
                 needsSpawn = true;
 
             if(needsSpawn)
-                player->CastSpell(player, Spells::SummonCoilskarSeaCaller, CastSpellExtraArgs(TRIGGERED_FULL_MASK));
+            {
+                std::list<TempSummon*> minions;
+                player->GetAllMinionsByEntry(minions, Creatures::CoilskarSeaCaller);
+                if (minions.empty())
+                    player->CastSpell(player, Spells::SummonCoilskarSeaCaller, CastSpellExtraArgs(TRIGGERED_FULL_MASK));
+            }
         }
     };
 
