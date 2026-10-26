@@ -5696,10 +5696,13 @@ public:
             return;
         }
 
-        if (GetTarget()->GetHealthPct() <= _healthPct)
-            absorbAmount = dmgInfo.GetDamage();
-        else
+        uint32 healthFloor = uint32(GetTarget()->GetMaxHealth() * _healthPct / 100.0f);
+        uint32 allowedDamage = GetTarget()->GetHealth() > healthFloor ? GetTarget()->GetHealth() - healthFloor : 0;
+
+        if (allowedDamage >= dmgInfo.GetDamage())
             PreventDefaultAction();
+        else
+            absorbAmount = dmgInfo.GetDamage() - allowedDamage;
     }
 
     void Register() override
@@ -5920,6 +5923,7 @@ void AddSC_generic_spell_scripts()
     RegisterSpellScript(spell_gen_spatial_rift);
     RegisterAreaTriggerAI(at_gen_spatial_rift);
     RegisterSpellScript(spell_gen_force_phase_update);
+    RegisterSpellScriptWithArgs(spell_gen_no_npc_damage_below_override, "spell_gen_no_npc_damage_below_override_45", 45.0f);
     RegisterSpellScriptWithArgs(spell_gen_no_npc_damage_below_override, "spell_gen_no_npc_damage_below_override_70", 70.0f);
     RegisterSpellScript(spell_gen_abandon_vehicle);
 }
