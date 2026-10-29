@@ -43,6 +43,7 @@ EndScriptData */
 #include "Log.h"
 #include "M2Stores.h"
 #include "MapManager.h"
+#include "MiscPackets.h"
 #include "MovementPackets.h"
 #include "MovementTypedefs.h"
 #include "ObjectAccessor.h"
@@ -53,6 +54,7 @@ EndScriptData */
 #include "SpellMgr.h"
 #include "SpellPackets.h"
 #include "Transport.h"
+#include "Weather.h"
 #include "World.h"
 #include "WorldSession.h"
 #include "WorldStateMgr.h"
@@ -110,6 +112,7 @@ public:
             { "spawnvehicle",       HandleDebugSpawnVehicleCommand,        rbac::RBAC_PERM_COMMAND_DEBUG,   Console::No },
             { "entervehicle",       HandleDebugEnterVehicleCommand,        rbac::RBAC_PERM_COMMAND_DEBUG,   Console::No },
             { "worldstate" ,        HandleDebugUpdateWorldStateCommand,    rbac::RBAC_PERM_COMMAND_DEBUG,   Console::No },
+            { "weather",            HandleDebugWeatherCommand,             rbac::RBAC_PERM_COMMAND_DEBUG,   Console::No },
             { "itemexpire",         HandleDebugItemExpireCommand,          rbac::RBAC_PERM_COMMAND_DEBUG,   Console::No },
             { "areatriggers",       HandleDebugAreaTriggersCommand,        rbac::RBAC_PERM_COMMAND_DEBUG,   Console::No },
             { "los",                HandleDebugLoSCommand,                 rbac::RBAC_PERM_COMMAND_DEBUG,   Console::No },
@@ -518,6 +521,24 @@ public:
     static bool HandleDebugUpdateWorldStateCommand(ChatHandler const* handler, int32 variable, int32 value)
     {
         WorldStateMgr::SetValue(variable, value, false, handler->GetPlayer()->GetMap());
+        return true;
+    }
+
+    static bool HandleDebugWeatherCommand(ChatHandler* handler, uint32 weatherState, float grade, bool abrupt)
+    {
+        Player* player = handler->GetPlayer();
+        if (!player)
+            return false;
+
+        uint32 zoneId = player->GetZoneId();
+        player->GetMap()->SetZoneWeather(zoneId, WeatherState(weatherState), grade);
+
+        // SetZoneWeather broadcasts without the Abrupt flag; send the requested packet directly
+        WorldPackets::Misc::Weather packet(WeatherState(weatherState), grade, abrupt);
+        player->SendDirectMessage(packet.Write());
+
+        handler->PSendSysMessage("Weather: map %u, zone %u (area %u), state %u, intensity %.2f, abrupt %u",
+            player->GetMapId(), zoneId, player->GetAreaId(), weatherState, grade, abrupt ? 1 : 0);
         return true;
     }
 
