@@ -1,9 +1,69 @@
 -- Mardum Creature Text
 DELETE FROM `creature_text` WHERE `creatureID` IN (98484,98486,98497,98460,95226,93112,96884,93759,94654,93221,95048,93716,97034,96494,102726,96499,
-102724,97706,97059,96402,96277,97057,102923,96888,100549,100545,100543,96279,96280,97058,96877,97370,96503,98711,98986,97676,96653,97297,93802,97303,97244);
+102724,97706,97059,96402,96277,97057,102923,96888,100549,100545,100543,96279,96280,97058,96877,97370,96503,98711,98986,97676,96653,97297,93802,97303,
+97244,95046,98483,102714,96400,98456,98457,98458,98459,99919);
 DELETE FROM `creature_text` WHERE `creatureID` IN (98229) AND `GroupID` IN (2,3);
 DELETE FROM `creature_text` WHERE `creatureID` IN (93127) AND `GroupID` IN (2,3,4);
 INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `BroadcastTextId`, `TextRange`, `comment`) VALUES
+(98456, 0, 0, 'My scythe will compel them.', 12, 0, 100, 0, 0, 55002, 100204, 0, 'Allari the Souleater to Player'),
+(98456, 0, 1, 'The Scythe of Souls will cut you down!', 12, 0, 100, 0, 0, 55001, 100205, 0, 'Allari the Souleater to Player'),
+(98456, 0, 2, 'We should capture and interrogate some of these demons.', 12, 0, 100, 0, 0, 55004, 100202, 0, 'Allari the Souleater to Player'),
+(98456, 0, 3, 'Where is the keystone, demon?', 12, 0, 100, 0, 0, 55003, 100203, 0, 'Allari the Souleater to Player'),
+
+(98457, 0, 0, 'The fel energy is everywhere. It\'s hard to resist.', 12, 0, 100, 0, 0, 55099, 100208, 0, 'Cyana Nightglaive to Player'),
+(98457, 0, 1, 'There are too many of them!', 12, 0, 100, 0, 0, 55100, 198175, 0, 'Cyana Nightglaive to Player'),
+(98457, 0, 2, 'Did we bring enough of us?', 12, 0, 100, 0, 0, 55097, 100206, 0, 'Cyana Nightglaive to Player'),
+(98457, 0, 3, 'Lord Illidan chose you to lead. I follow.', 12, 0, 100, 0, 0, 55098, 100207, 0, 'Cyana Nightglaive to Player'),
+
+(98458, 0, 0, 'I\'ll scout forward after this and find the keystone.', 12, 0, 100, 0, 0, 55240, 100212, 0, 'Jace Darkweaver to Player'),
+(98458, 0, 1, 'We should gather intel on their leaders.', 12, 0, 100, 0, 0, 55238, 100210, 0, 'Jace Darkweaver to Player'),
+(98458, 0, 2, 'I\'m glad you\'re leading us, $n.', 12, 0, 100, 0, 0, 55241, 100213, 0, 'Jace Darkweaver to Player'),
+(98458, 0, 3, 'We must find the Sargerite Keystone.', 12, 0, 100, 0, 0, 55239, 100211, 0, 'Jace Darkweaver to Player'),
+
+(98459, 0, 0, 'I have some ideas for how to proceed.', 12, 0, 100, 0, 0, 55269, 100219, 0, 'Kayn Sunfury to Player'),
+(98459, 0, 1, 'You know, I should be in command.', 12, 0, 100, 0, 0, 55280, 100220, 0, 'Kayn Sunfury to Player'),
+(98459, 0, 2, 'Lord Illidan places a lot of faith in you.', 12, 0, 100, 0, 0, 55279, 100216, 0, 'Kayn Sunfury to Player'),
+(98459, 0, 3, 'My gut tells me the keystone is up in that volcano.', 12, 0, 100, 0, 0, 55274, 100217, 0, 'Kayn Sunfury to Player'),
+
+(98460, 0, 0, 'Hah! Racking up the kills.', 12, 0, 100, 0, 0, 55288, 100222, 0, 'Kor\'vas Bloodthorn to Player'),
+(98460, 0, 1, 'Having fun? I am!', 12, 0, 100, 0, 0, 55287, 100223, 0, 'Kor\'vas Bloodthorn to Player'),
+(98460, 0, 2, 'What\'s next, $n?', 12, 0, 100, 0, 0, 55286, 100224, 0, 'Kor\'vas Bloodthorn to Player'),
+(98460, 0, 3, 'Just point me in the right direction.', 12, 0, 100, 0, 0, 55289, 100225, 0, 'Kor\'vas Bloodthorn to Player'),
+
+(99919, 0, 0, 'You and me to the very end, $n.', 12, 0, 100, 0, 0, 55349, 101667, 0, 'Sevis Brightflame to Player'),
+(99919, 0, 1, 'For Lord Illidan! For the Illidari!', 12, 0, 100, 0, 0, 55350, 101666, 0, 'Sevis Brightflame to Player'),
+(99919, 0, 2, 'You will be the one dying today, demon!', 12, 0, 100, 0, 0, 55348, 101664, 0, 'Sevis Brightflame to Player'),
+(99919, 0, 3, 'I\'ve been looking forward to this for a long time.', 12, 0, 100, 0, 0, 55351, 101665, 0, 'Sevis Brightflame to Player'),
+
+(98483, 0, 0, 'Tasty meats for me to eats.', 12, 0, 100, 0, 0, 55207, 96658, 0, 'Hellish Imp to Player'),
+(98483, 0, 1, 'We\'ll feast on your flesh and devour your soul.', 12, 0, 100, 0, 0, 55205, 96656, 0, 'Hellish Imp to Player'),
+(98483, 0, 2, 'Another morsel has come to say, hello.', 12, 0, 100, 0, 0, 55203, 96654, 0, 'Hellish Imp to Player'),
+(98483, 0, 3, 'Quickly, grab them!', 12, 0, 100, 0, 0, 55202, 96653, 0, 'Hellish Imp to Player'),
+(98483, 0, 4, 'Help! Baddies here!', 12, 0, 100, 0, 0, 55204, 96655, 0, 'Hellish Imp to Player'),
+(98483, 0, 5, 'Hey! You''re not supposed to be here.', 12, 0, 100, 0, 0, 55206, 96657, 0, 'Hellish Imp to Player'),
+(98483, 0, 6, 'I''ll burn your kneecaps off.', 12, 0, 100, 0, 0, 55209, 96660, 0, 'Hellish Imp to Player'),
+(98483, 0, 7, 'Warn the Brood Queen!', 12, 0, 100, 0, 0, 55208, 96659, 0, 'Hellish Imp to Player'),
+
+-- female
+(102714, 0, 0, 'Your world will be purged!', 12, 0, 100, 0, 0, 56970, 96722, 0, 'Eredar Summoner to Player'), -- BroadcastTextID: 96722 - 129826
+(102714, 0, 1, 'Quickly, finish the summons.', 12, 0, 100, 0, 0, 56966, 96718, 0, 'Eredar Summoner to Player'),
+(102714, 0, 2, 'For the Brood Queen.', 12, 0, 100, 0, 0, 56969, 96721, 0, 'Eredar Summoner to Player'),
+(102714, 0, 3, 'The Legion''s will be done.', 12, 0, 100, 0, 0, 56967, 96719, 0, 'Eredar Summoner to Player'),
+(102714, 0, 4, 'Kill the Illidari.', 12, 0, 100, 0, 0, 56968, 96720, 0, 'Eredar Summoner to Player'),
+(102714, 0, 5, 'Our ritual is interrupted.', 12, 0, 100, 0, 0, 56971, 96723, 0, 'Eredar Summoner to Player'),
+(102714, 0, 6, 'Defend the portal.', 12, 0, 100, 0, 0, 56972, 96724, 0, 'Eredar Summoner to Player'),
+(102714, 0, 7, 'In Sargeras''s name.', 12, 0, 100, 0, 0, 56973, 96725, 0, 'Eredar Summoner to Player'),
+
+-- male
+(95046, 0, 0, 'Your world will be purged!', 12, 0, 100, 0, 0, 56994, 96722, 0, 'Eredar Summoner to Player'), -- BroadcastTextID: 96722 - 129826
+(95046, 0, 1, 'Quickly, finish the summons.', 12, 0, 100, 0, 0, 56990, 96718, 0, 'Eredar Summoner to Player'),
+(95046, 0, 2, 'For the Brood Queen.', 12, 0, 100, 0, 0, 56993, 96721, 0, 'Eredar Summoner to Player'),
+(95046, 0, 3, 'The Legion''s will be done.', 12, 0, 100, 0, 0, 56991, 96719, 0, 'Eredar Summoner to Player'),
+(95046, 0, 4, 'Kill the Illidari.', 12, 0, 100, 0, 0, 56992, 96720, 0, 'Eredar Summoner to Player'),
+(95046, 0, 5, 'Our ritual is interrupted.', 12, 0, 100, 0, 0, 56995, 96723, 0, 'Eredar Summoner to Player'),
+(95046, 0, 6, 'Defend the portal.', 12, 0, 100, 0, 0, 56996, 96724, 0, 'Eredar Summoner to Player'),
+(95046, 0, 7, 'In Sargeras''s name.', 12, 0, 100, 0, 0, 56997, 96725, 0, 'Eredar Summoner to Player'),
+
 (97303, 0, 0, 'Hurry, $n. Use the keystone to activate the portal. We must rejoin the fight at the Black Temple.', 12, 0, 100, 1, 0, 55259, 99013, 0, 'Kayn Sunfury to Player'),
 
 (97244, 0, 0, 'Grab the keystone! Let''s get to the portal down below and back to the Black Temple!', 14, 0, 100, 1, 0, 55268, 102063, 0, 'Kayn Sunfury to Player'),
@@ -48,12 +108,14 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Lan
 (97058, 1, 0, 'My swarm will feast on your soul!', 14, 0, 100, 0, 0, 55088, 103510, 0, 'Count Nefarious to Player'),
 (97058, 2, 0, '|TInterface\Icons\spell_shadow_carrionswarm:20|t%s begins to cast |cFFFF0000|Hspell:198947|h[Carrion Storm]|h|r!', 41, 0, 100, 0, 0, 0, 103413, 0, 'Count Nefarious to Player'),
 
-(96280, 0, 0, 'Help! Baddies here!', 12, 0, 100, 0, 0, 55204, 96655, 0, 'Demon Hunter to Player'),
-(96280, 0, 1, 'Another morsel has come to say, hello.', 12, 0, 100, 0, 0, 55203, 96654, 0, 'Demon Hunter to Player'),
-(96280, 0, 2, 'We''ll feast on your flesh and devour your soul.', 12, 0, 100, 0, 0, 55205, 96656, 0, 'Demon Hunter to Player'),
-(96280, 0, 3, 'Hey! You''re not supposed to be here.', 12, 0, 100, 0, 0, 55206, 96657, 0, 'Demon Hunter to Player'),
-(96280, 0, 4, 'Tasty meats for me to eats.', 12, 0, 100, 0, 0, 55207, 96658, 0, 'Demon Hunter to Player'),
-(96280, 0, 5, 'Warn the Brood Queen!', 12, 0, 100, 0, 0, 55208, 96659, 0, 'Demon Hunter to Player'),
+(96280, 0, 0, 'Tasty meats for me to eats.', 12, 0, 100, 0, 0, 55207, 96658, 0, 'Volatile Minion to Player'),
+(96280, 0, 1, 'We\'ll feast on your flesh and devour your soul.', 12, 0, 100, 0, 0, 55205, 96656, 0, 'Volatile Minion to Player'),
+(96280, 0, 2, 'Another morsel has come to say, hello.', 12, 0, 100, 0, 0, 55203, 96654, 0, 'Volatile Minion to Player'),
+(96280, 0, 3, 'Quickly, grab them!', 12, 0, 100, 0, 0, 55202, 96653, 0, 'Volatile Minion to Player'),
+(96280, 0, 4, 'Help! Baddies here!', 12, 0, 100, 0, 0, 55204, 96655, 0, 'Volatile Minion to Player'),
+(96280, 0, 5, 'Hey! You''re not supposed to be here.', 12, 0, 100, 0, 0, 55206, 96657, 0, 'Volatile Minion to Player'),
+(96280, 0, 6, 'I''ll burn your kneecaps off.', 12, 0, 100, 0, 0, 55209, 96660, 0, 'Volatile Minion to Player'),
+(96280, 0, 7, 'Warn the Brood Queen!', 12, 0, 100, 0, 0, 55208, 96659, 0, 'Volatile Minion to Player'),
 
 (100549, 0, 0, 'I will repay my debt to you.', 12, 0, 100, 0, 0, 56813, 102551, 0, 'Demon Hunter to Player'),
 (100549, 0, 1, 'The Burning Legion will fall!', 12, 0, 100, 0, 0, 56814, 102552, 0, 'Demon Hunter to Player'),
@@ -127,6 +189,7 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Lan
 
 (93221, 0, 0, 'They will die.', 14, 0, 100, 0, 0, 55133, 94990, 0, 'Doom Commander Beliash to Player'),
 (93221, 1, 0, 'You won''t survive Inferno Peak...', 12, 0, 100, 0, 0, 55134, 94991, 0, 'Doom Commander Beliash to Player'),
+(93221, 2, 0, 'Get away from that spire!', 14, 0, 100, 0, 0, 55140, 103466, 0, 'Doom Commander Beliash to Player'), -- not used yet in scripts
 
 (94654, 0, 0, 'A fatal mistake, mortal.', 12, 0, 100, 0, 0, 55149, 96650, 0, 'Doomguard Eradicator to Player'),
 (94654, 0, 1, 'The Legion conquers all.', 12, 0, 100, 0, 0, 55147, 96648, 0, 'Doomguard Eradicator to Player'),
@@ -196,12 +259,25 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Lan
 (98229, 2, 0, 'Cyana, Jace, Allari... find the keystone.', 12, 0, 100, 0, 0, 55144, 100341, 0, 'Kayn Sunfury <Illidari> to Player'),
 (98229, 3, 0, 'Now, let''s see about activating that gateway.', 12, 0, 100, 0, 0, 55143, 100136, 0, 'Kayn Sunfury <Illidari> to Player'),
 
-(98460, 0, 0, 'Having fun? I am!', 12, 0, 100, 0, 0, 55287, 100223, 0, 'Kor''vas Bloodthorn <Illidari> to Player'),
-(98460, 0, 1, 'Hah! Racking up the kills.', 12, 0, 100, 0, 0, 55288, 100222, 0, 'Kor''vas Bloodthorn <Illidari> to Player'),
-
 (98484, 0, 0, 'Taste my blade.', 12, 0, 100, 0, 0, 55327, 97902, 0, 'Mo''arg Brute to Player'),
-(98484, 0, 1, 'Ahahahahaha! I will cut you down.', 12, 0, 100, 0, 0, 0, 94883, 0, 'Mo''arg Brute to Player'),
+(98484, 0, 1, 'Ahahahahaha! I will cut you down.', 12, 0, 100, 0, 0, 55326, 94883, 0, 'Mo''arg Brute to Player'),
 (98484, 0, 2, 'Hunt this.', 12, 0, 100, 0, 0, 55328, 97903, 0, 'Mo''arg Brute to Player'),
+(98484, 0, 3, 'Death comes soon.', 12, 0, 100, 0, 0, 55332, 97901, 0, 'Mo\'arg Brute to Player'), -- BroadcastTextID: 97901 - 127315
+(98484, 0, 4, 'For Tyranna!', 12, 0, 100, 0, 0, 55329, 97906, 0, 'Mo\'arg Brute to Player'),
+(98484, 0, 5, 'Pitiful.', 12, 0, 100, 0, 0, 55324, 97904, 0, 'Mo\'arg Brute to Player'),
+(98484, 0, 6, 'Die in glorious battle!', 12, 0, 100, 0, 0, 55330, 97905, 0, 'Mo\'arg Brute to Player'),
+(98484, 0, 7, 'I''m going to destroy you, little demon hunter.', 12, 0, 100, 0, 0, 55325, 97907, 0, 'Mo\'arg Brute to Player'),
+(98484, 0, 8, 'I will crush you.', 12, 0, 100, 0, 0, 55331, 102134, 0, 'Mo\'arg Brute to Player'),
+
+(96400, 0, 0, 'Taste my blade.', 12, 0, 100, 0, 0, 55327, 97902, 0, 'Mo''arg Brute to Player'),
+(96400, 0, 1, 'Ahahahahaha! I will cut you down.', 12, 0, 100, 0, 0, 55326, 94883, 0, 'Mo''arg Brute to Player'),
+(96400, 0, 2, 'Hunt this.', 12, 0, 100, 0, 0, 55328, 97903, 0, 'Mo''arg Brute to Player'),
+(96400, 0, 3, 'Death comes soon.', 12, 0, 100, 0, 0, 55332, 97901, 0, 'Mo\'arg Brute to Player'), -- BroadcastTextID: 97901 - 127315
+(96400, 0, 4, 'For Tyranna!', 12, 0, 100, 0, 0, 55329, 97906, 0, 'Mo\'arg Brute to Player'),
+(96400, 0, 5, 'Pitiful.', 12, 0, 100, 0, 0, 55324, 97904, 0, 'Mo\'arg Brute to Player'),
+(96400, 0, 6, 'Die in glorious battle!', 12, 0, 100, 0, 0, 55330, 97905, 0, 'Mo\'arg Brute to Player'),
+(96400, 0, 7, 'I''m going to destroy you, little demon hunter.', 12, 0, 100, 0, 0, 55325, 97907, 0, 'Mo\'arg Brute to Player'),
+(96400, 0, 8, 'I will crush you.', 12, 0, 100, 0, 0, 55331, 102134, 0, 'Mo\'arg Brute to Player'),
 
 (98486, 0, 0, 'Brood Queen Tyranna orders your death.', 12, 0, 100, 0, 0, 55366, 98762, 0, 'Wrath Warrior to Player'),
 (98486, 0, 1, 'This is where you die.', 12, 0, 100, 0, 0, 55362, 98765, 0, 'Wrath Warrior to Player'),

@@ -120,11 +120,6 @@ INSERT  INTO `conversation_actors` (`ConversationId`, `ConversationActorId`, `Id
 (747, 49935, 1, 93802, 65935, 0, 0, 69875);
 
 -- ========================= Fixes for the Bonus quest
--- Update Kill Credits
-UPDATE `creature_template` SET `KillCredit2` = 94651 WHERE `entry` = 98483; -- imps are min mobs
-UPDATE `creature_template` SET `KillCredit2` = 95226 WHERE `entry` IN (98482,98486); -- Foul Felstalker & Wrath Warrior are normal mobs
-UPDATE `creature_template` SET `KillCredit2` = 96400 WHERE `entry` = 98484; -- Brutes have their own kill credit
-
 -- Add flag for auto reward
 UPDATE `quest_template` SET `Flags` = `Flags` | 0x400 WHERE `ID` = 39279;
 
@@ -478,11 +473,16 @@ UPDATE `creature_template_difficulty` SET `StaticFlags1` = `StaticFlags1` | 0x20
 
 -- SAI
 UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (98484,98486,98497,98482,95226,93112,93716,94654,97034,102726,96494,102724,
-97706,99759,96277,96402,102923,96888,96279,96280,96877,96503);
+97706,99759,96277,96402,102923,96888,96279,96280,96877,96503,95046,98483,102714,96400);
 DELETE FROM `smart_scripts` WHERE `entryorguid` IN (98484,98486,98497,98482,95226,93112,93716,94654,97034,102726,96494,102724,
-97706,99759,96277,96402,102923,96888,96279,96280,96877,96503) AND source_type = 0;
+97706,99759,96277,96402,102923,96888,96279,96280,96877,96503,95046,98483,102714,96400) AND source_type = 0;
 DELETE FROM `smart_scripts` WHERE `entryorguid` = 93127 AND source_type = 0 AND `id` IN (6,7,10);
 INSERT INTO smart_scripts (entryorguid, source_type, id, link, Difficulties, event_type, event_phase_mask, event_chance, event_flags, event_param1, event_param2, event_param3, event_param4, event_param5, event_param_string, action_type, action_param1, action_param2, action_param3, action_param4, action_param5, action_param6, action_param7, action_param_string, target_type, target_param1, target_param2, target_param3, target_param4, target_param_string, target_x, target_y, target_z, target_o, comment) VALUES
+(98483, 0, 2, 0, '', 4, 0, 30, 1, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Hellish Imp - On Aggro - Talk (No Repeat)'),
+
+(95046, 0, 2, 0, '', 4, 0, 30, 1, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Eredar Summoner - On Aggro - Talk (No Repeat)'),
+(102714, 0, 2, 0, '', 4, 0, 30, 1, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Eredar Summoner - On Aggro - Talk (No Repeat)'),
+
 (93127, 0, 6, 0, '', 19, 0, 100, 0, 39515, 0, 0, 0, 0, '', 1, 3, 0, 0, 0, 0, 0, 0, '', 7, 0, 0, 0, 0, '', 0, 0, 0, 0, 'On player accepted quest (39515) - Player who accepted quest: Talk 3 to invoker'),
 (93127, 0, 7, 0, '', 19, 0, 100, 0, 39516, 0, 0, 0, 0, '', 1, 3, 0, 0, 0, 0, 0, 0, '', 7, 0, 0, 0, 0, '', 0, 0, 0, 0, 'On player accepted quest (39516) - Player who accepted quest: Talk 3 to invoker'),
 (93127, 0, 10, 0, '', 19, 0, 100, 0, 39663, 0, 0, 0, 0, '', 1, 4, 0, 0, 0, 0, 0, 0, '', 7, 0, 0, 0, 0, '', 0, 0, 0, 0, 'On player accepted quest (39663) - Player who accepted quest: Talk 4 to invoker'),
@@ -547,6 +547,9 @@ INSERT INTO smart_scripts (entryorguid, source_type, id, link, Difficulties, eve
 
 (98484, 0, 0, 0, '', 0, 0, 100, 0, 1000, 2000, 8000, 9000, 0, '', 11, 200425, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Mo''arg Brute - In Combat - Cast ''Brutal Slam'''),
 (98484, 0, 1, 0, '', 4, 0, 30, 1, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Mo Arg Brute - In Combat - Talk (No Repeat)'),
+
+(96400, 0, 0, 0, '', 0, 0, 100, 0, 1000, 2000, 8000, 9000, 0, '', 11, 200425, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Mo''arg Brute - In Combat - Cast ''Brutal Slam'''),
+(96400, 0, 1, 0, '', 4, 0, 30, 1, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Mo Arg Brute - In Combat - Talk (No Repeat)'),
 
 (98486, 0, 0, 0, '', 4, 0, 30, 1, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Wrath Warrior - In Combat - Talk (No Repeat)'),
 
@@ -734,9 +737,44 @@ INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry
 -- =====================================================
 -- Sniff data updates
 
+UPDATE `quest_template` SET `VerifiedBuild`=70575 WHERE `ID` IN (38725, 38819, 38727, 39495, 39262, 38813, 38766, 38765, 39050, 40379, 39049, 38759, 44414, 43295, 82994, 46736, 46735, 46277, 31927);
+
+UPDATE `quest_objectives` SET `VerifiedBuild`=70575 WHERE `ID` IN (450539, 278955, 279765, 279993, 280005, 280006, 278458, 278669, 278473, 278680, 278681, 279863, 278682, 279864, 278683, 289535, 289536, 280101, 286606, 289167, 280501, 280502, 280115, 281103, 278948);
+UPDATE `quest_objectives` SET `ConditionalAmount`=-518161198, `VerifiedBuild`=70575 WHERE `ID`=280354; -- 280354
+UPDATE `quest_objectives` SET `ConditionalAmount`=485103076, `VerifiedBuild`=70575 WHERE `ID`=279763; -- 279763
+UPDATE `quest_objectives` SET `ConditionalAmount`=123825034, `VerifiedBuild`=70575 WHERE `ID`=279764; -- 279764
+UPDATE `quest_objectives` SET `ConditionalAmount`=2013265920, `VerifiedBuild`=70575 WHERE `ID`=280164; -- 280164
+UPDATE `quest_objectives` SET `ConditionalAmount`=1667853424 WHERE `ID`=281156;
+UPDATE `quest_objectives` SET `ConditionalAmount`=541413465 WHERE `ID`=281158;
+UPDATE `quest_objectives` SET `ConditionalAmount`=1937011557 WHERE `ID`=280768;
+UPDATE `quest_objectives` SET `ConditionalAmount`=1952671086 WHERE `ID`=280769;
+UPDATE `quest_objectives` SET `ConditionalAmount`=135647242, `VerifiedBuild`=70575 WHERE `ID`=280770; -- 280770
+UPDATE `quest_objectives` SET `ConditionalAmount`=836880731, `VerifiedBuild`=70575 WHERE `ID`=280771; -- 280771
+UPDATE `quest_objectives` SET `ConditionalAmount`=270, `VerifiedBuild`=70575 WHERE `ID`=280772; -- 280772
+UPDATE `quest_objectives` SET `ConditionalAmount`=-491110528, `VerifiedBuild`=70575 WHERE `ID`=280773; -- 280773
+UPDATE `quest_objectives` SET `ConditionalAmount`=-559076435, `VerifiedBuild`=70575 WHERE `ID`=278413; -- 278413
+UPDATE `quest_objectives` SET `ConditionalAmount`=1869373298 WHERE `ID`=281030;
+UPDATE `quest_objectives` SET `ConditionalAmount`=266, `VerifiedBuild`=70575 WHERE `ID`=278472; -- 278472
+UPDATE `quest_objectives` SET `ConditionalAmount`=94595, `VerifiedBuild`=70575 WHERE `ID`=279857; -- 279857
+UPDATE `quest_objectives` SET `ConditionalAmount`=4994, `VerifiedBuild`=70575 WHERE `ID`=280252; -- 280252
+UPDATE `quest_objectives` SET `ConditionalAmount`=251658240, `VerifiedBuild`=70575 WHERE `ID`=279861; -- 279861
+UPDATE `quest_objectives` SET `ConditionalAmount`=1774804, `VerifiedBuild`=70575 WHERE `ID`=279862; -- 279862
+UPDATE `quest_objectives` SET `ConditionalAmount`=1937011557, `VerifiedBuild`=70575 WHERE `ID`=269232; -- 269232
+UPDATE `quest_objectives` SET `ConditionalAmount`=541413465, `VerifiedBuild`=70575 WHERE `ID`=269233; -- 269233
+UPDATE `quest_objectives` SET `ConditionalAmount`=1667853424, `VerifiedBuild`=70575 WHERE `ID`=269234; -- 269234
+UPDATE `quest_objectives` SET `ConditionalAmount`=1869373298, `VerifiedBuild`=70575 WHERE `ID`=269235; -- 269235
+UPDATE `quest_objectives` SET `ConditionalAmount`=1869488231, `VerifiedBuild`=70575 WHERE `ID`=279701; -- 279701
+UPDATE `quest_objectives` SET `ConditionalAmount`=20356, `VerifiedBuild`=70575 WHERE `ID`=280293; -- 280293
+UPDATE `quest_objectives` SET `ConditionalAmount`=1864394088, `VerifiedBuild`=70575 WHERE `ID`=279707; -- 279707
+UPDATE `quest_objectives` SET `ConditionalAmount`=31146, `VerifiedBuild`=70575 WHERE `ID`=280500; -- 280500
+UPDATE `quest_objectives` SET `ConditionalAmount`=19952, `VerifiedBuild`=70575 WHERE `ID`=278928; -- 278928
+UPDATE `quest_objectives` SET `ConditionalAmount`=45514, `VerifiedBuild`=70575 WHERE `ID`=278929; -- 278929
+UPDATE `quest_objectives` SET `ConditionalAmount`=1, `VerifiedBuild`=70575 WHERE `ID`=278937; -- 278937
+
+UPDATE `quest_visual_effect` SET `VerifiedBuild`=70575 WHERE (`Index`=3 AND `ID`=279993) OR (`Index`=2 AND `ID`=279993) OR (`Index`=1 AND `ID`=279993) OR (`Index`=0 AND `ID` IN (279993,279857,279864,279862,279765,279763,278955,278473,278472,278458,278937,280772,278948,280771,280770,279707,278413,278929,280293,278928,269235,269234,269233,269232));
+
 UPDATE `quest_template` SET `Flags`=0x2090100, `VerifiedBuild`=70575 WHERE `ID`=39279; -- Assault on Mardum
 UPDATE `quest_template` SET `VerifiedBuild`=70575 WHERE `ID` IN (40378, 95043, 94437, 93902, 94431, 93901, 40077);
-
 
 UPDATE `quest_objectives` SET `VerifiedBuild`=70575 WHERE `ID` IN (279757, 279288, 280768, 279289, 280769, 281030, 279292, 280292, 279741, 281333, 279929, 281335, 279930, 279935, 281158);
 UPDATE `quest_objectives` SET `ConditionalAmount`=2004574620, `VerifiedBuild`=70575 WHERE `ID`=280276; -- 280276
@@ -746,8 +784,22 @@ UPDATE `quest_objectives` SET `ConditionalAmount`=3, `VerifiedBuild`=70575 WHERE
 UPDATE `quest_objectives` SET `ConditionalAmount`=135628800, `VerifiedBuild`=70575 WHERE `ID`=279936; -- 279936
 UPDATE `quest_objectives` SET `ConditionalAmount`=-2147483648, `VerifiedBuild`=70575 WHERE `ID`=279937; -- 279937
 
-
 UPDATE `quest_visual_effect` SET `VerifiedBuild`=70575 WHERE (`Index`=0 AND `ID` IN (281030,281156,280768));
+
+UPDATE `creature_template` SET `VerifiedBuild`=70575 WHERE `entry` IN (96561, 97425, 101317, 101753, 97014, 97881, 94435, 97034, 100061, 100062, 101787, 101788, 101789, 101790, 97058, 96650, 96652, 96653, 96654, 96655, 101397, 96228, 96230, 96231, 100543, 100545, 100548, 100549, 100982, 97971, 100992, 96252, 96253, 113924, 113927, 102724, 33765, 102726, 96276, 96278, 96279, 93693, 96280, 90247, 94990, 93707, 93280, 96732, 93716, 97597, 97598, 97599, 97600, 97601, 95447, 97602, 97603, 95449, 97604, 99759, 95450, 99352, 96767, 101518, 97676, 94668, 99419, 97704, 96420, 101597, 98157, 96436, 102905, 96441, 102906, 102907, 102908, 102910, 96888, 105945, 99914, 99915, 99917, 96473, 97769, 97770, 97771, 97772, 96493, 96494, 96499, 96930, 96500, 96931, 96501, 96502, 96503, 96504, 97370, 97382);
+
+UPDATE `creature_template_model` SET `VerifiedBuild`=70575 WHERE (`Idx`=0 AND `CreatureID` IN (99419,97769,100992,100543,100548,101753,97704,97058,100545,97881,96767,97370,97771,97772,97770,97382,33765,101597,96561,100549,96279,93280,96280,101317,97425,97676,100062,102726,97601,96499,100061,97597,96473,96494,96441,97598,96493,101790,96503,99759,101397,98157,96500,101789,96436,101788,96504,96501,101787,97034,97971,102907,102906,96276,102905,96502,96653,95447,90247,95449,96650,95450,96732,94435,96252,93707,96253,97014,97599,96652,105945,96655,96420,96888,113927,96278,102910,113924,102908,97602,97604,93693,96230,96930,102724,96654,96228,96231,97600,99352,96931,97603,93716,94668,99915,99914,99917,94990,100982,101518)) OR (`Idx`=3 AND `CreatureID` IN (97769,96279,97597,97599,96930,97600,96931)) OR (`Idx`=2 AND `CreatureID` IN (97769,96279,96280,97597,97599,96930,97600,96931,97603,93716)) OR (`Idx`=1 AND `CreatureID` IN (97769,100543,100548,97704,100545,97881,96767,33765,100549,96279,96280,102726,100061,97597,96473,96494,97598,96493,101790,101789,101788,101787,97034,97971,96276,96732,97014,97599,96278,97602,97604,96930,102724,97600,96931,97603,93716));
+
+UPDATE `creature_questitem` SET `VerifiedBuild`=70575 WHERE (`CreatureEntry`=97058 AND `DifficultyID`=0 AND `Idx`=0) OR (`CreatureEntry`=97370 AND `DifficultyID`=0 AND `Idx`=0) OR (`CreatureEntry`=96279 AND `DifficultyID`=0 AND `Idx`=0) OR (`CreatureEntry`=102726 AND `DifficultyID`=0 AND `Idx`=0) OR (`CreatureEntry`=96473 AND `DifficultyID`=0 AND `Idx`=0) OR (`CreatureEntry`=96494 AND `DifficultyID`=0 AND `Idx`=0) OR (`CreatureEntry`=96441 AND `DifficultyID`=0 AND `Idx`=0) OR (`CreatureEntry`=96493 AND `DifficultyID`=0 AND `Idx`=0) OR (`CreatureEntry`=99759 AND `DifficultyID`=0 AND `Idx`=0) OR (`CreatureEntry`=97034 AND `DifficultyID`=0 AND `Idx`=0) OR (`CreatureEntry`=97014 AND `DifficultyID`=0 AND `Idx`=0) OR (`CreatureEntry`=96278 AND `DifficultyID`=0 AND `Idx`=0) OR (`CreatureEntry`=102724 AND `DifficultyID`=0 AND `Idx`=0) OR (`CreatureEntry`=93716 AND `DifficultyID`=0 AND `Idx`=0);
+
+UPDATE `creature_quest_currency` SET `VerifiedBuild`=70575 WHERE (`CurrencyId`=1155 AND `CreatureId` IN (97058,97370,96279,102726,96473,96494,96441,96493,99759,97034,97014,96278,102724,93716)) OR (`CurrencyId`=3252 AND `CreatureId` IN (97058,97370,96279,96280,102726,96473,96494,96441,96493,99759,97034,97014,96278,102724,93716));
+
+UPDATE `gameobject_template` SET `Data18`=681, `Data19`=2, `RequiredLevel`=8, `ContentTuningId`=699, `VerifiedBuild`=70575 WHERE `entry`=244698; -- Small Treasure Chest
+UPDATE `gameobject_template` SET `Data18`=681, `Data19`=2, `RequiredLevel`=8, `ContentTuningId`=699, `VerifiedBuild`=70575 WHERE `entry`=246269; -- Small Treasure Chest
+UPDATE `gameobject_template` SET `RequiredLevel`=8, `ContentTuningId`=699, `VerifiedBuild`=70575 WHERE `entry`=244638; -- Well of Souls
+UPDATE `gameobject_template` SET `VerifiedBuild`=70575 WHERE `entry` IN (246270, 246401, 244694, 244692, 245686, 254868, 254867, 254866, 254865);
+UPDATE `gameobject_template` SET `RequiredLevel`=8, `VerifiedBuild`=70575 WHERE `entry`=243965; -- Illidari Banner
+UPDATE `gameobject_template` SET `Data19`=2, `RequiredLevel`=8, `ContentTuningId`=699, `VerifiedBuild`=70575 WHERE `entry`=246147; -- Small Treasure Chest
 
 
 UPDATE `creature_template` SET `VerifiedBuild`=70575 WHERE `entry` IN (101288, 93105, 94400, 93112, 93115, 94410, 93117, 98290, 98292, 99160, 93127, 101748, 96159, 100931, 100504, 98354, 100510, 65183, 93221, 23837, 93230, 102714, 105316, 97142, 97592, 96731, 98456, 97594, 98457, 98458, 98459, 94580, 98460, 97624, 99351, 97629, 95046, 97634, 95048, 98497, 95049, 93759, 93762, 98075, 94651, 94654, 93802, 96400, 99003, 97712, 94704, 24021, 94705, 101603, 100745, 96877, 96884, 98611, 93011, 98618, 98621, 98622, 99916, 99918, 99919, 98227, 98228, 98229, 95226, 101696, 101704, 94377, 37490);
@@ -756,12 +808,9 @@ UPDATE `creature_template` SET `KillCredit2`=0, `VerifiedBuild`=70575 WHERE `ent
 UPDATE `creature_template` SET `KillCredit2`=0, `VerifiedBuild`=70575 WHERE `entry`=98484; -- Mo'arg Brute
 UPDATE `creature_template` SET `KillCredit2`=0, `VerifiedBuild`=70575 WHERE `entry`=98486; -- Wrath Warrior
 
-
 UPDATE `creature_template_model` SET `VerifiedBuild`=70575 WHERE (`Idx`=0 AND `CreatureID` IN (65183,96159,99160,93230,93802,98611,97634,97624,97629,95048,101696,93759,105316,24021,93127,99003,93221,94410,99916,98621,98622,98354,98229,98618,100745,102714,95046,96884,23837,93117,94654,95049,101603,96877,94651,100931,93105,94400,96400,94704,94705,99351,94377,96731,101288,100504,37490,100510,95226,93115,93112,101748,101704,97142,97592,98456,98457,93762,98459,98460,98458,99919,98484,98486,98482,98497,98483,94580,97712,98292,98290,99918,93011,98228,98227,97594,98075)) OR (`Idx`=2 AND `CreatureID` IN (99160,101603,94704,94705)) OR (`Idx`=1 AND `CreatureID` IN (99160,97634,97624,97629,24021,99003,100745,102714,95046,23837,95049,101603,100931,94704,94705,37490,100510,101748,101704)) OR (`Idx`=3 AND `CreatureID` IN (94704,94705));
 
-
 UPDATE `creature_questitem` SET `VerifiedBuild`=70575 WHERE (`CreatureEntry`=93802 AND `DifficultyID`=0 AND `Idx`=0) OR (`CreatureEntry`=93221 AND `DifficultyID`=0 AND `Idx`=0) OR (`CreatureEntry`=102714 AND `DifficultyID`=0 AND `Idx`=0) OR (`CreatureEntry`=95046 AND `DifficultyID`=0 AND `Idx`=0) OR (`CreatureEntry`=94654 AND `DifficultyID`=0 AND `Idx`=0) OR (`CreatureEntry`=93105 AND `DifficultyID`=0 AND `Idx`=0) OR (`CreatureEntry`=96400 AND `DifficultyID`=0 AND `Idx`=0) OR (`CreatureEntry`=101288 AND `DifficultyID`=0 AND `Idx`=0) OR (`CreatureEntry`=95226 AND `DifficultyID`=0 AND `Idx`=1) OR (`CreatureEntry`=95226 AND `DifficultyID`=0 AND `Idx`=0) OR (`CreatureEntry`=93115 AND `DifficultyID`=0 AND `Idx`=0) OR (`CreatureEntry`=93112 AND `DifficultyID`=0 AND `Idx`=0) OR (`CreatureEntry`=98484 AND `DifficultyID`=0 AND `Idx`=0) OR (`CreatureEntry`=98486 AND `DifficultyID`=0 AND `Idx`=0) OR (`CreatureEntry`=98482 AND `DifficultyID`=0 AND `Idx`=0) OR (`CreatureEntry`=98497 AND `DifficultyID`=0 AND `Idx`=0);
-
 
 UPDATE `creature_quest_currency` SET `VerifiedBuild`=70575 WHERE (`CurrencyId`=1155 AND `CreatureId` IN (93802,93221,102714,95046,94654,93105,96400,101288,95226,93115,93112,98484,98486,98482,98497)) OR (`CurrencyId`=3252 AND `CreatureId` IN (93802,93221,102714,95046,94654,94651,93105,96400,101288,95226,93115,93112,98484,98486,98482,98497,98483));
 
@@ -778,6 +827,9 @@ UPDATE `gameobject_template` SET `RequiredLevel`=8, `VerifiedBuild`=70575 WHERE 
 DELETE FROM `npc_spellclick_spells` WHERE `npc_entry` IN (101696);
 INSERT INTO `npc_spellclick_spells` (`npc_entry`, `spell_id`, `cast_flags`, `user_type`) VALUES
 (101696, 200598, 1, 0);
+
+INSERT INTO `npc_spellclick_spells` (`npc_entry`, `spell_id`, `cast_flags`, `user_type`) VALUES
+(100548, 192262, 1, 0);
 
 UPDATE `creature_template` SET `unit_flags3`=0x40000000 WHERE `entry`=65183; -- Spirit Healer
 UPDATE `creature_template` SET `unit_flags3`=0x40000001 WHERE `entry`=96159; -- Colossal Infernal
@@ -811,6 +863,10 @@ DELETE FROM `vehicle_template_accessory` WHERE (`entry`=93762 AND `seat_id`=0);
 INSERT INTO `vehicle_template_accessory` (`entry`, `accessory_entry`, `seat_id`, `minion`, `description`, `summontype`, `summontimer`) VALUES
 (93762, 99218, 0, 1, 'Legion Devastator - Legion Devastator Missile', 5, 0); -- Legion Devastator - Legion Devastator Missile
 
+DELETE FROM `vehicle_template_accessory` WHERE (`seat_id`=0 AND `entry` IN (96279,96732));
+INSERT INTO `vehicle_template_accessory` (`entry`, `accessory_entry`, `seat_id`, `minion`, `description`, `summontype`, `summontimer`) VALUES
+(96279, 93280, 0, 1, 'Mardum Executioner - Caged Soul', 5, 0), -- Mardum Executioner - Caged Soul
+(96732, 99352, 0, 1, 'Legion Devastator - Legion Devastator Missile', 5, 0); -- Legion Devastator - Legion Devastator Missile
 
 UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x100, `VerifiedBuild`=70575 WHERE (`Entry`=65183 AND `DifficultyID`=0); -- 65183 (Spirit Healer) - Sessile
 UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x100, `VerifiedBuild`=70575 WHERE (`Entry`=96159 AND `DifficultyID`=0); -- 96159 (Colossal Infernal) - Sessile - CannotSwim, InfiniteAoi
@@ -878,15 +934,52 @@ UPDATE `creature_template_difficulty` SET `StaticFlags4`=0x2000000, `VerifiedBui
 UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x100, `StaticFlags4`=0x2000000, `StaticFlags5`=0x1, `VerifiedBuild`=70575 WHERE (`Entry`=100161 AND `DifficultyID`=0); -- 100161 (Legion Devastator) - Sessile - InfiniteAoi - HideInCombatLog - UntargetableByClient
 UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `VerifiedBuild`=70575 WHERE (`Entry`=99650 AND `DifficultyID`=0); -- 99650 (Thornclaw Broodling) - CanSwim
 
-
 UPDATE `creature_model_info` SET `VerifiedBuild`=70575 WHERE `DisplayID` IN (32803, 61910, 64029, 38795, 61732, 39810, 65935, 65308, 61911, 39412, 64742, 63526, 21999, 64808, 64743, 67769, 64741, 61906, 61908, 60550, 16982, 13069, 63194, 64416, 68182, 60090, 61909, 61912, 60087, 67022, 59610, 11686, 62552, 65115, 62534, 62593, 66015, 65648, 60791, 60079, 61698, 66396, 66159, 63986, 63969, 62513, 65204, 65203, 22769, 72961, 66210, 65683, 66377, 66213, 64294);
 UPDATE `creature_model_info` SET `BoundingRadius`=4.083724021911621093, `VerifiedBuild`=70575 WHERE `DisplayID`=65202;
-
 
 UPDATE `creature_template_gossip` SET `VerifiedBuild`=70575 WHERE (`CreatureID`=93759 AND `MenuID`=18438) OR (`CreatureID`=98229 AND `MenuID`=18864) OR (`CreatureID`=93011 AND `MenuID`=18761);
 UPDATE `gossip_menu` SET `VerifiedBuild`=70575 WHERE (`TextID`=27998 AND `MenuID`=19131) OR (`TextID`=26813 AND `MenuID`=18438) OR (`TextID`=27954 AND `MenuID`=19109) OR (`TextID`=27471 AND `MenuID`=18864) OR (`TextID`=27283 AND `MenuID` IN (18993,18761));
 UPDATE `gossip_menu_option` SET `VerifiedBuild`=70575 WHERE (`OptionID`=0 AND `MenuID` IN (18993,18864,18438)) OR (`OptionID`=1 AND `MenuID`=18438);
+UPDATE `gossip_menu` SET `VerifiedBuild`=70575 WHERE (`MenuID`=18435 AND `TextID`=26592) OR (`MenuID`=19175 AND `TextID`=28106) OR (`MenuID`=18776 AND `TextID`=27307) OR (`MenuID`=18720 AND `TextID`=27206) OR (`MenuID`=17260 AND `TextID`=26129) OR (`MenuID`=18447 AND `TextID`=26676) OR (`MenuID`=18434 AND `TextID`=26832) OR (`MenuID`=18994 AND `TextID`=27283) OR (`MenuID`=19544 AND `TextID`=28886) OR (`MenuID`=19133 AND `TextID`=28000) OR (`MenuID`=19016 AND `TextID`=27770) OR (`MenuID`=19132 AND `TextID`=560008) OR (`MenuID`=19015 AND `TextID`=27768) OR (`MenuID`=19017 AND `TextID`=560007) OR (`MenuID`=18899 AND `TextID`=27545);
 
+UPDATE `gossip_menu_option` SET `VerifiedBuild`=70575 WHERE (`OptionID`=0 AND `MenuID` IN (19015,18434,17260,19133,18447,19132));
+UPDATE `gossip_menu_option` SET `GossipOptionID`=44414, `VerifiedBuild`=70575 WHERE (`MenuID`=18720 AND `OptionID`=0);
+UPDATE `gossip_menu_option` SET `ActionMenuID`=0, `VerifiedBuild`=70575 WHERE (`OptionID`=1 AND `MenuID` IN (19133,19132));
+UPDATE `gossip_menu_option` SET `GossipOptionID`=45049, `VerifiedBuild`=70575 WHERE (`MenuID`=19016 AND `OptionID`=1);
+UPDATE `gossip_menu_option` SET `GossipOptionID`=44449, `OptionBroadcastTextID`=11964, `ActionMenuID`=18435, `VerifiedBuild`=70575 WHERE (`MenuID`=18994 AND `OptionID`=0); -- OptionBroadcastTextID: 11964 - 101473
+UPDATE `gossip_menu_option` SET `GossipOptionID`=45064, `VerifiedBuild`=70575 WHERE (`MenuID`=19175 AND `OptionID`=0);
+UPDATE `gossip_menu_option` SET `ActionMenuID`=18994, `VerifiedBuild`=70575 WHERE (`MenuID`=18435 AND `OptionID`=0);
+UPDATE `gossip_menu_option` SET `GossipOptionID`=45048, `VerifiedBuild`=70575 WHERE (`MenuID`=19016 AND `OptionID`=0);
+
+UPDATE `creature_template` SET `faction`=14, `BaseAttackTime`=2000, `unit_flags`=0x300, `unit_flags2`=0x800 WHERE `entry`=97769; -- Mardum Executioner
+UPDATE `creature_template` SET `faction`=14, `speed_run`=1.428571462631225585, `BaseAttackTime`=1500, `unit_flags2`=0x800, `unit_flags3`=0x80000 WHERE `entry`=100992; -- Fel Visage
+UPDATE `creature_template` SET `faction`=2843, `unit_flags`=0x0 WHERE `entry`=100543; -- Demon Hunter
+UPDATE `creature_template` SET `faction`=1786, `BaseAttackTime`=2000, `unit_flags2`=0x800 WHERE `entry`=101753; -- Soul Fragment
+UPDATE `creature_template` SET `BaseAttackTime`=2000, `unit_flags`=0x2000300, `unit_flags2`=0x800 WHERE `entry`=97704; -- Well of Souls
+UPDATE `creature_template` SET `faction`=2843, `npcflag`=16777216, `BaseAttackTime`=2000, `unit_flags2`=0x800 WHERE `entry` IN (100545, 100549); -- Demon Hunter
+UPDATE `creature_template` SET `BaseAttackTime`=2000 WHERE `entry`=97676; -- Lady S'theno
+UPDATE `creature_template` SET `unit_flags2`=0x4000800, `unit_flags3`=0x41000001 WHERE `entry`=97382; -- Soul Harvester
+UPDATE `creature_template` SET `unit_flags`=0x300 WHERE `entry`=97772; -- Coilskar Sea-Caller
+UPDATE `creature_template` SET `unit_flags`=0x300 WHERE `entry` IN (97771, 96502); -- Coilskar Myrmidon
+UPDATE `creature_template` SET `unit_flags`=0x300 WHERE `entry`=97770; -- Coilskar Harpooner
+UPDATE `creature_template` SET `unit_flags`=0x0 WHERE `entry`=96561; -- Coilskar Harpooner
+UPDATE `creature_template` SET `unit_flags3`=0x41000001 WHERE `entry`=93280; -- Caged Soul
+UPDATE `creature_template` SET `unit_flags`=0x0 WHERE `entry`=96280; -- Volatile Minion
+UPDATE `creature_template` SET `unit_flags3`=0x41080001 WHERE `entry`=100062; -- Fel Axe
+UPDATE `creature_template` SET `unit_flags`=0x0, `unit_flags3`=0x40000000 WHERE `entry`=96499; -- Jace Darkweaver
+UPDATE `creature_template` SET `unit_flags`=0x300 WHERE `entry`=97601; -- Shivarra Destroyer
+UPDATE `creature_template` SET `unit_flags`=0x300 WHERE `entry`=97597; -- Eredar Sorcerer
+UPDATE `creature_template` SET `unit_flags`=0x300 WHERE `entry`=97598; -- Felguard Butcher
+UPDATE `creature_template` SET `faction`=2843 WHERE `entry`=101397; -- Cailyn Paledoom
+UPDATE `creature_template` SET `unit_flags3`=0x4000000 WHERE `entry`=99759; -- Fiendish Creeper
+UPDATE `creature_template` SET `unit_flags2`=0x4010800, `unit_flags3`=0x41000000 WHERE `entry`=96732; -- Legion Devastator
+UPDATE `creature_template` SET `BaseAttackTime`=2000, `unit_flags`=0x300, `unit_flags2`=0x800, `unit_flags3`=0x40000000 WHERE `entry`=96888; -- Shivarra Destroyer
+UPDATE `creature_template` SET `unit_flags`=0x300 WHERE `entry`=97602; -- Burning Soulstalker
+UPDATE `creature_template` SET `unit_flags`=0x300 WHERE `entry`=97604; -- Queen's Centurion
+UPDATE `creature_template` SET `unit_flags`=0x300 WHERE `entry`=97603; -- Doom Slayer
+UPDATE `creature_template` SET `BaseAttackTime`=2000, `unit_flags`=0x300, `unit_flags2`=0x800, `unit_flags3`=0x40000000 WHERE `entry`=96884; -- Coilskar Sea-Caller
+UPDATE `creature_template` SET `unit_flags3`=0x40000000 WHERE `entry`=99914; -- Ashtongue Mystic
+UPDATE `creature_template` SET `npcflag`=2 WHERE `entry`=100982; -- Sevis Brightflame
 
 DELETE FROM `creature_template_addon` WHERE `entry` IN (65183 /*65183 (Spirit Healer) - Ghost, Ghost Visual*/, 97634 /*97634 (Spire of Woe) - Before We're Overrun: Spire of Woe - Area Trigger*/, 97629 /*97629 (Spire of Woe) - Before We're Overrun: Spire of Woe - Area Trigger*/, 95048 /*95048 (Brood Queen Tyranna) - Before We're Overrun: Brood Queen Tyranna's Teleport*/, 93221 /*93221 (Doom Commander Beliash)*/, 101696 /*101696 (Shadow Portal) - Shadow Portal*/, 105316 /*105316 (Questioner Arev'naal)*/, 99003 /*99003 (Fel Cannon)*/, 94410 /*94410 (Allari the Souleater)*/, 99916 /*99916 (Sevis Brightflame)*/, 98354 /*98354 (Kor'vas Bloodthorn)*/, 98229 /*98229 (Kayn Sunfury)*/, 100745 /*100745 (Fel Cannon)*/, 102714 /*102714 (Eredar Summoner) - Eredar Summoner: Fel Channel Omni*/, 95046 /*95046 (Eredar Summoner) - Eredar Summoner: Fel Channel Omni*/, 100931 /*100931 (Fel Cannon)*/, 99351 /*99351 (Legion Devastator Missile)*/, 96731 /*96731 (Legion Devastator)*/, 100510 /*100510 (The Fel Hammer) - The Fel Hammer Beam Event: Bottom Bunny Fel Orb & Grow Aura, The Fel Hammer Beam Event: Shrink Aura*/, 97592 /*97592 (Felguard Sentry) - Permanent Feign Death (NO Stun, Untrackable, Immune)*/, 98456 /*98456 (Allari the Souleater) - Glaive Anim Replacement*/, 98457 /*98457 (Cyana Nightglaive) - Glaive Anim Replacement*/, 93762 /*93762 (Legion Devastator)*/, 98459 /*98459 (Kayn Sunfury) - Glaive Anim Replacement*/, 98460 /*98460 (Kor'vas Bloodthorn) - Glaive Anim Replacement*/, 98458 /*98458 (Jace Darkweaver) - Glaive Anim Replacement*/, 99919 /*99919 (Sevis Brightflame) - Glaive Anim Replacement*/, 99918 /*99918 (Sevis Brightflame) - Demon Hunter Glide State*/, 98290 /*98290 (Cyana Nightglaive) - Demon Hunter Glide State*/, 98227 /*98227 (Allari the Souleater) - Demon Hunter Glide State*/, 98228 /*98228 (Jace Darkweaver)*/, 94744 /*94744 (Dread Felbat)*/, 99218 /*99218 (Legion Devastator Missile)*/, 94492 /*94492 (Colossal Infernal)*/, 98191 /*98191 (Legion Command Center) - Legion Command Center: Engine Plume*/, 100161 /*100161 (Legion Devastator)*/);
 INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvpFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES
@@ -934,8 +1027,185 @@ UPDATE `creature_template_addon` SET `auras`='204360' WHERE `entry`=93105; -- 93
 UPDATE `creature_template_addon` SET `auras`='197845 197844 197833' WHERE `entry`=37490; -- 37490 (ELM General Purpose Bunny Infinite) - The Fel Hammer Beam Event: Top Bunny Orb Aura, The Fel Hammer Beam Event: Top Bunny Grow Aura, The Fel Hammer Beam Event: Fel Beam from Top to Bottom Bunny
 UPDATE `creature_template_addon` SET `auras`='188485' WHERE `entry`=98497; -- 98497 (Imp Mother) - Fel Channelling
 
+
+DELETE FROM `creature_template_addon` WHERE `entry` IN (97881 /*97881 (Male Naga (scale 2.00)) - Valid Target*/, 96767 /*96767 (Female Naga (scale 1.75)) - Valid Target*/, 97769 /*97769 (Mardum Executioner) - Permanent Feign Death (NO Stun, Untrackable, Immune), Valid Target*/, 100992 /*100992 (Fel Visage) - Grow*/, 101753 /*101753 (Soul Fragment) - Shattered Visage*/, 99650 /*99650 (Thornclaw Broodling) - Valid Target*/, 97058 /*97058 (Count Nefarious) - Fel Shield*/, 96503 /*96503 (Coilskar Sea-Caller) - No NPC Damage Below 45-90%, Valid Target*/, 97370 /*97370 (General Volroth)*/, 96877 /*96877 (Ashtongue Stalker) - Valid Target*/, 97772 /*97772 (Coilskar Sea-Caller) - Permanent Feign Death (NO Stun, Untrackable, Immune), Valid Target*/, 97771 /*97771 (Coilskar Myrmidon) - Permanent Feign Death (NO Stun, Untrackable, Immune), Valid Target*/, 97770 /*97770 (Coilskar Harpooner) - Permanent Feign Death (NO Stun, Untrackable, Immune), Valid Target*/, 96279 /*96279 (Mardum Executioner) - Valid Target*/, 94655 /*94655 (Soul Leech) - Valid Target*/, 99656 /*99656 (Red Broodling) - Valid Target*/, 96561 /*96561 (Coilskar Harpooner) - No NPC Damage Below 45-90%*/, 93280 /*93280 (Caged Soul) - Ride Vehicle Hardcoded*/, 96280 /*96280 (Volatile Minion) - Volatile Minion*/, 96499 /*96499 (Jace Darkweaver) - Dual Wield*/, 97601 /*97601 (Shivarra Destroyer) - Permanent Feign Death (NO Stun, Untrackable, Immune)*/, 97597 /*97597 (Eredar Sorcerer) - Permanent Feign Death (NO Stun, Untrackable, Immune)*/, 97598 /*97598 (Felguard Butcher) - Permanent Feign Death (NO Stun, Untrackable, Immune)*/, 96500 /*96500 (Ashtongue Warrior) - Permanent Feign Death (NO Stun, Untrackable, Immune)*/, 101790 /*101790 (Demon Hunter) - Glaive Anim Replacement*/, 101789 /*101789 (Demon Hunter) - Glaive Anim Replacement, Dual Wield*/, 101788 /*101788 (Demon Hunter) - Glaive Anim Replacement, Dual Wield*/, 101787 /*101787 (Demon Hunter) - Glaive Anim Replacement, Dual Wield*/, 102907 /*102907 (Ashtongue Warrior)*/, 102906 /*102906 (Ashtongue Stalker)*/, 96276 /*96276 (Legion Razorwing)*/, 102905 /*102905 (Ashtongue Mystic)*/, 96502 /*96502 (Coilskar Myrmidon) - Permanent Feign Death (NO Stun, Untrackable, Immune)*/, 96650 /*96650 (Falara Nightsong)*/, 96732 /*96732 (Legion Devastator)*/, 105945 /*105945 (Sevis Brightflame)*/, 96930 /*96930 (Demon Hunter) - Glaive Anim Replacement, No NPC Damage Below 45-90%, Dual Wield*/, 97599 /*97599 (Demon Hunter)*/, 96652 /*96652 (Mannethrel Darkstar)*/, 102910 /*102910 (Coilskar Myrmidon)*/, 93693 /*93693 (Lady S'theno)*/, 97602 /*97602 (Burning Soulstalker) - Permanent Feign Death (NO Stun, Untrackable, Immune)*/, 97600 /*97600 (Demon Hunter)*/, 99352 /*99352 (Legion Devastator Missile)*/, 94668 /*94668 (Dread Felbat)*/, 99917 /*99917 (Sevis Brightflame)*/, 94990 /*94990 (Infernal Ball Bunny)*/, 100982 /*100982 (Sevis Brightflame)*/);
+INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvpFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES
+(97881, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '198294'), -- 97881 (Male Naga (scale 2.00)) - Valid Target
+(96767, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '198294'), -- 96767 (Female Naga (scale 1.75)) - Valid Target
+(97769, 0, 0, 0, 0, 4, 1, 0, 0, 0, 0, 0, 0, '159474 198294'), -- 97769 (Mardum Executioner) - Permanent Feign Death (NO Stun, Untrackable, Immune), Valid Target
+(100992, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '104921'), -- 100992 (Fel Visage) - Grow
+(101753, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '200696'), -- 101753 (Soul Fragment) - Shattered Visage
+(99650, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '198294'), -- 99650 (Thornclaw Broodling) - Valid Target
+(97058, 0, 0, 0, 0, 0, 1, 0, 0, 1444, 0, 0, 3, '199103'), -- 97058 (Count Nefarious) - Fel Shield
+(96503, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '151597 198294'), -- 96503 (Coilskar Sea-Caller) - No NPC Damage Below 45-90%, Valid Target
+(97370, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 3, ''), -- 97370 (General Volroth)
+(96877, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '198294'), -- 96877 (Ashtongue Stalker) - Valid Target
+(97772, 0, 0, 0, 0, 4, 1, 0, 0, 0, 0, 0, 0, '159474 198294'), -- 97772 (Coilskar Sea-Caller) - Permanent Feign Death (NO Stun, Untrackable, Immune), Valid Target
+(97771, 0, 0, 0, 0, 4, 1, 0, 0, 0, 0, 0, 0, '159474 198294'), -- 97771 (Coilskar Myrmidon) - Permanent Feign Death (NO Stun, Untrackable, Immune), Valid Target
+(97770, 0, 0, 0, 0, 4, 1, 0, 0, 0, 0, 0, 0, '159474 198294'), -- 97770 (Coilskar Harpooner) - Permanent Feign Death (NO Stun, Untrackable, Immune), Valid Target
+(96279, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '198294'), -- 96279 (Mardum Executioner) - Valid Target
+(94655, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '198294'), -- 94655 (Soul Leech) - Valid Target
+(99656, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '198294'), -- 99656 (Red Broodling) - Valid Target
+(96561, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '151597'), -- 96561 (Coilskar Harpooner) - No NPC Damage Below 45-90%
+(93280, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '46598'), -- 93280 (Caged Soul) - Ride Vehicle Hardcoded
+(96280, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '200756'), -- 96280 (Volatile Minion) - Volatile Minion
+(96499, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '42459'), -- 96499 (Jace Darkweaver) - Dual Wield
+(97601, 0, 0, 0, 0, 4, 1, 0, 0, 0, 0, 0, 0, '159474'), -- 97601 (Shivarra Destroyer) - Permanent Feign Death (NO Stun, Untrackable, Immune)
+(97597, 0, 0, 0, 0, 4, 1, 0, 0, 0, 0, 0, 0, '159474'), -- 97597 (Eredar Sorcerer) - Permanent Feign Death (NO Stun, Untrackable, Immune)
+(97598, 0, 0, 0, 0, 4, 1, 0, 0, 0, 0, 0, 0, '159474'), -- 97598 (Felguard Butcher) - Permanent Feign Death (NO Stun, Untrackable, Immune)
+(96500, 0, 0, 0, 0, 4, 1, 0, 0, 0, 0, 0, 0, '159474'), -- 96500 (Ashtongue Warrior) - Permanent Feign Death (NO Stun, Untrackable, Immune)
+(101790, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '222589'), -- 101790 (Demon Hunter) - Glaive Anim Replacement
+(101789, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '222589 42459'), -- 101789 (Demon Hunter) - Glaive Anim Replacement, Dual Wield
+(101788, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '222589 42459'), -- 101788 (Demon Hunter) - Glaive Anim Replacement, Dual Wield
+(101787, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '222589 42459'), -- 101787 (Demon Hunter) - Glaive Anim Replacement, Dual Wield
+(102907, 0, 0, 3, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''), -- 102907 (Ashtongue Warrior)
+(102906, 0, 0, 3, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''), -- 102906 (Ashtongue Stalker)
+(96276, 0, 0, 0, 3, 0, 1, 0, 0, 0, 0, 0, 3, ''), -- 96276 (Legion Razorwing)
+(102905, 0, 0, 0, 0, 0, 1, 0, 0, 4760, 0, 0, 0, ''), -- 102905 (Ashtongue Mystic)
+(96502, 0, 0, 0, 0, 4, 1, 0, 0, 0, 0, 0, 0, '159474'), -- 96502 (Coilskar Myrmidon) - Permanent Feign Death (NO Stun, Untrackable, Immune)
+(96650, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ''), -- 96650 (Falara Nightsong)
+(96732, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 4, ''), -- 96732 (Legion Devastator)
+(105945, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ''), -- 105945 (Sevis Brightflame)
+(96930, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '222589 151597 42459'), -- 96930 (Demon Hunter) - Glaive Anim Replacement, No NPC Damage Below 45-90%, Dual Wield
+(97599, 0, 0, 3, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''), -- 97599 (Demon Hunter)
+(96652, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, ''), -- 96652 (Mannethrel Darkstar)
+(102910, 0, 0, 7, 0, 0, 1, 0, 0, 0, 0, 0, 0, ''), -- 102910 (Coilskar Myrmidon)
+(93693, 0, 0, 0, 0, 0, 1, 0, 0, 947, 0, 0, 0, ''), -- 93693 (Lady S'theno)
+(97602, 0, 0, 0, 0, 4, 1, 0, 0, 0, 0, 0, 0, '159474'), -- 97602 (Burning Soulstalker) - Permanent Feign Death (NO Stun, Untrackable, Immune)
+(97600, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ''), -- 97600 (Demon Hunter)
+(99352, 0, 0, 0, 3, 0, 1, 0, 0, 0, 0, 0, 4, ''), -- 99352 (Legion Devastator Missile)
+(94668, 0, 0, 0, 3, 0, 1, 0, 0, 0, 0, 0, 0, ''), -- 94668 (Dread Felbat)
+(99917, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ''), -- 99917 (Sevis Brightflame)
+(94990, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 5, ''), -- 94990 (Infernal Ball Bunny)
+(100982, 0, 64385, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ''); -- 100982 (Sevis Brightflame)
+
+UPDATE `creature_template_addon` SET `auras`='151597' WHERE `entry`=97676; -- 97676 (Lady S'theno) - No NPC Damage Below 45-90%
+UPDATE `creature_template_addon` SET `auras`='222589 151597 42459' WHERE `entry`=101597; -- 101597 (Tirathon Saltheril) - Glaive Anim Replacement, No NPC Damage Below 45-90%, Dual Wield
+UPDATE `creature_template_addon` SET `emote`=0 WHERE `entry`=113927; -- 113927 (Illidari Kilbride) - Dual Wield
+UPDATE `creature_template_addon` SET `emote`=0 WHERE `entry`=113924; -- 113924 (Illidari Starr) - Dual Wield
+UPDATE `creature_template_addon` SET `SheathState`=0, `auras`='' WHERE `entry`=102714; -- 102714 (Eredar Summoner)
+UPDATE `creature_template_addon` SET `StandState`=0 WHERE `entry`=96159; -- 96159 (Colossal Infernal)
+UPDATE `creature_template_addon` SET `auras`='' WHERE `entry`=100510; -- 100510 (The Fel Hammer)
+UPDATE `creature_template_addon` SET `auras`='197845' WHERE `entry`=37490; -- 37490 (ELM General Purpose Bunny Infinite) - The Fel Hammer Beam Event: Top Bunny Orb Aura
+
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `StaticFlags4`=0x2000000, `VerifiedBuild`=70575 WHERE (`Entry`=99419 AND `DifficultyID`=0); -- 99419 (Baric Stormrunner) - CanSwim - HideInCombatLog
+UPDATE `creature_template_difficulty` SET `VerifiedBuild`=70575 WHERE (`DifficultyID`=0 AND `Entry` IN (97769,97772,97771,97770,97601,100061,97597,96441,97598,96436,96276,97599,97602,97604,97600,97603,99915,101518));
+UPDATE `creature_template_difficulty` SET `ContentTuningID`=699, `StaticFlags1`=0x10000000, `VerifiedBuild`=70575 WHERE (`Entry`=100992 AND `DifficultyID`=0); -- 100992 (Fel Visage) - CanSwim
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `StaticFlags4`=0x2000000, `VerifiedBuild`=70575 WHERE (`Entry`=100543 AND `DifficultyID`=0); -- 100543 (Demon Hunter) - CanSwim - HideInCombatLog
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `StaticFlags4`=0x2000000, `VerifiedBuild`=70575 WHERE (`Entry`=100548 AND `DifficultyID`=0); -- 100548 (Demon Hunter) - CanSwim - HideInCombatLog
+UPDATE `creature_template_difficulty` SET `ContentTuningID`=699, `StaticFlags1`=0x10000000, `VerifiedBuild`=70575 WHERE (`Entry`=101753 AND `DifficultyID`=0); -- 101753 (Soul Fragment) - CanSwim
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x20000000, `VerifiedBuild`=70575 WHERE (`Entry`=97704 AND `DifficultyID`=0); -- 97704 (Well of Souls) - Floating
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0xB0000000, `VerifiedBuild`=70575 WHERE (`Entry`=97058 AND `DifficultyID`=0); -- 97058 (Count Nefarious) - CanSwim, Floating, LargeAoi
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `StaticFlags4`=0x2000000, `VerifiedBuild`=70575 WHERE (`Entry`=100545 AND `DifficultyID`=0); -- 100545 (Demon Hunter) - CanSwim - HideInCombatLog
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `StaticFlags4`=0x2000000, `VerifiedBuild`=70575 WHERE (`Entry`=97676 AND `DifficultyID`=0); -- 97676 (Lady S'theno) - CanSwim - HideInCombatLog
+UPDATE `creature_template_difficulty` SET `StaticFlags5`=0x1, `VerifiedBuild`=70575 WHERE (`Entry`=97881 AND `DifficultyID`=0); -- 97881 (Male Naga (scale 2.00)) - UntargetableByClient
+UPDATE `creature_template_difficulty` SET `StaticFlags5`=0x1, `VerifiedBuild`=70575 WHERE (`Entry`=96767 AND `DifficultyID`=0); -- 96767 (Female Naga (scale 1.75)) - UntargetableByClient
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x90000000, `VerifiedBuild`=70575 WHERE (`Entry`=97370 AND `DifficultyID`=0); -- 97370 (General Volroth) - CanSwim, LargeAoi
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x100, `StaticFlags5`=0x101, `VerifiedBuild`=70575 WHERE (`Entry`=97382 AND `DifficultyID`=0); -- 97382 (Soul Harvester) - Sessile - CannotTurn - UntargetableByClient, InteractWhileHostile
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x20000000, `VerifiedBuild`=70575 WHERE (`Entry`=33765 AND `DifficultyID`=0); -- 33765 (ELM General Purpose Bunny (scale x2)) - Floating
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `StaticFlags4`=0x2000000, `VerifiedBuild`=70575 WHERE (`Entry`=101597 AND `DifficultyID`=0); -- 101597 (Tirathon Saltheril) - CanSwim - HideInCombatLog
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `StaticFlags4`=0x2000000, `VerifiedBuild`=70575 WHERE (`Entry`=96561 AND `DifficultyID`=0); -- 96561 (Coilskar Harpooner) - CanSwim - HideInCombatLog
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `StaticFlags4`=0x2000000, `VerifiedBuild`=70575 WHERE (`Entry`=100549 AND `DifficultyID`=0); -- 100549 (Demon Hunter) - CanSwim - HideInCombatLog
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x100, `StaticFlags5`=0x1, `VerifiedBuild`=70575 WHERE (`Entry`=93280 AND `DifficultyID`=0); -- 93280 (Caged Soul) - Sessile - CannotTurn - UntargetableByClient
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `StaticFlags4`=0x2000000, `VerifiedBuild`=70575 WHERE (`Entry`=96279 AND `DifficultyID`=0); -- 96279 (Mardum Executioner) - CanSwim - HideInCombatLog
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `StaticFlags4`=0x2000000, `VerifiedBuild`=70575 WHERE (`Entry`=96280 AND `DifficultyID`=0); -- 96280 (Volatile Minion) - CanSwim - HideInCombatLog
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `StaticFlags4`=0x2000000, `VerifiedBuild`=70575 WHERE (`Entry`=101317 AND `DifficultyID`=0); -- 101317 (Illysanna Ravencrest) - CanSwim - HideInCombatLog
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x100, `StaticFlags5`=0x1, `VerifiedBuild`=70575 WHERE (`Entry`=100062 AND `DifficultyID`=0); -- 100062 (Fel Axe) - Sessile - CannotTurn - UntargetableByClient
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000100, `StaticFlags4`=0x2000000, `VerifiedBuild`=70575 WHERE (`Entry`=96499 AND `DifficultyID`=0); -- 96499 (Jace Darkweaver) - Sessile, CanSwim - HideInCombatLog
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `StaticFlags4`=0x2000000, `VerifiedBuild`=70575 WHERE (`Entry`=102726 AND `DifficultyID`=0); -- 102726 (Eredar Sorcerer) - CanSwim - HideInCombatLog
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `StaticFlags4`=0x2000000, `VerifiedBuild`=70575 WHERE (`Entry`=96494 AND `DifficultyID`=0); -- 96494 (Felguard Butcher) - CanSwim - HideInCombatLog
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `StaticFlags4`=0x2000000, `VerifiedBuild`=70575 WHERE (`Entry`=96473 AND `DifficultyID`=0); -- 96473 (Eredar Sorcerer) - CanSwim - HideInCombatLog
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `VerifiedBuild`=70575 WHERE (`Entry`=96493 AND `DifficultyID`=0); -- 96493 (Felguard Butcher) - CanSwim
+UPDATE `creature_template_difficulty` SET `StaticFlags4`=0x2000000, `VerifiedBuild`=70575 WHERE (`Entry`=101790 AND `DifficultyID`=0); -- 101790 (Demon Hunter) - CanSwim - HideInCombatLog
+UPDATE `creature_template_difficulty` SET `StaticFlags4`=0x2000000, `VerifiedBuild`=70575 WHERE (`Entry`=96503 AND `DifficultyID`=0); -- 96503 (Coilskar Sea-Caller) - CanSwim - HideInCombatLog
+UPDATE `creature_template_difficulty` SET `StaticFlags4`=0x2000000, `VerifiedBuild`=70575 WHERE (`Entry`=96501 AND `DifficultyID`=0); -- 96501 (Ashtongue Mystic) - CanSwim - HideInCombatLog
+UPDATE `creature_template_difficulty` SET `StaticFlags4`=0x2000000, `VerifiedBuild`=70575 WHERE (`Entry`=96504 AND `DifficultyID`=0); -- 96504 (Shivarra Destroyer) - CanSwim - HideInCombatLog
+UPDATE `creature_template_difficulty` SET `StaticFlags4`=0x2000000, `VerifiedBuild`=70575 WHERE (`Entry`=101789 AND `DifficultyID`=0); -- 101789 (Demon Hunter) - CanSwim - HideInCombatLog
+UPDATE `creature_template_difficulty` SET `StaticFlags4`=0x2000000, `VerifiedBuild`=70575 WHERE (`Entry`=101788 AND `DifficultyID`=0); -- 101788 (Demon Hunter) - CanSwim - HideInCombatLog
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `StaticFlags4`=0x2000000, `VerifiedBuild`=70575 WHERE (`Entry`=101397 AND `DifficultyID`=0); -- 101397 (Cailyn Paledoom) - CanSwim - HideInCombatLog
+UPDATE `creature_template_difficulty` SET `StaticFlags4`=0x2000000, `VerifiedBuild`=70575 WHERE (`Entry`=101787 AND `DifficultyID`=0); -- 101787 (Demon Hunter) - CanSwim - HideInCombatLog
+UPDATE `creature_template_difficulty` SET `StaticFlags4`=0x2000000, `VerifiedBuild`=70575 WHERE (`Entry`=96500 AND `DifficultyID`=0); -- 96500 (Ashtongue Warrior) - CanSwim - HideInCombatLog
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `StaticFlags4`=0x2000000, `VerifiedBuild`=70575 WHERE (`Entry`=98157 AND `DifficultyID`=0); -- 98157 (Lyana Darksorrow) - CanSwim - HideInCombatLog
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `StaticFlags4`=0x2000000, `VerifiedBuild`=70575 WHERE (`Entry`=99759 AND `DifficultyID`=0); -- 99759 (Fiendish Creeper) - CanSwim - HideInCombatLog
+UPDATE `creature_template_difficulty` SET `StaticFlags5`=0x1, `VerifiedBuild`=70575 WHERE (`Entry`=97971 AND `DifficultyID`=0); -- 97971 (Jace Darkweaver Clone) - UntargetableByClient
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `StaticFlags4`=0x2000000, `VerifiedBuild`=70575 WHERE (`Entry`=97034 AND `DifficultyID`=0); -- 97034 (Fury Champion) - CanSwim - HideInCombatLog
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `VerifiedBuild`=70575 WHERE (`Entry`=102907 AND `DifficultyID`=0); -- 102907 (Ashtongue Warrior) - CanSwim - CannotTurn
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `VerifiedBuild`=70575 WHERE (`Entry`=102906 AND `DifficultyID`=0); -- 102906 (Ashtongue Stalker) - CanSwim - CannotTurn
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `VerifiedBuild`=70575 WHERE (`Entry`=102905 AND `DifficultyID`=0); -- 102905 (Ashtongue Mystic) - CanSwim
+UPDATE `creature_template_difficulty` SET `StaticFlags4`=0x2000000, `VerifiedBuild`=70575 WHERE (`Entry`=96502 AND `DifficultyID`=0); -- 96502 (Coilskar Myrmidon) - CanSwim - HideInCombatLog
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `VerifiedBuild`=70575 WHERE (`Entry`=96653 AND `DifficultyID`=0); -- 96653 (Izal Whitemoon) - CanSwim
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `VerifiedBuild`=70575 WHERE (`Entry`=95447 AND `DifficultyID`=0); -- 95447 (Ashtongue Warrior) - CanSwim
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `VerifiedBuild`=70575 WHERE (`Entry`=95449 AND `DifficultyID`=0); -- 95449 (Ashtongue Mystic) - CanSwim
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `VerifiedBuild`=70575 WHERE (`Entry`=90247 AND `DifficultyID`=0); -- 90247 (Battlelord Gaardoun) - CanSwim
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `VerifiedBuild`=70575 WHERE (`Entry`=96650 AND `DifficultyID`=0); -- 96650 (Falara Nightsong) - CanSwim
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `VerifiedBuild`=70575 WHERE (`Entry`=95450 AND `DifficultyID`=0); -- 95450 (Ashtongue Stalker) - CanSwim
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x100, `StaticFlags5`=0x1, `VerifiedBuild`=70575 WHERE (`Entry`=96732 AND `DifficultyID`=0); -- 96732 (Legion Devastator) - Sessile - InfiniteAoi - UntargetableByClient
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `VerifiedBuild`=70575 WHERE (`Entry`=93707 AND `DifficultyID`=0); -- 93707 (Priestess of Dementia) - CanSwim
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `VerifiedBuild`=70575 WHERE (`Entry`=94435 AND `DifficultyID`=0); -- 94435 (Matron Mother Malevolence) - CanSwim
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `VerifiedBuild`=70575 WHERE (`Entry`=96252 AND `DifficultyID`=0); -- 96252 (Priestess of Delight) - CanSwim
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `VerifiedBuild`=70575 WHERE (`Entry`=96253 AND `DifficultyID`=0); -- 96253 (Shivarra Destroyer) - CanSwim
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `VerifiedBuild`=70575 WHERE (`Entry`=93127 AND `DifficultyID`=0); -- 93127 (Kayn Sunfury) - CanSwim
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `VerifiedBuild`=70575 WHERE (`Entry`=105945 AND `DifficultyID`=0); -- 105945 (Sevis Brightflame) - CanSwim
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `VerifiedBuild`=70575 WHERE (`Entry`=96420 AND `DifficultyID`=0); -- 96420 (Cyana Nightglaive) - CanSwim
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `VerifiedBuild`=70575 WHERE (`Entry`=96652 AND `DifficultyID`=0); -- 96652 (Mannethrel Darkstar) - CanSwim - CannotTurn
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `VerifiedBuild`=70575 WHERE (`Entry`=96655 AND `DifficultyID`=0); -- 96655 (Allari the Souleater) - CanSwim
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `StaticFlags4`=0x2000000, `VerifiedBuild`=70575 WHERE (`Entry`=97014 AND `DifficultyID`=0); -- 97014 (Vile Soulmaster) - CanSwim - HideInCombatLog
+UPDATE `creature_template_difficulty` SET `ContentTuningID`=699, `StaticFlags1`=0x10000000, `StaticFlags4`=0x2000000, `VerifiedBuild`=70575 WHERE (`Entry`=96888 AND `DifficultyID`=0); -- 96888 (Shivarra Destroyer) - CanSwim - HideInCombatLog
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `VerifiedBuild`=70575 WHERE (`Entry`=113927 AND `DifficultyID`=0); -- 113927 (Illidari Kilbride) - CanSwim
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `StaticFlags4`=0x2000000, `VerifiedBuild`=70575 WHERE (`Entry`=96278 AND `DifficultyID`=0); -- 96278 (Burning Soulstalker) - CanSwim - HideInCombatLog
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `VerifiedBuild`=70575 WHERE (`Entry`=102908 AND `DifficultyID`=0); -- 102908 (Coilskar Sea-Caller) - CanSwim
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `VerifiedBuild`=70575 WHERE (`Entry`=102910 AND `DifficultyID`=0); -- 102910 (Coilskar Myrmidon) - CanSwim - CannotTurn
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `VerifiedBuild`=70575 WHERE (`Entry`=113924 AND `DifficultyID`=0); -- 113924 (Illidari Starr) - CanSwim
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `VerifiedBuild`=70575 WHERE (`Entry`=93693 AND `DifficultyID`=0); -- 93693 (Lady S'theno) - CanSwim
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `VerifiedBuild`=70575 WHERE (`Entry`=96230 AND `DifficultyID`=0); -- 96230 (Coilskar Myrmidon) - CanSwim
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `StaticFlags4`=0x2000000, `VerifiedBuild`=70575 WHERE (`Entry`=102724 AND `DifficultyID`=0); -- 102724 (Vile Soulmaster) - CanSwim - HideInCombatLog
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `StaticFlags4`=0x2000000, `VerifiedBuild`=70575 WHERE (`Entry`=96930 AND `DifficultyID`=0); -- 96930 (Demon Hunter) - CanSwim - HideInCombatLog
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `VerifiedBuild`=70575 WHERE (`Entry`=96654 AND `DifficultyID`=0); -- 96654 (Belath Dawnblade) - CanSwim
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `VerifiedBuild`=70575 WHERE (`Entry`=96228 AND `DifficultyID`=0); -- 96228 (Coilskar Sea-Caller) - CanSwim
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `VerifiedBuild`=70575 WHERE (`Entry`=96231 AND `DifficultyID`=0); -- 96231 (Coilskar Harpooner) - CanSwim
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x20000000, `VerifiedBuild`=70575 WHERE (`Entry`=99352 AND `DifficultyID`=0); -- 99352 (Legion Devastator Missile) - Floating - GiganticAoi
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `StaticFlags4`=0x2000000, `VerifiedBuild`=70575 WHERE (`Entry`=96931 AND `DifficultyID`=0); -- 96931 (Demon Hunter) - CanSwim - HideInCombatLog
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `StaticFlags4`=0x2000000, `VerifiedBuild`=70575 WHERE (`Entry`=93716 AND `DifficultyID`=0); -- 93716 (Doom Slayer) - CanSwim - HideInCombatLog
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x20000000, `VerifiedBuild`=70575 WHERE (`Entry`=94668 AND `DifficultyID`=0); -- 94668 (Dread Felbat) - Floating
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `StaticFlags4`=0x2000000, `VerifiedBuild`=70575 WHERE (`Entry`=96884 AND `DifficultyID`=0); -- 96884 (Coilskar Sea-Caller) - CanSwim - HideInCombatLog
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `VerifiedBuild`=70575 WHERE (`Entry`=99917 AND `DifficultyID`=0); -- 99917 (Sevis Brightflame) - CanSwim
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x100, `VerifiedBuild`=70575 WHERE (`Entry`=99914 AND `DifficultyID`=0); -- 99914 (Ashtongue Mystic) - Sessile - CannotTurn
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x20000000, `VerifiedBuild`=70575 WHERE (`Entry`=94990 AND `DifficultyID`=0); -- 94990 (Infernal Ball Bunny) - Floating - InfiniteAoi
+UPDATE `creature_template_difficulty` SET `StaticFlags1`=0x10000000, `VerifiedBuild`=70575 WHERE (`Entry`=100982 AND `DifficultyID`=0); -- 100982 (Sevis Brightflame) - CanSwim
+
+UPDATE `creature_model_info` SET `VerifiedBuild`=70575 WHERE `DisplayID` IN (65394, 64805, 64806, 62700, 64807, 65485, 65036, 58049, 65196, 16946, 67232, 64767, 62779, 64804, 10812, 69987, 67049, 61872, 69983, 69984, 69982, 69985, 68169, 67176, 67019, 65922, 9129, 63967, 64417, 67885, 67883, 61903, 61734, 67884, 64780, 64013, 64779, 69439, 69988, 69989, 64781, 73011, 64766, 73010, 60790, 62750, 67888, 9018, 69986, 67887, 16269, 63144, 63270, 64762, 61907, 64414, 67575);
+UPDATE `creature_model_info` SET `BoundingRadius`=1.724869012832641601, `VerifiedBuild`=70575 WHERE `DisplayID`=67886;
+
+DELETE FROM `creature_template_gossip` WHERE (`CreatureID`=96650 AND `MenuID`=18720);
+INSERT INTO `creature_template_gossip` (`CreatureID`, `MenuID`, `VerifiedBuild`) VALUES
+(96650, 18720, 70575); -- Falara Nightsong
+
+UPDATE `creature_template_gossip` SET `VerifiedBuild`=70575 WHERE (`CreatureID`=93127 AND `MenuID`=18435) OR (`CreatureID`=96436 AND `MenuID`=19175) OR (`CreatureID`=96653 AND `MenuID`=18776) OR (`CreatureID`=90247 AND `MenuID`=17260) OR (`CreatureID`=93693 AND `MenuID`=18447) OR (`CreatureID`=94435 AND `MenuID`=18434) OR (`CreatureID`=105945 AND `MenuID`=19544) OR (`CreatureID`=99915 AND `MenuID`=19016) OR (`CreatureID`=99914 AND `MenuID`=19015) OR (`CreatureID`=99917 AND `MenuID`=19017) OR (`CreatureID`=94410 AND `MenuID`=18899);
+
+DELETE FROM `npc_vendor` WHERE (`entry`=96650 AND `item`=123960 AND `ExtendedCost`=0 AND `type`=1) OR (`entry`=96650 AND `item`=123959 AND `ExtendedCost`=0 AND `type`=1) OR (`entry`=96650 AND `item`=112460 AND `ExtendedCost`=0 AND `type`=1) OR (`entry`=96650 AND `item`=112459 AND `ExtendedCost`=0 AND `type`=1) OR (`entry`=96650 AND `item`=112461 AND `ExtendedCost`=0 AND `type`=1) OR (`entry`=96650 AND `item`=112462 AND `ExtendedCost`=0 AND `type`=1) OR (`entry`=96650 AND `item`=129181 AND `ExtendedCost`=0 AND `type`=1) OR (`entry`=96650 AND `item`=112458 AND `ExtendedCost`=0 AND `type`=1) OR (`entry`=96650 AND `item`=133323 AND `ExtendedCost`=0 AND `type`=1) OR (`entry`=96650 AND `item`=133325 AND `ExtendedCost`=0 AND `type`=1) OR (`entry`=96650 AND `item`=133318 AND `ExtendedCost`=0 AND `type`=1) OR (`entry`=96650 AND `item`=133319 AND `ExtendedCost`=0 AND `type`=1) OR (`entry`=96650 AND `item`=133320 AND `ExtendedCost`=0 AND `type`=1) OR (`entry`=96650 AND `item`=133321 AND `ExtendedCost`=0 AND `type`=1) OR (`entry`=96650 AND `item`=133324 AND `ExtendedCost`=0 AND `type`=1) OR (`entry`=96650 AND `item`=133322 AND `ExtendedCost`=0 AND `type`=1) OR (`entry`=96650 AND `item`=132752 AND `ExtendedCost`=0 AND `type`=1);
+INSERT INTO `npc_vendor` (`entry`, `slot`, `item`, `maxcount`, `ExtendedCost`, `type`, `PlayerConditionID`, `IgnoreFiltering`, `VerifiedBuild`) VALUES
+(96650, 25, 123960, 0, 0, 1, 0, 0, 70575), -- Charm of Demonic Fire
+(96650, 24, 123959, 0, 0, 1, 0, 0, 70575), -- Demon Trophy
+(96650, 23, 112460, 0, 0, 1, 0, 0, 70575), -- Illidari Band
+(96650, 22, 112459, 0, 0, 1, 0, 0, 70575), -- Illidari Ring
+(96650, 21, 112461, 0, 0, 1, 0, 0, 70575), -- Illidari Chain
+(96650, 20, 112462, 0, 0, 1, 0, 0, 70575), -- Illidari Drape
+(96650, 19, 129181, 0, 0, 1, 0, 0, 70575), -- Illidari Warglaive
+(96650, 18, 112458, 0, 0, 1, 0, 0, 70575), -- Illidari Warglaive
+(96650, 9, 133323, 0, 0, 1, 0, 0, 70575), -- Illidari Bracers
+(96650, 8, 133325, 0, 0, 1, 0, 0, 70575), -- Illidari Belt
+(96650, 7, 133318, 0, 0, 1, 0, 0, 70575), -- Illidari Shoulders
+(96650, 6, 133319, 0, 0, 1, 0, 0, 70575), -- Illidari Leggings
+(96650, 5, 133320, 0, 0, 1, 0, 0, 70575), -- Illidari Blindfold
+(96650, 4, 133321, 0, 0, 1, 0, 0, 70575), -- Illidari Gloves
+(96650, 3, 133324, 0, 0, 1, 0, 0, 70575), -- Illidari Boots
+(96650, 2, 133322, 0, 0, 1, 0, 0, 70575), -- Illidari Robe
+(96650, 1, 132752, 0, 0, 1, 0, 0, 70575); -- Illidari Rations
+
+UPDATE `spell_target_position` SET `VerifiedBuild`=70575 WHERE (`ID`=199180 AND `EffectIndex`=1 AND `OrderIndex`=0) OR (`ID`=201115 AND `EffectIndex`=0 AND `OrderIndex`=0) OR (`ID`=201114 AND `EffectIndex`=0 AND `OrderIndex`=0) OR (`ID`=192275 AND `EffectIndex`=0 AND `OrderIndex`=0);
+
 SET @ORD_INDEX := 0;
-DELETE FROM `spell_target_position` WHERE `ID` IN (191666,194689);
+DELETE FROM `spell_target_position` WHERE `ID` IN (191666,192352,194689,196875);
 INSERT INTO `spell_target_position` (`ID`, `EffectIndex`, `OrderIndex`, `MapID`, `PositionX`, `PositionY`, `PositionZ`, `VerifiedBuild`) VALUES
 (191666, 0, @ORD_INDEX+0, 1481, 1394.907958984375, 2112.986083984375, 103.6813735961914062, 70575), -- Spell: 191666 (The Gauntlet Event: Devastator Bombardment to Random StringID 01) Effect 0: 32 (SPELL_EFFECT_TRIGGER_MISSILE)
 (191666, 0, @ORD_INDEX+1, 1481, 1408.6007080078125, 2103.060791015625, 106.203216552734375, 70575), -- Spell: 191666 (The Gauntlet Event: Devastator Bombardment to Random StringID 01) Effect 0: 32 (SPELL_EFFECT_TRIGGER_MISSILE)
@@ -1066,7 +1336,37 @@ INSERT INTO `spell_target_position` (`ID`, `EffectIndex`, `OrderIndex`, `MapID`,
 (194689, 0, @ORD_INDEX+111, 1481, 882.09893798828125, 2891.2265625, -22.7100772857666015, 70575), -- Spell: 194689 (Fel Bombardment) Effect 0: 32 (SPELL_EFFECT_TRIGGER_MISSILE)
 (194689, 0, @ORD_INDEX+112, 1481, 884.86114501953125, 2957.177978515625, -27.5064411163330078, 70575), -- Spell: 194689 (Fel Bombardment) Effect 0: 32 (SPELL_EFFECT_TRIGGER_MISSILE)
 (194689, 0, @ORD_INDEX+113, 1481, 917.79168701171875, 2997.849853515625, -20.7937831878662109, 70575), -- Spell: 194689 (Fel Bombardment) Effect 0: 32 (SPELL_EFFECT_TRIGGER_MISSILE)
-(194689, 0, @ORD_INDEX+114, 1481, 733.28125, 2580.479248046875, -69.3423385620117187, 70575); -- Spell: 194689 (Fel Bombardment) Effect 0: 32 (SPELL_EFFECT_TRIGGER_MISSILE)
+(194689, 0, @ORD_INDEX+114, 1481, 733.28125, 2580.479248046875, -69.3423385620117187, 70575), -- Spell: 194689 (Fel Bombardment) Effect 0: 32 (SPELL_EFFECT_TRIGGER_MISSILE)
+-- 194689 (Fel Bombardment) - new positions from latest sniff
+(194689, 0, @ORD_INDEX+115, 1481, 1132.8819580078125, 2548.751708984375, -21.564493179321289, 70575),
+(194689, 0, @ORD_INDEX+116, 1481, 729.19964599609375, 2427.373291015625, -64.608978271484375, 70575),
+(194689, 0, @ORD_INDEX+117, 1481, 947.14239501953125, 2542.045166015625, -53.7161407470703125, 70575),
+(194689, 0, @ORD_INDEX+118, 1481, 673.52081298828125, 2332.2587890625, -65.9305267333984375, 70575),
+(194689, 0, @ORD_INDEX+119, 1481, 1315.751708984375, 2560.012939453125, 15.02386188507080078, 70575),
+(194689, 0, @ORD_INDEX+120, 1481, 751.70660400390625, 2451.7275390625, -62.4183349609375, 70575),
+(194689, 0, @ORD_INDEX+121, 1481, 959.98785400390625, 2902.26904296875, -9.1408843994140625, 70575),
+(194689, 0, @ORD_INDEX+122, 1481, 960.625, 3058.874267578125, -22.6354694366455078, 70575),
+(194689, 0, @ORD_INDEX+123, 1481, 956.20489501953125, 2929.151123046875, -13.0511074066162109, 70575),
+(194689, 0, @ORD_INDEX+124, 1481, 749.6475830078125, 2629.873291015625, -49.0207138061523437, 70575),
+(194689, 0, @ORD_INDEX+125, 1481, 1036.4254150390625, 3066.3916015625, -5.33063840866088867, 70575),
+(194689, 0, @ORD_INDEX+126, 1481, 1142.9617919921875, 2560.927978515625, -20.4550838470458984, 70575),
+(194689, 0, @ORD_INDEX+127, 1481, 859.86456298828125, 3008.98095703125, -33.02484130859375, 70575),
+(194689, 0, @ORD_INDEX+128, 1481, 985.6007080078125, 3037.95751953125, -12.8181133270263671, 70575),
+(194689, 0, @ORD_INDEX+129, 1481, 1380.84033203125, 2576.005126953125, 22.45980262756347656, 70575),
+(194689, 0, @ORD_INDEX+130, 1481, 928.138916015625, 2961.0390625, -19.9814643859863281, 70575),
+(194689, 0, @ORD_INDEX+131, 1481, 1011.6146240234375, 2889.23876953125, 0.918914675712585449, 70575),
+(194689, 0, @ORD_INDEX+132, 1481, 987.2430419921875, 2895.896728515625, -2.7283034324645996, 70575),
+(194689, 0, @ORD_INDEX+133, 1481, 698.654541015625, 2454.7119140625, -67.7041015625, 70575),
+(194689, 0, @ORD_INDEX+134, 1481, 926.26214599609375, 2894.8369140625, -16.738901138305664, 70575),
+(194689, 0, @ORD_INDEX+135, 1481, 1250.8160400390625, 2572.65625, 3.935763835906982421, 70575),
+(194689, 0, @ORD_INDEX+136, 1481, 737.29168701171875, 2639.737060546875, -59.5846138000488281, 70575),
+-- 192352 (Soul Harvester - Soul Siphon) - new spell, SPELL_EFFECT_DUMMY
+(192352, 0, @ORD_INDEX+0, 1481, 1774.57470703125, 1521.9114990234375, 68.0529937744140625, 70575),
+(192352, 0, @ORD_INDEX+1, 1481, 1764.8350830078125, 1524.8524169921875, 65.80812835693359375, 70575),
+(192352, 0, @ORD_INDEX+2, 1481, 1771.9635009765625, 1513.829833984375, 67.9989471435546875, 70575),
+(192352, 0, @ORD_INDEX+3, 1481, 1762.78125, 1515.984375, 64.75299072265625, 70575),
+-- 196875 (Throw Axe) - new spell, SPELL_EFFECT_JUMP_DEST
+(196875, 0, @ORD_INDEX+0, 1481, 1119.779541015625, 1612.4444580078125, 116.5227890014648437, 70575);
 
 UPDATE `creature_equip_template` SET `VerifiedBuild`=70575 WHERE (`ID`=1 AND `CreatureID` IN (93112,94705,94704,93105,96400,97592,94654,102714,95046,98622,98611,93221,93759,97712,94410,99916,98354,98229,98484,98486,96877,98456,98457,98459,98460,98458,99919,94580,99918,98292,98290,98228,98227,93011)) OR (`ID`=2 AND `CreatureID`=93112);
 
@@ -1101,6 +1401,23 @@ UPDATE `ui_map_quest_line` SET `VerifiedBuild`=70575 WHERE (`UIMapId`=672 AND `Q
 UPDATE `creature_queststarter` SET `VerifiedBuild`=70575 WHERE (`id`=98229 AND `quest`=40378) OR (`id`=93011 AND `quest`=40077);
 UPDATE `creature_questender` SET `VerifiedBuild`=70575 WHERE (`id`=94410 AND `quest`=40378) OR (`id`=98229 AND `quest`=40077);
 
+UPDATE `quest_offer_reward` SET `VerifiedBuild`=70575 WHERE `ID` IN (39495, 39262, 38813, 38765, 38766, 39050, 40379, 39049, 38759, 40378);
+UPDATE `quest_poi` SET `VerifiedBuild`=70575 WHERE (`QuestID`=38725 AND `BlobIndex`=1 AND `Idx1`=2) OR (`QuestID`=38725 AND `BlobIndex`=0 AND `Idx1`=1) OR (`QuestID`=38725 AND `BlobIndex`=0 AND `Idx1`=0) OR (`QuestID`=38819 AND `BlobIndex`=0 AND `Idx1`=4) OR (`QuestID`=38819 AND `BlobIndex`=2 AND `Idx1`=3) OR (`QuestID`=38819 AND `BlobIndex`=1 AND `Idx1`=2) OR (`QuestID`=38819 AND `BlobIndex`=0 AND `Idx1`=1) OR (`QuestID`=38819 AND `BlobIndex`=0 AND `Idx1`=0) OR (`QuestID`=38727 AND `BlobIndex`=0 AND `Idx1`=4) OR (`QuestID`=38727 AND `BlobIndex`=0 AND `Idx1`=3) OR (`QuestID`=38727 AND `BlobIndex`=0 AND `Idx1`=2) OR (`QuestID`=38727 AND `BlobIndex`=0 AND `Idx1`=1) OR (`QuestID`=38727 AND `BlobIndex`=0 AND `Idx1`=0) OR (`QuestID`=39495 AND `BlobIndex`=0 AND `Idx1`=2) OR (`QuestID`=39495 AND `BlobIndex`=0 AND `Idx1`=1) OR (`QuestID`=39495 AND `BlobIndex`=0 AND `Idx1`=0) OR (`QuestID`=39262 AND `BlobIndex`=0 AND `Idx1`=3) OR (`QuestID`=39262 AND `BlobIndex`=0 AND `Idx1`=2) OR (`QuestID`=39262 AND `BlobIndex`=0 AND `Idx1`=1) OR (`QuestID`=39262 AND `BlobIndex`=0 AND `Idx1`=0) OR (`QuestID`=38813 AND `BlobIndex`=0 AND `Idx1`=4) OR (`QuestID`=38813 AND `BlobIndex`=0 AND `Idx1`=3) OR (`QuestID`=38813 AND `BlobIndex`=0 AND `Idx1`=2) OR (`QuestID`=38813 AND `BlobIndex`=0 AND `Idx1`=1) OR (`QuestID`=38813 AND `BlobIndex`=0 AND `Idx1`=0) OR (`QuestID`=38766 AND `BlobIndex`=0 AND `Idx1`=2) OR (`QuestID`=38766 AND `BlobIndex`=0 AND `Idx1`=1) OR (`QuestID`=38766 AND `BlobIndex`=0 AND `Idx1`=0) OR (`QuestID`=38765 AND `BlobIndex`=0 AND `Idx1`=3) OR (`QuestID`=38765 AND `BlobIndex`=0 AND `Idx1`=2) OR (`QuestID`=38765 AND `BlobIndex`=0 AND `Idx1`=1) OR (`QuestID`=38765 AND `BlobIndex`=0 AND `Idx1`=0) OR (`QuestID`=39050 AND `BlobIndex`=0 AND `Idx1`=2) OR (`QuestID`=39050 AND `BlobIndex`=0 AND `Idx1`=1) OR (`QuestID`=39050 AND `BlobIndex`=0 AND `Idx1`=0) OR (`QuestID`=40379 AND `BlobIndex`=0 AND `Idx1`=3) OR (`QuestID`=40379 AND `BlobIndex`=0 AND `Idx1`=2) OR (`QuestID`=40379 AND `BlobIndex`=0 AND `Idx1`=1) OR (`QuestID`=40379 AND `BlobIndex`=0 AND `Idx1`=0) OR (`QuestID`=39049 AND `BlobIndex`=0 AND `Idx1`=2) OR (`QuestID`=39049 AND `BlobIndex`=0 AND `Idx1`=1) OR (`QuestID`=39049 AND `BlobIndex`=0 AND `Idx1`=0) OR (`QuestID`=38759 AND `BlobIndex`=0 AND `Idx1`=6) OR (`QuestID`=38759 AND `BlobIndex`=0 AND `Idx1`=5) OR (`QuestID`=38759 AND `BlobIndex`=0 AND `Idx1`=4) OR (`QuestID`=38759 AND `BlobIndex`=0 AND `Idx1`=3) OR (`QuestID`=38759 AND `BlobIndex`=0 AND `Idx1`=2) OR (`QuestID`=38759 AND `BlobIndex`=0 AND `Idx1`=1) OR (`QuestID`=38759 AND `BlobIndex`=0 AND `Idx1`=0);
+UPDATE `quest_poi_points` SET `VerifiedBuild`=70575 WHERE (`QuestID`=38725 AND `Idx1`=2 AND `Idx2`=0) OR (`QuestID`=38725 AND `Idx1`=1 AND `Idx2`=0) OR (`QuestID`=38725 AND `Idx1`=0 AND `Idx2`=0) OR (`QuestID`=38819 AND `Idx1`=4 AND `Idx2`=0) OR (`QuestID`=38819 AND `Idx1`=3 AND `Idx2`=11) OR (`QuestID`=38819 AND `Idx1`=3 AND `Idx2`=10) OR (`QuestID`=38819 AND `Idx1`=3 AND `Idx2`=9) OR (`QuestID`=38819 AND `Idx1`=3 AND `Idx2`=8) OR (`QuestID`=38819 AND `Idx1`=3 AND `Idx2`=7) OR (`QuestID`=38819 AND `Idx1`=3 AND `Idx2`=6) OR (`QuestID`=38819 AND `Idx1`=3 AND `Idx2`=5) OR (`QuestID`=38819 AND `Idx1`=3 AND `Idx2`=4) OR (`QuestID`=38819 AND `Idx1`=3 AND `Idx2`=3) OR (`QuestID`=38819 AND `Idx1`=3 AND `Idx2`=2) OR (`QuestID`=38819 AND `Idx1`=3 AND `Idx2`=1) OR (`QuestID`=38819 AND `Idx1`=3 AND `Idx2`=0) OR (`QuestID`=38819 AND `Idx1`=2 AND `Idx2`=11) OR (`QuestID`=38819 AND `Idx1`=2 AND `Idx2`=10) OR (`QuestID`=38819 AND `Idx1`=2 AND `Idx2`=9) OR (`QuestID`=38819 AND `Idx1`=2 AND `Idx2`=8) OR (`QuestID`=38819 AND `Idx1`=2 AND `Idx2`=7) OR (`QuestID`=38819 AND `Idx1`=2 AND `Idx2`=6) OR (`QuestID`=38819 AND `Idx1`=2 AND `Idx2`=5) OR (`QuestID`=38819 AND `Idx1`=2 AND `Idx2`=4) OR (`QuestID`=38819 AND `Idx1`=2 AND `Idx2`=3) OR (`QuestID`=38819 AND `Idx1`=2 AND `Idx2`=2) OR (`QuestID`=38819 AND `Idx1`=2 AND `Idx2`=1) OR (`QuestID`=38819 AND `Idx1`=2 AND `Idx2`=0) OR (`QuestID`=38819 AND `Idx1`=1 AND `Idx2`=11) OR (`QuestID`=38819 AND `Idx1`=1 AND `Idx2`=10) OR (`QuestID`=38819 AND `Idx1`=1 AND `Idx2`=9) OR (`QuestID`=38819 AND `Idx1`=1 AND `Idx2`=8) OR (`QuestID`=38819 AND `Idx1`=1 AND `Idx2`=7) OR (`QuestID`=38819 AND `Idx1`=1 AND `Idx2`=6) OR (`QuestID`=38819 AND `Idx1`=1 AND `Idx2`=5) OR (`QuestID`=38819 AND `Idx1`=1 AND `Idx2`=4) OR (`QuestID`=38819 AND `Idx1`=1 AND `Idx2`=3) OR (`QuestID`=38819 AND `Idx1`=1 AND `Idx2`=2) OR (`QuestID`=38819 AND `Idx1`=1 AND `Idx2`=1) OR (`QuestID`=38819 AND `Idx1`=1 AND `Idx2`=0) OR (`QuestID`=38819 AND `Idx1`=0 AND `Idx2`=0) OR (`QuestID`=38727 AND `Idx1`=4 AND `Idx2`=0) OR (`QuestID`=38727 AND `Idx1`=3 AND `Idx2`=0) OR (`QuestID`=38727 AND `Idx1`=2 AND `Idx2`=0) OR (`QuestID`=38727 AND `Idx1`=1 AND `Idx2`=0) OR (`QuestID`=38727 AND `Idx1`=0 AND `Idx2`=0) OR (`QuestID`=39495 AND `Idx1`=2 AND `Idx2`=0) OR (`QuestID`=39495 AND `Idx1`=1 AND `Idx2`=0) OR (`QuestID`=39495 AND `Idx1`=0 AND `Idx2`=0) OR (`QuestID`=39262 AND `Idx1`=3 AND `Idx2`=0) OR (`QuestID`=39262 AND `Idx1`=2 AND `Idx2`=0) OR (`QuestID`=39262 AND `Idx1`=1 AND `Idx2`=0) OR (`QuestID`=39262 AND `Idx1`=0 AND `Idx2`=0) OR (`QuestID`=38813 AND `Idx1`=4 AND `Idx2`=0) OR (`QuestID`=38813 AND `Idx1`=3 AND `Idx2`=0) OR (`QuestID`=38813 AND `Idx1`=2 AND `Idx2`=0) OR (`QuestID`=38813 AND `Idx1`=1 AND `Idx2`=0) OR (`QuestID`=38813 AND `Idx1`=0 AND `Idx2`=0) OR (`QuestID`=38766 AND `Idx1`=2 AND `Idx2`=0) OR (`QuestID`=38766 AND `Idx1`=1 AND `Idx2`=0) OR (`QuestID`=38766 AND `Idx1`=0 AND `Idx2`=0) OR (`QuestID`=38765 AND `Idx1`=3 AND `Idx2`=0) OR (`QuestID`=38765 AND `Idx1`=2 AND `Idx2`=0) OR (`QuestID`=38765 AND `Idx1`=1 AND `Idx2`=0) OR (`QuestID`=38765 AND `Idx1`=0 AND `Idx2`=0) OR (`QuestID`=39050 AND `Idx1`=2 AND `Idx2`=0) OR (`QuestID`=39050 AND `Idx1`=1 AND `Idx2`=0) OR (`QuestID`=39050 AND `Idx1`=0 AND `Idx2`=0) OR (`QuestID`=40379 AND `Idx1`=3 AND `Idx2`=0) OR (`QuestID`=40379 AND `Idx1`=2 AND `Idx2`=0) OR (`QuestID`=40379 AND `Idx1`=1 AND `Idx2`=0) OR (`QuestID`=40379 AND `Idx1`=0 AND `Idx2`=0) OR (`QuestID`=39049 AND `Idx1`=2 AND `Idx2`=0) OR (`QuestID`=39049 AND `Idx1`=1 AND `Idx2`=0) OR (`QuestID`=39049 AND `Idx1`=0 AND `Idx2`=0) OR (`QuestID`=38759 AND `Idx1`=6 AND `Idx2`=0) OR (`QuestID`=38759 AND `Idx1`=5 AND `Idx2`=0) OR (`QuestID`=38759 AND `Idx1`=4 AND `Idx2`=0) OR (`QuestID`=38759 AND `Idx1`=3 AND `Idx2`=0) OR (`QuestID`=38759 AND `Idx1`=2 AND `Idx2`=0) OR (`QuestID`=38759 AND `Idx1`=1 AND `Idx2`=11) OR (`QuestID`=38759 AND `Idx1`=1 AND `Idx2`=10) OR (`QuestID`=38759 AND `Idx1`=1 AND `Idx2`=9) OR (`QuestID`=38759 AND `Idx1`=1 AND `Idx2`=8) OR (`QuestID`=38759 AND `Idx1`=1 AND `Idx2`=7) OR (`QuestID`=38759 AND `Idx1`=1 AND `Idx2`=6) OR (`QuestID`=38759 AND `Idx1`=1 AND `Idx2`=5) OR (`QuestID`=38759 AND `Idx1`=1 AND `Idx2`=4) OR (`QuestID`=38759 AND `Idx1`=1 AND `Idx2`=3) OR (`QuestID`=38759 AND `Idx1`=1 AND `Idx2`=2) OR (`QuestID`=38759 AND `Idx1`=1 AND `Idx2`=1) OR (`QuestID`=38759 AND `Idx1`=1 AND `Idx2`=0) OR (`QuestID`=38759 AND `Idx1`=0 AND `Idx2`=0);
+
+DELETE FROM `quest_details` WHERE `ID`=38766;
+INSERT INTO `quest_details` (`ID`, `Emote1`, `Emote2`, `Emote3`, `Emote4`, `EmoteDelay1`, `EmoteDelay2`, `EmoteDelay3`, `EmoteDelay4`, `VerifiedBuild`) VALUES
+(38766, 1, 0, 0, 0, 0, 0, 0, 0, 70575); -- Before We're Overrun
+
+UPDATE `quest_details` SET `VerifiedBuild`=70575 WHERE `ID` IN (38725, 38819, 38727, 39495, 39262, 38813, 38765, 39050, 40379, 39049, 38759);
+
+DELETE FROM `quest_request_items` WHERE `ID`=38759;
+INSERT INTO `quest_request_items` (`ID`, `EmoteOnComplete`, `EmoteOnIncomplete`, `EmoteOnCompleteDelay`, `EmoteOnIncompleteDelay`, `CompletionText`, `VerifiedBuild`) VALUES
+(38759, 6, 0, 0, 0, 'Some of our demon hunters are missing. Did you see them back on the Molten Shore?', 0); -- Set Them Free
+
+UPDATE `creature_queststarter` SET `VerifiedBuild`=70575 WHERE (`id`=96655 AND `quest`=38725) OR (`id`=96420 AND `quest`=38819) OR (`id`=93127 AND `quest` IN (38727,39262,38813)) OR (`id`=96436 AND `quest`=39495) OR (`id`=93759 AND `quest` IN (38766,38765,39050)) OR (`id`=100982 AND `quest`=40379) OR (`id`=94410 AND `quest` IN (39049,38759));
+UPDATE `creature_questender` SET `VerifiedBuild`=70575 WHERE (`id`=93127 AND `quest` IN (39495,38813,38765,38766)) OR (`id`=96436 AND `quest`=39262) OR (`id`=93759 AND `quest` IN (39050,40379,39049,38759));
+
 DELETE FROM `gameobject_template_addon` WHERE `entry` IN (244691 /*Small Treasure Chest*/, 246249 /*Small Treasure Chest*/, 253931 /*Creature_Demoncrystal_03_fel*/, 245316 /*Small Treasure Chest*/, 246486 /*Spire of Woe*/, 246356 /*7LG_Legion_FloorRune02 (Purple) [Large]*/, 246485 /*Spire of Woe*/, 244689 /*Small Treasure Chest*/, 250560 /*Legion Banner*/, 259043 /*Legion Banner 02*/, 246309 /*Small Treasure Chest*/);
 INSERT INTO `gameobject_template_addon` (`entry`, `faction`, `flags`, `WorldEffectID`, `AIAnimKitID`) VALUES
 (244691, 0, 0x204000, 2437, 0), -- Small Treasure Chest
@@ -1114,6 +1431,17 @@ INSERT INTO `gameobject_template_addon` (`entry`, `faction`, `flags`, `WorldEffe
 (250560, 0, 0x40001, 0, 0), -- Legion Banner
 (259043, 114, 0x0, 0, 0), -- Legion Banner 02
 (246309, 0, 0x204000, 2437, 0); -- Small Treasure Chest
+
+DELETE FROM `gameobject_template_addon` WHERE `entry` IN (244698 /*Small Treasure Chest*/, 246269 /*Small Treasure Chest*/, 244638 /*Well of Souls*/, 246270 /*7LG_Legion_FloorRune01 [Scale x0.50]*/, 243965 /*Illidari Banner*/, 244694 /*Small Treasure Chest*/, 244692 /*Small Treasure Chest*/, 246147 /*Small Treasure Chest*/);
+INSERT INTO `gameobject_template_addon` (`entry`, `faction`, `flags`, `WorldEffectID`, `AIAnimKitID`) VALUES
+(244698, 0, 0x204000, 2437, 0), -- Small Treasure Chest
+(246269, 0, 0x204000, 2437, 0), -- Small Treasure Chest
+(244638, 0, 0x0, 2100, 0), -- Well of Souls
+(246270, 114, 0x0, 0, 0), -- 7LG_Legion_FloorRune01 [Scale x0.50]
+(243965, 0, 0x40000, 0, 0), -- Illidari Banner
+(244694, 0, 0x206000, 2437, 0), -- Small Treasure Chest
+(244692, 0, 0x206000, 2437, 0), -- Small Treasure Chest
+(246147, 0, 0x0, 2437, 0); -- Small Treasure Chest
 
 UPDATE `gameobject_template_addon` SET `flags`=0x22 WHERE `entry`=246567; -- Spire of Woe B
 UPDATE `gameobject_template_addon` SET `flags`=0x22 WHERE `entry`=246566; -- Spire of Woe A
@@ -1144,11 +1472,54 @@ INSERT INTO `conversation_line_template` (`Id`, `UiCameraID`, `ActorIdx`, `Flags
 (1517, 262, 0, 0, 0, 70575),
 (1516, 262, 0, 0, 0, 70575);
 
+DELETE FROM `conversation_actors` WHERE (`Idx`=0 AND `ConversationId` IN (735,574,570));
+INSERT INTO `conversation_actors` (`ConversationId`, `ConversationActorId`, `Idx`, `CreatureId`, `CreatureDisplayInfoId`, `NoActorObject`, `ActivePlayerObject`, `VerifiedBuild`) VALUES
+(735, 50100, 0, 0, 0, 0, 0, 70575), -- Full: 0x2016FCB9205B8FC003FEE60000607783 Creature/0 R1471/S261862 Map: 1481 (Mardum) Entry: 93759 (Jace Darkweaver) Low: 6322051
+(574, 49935, 0, 93802, 65935, 0, 0, 70575),
+(570, 49942, 0, 97676, 60790, 0, 0, 70575);
+
+UPDATE `conversation_actors` SET `VerifiedBuild`=70575 WHERE (`ConversationId`=486 AND `Idx` IN (1,0)) OR (`ConversationId`=576 AND `Idx`=0) OR (`ConversationId`=531 AND `Idx`=0) OR (`ConversationId`=569 AND `Idx` IN (2,4,3,1,0));
+
+DELETE FROM `conversation_line_template` WHERE `Id` IN (1755, 1754, 1493, 1483, 1482);
+INSERT INTO `conversation_line_template` (`Id`, `UiCameraID`, `ActorIdx`, `Flags`, `ChatType`, `VerifiedBuild`) VALUES
+(1755, 0, 0, 0, 0, 70575),
+(1754, 0, 0, 0, 0, 70575),
+(1493, 262, 0, 0, 0, 70575),
+(1483, 141, 0, 0, 0, 70575),
+(1482, 141, 0, 0, 0, 70575);
+
+UPDATE `conversation_line_template` SET `VerifiedBuild`=70575 WHERE `Id` IN (1299, 1298, 1496, 1383, 1828, 1739, 1738, 1737, 1736, 1481, 1480, 1479, 1478, 1477, 1476);
+
+
+DELETE FROM `conversation_template` WHERE `Id` IN (570, 574, 735);
+INSERT INTO `conversation_template` (`Id`, `FirstLineID`, `TextureKitId`, `VerifiedBuild`) VALUES
+(570, 1482, 0, 70575),
+(574, 1493, 0, 70575),
+(735, 1754, 0, 70575);
+
+UPDATE `conversation_template` SET `VerifiedBuild`=70575 WHERE `Id`=576;
+UPDATE `conversation_template` SET `VerifiedBuild`=70575 WHERE `Id`=569;
+UPDATE `conversation_template` SET `VerifiedBuild`=70575 WHERE `Id`=486;
+UPDATE `conversation_template` SET `VerifiedBuild`=70575 WHERE `Id`=531;
+
 UPDATE `areatrigger_create_properties` SET `VerifiedBuild`=70575 WHERE (`Id`=6659 AND `IsCustom`=0);
 UPDATE `areatrigger_create_properties` SET `VerifiedBuild`=70575 WHERE (`Id`=5151 AND `IsCustom`=0); -- Spell: 195051 (Beaming Gaze)
 UPDATE `areatrigger_create_properties` SET `VerifiedBuild`=70575 WHERE (`Id`=2104 AND `IsCustom`=0); -- Spell: 192665 (Legion Aegis)
 UPDATE `areatrigger_create_properties` SET `VerifiedBuild`=70575 WHERE (`Id`=4920 AND `IsCustom`=0); -- Spell: 192604 (Before We're Overrun: Spire of Woe - Area Trigger)
 UPDATE `areatrigger_create_properties` SET `VerifiedBuild`=70575 WHERE (`Id`=3680 AND `IsCustom`=0);
+UPDATE `areatrigger_create_properties` SET `TimeToTargetScale`=14999 WHERE (`Id`=2104 AND `IsCustom`=0); -- Spell: 192665 (Legion Aegis)
+UPDATE `areatrigger_create_properties` SET `PositionalSoundKitId`=0 WHERE (`Id`=5127 AND `IsCustom`=0);
+UPDATE `areatrigger_create_properties` SET `PositionalSoundKitId`=0, `TimeToTargetScale`=4999 WHERE (`Id`=5127 AND `IsCustom`=0); -- Spell: 198306 (Fel Beam)
+UPDATE `areatrigger_create_properties` SET `PositionalSoundKitId`=0 WHERE (`Id`=5177 AND `IsCustom`=0);
+UPDATE `areatrigger_create_properties` SET `VerifiedBuild`=70575 WHERE (`Id`=5315 AND `IsCustom`=0); -- Spell: 197180 (Fel Infusion)
+UPDATE `areatrigger_create_properties` SET `VerifiedBuild`=70575 WHERE (`Id`=5494 AND `IsCustom`=0); -- Spell: 198947 (Carrion Storm)
+UPDATE `areatrigger_create_properties` SET `PositionalSoundKitId`=0 WHERE (`Id`=5639 AND `IsCustom`=0);
+UPDATE `areatrigger_create_properties` SET `PositionalSoundKitId`=0, `TimeToTargetScale`=5999 WHERE (`Id`=5639 AND `IsCustom`=0); -- Spell: 200417 (Foul Fel)
+UPDATE `areatrigger_create_properties` SET `PositionalSoundKitId`=0 WHERE (`Id`=5647 AND `IsCustom`=0);
+UPDATE `areatrigger_create_properties` SET `Shape`=2, `VerifiedBuild`=70575 WHERE (`Id`=5659 AND `IsCustom`=0); -- Spell: 200647 (Shadow Blade)
+UPDATE `areatrigger_create_properties` SET `VerifiedBuild`=70575 WHERE (`Id`=5668 AND `IsCustom`=0); -- Spell: 200753 (Furious Flurry)
+UPDATE `areatrigger_create_properties` SET `TimeToTargetScale`=2999, `VerifiedBuild`=70575 WHERE (`Id`=5668 AND `IsCustom`=0); -- Spell: 200753 (Furious Flurry)
+
 
 UPDATE `areatrigger_template` SET `VerifiedBuild`=70575 WHERE (`Id`=9850 AND `IsCustom`=0);
 UPDATE `areatrigger_template` SET `VerifiedBuild`=70575 WHERE (`Id`=11231 AND `IsCustom`=0);
@@ -1159,13 +1530,25 @@ UPDATE `areatrigger_template` SET `VerifiedBuild`=70575 WHERE (`Id`=6669 AND `Is
 UPDATE `areatrigger_template` SET `VerifiedBuild`=70575 WHERE (`Id`=9905 AND `IsCustom`=0);
 UPDATE `areatrigger_template` SET `VerifiedBuild`=70575 WHERE (`Id`=9637 AND `IsCustom`=0);
 UPDATE `areatrigger_template` SET `VerifiedBuild`=70575 WHERE (`Id`=8352 AND `IsCustom`=0);
+UPDATE `areatrigger_template` SET `VerifiedBuild`=70575 WHERE (`Id`=10037 AND `IsCustom`=0);
+UPDATE `areatrigger_template` SET `VerifiedBuild`=70575 WHERE (`Id`=10089 AND `IsCustom`=0);
+UPDATE `areatrigger_template` SET `VerifiedBuild`=70575 WHERE (`Id`=10195 AND `IsCustom`=0);
+UPDATE `areatrigger_template` SET `VerifiedBuild`=70575 WHERE (`Id`=10362 AND `IsCustom`=0);
+UPDATE `areatrigger_template` SET `VerifiedBuild`=70575 WHERE (`Id`=10366 AND `IsCustom`=0);
+UPDATE `areatrigger_template` SET `VerifiedBuild`=70575 WHERE (`Id`=10375 AND `IsCustom`=0);
 
 DELETE FROM `areatrigger_create_properties` WHERE (`IsCustom`=0 AND `Id` IN (5127,5639,5647,5177));
 INSERT INTO `areatrigger_create_properties` (`Id`, `IsCustom`, `AreaTriggerId`, `IsAreatriggerCustom`, `Flags`, `MoveCurveId`, `ScaleCurveId`, `MorphCurveId`, `FacingCurveId`, `AnimId`, `AnimKitId`, `DecalPropertiesId`, `SpellForVisuals`, `PositionalSoundKitId`, `TimeToTargetScale`, `Speed`, `Shape`, `ShapeData0`, `ShapeData1`, `ShapeData2`, `ShapeData3`, `ShapeData4`, `ShapeData5`, `ShapeData6`, `ShapeData7`, `Roll`, `Pitch`, `Yaw`, `TargetRoll`, `TargetPitch`, `TargetYaw`, `VerifiedBuild`) VALUES
-(5127, 0, 9850, 0, 0, 0, 0, 0, 0, -1, 0, 0, NULL, 198306, 5000, 0, 0, 5, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL, 70575), -- Spell: 198306 (Fel Beam)
-(5639, 0, 10350, 0, 0, 0, 0, 0, 0, -1, 0, 0, NULL, 200417, 6000, 0, 0, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL, 70575), -- Spell: 200417 (Foul Fel)
-(5647, 0, 10355, 0, 0, 0, 0, 0, 0, -1, 0, 0, NULL, 200510, 10000, 0, 0, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL, 70575), -- Spell: 200510 (Anguished Soul)
-(5177, 0, 9905, 0, 0, 0, 0, 0, 0, -1, 0, 0, NULL, 195402, 20000, 0, 0, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL, 70575); -- Spell: 195402 (Shadow Retreat)
+(5127, 0, 9850, 0, 0, 0, 0, 0, 0, -1, 0, 0, NULL, 0, 5000, 0, 0, 5, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL, 70575), -- Spell: 198306 (Fel Beam)
+(5639, 0, 10350, 0, 0, 0, 0, 0, 0, -1, 0, 0, NULL, 0, 6000, 0, 0, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL, 70575), -- Spell: 200417 (Foul Fel)
+(5647, 0, 10355, 0, 0, 0, 0, 0, 0, -1, 0, 0, NULL, 0, 10000, 0, 0, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL, 70575), -- Spell: 200510 (Anguished Soul)
+(5177, 0, 9905, 0, 0, 0, 0, 0, 0, -1, 0, 0, NULL, 0, 20000, 0, 0, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL, 70575); -- Spell: 195402 (Shadow Retreat)
+
+DELETE FROM `areatrigger_create_properties` WHERE (`IsCustom`=0 AND `Id` IN (5380,5655));
+INSERT INTO `areatrigger_create_properties` (`Id`, `IsCustom`, `AreaTriggerId`, `IsAreatriggerCustom`, `Flags`, `MoveCurveId`, `ScaleCurveId`, `MorphCurveId`, `FacingCurveId`, `AnimId`, `AnimKitId`, `DecalPropertiesId`, `SpellForVisuals`, `PositionalSoundKitId`, `TimeToTargetScale`, `Speed`, `Shape`, `ShapeData0`, `ShapeData1`, `ShapeData2`, `ShapeData3`, `ShapeData4`, `ShapeData5`, `ShapeData6`, `ShapeData7`, `Roll`, `Pitch`, `Yaw`, `TargetRoll`, `TargetPitch`, `TargetYaw`, `VerifiedBuild`) VALUES
+(5380, 0, 10089, 0, 0, 0, 0, 0, 0, -1, 0, 0, NULL, 0, 20000, 0, 0, 5, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL, 70575), -- Spell: 197748 (Fel Patch)
+(5655, 0, 10362, 0, 0, 0, 0, 0, 0, -1, 0, 0, NULL, 0, 15000, 0, 4, 2, 2, 6, 6, 2, 2, 0, 0, 0, 0, 0, NULL, NULL, NULL, 70575); -- Spell: 200615 (Fel Resonance)
+
 
 UPDATE `spawn_tracking_template` SET `VerifiedBuild`=70575 WHERE `SpawnTrackingId` IN (1053493, 1053492, 1053491, 1071452, 1027851, 1110294, 1084853, 1029001, 1077247, 1073202, 672538, 722283, 722024, 721274, 721248);
 UPDATE `spawn_tracking_quest_objective` SET `VerifiedBuild`=70575 WHERE (`SpawnTrackingId`=1053493 AND `QuestObjectiveId`=279937) OR (`SpawnTrackingId`=1053492 AND `QuestObjectiveId`=279936) OR (`SpawnTrackingId`=1053491 AND `QuestObjectiveId`=279935) OR (`SpawnTrackingId`=1027851 AND `QuestObjectiveId`=281030) OR (`SpawnTrackingId`=1110294 AND `QuestObjectiveId`=281156) OR (`SpawnTrackingId`=1084853 AND `QuestObjectiveId`=280768) OR (`SpawnTrackingId`=1077247 AND `QuestObjectiveId`=280292);

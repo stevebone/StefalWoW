@@ -579,6 +579,24 @@ struct npc_illidari_fighting_invasion_begins : public ScriptedAI
         ScheduleTargetSelection();
     }
 
+    void MoveInLineOfSight(Unit* who) override
+    {
+        if (Player* player = who->ToPlayer())
+        {
+            if (_talkCooldowned.insert(player->GetGUID()).second)
+            {
+                Talk(0, who);
+
+                me->m_Events.AddEventAtOffset([this, playerGuid = player->GetGUID()]()
+                {
+                    _talkCooldowned.erase(playerGuid);
+                }, 2min);
+            }
+        }
+
+        ScriptedAI::MoveInLineOfSight(who);
+    }
+
     void Reset() override
     {
         _events.Reset();
@@ -633,6 +651,7 @@ struct npc_illidari_fighting_invasion_begins : public ScriptedAI
 private:
     EventMap _events;
     TaskScheduler _oocScheduler;
+    GuidUnorderedSet _talkCooldowned;
 };
 
 enum ETIAshtongueIntroData
