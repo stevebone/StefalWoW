@@ -142,22 +142,23 @@ namespace Scripts::Custom::Mardum
 
     namespace Quests
     {
+        static constexpr uint32 TheInvasionBegins         = 40077;
         static constexpr uint32 EnterTheIllidariAshtongue = 40378;
         static constexpr uint32 EnterTheIllidariCoilskar  = 40379;
         static constexpr uint32 EnterTheIllidariShivarra  = 38765;
-        static constexpr uint32 AssaultOnMardum          = 39279;
-        static constexpr uint32 SetThemFree              = 38759;
-        static constexpr uint32 EyeOnThePrize            = 39049;
-        static constexpr uint32 MeetingWithTheQueen      = 39050;
-        static constexpr uint32 BeforeWereOverun         = 38766;
-        static constexpr uint32 SevisSacrificeTracker    = 40087;
-        static constexpr uint32 StopTheBombardment       = 38727;
-        static constexpr uint32 TheirNumbersAreLegion    = 38819;
-        static constexpr uint32 IntoTheFoulCreche        = 38725;
-        static constexpr uint32 TheImpMothersTome        = 40222;
-        static constexpr uint32 OnFelbatWings            = 39663;
-        static constexpr uint32 TheKeystone              = 38728;
-        static constexpr uint32 ReturnToTheBlackTemple   = 38729;
+        static constexpr uint32 AssaultOnMardum           = 39279;
+        static constexpr uint32 SetThemFree               = 38759;
+        static constexpr uint32 EyeOnThePrize             = 39049;
+        static constexpr uint32 MeetingWithTheQueen       = 39050;
+        static constexpr uint32 BeforeWereOverun          = 38766;
+        static constexpr uint32 SevisSacrificeTracker     = 40087;
+        static constexpr uint32 StopTheBombardment        = 38727;
+        static constexpr uint32 TheirNumbersAreLegion     = 38819;
+        static constexpr uint32 IntoTheFoulCreche         = 38725;
+        static constexpr uint32 TheImpMothersTome         = 40222;
+        static constexpr uint32 OnFelbatWings             = 39663;
+        static constexpr uint32 TheKeystone               = 38728;
+        static constexpr uint32 ReturnToTheBlackTemple    = 38729;
     }
 
     namespace Objectives
@@ -212,6 +213,7 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 WellOfSoulsOpening             = 198185;
         static constexpr uint32 NefariousTorrentOfSouls        = 192714;
         static constexpr uint32 NefariousTorrentOfSoulsBeam    = 192715;
+        static constexpr uint32 IllidariReinforcements         = 191466; // periodic dummy, summons one of the 3 Illidari helpers in combat
         static constexpr uint32 SummonAshtongueStalker         = 191662;
         static constexpr uint32 VolrothBurnWithin              = 197749;
         static constexpr uint32 VolrothFelBreath               = 197750;

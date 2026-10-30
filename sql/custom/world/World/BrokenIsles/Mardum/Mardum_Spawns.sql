@@ -576,18 +576,18 @@ INSERT INTO `gameobject` (`guid`, `id`, `map`, `zoneId`, `areaId`, `phaseUseFlag
 (@OGUID+43, 244604, 1481, 7705, 7742, 0, 0, 0, 1606.72, 2690.23, 20.2769, 0, 0, 1, 7200, 255, 1, '', NULL, 69814),
 (@OGUID+44, 244601, 1481, 7705, 7742, 0, 0, 0, 1577.05, 2718.52, 19.8822, 0, 0, 1, 7200, 255, 1, '', NULL, 69814),
 (@OGUID+45, 246249, 1481, 7705, 7742, 0, 0, 0, 1634.37, 2465.5, 79.9366, 2.44738, 0.940361, 0.340178, 7200, 255, 1, '', NULL, 69814),
-(@OGUID+46, 246356, 1481, 7705, 7742, 0, 0, 0, 1508.5, 2613.84, 32.0861, 2.55659, 0.957526, 0.288348, 7200, 255, 1, '', NULL, 69814),
-(@OGUID+47, 246356, 1481, 7705, 7742, 0, 0, 0, 1422.86, 2538.74, 31.2965, 2.23032, 0.897981, 0.440034, 7200, 255, 1, '', NULL, 69814),
-(@OGUID+48, 246356, 1481, 7705, 7742, 0, 0, 0, 1411.23, 2444.03, 44.2249, 5.61268, 0.329008, -0.944327, 7200, 255, 1, '', NULL, 69814),
-(@OGUID+49, 246356, 1481, 7705, 7742, 0, 0, 0, 1403.59, 2638.27, 26.6001, 4.46143, 0.790042, -0.613053, 7200, 255, 1, '', NULL, 69814),
-(@OGUID+50, 243873, 1481, 7705, 7742, 0, 0, 0, 1508.6, 2613.66, 31.7271, 3.47553, 0.986093, -0.166194, 7200, 255, 0, '', NULL, 69814),
-(@OGUID+51, 246356, 1481, 7705, 7742, 0, 0, 0, 1289.42, 2591.6, 10.115, 4.28765, 0.840263, -0.542179, 7200, 255, 1, '', NULL, 69814),
-(@OGUID+52, 243873, 1481, 7705, 7742, 0, 0, 0, 1411.24, 2444.31, 43.7399, 4.92263, 0.629009, -0.777398, 7200, 255, 0, '', NULL, 69814),
-(@OGUID+53, 243873, 1481, 7705, 7742, 0, 0, 0, 1422.96, 2538.47, 31.3476, 6.07486, 0.103974, -0.99458, 7200, 255, 0, '', NULL, 69814),
-(@OGUID+54, 243873, 1481, 7705, 7742, 0, 0, 0, 1403.73, 2638.3, 26.2742, 0.557507, 0.275157, 0.961399, 7200, 255, 0, '', NULL, 69814),
+-- (@OGUID+46, 246356, 1481, 7705, 7742, 0, 0, 0, 1508.5, 2613.84, 32.0861, 2.55659, 0.957526, 0.288348, 7200, 255, 1, '', NULL, 69814),
+-- (@OGUID+47, 246356, 1481, 7705, 7742, 0, 0, 0, 1422.86, 2538.74, 31.2965, 2.23032, 0.897981, 0.440034, 7200, 255, 1, '', NULL, 69814),
+-- (@OGUID+48, 246356, 1481, 7705, 7742, 0, 0, 0, 1411.23, 2444.03, 44.2249, 5.61268, 0.329008, -0.944327, 7200, 255, 1, '', NULL, 69814),
+-- (@OGUID+49, 246356, 1481, 7705, 7742, 0, 0, 0, 1403.59, 2638.27, 26.6001, 4.46143, 0.790042, -0.613053, 7200, 255, 1, '', NULL, 69814),
+-- (@OGUID+50, 243873, 1481, 7705, 7742, 0, 0, 0, 1508.6, 2613.66, 31.7271, 3.47553, 0.986093, -0.166194, 7200, 255, 0, '', NULL, 69814),
+-- (@OGUID+51, 246356, 1481, 7705, 7742, 0, 0, 0, 1289.42, 2591.6, 10.115, 4.28765, 0.840263, -0.542179, 7200, 255, 1, '', NULL, 69814),
+-- (@OGUID+52, 243873, 1481, 7705, 7742, 0, 0, 0, 1411.24, 2444.31, 43.7399, 4.92263, 0.629009, -0.777398, 7200, 255, 0, '', NULL, 69814),
+-- (@OGUID+53, 243873, 1481, 7705, 7742, 0, 0, 0, 1422.96, 2538.47, 31.3476, 6.07486, 0.103974, -0.99458, 7200, 255, 0, '', NULL, 69814),
+-- (@OGUID+54, 243873, 1481, 7705, 7742, 0, 0, 0, 1403.73, 2638.3, 26.2742, 0.557507, 0.275157, 0.961399, 7200, 255, 0, '', NULL, 69814),
 (@OGUID+55, 244691, 1481, 7705, 7740, 0, 0, 0, 629.769, 2343.73, -72.8531, 0.618681, 0.304431, 0.952535, 7200, 255, 1, '', NULL, 69814),
 (@OGUID+56, 244689, 1481, 7705, 7740, 0, 0, 0, 820.571, 2724.09, -30.8767, 1.29467, 0.603063, 0.797694, 7200, 255, 1, '', NULL, 69814),
-(@OGUID+57, 243873, 1481, 7705, 7742, 0, 0, 0, 1289.43, 2591.53, 9.8817, 5.06938, 0.570326, -0.821418, 7200, 255, 0, '', NULL, 69814),
+-- (@OGUID+57, 243873, 1481, 7705, 7742, 0, 0, 0, 1289.43, 2591.53, 9.8817, 5.06938, 0.570326, -0.821418, 7200, 255, 0, '', NULL, 69814),
 (@OGUID+58, 246309, 1481, 7705, 7741, 0, 0, 0, 1228.01, 3166.12, -19.2696, 4.72807, 0.701541, -0.712629, 7200, 255, 1, '', NULL, 69814),
 (@OGUID+59, 2910, 1481, 7705, 7741, 0, 0, 0, 885.163, 3044.92, -29.8622, 0.211758, 0.105681, 0.9944, 180, 0, 1, '', NULL, 69814);
 
@@ -595,18 +595,18 @@ DELETE FROM `gameobject_addon` WHERE `guid` BETWEEN @OGUID+0 AND @OGUID+59;
 INSERT INTO `gameobject_addon` (`guid`, `parent_rotation0`, `parent_rotation1`, `parent_rotation2`, `parent_rotation3`, `invisibilityType`, `invisibilityValue`, `WorldEffectID`, `AIAnimKitID`) VALUES
 (@OGUID+59, 0, 0, 0.105681, 0.9944, 0, 0, 0, 0),
 (@OGUID+58, 0.000733375, -0.00353146, -0.701532, 0.712628, 0, 0, 0, 0),
-(@OGUID+57, -0.00106096, 0.0011282, -0.570327, 0.821416, 0, 0, 0, 0),
+-- (@OGUID+57, -0.00106096, 0.0011282, -0.570327, 0.821416, 0, 0, 0, 0),
 (@OGUID+56, -0.0275736, 0.0267563, 0.602797, 0.796969, 0, 0, 0, 0),
 (@OGUID+55, -0.00594282, -0.0408506, 0.303531, 0.951927, 0, 0, 0, 0),
-(@OGUID+54, 0.00525475, -0.00958347, 0.275166, 0.961335, 0, 0, 0, 0),
-(@OGUID+53, 0.00408268, 0.000900269, -0.103979, 0.994571, 0, 0, 0, 0),
-(@OGUID+52, -0.0157313, -0.0864029, -0.624041, 0.776441, 0, 0, 0, 0),
-(@OGUID+51, -0.00582886, 0.00822353, -0.840223, 0.542147, 0, 0, 0, 0),
-(@OGUID+50, 0.0039196, -0.0996714, -0.980965, 0.166609, 0, 0, 0, 0),
-(@OGUID+49, -0.00566959, 0.0137348, -0.789919, 0.613031, 0, 0, 0, 0),
-(@OGUID+48, -0.0286808, 0.0852337, -0.323958, 0.941787, 0, 0, 0, 0),
-(@OGUID+47, -0.00403738, -0.00923634, 0.897933, 0.440017, 0, 0, 0, 0),
-(@OGUID+46, -0.0686593, -0.0351801, 0.955527, 0.284633, 0, 0, 0, 0),
+-- (@OGUID+54, 0.00525475, -0.00958347, 0.275166, 0.961335, 0, 0, 0, 0),
+-- (@OGUID+53, 0.00408268, 0.000900269, -0.103979, 0.994571, 0, 0, 0, 0),
+-- (@OGUID+52, -0.0157313, -0.0864029, -0.624041, 0.776441, 0, 0, 0, 0),
+-- (@OGUID+51, -0.00582886, 0.00822353, -0.840223, 0.542147, 0, 0, 0, 0),
+-- (@OGUID+50, 0.0039196, -0.0996714, -0.980965, 0.166609, 0, 0, 0, 0),
+-- (@OGUID+49, -0.00566959, 0.0137348, -0.789919, 0.613031, 0, 0, 0, 0),
+-- (@OGUID+48, -0.0286808, 0.0852337, -0.323958, 0.941787, 0, 0, 0, 0),
+-- (@OGUID+47, -0.00403738, -0.00923634, 0.897933, 0.440017, 0, 0, 0, 0),
+-- (@OGUID+46, -0.0686593, -0.0351801, 0.955527, 0.284633, 0, 0, 0, 0),
 (@OGUID+45, 0.00290346, 0.00214004, 0.940357, 0.340169, 0, 0, 0, 0),
 (@OGUID+42, 0.00358677, -0.000384331, 0.463126, 0.886285, 0, 0, 0, 0),
 (@OGUID+41, 0.0470743, -0.0396662, -0.903411, 0.424334, 0, 0, 0, 0),
@@ -648,6 +648,121 @@ INSERT INTO `gameobject_addon` (`guid`, `parent_rotation0`, `parent_rotation1`, 
 (@OGUID+4, 0, 0, 0.861565, 0.507648, 0, 0, 0, 0),
 (@OGUID+3, 0, 0, -0.999936, 0.0113045, 0, 0, 0, 0),
 (@OGUID+2, -0.241338, 0.0312243, -0.964764, 0.10006, 0, 0, 0, 0);
+
+SET @OGUID := 70012795;
+DELETE FROM `gameobject` WHERE `guid` BETWEEN @OGUID+0 AND @OGUID+14;
+INSERT INTO `gameobject` (`guid`, `id`, `map`, `zoneId`, `areaId`, `phaseUseFlags`, `PhaseId`, `PhaseGroup`, `position_x`, `position_y`, `position_z`, `orientation`, `rotation0`, `rotation1`, `rotation2`, `rotation3`, `spawntimesecs`, `animprogress`, `state`, `VerifiedBuild`) VALUES
+(@OGUID+0, 243873, 1481, 7705, 7705, 1, 0, 0, 1289.4288330078125, 2591.5322265625, 9.881704330444335937, 5.069375514984130859, -0.00106096267700195, 0.001128196716308593, -0.57032680511474609, 0.821416437625885009, 120, 255, 0, 70575), -- Legion Portal (Area: Mardum, the Shattered Abyss - Difficulty: 0) CreateObject1 - !!! already present in database !!!
+(@OGUID+1, 243873, 1481, 7705, 7705, 1, 0, 0, 1411.2430419921875, 2444.3125, 43.73992156982421875, 4.922633647918701171, -0.01573133468627929, -0.08640289306640625, -0.62404060363769531, 0.776440858840942382, 120, 255, 0, 70575), -- Legion Portal (Area: Mardum, the Shattered Abyss - Difficulty: 0) CreateObject1
+(@OGUID+2, 243873, 1481, 7705, 7705, 1, 0, 0, 1508.5989990234375, 2613.663330078125, 31.72713661193847656, 3.475528240203857421, 0.003919601440429687, -0.0996713638305664, -0.98096466064453125, 0.166609123349189758, 120, 255, 0, 70575), -- Legion Portal (Area: Mardum, the Shattered Abyss - Difficulty: 0) CreateObject1
+(@OGUID+3, 243873, 1481, 7705, 7705, 1, 0, 0, 1549.265625, 2419.439208984375, 73.9239654541015625, 4.467868328094482421, 0.03841400146484375, -0.13198566436767578, -0.77652168273925781, 0.614913165569305419, 120, 255, 0, 70575), -- Legion Portal (Area: Mardum, the Shattered Abyss - Difficulty: 0) CreateObject1
+(@OGUID+4, 243873, 1481, 7705, 7705, 1, 0, 0, 1331.564208984375, 2522.943603515625, 27.49843788146972656, 5.842062950134277343, 0.048191070556640625, -0.08407878875732421, -0.21315956115722656, 0.97219926118850708, 120, 255, 0, 70575), -- Legion Portal (Area: Mardum, the Shattered Abyss - Difficulty: 0) CreateObject1
+(@OGUID+5, 243873, 1481, 7705, 7705, 1, 0, 0, 1422.96533203125, 2538.471435546875, 31.34757232666015625, 6.074859142303466796, 0.004082679748535156, 0.0009002685546875, -0.10397911071777343, 0.994570672512054443, 120, 255, 0, 70575), -- Legion Portal (Area: Mardum, the Shattered Abyss - Difficulty: 0) CreateObject1 - !!! already present in database !!!
+(@OGUID+6, 243873, 1481, 7705, 7705, 1, 0, 0, 1403.7291259765625, 2638.296875, 26.27418327331542968, 0.557506561279296875, 0.005254745483398437, -0.0095834732055664, 0.275165557861328125, 0.961334764957427978, 120, 255, 0, 70575), -- Legion Portal (Area: Mardum, the Shattered Abyss - Difficulty: 0) CreateObject1 - !!! already present in database !!!
+(@OGUID+7, 246356, 1481, 7705, 7740, 1, 0, 0, 1289.421875, 2591.6015625, 10.11504077911376953, 4.287647247314453125, -0.005828857421875, 0.008223533630371093, -0.84022331237792968, 0.542146801948547363, 120, 255, 1, 70575), -- 7LG_Legion_FloorRune02 (Purple) [Large] (Area: Molten Shore - Difficulty: 0) CreateObject1 - !!! already present in database !!!
+(@OGUID+8, 246356, 1481, 7705, 7826, 1, 0, 0, 1331.2222900390625, 2523.08935546875, 27.34009552001953125, 1.909345984458923339, -0.10946035385131835, 0.000473976135253906, 0.814482688903808593, 0.569768488407135009, 120, 255, 1, 70575), -- 7LG_Legion_FloorRune02 (Purple) [Large] (Area: Twisting Nether - Difficulty: 0) CreateObject1
+(@OGUID+9, 246356, 1481, 7705, 7742, 1, 0, 0, 1422.859375, 2538.741455078125, 31.29653358459472656, 2.230317115783691406, -0.00403738021850585, -0.00923633575439453, 0.897933006286621093, 0.44001665711402893, 120, 255, 1, 70575), -- 7LG_Legion_FloorRune02 (Purple) [Large] (Area: Seat of Command - Difficulty: 0) CreateObject1 - !!! already present in database !!!
+(@OGUID+10, 246356, 1481, 7705, 7742, 1, 0, 0, 1403.592041015625, 2638.268310546875, 26.60007858276367187, 4.461434364318847656, -0.00566959381103515, 0.013734817504882812, -0.78991889953613281, 0.613031268119812011, 120, 255, 1, 70575), -- 7LG_Legion_FloorRune02 (Purple) [Large] (Area: Seat of Command - Difficulty: 0) CreateObject1 - !!! already present in database !!!
+(@OGUID+11, 246356, 1481, 7705, 7742, 1, 0, 0, 1411.234375, 2444.026123046875, 44.22490310668945312, 5.612679958343505859, -0.02868080139160156, 0.085233688354492187, -0.32395839691162109, 0.941787481307983398, 120, 255, 1, 70575), -- 7LG_Legion_FloorRune02 (Purple) [Large] (Area: Seat of Command - Difficulty: 0) CreateObject1
+(@OGUID+12, 246356, 1481, 7705, 7742, 1, 0, 0, 1508.5, 2613.843017578125, 32.08614349365234375, 2.556587696075439453, -0.06865930557250976, -0.03518009185791015, 0.955527305603027343, 0.284632802009582519, 120, 255, 1, 70575), -- 7LG_Legion_FloorRune02 (Purple) [Large] (Area: Seat of Command - Difficulty: 0) CreateObject1
+(@OGUID+13, 246356, 1481, 7705, 7742, 1, 0, 0, 1549.326416015625, 2419.600830078125, 74.66439056396484375, 2.096879482269287109, -0.11640214920043945, -0.0743265151977539, 0.862250328063964843, 0.487288922071456909, 120, 255, 1, 70575), -- 7LG_Legion_FloorRune02 (Purple) [Large] (Area: Seat of Command - Difficulty: 0) CreateObject1
+(@OGUID+14, 245316, 1481, 7705, 7742, 1, 0, 0, 1345.6666259765625, 2449.611083984375, 13.16101646423339843, 0.617849111557006835, 0.0283660888671875, 0.006204605102539062, 0.303980827331542968, 0.952235519886016845, 120, 255, 1, 70575); -- Small Treasure Chest (Area: Seat of Command - Difficulty: 0) CreateObject1
+
+DELETE FROM `gameobject_addon` WHERE `guid` BETWEEN @OGUID+0 AND @OGUID+14;
+INSERT INTO `gameobject_addon` (`guid`, `parent_rotation0`, `parent_rotation1`, `parent_rotation2`, `parent_rotation3`, `WorldEffectID`, `AIAnimKitID`) VALUES
+(@OGUID+14, 0, 0, 0, 1, 2437, 0); -- Small Treasure Chest
+
+SET @CGUID := 70064292;
+DELETE FROM `creature` WHERE `guid` BETWEEN @CGUID+0 AND @CGUID+9;
+DELETE FROM `creature` WHERE `id` IN (97142) AND `map` = 1481;
+INSERT INTO `creature` (`guid`, `id`, `map`, `zoneId`, `areaId`, `phaseUseFlags`, `PhaseId`, `PhaseGroup`, `modelid`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `wander_distance`, `currentwaypoint`, `MovementType`, `npcflag`, `unit_flags`, `unit_flags2`, `unit_flags3`, `VerifiedBuild`) VALUES
+(@CGUID+0, 97142, 1481, 7705, 7740, 1, 0, 0, 0, 0, 797.72222900390625, 2790.532958984375, -33.0243721008300781, 0, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 70575), -- Fel Spreader (Area: Molten Shore - Difficulty: 0) CreateObject1 (Auras: 200681 - Cosmetic - Random 7XP Fel Ground Crack A01 or A02 [scale x0.50]) - !!! already present in database !!!
+(@CGUID+1, 97142, 1481, 7705, 7740, 1, 0, 0, 0, 0, 812.545166015625, 2558.103271484375, -50.187835693359375, 0, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 70575), -- Fel Spreader (Area: Molten Shore - Difficulty: 0) CreateObject1 (Auras: 200681 - Cosmetic - Random 7XP Fel Ground Crack A01 or A02 [scale x0.50]) - !!! already present in database !!!
+(@CGUID+2, 97142, 1481, 7705, 7740, 1, 0, 0, 0, 0, 724.8819580078125, 2508.56689453125, -66.7697906494140625, 0.990418970584869384, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 70575), -- Fel Spreader (Area: Molten Shore - Difficulty: 0) CreateObject1 (Auras: 200681 - Cosmetic - Random 7XP Fel Ground Crack A01 or A02 [scale x0.50]) - !!! already present in database !!!
+(@CGUID+3, 97142, 1481, 7705, 7740, 1, 0, 0, 0, 0, 953.638916015625, 2593.053955078125, -58.7454643249511718, 3.598768472671508789, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 70575), -- Fel Spreader (Area: Molten Shore - Difficulty: 0) CreateObject1 (Auras: 200681 - Cosmetic - Random 7XP Fel Ground Crack A01 or A02 [scale x0.50])
+(@CGUID+4, 97142, 1481, 7705, 7742, 1, 0, 0, 0, 0, 1346.1875, 2598.635498046875, 19.326751708984375, 5.900003433227539062, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 70575), -- Fel Spreader (Area: Seat of Command - Difficulty: 0) CreateObject1 (Auras: 200681 - Cosmetic - Random 7XP Fel Ground Crack A01 or A02 [scale x0.50])
+(@CGUID+5, 97142, 1481, 7705, 7742, 1, 0, 0, 0, 0, 1342.9478759765625, 2381.24658203125, 37.44019317626953125, 3.31837010383605957, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 70575), -- Fel Spreader (Area: Seat of Command - Difficulty: 0) CreateObject1 (Auras: 200681 - Cosmetic - Random 7XP Fel Ground Crack A01 or A02 [scale x0.50])
+(@CGUID+6, 97142, 1481, 7705, 7741, 1, 0, 0, 0, 0, 859.046875, 2903.330810546875, -24.5017356872558593, 0, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 70575), -- Fel Spreader (Area: Despair Ridge - Difficulty: 0) CreateObject1 (Auras: 200681 - Cosmetic - Random 7XP Fel Ground Crack A01 or A02 [scale x0.50]) - !!! already present in database !!!
+(@CGUID+7, 97142, 1481, 7705, 7742, 1, 0, 0, 0, 0, 1478.2603759765625, 2533.515625, 42.796875, 0.651824116706848144, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 70575), -- Fel Spreader (Area: Seat of Command - Difficulty: 0) CreateObject1 (Auras: 200681 - Cosmetic - Random 7XP Fel Ground Crack A01 or A02 [scale x0.50])
+(@CGUID+8, 97142, 1481, 7705, 7742, 1, 0, 0, 0, 0, 1462.4879150390625, 2657.950439453125, 35.22789382934570312, 3.31837010383605957, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 70575), -- Fel Spreader (Area: Seat of Command - Difficulty: 0) CreateObject1 (Auras: 200681 - Cosmetic - Random 7XP Fel Ground Crack A01 or A02 [scale x0.50])
+(@CGUID+9, 97142, 1481, 7705, 7742, 1, 0, 0, 0, 0, 1423.9635009765625, 2338.40966796875, 66.92083740234375, 3.31837010383605957, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 70575); -- Fel Spreader (Area: Seat of Command - Difficulty: 0) CreateObject1 (Auras: 200681 - Cosmetic - Random 7XP Fel Ground Crack A01 or A02 [scale x0.50])
+
+DELETE FROM `spawn_tracking_template` WHERE `SpawnTrackingId` BETWEEN 1046034 AND 1046043;
+INSERT INTO `spawn_tracking_template` (`SpawnTrackingId`, `MapId`, `PhaseId`, `PhaseGroup`, `PhaseUseFlags`, `VerifiedBuild`) VALUES
+(1046034, 1481, 0, 0, 1, 70575), -- Map: 1481 (Mardum) - PhaseUseFlags must match the creature rows (1 = always visible)
+(1046035, 1481, 0, 0, 1, 70575),
+(1046036, 1481, 0, 0, 1, 70575),
+(1046037, 1481, 0, 0, 1, 70575),
+(1046038, 1481, 0, 0, 1, 70575),
+(1046039, 1481, 0, 0, 1, 70575),
+(1046040, 1481, 0, 0, 1, 70575),
+(1046041, 1481, 0, 0, 1, 70575),
+(1046042, 1481, 0, 0, 1, 70575),
+(1046043, 1481, 0, 0, 1, 70575);
+
+-- One SpawnTrackingId per spreader: completion is stored per (objective, trackingId),
+-- so a shared id would hide every spreader after the first one is used.
+DELETE FROM `spawn_tracking_quest_objective` WHERE `SpawnTrackingId` BETWEEN 1046034 AND 1046043;
+INSERT INTO `spawn_tracking_quest_objective` (`SpawnTrackingId`, `QuestObjectiveId`, `VerifiedBuild`) VALUES
+(1046034, 279928, 70575), -- quest 39279 Assault On Mardum: Fel Spreaders destroyed
+(1046035, 279928, 70575),
+(1046036, 279928, 70575),
+(1046037, 279928, 70575),
+(1046038, 279928, 70575),
+(1046039, 279928, 70575),
+(1046040, 279928, 70575),
+(1046041, 279928, 70575),
+(1046042, 279928, 70575),
+(1046043, 279928, 70575);
+
+DELETE FROM `spawn_tracking` WHERE (`SpawnType`=0 AND `SpawnId` BETWEEN @CGUID+0 AND @CGUID+9);
+INSERT INTO `spawn_tracking` (`SpawnTrackingId`, `SpawnType`, `SpawnId`, `QuestObjectiveIds`) VALUES
+(1046034, 0, @CGUID+0, '279928'), -- Fel Spreader
+(1046035, 0, @CGUID+1, '279928'), -- Fel Spreader
+(1046036, 0, @CGUID+2, '279928'), -- Fel Spreader
+(1046037, 0, @CGUID+3, '279928'), -- Fel Spreader
+(1046038, 0, @CGUID+4, '279928'), -- Fel Spreader
+(1046039, 0, @CGUID+5, '279928'), -- Fel Spreader
+(1046040, 0, @CGUID+6, '279928'), -- Fel Spreader
+(1046041, 0, @CGUID+7, '279928'), -- Fel Spreader
+(1046042, 0, @CGUID+8, '279928'), -- Fel Spreader
+(1046043, 0, @CGUID+9, '279928'); -- Fel Spreader
+
+DELETE FROM `spawn_tracking_state` WHERE (`SpawnType`=0 AND `SpawnId` BETWEEN @CGUID+0 AND @CGUID+9);
+INSERT INTO `spawn_tracking_state` (`SpawnType`, `SpawnId`, `State`, `Visible`, `StateSpellVisualId`, `StateAnimId`, `StateAnimKitId`, `StateWorldEffects`) VALUES
+-- State 0 (None - quest not taken): visible + effects // 3035
+(0, @CGUID+0, 0, 1, NULL, NULL, NULL, '2100'), -- Fel Spreader
+(0, @CGUID+1, 0, 1, NULL, NULL, NULL, '2100'), -- Fel Spreader
+(0, @CGUID+2, 0, 1, NULL, NULL, NULL, '2100'), -- Fel Spreader
+(0, @CGUID+3, 0, 1, NULL, NULL, NULL, '2100'), -- Fel Spreader
+(0, @CGUID+4, 0, 1, NULL, NULL, NULL, '2100'), -- Fel Spreader
+(0, @CGUID+5, 0, 1, NULL, NULL, NULL, '2100'), -- Fel Spreader
+(0, @CGUID+6, 0, 1, NULL, NULL, NULL, '2100'), -- Fel Spreader
+(0, @CGUID+7, 0, 1, NULL, NULL, NULL, '2100'), -- Fel Spreader
+(0, @CGUID+8, 0, 1, NULL, NULL, NULL, '2100'), -- Fel Spreader
+(0, @CGUID+9, 0, 1, NULL, NULL, NULL, '2100'), -- Fel Spreader
+-- State 1 (Active - quest in progress): same visuals
+(0, @CGUID+0, 1, 1, NULL, NULL, NULL, '2100'), -- Fel Spreader
+(0, @CGUID+1, 1, 1, NULL, NULL, NULL, '2100'), -- Fel Spreader
+(0, @CGUID+2, 1, 1, NULL, NULL, NULL, '2100'), -- Fel Spreader
+(0, @CGUID+3, 1, 1, NULL, NULL, NULL, '2100'), -- Fel Spreader
+(0, @CGUID+4, 1, 1, NULL, NULL, NULL, '2100'), -- Fel Spreader
+(0, @CGUID+5, 1, 1, NULL, NULL, NULL, '2100'), -- Fel Spreader
+(0, @CGUID+6, 1, 1, NULL, NULL, NULL, '2100'), -- Fel Spreader
+(0, @CGUID+7, 1, 1, NULL, NULL, NULL, '2100'), -- Fel Spreader
+(0, @CGUID+8, 1, 1, NULL, NULL, NULL, '2100'), -- Fel Spreader
+(0, @CGUID+9, 1, 1, NULL, NULL, NULL, '2100'), -- Fel Spreader
+-- State 2 (Complete - objective done / quest rewarded): hidden
+(0, @CGUID+0, 2, 0, NULL, NULL, NULL, NULL), -- Fel Spreader
+(0, @CGUID+1, 2, 0, NULL, NULL, NULL, NULL), -- Fel Spreader
+(0, @CGUID+2, 2, 0, NULL, NULL, NULL, NULL), -- Fel Spreader
+(0, @CGUID+3, 2, 0, NULL, NULL, NULL, NULL), -- Fel Spreader
+(0, @CGUID+4, 2, 0, NULL, NULL, NULL, NULL), -- Fel Spreader
+(0, @CGUID+5, 2, 0, NULL, NULL, NULL, NULL), -- Fel Spreader
+(0, @CGUID+6, 2, 0, NULL, NULL, NULL, NULL), -- Fel Spreader
+(0, @CGUID+7, 2, 0, NULL, NULL, NULL, NULL), -- Fel Spreader
+(0, @CGUID+8, 2, 0, NULL, NULL, NULL, NULL), -- Fel Spreader
+(0, @CGUID+9, 2, 0, NULL, NULL, NULL, NULL); -- Fel Spreader
 
 -- Updates to spawns
 -- Some creatures are forced always visible due to missing/unknown phase ids.

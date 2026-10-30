@@ -41,6 +41,19 @@
 -- Spell: 194689 Fel Bombardment
 -- Spell: 192714 Torrent of Souls
 -- Spell: 192715 Their Numbers Are Legion: Torrent of Souls Beam
+-- Spell: 191466 Illidari Reinforcements
+
+-- Spell: 191466 Illidari Reinforcements -> spell_illidari_reinforcements C++ aura script
+DELETE FROM `spell_script_names` WHERE `spell_id` = 191466;
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
+(191466, 'spell_illidari_reinforcements');
+
+-- Spell: 191466 Illidari Reinforcements - active in Mardum (area 7705) while quest 40379 is taken,
+-- until quest 39663 On Felbat Wings is complete/rewarded
+DELETE FROM `spell_area` WHERE `spell` = 191466 AND `area` = 7705;
+INSERT INTO `spell_area` (`spell`, `area`, `quest_start`, `quest_start_status`, `quest_end_status`, `quest_end`, `aura_spell`, `racemask`, `gender`, `flags`) VALUES
+(191466, 7705, 40379, 74, 41, 39663, 0, 0, 2, 3);
+
 
 -- Generic Creature Template fixes
 UPDATE `creature_template` SET `faction` = 2843 WHERE `entry` IN (98157,98160,99787,97959);
@@ -559,7 +572,8 @@ DELETE FROM `smart_scripts` WHERE `entryorguid` = 96884 AND `source_type` = 0;
 
 -- Quest: 40379 Enter the Illidari: Coilskar -> quest_enter_the_illidari_coilskar C++ script
 -- (fires on objective 280771 'Coilskar Forces' completion -> delayed summon cast)
-UPDATE `quest_template_addon` SET `ScriptName` = 'quest_enter_the_illidari_coilskar' WHERE `ID` = 40379;
+-- no longer needed as now spell summon guardian is handled via spell area
+UPDATE `quest_template_addon` SET `ScriptName` = '' WHERE `ID` = 40379;
 
 -- Quest: 38765 Enter the Illidari: Shivarra -> quest_enter_the_illidari_shivarra C++ script
 -- (fires on status complete after 'Shivarra Forces' completion -> delayed summon cast)
@@ -1155,3 +1169,4 @@ INSERT INTO `areatrigger_create_properties` (`Id`, `IsCustom`, `AreaTriggerId`, 
 
 UPDATE `spawn_tracking_template` SET `VerifiedBuild`=70575 WHERE `SpawnTrackingId` IN (1053493, 1053492, 1053491, 1071452, 1027851, 1110294, 1084853, 1029001, 1077247, 1073202, 672538, 722283, 722024, 721274, 721248);
 UPDATE `spawn_tracking_quest_objective` SET `VerifiedBuild`=70575 WHERE (`SpawnTrackingId`=1053493 AND `QuestObjectiveId`=279937) OR (`SpawnTrackingId`=1053492 AND `QuestObjectiveId`=279936) OR (`SpawnTrackingId`=1053491 AND `QuestObjectiveId`=279935) OR (`SpawnTrackingId`=1027851 AND `QuestObjectiveId`=281030) OR (`SpawnTrackingId`=1110294 AND `QuestObjectiveId`=281156) OR (`SpawnTrackingId`=1084853 AND `QuestObjectiveId`=280768) OR (`SpawnTrackingId`=1077247 AND `QuestObjectiveId`=280292);
+

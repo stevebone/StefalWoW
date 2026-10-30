@@ -35,33 +35,6 @@
 
 namespace Scripts::Custom::Mardum
 {
-    // 40379 - Enter the Illidari: Coilskar
-    // Bound through quest_template_addon.ScriptName - only fires for this quest.
-    class quest_enter_the_illidari_coilskar : public QuestScript
-    {
-    public:
-        quest_enter_the_illidari_coilskar() : QuestScript("quest_enter_the_illidari_coilskar") { }
-
-        void OnQuestObjectiveChange(Player* player, Quest const* quest, QuestObjective const& objective, int32 /*oldAmount*/, int32 /*newAmount*/) override
-        {
-            if (objective.ID != Objectives::CoilskarForces)
-                return;
-
-            if (!player->IsQuestObjectiveComplete(quest->GetQuestId(), objective.ID))
-                return;
-
-            // Scheduled on the player's EventProcessor so it is dropped on logout;
-            // the login check in player_mardum_coilskar_forces covers that case.
-            player->m_Events.AddEventAtOffset([player]()
-            {
-                std::list<TempSummon*> minions;
-                player->GetAllMinionsByEntry(minions, Creatures::CoilskarSeaCaller);
-                if (minions.empty())
-                    player->CastSpell(player, Spells::SummonCoilskarSeaCaller, CastSpellExtraArgs(TRIGGERED_FULL_MASK));
-            }, 30s);
-        }
-    };
-
     // 38765 - Enter the Illidari: Shivarra
     // Bound through quest_template_addon.ScriptName - only fires for this quest.
     class quest_enter_the_illidari_shivarra : public QuestScript
@@ -75,19 +48,6 @@ namespace Scripts::Custom::Mardum
             {
                 player->RemoveActiveQuest(Quests::SevisSacrificeTracker, false);
                 player->RemoveRewardedQuest(Quests::SevisSacrificeTracker);
-            }
-
-            if (newStatus == QUEST_STATUS_COMPLETE)
-            {
-                // Scheduled on the player's EventProcessor so it is dropped on logout;
-                // the login check in player_mardum_coilskar_forces covers that case.
-                player->m_Events.AddEventAtOffset([player]()
-                    {
-                        std::list<TempSummon*> minions;
-                        player->GetAllMinionsByEntry(minions, Creatures::CoilskarSeaCaller);
-                        if (minions.empty())
-                            player->CastSpell(player, Spells::SummonCoilskarSeaCaller, CastSpellExtraArgs(TRIGGERED_FULL_MASK));
-                    }, 30s);
             }
         }
     };
@@ -146,7 +106,6 @@ void AddSC_custom_mardum_quests()
 {
     using namespace Scripts::Custom::Mardum;
 
-    new quest_enter_the_illidari_coilskar();
     new quest_enter_the_illidari_shivarra();
     new quest_on_felbat_wings();
 }

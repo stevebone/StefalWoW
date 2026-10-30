@@ -25,6 +25,7 @@
 #include "DBCEnums.h"
 #include "EventProcessor.h"
 #include "ObjectMgr.h"
+#include "PhasingHandler.h"
 #include "Player.h"
 #include "PlayerChoice.h"
 #include "QuestDef.h"
@@ -42,17 +43,18 @@ namespace Scripts::Custom::Mardum
     public:
         player_mardum_assault_bonus_objective() : PlayerScript("player_mardum_assault_bonus_objective") { }
 
-        void OnLogin(Player* player, bool firstLogin) override
+        void OnQuestStatusChange(Player* player, uint32 questId) override
         {
-            if (firstLogin)
-                TryGrant(player);
-        }
+            if (questId != Quests::TheInvasionBegins)
+                return;
 
-        // Covers DHs that did not spawn directly in Mardum (e.g. Void Elf DH starts on map 1865)
-        // and reach it later via teleport/hearth/quest travel.
-        void OnMapChanged(Player* player) override
-        {
-            TryGrant(player);
+            QuestStatus status = player->GetQuestStatus(questId);
+
+            if (status == QUEST_STATUS_COMPLETE)
+                PhasingHandler::OnConditionChange(player, true);
+
+            if (status == QUEST_STATUS_REWARDED)
+                TryGrant(player);
         }
 
     private:
@@ -68,34 +70,6 @@ namespace Scripts::Custom::Mardum
             if (Quest const* quest = sObjectMgr->GetQuestTemplate(Quests::AssaultOnMardum))
                 if (player->CanAddQuest(quest, false))
                     player->AddQuest(quest, nullptr);
-        }
-    };
-
-    // 40379 - Enter the Illidari: Coilskar
-    // Covers relogging after the Coilskar Forces objective is done but before the
-    // Sea-Caller summon fired - the 30s delayed cast does not survive a logout.
-    class player_mardum_coilskar_forces : public PlayerScript
-    {
-    public:
-        player_mardum_coilskar_forces() : PlayerScript("player_mardum_coilskar_forces") { }
-
-        void OnLogin(Player* player, bool /*firstLogin*/) override
-        {
-            bool needsSpawn = false;
-            if (player->GetQuestStatus(Quests::EnterTheIllidariCoilskar) == QUEST_STATUS_INCOMPLETE &&
-                player->IsQuestObjectiveComplete(Quests::EnterTheIllidariCoilskar, Objectives::CoilskarForces))
-                needsSpawn = true;
-
-            if (player->GetQuestStatus(Quests::EnterTheIllidariShivarra) == QUEST_STATUS_COMPLETE)
-                needsSpawn = true;
-
-            if(needsSpawn)
-            {
-                std::list<TempSummon*> minions;
-                player->GetAllMinionsByEntry(minions, Creatures::CoilskarSeaCaller);
-                if (minions.empty())
-                    player->CastSpell(player, Spells::SummonCoilskarSeaCaller, CastSpellExtraArgs(TRIGGERED_FULL_MASK));
-            }
         }
     };
 
@@ -217,7 +191,6 @@ void AddSC_custom_mardum_player()
     using namespace Scripts::Custom::Mardum;
 
     new player_mardum_assault_bonus_objective();
-    new player_mardum_coilskar_forces();
     new player_mardum_illidari_foothold();
     new player_mardum_back_to_black_temple();
     new playerchoice_fel_secrets();

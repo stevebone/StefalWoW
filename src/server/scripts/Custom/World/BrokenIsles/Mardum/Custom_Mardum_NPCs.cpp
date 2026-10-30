@@ -329,7 +329,8 @@ namespace Scripts::Custom::Mardum
                 Conversation::CreateConversation(Conversations::FelSpreaderDestroyed, player, *player, player->GetGUID());
             }
 
-            me->DespawnOrUnsummon(1s, 5min);
+            me->PlayOneShotAnimKitId(3035);
+            me->DespawnOrUnsummon(2s, 5min);
         }
 
         TaskScheduler _scheduler;
