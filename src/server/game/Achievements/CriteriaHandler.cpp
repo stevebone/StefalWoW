@@ -807,6 +807,14 @@ void CriteriaHandler::UpdateCriteria(Criteria const* criteria, uint64 miscValue1
         case CriteriaType::GuildAttainedLevel:
             SetCriteriaProgress(criteria, miscValue1, referencePlayer);
             break;
+        case CriteriaType::LearnAnyToy:
+        {
+            if (miscValue1)
+                SetCriteriaProgress(criteria, 1, referencePlayer, PROGRESS_ACCUMULATE);
+            else // login
+                SetCriteriaProgress(criteria, referencePlayer->GetSession()->GetCollectionMgr()->GetAccountToys().size(), referencePlayer, PROGRESS_HIGHEST);
+            break;
+        }
         case CriteriaType::BankTabPurchased:
             switch (BankType(criteria->Entry->Asset.BankType))
             {
@@ -883,6 +891,8 @@ void CriteriaHandler::UpdateCriteria(Criteria const* criteria, uint64 miscValue1
         case CriteriaType::CollectGarrisonShipment:
         case CriteriaType::ItemLevelChangedForGarrisonFollower:
         case CriteriaType::LevelChangedForGarrisonFollower:
+        case CriteriaType::FindResearchObject:
+        case CriteriaType::ExhaustAnyResearchSite:
         case CriteriaType::CompleteInternalCriteria:
         case CriteriaType::CompleteAnyChallengeMode:
         case CriteriaType::KilledAllUnitsInSpawnRegion:
@@ -1607,13 +1617,23 @@ bool CriteriaHandler::RequirementsSatisfied(Criteria const* criteria, uint64 mis
         case CriteriaType::LootItem:
         case CriteriaType::EquipItem:
         case CriteriaType::LearnHeirloom:
-        case CriteriaType::LearnToy:
-            if (!miscValue1 || uint32(criteria->Entry->Asset.ItemID )!= miscValue1)
+            if (!miscValue1 || uint32(criteria->Entry->Asset.ItemID) != miscValue1)
                 return false;
             break;
+        case CriteriaType::LearnToy:
+            if (uint32(criteria->Entry->Asset.ItemID) != miscValue1)
+                if (miscValue1 || !referencePlayer->GetSession()->GetCollectionMgr()->HasToy(criteria->Entry->Asset.ItemID))
+                    return false;
+            break;
         case CriteriaType::LearnTransmog:
-            if (!miscValue1 || uint32(criteria->Entry->Asset.ItemModifiedAppearanceID) != miscValue1)
-                return false;
+            if (uint32(criteria->Entry->Asset.ItemModifiedAppearanceID) != miscValue1)
+            {
+                if (miscValue1)
+                    return false;
+                auto [hasAppearance, isTemporary] = referencePlayer->GetSession()->GetCollectionMgr()->HasItemAppearance(criteria->Entry->Asset.ItemModifiedAppearanceID);
+                if (!hasAppearance || isTemporary)
+                    return false;
+            }
             break;
         case CriteriaType::RevealWorldMapOverlay:
         {
