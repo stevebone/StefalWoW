@@ -48,6 +48,25 @@ namespace Scripts::Custom::Mardum
             unit->RemoveAurasDueToSpell(Spells::NefariousCarrionStormAura);
         }
     };
+
+    // 5127 - Fel Beam areatrigger
+    // units inside self-cast 194811 (NoCaster, Negative) on sniff; removed on exit
+    struct at_fel_beam : AreaTriggerAI
+    {
+        at_fel_beam(AreaTrigger* areatrigger) : AreaTriggerAI(areatrigger) { }
+
+        void OnUnitEnter(Unit* unit) override
+        {
+            if (Unit* caster = at->GetCaster())
+                if (caster->IsValidAttackTarget(unit))
+                    unit->CastSpell(unit, Spells::FelBeamDamage, true);
+        }
+
+        void OnUnitExit(Unit* unit, AreaTriggerExitReason /*reason*/) override
+        {
+            unit->RemoveAurasDueToSpell(Spells::FelBeamDamage);
+        }
+    };
 }
 
 void AddSC_custom_mardum_areatriggers()
@@ -55,4 +74,5 @@ void AddSC_custom_mardum_areatriggers()
     using namespace Scripts::Custom::Mardum;
 
     RegisterAreaTriggerAI(at_nefarious_carrion_storm);
+    RegisterAreaTriggerAI(at_fel_beam);
 }

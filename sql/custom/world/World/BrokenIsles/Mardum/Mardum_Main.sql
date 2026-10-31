@@ -61,7 +61,7 @@ UPDATE `creature_template` SET `faction` = 4 WHERE `entry` IN (102923);
 UPDATE `creature_template` SET `faction` = 73 WHERE `entry` IN (100286);
 UPDATE `creature_template` SET `faction` = 35 WHERE `entry` IN (100545,100543,100549);
 UPDATE `creature_template` SET `faction` = 1786 WHERE `entry` IN (97769);
-UPDATE `creature_template` SET `unit_flags` = 0 WHERE `entry` IN (96877); -- Summoned Ashtongue should not be immune
+UPDATE `creature_template` SET `unit_flags` = 0 WHERE `entry` IN (96877,96884,96888); -- Summoned guardians should not be immune - or need special handling
 UPDATE `creature_template` SET `unit_flags` = 0 WHERE `entry` IN (100244); -- Aranasi Maiden should not be immune
 UPDATE `creature_template` SET `IconName` = 'questinteract' WHERE `entry` = 102916; -- Well of Souls should have quest interract
 
@@ -491,6 +491,9 @@ INSERT INTO smart_scripts (entryorguid, source_type, id, link, Difficulties, eve
 
 (96877, 0, 0, 0, '', 11, 0, 100, 0, 0, 0, 0, 0, 0, '', 1, 1, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Ashtongue Stalker - On Respawn - Talk 1 (No Repeat)'),
 (96877, 0, 1, 0, '', 4, 0, 30, 1, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Ashtongue Stalker - On Aggro - Talk 0 (No Repeat)'),
+(96877, 0, 2, 3, '', 7, 0, 100, 0, 0, 0, 0, 0, 0, '', 103, 1, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Ashtongue Stalker - On Evade - Set Rooted'),
+(96877, 0, 3, 4, '', 61, 0, 100, 0, 0, 0, 0, 0, 0, '', 5, 2, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Ashtongue Stalker - Link - Play Emote Bow'),
+(96877, 0, 4, 0, '', 61, 0, 100, 0, 0, 0, 0, 0, 0, '', 41, 2000, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Ashtongue Stalker - Link - Despawn in 2s'),
 
 (96280, 0, 0, 0, '', 6, 0, 100, 1, 0, 0, 0, 0, 0, '', 11, 200757, 3, 0, 0, 0, 0, 0, '', 0, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Volatile Minion - On Just Died - Cast ''Explosive Minion on Death'' (No Repeat)'),
 (96280, 0, 1, 0, '', 11, 0, 100, 0, 0, 0, 0, 0, 0, '', 11, 200756, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Volatile Minion - On Respawn - Cast ''Volatile Minion'' (No Repeat)'),
@@ -500,6 +503,7 @@ INSERT INTO smart_scripts (entryorguid, source_type, id, link, Difficulties, eve
 (96279, 0, 1, 0, '', 4, 0, 30, 1, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Mardum Executioner - On Aggro - Talk (No Repeat)'),
 
 (96888, 0, 0, 0, '', 11, 0, 100, 1, 0, 0, 0, 0, 0, '', 1, 0, 5000, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Shivarra Destroyer - On Spawn - Say Line 0 (No Repeat)'),
+(96888, 0, 1, 0, '', 7, 0, 100, 0, 0, 0, 0, 0, 0, '', 41, 2000, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Shivarra Destroyer - On Evade - Despawn in 2s'),
 
 (102923, 0, 0, 0, '', 11, 0, 100, 1, 0, 0, 0, 0, 0, '', 1, 0, 5000, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Matron Mother Malevolence - On Spawn - Say Line 0 (No Repeat)'),
 
@@ -584,6 +588,7 @@ UPDATE `quest_template_addon` SET `ScriptName` = 'quest_enter_the_illidari_shiva
 
 -- NPC: 100161 Legion Devastator -> npc_legion_devastator C++ script
 UPDATE `creature_template` SET `ScriptName` = 'npc_legion_devastator', `AIName` = '' WHERE `entry` = 100161;
+UPDATE `creature_template` SET `ScriptName` = 'npc_legion_command_center', `AIName` = '' WHERE `entry` = 98191;
 DELETE FROM `smart_scripts` WHERE `entryorguid` = 100161 AND `source_type` = 0;
 
 DELETE FROM `areatrigger_create_properties` WHERE `Id` IN (4920,5648,5659,5668,5494,5319) AND `IsCustom` = 0;
@@ -824,10 +829,9 @@ UPDATE `gameobject_template` SET `VerifiedBuild`=70575 WHERE `entry` IN (253931,
 UPDATE `gameobject_template` SET `RequiredLevel`=8, `VerifiedBuild`=70575 WHERE `entry`=243059; -- Demon Ward
 UPDATE `gameobject_template` SET `RequiredLevel`=8, `VerifiedBuild`=70575 WHERE `entry`=243335; -- Nether Crucible
 
-DELETE FROM `npc_spellclick_spells` WHERE `npc_entry` IN (101696);
+DELETE FROM `npc_spellclick_spells` WHERE `npc_entry` IN (101696,100548);
 INSERT INTO `npc_spellclick_spells` (`npc_entry`, `spell_id`, `cast_flags`, `user_type`) VALUES
 (101696, 200598, 1, 0);
-
 INSERT INTO `npc_spellclick_spells` (`npc_entry`, `spell_id`, `cast_flags`, `user_type`) VALUES
 (100548, 192262, 1, 0);
 
@@ -846,7 +850,7 @@ UPDATE `creature_template` SET `unit_flags`=0x300 WHERE `entry`=98618; -- Hellis
 UPDATE `creature_template` SET `faction`=2189, `speed_walk`=2, `speed_run`=0.714285731315612792, `BaseAttackTime`=2000, `unit_flags`=0x2000000, `unit_flags2`=0x800, `unit_flags3`=0x80000 WHERE `entry`=100745; -- Fel Cannon
 UPDATE `creature_template` SET `unit_flags3`=0x41000000 WHERE `entry`=95049; -- Demon Ward
 UPDATE `creature_template` SET `faction`=1786, `BaseAttackTime`=2000, `unit_flags2`=0x800, `unit_flags3`=0x80000 WHERE `entry`=101603; -- Lesser Imp
-UPDATE `creature_template` SET `unit_flags`=0x300, `unit_flags3`=0x40000000 WHERE `entry`=96877; -- Ashtongue Stalker
+UPDATE `creature_template` SET `unit_flags3`=0x40000000 WHERE `entry`=96877; -- Ashtongue Stalker // removed `unit_flags`=0x300 since it makes the npc immune and not sure why
 UPDATE `creature_template` SET `unit_flags2`=0x4010800, `unit_flags3`=0x41000000 WHERE `entry` IN (96731, 93762); -- Legion Devastator
 UPDATE `creature_template` SET `unit_flags3`=0x40000001 WHERE `entry`=100510; -- The Fel Hammer
 UPDATE `creature_template` SET `unit_flags3`=0x40000001 WHERE `entry`=101748; -- Fel Geyser
@@ -973,11 +977,11 @@ UPDATE `creature_template` SET `unit_flags`=0x300 WHERE `entry`=97598; -- Felgua
 UPDATE `creature_template` SET `faction`=2843 WHERE `entry`=101397; -- Cailyn Paledoom
 UPDATE `creature_template` SET `unit_flags3`=0x4000000 WHERE `entry`=99759; -- Fiendish Creeper
 UPDATE `creature_template` SET `unit_flags2`=0x4010800, `unit_flags3`=0x41000000 WHERE `entry`=96732; -- Legion Devastator
-UPDATE `creature_template` SET `BaseAttackTime`=2000, `unit_flags`=0x300, `unit_flags2`=0x800, `unit_flags3`=0x40000000 WHERE `entry`=96888; -- Shivarra Destroyer
+UPDATE `creature_template` SET `BaseAttackTime`=2000, `unit_flags2`=0x800, `unit_flags3`=0x40000000 WHERE `entry`=96888; -- Shivarra Destroyer // removed `unit_flags`=0x300, since it makes npc immune and not sure why
 UPDATE `creature_template` SET `unit_flags`=0x300 WHERE `entry`=97602; -- Burning Soulstalker
 UPDATE `creature_template` SET `unit_flags`=0x300 WHERE `entry`=97604; -- Queen's Centurion
 UPDATE `creature_template` SET `unit_flags`=0x300 WHERE `entry`=97603; -- Doom Slayer
-UPDATE `creature_template` SET `BaseAttackTime`=2000, `unit_flags`=0x300, `unit_flags2`=0x800, `unit_flags3`=0x40000000 WHERE `entry`=96884; -- Coilskar Sea-Caller
+UPDATE `creature_template` SET `BaseAttackTime`=2000, `unit_flags2`=0x800, `unit_flags3`=0x40000000 WHERE `entry`=96884; -- Coilskar Sea-Caller // removed `unit_flags`=0x300, since it makes npc immune and not sure why
 UPDATE `creature_template` SET `unit_flags3`=0x40000000 WHERE `entry`=99914; -- Ashtongue Mystic
 UPDATE `creature_template` SET `npcflag`=2 WHERE `entry`=100982; -- Sevis Brightflame
 
@@ -1549,6 +1553,7 @@ INSERT INTO `areatrigger_create_properties` (`Id`, `IsCustom`, `AreaTriggerId`, 
 (5380, 0, 10089, 0, 0, 0, 0, 0, 0, -1, 0, 0, NULL, 0, 20000, 0, 0, 5, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL, 70575), -- Spell: 197748 (Fel Patch)
 (5655, 0, 10362, 0, 0, 0, 0, 0, 0, -1, 0, 0, NULL, 0, 15000, 0, 4, 2, 2, 6, 6, 2, 2, 0, 0, 0, 0, 0, NULL, NULL, NULL, 70575); -- Spell: 200615 (Fel Resonance)
 
+UPDATE `areatrigger_create_properties` SET `ScriptName`='at_fel_beam' WHERE (`Id`=5127 AND `IsCustom`=0); -- applies aura 194811 (Fel Beam) to units inside
 
 UPDATE `spawn_tracking_template` SET `VerifiedBuild`=70575 WHERE `SpawnTrackingId` IN (1053493, 1053492, 1053491, 1071452, 1027851, 1110294, 1084853, 1029001, 1077247, 1073202, 672538, 722283, 722024, 721274, 721248);
 UPDATE `spawn_tracking_quest_objective` SET `VerifiedBuild`=70575 WHERE (`SpawnTrackingId`=1053493 AND `QuestObjectiveId`=279937) OR (`SpawnTrackingId`=1053492 AND `QuestObjectiveId`=279936) OR (`SpawnTrackingId`=1053491 AND `QuestObjectiveId`=279935) OR (`SpawnTrackingId`=1027851 AND `QuestObjectiveId`=281030) OR (`SpawnTrackingId`=1110294 AND `QuestObjectiveId`=281156) OR (`SpawnTrackingId`=1084853 AND `QuestObjectiveId`=280768) OR (`SpawnTrackingId`=1077247 AND `QuestObjectiveId`=280292);

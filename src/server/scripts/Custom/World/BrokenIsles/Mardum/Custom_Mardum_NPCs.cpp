@@ -458,9 +458,9 @@ namespace Scripts::Custom::Mardum
             _events.ScheduleEvent(Events::SeaCallerSpellRotation, 5s);
         }
 
-        void JustEngagedWith(Unit* who) override
+        void JustExitedCombat() override
         {
-            Talk(CreatureText::SeaCallerEngage, who);
+            me->DespawnOrUnsummon(2s);
         }
 
         void UpdateAI(uint32 diff) override
@@ -688,6 +688,90 @@ namespace Scripts::Custom::Mardum
         ObjectGuid _bombardingPlayer;
         GuidUnorderedSet _conversedPlayers;
         bool _bombardmentActive = false;
+    };
+
+    // 98191 - Legion Command Center
+    struct npc_legion_command_center : public ScriptedAI
+    {
+        npc_legion_command_center(Creature* creature) : ScriptedAI(creature)
+        {
+            me->setActive(true);
+        }
+
+        void JustAppeared() override
+        {
+            // sniff: flies a cyclic circle, 16 nodes at r=400 around (1075.2, 2646.54),
+            // flat Z=243.1888, FlightSpeed 7 (Flying|CatmullRom|Cyclic spline).
+            // GenericMovementGenerator never expires cyclic splines (isCyclic guard),
+            // so this loops permanently
+            me->GetMotionMaster()->MoveCirclePath(Misc::LegionCCOrbitCenterX, Misc::LegionCCOrbitCenterY,
+                Misc::LegionCCOrbitCenterZ, Misc::LegionCCOrbitRadius, true /* clockwise */,
+                Misc::LegionCCOrbitSteps, {}, Misc::LegionCCFlightSpeed);
+        }
+
+        void Reset() override
+        {
+            _events.Reset();
+            _seenCannons.clear();
+            _events.ScheduleEvent(Events::CommandCenterBombardment, 5s, 12s);
+            _events.ScheduleEvent(Events::CommandCenterFelBeam, 60s, 240s);
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _events.Update(diff);
+
+            while (uint32 eventId = _events.ExecuteEvent())
+            {
+                switch (eventId)
+                {
+                    case Events::CommandCenterBombardment:
+                        me->CastSpell(nullptr, Spells::FelBombardment, CastSpellExtraArgs(CommandCenterCastFlags));
+                        _events.Repeat(11s, 15s); // sniff: cast-to-cast ~10.9-15.9s, median ~13.4s
+                        break;
+                    case Events::CommandCenterFelBeam:
+                        // 194783 force-casts 194781 on an enemy player within 400y;
+                        // the player summons a Fel Cannon (99003) at their own position
+                        me->CastSpell(nullptr, Spells::CommandCenterFelBeam, CastSpellExtraArgs(CommandCenterCastFlags));
+                        _events.ScheduleEvent(Events::CommandCenterFelBeamChannel, 200ms);
+                        _events.Repeat(120s, 480s); // sniff: beam events ~78-524s apart
+                        break;
+                    case Events::CommandCenterFelBeamChannel:
+                    {
+                        // channel the beam on a Fel Cannon; on sniff the CC hits
+                        // the just-summoned one, or any pre-existing cannon
+                        std::list<Creature*> cannons;
+                        me->GetCreatureListWithEntryInGrid(cannons, Creatures::FelCannon, Misc::FelCannonSearchRange);
+                        Creature* target = nullptr;
+                        for (Creature* cannon : cannons)
+                        {
+                            if (!_seenCannons.insert(cannon->GetGUID()).second)
+                                continue;
+                            target = cannon;
+                            break;
+                        }
+                        if (!target)
+                            target = me->FindNearestCreature(Creatures::FelCannon, Misc::FelCannonSearchRange);
+                        if (target)
+                            me->CastSpell(target, Spells::CommandCenterFelBeamChannel, CastSpellExtraArgs(CommandCenterCastFlags));
+                        break;
+                    }
+                    default:
+                        break;
+                }
+            }
+        }
+
+    private:
+        // Triggered flags (without IGNORE_CAST_TIME) so Spell::CheckMovement returns OK:
+        // the unit must keep orbiting through casts instead of StopMoving() killing
+        // the cyclic spline (sniff: it never stalls - uniform FLIGHT_SPLINE_SYNC deltas)
+        static constexpr TriggerCastFlags CommandCenterCastFlags =
+            TriggerCastFlags(TRIGGERED_IGNORE_GCD | TRIGGERED_IGNORE_CAST_IN_PROGRESS |
+                TRIGGERED_IGNORE_CAST_ITEM | TRIGGERED_IGNORE_CASTER_MOUNTED_OR_ON_VEHICLE);
+
+        EventMap _events;
+        GuidUnorderedSet _seenCannons;
     };
 
     // 97059 - King Voras
@@ -2032,6 +2116,7 @@ void AddSC_custom_mardum_npcs()
     RegisterCreatureAI(npc_coilskar_sea_caller);
     RegisterCreatureAI(npc_doom_commander_beliash);
     RegisterCreatureAI(npc_legion_devastator);
+    RegisterCreatureAI(npc_legion_command_center);
     RegisterCreatureAI(npc_king_voras);
     RegisterCreatureAI(npc_illidari_banner_trigger);
     RegisterCreatureAI(npc_doom_fortress_stabilizer);

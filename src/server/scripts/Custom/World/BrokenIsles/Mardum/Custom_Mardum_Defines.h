@@ -47,6 +47,8 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 QueenTyranna        = 95048; // RP version beside Beliash; 93802 is the boss at the Seat of Command
         static constexpr uint32 BeliashKillCredit   = 106003;
         static constexpr uint32 LegionDevastator    = 100161;
+        static constexpr uint32 LegionCommandCenter = 98191;
+        static constexpr uint32 FelCannon           = 99003; // summoned by spell 194781 (triggered by 194783)
         // "Stop the Bombardment" (38727) - Illidari Banner sabotage
         static constexpr uint32 AshtongueStalker       = 96562; // trigger, Banner Doom Fortress
         static constexpr uint32 PriestessOfDementia    = 96564; // trigger, Banner Forge of Corruption
@@ -192,6 +194,9 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 BackToBlackTemple          = 192140;
         static constexpr uint32 TeleportVaultOfWardens     = 205395;
         static constexpr uint32 FelBombardment         = 194689;
+        static constexpr uint32 CommandCenterFelBeam   = 194783; // instant self-cast, triggers 194781 (Fel Cannon summon)
+        static constexpr uint32 CommandCenterFelBeamChannel = 194810; // 5s channel on the summoned Fel Cannon
+        static constexpr uint32 FelBeamDamage            = 194811; // self-cast by units inside areatrigger 5127
         static constexpr uint32 AcidSpit               = 198163;
         static constexpr uint32 StopBombardmentDevastator = 191454;
         static constexpr uint32 StopBombardmentKnockback  = 198908;
@@ -287,8 +292,7 @@ namespace Scripts::Custom::Mardum
         static constexpr uint8 JaceBeforeWereOverunAccept2 = 3; // 'Good luck, $n. I'll see you up in the volcano.'
 
         // Coilskar Sea-Caller (96884) - creature_text GroupIDs
-        static constexpr uint8 SeaCallerEngage   = 0; // 'Deal with these insects, Beliash.'
-        static constexpr uint8 SeaCallerGreeting = 1; // 'Lady S'theno requested I join you.'
+        static constexpr uint8 SeaCallerGreeting = 0; // 'Lady S'theno requested I join you.'
 
         // Doom Commander Beliash (93221) - creature_text GroupID
         static constexpr uint8 BeliashAggro = 0; // 'They will die.'
@@ -362,6 +366,11 @@ namespace Scripts::Custom::Mardum
         static constexpr int8 DevastatorBombardment             = 1;
         static constexpr int8 DevastatorBombardmentConversation = 2;
 
+        // Legion Command Center (98191) - EventMap IDs
+        static constexpr int8 CommandCenterBombardment     = 1;
+        static constexpr int8 CommandCenterFelBeam         = 2;
+        static constexpr int8 CommandCenterFelBeamChannel  = 3;
+
         // King Voras (97059) - EventMap IDs
         static constexpr int8 VorasAcidSpit = 1;
 
@@ -411,6 +420,15 @@ namespace Scripts::Custom::Mardum
         static constexpr float JaceGreetingRange    = 10.0f;
         static constexpr float BeliashConversationRange = 100.0f;
         static constexpr float BombardmentRange         = 450.0f;
+        static constexpr float FelCannonSearchRange      = 550.0f; // 194783 picks a player within 400y + slack
+        static constexpr float LegionCCFlightSpeed       = 7.0f;
+        // sniff: the Command Center orbits a perfect circle, all 16 spline nodes at
+        // exactly r=400 around this center, flat Z, clockwise
+        static constexpr float LegionCCOrbitCenterX      = 1075.2f;
+        static constexpr float LegionCCOrbitCenterY      = 2646.54f;
+        static constexpr float LegionCCOrbitCenterZ      = 243.1888f;
+        static constexpr float LegionCCOrbitRadius       = 400.0f;
+        static constexpr uint8 LegionCCOrbitSteps        = 16;
         static constexpr uint32 MysticGossipMenu         = 19015;
         static constexpr uint32 MysticVisualKit          = 25111;
         static constexpr uint32 MysticAnimKit            = 9256;
