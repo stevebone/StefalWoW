@@ -73,6 +73,34 @@ namespace Scripts::Custom::Mardum
         }
     };
 
+    // 39279 - Assault on Mardum auto-rewards on completion (bonus objective, no
+    // questgiver turn-in). QUEST_FLAGS_TRACKING_EVENT would call RewardQuest
+    // inside CompleteQuest -> RemoveActiveQuest erases the quest's
+    // m_questObjectiveStatus entries while UpdateQuestObjectiveProgress is still
+    // iterating them (crash on the last objective credit). Schedule it instead.
+    class player_mardum_assault_auto_reward : public PlayerScript
+    {
+    public:
+        player_mardum_assault_auto_reward() : PlayerScript("player_mardum_assault_auto_reward") { }
+
+        void OnQuestStatusChange(Player* player, uint32 questId) override
+        {
+            if (questId != Quests::AssaultOnMardum || player->GetQuestStatus(questId) != QUEST_STATUS_COMPLETE)
+                return;
+
+            player->m_Events.AddEventAtOffset([player]()
+            {
+                // A second COMPLETE status change (or a manual turn-in in the
+                // window) may have already queued/run the reward.
+                if (player->GetQuestStatus(Quests::AssaultOnMardum) != QUEST_STATUS_COMPLETE)
+                    return;
+
+                if (Quest const* quest = sObjectMgr->GetQuestTemplate(Quests::AssaultOnMardum))
+                    player->RewardQuest(quest, LootItemType::Item, 0, player);
+            }, 2s);
+        }
+    };
+
     // 38727/38819/38725 - Illidari assault quests; 569 - Illidari Foothold
     // Once all three are taken, the last accept schedules the briefing conversation.
     static bool IsAssaultQuest(uint32 questId)
@@ -191,6 +219,7 @@ void AddSC_custom_mardum_player()
     using namespace Scripts::Custom::Mardum;
 
     new player_mardum_assault_bonus_objective();
+    new player_mardum_assault_auto_reward();
     new player_mardum_illidari_foothold();
     new player_mardum_back_to_black_temple();
     new playerchoice_fel_secrets();

@@ -131,8 +131,6 @@ INSERT  INTO `conversation_actors` (`ConversationId`, `ConversationActorId`, `Id
 (747, 49935, 1, 93802, 65935, 0, 0, 69875);
 
 -- ========================= Fixes for the Bonus quest
--- Add flag for auto reward
-UPDATE `quest_template` SET `Flags` = `Flags` | 0x400 WHERE `ID` = 39279;
 
 DELETE FROM `conversation_template` WHERE `Id` = 581;
 INSERT INTO `conversation_template` (`Id`, `FirstLineId`, `VerifiedBuild`) VALUES
@@ -821,7 +819,7 @@ UPDATE `quest_objectives` SET `ConditionalAmount`=1, `VerifiedBuild`=70575 WHERE
 
 UPDATE `quest_visual_effect` SET `VerifiedBuild`=70575 WHERE (`Index`=3 AND `ID`=279993) OR (`Index`=2 AND `ID`=279993) OR (`Index`=1 AND `ID`=279993) OR (`Index`=0 AND `ID` IN (279993,279857,279864,279862,279765,279763,278955,278473,278472,278458,278937,280772,278948,280771,280770,279707,278413,278929,280293,278928,269235,269234,269233,269232));
 
-UPDATE `quest_template` SET `Flags`= `Flags` | 0x2090100, `VerifiedBuild`=70575 WHERE `ID`=39279; -- Assault on Mardum
+UPDATE `quest_template` SET `Flags`= 0x2090100, `VerifiedBuild`=70575 WHERE `ID`=39279; -- Assault on Mardum
 UPDATE `quest_template` SET `VerifiedBuild`=70575 WHERE `ID` IN (40378, 95043, 94437, 93902, 94431, 93901, 40077);
 
 UPDATE `quest_objectives` SET `VerifiedBuild`=70575 WHERE `ID` IN (279757, 279288, 280768, 279289, 280769, 281030, 279292, 280292, 279741, 281333, 279929, 281335, 279930, 279935, 281158);
