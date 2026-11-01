@@ -688,10 +688,10 @@ INSERT INTO `creature` (`guid`, `id`, `map`, `zoneId`, `areaId`, `phaseUseFlags`
 (@CGUID+9, 97142, 1481, 7705, 7742, 1, 0, 0, 0, 0, 1423.9635009765625, 2338.40966796875, 66.92083740234375, 3.31837010383605957, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 70575); -- Fel Spreader (Area: Seat of Command - Difficulty: 0) CreateObject1 (Auras: 200681 - Cosmetic - Random 7XP Fel Ground Crack A01 or A02 [scale x0.50])
 
 INSERT INTO `creature` (`guid`, `id`, `map`, `zoneId`, `areaId`, `phaseId`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `wander_distance`, `MovementType`, `unit_flags`, `unit_flags2`, `curHealthPct`, `ScriptName`) VALUES
-(@CGUID+10, 94654, 1481, 7705, 7740, 0, 0, 985.39544677734375, 2638.050048828125, -19.1119842529296875, 5.954813957214355468, 120, 0, 0, 32768, 0, 100, 'npc_doomguard_eradicator_ward_event'),
-(@CGUID+11, 94654, 1481, 7705, 7740, 0, 0, 1151.482421875, 2632.819091796875, -91.1885833740234375, 0.386433154344558715, 120, 0, 0, 32768, 0, 100, 'npc_doomguard_eradicator_ward_event'),
-(@CGUID+12, 94654, 1481, 7705, 7740, 0, 0, 1087.4774169921875, 2642.195556640625, -48.2936515808105468, 4.210082054138183593, 120, 0, 0, 32768, 0, 100, 'npc_doomguard_eradicator_ward_event'),
-(@CGUID+13, 94654, 1481, 7705, 7740, 0, 0, 1071.5361328125, 2567.2939453125, -26.1090240478515625, 2.277505397796630859, 120, 0, 0, 32768, 0, 100, 'npc_doomguard_eradicator_ward_event');
+(@CGUID+10, 94654, 1481, 7705, 7740, 0, 0, 985.39544677734375, 2638.050048828125, -19.1119842529296875, 5.954813957214355468, 30, 0, 0, 32768, 0, 100, 'npc_doomguard_eradicator_ward_event'),
+(@CGUID+11, 94654, 1481, 7705, 7740, 0, 0, 1151.482421875, 2632.819091796875, -91.1885833740234375, 0.386433154344558715, 30, 0, 0, 32768, 0, 100, 'npc_doomguard_eradicator_ward_event'),
+(@CGUID+12, 94654, 1481, 7705, 7740, 0, 0, 1087.4774169921875, 2642.195556640625, -48.2936515808105468, 4.210082054138183593, 30, 0, 0, 32768, 0, 100, 'npc_doomguard_eradicator_ward_event'),
+(@CGUID+13, 94654, 1481, 7705, 7740, 0, 0, 1071.5361328125, 2567.2939453125, -26.1090240478515625, 2.277505397796630859, 30, 0, 0, 32768, 0, 100, 'npc_doomguard_eradicator_ward_event');
 
 DELETE FROM `spawn_tracking_template` WHERE `SpawnTrackingId` BETWEEN 1046034 AND 1046043;
 INSERT INTO `spawn_tracking_template` (`SpawnTrackingId`, `MapId`, `PhaseId`, `PhaseGroup`, `PhaseUseFlags`, `VerifiedBuild`) VALUES

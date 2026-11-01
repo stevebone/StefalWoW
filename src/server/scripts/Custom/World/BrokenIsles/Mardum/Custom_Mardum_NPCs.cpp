@@ -2137,8 +2137,9 @@ namespace Scripts::Custom::Mardum
         void JustAppeared() override
         {
             me->SetRegenerateHealth(false); // entry-SAI regen row doesn't run on spawn-scripted spawns
+            me->SetDisableGravity(true, true, true);
 
-            if (Creature* ward = me->FindNearestCreature(Creatures::DemonWard, 140.0f))
+            if (Creature* ward = me->FindNearestCreature(Creatures::DemonWard, 300.0f))
                 me->GetMotionMaster()->MovePoint(0, ward->GetPosition());
         }
 

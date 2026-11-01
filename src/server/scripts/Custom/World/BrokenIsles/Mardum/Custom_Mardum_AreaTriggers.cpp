@@ -22,6 +22,7 @@
 
 #include "AreaTrigger.h"
 #include "AreaTriggerAI.h"
+#include "ObjectAccessor.h"
 #include "ScriptMgr.h"
 #include "SpellInfo.h"
 #include "Unit.h"
@@ -67,6 +68,36 @@ namespace Scripts::Custom::Mardum
             unit->RemoveAurasDueToSpell(Spells::FelBeamDamage);
         }
     };
+
+    // 5216 - Demon Ward areatrigger (created by aura 195821 on creature 95049)
+    // sniff: the same ward re-casts 201109 every ~1s at the same target while it
+    // stays inside, and can hit several occupants per tick; the template CAST
+    // action only fires on unit enter, so the periodic re-fire lives here.
+    struct at_demon_ward : AreaTriggerAI
+    {
+        at_demon_ward(AreaTrigger* areatrigger) : AreaTriggerAI(areatrigger) { }
+
+        void OnUpdate(uint32 diff) override
+        {
+            if (_fireTimer > diff)
+            {
+                _fireTimer -= diff;
+                return;
+            }
+            _fireTimer = 1000;
+
+            Unit* caster = at->GetCaster();
+            if (!caster)
+                return;
+
+            for (ObjectGuid const& guid : at->GetInsideUnits())
+                if (Unit* unit = ObjectAccessor::GetUnit(*at, guid))
+                    if (caster->IsValidAttackTarget(unit))
+                        caster->CastSpell(unit, Spells::DemonWardMissile, true);
+        }
+
+        uint32 _fireTimer = 1000;
+    };
 }
 
 void AddSC_custom_mardum_areatriggers()
@@ -75,4 +106,5 @@ void AddSC_custom_mardum_areatriggers()
 
     RegisterAreaTriggerAI(at_nefarious_carrion_storm);
     RegisterAreaTriggerAI(at_fel_beam);
+    RegisterAreaTriggerAI(at_demon_ward);
 }
