@@ -41,6 +41,7 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 AshtongueMystic     = 99914;
         static constexpr uint32 ELMGeneralPurposeBunny = 24021;
         static constexpr uint32 JaceDarkweaver      = 93759;
+        static constexpr uint32 DemonWard           = 95049;
         static constexpr uint32 CoilskarSeaCaller   = 96884;
         static constexpr uint32 ShivarraDestroyer   = 96888;
         static constexpr uint32 DoomCommanderBeliash = 93221;
@@ -238,6 +239,8 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 DevastatorBombardment          = 191666;
         static constexpr uint32 DevastatorBombardmentPlayer    = 191669; // player-targeted variant (volleys of ~8 shots)
         static constexpr uint32 LegionPortalUse                = 190610; // cast by the player on Legion Portal use
+        static constexpr uint32 DemonWardAura                  = 195821; // on 95049, creates AT 5216
+        static constexpr uint32 DemonWardMissile               = 201109; // cast by ward ATs on enemies inside
     }
 
     namespace Conversations

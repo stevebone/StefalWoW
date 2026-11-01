@@ -617,6 +617,41 @@ INSERT INTO `areatrigger_create_properties` (Id, IsCustom, AreaTriggerId, IsArea
 (5494, 0, 10195, 0, 0,  0, 0, 0, 0, -1, 0, 0, 198947, NULL, NULL, 0,  8000, 1, 0, 0,  35,  35, 0, 0, 0,   0,   0,   0, 0, 0, 0, NULL, NULL, NULL, 'at_nefarious_carrion_storm', 69814),
 (5319, 0, 10041, 0, 0,  0, 0, 0, 0, -1, 0, 0, 197245, NULL, NULL, 0, 15000, 1, 0, 0,   7,   7, 0, 0, 0,   0,   0,   0, 0, 0, 0, NULL, NULL, NULL, '',                            69814);
 
+-- Spell: 195821 Seat of Command: Jace's Demon Ward Area Trigger
+-- Aura 395 (SPELL_AURA_AREA_TRIGGER) on each creature 95049 "Demon Ward" creates a server-side AT (id 5216).
+-- Sniff proof: every Doomguard Eradicator (94654) spawning near the Seat of Command is hit by
+-- 201109 "Reignite the Wards: Demon Hunter Ward Missile" (~40% max-HP) cast by each of the 3 wards;
+-- the AT itself is never sent to clients (IsServerSide), so shape/radius are reconstructed estimates.
+DELETE FROM `areatrigger_template` WHERE `Id`=70002 AND `IsCustom`=1;
+INSERT INTO `areatrigger_template` (`Id`,`IsCustom`,`Flags`,`ActionSetId`,`ActionSetFlags`,`VerifiedBuild`) VALUES
+(70002, 1, 1, 0, 0, 70575); -- Flags=1 IsServerSide (invisible unless .debug areatriggers)
+
+DELETE FROM `areatrigger_template_actions` WHERE `AreaTriggerId`=70002 AND `IsCustom`=1;
+INSERT INTO `areatrigger_template_actions` (`AreaTriggerId`,`IsCustom`,`ActionType`,`ActionParam`,`TargetType`) VALUES
+(70002, 1, 0, 201109, 2); -- CAST "Reignite the Wards: Demon Hunter Ward Missile" on USER_ENEMY entering the ward
+
+DELETE FROM `areatrigger_create_properties` WHERE `Id`=5216 AND `IsCustom`=0;
+INSERT INTO `areatrigger_create_properties` (Id, IsCustom, AreaTriggerId, IsAreatriggerCustom, Flags, MoveCurveId, ScaleCurveId, MorphCurveId, FacingCurveId, AnimId, AnimKitId, DecalPropertiesId, SpellForVisuals, MaxSummons, MaxUnits, PositionalSoundKitId, TimeToTargetScale, Speed, SpeedIsTime, Shape, ShapeData0, ShapeData1, ShapeData2, ShapeData3, ShapeData4, ShapeData5, ShapeData6, ShapeData7, Roll, Pitch, Yaw, TargetRoll, TargetPitch, TargetYaw, ScriptName, VerifiedBuild) VALUES
+(5216, 0, 70002, 1, 0,  0, 0, 0, 0, -1, 0, 0, NULL,   NULL, NULL, 0,     0, 1, 0, 0,   15,  15, 0, 0, 0,   0,   0,   0, 0, 0, 0, NULL, NULL, NULL, '',                            70575);
+
+-- 195821 must NOT come from creature_template_addon: LoadCreaturesAddon applies it during Creature::Create,
+-- before the ward is in the map object store, so the attached AT cannot resolve its target and gets
+-- created at (0,0,0) in a never-active grid. SAI SMART_EVENT_RESPAWN fires after AddToWorld instead.
+UPDATE `creature_template_addon` SET `auras`=NULL WHERE `entry`=95049;
+UPDATE `creature_template` SET `AIName`='SmartAI' WHERE `entry`=95049;
+DELETE FROM `smart_scripts` WHERE `entryorguid`=95049 AND `source_type`=0;
+INSERT INTO `smart_scripts` (entryorguid, source_type, id, link, Difficulties, event_type, event_phase_mask, event_chance, event_flags, event_param1, event_param2, event_param3, event_param4, event_param5, event_param_string, action_type, action_param1, action_param2, action_param3, action_param4, action_param5, action_param6, action_param7, action_param_string, target_type, target_param1, target_param2, target_param3, target_param4, target_param_string, target_x, target_y, target_z, target_o, comment) VALUES
+(95049, 0, 0, 0, '', 11, 0, 100, 0, 0, 0, 0, 0, 0, '', 11, 195821, 34, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Demon Ward - On Respawn - Cast 195821 (Ward AT aura) on self');
+
+-- Doomguard Eradicator attackers (pool 7000000 in Mardum_Spawns.sql):
+-- on (re)spawn move toward a random Demon Ward (95049) within 40y so they proceed into the ward ATs.
+-- CREATURE_RANGE 95049 (not Jace 93759 - he is phase 5095) also range-gates the far-field 94654 spawns.
+SET @ENTRY := 94654, @ID := 2;
+DELETE FROM `smart_scripts` WHERE `entryorguid`=@ENTRY AND `source_type`=0 AND `id` IN (@ID, 3);
+INSERT INTO `smart_scripts` (entryorguid, source_type, id, link, Difficulties, event_type, event_phase_mask, event_chance, event_flags, event_param1, event_param2, event_param3, event_param4, event_param5, event_param_string, action_type, action_param1, action_param2, action_param3, action_param4, action_param5, action_param6, action_param7, action_param_string, target_type, target_param1, target_param2, target_param3, target_param4, target_param_string, target_x, target_y, target_z, target_o, comment) VALUES
+(@ENTRY, 0, @ID, 0, '', 11, 0, 100, 0, 0, 0, 0, 0, 0, '', 69, 0, 0, 0, 0, 0, 0, 0, '', 9, 95049, 0, 40, 0, '', 0, 0, 0, 0, 'Doomguard Eradicator - On Respawn - Move toward Demon Ward within 40y'),
+(@ENTRY, 0, 3, 0, '', 8, 0, 100, 0, 201109, 0, 0, 0, 0, '', 102, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Doomguard Eradicator - SpellHit 201109 (Ward Missile) - disable health regen');
+
 
 -- smart_scripts (creature entry 93127, id Y = 5)
 SET @ENTRY := 93127, @ID := 5;

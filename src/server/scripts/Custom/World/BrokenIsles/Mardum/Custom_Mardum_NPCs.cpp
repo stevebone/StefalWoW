@@ -2126,6 +2126,33 @@ namespace Scripts::Custom::Mardum
             }
         }
     };
+
+    // Event-only doomguards (spawn-level ScriptName on pool 7000000 members):
+    // on appear walk to the nearest Demon Ward; ward ATs shoot them with 201109.
+    // Die after 3 missile hits (retail: wards kill every invader ~3 x 30% max-HP).
+    struct npc_doomguard_eradicator_ward_event : public ScriptedAI
+    {
+        npc_doomguard_eradicator_ward_event(Creature* creature) : ScriptedAI(creature) { }
+
+        void JustAppeared() override
+        {
+            me->SetRegenerateHealth(false); // entry-SAI regen row doesn't run on spawn-scripted spawns
+
+            if (Creature* ward = me->FindNearestCreature(Creatures::DemonWard, 140.0f))
+                me->GetMotionMaster()->MovePoint(0, ward->GetPosition());
+        }
+
+        void SpellHit(WorldObject* /*caster*/, SpellInfo const* spellInfo) override
+        {
+            if (spellInfo->Id != Spells::DemonWardMissile)
+                return;
+
+            if (++_missileHits >= 3)
+                me->KillSelf(false);
+        }
+
+        uint8 _missileHits = 0;
+    };
 }
 
 void AddSC_custom_mardum_npcs()
@@ -2154,4 +2181,5 @@ void AddSC_custom_mardum_npcs()
     RegisterCreatureAI(npc_brood_queen_tyranna);
     RegisterCreatureAI(npc_keystone_downstairs_kill_credit);
     RegisterCreatureAI(npc_kayn_sunfury_keystone);
+    RegisterCreatureAI(npc_doomguard_eradicator_ward_event);
 }

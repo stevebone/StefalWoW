@@ -673,7 +673,7 @@ INSERT INTO `gameobject_addon` (`guid`, `parent_rotation0`, `parent_rotation1`, 
 (@OGUID+14, 0, 0, 0, 1, 2437, 0); -- Small Treasure Chest
 
 SET @CGUID := 70064292;
-DELETE FROM `creature` WHERE `guid` BETWEEN @CGUID+0 AND @CGUID+9;
+DELETE FROM `creature` WHERE `guid` BETWEEN @CGUID+0 AND @CGUID+13;
 DELETE FROM `creature` WHERE `id` IN (97142) AND `map` = 1481;
 INSERT INTO `creature` (`guid`, `id`, `map`, `zoneId`, `areaId`, `phaseUseFlags`, `PhaseId`, `PhaseGroup`, `modelid`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `wander_distance`, `currentwaypoint`, `MovementType`, `npcflag`, `unit_flags`, `unit_flags2`, `unit_flags3`, `VerifiedBuild`) VALUES
 (@CGUID+0, 97142, 1481, 7705, 7740, 1, 0, 0, 0, 0, 797.72222900390625, 2790.532958984375, -33.0243721008300781, 0, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 70575), -- Fel Spreader (Area: Molten Shore - Difficulty: 0) CreateObject1 (Auras: 200681 - Cosmetic - Random 7XP Fel Ground Crack A01 or A02 [scale x0.50]) - !!! already present in database !!!
@@ -686,6 +686,12 @@ INSERT INTO `creature` (`guid`, `id`, `map`, `zoneId`, `areaId`, `phaseUseFlags`
 (@CGUID+7, 97142, 1481, 7705, 7742, 1, 0, 0, 0, 0, 1478.2603759765625, 2533.515625, 42.796875, 0.651824116706848144, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 70575), -- Fel Spreader (Area: Seat of Command - Difficulty: 0) CreateObject1 (Auras: 200681 - Cosmetic - Random 7XP Fel Ground Crack A01 or A02 [scale x0.50])
 (@CGUID+8, 97142, 1481, 7705, 7742, 1, 0, 0, 0, 0, 1462.4879150390625, 2657.950439453125, 35.22789382934570312, 3.31837010383605957, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 70575), -- Fel Spreader (Area: Seat of Command - Difficulty: 0) CreateObject1 (Auras: 200681 - Cosmetic - Random 7XP Fel Ground Crack A01 or A02 [scale x0.50])
 (@CGUID+9, 97142, 1481, 7705, 7742, 1, 0, 0, 0, 0, 1423.9635009765625, 2338.40966796875, 66.92083740234375, 3.31837010383605957, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 70575); -- Fel Spreader (Area: Seat of Command - Difficulty: 0) CreateObject1 (Auras: 200681 - Cosmetic - Random 7XP Fel Ground Crack A01 or A02 [scale x0.50])
+
+INSERT INTO `creature` (`guid`, `id`, `map`, `zoneId`, `areaId`, `phaseId`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `wander_distance`, `MovementType`, `unit_flags`, `unit_flags2`, `curHealthPct`, `ScriptName`) VALUES
+(@CGUID+10, 94654, 1481, 7705, 7740, 0, 0, 985.39544677734375, 2638.050048828125, -19.1119842529296875, 5.954813957214355468, 120, 0, 0, 32768, 0, 100, 'npc_doomguard_eradicator_ward_event'),
+(@CGUID+11, 94654, 1481, 7705, 7740, 0, 0, 1151.482421875, 2632.819091796875, -91.1885833740234375, 0.386433154344558715, 120, 0, 0, 32768, 0, 100, 'npc_doomguard_eradicator_ward_event'),
+(@CGUID+12, 94654, 1481, 7705, 7740, 0, 0, 1087.4774169921875, 2642.195556640625, -48.2936515808105468, 4.210082054138183593, 120, 0, 0, 32768, 0, 100, 'npc_doomguard_eradicator_ward_event'),
+(@CGUID+13, 94654, 1481, 7705, 7740, 0, 0, 1071.5361328125, 2567.2939453125, -26.1090240478515625, 2.277505397796630859, 120, 0, 0, 32768, 0, 100, 'npc_doomguard_eradicator_ward_event');
 
 DELETE FROM `spawn_tracking_template` WHERE `SpawnTrackingId` BETWEEN 1046034 AND 1046043;
 INSERT INTO `spawn_tracking_template` (`SpawnTrackingId`, `MapId`, `PhaseId`, `PhaseGroup`, `PhaseUseFlags`, `VerifiedBuild`) VALUES
@@ -854,6 +860,23 @@ INSERT INTO `spawn_tracking_state` (`SpawnType`, `SpawnId`, `State`, `Visible`, 
 (1, 6000168, 2, 1, NULL, 1866, NULL, NULL), -- Legion Communicator
 (1, 6000170, 2, 1, NULL, 1866, NULL, NULL), -- Legion Communicator
 (1, 6000171, 2, 1, NULL, 1866, NULL, NULL); -- Legion Communicator
+
+-- Doomguard Eradicator attackers at the Seat of Command wards (quest 37658 "Reignite the Wards" ambient)
+-- Sniffed CreateObject positions inside the ward cluster; retail has exactly ONE random active spawn at a time
+-- proceeding toward the ward cluster (pacified fly-by, SummonedBy=0x0), shot down by the ward ATs
+-- (create properties 5216 -> CAST 201109 on USER_ENEMY), ~40% max-HP per hit.
+-- Pool max_limit=1 auto-spawns one random member at map init and re-rolls on each member's respawn timer.
+SET @POOLID := 900000;
+DELETE FROM `pool_template` WHERE `entry`=@POOLID+24;
+INSERT INTO `pool_template` (`entry`,`max_limit`,`description`) VALUES
+(@POOLID+24, 1, 'Mardum - Seat of Command ward attackers (one random at a time)');
+
+DELETE FROM `pool_members` WHERE `poolSpawnId`=@POOLID+24;
+INSERT INTO `pool_members` (`type`,`spawnId`,`poolSpawnId`,`chance`,`description`) VALUES
+(0, @CGUID+10, @POOLID+24, 0, 'Doomguard Eradicator - ward attacker'),
+(0, @CGUID+11, @POOLID+24, 0, 'Doomguard Eradicator - ward attacker'),
+(0, @CGUID+12, @POOLID+24, 0, 'Doomguard Eradicator - ward attacker'),
+(0, @CGUID+13, @POOLID+24, 0, 'Doomguard Eradicator - ward attacker');
 
 -- Updates to spawns
 -- Some creatures are forced always visible due to missing/unknown phase ids.
