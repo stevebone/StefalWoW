@@ -117,6 +117,7 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Lan
 (96280, 0, 6, 'I''ll burn your kneecaps off.', 12, 0, 100, 0, 0, 55209, 96660, 0, 'Volatile Minion to Player'),
 (96280, 0, 7, 'Warn the Brood Queen!', 12, 0, 100, 0, 0, 55208, 96659, 0, 'Volatile Minion to Player'),
 
+-- BE Male
 (100549, 0, 0, 'I will repay my debt to you.', 12, 0, 100, 0, 0, 56813, 102551, 0, 'Demon Hunter to Player'),
 (100549, 0, 1, 'The Burning Legion will fall!', 12, 0, 100, 0, 0, 56814, 102552, 0, 'Demon Hunter to Player'),
 (100549, 0, 2, 'I will not let you down.', 12, 0, 100, 0, 0, 56815, 102553, 0, 'Demon Hunter to Player'),
@@ -124,22 +125,46 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Lan
 (100549, 0, 4, 'We WILL take the keystone!', 12, 0, 100, 0, 0, 56817, 102555, 0, 'Demon Hunter to Player'),
 (100549, 0, 5, 'Die demons!', 12, 0, 100, 0, 0, 56818, 102556, 0, 'Demon Hunter to Player'),
 (100549, 0, 6, 'I did not make it this far just to die on this rock.', 12, 0, 100, 0, 0, 56819, 102557, 0, 'Demon Hunter to Player'),
-(100545, 0, 0, 'I will repay my debt to you.', 12, 0, 100, 0, 0, 56813, 102551, 0, 'Demon Hunter to Player'),
-(100545, 0, 1, 'The Burning Legion will fall!', 12, 0, 100, 0, 0, 56814, 102552, 0, 'Demon Hunter to Player'),
-(100545, 0, 2, 'I will not let you down.', 12, 0, 100, 0, 0, 56815, 102553, 0, 'Demon Hunter to Player'),
-(100545, 0, 3, 'For Lord Illidan!', 12, 0, 100, 0, 0, 56816, 102554, 0, 'Demon Hunter to Player'),
-(100545, 0, 4, 'We WILL take the keystone!', 12, 0, 100, 0, 0, 56817, 102555, 0, 'Demon Hunter to Player'),
-(100545, 0, 5, 'Die demons!', 12, 0, 100, 0, 0, 56818, 102556, 0, 'Demon Hunter to Player'),
-(100545, 0, 6, 'I did not make it this far just to die on this rock.', 12, 0, 100, 0, 0, 56819, 102557, 0, 'Demon Hunter to Player'),
-(100543, 0, 0, 'I will repay my debt to you.', 12, 0, 100, 0, 0, 56813, 102551, 0, 'Demon Hunter to Player'),
-(100543, 0, 1, 'The Burning Legion will fall!', 12, 0, 100, 0, 0, 56814, 102552, 0, 'Demon Hunter to Player'),
-(100543, 0, 2, 'I will not let you down.', 12, 0, 100, 0, 0, 56815, 102553, 0, 'Demon Hunter to Player'),
-(100543, 0, 3, 'For Lord Illidan!', 12, 0, 100, 0, 0, 56816, 102554, 0, 'Demon Hunter to Player'),
-(100543, 0, 4, 'We WILL take the keystone!', 12, 0, 100, 0, 0, 56817, 102555, 0, 'Demon Hunter to Player'),
-(100543, 0, 5, 'Die demons!', 12, 0, 100, 0, 0, 56818, 102556, 0, 'Demon Hunter to Player'),
-(100543, 0, 6, 'I did not make it this far just to die on this rock.', 12, 0, 100, 0, 0, 56819, 102557, 0, 'Demon Hunter to Player'),
+(100549, 0, 7, 'Thank you, $n. Back into the fight.', 12, 0, 100, 0, 0, 56812, 102526, 0, 'Demon Hunter to Player'), -- BroadcastTextID: 102526 - 102532
 
-(96888, 0, 0, 'The Matron Mother bid me come to help.', 12, 0, 100, 0, 0, 55355, 99747, 0, 'Shivarra Destroyer to Player'),
+-- NE Female
+(100548, 0, 0, 'I will repay my debt to you.', 12, 0, 100, 0, 0, 57104, 102558, 0, 'Demon Hunter to Player'),
+(100548, 0, 1, 'The Burning Legion will fall!', 12, 0, 100, 0, 0, 57105, 102559, 0, 'Demon Hunter to Player'),
+(100548, 0, 2, 'I will not let you down.', 12, 0, 100, 0, 0, 57106, 102561, 0, 'Demon Hunter to Player'),
+(100548, 0, 3, 'For Lord Illidan!', 12, 0, 100, 0, 0, 57107, 102562, 0, 'Demon Hunter to Player'),
+(100548, 0, 4, 'We WILL take the keystone!', 12, 0, 100, 0, 0, 57108, 102563, 0, 'Demon Hunter to Player'),
+(100548, 0, 5, 'Die demons!', 12, 0, 100, 0, 0, 57124, 102572, 0, 'Demon Hunter to Player'),
+(100548, 0, 6, 'I did not make it this far just to die on this rock.', 12, 0, 100, 0, 0, 57110, 102566, 0, 'Demon Hunter to Player'),
+(100548, 0, 7, 'Thank you, $n. Back into the fight.', 12, 0, 100, 0, 0, 57103, 102529, 0, 'Demon Hunter to Player'), -- BroadcastTextID: 102526 - 102532
+
+-- NE Male
+(100545, 0, 0, 'I will repay my debt to you.', 12, 0, 100, 0, 0, 57119, 102567, 0, 'Demon Hunter to Player'),
+(100545, 0, 1, 'The Burning Legion will fall!', 12, 0, 100, 0, 0, 57120, 102568, 0, 'Demon Hunter to Player'),
+(100545, 0, 2, 'I will not let you down.', 12, 0, 100, 0, 0, 57121, 102569, 0, 'Demon Hunter to Player'),
+(100545, 0, 3, 'For Lord Illidan!', 12, 0, 100, 0, 0, 57122, 102570, 0, 'Demon Hunter to Player'),
+(100545, 0, 4, 'We WILL take the keystone!', 12, 0, 100, 0, 0, 57123, 102571, 0, 'Demon Hunter to Player'),
+(100545, 0, 5, 'Die demons!', 12, 0, 100, 0, 0, 56818, 102556, 0, 'Demon Hunter to Player'),
+(100545, 0, 6, 'I did not make it this far just to die on this rock.', 12, 0, 100, 0, 0, 57125, 102557, 0, 'Demon Hunter to Player'),
+(100545, 0, 7, 'Thank you, $n. Back into the fight.', 12, 0, 100, 0, 0, 57126, 102532, 0, 'Demon Hunter to Player'), -- BroadcastTextID: 102526 - 102532
+
+-- BE Female
+(100543, 0, 0, 'I will repay my debt to you.', 12, 0, 100, 0, 0, 57055, 102540, 0, 'Demon Hunter to Player'),
+(100543, 0, 1, 'The Burning Legion will fall!', 12, 0, 100, 0, 0, 57056, 102541, 0, 'Demon Hunter to Player'),
+(100543, 0, 2, 'I will not let you down.', 12, 0, 100, 0, 0, 57057, 102543, 0, 'Demon Hunter to Player'),
+(100543, 0, 3, 'For Lord Illidan!', 12, 0, 100, 0, 0, 57058, 102544, 0, 'Demon Hunter to Player'),
+(100543, 0, 4, 'We WILL take the keystone!', 12, 0, 100, 0, 0, 57059, 102546, 0, 'Demon Hunter to Player'),
+(100543, 0, 5, 'Die demons!', 12, 0, 100, 0, 0, 57060, 102548, 0, 'Demon Hunter to Player'),
+(100543, 0, 6, 'I did not make it this far just to die on this rock.', 12, 0, 100, 0, 0, 57061, 102550, 0, 'Demon Hunter to Player'),
+(100543, 0, 7, 'Thank you, $n. Back into the fight.', 12, 0, 100, 0, 0, 57054, 102525, 0, 'Demon Hunter to Player'), -- BroadcastTextID: 102526 - 102532
+
+(96888, 0, 0, 'The Matron Mother bid me come to help.', 12, 0, 100, 0, 0, 55359, 99748, 0, 'Shivarra Destroyer to Player'),
+(96888, 0, 1, 'This demon will die from a thousand cuts.', 12, 0, 100, 0, 0, 55354, 99752, 0, 'Shivarra Destroyer to Player'),
+(96888, 0, 2, 'I am here to maim and kill.', 12, 0, 100, 0, 0, 55361, 99753, 0, 'Shivarra Destroyer to Player'),
+(96888, 0, 3, 'The Shivarra serve.', 12, 0, 100, 0, 0, 55360, 99754, 0, 'Shivarra Destroyer to Player'),
+(96888, 0, 4, 'I serve Illidan.', 12, 0, 100, 0, 0, 55356, 99750, 0, 'Shivarra Destroyer to Player'),
+(96888, 0, 5, 'We will help you destroy the Legion.', 12, 0, 100, 0, 0, 55353, 99749, 0, 'Shivarra Destroyer to Player'),
+(96888, 0, 6, 'The Legion''s march across the stars will be stopped.', 12, 0, 100, 0, 0, 55357, 99755, 0, 'Shivarra Destroyer to Player'),
+(96888, 0, 7, 'Lord Illidan commands and I follow.', 12, 0, 100, 0, 0, 55358, 99751, 0, 'Shivarra Destroyer to Player'),
 
 (102923, 0, 0, 'Don''t worry, mother''s here... Oh my, he''s a big one.', 12, 0, 100, 0, 0, 55321, 99153, 0, 'Matron Mother Malevolence to Player'),
 
@@ -197,6 +222,7 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Lan
 (94654, 0, 3, 'Doom!', 12, 0, 100, 0, 0, 55142, 96645, 0, 'Doomguard Eradicator to Player'),
 (94654, 0, 4, 'Succulent marrow. Crunchy bones.', 12, 0, 100, 0, 0, 55150, 96651, 0, 'Doomguard Eradicator to Player'),
 (94654, 0, 5, 'You do not belong here.', 12, 0, 100, 0, 0, 55148, 96649, 0, 'Doomguard Eradicator to Player'),
+(94654, 0, 6, 'You will die!', 12, 0, 100, 0, 0, 55145, 96646, 0, 'Doomguard Eradicator to Player'), -- BroadcastTextID: 76125 - 96646 - 99135
 
 (93759, 0, 0, 'I sense greater power within you, $n. Have you stolen a demon''s essence?', 12, 0, 100, 0, 0, 55229, 96428, 0, 'Jace Darkweaver to Player'),
 (93759, 1, 0, 'Use the crucible to complete the ritual.', 12, 0, 100, 0, 0, 55242, 96680, 0, 'Jace Darkweaver to Player'),
