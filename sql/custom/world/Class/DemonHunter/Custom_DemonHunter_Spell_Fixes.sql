@@ -284,13 +284,21 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (205411, 'spe
 DELETE FROM `spell_script_names` WHERE `spell_id` = 209795 AND `ScriptName` = 'spell_dh_fracture';
 -- INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (209795, 'spell_dh_fracture');
 
--- 224509 - Frailty
-DELETE FROM `spell_script_names` WHERE `spell_id` = 224509 AND `ScriptName` = 'spell_dh_frailty';
-INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (224509, 'spell_dh_frailty');
+-- 247456 - Frailty (rebound from legacy 224509; same EFFECT_0 PERIODIC_DUMMY layout)
+DELETE FROM `spell_script_names` WHERE `spell_id` IN (224509, 247456) AND `ScriptName` = 'spell_dh_frailty';
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (247456, 'spell_dh_frailty');
+
+-- 204598 - Sigil of Flame damage -> applies Frailty 247456 per target (talent 389958)
+DELETE FROM `spell_script_names` WHERE `spell_id` = 204598 AND `ScriptName` = 'spell_dh_sigil_of_flame_frailty';
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (204598, 'spell_dh_sigil_of_flame_frailty');
 
 -- 247454 - Spirit Bomb
 DELETE FROM `spell_script_names` WHERE `spell_id` = 247454 AND `ScriptName` = 'spell_dh_spirit_bomb';
 INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (247454, 'spell_dh_spirit_bomb');
+
+-- 247455 - Spirit Bomb damage (fragments scaling + Frailty application)
+DELETE FROM `spell_script_names` WHERE `spell_id` = 247455 AND `ScriptName` = 'spell_dh_spirit_bomb_damage';
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (247455, 'spell_dh_spirit_bomb_damage');
 
 -- 236189 - Demonic Infusion
 DELETE FROM `spell_script_names` WHERE `spell_id` = 236189 AND `ScriptName` = 'spell_dh_demonic_infusion';

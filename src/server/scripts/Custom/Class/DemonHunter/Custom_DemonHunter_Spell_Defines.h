@@ -178,9 +178,14 @@ namespace Scripts::Custom::DemonHunter
         static constexpr uint32 spell_dh_soul_fragment_heal_vengeance = 210042;
         static constexpr uint32 spell_dh_soul_fragment_demon_bonus = 163073;
 
-        static constexpr uint32 spell_dh_spirit_bomb_damage = 218677;
+        static constexpr uint32 spell_dh_spirit_bomb = 247454;
+        static constexpr uint32 spell_dh_spirit_bomb_damage = 247455;
         static constexpr uint32 spell_dh_spirit_bomb_heal = 227255;
         static constexpr uint32 spell_dh_spirit_bomb_visual = 218678;
+
+        static constexpr uint32 spell_dh_soul_barrier_talent = 1265924;
+        static constexpr uint32 spell_dh_frailty_debuff = 247456;
+        static constexpr uint32 spell_dh_frailty_talent = 389958;
 
         static constexpr uint32 spell_dh_shattered_souls_demon = 204256;
         static constexpr uint32 spell_dh_lesser_soul_shard = 203795;

@@ -1498,7 +1498,7 @@ namespace Scripts::Custom::DemonHunter
         }
     };
 
-    // 224509 - Frailty - Spirit Bomb healing accumulator
+    // 247456 - Frailty - Spirit Bomb healing accumulator
     class spell_dh_frailty : public AuraScript
     {
         // Per-aura stored accumulated damage
@@ -1548,6 +1548,36 @@ namespace Scripts::Custom::DemonHunter
                 EFFECT_0,
                 SPELL_AURA_PERIODIC_DUMMY
             );
+        }
+    };
+
+    // 204598 - Sigil of Flame damage (Frailty application)
+    // Talent 389958: enemies struck by Sigil of Flame are afflicted with Frailty (247456).
+    class spell_dh_sigil_of_flame_frailty : public SpellScript
+    {
+        bool Validate(SpellInfo const* /*spellInfo*/) override
+        {
+            return ValidateSpellInfo({
+                Spells::spell_dh_frailty_talent,
+                Spells::spell_dh_frailty_debuff
+                });
+        }
+
+        bool Load() override
+        {
+            return GetCaster()->HasAura(Spells::spell_dh_frailty_talent);
+        }
+
+        void HandleHit(SpellEffIndex /*effIndex*/)
+        {
+            if (Unit* target = GetHitUnit())
+                GetCaster()->CastSpell(target, Spells::spell_dh_frailty_debuff, true);
+        }
+
+        void Register() override
+        {
+            OnEffectHitTarget += SpellEffectFn(spell_dh_sigil_of_flame_frailty::HandleHit,
+                EFFECT_0, SPELL_EFFECT_SCHOOL_DAMAGE);
         }
     };
 
@@ -2396,101 +2426,27 @@ namespace Scripts::Custom::DemonHunter
     };
 
     // Soul Barrier - 263648
+    // 12.x: plain depleting shield. Absorb amount is passed by the caster spell
+    // (Spirit Bomb via talent 1265924: 8% + 2%/fragment maxHP, as SPELLVALUE).
+    // Fallback keeps non-spellvalue casts (e.g. Hour of Reaping) at the base coefficient.
     class spell_dh_soul_barrier : public AuraScript
     {
-        void CalcAmount(AuraEffect const* /*aurEff*/, SpellEffectValue& amount, bool& /*canBeRecalculated*/)
+        bool Validate(SpellInfo const* /*spellInfo*/) override
         {
-            Unit* caster = GetCaster();
-            if (!caster)
-                return;
-
-            if (Player* player = caster->ToPlayer())
-            {
-                float coeff = amount / 100.f;
-                // 12.x Soul Barrier (263648) has only EFFECT_0 ? the per-fragment absorb coefficient
-                // moved to talent 1265924 (8% + 2%/fragment). Guard until the absorb rework pass.
-                float soulShardCoeff = 0.f;
-                if (GetSpellInfo()->GetEffects().size() > EFFECT_1)
-                    soulShardCoeff = GetSpellInfo()->GetEffect(EFFECT_1).BasePoints / 100.f;
-                int32 ap = player->GetTotalAttackPowerValue(BASE_ATTACK);
-
-                amount = coeff * ap;
-
-                std::vector<std::vector<AreaTrigger*>> fragments;
-                fragments.push_back(caster->GetAreaTriggers(Spells::spell_dh_shattered_souls_havoc));
-                fragments.push_back(caster->GetAreaTriggers(Spells::spell_dh_shattered_souls_demon));
-                fragments.push_back(caster->GetAreaTriggers(Spells::spell_dh_lesser_soul_shard));
-                float range = 25.f;
-
-                for (auto vec : fragments)
-                {
-                    for (AreaTrigger* at : vec)
-                    {
-                        if (!caster->IsWithinDist(at, range))
-                            continue;
-
-                        if (TempSummon* tempSumm = caster->SummonCreature(
-                            WORLD_TRIGGER,
-                            at->GetPositionX(), at->GetPositionY(), at->GetPositionZ(),
-                            0, TEMPSUMMON_TIMED_DESPAWN, 100ms))
-                        {
-                            tempSumm->SetFaction(caster->GetFaction());
-                            tempSumm->SetCreatorGUID(caster->GetGUID());
-
-                            int32 bp = 0;
-                            switch (at->GetTemplate()->Id.Id)
-                            {
-                            case 6007:
-                            case 5997:
-                                bp = Spells::spell_dh_soul_fragment_heal_vengeance;
-                                break;
-                            case 6710:
-                                bp = Spells::spell_dh_consume_soul_heal;
-                                break;
-                            }
-
-                            caster->CastSpell(
-                                tempSumm,
-                                Spells::spell_dh_consume_soul_vengeance_shattered,
-                                CastSpellExtraArgs(TRIGGERED_FULL_MASK).AddSpellBP0(bp));
-
-                            if (at->GetTemplate()->Id.Id == 6007)
-                                caster->CastSpell(caster, Spells::spell_dh_soul_fragment_demon_bonus, true);
-
-                            if (caster->HasAura(Spells::spell_dh_feed_the_demon))
-                                caster->GetSpellHistory()->ModifyCooldown(
-                                    Spells::spell_dh_demon_spikes,
-                                    Milliseconds(-1000),
-                                    false);
-
-                            if (caster->HasAura(Spells::spell_dh_painbringer))
-                                caster->CastSpell(caster, Spells::spell_dh_painbringer_buff, true);
-
-                            amount += soulShardCoeff * ap;
-
-                            at->SetDuration(0);
-                        }
-                    }
-                }
-            }
-
-            if (AuraApplication* app = caster->GetAuraApplication(Spells::spell_dh_soul_barrier))
-                app->ClientUpdate();
+            return ValidateSpellInfo({ Spells::spell_dh_soul_barrier_talent });
         }
 
-        void HandleAbsorb(AuraEffect* aurEff, DamageInfo& dmgInfo, uint32& absorbAmount)
+        void CalcAmount(AuraEffect const* /*aurEff*/, SpellEffectValue& amount, bool& /*canBeRecalculated*/)
         {
-            Unit* caster = GetCaster();
-            if (!caster)
+            if (amount > 0)
                 return;
 
-            uint32 threshold = caster->GetTotalAttackPowerValue(BASE_ATTACK) * 0.4914f;
+            Unit* target = GetTarget();
+            if (!target)
+                return;
 
-            if (absorbAmount < dmgInfo.GetDamage())
-                aurEff->SetAmount(absorbAmount + threshold);
-
-            if (AuraApplication* app = caster->GetAuraApplication(Spells::spell_dh_soul_barrier))
-                app->ClientUpdate();
+            if (SpellInfo const* talentInfo = sSpellMgr->GetSpellInfo(Spells::spell_dh_soul_barrier_talent, DIFFICULTY_NONE))
+                amount = target->CountPctFromMaxHealth(talentInfo->GetEffect(EFFECT_0).BasePoints);
         }
 
         void Register() override
@@ -2499,12 +2455,72 @@ namespace Scripts::Custom::DemonHunter
                 spell_dh_soul_barrier::CalcAmount,
                 EFFECT_0,
                 SPELL_AURA_SCHOOL_ABSORB);
-
-            OnEffectAbsorb += AuraEffectAbsorbFn(
-                spell_dh_soul_barrier::HandleAbsorb,
-                EFFECT_0);
         }
     };
+
+    // Consumes up to maxCount nearby soul-fragment area triggers within range, running the
+    // standard consume chain (consume heal, demon bonus, feed-the-demon, painbringer).
+    // Returns the number of fragments consumed. Shared by Soul Cleave and Spirit Bomb.
+    static int32 ConsumeSoulFragments(Unit* caster, float range, int32 maxCount)
+    {
+        std::vector<std::vector<AreaTrigger*>> fragments;
+        fragments.push_back(caster->GetAreaTriggers(Spells::spell_dh_shattered_souls_havoc));
+        fragments.push_back(caster->GetAreaTriggers(Spells::spell_dh_shattered_souls_demon));
+        fragments.push_back(caster->GetAreaTriggers(Spells::spell_dh_lesser_soul_shard));
+
+        int32 consumed = 0;
+        for (auto vec : fragments)
+        {
+            for (AreaTrigger* at : vec)
+            {
+                if (consumed >= maxCount)
+                    return consumed;
+
+                if (!caster->IsWithinDist(at, range))
+                    continue;
+
+                if (TempSummon* tempSumm = caster->SummonCreature(WORLD_TRIGGER,
+                    at->GetPositionX(), at->GetPositionY(), at->GetPositionZ(),
+                    0, TEMPSUMMON_TIMED_DESPAWN, 100ms))
+                {
+                    tempSumm->SetFaction(caster->GetFaction());
+                    tempSumm->SetCreatorGUID(caster->GetGUID());
+
+                    int32 bp = 0;
+                    switch (at->GetTemplate()->Id.Id)
+                    {
+                    case 6007:
+                    case 5997:
+                        bp = Spells::spell_dh_soul_fragment_heal_vengeance;
+                        break;
+                    case 6710:
+                        bp = Spells::spell_dh_consume_soul_heal;
+                        break;
+                    }
+
+                    caster->CastSpell(tempSumm,
+                        Spells::spell_dh_consume_soul_vengeance_shattered,
+                        CastSpellExtraArgs(TRIGGERED_FULL_MASK).AddSpellBP0(bp));
+
+                    if (at->GetTemplate()->Id.Id == 6007)
+                        caster->CastSpell(caster, Spells::spell_dh_soul_fragment_demon_bonus, true);
+
+                    if (caster->HasAura(Spells::spell_dh_feed_the_demon))
+                        caster->GetSpellHistory()->ModifyCooldown(
+                            Spells::spell_dh_demon_spikes,
+                            -1s,
+                            false);
+
+                    if (caster->HasAura(Spells::spell_dh_painbringer))
+                        caster->CastSpell(caster, Spells::spell_dh_painbringer_buff, true);
+
+                    at->SetDuration(0);
+                    ++consumed;
+                }
+            }
+        }
+        return consumed;
+    }
 
     // Fragments consumed this cast — shared between spell_dh_soul_cleave (records)
     // and spell_dh_soul_cleave_damage (scales damage by consumed count)
@@ -2529,8 +2545,7 @@ namespace Scripts::Custom::DemonHunter
                     Spells::spell_dh_feed_the_demon,
                     Spells::spell_dh_demon_spikes,
                     Spells::spell_dh_painbringer,
-                    Spells::spell_dh_painbringer_buff,
-                    Spells::spell_dh_soul_barrier
+                    Spells::spell_dh_painbringer_buff
                 });
         }
 
@@ -2553,82 +2568,7 @@ namespace Scripts::Custom::DemonHunter
             if (!caster)
                 return;
 
-            std::vector<std::vector<AreaTrigger*>> fragments;
-            fragments.push_back(caster->GetAreaTriggers(Spells::spell_dh_shattered_souls_havoc));
-            fragments.push_back(caster->GetAreaTriggers(Spells::spell_dh_shattered_souls_demon));
-            fragments.push_back(caster->GetAreaTriggers(Spells::spell_dh_lesser_soul_shard));
-
-            int32 range = GetEffectInfo().BasePoints;
-            int32 const maxConsume = GetSpellInfo()->GetEffect(EFFECT_2).BasePoints;
-            int32 consumed = 0;
-
-            for (auto vec : fragments)
-            {
-                for (AreaTrigger* at : vec)
-                {
-                    if (consumed >= maxConsume)
-                        continue;
-
-                    if (!caster->IsWithinDist(at, range))
-                        continue;
-
-                    if (TempSummon* tempSumm = caster->SummonCreature(WORLD_TRIGGER,
-                        at->GetPositionX(), at->GetPositionY(), at->GetPositionZ(),
-                        0, TEMPSUMMON_TIMED_DESPAWN, 100ms))
-                    {
-                        tempSumm->SetFaction(caster->GetFaction());
-                        tempSumm->SetCreatorGUID(caster->GetGUID());
-
-                        int32 bp = 0;
-                        switch (at->GetTemplate()->Id.Id)
-                        {
-                        case 6007:
-                        case 5997:
-                            bp = Spells::spell_dh_soul_fragment_heal_vengeance;
-                            break;
-                        case 6710:
-                            bp = Spells::spell_dh_consume_soul_heal;
-                            break;
-                        }
-
-                        caster->CastSpell(tempSumm,
-                            Spells::spell_dh_consume_soul_vengeance_shattered,
-                            CastSpellExtraArgs(TRIGGERED_FULL_MASK).AddSpellBP0(bp));
-
-                        if (at->GetTemplate()->Id.Id == 6007)
-                            caster->CastSpell(caster, Spells::spell_dh_soul_fragment_demon_bonus, true);
-
-                        if (caster->HasAura(Spells::spell_dh_feed_the_demon))
-                        {
-                            // Reduce Demon Spikes cooldown by 1 second (including its category cooldown)
-                            caster->GetSpellHistory()->ModifyCooldown(
-                                Spells::spell_dh_demon_spikes,
-                                -1s,
-                                false
-                            );
-                        }
-
-                        if (caster->HasAura(Spells::spell_dh_painbringer))
-                            caster->CastSpell(caster, Spells::spell_dh_painbringer_buff, true);
-
-                        if (AuraEffect* soulBarrier = caster->GetAuraEffect(Spells::spell_dh_soul_barrier, EFFECT_0))
-                        {
-                            SpellInfo const* barrierInfo = sSpellMgr->GetSpellInfo(Spells::spell_dh_soul_barrier, DIFFICULTY_NONE);
-                            // 12.x Soul Barrier (263648) has only EFFECT_0 ? no per-fragment coefficient there.
-                            int32 amount = soulBarrier->GetAmount();
-                            if (barrierInfo && barrierInfo->GetEffects().size() > EFFECT_1)
-                                amount += (float(barrierInfo->GetEffect(EFFECT_1).BasePoints) / 100.f)
-                                    * caster->GetTotalAttackPowerValue(BASE_ATTACK);
-
-                            soulBarrier->SetAmount(amount);
-                        }
-
-                        at->SetDuration(0);
-                        ++consumed;
-                    }
-                }
-            }
-
+            int32 const consumed = ConsumeSoulFragments(caster, GetEffectInfo().BasePoints, GetSpellInfo()->GetEffect(EFFECT_2).BasePoints);
             sSoulCleaveFragmentsConsumed[caster->GetGUID()] = consumed;
         }
 
@@ -2642,6 +2582,8 @@ namespace Scripts::Custom::DemonHunter
     // Soul cleave damage - 228478
     // 12.x: +20% damage per soul fragment consumed (EFFECT_2 BP); count is recorded
     // by spell_dh_soul_cleave::HandleDummy which runs before this trigger.
+    // Also applies Frailty (247456) per target when the caster has talent 389958 —
+    // covers Soul Sunder (452436) since it triggers the same damage spell.
     class spell_dh_soul_cleave_damage : public SpellScript
     {
         void HandleDamage(SpellEffIndex /*effIndex*/)
@@ -2651,11 +2593,15 @@ namespace Scripts::Custom::DemonHunter
                 return;
 
             auto itr = sSoulCleaveFragmentsConsumed.find(caster->GetGUID());
-            if (itr == sSoulCleaveFragmentsConsumed.end())
-                return;
+            if (itr != sSoulCleaveFragmentsConsumed.end() && itr->second > 0)
+            {
+                int32 dmg = GetHitDamage();
+                SetHitDamage(dmg + CalculatePct(dmg, GetSpellInfo()->GetEffect(EFFECT_2).BasePoints * itr->second));
+            }
 
-            int32 dmg = GetHitDamage();
-            SetHitDamage(dmg + CalculatePct(dmg, GetSpellInfo()->GetEffect(EFFECT_2).BasePoints * itr->second));
+            if (caster->HasAura(Spells::spell_dh_frailty_talent))
+                if (Unit* target = GetHitUnit())
+                    caster->CastSpell(target, Spells::spell_dh_frailty_debuff, true);
         }
 
         void ClearCounter()
@@ -2733,7 +2679,13 @@ namespace Scripts::Custom::DemonHunter
         }
     };
 
-    // 218679 - Spirit Bomb
+    // Fragments consumed this cast — shared between spell_dh_spirit_bomb (records)
+    // and spell_dh_spirit_bomb_damage (scales damage)
+    static std::unordered_map<ObjectGuid, int32> sSpiritBombFragmentsConsumed;
+
+    // 247454 - Spirit Bomb
+    // 12.x: consumes up to 5 fragments on cast; the triggered AoE damage (247455) scales
+    // +20% per fragment consumed. Talent 1265924 applies Soul Barrier (8% + 2%/fragment maxHP).
     class spell_dh_spirit_bomb : public SpellScript
     {
         bool Validate(SpellInfo const* /*spellInfo*/) override
@@ -2742,19 +2694,10 @@ namespace Scripts::Custom::DemonHunter
                 Spells::spell_dh_spirit_bomb_damage,
                 Spells::spell_dh_lesser_soul_shard,
                 Spells::spell_dh_shattered_souls_havoc,
-                Spells::spell_dh_shattered_souls_demon
+                Spells::spell_dh_shattered_souls_demon,
+                Spells::spell_dh_soul_barrier_talent,
+                Spells::spell_dh_soul_barrier
                 });
-        }
-
-        bool TryCastDamage(Unit* caster, Unit* target, uint32 atSpellId)
-        {
-            if (AreaTrigger* at = caster->GetAreaTrigger(atSpellId))
-            {
-                caster->CastSpell(target, Spells::spell_dh_spirit_bomb_damage, true);
-                at->Remove();
-                return true;
-            }
-            return false;
         }
 
         SpellCastResult CheckCast()
@@ -2774,28 +2717,69 @@ namespace Scripts::Custom::DemonHunter
             return SPELL_CAST_OK;
         }
 
-        void HandleHit()
+        void HandleCast()
         {
             Unit* caster = GetCaster();
-            Unit* target = GetHitUnit();
-            if (!caster || !target)
+            if (!caster)
                 return;
 
-            // Try each soul fragment type in order
-            for (uint32 spellId : {
-                Spells::spell_dh_lesser_soul_shard,
-                    Spells::spell_dh_shattered_souls_havoc,
-                    Spells::spell_dh_shattered_souls_demon })
+            int32 const consumed = ConsumeSoulFragments(caster, 25.f, GetSpellInfo()->GetEffect(EFFECT_1).BasePoints);
+            sSpiritBombFragmentsConsumed[caster->GetGUID()] = consumed;
+
+            caster->CastSpell(caster, Spells::spell_dh_spirit_bomb_damage, true);
+
+            if (caster->HasAura(Spells::spell_dh_soul_barrier_talent))
             {
-                if (TryCastDamage(caster, target, spellId))
-                    break;
+                SpellInfo const* talentInfo = sSpellMgr->GetSpellInfo(Spells::spell_dh_soul_barrier_talent, DIFFICULTY_NONE);
+                int32 const absorbPct = talentInfo->GetEffect(EFFECT_0).BasePoints
+                    + talentInfo->GetEffect(EFFECT_1).BasePoints * consumed;
+                caster->CastSpell(caster, Spells::spell_dh_soul_barrier,
+                    CastSpellExtraArgs(TRIGGERED_FULL_MASK).AddSpellBP0(caster->CountPctFromMaxHealth(absorbPct)));
             }
         }
 
         void Register() override
         {
-            OnHit += SpellHitFn(spell_dh_spirit_bomb::HandleHit);
+            OnCast += SpellCastFn(spell_dh_spirit_bomb::HandleCast);
             OnCheckCast += SpellCheckCastFn(spell_dh_spirit_bomb::CheckCast);
+        }
+    };
+
+    // 247455 - Spirit Bomb damage
+    // +20% per consumed fragment (count recorded by spell_dh_spirit_bomb);
+    // applies Frailty (247456) per target when the caster has the Frailty talent (389958).
+    class spell_dh_spirit_bomb_damage : public SpellScript
+    {
+        void HandleDamage(SpellEffIndex /*effIndex*/)
+        {
+            Unit* caster = GetCaster();
+            if (!caster)
+                return;
+
+            auto itr = sSpiritBombFragmentsConsumed.find(caster->GetGUID());
+            if (itr != sSpiritBombFragmentsConsumed.end() && itr->second > 0)
+                if (SpellInfo const* spiritBomb = sSpellMgr->GetSpellInfo(Spells::spell_dh_spirit_bomb, DIFFICULTY_NONE))
+                {
+                    int32 dmg = GetHitDamage();
+                    SetHitDamage(dmg + CalculatePct(dmg, spiritBomb->GetEffect(EFFECT_0).BasePoints * itr->second));
+                }
+
+            if (caster->HasAura(Spells::spell_dh_frailty_talent))
+                if (Unit* target = GetHitUnit())
+                    caster->CastSpell(target, Spells::spell_dh_frailty_debuff, true);
+        }
+
+        void ClearCounter()
+        {
+            if (Unit* caster = GetCaster())
+                sSpiritBombFragmentsConsumed.erase(caster->GetGUID());
+        }
+
+        void Register() override
+        {
+            OnEffectHitTarget += SpellEffectFn(spell_dh_spirit_bomb_damage::HandleDamage,
+                EFFECT_0, SPELL_EFFECT_SCHOOL_DAMAGE);
+            AfterCast += SpellCastFn(spell_dh_spirit_bomb_damage::ClearCounter);
         }
     };
 
@@ -3271,6 +3255,7 @@ void AddSC_custom_demonhunter_spell_fixes()
     RegisterSpellScript(spell_dh_fel_rush_damage);
     RegisterSpellScript(spell_dh_fel_rush_dash_ground);
     RegisterSpellScript(spell_dh_frailty);
+    RegisterSpellScript(spell_dh_sigil_of_flame_frailty);
     RegisterSpellScript(spell_dh_hungering_slash_devourer);
     RegisterSpellScript(spell_dh_immolation_aura);
     RegisterSpellScript(spell_dh_immolation_aura_damage);
@@ -3295,6 +3280,7 @@ void AddSC_custom_demonhunter_spell_fixes()
     RegisterSpellScript(spell_dh_soul_cleave_damage);
     RegisterSpellScript(spell_dh_soul_fragment_heals);
     RegisterSpellScript(spell_dh_spirit_bomb);
+    RegisterSpellScript(spell_dh_spirit_bomb_damage);
     RegisterSpellScript(spell_dh_the_hunt_damage);
     RegisterSpellScript(spell_dh_trail_of_ruin);
     RegisterSpellScript(spell_dh_unending_hatred);
