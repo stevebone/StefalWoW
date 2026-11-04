@@ -1238,29 +1238,35 @@ class spell_dh_devourers_bite : public AuraScript
 struct spell_dh_shattered_souls_base_lesser
 {
     static constexpr std::array<DemonHunterSpells, 2> DevourerSpells = { SPELL_DH_SHATTERED_SOUL_DEVOURER_LESSER_RIGHT, SPELL_DH_SHATTERED_SOUL_DEVOURER_LESSER_LEFT };
-    static constexpr std::array<DemonHunterSpells, 2> HavocSpells = { SPELL_DH_SHATTERED_SOUL_LESSER_RIGHT, SPELL_DH_SHATTERED_SOUL_LESSER_LEFT };
-    static constexpr std::array<DemonHunterSpells, 2> VengeanceSpells = { SPELL_DH_SHATTER_SOUL_VENGEANCE_FRONT_RIGHT, SPELL_DH_SHATTER_SOUL_VENGEANCE_BACK_RIGHT };
+    static constexpr std::array<DemonHunterSpells, 2> KillProcTriggers = { SPELL_DH_SHATTERED_SOULS_HAVOC, SPELL_DH_SHATTER_SOUL };
 
     static bool Validate()
     {
         return SpellScriptBase::ValidateSpellInfo(DevourerSpells)
-            && SpellScriptBase::ValidateSpellInfo(HavocSpells)
-            && SpellScriptBase::ValidateSpellInfo(VengeanceSpells);
+            && SpellScriptBase::ValidateSpellInfo(KillProcTriggers);
     }
 
     static void CreateFragments(Unit* source, Unit* dh, int32 count)
     {
-        std::span<DemonHunterSpells const> spells = HavocSpells;
         if (Player* player = dh->ToPlayer())
         {
             if (player->GetPrimarySpecialization() == ChrSpecialization::DemonHunterDevourer)
-                spells = DevourerSpells;
-            else if (player->GetPrimarySpecialization() ==  ChrSpecialization::DemonHunterVengeance)
-                spells = VengeanceSpells;
+            {
+                for (int32 i = 0; i < count; ++i)
+                    source->CastSpell(dh, Trinity::Containers::SelectRandomContainerElement(DevourerSpells), TRIGGERED_DONT_REPORT_CAST_ERROR);
+                return;
+            }
+
+            if (player->GetPrimarySpecialization() == ChrSpecialization::DemonHunterVengeance)
+            {
+                for (int32 i = 0; i < count; ++i)
+                    source->CastSpell(dh, SPELL_DH_SHATTER_SOUL, TRIGGERED_DONT_REPORT_CAST_ERROR);
+                return;
+            }
         }
 
         for (int32 i = 0; i < count; ++i)
-            source->CastSpell(dh, Trinity::Containers::SelectRandomContainerElement(spells), TRIGGERED_DONT_REPORT_CAST_ERROR);
+            source->CastSpell(dh, SPELL_DH_SHATTERED_SOULS_HAVOC, TRIGGERED_DONT_REPORT_CAST_ERROR);
     }
 };
 

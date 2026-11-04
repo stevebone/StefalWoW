@@ -111,37 +111,32 @@ namespace Scripts::Custom::DemonHunter
     };
 
     // Helpers
-    static void CollectSoulFragments(Unit* caster, uint32 maxCount, Spell const* triggeringSpell = nullptr)
+    // 1223423 - Consume Soul (Devourer): per-soul-consumed counters.
+    // Fires once per fragment consumed regardless of source (Shattered Souls gather proc, fragment AT walk-over).
+    class spell_dh_consume_soul_devourer : public SpellScript
     {
-        std::vector<AreaTrigger*> fragments = caster->GetAreaTriggers(Spells::spell_dh_soul_fragment_devourer);
-        uint32 collected = 0;
-        for (AreaTrigger* at : fragments)
+        void HandleAfterCast() const
         {
-            if (collected >= maxCount)
-                break;
-
+            Unit* caster = GetCaster();
             CastSpellExtraArgs args(TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
-            if (triggeringSpell)
-                args.SetTriggeringSpell(triggeringSpell);
-            caster->CastSpell(at->GetPosition(), Spells::spell_dh_consume_soul_devourer, args);
+            args.SetTriggeringSpell(GetSpell());
 
             if (caster->HasAura(Spells::spell_dh_void_metamorphosis_passive) && !caster->HasAura(Spells::spell_dh_void_metamorphosis_buff))
-                caster->CastSpell(caster, Spells::spell_dh_void_metamorphosis_counter,
-                    TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
+                caster->CastSpell(caster, Spells::spell_dh_void_metamorphosis_counter, args);
             if (caster->HasAura(Spells::spell_dh_void_metamorphosis_buff) && caster->HasAura(Spells::spell_dh_collapsing_star_passive))
-                caster->CastSpell(caster, Spells::spell_dh_collapsing_star_counter,
-                    TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
+                caster->CastSpell(caster, Spells::spell_dh_collapsing_star_counter, args);
             if (caster->HasAura(Spells::spell_dh_void_metamorphosis_buff) && caster->HasAura(Spells::spell_dh_emptiness_passive))
-                caster->CastSpell(caster, Spells::spell_dh_emptiness_buff,
-                    TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
+                caster->CastSpell(caster, Spells::spell_dh_emptiness_buff, args);
             if (Aura* fos = caster->GetAura(Spells::spell_dh_feast_of_souls_passive))
                 if (auto* script = fos->GetScript<spell_dh_feast_of_souls_tracker>())
                     script->AddStack(caster);
-
-            at->Remove();
-            ++collected;
         }
-    }
+
+        void Register() override
+        {
+            AfterCast += SpellCastFn(spell_dh_consume_soul_devourer::HandleAfterCast);
+        }
+    };
 
     // 1253304 - Voidfall passive: Consume hit has 35% chance to grant a stack of 1256301 (max 3)
     class spell_dh_voidfall_passive : public AuraScript
@@ -722,36 +717,19 @@ namespace Scripts::Custom::DemonHunter
     };
 
     // 1245453 - Cull (enhanced Reap during Void Metamorphosis)
-    class spell_dh_cull : public SpellScript
+    // Supplementary to the native spell_dh_cull — damage, energize and soul gathering are handled by core scripts.
+    class spell_dh_cull_devourer : public SpellScript
     {
-        bool Validate(SpellInfo const* /*spellInfo*/) override
-        {
-            return ValidateSpellInfo({ Spells::spell_dh_cull_damage, Spells::spell_dh_soul_fragment_devourer, Spells::spell_dh_consume_soul_devourer });
-        }
-
         void HandleDummy(SpellEffIndex /*effIndex*/)
         {
             Unit* caster = GetCaster();
-            Unit* target = GetHitUnit();
-
-            if (target)
-                caster->CastSpell(target, Spells::spell_dh_cull_damage,
-                    CastSpellExtraArgs(TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR)
-                    .SetTriggeringSpell(GetSpell()));
-
-            caster->CastSpell(caster, Spells::spell_dh_reap_fury,
-                CastSpellExtraArgs(TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR)
-                .SetTriggeringSpell(GetSpell()));
-
-            CollectSoulFragments(caster, 4, GetSpell());
-
-            if (target)
+            if (Unit* target = GetHitUnit())
                 TryFireVoidfallMeteors(caster, target);
         }
 
         void Register() override
         {
-            OnEffectHitTarget += SpellEffectFn(spell_dh_cull::HandleDummy, EFFECT_0, SPELL_EFFECT_DUMMY);
+            OnEffectHitTarget += SpellEffectFn(spell_dh_cull_devourer::HandleDummy, EFFECT_0, SPELL_EFFECT_DUMMY);
         }
     };
 
@@ -1060,31 +1038,14 @@ namespace Scripts::Custom::DemonHunter
     };
 
     // 1225826 - Eradicate (replaces Reap/Cull via Moment of Craving)
-    class spell_dh_eradicate : public SpellScript
+    // Supplementary to the native spell_dh_eradicate — damage, energize and soul gathering are handled by core scripts.
+    class spell_dh_eradicate_devourer : public SpellScript
     {
         void HandleDummy(SpellEffIndex /*effIndex*/)
         {
             Unit* caster = GetCaster();
-            Unit* target = GetHitUnit();
-            if (!target)
-                return;
-
-            uint32 damageSpell = caster->HasAura(Spells::spell_dh_void_metamorphosis_buff)
-                ? Spells::spell_dh_eradicate_damage_meta : Spells::spell_dh_eradicate_damage;
-            float angle = caster->GetOrientation();
-            Position dest = caster->GetPosition();
-            dest.m_positionX += 25.0f * std::cos(angle);
-            dest.m_positionY += 25.0f * std::sin(angle);
-            caster->CastSpell(dest, damageSpell,
-                CastSpellExtraArgs(TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR)
-                .SetTriggeringSpell(GetSpell()));
-
-            caster->CastSpell(caster, Spells::spell_dh_reap_fury,
-                CastSpellExtraArgs(TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR)
-                .SetTriggeringSpell(GetSpell()));
-
-            CollectSoulFragments(caster, 10, GetSpell());
-            TryFireVoidfallMeteors(caster, target);
+            if (Unit* target = GetHitUnit())
+                TryFireVoidfallMeteors(caster, target);
 
             SetVoidMetaReapOverride(caster, true);
             caster->RemoveAura(Spells::spell_dh_moment_of_craving_buff);
@@ -1093,7 +1054,7 @@ namespace Scripts::Custom::DemonHunter
 
         void Register() override
         {
-            OnEffectHitTarget += SpellEffectFn(spell_dh_eradicate::HandleDummy, EFFECT_0, SPELL_EFFECT_DUMMY);
+            OnEffectHitTarget += SpellEffectFn(spell_dh_eradicate_devourer::HandleDummy, EFFECT_0, SPELL_EFFECT_DUMMY);
         }
     };
 
@@ -1668,45 +1629,14 @@ namespace Scripts::Custom::DemonHunter
         }
     };
 
-    // 1239123 - Hungering Slash
-    class spell_dh_hungering_slash : public SpellScript
+    // 1239123/1245470 - Hungering Slash
+    // Supplementary to the native spell_dh_hungering_slash — voidstep, damage, energize, enabler cleanup
+    // and soul shattering are handled by core scripts. This keeps the free-cast aura grant.
+    class spell_dh_hungering_slash_devourer : public SpellScript
     {
-        bool Validate(SpellInfo const* /*spellInfo*/) override
-        {
-            return ValidateSpellInfo({ Spells::spell_dh_hungering_slash_damage, Spells::spell_dh_hungering_slash_fury,
-                Spells::spell_dh_hungering_slash_voidstep, Spells::spell_dh_vengeful_retreat_trigger });
-        }
-
         void HandleAfterCast() const
         {
             Unit* caster = GetCaster();
-
-            caster->CastSpell(caster, Spells::spell_dh_hungering_slash_damage,
-                CastSpellExtraArgs(TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR)
-                .SetTriggeringSpell(GetSpell()));
-
-            caster->CastSpell(caster, Spells::spell_dh_hungering_slash_fury,
-                CastSpellExtraArgs(TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR)
-                .SetTriggeringSpell(GetSpell()));
-
-            uint32 maxFragments = GetSpellInfo()->GetEffect(EFFECT_0).CalcValue(caster);
-            std::list<Unit*> nearbyEnemies;
-            Trinity::AnyUnfriendlyUnitInObjectRangeCheck check(caster, caster, 20.0f);
-            Trinity::UnitListSearcher<Trinity::AnyUnfriendlyUnitInObjectRangeCheck> searcher(caster, nearbyEnemies, check);
-            Cell::VisitAllObjects(caster, searcher, 20.0f);
-            nearbyEnemies.sort(Trinity::ObjectDistanceOrderPred(caster));
-
-            uint32 shattered = 0;
-            for (Unit* enemy : nearbyEnemies)
-            {
-                if (shattered >= maxFragments)
-                    break;
-                enemy->CastSpell(caster, Spells::spell_dh_consume_soul_spawn,
-                    CastSpellExtraArgs(TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR)
-                    .SetTriggeringSpell(GetSpell()));
-                ++shattered;
-            }
-
             caster->CastSpell(caster, 444929, CastSpellExtraArgs(TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR).SetTriggeringSpell(GetSpell()));
 
             if (Aura* freeCastAura = caster->GetAura(444929))
@@ -1714,17 +1644,11 @@ namespace Scripts::Custom::DemonHunter
                 freeCastAura->SetDuration(6000);
                 freeCastAura->SetMaxDuration(6000);
             }
-
-            caster->CastSpell(caster, Spells::spell_dh_hungering_slash_voidstep,
-                CastSpellExtraArgs(TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR)
-                .SetTriggeringSpell(GetSpell()));
-
-            caster->RemoveAurasDueToSpell(Spells::spell_dh_hungering_slash_override);
         }
 
         void Register() override
         {
-            AfterCast += SpellCastFn(spell_dh_hungering_slash::HandleAfterCast);
+            AfterCast += SpellCastFn(spell_dh_hungering_slash_devourer::HandleAfterCast);
         }
     };
 
@@ -2519,37 +2443,19 @@ namespace Scripts::Custom::DemonHunter
     };
 
     // 1226019 - Reap (Devourer)
-    class spell_dh_reap : public SpellScript
+    // Supplementary to the native spell_dh_reap — damage, energize and soul gathering are handled by core scripts.
+    class spell_dh_reap_devourer : public SpellScript
     {
-        bool Validate(SpellInfo const* /*spellInfo*/) override
-        {
-            return ValidateSpellInfo({ Spells::spell_dh_reap_damage, Spells::spell_dh_reap_fury, Spells::spell_dh_soul_fragment_devourer,
-                Spells::spell_dh_consume_soul_devourer, Spells::spell_dh_voidfall_meteor_vengeance, Spells::spell_dh_voidfall_meteor_havoc,
-                Spells::spell_dh_world_killer_meteor_vengeance, Spells::spell_dh_world_killer_meteor_havoc });
-        }
-
         void HandleCast()
         {
             Unit* caster = GetCaster();
-            Unit* target = GetExplTargetUnit();
-            if (!target)
-                return;
-
-            caster->CastSpell(target, Spells::spell_dh_reap_damage,
-                CastSpellExtraArgs(TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR)
-                .SetTriggeringSpell(GetSpell()));
-
-            caster->CastSpell(caster, Spells::spell_dh_reap_fury,
-                CastSpellExtraArgs(TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR)
-                .SetTriggeringSpell(GetSpell()));
-
-            CollectSoulFragments(caster, 4, GetSpell());
-            TryFireVoidfallMeteors(caster, target);
+            if (Unit* target = GetExplTargetUnit())
+                TryFireVoidfallMeteors(caster, target);
         }
 
         void Register() override
         {
-            AfterCast += SpellCastFn(spell_dh_reap::HandleCast);
+            AfterCast += SpellCastFn(spell_dh_reap_devourer::HandleCast);
         }
     };
 
@@ -3115,32 +3021,6 @@ namespace Scripts::Custom::DemonHunter
         }
     };
 
-    // 1241937 - Soul Immolation: periodic dummy spawns soul fragments + grants Fury each tick
-    class spell_dh_soul_immolation : public AuraScript
-    {
-        bool Validate(SpellInfo const* /*spellInfo*/) override
-        {
-            return ValidateSpellInfo({ Spells::spell_dh_consume_soul_spawn, Spells::spell_dh_soul_immolation_fury });
-        }
-
-        void HandlePeriodic(AuraEffect const* aurEff)
-        {
-            Unit* target = GetTarget();
-            int32 totalFragments = aurEff->GetAmount();
-            if (int32(aurEff->GetTickNumber()) <= totalFragments)
-                target->CastSpell(target, Spells::spell_dh_consume_soul_spawn,
-                    TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
-
-            target->CastSpell(target, Spells::spell_dh_soul_immolation_fury,
-                TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
-        }
-
-        void Register() override
-        {
-            OnEffectPeriodic += AuraEffectPeriodicFn(spell_dh_soul_immolation::HandlePeriodic, EFFECT_0, SPELL_AURA_PERIODIC_DUMMY);
-        }
-    };
-
     // 218679 - Spirit Bomb
     class spell_dh_spirit_bomb : public SpellScript
     {
@@ -3204,35 +3084,6 @@ namespace Scripts::Custom::DemonHunter
         {
             OnHit += SpellHitFn(spell_dh_spirit_bomb::HandleHit);
             OnCheckCast += SpellCheckCastFn(spell_dh_spirit_bomb::CheckCast);
-        }
-    };
-
-    // 1246556 - Spontaneous Immolation: 5% chance on damaging spell cast to trigger Soul Immolation
-    class spell_dh_spontaneous_immolation : public AuraScript
-    {
-        bool Validate(SpellInfo const* /*spellInfo*/) override
-        {
-            return ValidateSpellInfo({ Spells::spell_dh_spontaneous_immolation_buff });
-        }
-
-        static bool CheckProc(AuraScript const& script, ProcEventInfo const& eventInfo)
-        {
-            if (!eventInfo.GetSpellInfo())
-                return false;
-            int32 chance = static_cast<spell_dh_spontaneous_immolation const&>(script).GetEffect(EFFECT_0)->GetAmount();
-            return roll_chance(chance);
-        }
-
-        void HandleProc(AuraEffect const* /*aurEff*/, ProcEventInfo const& /*eventInfo*/) const
-        {
-            GetTarget()->CastSpell(GetTarget(), Spells::spell_dh_spontaneous_immolation_buff,
-                TRIGGERED_FULL_MASK | TRIGGERED_SUPPRESS_CASTER_ANIM);
-        }
-
-        void Register() override
-        {
-            DoCheckProc += AuraCheckProcFn(spell_dh_spontaneous_immolation::CheckProc);
-            OnEffectProc += AuraEffectProcFn(spell_dh_spontaneous_immolation::HandleProc, EFFECT_0, SPELL_AURA_DUMMY);
         }
     };
 
@@ -3632,33 +3483,9 @@ namespace Scripts::Custom::DemonHunter
 
         void Collect(Unit* unit)
         {
+            // Per-soul counters are applied by spell_dh_consume_soul_devourer on the consume spell itself
             unit->CastSpell(at->GetPosition(), SpellId,
                 TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
-
-            if (unit->HasAura(Spells::spell_dh_void_metamorphosis_passive) &&
-                !unit->HasAura(Spells::spell_dh_void_metamorphosis_buff))
-            {
-                unit->CastSpell(unit, Spells::spell_dh_void_metamorphosis_counter,
-                    TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
-            }
-
-            if (unit->HasAura(Spells::spell_dh_void_metamorphosis_buff) &&
-                unit->HasAura(Spells::spell_dh_collapsing_star_passive))
-            {
-                unit->CastSpell(unit, Spells::spell_dh_collapsing_star_counter,
-                    TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
-            }
-
-            if (unit->HasAura(Spells::spell_dh_void_metamorphosis_buff) &&
-                unit->HasAura(Spells::spell_dh_emptiness_passive))
-            {
-                unit->CastSpell(unit, Spells::spell_dh_emptiness_buff,
-                    TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR);
-            }
-
-            if (Aura* fos = unit->GetAura(Spells::spell_dh_feast_of_souls_passive))
-                if (auto* script = fos->GetScript<spell_dh_feast_of_souls_tracker>())
-                    script->AddStack(unit);
 
             at->Remove();
         }
@@ -3708,7 +3535,8 @@ void AddSC_custom_demonhunter_spell_fixes()
     RegisterSpellScript(spell_dh_collapsing_star);
     RegisterSpellScript(spell_dh_collapsing_star_counter);
     RegisterSpellScript(spell_dh_consume_soul_missile);
-    RegisterSpellScript(spell_dh_cull);
+    RegisterSpellScript(spell_dh_consume_soul_devourer);
+    RegisterSpellScript(spell_dh_cull_devourer);
     RegisterSpellScript(spell_dh_darkness_absorb);
     RegisterSpellScript(spell_dh_demonic_infusion);
     RegisterSpellScript(spell_dh_desperate_instincts);
@@ -3717,7 +3545,7 @@ void AddSC_custom_demonhunter_spell_fixes()
     RegisterSpellScript(spell_dh_doomsayer_passive);
     RegisterSpellScript(spell_dh_emptiness_buff);
     RegisterSpellScript(spell_dh_entropy);
-    RegisterSpellScript(spell_dh_eradicate);
+    RegisterSpellScript(spell_dh_eradicate_devourer);
     RegisterSpellScript(spell_dh_eradicate_damage);
     RegisterSpellScript(spell_dh_eye_of_leotheras);
     RegisterSpellScript(spell_dh_feast_of_souls_tracker);
@@ -3734,7 +3562,7 @@ void AddSC_custom_demonhunter_spell_fixes()
     RegisterSpellScript(spell_dh_fel_rush_dash_ground);
     RegisterSpellScript(spell_dh_fracture);
     RegisterSpellScript(spell_dh_frailty);
-    RegisterSpellScript(spell_dh_hungering_slash);
+    RegisterSpellScript(spell_dh_hungering_slash_devourer);
     RegisterSpellScript(spell_dh_immolation_aura);
     RegisterSpellScript(spell_dh_immolation_aura_damage);
     RegisterSpellScript(spell_dh_infernal_strike);
@@ -3752,7 +3580,7 @@ void AddSC_custom_demonhunter_spell_fixes()
     RegisterSpellScript(spell_dh_prepared);
     RegisterSpellScript(spell_dh_rain_from_above);
     RegisterSpellScript(spell_dh_razor_spikes);
-    RegisterSpellScript(spell_dh_reap);
+    RegisterSpellScript(spell_dh_reap_devourer);
     RegisterSpellScript(spell_dh_reverse_magic);
     RegisterSpellScript(spell_dh_shear_proc);
     RegisterSpellScript(spell_dh_solitude);
@@ -3760,9 +3588,7 @@ void AddSC_custom_demonhunter_spell_fixes()
     RegisterSpellScript(spell_dh_soul_cleave);
     RegisterSpellScript(spell_dh_soul_cleave_damage);
     RegisterSpellScript(spell_dh_soul_fragment_heals);
-    RegisterSpellScript(spell_dh_soul_immolation);
     RegisterSpellScript(spell_dh_spirit_bomb);
-    RegisterSpellScript(spell_dh_spontaneous_immolation);
     RegisterSpellScript(spell_dh_the_hunt_damage);
     RegisterSpellScript(spell_dh_trail_of_ruin);
     RegisterSpellScript(spell_dh_unending_hatred);

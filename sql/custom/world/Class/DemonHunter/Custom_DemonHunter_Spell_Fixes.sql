@@ -1,8 +1,24 @@
 -- Demon Hunter spell script bindings
 
--- 1226019 - Reap: fires single-target damage (1225823) at target and grants Fury (1261679)
+-- 1226019 - Reap: native damage + soul gathering (Scythe's Embrace talent energizes Fury)
 DELETE FROM `spell_script_names` WHERE `spell_id` = 1226019 AND `ScriptName` = 'spell_dh_reap';
 INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (1226019, 'spell_dh_reap');
+
+-- Devourer supplementary scripts: mechanics layered on top of the native implementations
+-- (voidfall meteors, void-meta reap override, free-cast aura, per-soul-consumed counters)
+DELETE FROM `spell_script_names` WHERE `ScriptName` IN ('spell_dh_reap_devourer', 'spell_dh_cull_devourer', 'spell_dh_eradicate_devourer', 'spell_dh_hungering_slash_devourer', 'spell_dh_consume_soul_devourer');
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
+(1226019, 'spell_dh_reap_devourer'),
+(1245453, 'spell_dh_cull_devourer'),
+(1225826, 'spell_dh_eradicate_devourer'),
+(1239123, 'spell_dh_hungering_slash_devourer'),
+(1245470, 'spell_dh_hungering_slash_devourer'),
+(1223423, 'spell_dh_consume_soul_devourer');
+
+-- 1285387 - Shattered Souls (generic all-spec kill proc): 15% on kill -> spec-aware soul fragment
+-- EFFECT_1 gather hook does not bind (aura has no EFFECT_1); gather stays on 1227619
+DELETE FROM `spell_script_names` WHERE `spell_id` = 1285387 AND `ScriptName` = 'spell_dh_shattered_souls_devourer';
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (1285387, 'spell_dh_shattered_souls_devourer');
 
 -- 473662 - Consume: native damage + grants Fury via 1261710
 DELETE FROM `spell_script_names` WHERE `spell_id` = 473662 AND `ScriptName` = 'spell_dh_consume_energize';
@@ -10,7 +26,7 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (473662, 'spe
 
 -- 471306 - Void Metamorphosis passive talent
 DELETE FROM `spell_script_names` WHERE `spell_id` = 471306 AND `ScriptName` = 'spell_dh_void_metamorphosis_passive';
-INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (471306, 'spell_dh_void_metamorphosis_passive');
+-- INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (471306, 'spell_dh_void_metamorphosis_passive');
 
 -- 1225789 - Void Metamorphosis stack counter
 DELETE FROM `spell_script_names` WHERE `spell_id` = 1225789 AND `ScriptName` = 'spell_dh_void_metamorphosis_counter';
@@ -24,7 +40,7 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (1217607, 'sp
 DELETE FROM `spell_script_names` WHERE `spell_id` = 1217610 AND `ScriptName` = 'spell_dh_devour';
 INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (1217610, 'spell_dh_devour');
 
--- 1245453 - Cull: damage + collects up to 4 soul fragments (Reap replacement during Void Metamorphosis)
+-- 1245453 - Cull: native damage + soul gathering (Reap replacement during Void Metamorphosis)
 DELETE FROM `spell_script_names` WHERE `spell_id` = 1245453 AND `ScriptName` = 'spell_dh_cull';
 INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (1245453, 'spell_dh_cull');
 
@@ -42,7 +58,7 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (1237270, 'sp
 
 -- 1221167 - Collapsing Star passive tracker (30 fragments during Void Meta grants 1221171 override)
 DELETE FROM `spell_script_names` WHERE `spell_id` = 1221167 AND `ScriptName` = 'spell_dh_collapsing_star_passive';
-INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (1221167, 'spell_dh_collapsing_star_passive');
+-- INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (1221167, 'spell_dh_collapsing_star_passive');
 
 -- 1227702 - Collapsing Star counter (stacked manually per fragment collected during meta)
 DELETE FROM `spell_script_names` WHERE `spell_id` = 1227702 AND `ScriptName` = 'spell_dh_collapsing_star_counter';
@@ -59,7 +75,7 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (1246169, 'sp
 -- Cleanup old proc-based passive binding (no longer used)
 DELETE FROM `spell_script_names` WHERE `spell_id` = 1239519 AND `ScriptName` = 'spell_dh_hungering_slash_passive';
 
--- 1239123 - Hungering Slash: damage, Fury, fragment shatter, VR charge, Voidstep
+-- 1239123 - Hungering Slash: native aura (voidstep + damage + energize + enabler cleanup); fragments via spell_dh_hungering_slash_damage
 DELETE FROM `spell_script_names` WHERE `spell_id` = 1239123 AND `ScriptName` = 'spell_dh_hungering_slash';
 INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (1239123, 'spell_dh_hungering_slash');
 
@@ -95,18 +111,15 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (1253304, 'sp
 DELETE FROM `spell_proc` WHERE `SpellId` = 1253304;
 INSERT INTO `spell_proc` (`SpellId`, `SchoolMask`, `SpellFamilyName`, `SpellFamilyMask0`, `SpellFamilyMask1`, `SpellFamilyMask2`, `SpellFamilyMask3`, `ProcFlags`, `ProcFlags2`, `SpellTypeMask`, `SpellPhaseMask`, `HitMask`, `AttributesMask`, `DisableEffectsMask`, `ProcsPerMinute`, `Chance`, `Cooldown`, `Charges`) VALUES (1253304, 0, 0, 0, 0, 0, 0, 0x00011010, 0, 1, 2, 0, 0, 0, 0, 100, 0, 0);
 
--- 1246556 - Spontaneous Immolation: 5% proc chance to cast Soul Immolation
+-- 1246556 - Spontaneous Immolation: native script restores a Soul Immolation charge on proc
+-- (native spell_proc data drives the proc — no custom override here)
 DELETE FROM `spell_script_names` WHERE `spell_id` = 1246556 AND `ScriptName` = 'spell_dh_spontaneous_immolation';
 INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (1246556, 'spell_dh_spontaneous_immolation');
 
-DELETE FROM `spell_proc` WHERE `SpellId` = 1246556;
-INSERT INTO `spell_proc` (`SpellId`, `SchoolMask`, `SpellFamilyName`, `SpellFamilyMask0`, `SpellFamilyMask1`, `SpellFamilyMask2`, `SpellFamilyMask3`, `ProcFlags`, `ProcFlags2`, `SpellTypeMask`, `SpellPhaseMask`, `HitMask`, `AttributesMask`, `DisableEffectsMask`, `ProcsPerMinute`, `Chance`, `Cooldown`, `Charges`) VALUES (1246556, 0, 0, 0, 0, 0, 0, 0x00011110, 0, 1, 2, 0, 0, 0, 0, 100, 500, 0);
-
--- 1241937/1266696 - Soul Immolation: periodic dummy spawns fragments + Fury
+-- 1241937 - Soul Immolation: native periodic (energize + fragment every odd tick)
 DELETE FROM `spell_script_names` WHERE `spell_id` IN (1241937, 1266696) AND `ScriptName` = 'spell_dh_soul_immolation';
 INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
-(1241937, 'spell_dh_soul_immolation'),
-(1266696, 'spell_dh_soul_immolation');
+(1241937, 'spell_dh_soul_immolation');
 
 -- 1250088 - Midnight: scales Collapsing Star crit damage by SpellCrit% via periodic dummy
 DELETE FROM `spell_script_names` WHERE `spell_id` = 1250088 AND `ScriptName` = 'spell_dh_midnight_passive';
