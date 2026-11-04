@@ -70,16 +70,6 @@ namespace Scripts::Custom::DemonHunter
         static constexpr uint32 spell_dh_metamorphosis_transform = 162264;
         static constexpr uint32 spell_dh_metamorphosis_vengeance_transform = 187827;
 
-        static constexpr uint32 spell_dh_nemesis_aberrations = 208607;
-        static constexpr uint32 spell_dh_nemesis_beasts = 208608;
-        static constexpr uint32 spell_dh_nemesis_critters = 208609;
-        static constexpr uint32 spell_dh_nemesis_demons = 208579;
-        static constexpr uint32 spell_dh_nemesis_dragonkin = 208610;
-        static constexpr uint32 spell_dh_nemesis_elementals = 208611;
-        static constexpr uint32 spell_dh_nemesis_giants = 208612;
-        static constexpr uint32 spell_dh_nemesis_humanoids = 208605;
-        static constexpr uint32 spell_dh_nemesis_mechanicals = 208613;
-        static constexpr uint32 spell_dh_nemesis_undead = 208614;
 
         static constexpr uint32 spell_dh_infernal_strike_cast = 189110;
         static constexpr uint32 spell_dh_infernal_strike_impact_damage = 189112;
@@ -174,7 +164,7 @@ namespace Scripts::Custom::DemonHunter
 
         static constexpr uint32 spell_dh_gluttony_buff = 227330;
 
-        static constexpr uint32 spell_dh_soul_barrier = 227225;
+        static constexpr uint32 spell_dh_soul_barrier = 263648;
 
         static constexpr uint32 spell_dh_demon_spikes = 203819;
         static constexpr uint32 spell_dh_demon_spikes_trigger = 203720;
@@ -185,7 +175,6 @@ namespace Scripts::Custom::DemonHunter
         static constexpr uint32 spell_dh_feast_on_the_souls = 201468;
 
         static constexpr uint32 spell_dh_rain_from_above_slowfall = 206804;
-        static constexpr uint32 spell_dh_razor_spikes = 210003;
 
         static constexpr uint32 spell_dh_soul_fragment_heal_vengeance = 210042;
         static constexpr uint32 spell_dh_soul_fragment_demon_bonus = 163073;
@@ -244,7 +233,6 @@ namespace Scripts::Custom::DemonHunter
         static constexpr uint32 spell_dh_demonic = 213410;
         static constexpr uint32 spell_dh_demonic_appetite_energize = 210041;
         static constexpr uint32 spell_dh_demonic_origins = 235893;
-        static constexpr uint32 spell_dh_demonic_origins_buff = 235894;
         static constexpr uint32 spell_dh_demonic_trample_dmg = 208645;
         static constexpr uint32 spell_dh_demonic_trample_stun = 213491;
 
@@ -316,7 +304,6 @@ namespace Scripts::Custom::DemonHunter
         static constexpr uint32 spell_dh_mass_acceleration_passive = 1256295;
         static constexpr uint32 spell_dh_meteoric_fall_passive = 1253391;
 
-        static constexpr uint32 spell_dh_fel_eruption_damage = 225102;
 
         static constexpr uint32 spell_dh_final_hour_passive = 1253805;
         static constexpr uint32 spell_dh_final_hour_buff = 1256322;

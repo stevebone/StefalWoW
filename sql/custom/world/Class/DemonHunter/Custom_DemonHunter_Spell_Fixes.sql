@@ -156,9 +156,9 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (197922, 'spe
 DELETE FROM `spell_script_names` WHERE `spell_id` = 203556 AND `ScriptName` = 'spell_dh_master_of_the_glaive';
 INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (203556, 'spell_dh_master_of_the_glaive');
 
--- 211881 - Fel Eruption
+-- 211881 - Fel Eruption (script dropped: 12.x spell deals damage directly via Effect0, separate damage spell 225102 removed)
 DELETE FROM `spell_script_names` WHERE `spell_id` = 211881 AND `ScriptName` = 'spell_dh_fel_eruption';
-INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (211881, 'spell_dh_fel_eruption');
+-- INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (211881, 'spell_dh_fel_eruption');
 
 -- 191427 - Metamorphosis
 DELETE FROM `spell_script_names` WHERE `spell_id` = 191427 AND `ScriptName` = 'spell_dh_metamorphosis';
@@ -180,9 +180,9 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (222703, 'spe
 DELETE FROM `spell_script_names` WHERE `spell_id` = 222703 AND `ScriptName` = 'spell_dh_fel_barrage_damage';
 INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (222703, 'spell_dh_fel_barrage_damage');
 
--- 206491 - Nemesis
+-- 206491 - Nemesis (script dropped: spell removed in 12.x DB2, talent no longer exists)
 DELETE FROM `spell_script_names` WHERE `spell_id` = 206491 AND `ScriptName` = 'spell_dh_nemesis';
-INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (206491, 'spell_dh_nemesis');
+-- INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (206491, 'spell_dh_nemesis');
 
 -- 189110 - Infernal Strike
 DELETE FROM `spell_script_names` WHERE `spell_id` = 189110 AND `ScriptName` = 'spell_dh_infernal_strike';
@@ -200,9 +200,9 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (228478, 'spe
 DELETE FROM `spell_script_names` WHERE `spell_id` = 263648 AND `ScriptName` = 'spell_dh_soul_barrier';
 INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (263648, 'spell_dh_soul_barrier');
 
--- 209400 - Razor Spikes
+-- 209400 - Razor Spikes (script dropped: spell removed in 12.x DB2)
 DELETE FROM `spell_script_names` WHERE `spell_id` = 209400 AND `ScriptName` = 'spell_dh_razor_spikes';
-INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (209400, 'spell_dh_razor_spikes');
+-- INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (209400, 'spell_dh_razor_spikes');
 
 -- 207810 - Nether Bond
 DELETE FROM `spell_script_names` WHERE `spell_id` = 207810 AND `ScriptName` = 'spell_dh_nether_bond';
@@ -280,9 +280,9 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (228532, 'spe
 DELETE FROM `spell_script_names` WHERE `spell_id` = 205411 AND `ScriptName` = 'spell_dh_desperate_instincts';
 INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (205411, 'spell_dh_desperate_instincts');
 
--- 209795 - Fracture
+-- 209795 - Fracture (script dropped: spell removed in 12.x DB2)
 DELETE FROM `spell_script_names` WHERE `spell_id` = 209795 AND `ScriptName` = 'spell_dh_fracture';
-INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (209795, 'spell_dh_fracture');
+-- INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (209795, 'spell_dh_fracture');
 
 -- 224509 - Frailty
 DELETE FROM `spell_script_names` WHERE `spell_id` = 224509 AND `ScriptName` = 'spell_dh_frailty';
@@ -300,9 +300,9 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (236189, 'spe
 DELETE FROM `spell_script_names` WHERE `spell_id` = 206803 AND `ScriptName` = 'spell_dh_rain_from_above';
 INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (206803, 'spell_dh_rain_from_above');
 
--- 162264 - Metamorphosis buffs
+-- 162264 - Metamorphosis buffs (script dropped: Demonic Origins buff 235894 removed in 12.x, mechanic obsolete)
 DELETE FROM `spell_script_names` WHERE `spell_id` = 162264 AND `ScriptName` = 'spell_dh_metamorphosis_buffs';
-INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (162264, 'spell_dh_metamorphosis_buffs');
+-- INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (162264, 'spell_dh_metamorphosis_buffs');
 
 -- 185244 - Pain
 DELETE FROM `spell_script_names` WHERE `spell_id` = 185244 AND `ScriptName` = 'spell_dh_pain';

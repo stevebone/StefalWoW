@@ -1268,41 +1268,6 @@ namespace Scripts::Custom::DemonHunter
         }
     };
 
-    // Fel Eruption - 211881
-    class spell_dh_fel_eruption : public SpellScript
-    {
-        bool Validate(SpellInfo const* /*spellInfo*/) override
-        {
-            return ValidateSpellInfo({ Spells::spell_dh_fel_eruption_damage });
-        }
-
-        void HandleOnHit()
-        {
-            Unit* caster = GetCaster();
-            Unit* target = GetExplTargetUnit();
-            if (!caster || !target)
-                return;
-            caster->CastSpell(target, Spells::spell_dh_fel_eruption_damage, CastSpellExtraArgs(TRIGGERED_FULL_MASK).AddSpellMod(SPELLVALUE_BASE_POINT1, 1));
-        }
-
-        void HandleHit(SpellMissInfo missInfo)
-        {
-            Unit* caster = GetCaster();
-            Unit* target = GetExplTargetUnit();
-            if (!caster || !target)
-                return;
-
-            if (missInfo == SPELL_MISS_IMMUNE || missInfo == SPELL_MISS_IMMUNE2)
-                caster->CastSpell(target, Spells::spell_dh_fel_eruption_damage, CastSpellExtraArgs(TRIGGERED_FULL_MASK).AddSpellMod(SPELLVALUE_BASE_POINT1, 2));
-        }
-
-        void Register() override
-        {
-            BeforeHit += BeforeSpellHitFn(spell_dh_fel_eruption::HandleHit);
-            OnHit += SpellHitFn(spell_dh_fel_eruption::HandleOnHit);
-        }
-    };
-
     // 206966 - Fel Lance
     class spell_dh_fel_lance : public SpellScript
     {
@@ -1551,28 +1516,6 @@ namespace Scripts::Custom::DemonHunter
             DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_dh_fel_rush_dash_ground::CalcSpeed, EFFECT_1, SPELL_AURA_MOD_INCREASE_SPEED_NO_CONTROL);
             DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_dh_fel_rush_dash_ground::CalcSpeed, EFFECT_3, SPELL_AURA_SPEED_LIMIT_MIN_PCT);
             AfterEffectRemove += AuraEffectRemoveFn(spell_dh_fel_rush_dash_ground::AfterRemove, EFFECT_6, SPELL_AURA_SET_SPEED, AURA_EFFECT_HANDLE_SEND_FOR_CLIENT_MASK);
-        }
-    };
-
-    // 209795 - Fracture
-    class spell_dh_fracture : public SpellScript
-    {
-        void HandleHit(SpellEffIndex /*effIndex*/)
-        {
-            Unit* caster = GetCaster();
-            if (!caster)
-                return;
-
-            // (Your logic goes here)
-        }
-
-        void Register() override
-        {
-            OnEffectHitTarget += SpellEffectFn(
-                spell_dh_fracture::HandleHit,
-                EFFECT_0,
-                SPELL_EFFECT_DUMMY
-            );
         }
     };
 
@@ -1982,57 +1925,6 @@ namespace Scripts::Custom::DemonHunter
         }
     };
 
-    // 162264 - Metamorphosis (Vengeance) - Demonic Origins buff handler
-    class spell_dh_metamorphosis_buffs : public AuraScript
-    {
-        bool Validate(SpellInfo const* /*spellInfo*/) override
-        {
-            // We must ensure these spells exist because we remove/cast them
-            return ValidateSpellInfo({
-                Spells::spell_dh_demonic_origins,
-                Spells::spell_dh_demonic_origins_buff
-                });
-        }
-
-        void OnApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
-        {
-            Unit* caster = GetCaster();
-            if (!caster)
-                return;
-
-            // Remove the Demonic Origins buff when Meta is applied
-            caster->RemoveAura(Spells::spell_dh_demonic_origins_buff);
-        }
-
-        void OnRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
-        {
-            Unit* caster = GetCaster();
-            if (!caster)
-                return;
-
-            // Re-apply Demonic Origins buff when Meta ends (if the talent is active)
-            if (caster->HasAura(Spells::spell_dh_demonic_origins))
-                caster->CastSpell(caster, Spells::spell_dh_demonic_origins_buff, true);
-        }
-
-        void Register() override
-        {
-            OnEffectApply += AuraEffectApplyFn(
-                spell_dh_metamorphosis_buffs::OnApply,
-                EFFECT_0,
-                SPELL_AURA_TRANSFORM,
-                AURA_EFFECT_HANDLE_REAL
-            );
-
-            OnEffectRemove += AuraEffectRemoveFn(
-                spell_dh_metamorphosis_buffs::OnRemove,
-                EFFECT_0,
-                SPELL_AURA_TRANSFORM,
-                AURA_EFFECT_HANDLE_REAL
-            );
-        }
-    };
-
     // 1250088 - Midnight: Collapsing Star crit damage += SpellCrit% * EFFECT_2_BP%; recalculated every 1s via PERIODIC_DUMMY
     class spell_dh_midnight_passive : public AuraScript
     {
@@ -2051,96 +1943,6 @@ namespace Scripts::Custom::DemonHunter
         void Register() override
         {
             OnEffectPeriodic += AuraEffectPeriodicFn(spell_dh_midnight_passive::HandlePeriodic, EFFECT_1, SPELL_AURA_PERIODIC_DUMMY);
-        }
-    };
-
-    // Nemesis - 206491
-    class spell_dh_nemesis : public AuraScript
-    {
-        bool Validate(SpellInfo const* /*spellInfo*/) override
-        {
-            return ValidateSpellInfo(
-                {
-                    Spells::spell_dh_nemesis_aberrations,
-                    Spells::spell_dh_nemesis_beasts,
-                    Spells::spell_dh_nemesis_critters,
-                    Spells::spell_dh_nemesis_demons,
-                    Spells::spell_dh_nemesis_dragonkin,
-                    Spells::spell_dh_nemesis_elementals,
-                    Spells::spell_dh_nemesis_giants,
-                    Spells::spell_dh_nemesis_humanoids,
-                    Spells::spell_dh_nemesis_mechanicals,
-                    Spells::spell_dh_nemesis_undead
-                });
-        }
-
-        void HandleAfterRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
-        {
-            if (!GetTargetApplication())
-                return;
-
-            if (GetTargetApplication()->GetRemoveMode() != AURA_REMOVE_BY_DEATH)
-                return;
-
-            Unit* target = GetTargetApplication()->GetTarget();
-            uint32 type = target->GetCreatureType();
-            int32 dur = GetTargetApplication()->GetBase()->GetDuration();
-            Unit* caster = GetAura()->GetCaster();
-
-            if (!caster || !target)
-                return;
-
-            uint32 spellId = 0;
-
-            switch (type)
-            {
-            case CREATURE_TYPE_ABERRATION:
-                spellId = Spells::spell_dh_nemesis_aberrations;
-                break;
-            case CREATURE_TYPE_BEAST:
-                spellId = Spells::spell_dh_nemesis_beasts;
-                break;
-            case CREATURE_TYPE_CRITTER:
-                spellId = Spells::spell_dh_nemesis_critters;
-                break;
-            case CREATURE_TYPE_DEMON:
-                spellId = Spells::spell_dh_nemesis_demons;
-                break;
-            case CREATURE_TYPE_DRAGONKIN:
-                spellId = Spells::spell_dh_nemesis_dragonkin;
-                break;
-            case CREATURE_TYPE_ELEMENTAL:
-                spellId = Spells::spell_dh_nemesis_elementals;
-                break;
-            case CREATURE_TYPE_GIANT:
-                spellId = Spells::spell_dh_nemesis_giants;
-                break;
-            case CREATURE_TYPE_HUMANOID:
-                spellId = Spells::spell_dh_nemesis_humanoids;
-                break;
-            case CREATURE_TYPE_MECHANICAL:
-                spellId = Spells::spell_dh_nemesis_mechanicals;
-                break;
-            case CREATURE_TYPE_UNDEAD:
-                spellId = Spells::spell_dh_nemesis_undead;
-                break;
-            default:
-                break;
-            }
-
-            if (spellId)
-                if (Aura* aur = caster->AddAura(spellId, caster))
-                    aur->SetDuration(dur);
-        }
-
-        void Register() override
-        {
-            AfterEffectRemove += AuraEffectRemoveFn(
-                spell_dh_nemesis::HandleAfterRemove,
-                EFFECT_0,
-                SPELL_AURA_MOD_SCHOOL_MASK_DAMAGE_FROM_CASTER,
-                AURA_EFFECT_HANDLE_REAL
-            );
         }
     };
 
@@ -2375,70 +2177,6 @@ namespace Scripts::Custom::DemonHunter
         void Register() override
         {
             AfterCast += SpellCastFn(spell_dh_rain_from_above::HandleCast);
-        }
-    };
-
-    class event_dh_razor_spikes : public BasicEvent
-    {
-    public:
-        event_dh_razor_spikes(Unit* caster, Unit* target)
-            : _caster(caster), _target(target) { }
-
-        bool Execute(uint64 /*execTime*/, uint32 /*diff*/) override
-        {
-            if (_caster && _target)
-                _caster->CastSpell(_target, Spells::spell_dh_razor_spikes, true);
-
-            return true;
-        }
-
-    private:
-        Unit* _caster;
-        Unit* _target;
-    };
-
-    // Razor Spikes - 209400
-    class spell_dh_razor_spikes : public AuraScript
-    {
-        bool Validate(SpellInfo const* /*spellInfo*/) override
-        {
-            return ValidateSpellInfo({
-                Spells::spell_dh_razor_spikes
-                });
-        }
-
-        bool CheckProc(ProcEventInfo& eventInfo)
-        {
-            DamageInfo* damageInfo = eventInfo.GetDamageInfo();
-            if (!damageInfo)
-                return false;
-
-            if (damageInfo->GetAttackType() == BASE_ATTACK ||
-                damageInfo->GetAttackType() == OFF_ATTACK)
-            {
-                Unit* caster = damageInfo->GetAttacker();
-                Unit* target = damageInfo->GetVictim();
-                if (!caster || !target || !caster->ToPlayer())
-                    return false;
-
-                if (!caster->IsValidAttackTarget(target))
-                    return false;
-
-                if (caster->HasAura(Spells::spell_dh_demon_spikes))
-                {
-                    caster->m_Events.AddEvent(
-                        new event_dh_razor_spikes(caster, target),
-                        caster->m_Events.CalculateTime(750ms)
-                    );
-                }
-                return true;
-            }
-            return false;
-        }
-
-        void Register() override
-        {
-            DoCheckProc += AuraCheckProcFn(spell_dh_razor_spikes::CheckProc);
         }
     };
 
@@ -2690,7 +2428,11 @@ namespace Scripts::Custom::DemonHunter
             if (Player* player = caster->ToPlayer())
             {
                 float coeff = amount / 100.f;
-                float soulShardCoeff = GetSpellInfo()->GetEffect(EFFECT_1).BasePoints / 100.f;
+                // 12.x Soul Barrier (263648) has only EFFECT_0 — the per-fragment absorb coefficient
+                // moved to talent 1265924 (8% + 2%/fragment). Guard until the absorb rework pass.
+                float soulShardCoeff = 0.f;
+                if (GetSpellInfo()->GetEffects().size() > EFFECT_1)
+                    soulShardCoeff = GetSpellInfo()->GetEffect(EFFECT_1).BasePoints / 100.f;
                 int32 ap = player->GetTotalAttackPowerValue(BASE_ATTACK);
 
                 amount = coeff * ap;
@@ -2883,10 +2625,12 @@ namespace Scripts::Custom::DemonHunter
 
                         if (AuraEffect* soulBarrier = caster->GetAuraEffect(Spells::spell_dh_soul_barrier, EFFECT_0))
                         {
-                            int32 amount = soulBarrier->GetAmount() +
-                                (float(sSpellMgr->GetSpellInfo(Spells::spell_dh_soul_barrier, DIFFICULTY_NONE)
-                                    ->GetEffect(EFFECT_1).BasePoints) / 100.f)
-                                * caster->GetTotalAttackPowerValue(BASE_ATTACK);
+                            SpellInfo const* barrierInfo = sSpellMgr->GetSpellInfo(Spells::spell_dh_soul_barrier, DIFFICULTY_NONE);
+                            // 12.x Soul Barrier (263648) has only EFFECT_0 — no per-fragment coefficient there.
+                            int32 amount = soulBarrier->GetAmount();
+                            if (barrierInfo && barrierInfo->GetEffects().size() > EFFECT_1)
+                                amount += (float(barrierInfo->GetEffect(EFFECT_1).BasePoints) / 100.f)
+                                    * caster->GetTotalAttackPowerValue(BASE_ATTACK);
 
                             soulBarrier->SetAmount(amount);
                         }
@@ -3553,14 +3297,12 @@ void AddSC_custom_demonhunter_spell_fixes()
     RegisterSpellScript(spell_dh_fel_barrage_aura);
     RegisterSpellScript(spell_dh_fel_barrage_damage);
     RegisterSpellScript(spell_dh_fel_devastation_damage);
-    RegisterSpellScript(spell_dh_fel_eruption);
     RegisterSpellScript(spell_dh_fel_lance);
     RegisterSpellScript(spell_dh_fel_rush_specless);
     RegisterSpellScript(spell_dh_fel_rush);
     RegisterSpellAndAuraScriptPair(spell_dh_fel_rush_dash, spell_dh_fel_rush_dash_aura);
     RegisterSpellScript(spell_dh_fel_rush_damage);
     RegisterSpellScript(spell_dh_fel_rush_dash_ground);
-    RegisterSpellScript(spell_dh_fracture);
     RegisterSpellScript(spell_dh_frailty);
     RegisterSpellScript(spell_dh_hungering_slash_devourer);
     RegisterSpellScript(spell_dh_immolation_aura);
@@ -3571,15 +3313,12 @@ void AddSC_custom_demonhunter_spell_fixes()
     RegisterSpellScript(spell_dh_mana_break);
     RegisterSpellScript(spell_dh_master_of_the_glaive);
     RegisterSpellScript(spell_dh_metamorphosis);
-    RegisterSpellScript(spell_dh_metamorphosis_buffs);
     RegisterSpellScript(spell_dh_midnight_passive);
-    RegisterSpellScript(spell_dh_nemesis);
     RegisterSpellScript(spell_dh_nether_bond);
     RegisterSpellScript(spell_dh_nether_bond_periodic);
     RegisterSpellScript(spell_dh_pain);
     RegisterSpellScript(spell_dh_prepared);
     RegisterSpellScript(spell_dh_rain_from_above);
-    RegisterSpellScript(spell_dh_razor_spikes);
     RegisterSpellScript(spell_dh_reap_devourer);
     RegisterSpellScript(spell_dh_reverse_magic);
     RegisterSpellScript(spell_dh_shear_proc);
