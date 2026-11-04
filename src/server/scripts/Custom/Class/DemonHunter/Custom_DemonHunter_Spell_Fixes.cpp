@@ -2506,6 +2506,10 @@ namespace Scripts::Custom::DemonHunter
         }
     };
 
+    // Fragments consumed this cast — shared between spell_dh_soul_cleave (records)
+    // and spell_dh_soul_cleave_damage (scales damage by consumed count)
+    static std::unordered_map<ObjectGuid, int32> sSoulCleaveFragmentsConsumed;
+
     // Soul Cleave - 228477
     class spell_dh_soul_cleave : public SpellScript
     {
@@ -2555,11 +2559,16 @@ namespace Scripts::Custom::DemonHunter
             fragments.push_back(caster->GetAreaTriggers(Spells::spell_dh_lesser_soul_shard));
 
             int32 range = GetEffectInfo().BasePoints;
+            int32 const maxConsume = GetSpellInfo()->GetEffect(EFFECT_2).BasePoints;
+            int32 consumed = 0;
 
             for (auto vec : fragments)
             {
                 for (AreaTrigger* at : vec)
                 {
+                    if (consumed >= maxConsume)
+                        continue;
+
                     if (!caster->IsWithinDist(at, range))
                         continue;
 
@@ -2615,9 +2624,12 @@ namespace Scripts::Custom::DemonHunter
                         }
 
                         at->SetDuration(0);
+                        ++consumed;
                     }
                 }
             }
+
+            sSoulCleaveFragmentsConsumed[caster->GetGUID()] = consumed;
         }
 
         void Register() override
@@ -2628,58 +2640,35 @@ namespace Scripts::Custom::DemonHunter
     };
 
     // Soul cleave damage - 228478
+    // 12.x: +20% damage per soul fragment consumed (EFFECT_2 BP); count is recorded
+    // by spell_dh_soul_cleave::HandleDummy which runs before this trigger.
     class spell_dh_soul_cleave_damage : public SpellScript
     {
-        bool Validate(SpellInfo const* /*spellInfo*/) override
-        {
-            return ValidateSpellInfo(
-                {
-                    Spells::spell_dh_gluttony_buff
-                });
-        }
-
-        int32 m_ExtraSpellCost{};
-        float m_Modifier = 1.0f;
-
-        void HandleOnCast()
-        {
-            // Compute the modifier once per cast
-            m_Modifier = ((float)m_ExtraSpellCost + 300.0f) / 600.0f;
-        }
-
-        void HandleOnHit()
-        {
-            Unit* caster = GetCaster();
-            if (!caster)
-                return;
-
-            float dmg = GetHitDamage() * 2;
-            dmg *= m_Modifier;
-            SetHitDamage(dmg);
-        }
-
         void HandleDamage(SpellEffIndex /*effIndex*/)
         {
             Unit* caster = GetCaster();
             if (!caster)
                 return;
 
-            int32 dmg = GetHitDamage() * 2;
-            dmg = float(dmg) * (((float)m_ExtraSpellCost + 300.0f) / 600.0f);
-            SetHitDamage(dmg);
+            auto itr = sSoulCleaveFragmentsConsumed.find(caster->GetGUID());
+            if (itr == sSoulCleaveFragmentsConsumed.end())
+                return;
 
-            caster->SetPower(POWER_PAIN, caster->GetPower(POWER_PAIN) - m_ExtraSpellCost);
-            caster->ToPlayer()->SetPower(POWER_PAIN, caster->GetPower(POWER_PAIN) - m_ExtraSpellCost);
+            int32 dmg = GetHitDamage();
+            SetHitDamage(dmg + CalculatePct(dmg, GetSpellInfo()->GetEffect(EFFECT_2).BasePoints * itr->second));
+        }
 
-            if (caster->HasAura(Spells::spell_dh_gluttony_buff))
-                caster->RemoveAurasDueToSpell(Spells::spell_dh_gluttony_buff);
+        void ClearCounter()
+        {
+            if (Unit* caster = GetCaster())
+                sSoulCleaveFragmentsConsumed.erase(caster->GetGUID());
         }
 
         void Register() override
         {
-            BeforeCast += SpellCastFn(spell_dh_soul_cleave_damage::HandleOnCast);
             OnEffectHitTarget += SpellEffectFn(spell_dh_soul_cleave_damage::HandleDamage,
-                EFFECT_1, SPELL_EFFECT_WEAPON_PERCENT_DAMAGE);
+                EFFECT_0, SPELL_EFFECT_SCHOOL_DAMAGE);
+            AfterCast += SpellCastFn(spell_dh_soul_cleave_damage::ClearCounter);
         }
     };
 

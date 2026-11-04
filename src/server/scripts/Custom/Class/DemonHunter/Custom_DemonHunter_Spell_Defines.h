@@ -162,7 +162,6 @@ namespace Scripts::Custom::DemonHunter
         static constexpr uint32 spell_dh_painbringer = 207387;
         static constexpr uint32 spell_dh_painbringer_buff = 212988;
 
-        static constexpr uint32 spell_dh_gluttony_buff = 227330;
 
         static constexpr uint32 spell_dh_soul_barrier = 263648;
 
