@@ -800,30 +800,30 @@ namespace Scripts::Custom::DemonHunter
         }
     };
 
-    // 205411 - Desperate Instints
+    // 205411 - Desperate Instincts
+    // 12.x: Blur's extra DR is native (EFFECT_2 ADD_FLAT_MODIFIER). Scripted part:
+    // damage taken below 35% health is reduced by 10% via the EFFECT_3 absorb aura.
     class spell_dh_desperate_instincts : public AuraScript
     {
-
-        void OnProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+        void HandleAbsorb(AuraEffect* /*aurEff*/, DamageInfo& dmgInfo, uint32& absorbAmount)
         {
+            // The absorb aura has 0 amount — prevent default or it would deplete and self-remove
             PreventDefaultAction();
-            Unit* caster = GetCaster();
-            if (!caster || !eventInfo.GetDamageInfo())
+
+            Unit* target = GetTarget();
+            if (!target || !dmgInfo.GetDamage())
                 return;
 
-            if (caster->GetSpellHistory()->HasCooldown(Spells::spell_dh_blur))
+            if (!target->HealthBelowPct(GetEffect(EFFECT_0)->GetAmountAsInt()))
                 return;
 
-            uint32 triggerOnHealth = caster->CountPctFromMaxHealth(aurEff->GetAmount());
-            uint32 currentHealth = caster->GetHealth();
-            // Just falling below threshold
-            if (currentHealth > triggerOnHealth && (currentHealth - eventInfo.GetDamageInfo()->GetDamage()) <= triggerOnHealth)
-                caster->CastSpell(caster, Spells::spell_dh_blur, false);
+            absorbAmount = CalculatePct(dmgInfo.GetDamage(), GetEffect(EFFECT_1)->GetAmountAsInt());
+            dmgInfo.AbsorbDamage(absorbAmount);
         }
 
         void Register() override
         {
-            OnEffectProc += AuraEffectProcFn(spell_dh_desperate_instincts::OnProc, EFFECT_0, SPELL_AURA_TRIGGER_SPELL_ON_HEALTH_PCT);
+            OnEffectAbsorb += AuraEffectAbsorbFn(spell_dh_desperate_instincts::HandleAbsorb, EFFECT_3);
         }
     };
 
