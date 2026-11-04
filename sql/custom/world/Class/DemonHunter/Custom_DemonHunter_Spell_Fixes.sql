@@ -336,6 +336,11 @@ DELETE FROM `spell_script_names` WHERE `spell_id` = 212105 AND `ScriptName` = 's
 DELETE FROM `spell_script_names` WHERE `spell_id` = 201427 AND `ScriptName` = 'spell_dh_annihilation';
 INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (201427, 'spell_dh_annihilation');
 
+-- 389718 - Cycle of Binding (script dropped: 12.x spell is native CHARGE_RECOVERY_MULTIPLIER auras;
+-- also removes the stale base-DB spell_proc row from the old proc design)
+DELETE FROM `spell_script_names` WHERE `spell_id` = 389718 AND `ScriptName` = 'spell_dh_cycle_of_binding';
+DELETE FROM `spell_proc` WHERE `SpellId` = 389718;
+
 REPLACE INTO `areatrigger_scripts` VALUES (9695, 'at_dh_mana_rift');
 REPLACE INTO `areatrigger_scripts` VALUES (6482, 'at_dh_demonic_trample');
 

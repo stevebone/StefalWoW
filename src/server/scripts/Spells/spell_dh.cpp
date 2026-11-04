@@ -1381,7 +1381,7 @@ class spell_dh_eradicate : public SpellScript
     void HandleDamage(SpellEffIndex /*effIndex*/) const
     {
         Unit* caster = GetCaster();
-        // StefalWoW: damage spells target TARGET_UNIT_RECT_CASTER_TO_DEST_ENEMY — cast at a point 25y ahead of the caster
+        // StefalWoW: damage spells target TARGET_UNIT_RECT_CASTER_TO_DEST_ENEMY ? cast at a point 25y ahead of the caster
         Position dest = caster->GetPosition();
         float angle = caster->GetOrientation();
         dest.m_positionX += 25.0f * std::cos(angle);
@@ -3254,7 +3254,7 @@ void AddSC_demon_hunter_spell_scripts()
     RegisterSpellScript(spell_dh_consume_soul_vengeance_lesser);
     RegisterSpellScript(spell_dh_critical_chaos);
     RegisterSpellScript(spell_dh_cull);
-    RegisterSpellScript(spell_dh_cycle_of_binding);
+    // RegisterSpellScript(spell_dh_cycle_of_binding); -- absolete script
     RegisterSpellScript(spell_dh_cycle_of_hatred);
     RegisterSpellScript(spell_dh_cycle_of_hatred_remove_stacks);
     RegisterSpellScript(spell_dh_cycle_of_hatred_talent);
