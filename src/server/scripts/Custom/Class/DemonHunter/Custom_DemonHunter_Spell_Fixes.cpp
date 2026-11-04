@@ -717,7 +717,7 @@ namespace Scripts::Custom::DemonHunter
     };
 
     // 1245453 - Cull (enhanced Reap during Void Metamorphosis)
-    // Supplementary to the native spell_dh_cull — damage, energize and soul gathering are handled by core scripts.
+    // Supplementary to the native spell_dh_cull ? damage, energize and soul gathering are handled by core scripts.
     class spell_dh_cull_devourer : public SpellScript
     {
         void HandleDummy(SpellEffIndex /*effIndex*/)
@@ -807,7 +807,7 @@ namespace Scripts::Custom::DemonHunter
     {
         void HandleAbsorb(AuraEffect* /*aurEff*/, DamageInfo& dmgInfo, uint32& absorbAmount)
         {
-            // The absorb aura has 0 amount — prevent default or it would deplete and self-remove
+            // The absorb aura has 0 amount ? prevent default or it would deplete and self-remove
             PreventDefaultAction();
 
             Unit* target = GetTarget();
@@ -1038,7 +1038,7 @@ namespace Scripts::Custom::DemonHunter
     };
 
     // 1225826 - Eradicate (replaces Reap/Cull via Moment of Craving)
-    // Supplementary to the native spell_dh_eradicate — damage, energize and soul gathering are handled by core scripts.
+    // Supplementary to the native spell_dh_eradicate ? damage, energize and soul gathering are handled by core scripts.
     class spell_dh_eradicate_devourer : public SpellScript
     {
         void HandleDummy(SpellEffIndex /*effIndex*/)
@@ -1244,27 +1244,6 @@ namespace Scripts::Custom::DemonHunter
         {
             DoCheckProc += AuraCheckProcFn(spell_dh_fel_barrage_aura::CheckProc);
             OnEffectProc += AuraEffectProcFn(spell_dh_fel_barrage_aura::HandleProc, EFFECT_0, SPELL_AURA_DUMMY);
-        }
-    };
-
-    // 212105 - Fel Devastation damage
-    class spell_dh_fel_devastation_damage : public AuraScript
-    {
-        void PeriodicTick(AuraEffect const* aurEff)
-        {
-            Unit* caster = GetCaster();
-            if (!caster)
-                return;
-
-            if (aurEff->GetTickNumber() == 1)
-                return;
-
-            caster->CastSpell(caster, Spells::spell_dh_fel_devastation_dmg, true);
-        }
-
-        void Register() override
-        {
-            OnEffectPeriodic += AuraEffectPeriodicFn(spell_dh_fel_devastation_damage::PeriodicTick, EFFECT_0, SPELL_EFFECT_SCHOOL_DAMAGE);
         }
     };
 
@@ -1573,7 +1552,7 @@ namespace Scripts::Custom::DemonHunter
     };
 
     // 1239123/1245470 - Hungering Slash
-    // Supplementary to the native spell_dh_hungering_slash — voidstep, damage, energize, enabler cleanup
+    // Supplementary to the native spell_dh_hungering_slash ? voidstep, damage, energize, enabler cleanup
     // and soul shattering are handled by core scripts. This keeps the free-cast aura grant.
     class spell_dh_hungering_slash_devourer : public SpellScript
     {
@@ -2181,7 +2160,7 @@ namespace Scripts::Custom::DemonHunter
     };
 
     // 1226019 - Reap (Devourer)
-    // Supplementary to the native spell_dh_reap — damage, energize and soul gathering are handled by core scripts.
+    // Supplementary to the native spell_dh_reap ? damage, energize and soul gathering are handled by core scripts.
     class spell_dh_reap_devourer : public SpellScript
     {
         void HandleCast()
@@ -2428,7 +2407,7 @@ namespace Scripts::Custom::DemonHunter
             if (Player* player = caster->ToPlayer())
             {
                 float coeff = amount / 100.f;
-                // 12.x Soul Barrier (263648) has only EFFECT_0 — the per-fragment absorb coefficient
+                // 12.x Soul Barrier (263648) has only EFFECT_0 ? the per-fragment absorb coefficient
                 // moved to talent 1265924 (8% + 2%/fragment). Guard until the absorb rework pass.
                 float soulShardCoeff = 0.f;
                 if (GetSpellInfo()->GetEffects().size() > EFFECT_1)
@@ -2626,7 +2605,7 @@ namespace Scripts::Custom::DemonHunter
                         if (AuraEffect* soulBarrier = caster->GetAuraEffect(Spells::spell_dh_soul_barrier, EFFECT_0))
                         {
                             SpellInfo const* barrierInfo = sSpellMgr->GetSpellInfo(Spells::spell_dh_soul_barrier, DIFFICULTY_NONE);
-                            // 12.x Soul Barrier (263648) has only EFFECT_0 — no per-fragment coefficient there.
+                            // 12.x Soul Barrier (263648) has only EFFECT_0 ? no per-fragment coefficient there.
                             int32 amount = soulBarrier->GetAmount();
                             if (barrierInfo && barrierInfo->GetEffects().size() > EFFECT_1)
                                 amount += (float(barrierInfo->GetEffect(EFFECT_1).BasePoints) / 100.f)
@@ -3296,7 +3275,6 @@ void AddSC_custom_demonhunter_spell_fixes()
     RegisterSpellScript(spell_dh_fel_barrage);
     RegisterSpellScript(spell_dh_fel_barrage_aura);
     RegisterSpellScript(spell_dh_fel_barrage_damage);
-    RegisterSpellScript(spell_dh_fel_devastation_damage);
     RegisterSpellScript(spell_dh_fel_lance);
     RegisterSpellScript(spell_dh_fel_rush_specless);
     RegisterSpellScript(spell_dh_fel_rush);

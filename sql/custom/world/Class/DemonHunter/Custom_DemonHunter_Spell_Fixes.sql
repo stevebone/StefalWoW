@@ -328,9 +328,9 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (162794, 'spe
 DELETE FROM `spell_script_names` WHERE `spell_id` = 344865 AND `ScriptName` = 'spell_dh_fel_rush_specless';
 INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (344865, 'spell_dh_fel_rush_specless');
 
--- 212105 - Fel Devastation dmg
+-- 212105 - Fel Devastation dmg (script dropped: channel 212084 natively periodic-triggers the damage spell)
 DELETE FROM `spell_script_names` WHERE `spell_id` = 212105 AND `ScriptName` = 'spell_dh_fel_devastation_damage';
-INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (212105, 'spell_dh_fel_devastation_damage');
+-- INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (212105, 'spell_dh_fel_devastation_damage');
 
 -- 201427 - Annihilation
 DELETE FROM `spell_script_names` WHERE `spell_id` = 201427 AND `ScriptName` = 'spell_dh_annihilation';
