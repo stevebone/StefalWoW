@@ -673,7 +673,7 @@ INSERT INTO `gameobject_addon` (`guid`, `parent_rotation0`, `parent_rotation1`, 
 (@OGUID+14, 0, 0, 0, 1, 2437, 0); -- Small Treasure Chest
 
 SET @CGUID := 70064292;
-DELETE FROM `creature` WHERE `guid` BETWEEN @CGUID+0 AND @CGUID+16;
+DELETE FROM `creature` WHERE `guid` BETWEEN @CGUID+0 AND @CGUID+18;
 DELETE FROM `creature` WHERE `id` IN (97142) AND `map` = 1481;
 INSERT INTO `creature` (`guid`, `id`, `map`, `zoneId`, `areaId`, `phaseUseFlags`, `PhaseId`, `PhaseGroup`, `modelid`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `wander_distance`, `currentwaypoint`, `MovementType`, `npcflag`, `unit_flags`, `unit_flags2`, `unit_flags3`, `VerifiedBuild`) VALUES
 (@CGUID+0, 97142, 1481, 7705, 7740, 1, 0, 0, 0, 0, 797.72222900390625, 2790.532958984375, -33.0243721008300781, 0, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 70575), -- Fel Spreader (Area: Molten Shore - Difficulty: 0) CreateObject1 (Auras: 200681 - Cosmetic - Random 7XP Fel Ground Crack A01 or A02 [scale x0.50]) - !!! already present in database !!!
@@ -696,13 +696,17 @@ INSERT INTO `creature` (`guid`, `id`, `map`, `zoneId`, `areaId`, `phaseId`, `equ
 INSERT INTO `creature` (`guid`, `id`, `map`, `zoneId`, `areaId`, `phaseUseFlags`, `PhaseId`, `PhaseGroup`, `modelid`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `wander_distance`, `currentwaypoint`, `MovementType`, `npcflag`, `unit_flags`, `unit_flags2`, `unit_flags3`, `VerifiedBuild`) VALUES
 (@CGUID+14, 94744, 1481, 7705, 7705, 1, 0, 0, 0, 0, 1085.9110107421875, 3117.570556640625, 25.67017364501953125, 0.609196126461029052, 120, 0, 0, 2, NULL, NULL, NULL, NULL, 70575), -- Dread Felbat (Area: Mardum, the Shattered Abyss - Difficulty: 0) CreateObject1 (possible waypoints or random movement)
 (@CGUID+15, 94744, 1481, 7705, 7705, 1, 0, 0, 0, 0, 1078.6829833984375, 3118.45166015625, 26.62825584411621093, 0.621559739112854003, 120, 0, 0, 2, NULL, NULL, NULL, NULL, 70575), -- Dread Felbat (Area: Mardum, the Shattered Abyss - Difficulty: 0) CreateObject1 (possible waypoints or random movement)
-(@CGUID+16, 94744, 1481, 7705, 7705, 1, 0, 0, 0, 0, 1085.16943359375, 3109.245849609375, 26.62899589538574218, 0.622893929481506347, 120, 0, 0, 2, NULL, NULL, NULL, NULL, 70575); -- Dread Felbat (Area: Mardum, the Shattered Abyss - Difficulty: 0) CreateObject1 (possible waypoints or random movement)
+(@CGUID+16, 94744, 1481, 7705, 7705, 1, 0, 0, 0, 0, 1085.16943359375, 3109.245849609375, 26.62899589538574218, 0.622893929481506347, 120, 0, 0, 2, NULL, NULL, NULL, NULL, 70575), -- Dread Felbat (Area: Mardum, the Shattered Abyss - Difficulty: 0) CreateObject1 (possible waypoints or random movement)
+(@CGUID+17, 94744, 1481, 7705, 7741, 1, 0, 0, 0, 0, 1024.0243, 2883.518, 75.74771, 2.780463933944702148, 120, 0, 0, 2, NULL, NULL, NULL, NULL, 70575), -- Dread Felbat - circling z 75.7 (CreateObject1 Low: 39784279)
+(@CGUID+18, 94744, 1481, 7705, 7741, 1, 0, 0, 0, 0, 1024.5641, 2884.6062, 97.536255, 2.647267580032348632, 120, 0, 0, 2, NULL, NULL, NULL, NULL, 70575); -- Dread Felbat - circling z 97.5 (CreateObject1 Low: 48172887)
 
-DELETE FROM `creature_addon` WHERE `guid` BETWEEN @CGUID+0 AND @CGUID+16;
+DELETE FROM `creature_addon` WHERE `guid` BETWEEN @CGUID+0 AND @CGUID+18;
 INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES
 (@CGUID+15, 9474400, 0, 0, 0, 3, 0, 1, 0, 0, 0, 0, 0, 3, ''),
 (@CGUID+14, 9474401, 0, 0, 0, 3, 0, 1, 0, 0, 0, 0, 0, 3, ''), -- Dread Felbat - wing lane A
-(@CGUID+16, 9474402, 0, 0, 0, 3, 0, 1, 0, 0, 0, 0, 0, 3, ''); -- Dread Felbat - wing lane B
+(@CGUID+16, 9474402, 0, 0, 0, 3, 0, 1, 0, 0, 0, 0, 0, 3, ''), -- Dread Felbat - wing lane B
+(@CGUID+17, 9474405, 0, 0, 0, 3, 0, 1, 0, 0, 0, 0, 0, 3, ''), -- Dread Felbat - circling z 75.7
+(@CGUID+18, 9474406, 0, 0, 0, 3, 0, 1, 0, 0, 0, 0, 0, 3, ''); -- Dread Felbat - circling z 97.5
 
 DELETE FROM `spawn_tracking_template` WHERE `SpawnTrackingId` BETWEEN 1046034 AND 1046043;
 INSERT INTO `spawn_tracking_template` (`SpawnTrackingId`, `MapId`, `PhaseId`, `PhaseGroup`, `PhaseUseFlags`, `VerifiedBuild`) VALUES
