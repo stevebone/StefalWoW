@@ -34350,6 +34350,11 @@ void Player::ExecutePendingSpellCastRequest()
             if (go->GetSpellForLock(plrCaster) == spellInfo)
                 allow = true;
 
+        // allow casting of spells granted by action bar override auras (e.g. Void Elf Spatial Rift reactivation)
+        if (castingUnit->HasAuraTypeWithValue(SPELL_AURA_OVERRIDE_ACTIONBAR_SPELLS, spellInfo->Id)
+            || castingUnit->HasAuraTypeWithValue(SPELL_AURA_OVERRIDE_ACTIONBAR_SPELLS_TRIGGERED, spellInfo->Id))
+            allow = true;
+
         // allow casting of spells triggered by clientside periodic trigger auras
         if (castingUnit->HasAuraTypeWithTriggerSpell(SPELL_AURA_PERIODIC_TRIGGER_SPELL_FROM_CLIENT, spellInfo->Id))
         {
