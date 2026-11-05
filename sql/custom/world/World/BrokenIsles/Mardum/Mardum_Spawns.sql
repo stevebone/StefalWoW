@@ -29,8 +29,8 @@ INSERT INTO `creature` (`guid`, `id`, `map`, `zoneId`, `areaId`, `phaseId`, `equ
 (@CGUID+72, 96732, 1481, 7705, 7821, 0, 0, 1380.389, 1447.537, 36.5971, 1.25881, 180, 0, 0),
 (@CGUID+73, 99920, 1481, 7705, 7712, 0, 1, 1425.21, 1710.6, 54.5559, 6.09789, 180, 0, 0),
 (@CGUID+74, 96653, 1481, 7705, 7712, 0, 1, 1452.15, 1688.47, 47.3072, 1.61391, 180, 0, 0),
-(@CGUID+75, 96276, 1481, 7705, 7713, 0, 0, 1456.06, 1607.1, 46.6838, 1.7443, 180, 10, 1),
-(@CGUID+76, 96276, 1481, 7705, 7713, 0, 0, 1495.9, 1627.23, 39.8144, 1.19003, 180, 10, 1),
+(@CGUID+75, 96276, 1481, 7705, 7713, 0, 0, 1456.06, 1607.1, 46.6838, 1.7443, 180, 0, 2),
+(@CGUID+76, 96276, 1481, 7705, 7713, 0, 0, 1495.9, 1627.23, 39.8144, 1.19003, 180, 0, 2),
 (@CGUID+77, 99759, 1481, 7705, 7713, 0, 0, 1343.86, 1580.2, 48.8857, 0.0157024, 180, 0, 0),
 (@CGUID+78, 101397, 1481, 7705, 7713, 0, 1, 1346.53, 1580.24, 47.0106, 4.97112, 180, 0, 0),
 (@CGUID+79, 99759, 1481, 7705, 7713, 0, 0, 1345.72, 1583.3, 47.4974, 4.97111, 180, 0, 0),
@@ -148,12 +148,12 @@ INSERT INTO `creature` (`guid`, `id`, `map`, `zoneId`, `areaId`, `phaseId`, `equ
 -- (@CGUID+215, 93280, 1481, 7705, 7748, 5310, 0, -1.67755, 0.3, 5.25099, 3.14159, 180, 0, 0),
 -- (@CGUID+216, 96767, 1481, 7705, 7747, 5310, 0, 1829.69, 1517.23, 85.6545, 1.9039, 180, 0, 0),
 (@CGUID+217, 97382, 1481, 7705, 7747, 0, 0, 1768.35, 1518.2, 69.9718, 4.912, 180, 0, 0),
-(@CGUID+218, 96276, 1481, 7705, 7747, 0, 0, 1940.66, 1571.44, 166.932, 5.73134, 180, 10, 1),
-(@CGUID+219, 96276, 1481, 7705, 7747, 0, 0, 1945.36, 1567.45, 200.045, 2.55099, 180, 10, 1),
+(@CGUID+218, 96276, 1481, 7705, 7747, 0, 0, 1940.66, 1571.44, 166.932, 5.73134, 180, 0, 2),
+(@CGUID+219, 96276, 1481, 7705, 7747, 0, 0, 1945.36, 1567.45, 200.045, 2.55099, 180, 0, 2),
 -- (@CGUID+220, 97881, 1481, 7705, 7747, 5310, 1, 1843.76, 1526.4, 89.0885, 2.13035, 180, 0, 0),
 -- (@CGUID+221, 96767, 1481, 7705, 7747, 5310, 0, 1853.63, 1542.41, 93.0512, 2.54389, 180, 0, 0),
 -- (@CGUID+222, 97881, 1481, 7705, 7747, 5310, 1, 1862.31, 1559.69, 95.2969, 3.10045, 180, 0, 0),
-(@CGUID+223, 96276, 1481, 7705, 7747, 0, 0, 1997.69, 1553.93, 188.237, 3.36834, 180, 0, 0),
+(@CGUID+223, 96276, 1481, 7705, 7747, 0, 0, 1997.69, 1553.93, 188.237, 3.36834, 180, 0, 2),
 -- (@CGUID+224, 96767, 1481, 7705, 7747, 5310, 0, 1860.77, 1576.85, 94.0764, 3.10045, 180, 0, 0),
 (@CGUID+225, 101597, 1481, 7705, 7747, 0, 1, 1822.25, 1629.09, 82.3347, 3.99518, 180, 0, 0),
 (@CGUID+226, 96561, 1481, 7705, 7747, 0, 1, 1847.74, 1564.36, 94.6359, 2.92311, 180, 0, 0),
@@ -369,8 +369,8 @@ INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `MountCreatureID`, `Sta
 (@CGUID+68, 0, 0, 0, 0, 3, 0, 1, 0, 0, 0, 0, 0, 0, NULL),
 (@CGUID+70, 0, 0, 0, 0, 0, 4, 1, 0, 0, 0, 0, 0, 0, '159474'),
 (@CGUID+71, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL),
-(@CGUID+75, 0, 0, 0, 0, 3, 0, 1, 0, 0, 0, 0, 0, 0, '198294'),
-(@CGUID+76, 0, 0, 0, 0, 3, 0, 1, 0, 0, 0, 0, 0, 0, '198294'),
+(@CGUID+75, 9627600, 0, 0, 0, 3, 0, 1, 0, 0, 0, 0, 0, 0, '198294'),
+(@CGUID+76, 9627600, 0, 0, 0, 3, 0, 1, 0, 0, 0, 0, 0, 0, '198294'),
 (@CGUID+77, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '151597'),
 (@CGUID+78, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '222589 151597 42459'),
 (@CGUID+79, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '151597'),
@@ -450,9 +450,9 @@ INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `MountCreatureID`, `Sta
 (@CGUID+210, 0, 0, 0, 0, 3, 0, 1, 0, 0, 0, 0, 0, 0, NULL),
 (@CGUID+211, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, NULL),
 (@CGUID+213, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '222589 151597 42459'),
-(@CGUID+218, 0, 0, 0, 0, 3, 0, 1, 0, 0, 0, 0, 0, 0, NULL),
-(@CGUID+219, 0, 0, 0, 0, 3, 0, 1, 0, 0, 0, 0, 0, 0, NULL),
-(@CGUID+223, 0, 0, 0, 0, 3, 0, 1, 0, 0, 0, 0, 0, 0, NULL),
+(@CGUID+218, 9627601, 0, 0, 0, 3, 0, 1, 0, 0, 0, 0, 0, 0, NULL),
+(@CGUID+219, 9627603, 0, 0, 0, 3, 0, 1, 0, 0, 0, 0, 0, 0, NULL),
+(@CGUID+223, 9627602, 0, 0, 0, 3, 0, 1, 0, 0, 0, 0, 0, 0, NULL),
 (@CGUID+225, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '222589 151597 42459'),
 (@CGUID+226, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '198294'),
 (@CGUID+227, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '200756'),
@@ -673,7 +673,7 @@ INSERT INTO `gameobject_addon` (`guid`, `parent_rotation0`, `parent_rotation1`, 
 (@OGUID+14, 0, 0, 0, 1, 2437, 0); -- Small Treasure Chest
 
 SET @CGUID := 70064292;
-DELETE FROM `creature` WHERE `guid` BETWEEN @CGUID+0 AND @CGUID+19;
+DELETE FROM `creature` WHERE `guid` BETWEEN @CGUID+0 AND @CGUID+21;
 DELETE FROM `creature` WHERE `id` IN (97142) AND `map` = 1481;
 INSERT INTO `creature` (`guid`, `id`, `map`, `zoneId`, `areaId`, `phaseUseFlags`, `PhaseId`, `PhaseGroup`, `modelid`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `wander_distance`, `currentwaypoint`, `MovementType`, `npcflag`, `unit_flags`, `unit_flags2`, `unit_flags3`, `VerifiedBuild`) VALUES
 (@CGUID+0, 97142, 1481, 7705, 7740, 1, 0, 0, 0, 0, 797.72222900390625, 2790.532958984375, -33.0243721008300781, 0, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 70575), -- Fel Spreader (Area: Molten Shore - Difficulty: 0) CreateObject1 (Auras: 200681 - Cosmetic - Random 7XP Fel Ground Crack A01 or A02 [scale x0.50]) - !!! already present in database !!!
@@ -699,16 +699,20 @@ INSERT INTO `creature` (`guid`, `id`, `map`, `zoneId`, `areaId`, `phaseUseFlags`
 (@CGUID+16, 94744, 1481, 7705, 7705, 1, 0, 0, 0, 0, 1085.16943359375, 3109.245849609375, 26.62899589538574218, 0.622893929481506347, 120, 0, 0, 2, NULL, NULL, NULL, NULL, 70575), -- Dread Felbat (Area: Mardum, the Shattered Abyss - Difficulty: 0) CreateObject1 (possible waypoints or random movement)
 (@CGUID+17, 94744, 1481, 7705, 7741, 1, 0, 0, 0, 0, 1024.0243, 2883.518, 75.74771, 2.780463933944702148, 120, 0, 0, 2, NULL, NULL, NULL, NULL, 70575), -- Dread Felbat - circling z 75.7 (CreateObject1 Low: 39784279)
 (@CGUID+18, 94744, 1481, 7705, 7741, 1, 0, 0, 0, 0, 1024.5641, 2884.6062, 97.536255, 2.647267580032348632, 120, 0, 0, 2, NULL, NULL, NULL, NULL, 70575), -- Dread Felbat - circling z 97.5 (CreateObject1 Low: 48172887)
-(@CGUID+19, 94744, 1481, 7705, 7740, 1, 0, 0, 0, 0, 750.84863, 2392.9192, 15.671266, 1.082871437072753906, 120, 0, 0, 2, NULL, NULL, NULL, NULL, 70575); -- Dread Felbat - circling z 15.7 (CreateObject1 Low: 23007062)
+(@CGUID+19, 94744, 1481, 7705, 7740, 1, 0, 0, 0, 0, 750.84863, 2392.9192, 15.671266, 1.082871437072753906, 120, 0, 0, 2, NULL, NULL, NULL, NULL, 70575), -- Dread Felbat - circling z 15.7 (CreateObject1 Low: 23007062)
+(@CGUID+20, 96276, 1481, 7705, 7747, 1, 0, 0, 0, 0, 1671.0684, 1597.2979, 70.58703, 5.452738761901855468, 120, 0, 0, 2, NULL, NULL, NULL, NULL, 70575), -- Legion Razorwing - shared patrol (CreateObject1 Low: 90376229)
+(@CGUID+21, 96276, 1481, 7705, 7747, 1, 0, 0, 0, 0, 1664.0272, 1597.5211, 71.44257, 5.650068283081054687, 120, 0, 0, 2, NULL, NULL, NULL, NULL, 70575); -- Legion Razorwing - shared patrol (CreateObject1 Low: 73599013)
 
-DELETE FROM `creature_addon` WHERE `guid` BETWEEN @CGUID+0 AND @CGUID+19;
+DELETE FROM `creature_addon` WHERE `guid` BETWEEN @CGUID+0 AND @CGUID+21;
 INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES
 (@CGUID+15, 9474400, 0, 0, 0, 3, 0, 1, 0, 0, 0, 0, 0, 3, ''),
 (@CGUID+14, 9474401, 0, 0, 0, 3, 0, 1, 0, 0, 0, 0, 0, 3, ''), -- Dread Felbat - wing lane A
 (@CGUID+16, 9474402, 0, 0, 0, 3, 0, 1, 0, 0, 0, 0, 0, 3, ''), -- Dread Felbat - wing lane B
 (@CGUID+17, 9474405, 0, 0, 0, 3, 0, 1, 0, 0, 0, 0, 0, 3, ''), -- Dread Felbat - circling z 75.7
 (@CGUID+18, 9474406, 0, 0, 0, 3, 0, 1, 0, 0, 0, 0, 0, 3, ''), -- Dread Felbat - circling z 97.5
-(@CGUID+19, 9474408, 0, 0, 0, 3, 0, 1, 0, 0, 0, 0, 0, 3, ''); -- Dread Felbat - circling z 15.7
+(@CGUID+19, 9474408, 0, 0, 0, 3, 0, 1, 0, 0, 0, 0, 0, 3, ''), -- Dread Felbat - circling z 15.7
+(@CGUID+20, 9627600, 0, 0, 0, 3, 0, 1, 0, 0, 0, 0, 0, 3, '198294'), -- Legion Razorwing - shared patrol
+(@CGUID+21, 9627600, 0, 0, 0, 3, 0, 1, 0, 0, 0, 0, 0, 3, '198294'); -- Legion Razorwing - shared patrol
 
 DELETE FROM `spawn_tracking_template` WHERE `SpawnTrackingId` BETWEEN 1046034 AND 1046043;
 INSERT INTO `spawn_tracking_template` (`SpawnTrackingId`, `MapId`, `PhaseId`, `PhaseGroup`, `PhaseUseFlags`, `VerifiedBuild`) VALUES
