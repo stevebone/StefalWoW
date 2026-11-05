@@ -742,8 +742,8 @@ UPDATE `creature_template_difficulty` SET `StaticFlags1` = `StaticFlags1` | 0x20
 -- Overseer Brutarg (97057) -> npc_overseer_brutarg
 UPDATE `creature_template` SET `ScriptName` = 'npc_overseer_brutarg', `AIName` = '' WHERE `entry` = 97057;
 
--- Wounded Demon Hunter (100549) spellclick 192262 -> npc_wounded_demon_hunter
-UPDATE `creature_template` SET `ScriptName` = 'npc_wounded_demon_hunter', `AIName` = '' WHERE `entry` IN (100545,100543,100549);
+-- Wounded Demon Hunter (100543,100545,100548,100549) spellclick 192262 -> npc_wounded_demon_hunter
+UPDATE `creature_template` SET `ScriptName` = 'npc_wounded_demon_hunter', `AIName` = '' WHERE `entry` IN (100545,100543,100548,100549);
 
 -- Count Nefarious (97058) -> npc_count_nefarious
 UPDATE `creature_template` SET `ScriptName` = 'npc_count_nefarious', `AIName` = '' WHERE `entry` = 97058;
@@ -1001,7 +1001,7 @@ UPDATE `creature_template` SET `faction`=14, `speed_run`=1.428571462631225585, `
 UPDATE `creature_template` SET `faction`=2843, `unit_flags`=0x0 WHERE `entry`=100543; -- Demon Hunter
 UPDATE `creature_template` SET `faction`=1786, `BaseAttackTime`=2000, `unit_flags2`=0x800 WHERE `entry`=101753; -- Soul Fragment
 UPDATE `creature_template` SET `BaseAttackTime`=2000, `unit_flags`=0x2000300, `unit_flags2`=0x800 WHERE `entry`=97704; -- Well of Souls
-UPDATE `creature_template` SET `faction`=2843, `npcflag`=16777216, `BaseAttackTime`=2000, `unit_flags2`=0x800 WHERE `entry` IN (100545, 100549); -- Demon Hunter
+UPDATE `creature_template` SET `faction`=2843, `npcflag`=16777216, `BaseAttackTime`=2000, `unit_flags2`=0x800 WHERE `entry` IN (100545, 100549, 100548); -- Demon Hunter
 UPDATE `creature_template` SET `BaseAttackTime`=2000 WHERE `entry`=97676; -- Lady S'theno
 UPDATE `creature_template` SET `unit_flags2`=0x4000800, `unit_flags3`=0x41000001 WHERE `entry`=97382; -- Soul Harvester
 UPDATE `creature_template` SET `unit_flags`=0x300 WHERE `entry`=97772; -- Coilskar Sea-Caller
