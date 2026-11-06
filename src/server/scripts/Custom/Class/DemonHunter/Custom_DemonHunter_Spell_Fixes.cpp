@@ -800,33 +800,6 @@ namespace Scripts::Custom::DemonHunter
         }
     };
 
-    // 205411 - Desperate Instincts
-    // 12.x: Blur's extra DR is native (EFFECT_2 ADD_FLAT_MODIFIER). Scripted part:
-    // damage taken below 35% health is reduced by 10% via the EFFECT_3 absorb aura.
-    class spell_dh_desperate_instincts : public AuraScript
-    {
-        void HandleAbsorb(AuraEffect* /*aurEff*/, DamageInfo& dmgInfo, uint32& absorbAmount)
-        {
-            // The absorb aura has 0 amount ? prevent default or it would deplete and self-remove
-            PreventDefaultAction();
-
-            Unit* target = GetTarget();
-            if (!target || !dmgInfo.GetDamage())
-                return;
-
-            if (!target->HealthBelowPct(GetEffect(EFFECT_0)->GetAmountAsInt()))
-                return;
-
-            absorbAmount = CalculatePct(dmgInfo.GetDamage(), GetEffect(EFFECT_1)->GetAmountAsInt());
-            dmgInfo.AbsorbDamage(absorbAmount);
-        }
-
-        void Register() override
-        {
-            OnEffectAbsorb += AuraEffectAbsorbFn(spell_dh_desperate_instincts::HandleAbsorb, EFFECT_3);
-        }
-    };
-
     // 1217610 - Devour (enhanced Consume during Void Metamorphosis)
     class spell_dh_devour : public SpellScript
     {
@@ -2522,7 +2495,7 @@ namespace Scripts::Custom::DemonHunter
         return consumed;
     }
 
-    // Fragments consumed this cast — shared between spell_dh_soul_cleave (records)
+    // Fragments consumed this cast ? shared between spell_dh_soul_cleave (records)
     // and spell_dh_soul_cleave_damage (scales damage by consumed count)
     static std::unordered_map<ObjectGuid, int32> sSoulCleaveFragmentsConsumed;
 
@@ -2582,7 +2555,7 @@ namespace Scripts::Custom::DemonHunter
     // Soul cleave damage - 228478
     // 12.x: +20% damage per soul fragment consumed (EFFECT_2 BP); count is recorded
     // by spell_dh_soul_cleave::HandleDummy which runs before this trigger.
-    // Also applies Frailty (247456) per target when the caster has talent 389958 —
+    // Also applies Frailty (247456) per target when the caster has talent 389958 ?
     // covers Soul Sunder (452436) since it triggers the same damage spell.
     class spell_dh_soul_cleave_damage : public SpellScript
     {
@@ -2679,7 +2652,7 @@ namespace Scripts::Custom::DemonHunter
         }
     };
 
-    // Fragments consumed this cast — shared between spell_dh_spirit_bomb (records)
+    // Fragments consumed this cast ? shared between spell_dh_spirit_bomb (records)
     // and spell_dh_spirit_bomb_damage (scales damage)
     static std::unordered_map<ObjectGuid, int32> sSpiritBombFragmentsConsumed;
 
@@ -3235,7 +3208,6 @@ void AddSC_custom_demonhunter_spell_fixes()
     RegisterSpellScript(spell_dh_cull_devourer);
     RegisterSpellScript(spell_dh_darkness_absorb);
     RegisterSpellScript(spell_dh_demonic_infusion);
-    RegisterSpellScript(spell_dh_desperate_instincts);
     RegisterSpellScript(spell_dh_devour);
     RegisterSpellScript(spell_dh_doomsayer_buff);
     RegisterSpellScript(spell_dh_doomsayer_passive);

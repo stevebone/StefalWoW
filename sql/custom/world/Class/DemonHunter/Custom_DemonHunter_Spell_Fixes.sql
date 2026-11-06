@@ -276,9 +276,7 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (203650, 'spe
 DELETE FROM `spell_script_names` WHERE `spell_id` = 228532 AND `ScriptName` = 'spell_dh_soul_fragment_heals';
 INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (228532, 'spell_dh_soul_fragment_heals');
 
--- 205411 - Desperate Instincts
-DELETE FROM `spell_script_names` WHERE `spell_id` = 205411 AND `ScriptName` = 'spell_dh_desperate_instincts';
-INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (205411, 'spell_dh_desperate_instincts');
+-- 205411 - Desperate Instincts (native upstream script + binding since commit dad1e0efd3)
 
 -- 209795 - Fracture (script dropped: spell removed in 12.x DB2)
 DELETE FROM `spell_script_names` WHERE `spell_id` = 209795 AND `ScriptName` = 'spell_dh_fracture';
