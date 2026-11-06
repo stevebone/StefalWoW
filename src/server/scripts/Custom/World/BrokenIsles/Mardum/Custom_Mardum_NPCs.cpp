@@ -1027,10 +1027,6 @@ namespace Scripts::Custom::Mardum
             // who may be a companion/minion that pulled aggro first - resolve the owning player
             if (Player* player = who->GetCharmerOrOwnerPlayerOrPlayerItself())
             {
-                if (!player->HasAura(Spells::SummonCoilskarSeaCaller))
-                    player->CastSpell(player, Spells::SummonCoilskarSeaCaller, true);
-                if (!player->HasAura(Spells::SummonShivarraDestroyer))
-                    player->CastSpell(player, Spells::SummonShivarraDestroyer, true);
                 if (!player->HasAura(Spells::SummonMatronMotherMalevolence))
                     player->CastSpell(player, Spells::SummonMatronMotherMalevolence, true);
             }
@@ -1053,15 +1049,6 @@ namespace Scripts::Custom::Mardum
         void JustDied(Unit* killer) override
         {
             Talk(CreatureText::BrutargDeath, killer);
-
-            // dismiss the player's Shivarra Destroyer companion once Brutarg falls
-            if (Player* player = killer->GetCharmerOrOwnerPlayerOrPlayerItself())
-            {
-                std::list<TempSummon*> minions;
-                player->GetAllMinionsByEntry(minions, Creatures::ShivarraDestroyer);
-                for (TempSummon* minion : minions)
-                    minion->UnSummon();
-            }
         }
 
         void OnChannelFinished(SpellInfo const* spellInfo) override
@@ -1144,6 +1131,14 @@ namespace Scripts::Custom::Mardum
 
         void JustDied(Unit* killer) override
         {
+            // Reward the intro tracking quest to everyone on the boss's threat list
+            // (kill participation - pets and minions resolve to their owner).
+            if (Quest const* quest = sObjectMgr->GetQuestTemplate(Quests::BroodQueenCourtNefarious))
+                for (ThreatReference const* ref : me->GetThreatManager().GetUnsortedThreatList())
+                    if (Player* player = ref->GetVictim()->GetCharmerOrOwnerPlayerOrPlayerItself())
+                        if (player->GetQuestStatus(quest->GetQuestId()) == QUEST_STATUS_INCOMPLETE)
+                            player->RewardQuest(quest, LootItemType::Item, 0, player);
+
             if (Player* player = killer->GetCharmerOrOwnerPlayerOrPlayerItself())
             {
                 std::list<TempSummon*> minions;
@@ -1211,7 +1206,12 @@ namespace Scripts::Custom::Mardum
                 {
                     case Events::NefariousConversation:
                         if (Player* player = ObjectAccessor::GetPlayer(*me, _aggroPlayerGuid))
-                            Conversation::CreateConversation(Conversations::CountNefarious, player, *player, player->GetGUID());
+                            if (Quest const* quest = sObjectMgr->GetQuestTemplate(Quests::BroodQueenCourtNefarious))
+                                if (player->GetQuestStatus(quest->GetQuestId()) == QUEST_STATUS_NONE)
+                                {
+                                    player->AddQuest(quest, nullptr);
+                                    Conversation::CreateConversation(Conversations::CountNefarious, player, *player, player->GetGUID());
+                                }
                         break;
                     case Events::NefariousVampiricCleave:
                         DoCastVictim(Spells::NefariousVampiricCleave);
