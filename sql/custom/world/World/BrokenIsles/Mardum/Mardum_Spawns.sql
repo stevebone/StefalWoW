@@ -922,6 +922,134 @@ INSERT INTO `pool_members` (`type`,`spawnId`,`poolSpawnId`,`chance`,`description
 (0, @CGUID+186, @POOLID+28, 0, 'Wounded Demon Hunter (100545)'),
 (0, @CGUID+190, @POOLID+28, 0, 'Wounded Demon Hunter (100549)');
 
+
+-- Vile Soulmaster 97014/102724 variant pairs: one spawns per spot
+DELETE FROM `pool_template` WHERE `entry` BETWEEN @POOLID+29 AND @POOLID+68;
+INSERT INTO `pool_template` (`entry`,`max_limit`,`description`) VALUES
+(@POOLID+29, 1, 'Mardum - Vile Soulmaster pair spot - one of 97014/102724 at a time'),
+(@POOLID+30, 1, 'Mardum - Vile Soulmaster pair spot - one of 97014/102724 at a time'),
+(@POOLID+31, 1, 'Mardum - Vile Soulmaster pair spot - one of 97014/102724 at a time'),
+(@POOLID+32, 1, 'Mardum - Vile Soulmaster pair spot - one of 97014/102724 at a time'),
+(@POOLID+33, 1, 'Mardum - Vile Soulmaster pair spot - one of 97014/102724 at a time'),
+(@POOLID+34, 1, 'Mardum - Vile Soulmaster pair spot - one of 97014/102724 at a time'),
+(@POOLID+35, 1, 'Mardum - Vile Soulmaster pair spot - one of 97014/102724 at a time'),
+(@POOLID+36, 1, 'Mardum - Vile Soulmaster pair spot - one of 97014/102724 at a time'),
+(@POOLID+37, 1, 'Mardum - Vile Soulmaster pair spot - one of 97014/102724 at a time'),
+(@POOLID+38, 1, 'Mardum - Vile Soulmaster pair spot - one of 97014/102724 at a time'),
+(@POOLID+39, 1, 'Mardum - Vile Soulmaster pair spot - one of 97014/102724 at a time'),
+(@POOLID+40, 1, 'Mardum - Vile Soulmaster pair spot - one of 97014/102724 at a time'),
+(@POOLID+41, 1, 'Mardum - Vile Soulmaster pair spot - one of 97014/102724 at a time'),
+(@POOLID+42, 1, 'Mardum - Vile Soulmaster pair spot - one of 97014/102724 at a time'),
+(@POOLID+43, 1, 'Mardum - Vile Soulmaster pair spot - one of 97014/102724 at a time'),
+(@POOLID+44, 1, 'Mardum - Vile Soulmaster pair spot - one of 97014/102724 at a time'),
+(@POOLID+45, 1, 'Mardum - Vile Soulmaster pair spot - one of 97014/102724 at a time'),
+(@POOLID+46, 1, 'Mardum - Vile Soulmaster pair spot - one of 97014/102724 at a time'),
+(@POOLID+47, 1, 'Mardum - Vile Soulmaster pair spot - one of 97014/102724 at a time'),
+(@POOLID+48, 1, 'Mardum - Vile Soulmaster pair spot - one of 97014/102724 at a time'),
+(@POOLID+49, 1, 'Mardum - Vile Soulmaster pair spot - one of 97014/102724 at a time'),
+(@POOLID+50, 1, 'Mardum - Vile Soulmaster pair spot - one of 97014/102724 at a time'),
+(@POOLID+51, 1, 'Mardum - Vile Soulmaster pair spot - one of 97014/102724 at a time'),
+(@POOLID+52, 1, 'Mardum - Vile Soulmaster pair spot - one of 97014/102724 at a time'),
+(@POOLID+53, 1, 'Mardum - Vile Soulmaster pair spot - one of 97014/102724 at a time'),
+(@POOLID+54, 1, 'Mardum - Vile Soulmaster pair spot - one of 97014/102724 at a time'),
+(@POOLID+55, 1, 'Mardum - Vile Soulmaster pair spot - one of 97014/102724 at a time'),
+(@POOLID+56, 1, 'Mardum - Vile Soulmaster pair spot - one of 97014/102724 at a time'),
+(@POOLID+57, 1, 'Mardum - Vile Soulmaster pair spot - one of 97014/102724 at a time'),
+(@POOLID+58, 1, 'Mardum - Vile Soulmaster pair spot - one of 97014/102724 at a time'),
+(@POOLID+59, 1, 'Mardum - Vile Soulmaster pair spot - one of 97014/102724 at a time'),
+(@POOLID+60, 1, 'Mardum - Vile Soulmaster pair spot - one of 97014/102724 at a time'),
+(@POOLID+61, 1, 'Mardum - Vile Soulmaster pair spot - one of 97014/102724 at a time'),
+(@POOLID+62, 1, 'Mardum - Vile Soulmaster pair spot - one of 97014/102724 at a time'),
+(@POOLID+63, 1, 'Mardum - Vile Soulmaster pair spot - one of 97014/102724 at a time'),
+(@POOLID+64, 1, 'Mardum - Vile Soulmaster pair spot - one of 97014/102724 at a time'),
+(@POOLID+65, 1, 'Mardum - Vile Soulmaster pair spot - one of 97014/102724 at a time'),
+(@POOLID+66, 1, 'Mardum - Vile Soulmaster pair spot - one of 97014/102724 at a time'),
+(@POOLID+67, 1, 'Mardum - Vile Soulmaster pair spot - one of 97014/102724 at a time'),
+(@POOLID+68, 1, 'Mardum - Vile Soulmaster pair spot - one of 97014/102724 at a time');
+
+DELETE FROM `pool_members` WHERE `poolSpawnId` BETWEEN @POOLID+29 AND @POOLID+68;
+INSERT INTO `pool_members` (`type`,`spawnId`,`poolSpawnId`,`chance`,`description`) VALUES
+(0, @CGUID+62, @POOLID+29, 0, 'Vile Soulmaster pair member (97014)'),
+(0, @CGUID+86, @POOLID+29, 0, 'Vile Soulmaster pair member (102724)'),
+(0, @CGUID+65, @POOLID+30, 0, 'Vile Soulmaster pair member (97014)'),
+(0, @CGUID+205, @POOLID+30, 0, 'Vile Soulmaster pair member (102724)'),
+(0, @CGUID+66, @POOLID+31, 0, 'Vile Soulmaster pair member (97014)'),
+(0, @CGUID+208, @POOLID+31, 0, 'Vile Soulmaster pair member (102724)'),
+(0, @CGUID+153, @POOLID+32, 0, 'Vile Soulmaster pair member (97014)'),
+(0, @CGUID+206, @POOLID+32, 0, 'Vile Soulmaster pair member (102724)'),
+(0, @CGUID+59, @POOLID+33, 0, 'Vile Soulmaster pair member (97014)'),
+(0, @CGUID+216, @POOLID+33, 0, 'Vile Soulmaster pair member (102724)'),
+(0, @CGUID+60, @POOLID+34, 0, 'Vile Soulmaster pair member (97014)'),
+(0, @CGUID+217, @POOLID+34, 0, 'Vile Soulmaster pair member (102724)'),
+(0, @CGUID+61, @POOLID+35, 0, 'Vile Soulmaster pair member (97014)'),
+(0, @CGUID+218, @POOLID+35, 0, 'Vile Soulmaster pair member (102724)'),
+(0, @CGUID+63, @POOLID+36, 0, 'Vile Soulmaster pair member (97014)'),
+(0, @CGUID+219, @POOLID+36, 0, 'Vile Soulmaster pair member (102724)'),
+(0, @CGUID+64, @POOLID+37, 0, 'Vile Soulmaster pair member (97014)'),
+(0, @CGUID+220, @POOLID+37, 0, 'Vile Soulmaster pair member (102724)'),
+(0, @CGUID+67, @POOLID+38, 0, 'Vile Soulmaster pair member (97014)'),
+(0, @CGUID+221, @POOLID+38, 0, 'Vile Soulmaster pair member (102724)'),
+(0, @CGUID+68, @POOLID+39, 0, 'Vile Soulmaster pair member (97014)'),
+(0, @CGUID+222, @POOLID+39, 0, 'Vile Soulmaster pair member (102724)'),
+(0, @CGUID+148, @POOLID+40, 0, 'Vile Soulmaster pair member (97014)'),
+(0, @CGUID+223, @POOLID+40, 0, 'Vile Soulmaster pair member (102724)'),
+(0, @CGUID+149, @POOLID+41, 0, 'Vile Soulmaster pair member (97014)'),
+(0, @CGUID+224, @POOLID+41, 0, 'Vile Soulmaster pair member (102724)'),
+(0, @CGUID+150, @POOLID+42, 0, 'Vile Soulmaster pair member (97014)'),
+(0, @CGUID+225, @POOLID+42, 0, 'Vile Soulmaster pair member (102724)'),
+(0, @CGUID+151, @POOLID+43, 0, 'Vile Soulmaster pair member (97014)'),
+(0, @CGUID+226, @POOLID+43, 0, 'Vile Soulmaster pair member (102724)'),
+(0, @CGUID+152, @POOLID+44, 0, 'Vile Soulmaster pair member (97014)'),
+(0, @CGUID+227, @POOLID+44, 0, 'Vile Soulmaster pair member (102724)'),
+(0, @CGUID+154, @POOLID+45, 0, 'Vile Soulmaster pair member (97014)'),
+(0, @CGUID+228, @POOLID+45, 0, 'Vile Soulmaster pair member (102724)'),
+(0, @CGUID+155, @POOLID+46, 0, 'Vile Soulmaster pair member (97014)'),
+(0, @CGUID+229, @POOLID+46, 0, 'Vile Soulmaster pair member (102724)'),
+(0, @CGUID+156, @POOLID+47, 0, 'Vile Soulmaster pair member (97014)'),
+(0, @CGUID+230, @POOLID+47, 0, 'Vile Soulmaster pair member (102724)'),
+(0, @CGUID+85, @POOLID+48, 0, 'Vile Soulmaster pair member (102724)'),
+(0, @CGUID+231, @POOLID+48, 0, 'Vile Soulmaster pair member (97014)'),
+(0, @CGUID+87, @POOLID+49, 0, 'Vile Soulmaster pair member (102724)'),
+(0, @CGUID+232, @POOLID+49, 0, 'Vile Soulmaster pair member (97014)'),
+(0, @CGUID+88, @POOLID+50, 0, 'Vile Soulmaster pair member (102724)'),
+(0, @CGUID+233, @POOLID+50, 0, 'Vile Soulmaster pair member (97014)'),
+(0, @CGUID+89, @POOLID+51, 0, 'Vile Soulmaster pair member (102724)'),
+(0, @CGUID+234, @POOLID+51, 0, 'Vile Soulmaster pair member (97014)'),
+(0, @CGUID+90, @POOLID+52, 0, 'Vile Soulmaster pair member (102724)'),
+(0, @CGUID+235, @POOLID+52, 0, 'Vile Soulmaster pair member (97014)'),
+(0, @CGUID+197, @POOLID+53, 0, 'Vile Soulmaster pair member (102724)'),
+(0, @CGUID+236, @POOLID+53, 0, 'Vile Soulmaster pair member (97014)'),
+(0, @CGUID+198, @POOLID+54, 0, 'Vile Soulmaster pair member (102724)'),
+(0, @CGUID+237, @POOLID+54, 0, 'Vile Soulmaster pair member (97014)'),
+(0, @CGUID+199, @POOLID+55, 0, 'Vile Soulmaster pair member (102724)'),
+(0, @CGUID+238, @POOLID+55, 0, 'Vile Soulmaster pair member (97014)'),
+(0, @CGUID+200, @POOLID+56, 0, 'Vile Soulmaster pair member (102724)'),
+(0, @CGUID+239, @POOLID+56, 0, 'Vile Soulmaster pair member (97014)'),
+(0, @CGUID+201, @POOLID+57, 0, 'Vile Soulmaster pair member (102724)'),
+(0, @CGUID+240, @POOLID+57, 0, 'Vile Soulmaster pair member (97014)'),
+(0, @CGUID+202, @POOLID+58, 0, 'Vile Soulmaster pair member (102724)'),
+(0, @CGUID+241, @POOLID+58, 0, 'Vile Soulmaster pair member (97014)'),
+(0, @CGUID+203, @POOLID+59, 0, 'Vile Soulmaster pair member (102724)'),
+(0, @CGUID+242, @POOLID+59, 0, 'Vile Soulmaster pair member (97014)'),
+(0, @CGUID+204, @POOLID+60, 0, 'Vile Soulmaster pair member (102724)'),
+(0, @CGUID+243, @POOLID+60, 0, 'Vile Soulmaster pair member (97014)'),
+(0, @CGUID+207, @POOLID+61, 0, 'Vile Soulmaster pair member (102724)'),
+(0, @CGUID+244, @POOLID+61, 0, 'Vile Soulmaster pair member (97014)'),
+(0, @CGUID+209, @POOLID+62, 0, 'Vile Soulmaster pair member (102724)'),
+(0, @CGUID+245, @POOLID+62, 0, 'Vile Soulmaster pair member (97014)'),
+(0, @CGUID+210, @POOLID+63, 0, 'Vile Soulmaster pair member (102724)'),
+(0, @CGUID+246, @POOLID+63, 0, 'Vile Soulmaster pair member (97014)'),
+(0, @CGUID+211, @POOLID+64, 0, 'Vile Soulmaster pair member (102724)'),
+(0, @CGUID+247, @POOLID+64, 0, 'Vile Soulmaster pair member (97014)'),
+(0, @CGUID+212, @POOLID+65, 0, 'Vile Soulmaster pair member (102724)'),
+(0, @CGUID+248, @POOLID+65, 0, 'Vile Soulmaster pair member (97014)'),
+(0, @CGUID+213, @POOLID+66, 0, 'Vile Soulmaster pair member (102724)'),
+(0, @CGUID+249, @POOLID+66, 0, 'Vile Soulmaster pair member (97014)'),
+(0, @CGUID+214, @POOLID+67, 0, 'Vile Soulmaster pair member (102724)'),
+(0, @CGUID+250, @POOLID+67, 0, 'Vile Soulmaster pair member (97014)'),
+(0, @CGUID+215, @POOLID+68, 0, 'Vile Soulmaster pair member (102724)'),
+(0, @CGUID+251, @POOLID+68, 0, 'Vile Soulmaster pair member (97014)');
+
 -- Updates to spawns
 -- Some creatures are forced always visible due to missing/unknown phase ids.
 -- Area 7749 is skipped since it is fully managed via 2 custom phases
@@ -942,7 +1070,7 @@ UPDATE `gameobject` SET `phaseUseFlags` = 1 WHERE `id` IN (245170,243968,243965,
 -- creature_addon rows identical to creature_template_addon were removed.
 -- =====================================================================
 SET @CGUID := 70064292;
-DELETE FROM `creature` WHERE `guid` BETWEEN @CGUID+23 AND @CGUID+215;
+DELETE FROM `creature` WHERE `guid` BETWEEN @CGUID+23 AND @CGUID+251;
 INSERT INTO `creature` (`guid`, `id`, `map`, `zoneId`, `areaId`, `spawnDifficulties`, `phaseUseFlags`, `PhaseId`, `PhaseGroup`, `modelid`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `wander_distance`, `currentwaypoint`, `MovementType`, `npcflag`, `unit_flags`, `unit_flags2`, `unit_flags3`, `VerifiedBuild`) VALUES
 (@CGUID+23, 33765, 1481, 7705, 7747, '0', 1, 0, 0, 0, 0, 1800.0347900390625, 1569.5191650390625, 97.00592041015625, 0, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 70575), -- ELM General Purpose Bunny (scale x2) (Area: Soul Engine - Difficulty: 0) CreateObject1
 (@CGUID+24, 94655, 1481, 7705, 7747, '0', 1, 0, 0, 0, 0, 1706.115234375, 1534.10400390625, 32.59293365478515625, 4.076141357421875, 120, 10, 0, 1, NULL, NULL, NULL, NULL, 70575), -- Soul Leech (Area: Soul Engine - Difficulty: 0) CreateObject1 (Auras: 198294 - Valid Target) (possible waypoints or random movement)
@@ -1128,8 +1256,44 @@ INSERT INTO `creature` (`guid`, `id`, `map`, `zoneId`, `areaId`, `spawnDifficult
 (@CGUID+212, 102724, 1481, 7705, 7747, '0', 1, 0, 0, 0, 1, 1939.296875, 1710.4114990234375, 102.6326980590820312, 5.497560501098632812, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 70575), -- Vile Soulmaster (Area: Soul Engine - Difficulty: 0) CreateObject1 (Auras: 188560 - Eredar Summoner: Fel Channel Omni)
 (@CGUID+213, 102724, 1481, 7705, 7747, '0', 1, 0, 0, 0, 1, 1966.0186767578125, 1666.40576171875, 131.8366851806640625, 4.108183860778808593, 120, 10, 0, 1, NULL, NULL, NULL, NULL, 70575), -- Vile Soulmaster (Area: Soul Engine - Difficulty: 0) CreateObject1 (possible waypoints or random movement)
 (@CGUID+214, 102724, 1481, 7705, 7747, '0', 1, 0, 0, 0, 1, 2018.3629150390625, 1665.6822509765625, 131.9885711669921875, 3.859485149383544921, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 70575), -- Vile Soulmaster (Area: Soul Engine - Difficulty: 0) CreateObject1 (Auras: 200689 - Shattered Visage)
-(@CGUID+215, 102724, 1481, 7705, 7747, '0', 1, 0, 0, 0, 1, 2021.157958984375, 1661.454833984375, 131.737945556640625, 3.097199916839599609, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 70575); -- Vile Soulmaster (Area: Soul Engine - Difficulty: 0) CreateObject1
-DELETE FROM `creature_addon` WHERE `guid` BETWEEN @CGUID+23 AND @CGUID+215;
+(@CGUID+215, 102724, 1481, 7705, 7747, '0', 1, 0, 0, 0, 1, 2021.157958984375, 1661.454833984375, 131.737945556640625, 3.097199916839599609, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 70575), -- Vile Soulmaster (Area: Soul Engine - Difficulty: 0) CreateObject1
+(@CGUID+216, 102724, 1481, 7705, 7747, '0', 1, 0, 0, 0, 1, 1730.673583984375, 1523.3524169921875, 56.23287582397460937, 3.146717071533203125, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 70575), -- Vile Soulmaster (counterpart of +59 for pool)
+(@CGUID+217, 102724, 1481, 7705, 7747, '0', 1, 0, 0, 0, 1, 1752.2552490234375, 1580.3853759765625, 75.24689483642578125, 1.665056824684143066, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 70575), -- Vile Soulmaster (counterpart of +60 for pool)
+(@CGUID+218, 102724, 1481, 7705, 7747, '0', 1, 0, 0, 0, 1, 1771.4169921875, 1510.2294921875, 66.8297576904296875, 1.923935770988464355, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 70575), -- Vile Soulmaster (counterpart of +61 for pool)
+(@CGUID+219, 102724, 1481, 7705, 7747, '0', 1, 0, 0, 0, 1, 1798.5816650390625, 1602.2864990234375, 86.77181243896484375, 2.648580789566040039, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 70575), -- Vile Soulmaster (counterpart of +63 for pool)
+(@CGUID+220, 102724, 1481, 7705, 7747, '0', 1, 0, 0, 0, 1, 1823.3663330078125, 1499.3646240234375, 84.63824462890625, 3.719388008117675781, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 70575), -- Vile Soulmaster (counterpart of +64 for pool)
+(@CGUID+221, 102724, 1481, 7705, 7747, '0', 1, 0, 0, 0, 1, 1880.89111328125, 1614.87939453125, 93.742584228515625, 2.152419567108154296, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 70575), -- Vile Soulmaster (counterpart of +67 for pool)
+(@CGUID+222, 102724, 1481, 7705, 7747, '0', 1, 0, 0, 0, 1, 1881.304443359375, 1575.09716796875, 96.25012969970703125, 2.278262138366699218, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 70575), -- Vile Soulmaster (counterpart of +68 for pool)
+(@CGUID+223, 102724, 1481, 7705, 7747, '0', 1, 0, 0, 0, 1, 1718.767333984375, 1605.3177490234375, 59.50017547607421875, 3.137235641479492187, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 70575), -- Vile Soulmaster (counterpart of +148 for pool)
+(@CGUID+224, 102724, 1481, 7705, 7747, '0', 1, 0, 0, 0, 1, 1745.6517333984375, 1607.066650390625, 63.90274429321289062, 3.062322616577148437, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 70575), -- Vile Soulmaster (counterpart of +149 for pool)
+(@CGUID+225, 102724, 1481, 7705, 7747, '0', 1, 0, 0, 0, 1, 1804.0677490234375, 1627.4010009765625, 77.9277801513671875, 5.915836334228515625, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 70575), -- Vile Soulmaster (counterpart of +150 for pool)
+(@CGUID+226, 102724, 1481, 7705, 7747, '0', 1, 0, 0, 0, 1, 1818.657470703125, 1541.558837890625, 86.57564544677734375, 1.834823846817016601, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 70575), -- Vile Soulmaster (counterpart of +151 for pool)
+(@CGUID+227, 102724, 1481, 7705, 7747, '0', 1, 0, 0, 0, 1, 1827.0625, 1636.282958984375, 83.59201812744140625, 4.160350322723388671, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 70575), -- Vile Soulmaster (counterpart of +152 for pool)
+(@CGUID+228, 102724, 1481, 7705, 7747, '0', 1, 0, 0, 0, 1, 1880.9588623046875, 1621.1021728515625, 93.31220245361328125, 4.064366817474365234, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 70575), -- Vile Soulmaster (counterpart of +154 for pool)
+(@CGUID+229, 102724, 1481, 7705, 7747, '0', 1, 0, 0, 0, 1, 1976.46875, 1580.829833984375, 102.6287841796875, 1.309614777565002441, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 70575), -- Vile Soulmaster (counterpart of +155 for pool)
+(@CGUID+230, 102724, 1481, 7705, 7747, '0', 1, 0, 0, 0, 1, 2046.6961669921875, 1671.092041015625, 104.4240188598632812, 3.390077829360961914, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 70575), -- Vile Soulmaster (counterpart of +156 for pool)
+(@CGUID+231, 97014, 1481, 7705, 7747, '0', 1, 0, 0, 0, 1, 1768.91845703125, 1529.310791015625, 66.835296630859375, 4.6813507080078125, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 70575), -- Eredar Summoner (counterpart of +85 for pool)
+(@CGUID+232, 97014, 1481, 7705, 7747, '0', 1, 0, 0, 0, 1, 1823.8448486328125, 1625.6280517578125, 82.7024993896484375, 1.126675605773925781, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 70575), -- Eredar Summoner (counterpart of +87 for pool)
+(@CGUID+233, 97014, 1481, 7705, 7747, '0', 1, 0, 0, 0, 1, 1866.5208740234375, 1613.518798828125, 92.11902618408203125, 5.169115066528320312, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 70575), -- Eredar Summoner (counterpart of +88 for pool)
+(@CGUID+234, 97014, 1481, 7705, 7747, '0', 1, 0, 0, 0, 1, 1872.728759765625, 1580.25927734375, 95.413543701171875, 0.432710140943527221, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 70575), -- Eredar Summoner (counterpart of +89 for pool)
+(@CGUID+235, 97014, 1481, 7705, 7747, '0', 1, 0, 0, 0, 1, 1875.3310546875, 1616.8720703125, 93.06879425048828125, 0.328222423791885375, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 70575), -- Eredar Summoner (counterpart of +90 for pool)
+(@CGUID+236, 97014, 1481, 7705, 7713, '0', 1, 0, 0, 0, 1, 1739.4617919921875, 1678.482666015625, 76.217437744140625, 6.011575698852539062, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 70575), -- Eredar Summoner (counterpart of +197 for pool)
+(@CGUID+237, 97014, 1481, 7705, 7747, '0', 1, 0, 0, 0, 1, 1746.8211669921875, 1619.8211669921875, 65.1919097900390625, 1.523851752281188964, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 70575), -- Eredar Summoner (counterpart of +198 for pool)
+(@CGUID+238, 97014, 1481, 7705, 7747, '0', 1, 0, 0, 0, 1, 1763.4010009765625, 1630.46875, 69.78197479248046875, 2.716673135757446289, 120, 10, 0, 1, NULL, NULL, NULL, NULL, 70575), -- Eredar Summoner (counterpart of +199 for pool)
+(@CGUID+239, 97014, 1481, 7705, 7747, '0', 1, 0, 0, 0, 1, 1786.7413330078125, 1640.859375, 74.23639678955078125, 2.055291414260864257, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 70575), -- Eredar Summoner (counterpart of +200 for pool)
+(@CGUID+240, 97014, 1481, 7705, 7747, '0', 1, 0, 0, 0, 1, 1809.0635986328125, 1615.0653076171875, 80.13965606689453125, 2.644740581512451171, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 70575), -- Eredar Summoner (counterpart of +201 for pool)
+(@CGUID+241, 97014, 1481, 7705, 7747, '0', 1, 0, 0, 0, 1, 1815.3765869140625, 1621.678955078125, 80.5574188232421875, 3.137031078338623046, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 70575), -- Eredar Summoner (counterpart of +202 for pool)
+(@CGUID+242, 97014, 1481, 7705, 7747, '0', 1, 0, 0, 0, 1, 1816.2882080078125, 1545.9930419921875, 86.90106201171875, 2.558815240859985351, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 70575), -- Eredar Summoner (counterpart of +203 for pool)
+(@CGUID+243, 97014, 1481, 7705, 7713, '0', 1, 0, 0, 0, 1, 1823.751708984375, 1656.921875, 90.00327301025390625, 0.923132598400115966, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 70575), -- Eredar Summoner (counterpart of +204 for pool)
+(@CGUID+244, 97014, 1481, 7705, 7747, '0', 1, 0, 0, 0, 1, 1875.653564453125, 1620.2384033203125, 98.22939300537109375, 5.659692287445068359, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 70575), -- Eredar Summoner (counterpart of +207 for pool)
+(@CGUID+245, 97014, 1481, 7705, 7747, '0', 1, 0, 0, 0, 1, 1877.392578125, 1621.75927734375, 93.01302337646484375, 5.119156837463378906, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 70575), -- Eredar Summoner (counterpart of +209 for pool)
+(@CGUID+246, 97014, 1481, 7705, 7747, '0', 1, 0, 0, 0, 1, 1878.99951171875, 1574.8125, 96.115936279296875, 2.04711318016052246, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 70575), -- Eredar Summoner (counterpart of +210 for pool)
+(@CGUID+247, 97014, 1481, 7705, 7747, '0', 1, 0, 0, 0, 1, 1882.3853759765625, 1701.732666015625, 85.273223876953125, 0.881504178047180175, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 70575), -- Eredar Summoner (counterpart of +211 for pool)
+(@CGUID+248, 97014, 1481, 7705, 7747, '0', 1, 0, 0, 0, 1, 1939.296875, 1710.4114990234375, 102.6326980590820312, 5.497560501098632812, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 70575), -- Eredar Summoner (counterpart of +212 for pool)
+(@CGUID+249, 97014, 1481, 7705, 7747, '0', 1, 0, 0, 0, 1, 1966.0186767578125, 1666.40576171875, 131.8366851806640625, 4.108183860778808593, 120, 10, 0, 1, NULL, NULL, NULL, NULL, 70575), -- Eredar Summoner (counterpart of +213 for pool)
+(@CGUID+250, 97014, 1481, 7705, 7747, '0', 1, 0, 0, 0, 1, 2018.3629150390625, 1665.6822509765625, 131.9885711669921875, 3.859485149383544921, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 70575), -- Eredar Summoner (counterpart of +214 for pool)
+(@CGUID+251, 97014, 1481, 7705, 7747, '0', 1, 0, 0, 0, 1, 2021.157958984375, 1661.454833984375, 131.737945556640625, 3.097199916839599609, 120, 0, 0, 0, NULL, NULL, NULL, NULL, 70575); -- Eredar Summoner (counterpart of +215 for pool)
+DELETE FROM `creature_addon` WHERE `guid` BETWEEN @CGUID+23 AND @CGUID+251;
 INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvpFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES
 (@CGUID+31, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '198294'),
 (@CGUID+32, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '198294'),
@@ -1217,4 +1381,39 @@ INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `StandState`, `AnimTier
 (@CGUID+210, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '151597 198294'), -- Vile Soulmaster - 151597 - No NPC Damage Below 45-90%, 198294 - Valid Target,
 (@CGUID+211, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '188560'), -- Vile Soulmaster - 188560 - Eredar Summoner: Fel Channel Omni,
 (@CGUID+212, 0, 0, 0, 2, 0, 1, 0, 0, 0, 0, 0, 0, '188560'), -- Vile Soulmaster - 188560 - Eredar Summoner: Fel Channel Omni,
-(@CGUID+214, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '200689'); -- Vile Soulmaster - 200689 - Shattered Visage
+(@CGUID+214, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '200689'),
+(@CGUID+216, 0, 0, 0, 2, 0, 1, 0, 0, 0, 0, 0, 0, '188560 198294'), -- counterpart of +59
+(@CGUID+217, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '188560'), -- counterpart of +60
+(@CGUID+218, 0, 0, 0, 2, 0, 1, 0, 0, 0, 0, 0, 0, '188560'), -- counterpart of +61
+(@CGUID+219, 0, 0, 0, 2, 0, 1, 0, 0, 0, 0, 0, 0, '188560'), -- counterpart of +63
+(@CGUID+220, 0, 0, 0, 0, 0, 1, 0, 375, 0, 0, 0, 0, '198294'), -- counterpart of +64
+(@CGUID+221, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '151597 198294'), -- counterpart of +67
+(@CGUID+222, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '151597 198294'), -- counterpart of +68
+(@CGUID+223, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '188560 198294'), -- counterpart of +148
+(@CGUID+224, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '151597'), -- counterpart of +149
+(@CGUID+225, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '151597'), -- counterpart of +150
+(@CGUID+226, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '198294'), -- counterpart of +151
+(@CGUID+227, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '151597'), -- counterpart of +152
+(@CGUID+228, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '151597 198294'), -- counterpart of +154
+(@CGUID+229, 0, 0, 0, 2, 0, 1, 0, 0, 0, 0, 0, 0, '188560'), -- counterpart of +155
+(@CGUID+230, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '188560'), -- counterpart of +156
+(@CGUID+231, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '188560'), -- counterpart of +85
+(@CGUID+232, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '151597 198294'), -- counterpart of +87
+(@CGUID+233, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '151597 198294'), -- counterpart of +88
+(@CGUID+234, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '151597 198294'), -- counterpart of +89
+(@CGUID+235, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '151597 198294'), -- counterpart of +90
+(@CGUID+236, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '188560'), -- counterpart of +197
+(@CGUID+237, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '151597'), -- counterpart of +198
+(@CGUID+238, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '151597'), -- counterpart of +199
+(@CGUID+239, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '188560'), -- counterpart of +200
+(@CGUID+240, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '198294'), -- counterpart of +201
+(@CGUID+241, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '151597 198294'), -- counterpart of +202
+(@CGUID+242, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '188560 198294'), -- counterpart of +203
+(@CGUID+243, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '188560'), -- counterpart of +204
+(@CGUID+244, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '151597 198294'), -- counterpart of +207
+(@CGUID+245, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '151597 198294'), -- counterpart of +209
+(@CGUID+246, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '151597 198294'), -- counterpart of +210
+(@CGUID+247, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '188560'), -- counterpart of +211
+(@CGUID+248, 0, 0, 0, 2, 0, 1, 0, 0, 0, 0, 0, 0, '188560'), -- counterpart of +212
+(@CGUID+250, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '200689'); -- counterpart of +214
+ -- Vile Soulmaster - 200689 - Shattered Visage
