@@ -2431,65 +2431,81 @@ namespace Scripts::Custom::DemonHunter
         }
     };
 
+    // Soul-fragment area triggers -> the consume spell their AT AI casts on walk-over,
+    // keyed by areatrigger_create_properties id. Creator-spell ids shift whenever
+    // Blizzard reshuffles the trigger chains; create-properties ids are what spell
+    // data and the AT AI bindings actually reference.
+    static constexpr std::pair<uint32, uint32> SoulFragmentConsumeSpells[] =
+    {
+        { 3680,  Spells::spell_dh_consume_soul_havoc_shattered     },
+        { 6659,  Spells::spell_dh_consume_soul_havoc_demon         },
+        { 8867,  Spells::spell_dh_consume_soul_havoc_lesser        },
+        { 6710,  Spells::spell_dh_consume_soul_vengeance_shattered },
+        { 6711,  Spells::spell_dh_consume_soul_vengeance_demon     },
+        { 5977,  Spells::spell_dh_consume_soul_vengeance_lesser    },
+        { 36671, Spells::spell_dh_consume_soul_devourer            }
+    };
+
+    static uint32 GetConsumeSpellForAreaTrigger(AreaTrigger const* at)
+    {
+        AreaTriggerCreateProperties const* props = at->GetCreateProperties();
+        if (!props)
+            return 0;
+        for (auto const& [propsId, consumeSpell] : SoulFragmentConsumeSpells)
+            if (props->Id.Id == propsId)
+                return consumeSpell;
+        return 0;
+    }
+
+    static bool IsSoulFragmentAreaTrigger(AreaTrigger const* at)
+    {
+        return GetConsumeSpellForAreaTrigger(at) != 0;
+    }
+
     // Consumes up to maxCount nearby soul-fragment area triggers within range, running the
-    // standard consume chain (consume heal, demon bonus, feed-the-demon, painbringer).
-    // Returns the number of fragments consumed. Shared by Soul Cleave and Spirit Bomb.
+    // standard consume chain (fragment-specific consume spell, demon bonus, feed-the-demon,
+    // painbringer). Returns the number of fragments consumed. Shared by Soul Cleave and Spirit Bomb.
     static int32 ConsumeSoulFragments(Unit* caster, float range, int32 maxCount)
     {
-        std::vector<std::vector<AreaTrigger*>> fragments;
-        fragments.push_back(caster->GetAreaTriggers(Spells::spell_dh_shattered_souls_havoc));
-        fragments.push_back(caster->GetAreaTriggers(Spells::spell_dh_shattered_souls_demon));
-        fragments.push_back(caster->GetAreaTriggers(Spells::spell_dh_lesser_soul_shard));
-
         int32 consumed = 0;
-        for (auto vec : fragments)
+        for (AreaTrigger* at : caster->GetAreaTriggers(IsSoulFragmentAreaTrigger))
         {
-            for (AreaTrigger* at : vec)
+            if (consumed >= maxCount)
+                break;
+
+            if (!caster->IsWithinDist(at, range))
+                continue;
+
+            if (TempSummon* tempSumm = caster->SummonCreature(WORLD_TRIGGER,
+                at->GetPositionX(), at->GetPositionY(), at->GetPositionZ(),
+                0, TEMPSUMMON_TIMED_DESPAWN, 100ms))
             {
-                if (consumed >= maxCount)
-                    return consumed;
+                tempSumm->SetFaction(caster->GetFaction());
+                tempSumm->SetCreatorGUID(caster->GetGUID());
 
-                if (!caster->IsWithinDist(at, range))
-                    continue;
+                CastSpellExtraArgs args(TRIGGERED_FULL_MASK);
+                uint32 consumeSpell = GetConsumeSpellForAreaTrigger(at);
+                // spell_dh_consume_soul_missile (bound to 210047) replaces the missile's
+                // data-driven trigger with BP0 - supply its own heal spell.
+                if (consumeSpell == Spells::spell_dh_consume_soul_vengeance_shattered)
+                    args.AddSpellBP0(Spells::spell_dh_soul_fragment_heal_vengeance);
+                caster->CastSpell(tempSumm, consumeSpell, args);
 
-                if (TempSummon* tempSumm = caster->SummonCreature(WORLD_TRIGGER,
-                    at->GetPositionX(), at->GetPositionY(), at->GetPositionZ(),
-                    0, TEMPSUMMON_TIMED_DESPAWN, 100ms))
-                {
-                    tempSumm->SetFaction(caster->GetFaction());
-                    tempSumm->SetCreatorGUID(caster->GetGUID());
+                uint32 createPropertiesId = at->GetCreateProperties()->Id.Id;
+                if (createPropertiesId == 6659 || createPropertiesId == 6711)
+                    caster->CastSpell(caster, Spells::spell_dh_soul_fragment_demon_bonus, true);
 
-                    int32 bp = 0;
-                    switch (at->GetTemplate()->Id.Id)
-                    {
-                    case 6007:
-                    case 5997:
-                        bp = Spells::spell_dh_soul_fragment_heal_vengeance;
-                        break;
-                    case 6710:
-                        bp = Spells::spell_dh_consume_soul_heal;
-                        break;
-                    }
+                if (caster->HasAura(Spells::spell_dh_feed_the_demon))
+                    caster->GetSpellHistory()->ModifyCooldown(
+                        Spells::spell_dh_demon_spikes,
+                        -1s,
+                        false);
 
-                    caster->CastSpell(tempSumm,
-                        Spells::spell_dh_consume_soul_vengeance_shattered,
-                        CastSpellExtraArgs(TRIGGERED_FULL_MASK).AddSpellBP0(bp));
+                if (caster->HasAura(Spells::spell_dh_painbringer))
+                    caster->CastSpell(caster, Spells::spell_dh_painbringer_buff, true);
 
-                    if (at->GetTemplate()->Id.Id == 6007)
-                        caster->CastSpell(caster, Spells::spell_dh_soul_fragment_demon_bonus, true);
-
-                    if (caster->HasAura(Spells::spell_dh_feed_the_demon))
-                        caster->GetSpellHistory()->ModifyCooldown(
-                            Spells::spell_dh_demon_spikes,
-                            -1s,
-                            false);
-
-                    if (caster->HasAura(Spells::spell_dh_painbringer))
-                        caster->CastSpell(caster, Spells::spell_dh_painbringer_buff, true);
-
-                    at->SetDuration(0);
-                    ++consumed;
-                }
+                at->SetDuration(0);
+                ++consumed;
             }
         }
         return consumed;
@@ -2508,12 +2524,14 @@ namespace Scripts::Custom::DemonHunter
                 {
                     Spells::spell_dh_feast_of_souls,
                     Spells::spell_dh_feast_of_souls_periodic_heal,
-                    Spells::spell_dh_shattered_souls_havoc,
-                    Spells::spell_dh_shattered_souls_demon,
-                    Spells::spell_dh_lesser_soul_shard,
-                    Spells::spell_dh_soul_fragment_heal_vengeance,
-                    Spells::spell_dh_consume_soul_heal,
+                    Spells::spell_dh_consume_soul_havoc_shattered,
+                    Spells::spell_dh_consume_soul_havoc_demon,
+                    Spells::spell_dh_consume_soul_havoc_lesser,
                     Spells::spell_dh_consume_soul_vengeance_shattered,
+                    Spells::spell_dh_consume_soul_vengeance_demon,
+                    Spells::spell_dh_consume_soul_vengeance_lesser,
+                    Spells::spell_dh_consume_soul_devourer,
+                    Spells::spell_dh_soul_fragment_heal_vengeance,
                     Spells::spell_dh_soul_fragment_demon_bonus,
                     Spells::spell_dh_feed_the_demon,
                     Spells::spell_dh_demon_spikes,
@@ -2665,9 +2683,13 @@ namespace Scripts::Custom::DemonHunter
         {
             return ValidateSpellInfo({
                 Spells::spell_dh_spirit_bomb_damage,
-                Spells::spell_dh_lesser_soul_shard,
-                Spells::spell_dh_shattered_souls_havoc,
-                Spells::spell_dh_shattered_souls_demon,
+                Spells::spell_dh_consume_soul_havoc_shattered,
+                Spells::spell_dh_consume_soul_havoc_demon,
+                Spells::spell_dh_consume_soul_havoc_lesser,
+                Spells::spell_dh_consume_soul_vengeance_shattered,
+                Spells::spell_dh_consume_soul_vengeance_demon,
+                Spells::spell_dh_consume_soul_vengeance_lesser,
+                Spells::spell_dh_consume_soul_devourer,
                 Spells::spell_dh_soul_barrier_talent,
                 Spells::spell_dh_soul_barrier
                 });
@@ -2680,9 +2702,7 @@ namespace Scripts::Custom::DemonHunter
                 return SPELL_FAILED_CANT_DO_THAT_RIGHT_NOW;
 
             // Must have at least one soul fragment AT
-            if (!caster->GetAreaTrigger(Spells::spell_dh_lesser_soul_shard) &&
-                !caster->GetAreaTrigger(Spells::spell_dh_shattered_souls_havoc) &&
-                !caster->GetAreaTrigger(Spells::spell_dh_shattered_souls_demon))
+            if (caster->GetAreaTriggers(IsSoulFragmentAreaTrigger).empty())
             {
                 return SPELL_FAILED_CANT_DO_THAT_RIGHT_NOW;
             }
