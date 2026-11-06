@@ -167,6 +167,7 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 TheKeystone               = 38728;
         static constexpr uint32 ReturnToTheBlackTemple    = 38729;
         static constexpr uint32 BroodQueenCourtVolroth    = 40234;
+        static constexpr uint32 BroodQueenCourtVoras      = 40232;
     }
 
     namespace Objectives

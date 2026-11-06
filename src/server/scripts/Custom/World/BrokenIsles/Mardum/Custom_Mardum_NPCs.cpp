@@ -822,18 +822,25 @@ namespace Scripts::Custom::Mardum
             }
         }
 
-        void JustDied(Unit* killer) override
+        void JustDied(Unit* /*killer*/) override
         {
             Talk(CreatureText::VorasDeathEmote);
             Talk(CreatureText::VorasDeath);
 
-            // covers kills by pets/summons/controlled units, not just the player directly
-            if (killer)
-                if (Player* player = killer->GetCharmerOrOwnerPlayerOrPlayerItself())
-                    player->m_Events.AddEventAtOffset([player]()
+            // Grant+reward the tracking quest to each participant seeing the death
+            // convo for the first time - the quest is the persistent "seen" flag.
+            if (Quest const* quest = sObjectMgr->GetQuestTemplate(Quests::BroodQueenCourtVoras))
+                for (ThreatReference const* ref : me->GetThreatManager().GetUnsortedThreatList())
+                    if (Player* player = ref->GetVictim()->GetCharmerOrOwnerPlayerOrPlayerItself())
+                        if (player->GetQuestStatus(quest->GetQuestId()) == QUEST_STATUS_NONE)
                         {
-                            Conversation::CreateConversation(Conversations::KingVorasDeath, player, player->GetPosition(), { player->GetGUID() });
-                        }, 5s);
+                            player->AddQuest(quest, nullptr);
+                            player->RewardQuest(quest, LootItemType::Item, 0, player);
+                            player->m_Events.AddEventAtOffset([player]()
+                                {
+                                    Conversation::CreateConversation(Conversations::KingVorasDeath, player, player->GetPosition(), { player->GetGUID() });
+                                }, 5s);
+                        }
         }
 
         void UpdateAI(uint32 diff) override
