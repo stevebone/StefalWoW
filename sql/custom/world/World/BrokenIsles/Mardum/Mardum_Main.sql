@@ -486,9 +486,9 @@ UPDATE `creature_template_difficulty` SET `StaticFlags1` = `StaticFlags1` | 0x20
 
 -- SAI
 UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (98484,98486,98497,98482,95226,93112,93716,94654,97034,102726,96494,102724,
-97706,99759,96277,96402,102923,96888,96279,96280,96877,96503,95046,98483,102714,96400);
+97706,99759,96277,96402,102923,96888,96279,96280,96877,96503,95046,98483,102714,96400,97014);
 DELETE FROM `smart_scripts` WHERE `entryorguid` IN (98484,98486,98497,98482,95226,93112,93716,94654,97034,102726,96494,102724,
-97706,99759,96277,96402,102923,96888,96279,96280,96877,96503,95046,98483,102714,96400) AND source_type = 0;
+97706,99759,96277,96402,102923,96888,96279,96280,96877,96503,95046,98483,102714,96400,97014) AND source_type = 0;
 DELETE FROM `smart_scripts` WHERE `entryorguid` = 93127 AND source_type = 0 AND `id` IN (6,7,10);
 INSERT INTO smart_scripts (entryorguid, source_type, id, link, Difficulties, event_type, event_phase_mask, event_chance, event_flags, event_param1, event_param2, event_param3, event_param4, event_param5, event_param_string, action_type, action_param1, action_param2, action_param3, action_param4, action_param5, action_param6, action_param7, action_param_string, target_type, target_param1, target_param2, target_param3, target_param4, target_param_string, target_x, target_y, target_z, target_o, comment) VALUES
 (98483, 0, 2, 0, '', 4, 0, 30, 1, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Hellish Imp - On Aggro - Talk (No Repeat)'),
@@ -537,7 +537,12 @@ INSERT INTO smart_scripts (entryorguid, source_type, id, link, Difficulties, eve
 (102724, 0, 0, 0, '', 4, 0, 30, 1, 0, 0, 0, 0, 0, '', 1, 0, 5000, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Vile Soulmaster - On Aggro - Say Line 0 (No Repeat)'),
 (102724, 0, 1, 0, '', 0, 0, 100, 0, 5000, 8000, 12000, 15000, 0, '', 11, 200674, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Vile Soulmaster - In Combat - Cast ''Corrupt Soul'''),
 (102724, 0, 2, 0, '', 2, 0, 100, 0, 0, 40, 22000, 25000, 0, '', 11, 200689, 2, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Vile Soulmaster - Between 0-40% Health - Cast ''Shattered Visage'''),
-(102724, 0, 3, 0, '', 6, 0, 100, 0, 0, 0, 0, 0, 0, '', 1, 1, 5000, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Vile Soulmaster - On Just Died - Say Line 1'),
+(102724, 0, 3, 0, '', 6, 0, 30, 0, 0, 0, 0, 0, 0, '', 1, 1, 5000, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Vile Soulmaster - On Just Died - Say Line 1'),
+
+(97014, 0, 0, 0, '', 4, 0, 30, 1, 0, 0, 0, 0, 0, '', 1, 0, 5000, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Vile Soulmaster - On Aggro - Say Line 0 (No Repeat)'),
+(97014, 0, 1, 0, '', 0, 0, 100, 0, 5000, 8000, 12000, 15000, 0, '', 11, 200674, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Vile Soulmaster - In Combat - Cast ''Corrupt Soul'''),
+(97014, 0, 2, 0, '', 2, 0, 100, 0, 0, 40, 22000, 25000, 0, '', 11, 200689, 2, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Vile Soulmaster - Between 0-40% Health - Cast ''Shattered Visage'''),
+(97014, 0, 3, 0, '', 6, 0, 30, 0, 0, 0, 0, 0, 0, '', 1, 1, 5000, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Vile Soulmaster - On Just Died - Say Line 1'),
 
 (96494, 0, 0, 0, '', 4, 0, 30, 1, 0, 0, 0, 0, 0, '', 1, 0, 5000, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Felguard Butcher - In Combat - Say Line 0 (No Repeat)'),
 (96494, 0, 1, 0, '', 0, 0, 100, 0, 5000, 8000, 12000, 15000, 0, '', 11, 200647, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Felguard Butcher - In Combat - Cast ''Shadow Blade'''),

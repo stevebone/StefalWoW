@@ -1,7 +1,7 @@
 -- Mardum Creature Text
 DELETE FROM `creature_text` WHERE `creatureID` IN (98484,98486,98497,98460,95226,93112,96884,93759,94654,93221,95048,93716,97034,96494,102726,96499,
 102724,97706,97059,96402,96277,97057,102923,96888,100549,100545,100543,96279,96280,97058,96877,97370,96503,98711,98986,97676,96653,97297,93802,97303,
-97244,95046,98483,102714,96400,98456,98457,98458,98459,99919,100548);
+97244,95046,98483,102714,96400,98456,98457,98458,98459,99919,100548,97014);
 DELETE FROM `creature_text` WHERE `creatureID` IN (98229) AND `GroupID` IN (2,3);
 DELETE FROM `creature_text` WHERE `creatureID` IN (93127) AND `GroupID` IN (2,3,4);
 INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `BroadcastTextId`, `TextRange`, `comment`) VALUES
@@ -191,13 +191,23 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Lan
 (97706, 0, 3, 'Embrace the inevitable.', 12, 0, 100, 0, 0, 55179, 103520, 0, 'Fel Weaver to Player'),
 (97706, 0, 4, 'All worlds fall to the Legion.', 12, 0, 100, 0, 0, 55180, 103521, 0, 'Fel Weaver to Player'),
 
-(102724, 0, 0, 'Kill the Illidari', 12, 0, 100, 0, 0, 56992, 96720, 0, 'Vile Soulmaster to Player'),
-(102724, 0, 1, 'Your soul will be ours.', 12, 0, 100, 0, 0, 57001, 99614, 0, 'Vile Soulmaster to Player'),
-(102724, 0, 2, 'Kill them before they can get up to the Fel Hammer.', 12, 0, 100, 0, 0, 57002, 99615, 0, 'Vile Soulmaster to Player'),
-(102724, 0, 3, 'Defend the Soul Engine.', 12, 0, 100, 0, 0, 57003, 99616, 0, 'Vile Soulmaster to Player'),
-(102724, 0, 4, 'Your death will be swift and unmerciful.', 12, 0, 100, 0, 0, 57004, 102121, 0, 'Vile Soulmaster to Player'),
-(102724, 0, 5, 'Your world will be purged!', 12, 0, 100, 0, 0, 56994, 96722, 0, 'Vile Soulmaster to Player'),
-(102724, 1, 0, 'In Sargeras''s name.', 12, 0, 100, 0, 0, 56997, 96725, 0, 'Vile Soulmaster to Player'),
+-- Male
+(97014, 0, 0, 'Kill the Illidari', 12, 0, 100, 0, 0, 56992, 96720, 0, 'Vile Soulmaster to Player'),
+(97014, 0, 1, 'Your soul will be ours.', 12, 0, 100, 0, 0, 57001, 99614, 0, 'Vile Soulmaster to Player'),
+(97014, 0, 2, 'Kill them before they can get up to the Fel Hammer.', 12, 0, 100, 0, 0, 57002, 99615, 0, 'Vile Soulmaster to Player'),
+(97014, 0, 3, 'Defend the Soul Engine.', 12, 0, 100, 0, 0, 57003, 99616, 0, 'Vile Soulmaster to Player'),
+(97014, 0, 4, 'Your death will be swift and unmerciful.', 12, 0, 100, 0, 0, 57004, 102121, 0, 'Vile Soulmaster to Player'),
+(97014, 0, 5, 'Your world will be purged!', 12, 0, 100, 0, 0, 56994, 96722, 0, 'Vile Soulmaster to Player'),
+(97014, 1, 0, 'In Sargeras''s name.', 12, 0, 100, 0, 0, 56997, 96725, 0, 'Vile Soulmaster to Player'),
+
+-- Female
+(102724, 0, 0, 'Kill the Illidari', 12, 0, 100, 0, 0, 56968, 105112, 0, 'Vile Soulmaster to Player'),
+(102724, 0, 1, 'Your soul will be ours.', 12, 0, 100, 0, 0, 56977, 105118, 0, 'Vile Soulmaster to Player'),
+(102724, 0, 2, 'Kill them before they can get up to the Fel Hammer.', 12, 0, 100, 0, 0, 56978, 99615, 0, 'Vile Soulmaster to Player'),
+(102724, 0, 3, 'Defend the Soul Engine.', 12, 0, 100, 0, 0, 56979, 105120, 0, 'Vile Soulmaster to Player'),
+(102724, 0, 4, 'Your death will be swift and unmerciful.', 12, 0, 100, 0, 0, 56980, 105124, 0, 'Vile Soulmaster to Player'),
+(102724, 0, 5, 'Your world will be purged!', 12, 0, 100, 0, 0, 56970, 105114, 0, 'Vile Soulmaster to Player'),
+(102724, 1, 0, 'In Sargeras''s name.', 12, 0, 100, 0, 0, 56973, 105117, 0, 'Vile Soulmaster to Player'),
 
 (96499, 0, 0, 'The fel lord is just ahead.', 12, 0, 100, 0, 0, 55237, 98272, 0, 'Jace Darkweaver to Player'),
 
