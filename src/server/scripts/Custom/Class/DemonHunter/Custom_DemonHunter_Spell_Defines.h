@@ -216,6 +216,9 @@ namespace Scripts::Custom::DemonHunter
         static constexpr uint32 spell_dh_fiery_brand_debuff_rank_1 = 207744;
         static constexpr uint32 spell_dh_fiery_brand_debuff_rank_2 = 207771;
 
+        static constexpr uint32 spell_dh_burning_alive = 207739;
+        static constexpr uint32 spell_dh_burning_alive_target_selector = 207760;
+
         static constexpr uint32 spell_dh_solitude_buff = 211510;
 
         static constexpr uint32 spell_dh_cleansed_by_flame = 205625;

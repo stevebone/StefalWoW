@@ -290,6 +290,12 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (247456, 'spe
 DELETE FROM `spell_script_names` WHERE `spell_id` = 204598 AND `ScriptName` = 'spell_dh_sigil_of_flame_frailty';
 INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (204598, 'spell_dh_sigil_of_flame_frailty');
 
+-- 207744/207771 - Fiery Brand debuffs: Burning Alive spread via empty periodic-trigger tick
+DELETE FROM `spell_script_names` WHERE `spell_id` IN (207744, 207771) AND `ScriptName` = 'spell_dh_fiery_brand_spread';
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
+(207744, 'spell_dh_fiery_brand_spread'),
+(207771, 'spell_dh_fiery_brand_spread');
+
 -- 247454 - Spirit Bomb
 DELETE FROM `spell_script_names` WHERE `spell_id` = 247454 AND `ScriptName` = 'spell_dh_spirit_bomb';
 INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (247454, 'spell_dh_spirit_bomb');

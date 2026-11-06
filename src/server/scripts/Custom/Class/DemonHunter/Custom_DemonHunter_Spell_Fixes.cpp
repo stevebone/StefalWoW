@@ -1471,6 +1471,67 @@ namespace Scripts::Custom::DemonHunter
         }
     };
 
+    // 207744, 207771 - Fiery Brand debuffs (Burning Alive spread)
+    // EffectTriggerSpell is intentionally empty in db2 data - the Burning Alive talent drives this tick serverside
+    class spell_dh_fiery_brand_spread : public AuraScript
+    {
+        static constexpr float SpreadRadius = 8.0f;
+
+        bool Validate(SpellInfo const* /*spellInfo*/) override
+        {
+            return ValidateSpellInfo({
+                Spells::spell_dh_burning_alive,
+                Spells::spell_dh_fiery_brand_rank_2,
+                Spells::spell_dh_fiery_brand_debuff_rank_1,
+                Spells::spell_dh_fiery_brand_debuff_rank_2
+            });
+        }
+
+        void HandlePeriodic(AuraEffect const* aurEff)
+        {
+            PreventDefaultAction();
+
+            Unit* caster = GetCaster();
+            if (!caster || !caster->HasAura(Spells::spell_dh_burning_alive))
+                return;
+
+            Unit* brandedTarget = GetTarget();
+            if (!brandedTarget)
+                return;
+
+            std::list<Unit*> enemies;
+            Trinity::AnyUnfriendlyUnitInObjectRangeCheck check(brandedTarget, caster, SpreadRadius);
+            Trinity::UnitListSearcher<Trinity::AnyUnfriendlyUnitInObjectRangeCheck> searcher(brandedTarget, enemies, check);
+            Cell::VisitAllObjects(brandedTarget, searcher, SpreadRadius);
+
+            ObjectGuid casterGuid = caster->GetGUID();
+            enemies.remove(brandedTarget);
+            enemies.remove_if([casterGuid](Unit* unit)
+                {
+                    return unit->HasAura(Spells::spell_dh_fiery_brand_debuff_rank_1, casterGuid)
+                        || unit->HasAura(Spells::spell_dh_fiery_brand_debuff_rank_2, casterGuid);
+                });
+
+            if (enemies.empty())
+                return;
+
+            caster->CastSpell(Trinity::Containers::SelectRandomContainerElement(enemies),
+                caster->HasAura(Spells::spell_dh_fiery_brand_rank_2)
+                    ? Spells::spell_dh_fiery_brand_debuff_rank_2
+                    : Spells::spell_dh_fiery_brand_debuff_rank_1,
+                CastSpellExtraArgsInit{
+                    .TriggerFlags = TRIGGERED_FULL_MASK,
+                    .TriggeringAura = aurEff
+                });
+        }
+
+        void Register() override
+        {
+            OnEffectPeriodic += AuraEffectPeriodicFn(spell_dh_fiery_brand_spread::HandlePeriodic, EFFECT_0, SPELL_AURA_PERIODIC_TRIGGER_SPELL);
+            OnEffectPeriodic += AuraEffectPeriodicFn(spell_dh_fiery_brand_spread::HandlePeriodic, EFFECT_2, SPELL_AURA_PERIODIC_TRIGGER_SPELL);
+        }
+    };
+
     // 247456 - Frailty - Spirit Bomb healing accumulator
     class spell_dh_frailty : public AuraScript
     {
@@ -3246,6 +3307,7 @@ void AddSC_custom_demonhunter_spell_fixes()
     RegisterSpellAndAuraScriptPair(spell_dh_fel_rush_dash, spell_dh_fel_rush_dash_aura);
     RegisterSpellScript(spell_dh_fel_rush_damage);
     RegisterSpellScript(spell_dh_fel_rush_dash_ground);
+    RegisterSpellScript(spell_dh_fiery_brand_spread);
     RegisterSpellScript(spell_dh_frailty);
     RegisterSpellScript(spell_dh_sigil_of_flame_frailty);
     RegisterSpellScript(spell_dh_hungering_slash_devourer);
