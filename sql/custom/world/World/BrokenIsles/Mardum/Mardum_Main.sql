@@ -1891,3 +1891,29 @@ INSERT INTO `quest_request_items` (`ID`, `EmoteOnComplete`, `EmoteOnIncomplete`,
 UPDATE `creature_queststarter` SET `VerifiedBuild`=70575 WHERE (`id`=97303 AND `quest`=38729) OR (`id`=97297 AND `quest`=38728) OR (`id`=93127 AND `quest` IN (39663,39515)) OR (`id`=99045 AND `quest`=40051) OR (`id`=98711 AND `quest`=40222);
 UPDATE `creature_questender` SET `VerifiedBuild`=70575 WHERE (`id`=97303 AND `quest`=38728) OR (`id`=97297 AND `quest`=39663) OR (`id`=93127 AND `quest` IN (39515,40051,38727,38819)) OR (`id`=99045 AND `quest`=40222) OR (`id`=98711 AND `quest`=38725);
 UPDATE `gameobject_questender` SET `VerifiedBuild`=70575 WHERE (`id`=244466 AND `quest`=38729);
+
+
+DELETE FROM `conversation_actors` WHERE (`Idx`=0 AND `ConversationId` IN (540,555));
+INSERT INTO `conversation_actors` (`ConversationId`, `ConversationActorId`, `Idx`, `CreatureId`, `CreatureDisplayInfoId`, `NoActorObject`, `ActivePlayerObject`, `VerifiedBuild`) VALUES
+(540, 49318, 0, 0, 0, 0, 0, 70575), -- Full: 0x24423CB9205B9A80005BDB0000636E75 Vehicle/0 R4239/S23515 Map: 1481 (Mardum) Entry: 93802 (Brood Queen Tyranna) Low: 6516341
+(555, 49749, 0, 0, 0, 0, 0, 70575); -- Full: 0x20423CB9205F0440005BDB0000630825 Creature/0 R4239/S23515 Map: 1481 (Mardum) Entry: 97297 (Cyana Nightglaive) Low: 6490149
+
+UPDATE `conversation_actors` SET `VerifiedBuild`=70575 WHERE (`Idx`=0 AND `ConversationId` IN (585,567));
+
+DELETE FROM `conversation_line_template` WHERE `Id` IN (1410, 1409, 1438, 1437);
+INSERT INTO `conversation_line_template` (`Id`, `UiCameraID`, `ActorIdx`, `Flags`, `ChatType`, `VerifiedBuild`) VALUES
+(1410, 0, 0, 0, 0, 70575),
+(1409, 0, 0, 0, 0, 70575),
+(1438, 0, 0, 0, 0, 70575),
+(1437, 0, 0, 0, 0, 70575);
+
+UPDATE `conversation_line_template` SET `ChatType`=1, `VerifiedBuild`=70575 WHERE `Id`=1519;
+UPDATE `conversation_line_template` SET `VerifiedBuild`=70575 WHERE `Id`=1469;
+
+DELETE FROM `conversation_template` WHERE `Id` IN (540, 555);
+INSERT INTO `conversation_template` (`Id`, `FirstLineID`, `TextureKitId`, `VerifiedBuild`) VALUES
+(540, 1409, 0, 70575),
+(555, 1437, 0, 70575);
+
+UPDATE `conversation_template` SET `VerifiedBuild`=70575 WHERE `Id`=567;
+UPDATE `conversation_template` SET `VerifiedBuild`=70575 WHERE `Id`=585;
