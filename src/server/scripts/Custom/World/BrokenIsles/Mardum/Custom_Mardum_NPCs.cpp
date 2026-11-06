@@ -1329,6 +1329,20 @@ namespace Scripts::Custom::Mardum
             _engagerGuid = ObjectGuid::Empty;
         }
 
+        void MoveInLineOfSight(Unit* who) override
+        {
+            if (Player* player = who->ToPlayer()) {
+                if (player->GetDistance(me) < 75.0f)
+                    if (player->GetQuestStatus(Quests::BroodQueenCourtVolroth) == QUEST_STATUS_NONE) {
+                        if (const Quest* quest = sObjectMgr->GetQuestTemplate(Quests::BroodQueenCourtVolroth))
+                            player->AddQuest(quest, nullptr);
+                        Conversation* conversation = new Conversation;
+                        if (!conversation->CreateConversation(Conversations::SThenoVolroth, player, player->GetPosition(), { player->GetGUID() }))
+                            delete conversation;
+                    }
+            }
+        }
+
         void JustEngagedWith(Unit* who) override
         {
             Talk(CreatureText::VolrothAggro);
@@ -1358,6 +1372,14 @@ namespace Scripts::Custom::Mardum
         void JustDied(Unit* killer) override
         {
             Talk(CreatureText::VolrothDeath);
+
+            // Reward the intro tracking quest to everyone on the boss's threat list
+            // (kill participation - pets and minions resolve to their owner).
+            if (Quest const* quest = sObjectMgr->GetQuestTemplate(Quests::BroodQueenCourtVolroth))
+                for (ThreatReference const* ref : me->GetThreatManager().GetUnsortedThreatList())
+                    if (Player* player = ref->GetVictim()->GetCharmerOrOwnerPlayerOrPlayerItself())
+                        if (player->GetQuestStatus(quest->GetQuestId()) == QUEST_STATUS_INCOMPLETE)
+                            player->RewardQuest(quest, LootItemType::Item, 0, player);
 
             // the killing blow may come from a captive or the player's own minion -
             // fall back through the threat list and the stored engager

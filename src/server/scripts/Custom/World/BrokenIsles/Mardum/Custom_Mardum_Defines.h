@@ -166,6 +166,7 @@ namespace Scripts::Custom::Mardum
         static constexpr uint32 OnFelbatWings             = 39663;
         static constexpr uint32 TheKeystone               = 38728;
         static constexpr uint32 ReturnToTheBlackTemple    = 38729;
+        static constexpr uint32 BroodQueenCourtVolroth    = 40234;
     }
 
     namespace Objectives
@@ -245,16 +246,17 @@ namespace Scripts::Custom::Mardum
 
     namespace Conversations
     {
-        static constexpr uint32 FelSpreaderDestroyed       = 581;
-        static constexpr uint32 LegionCommunicatorReport1  = 558;
-        static constexpr uint32 LegionCommunicatorReport2  = 583;
-        static constexpr uint32 DoomCommanderBeliash       = 531;
-        static constexpr uint32 FelBombardments            = 747;
-        static constexpr uint32 IllidariFoothold           = 569;
-        static constexpr uint32 KingVorasDeath             = 567;
-        static constexpr uint32 DoomFortressStabilizer     = 573;
-        static constexpr uint32 CountNefarious             = 576;
-        static constexpr uint32 ProlificaDeath             = 585;
+        static constexpr uint16 SThenoVolroth              = 570;
+        static constexpr uint16 FelSpreaderDestroyed       = 581;
+        static constexpr uint16 LegionCommunicatorReport1  = 558;
+        static constexpr uint16 LegionCommunicatorReport2  = 583;
+        static constexpr uint16 DoomCommanderBeliash       = 531;
+        static constexpr uint16 FelBombardments            = 747;
+        static constexpr uint16 IllidariFoothold           = 569;
+        static constexpr uint16 KingVorasDeath             = 567;
+        static constexpr uint16 DoomFortressStabilizer     = 573;
+        static constexpr uint16 CountNefarious             = 576;
+        static constexpr uint16 ProlificaDeath             = 585;
     }
 
     namespace PlayerChoices
