@@ -1269,9 +1269,34 @@ INSERT INTO `phase_area` (`AreaId`, `PhaseId`, `Comment`) VALUES
 DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId`=26 AND `SourceGroup` IN (5366,5367);
 INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `ConditionStringValue1`, `NegativeCondition`, `ErrorType`, `ErrorTextId`, `ScriptName`, `Comment`) VALUES
 (26, 5366, 7872, 0, 0, 47, 0, 38672, 66, 0, '', 0, 0, 0, '', 'Phase 5366 active once Quest 38672 is completed or rewarded'),
+(26, 5366, 7872, 0, 0, 47, 0, 38690, 106, 0, '', 1, 0, 0, '', 'Phase 5366 drops once Quest 38690 is in the log'),
 (26, 5366, 7873, 0, 0, 47, 0, 38672, 66, 0, '', 0, 0, 0, '', 'Phase 5366 active once Quest 38672 is completed or rewarded'),
+(26, 5366, 7873, 0, 0, 47, 0, 38690, 106, 0, '', 1, 0, 0, '', 'Phase 5366 drops once Quest 38690 is in the log'),
 (26, 5367, 7872, 0, 0, 47, 0, 38672, 66, 0, '', 0, 0, 0, '', 'Phase 5367 active once Quest 38672 is completed or rewarded'),
-(26, 5367, 7873, 0, 0, 47, 0, 38672, 66, 0, '', 0, 0, 0, '', 'Phase 5367 active once Quest 38672 is completed or rewarded');
+(26, 5367, 7872, 0, 0, 47, 0, 38689, 106, 0, '', 1, 0, 0, '', 'Phase 5367 drops once Quest 38689 is in the log'),
+(26, 5367, 7873, 0, 0, 47, 0, 38672, 66, 0, '', 0, 0, 0, '', 'Phase 5367 active once Quest 38672 is completed or rewarded'),
+(26, 5367, 7873, 0, 0, 47, 0, 38689, 106, 0, '', 1, 0, 0, '', 'Phase 5367 drops once Quest 38689 is in the log');
+
+-- Illidari advance: sniffed phase adds on the follow-up quest accepts
+-- (5495 on 38690 accept, 5494 on 38689 accept)
+DELETE FROM `phase_name` WHERE `ID` IN (5494,5495);
+INSERT INTO `phase_name` (`ID`, `Name`) VALUES
+(5494, 'Illidari Advance - Altruis (Fel Infusion)'),
+(5495, 'Illidari Advance - Kayn (Rise of the Illidari)');
+
+DELETE FROM `phase_area` WHERE `PhaseId` IN (5494,5495) AND `AreaId` IN (7872,7873);
+INSERT INTO `phase_area` (`AreaId`, `PhaseId`, `Comment`) VALUES
+(7872, 5494, 'Illidari Advance - Altruis (Fel Infusion)'),
+(7873, 5494, 'Illidari Advance - Altruis (Fel Infusion)'),
+(7872, 5495, 'Illidari Advance - Kayn (Rise of the Illidari)'),
+(7873, 5495, 'Illidari Advance - Kayn (Rise of the Illidari)');
+
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId`=26 AND `SourceGroup` IN (5494,5495);
+INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `ConditionStringValue1`, `NegativeCondition`, `ErrorType`, `ErrorTextId`, `ScriptName`, `Comment`) VALUES
+(26, 5494, 7872, 0, 0, 47, 0, 38689, 106, 0, '', 0, 0, 0, '', 'Phase 5494 active once Quest 38689 is in the log'),
+(26, 5494, 7873, 0, 0, 47, 0, 38689, 106, 0, '', 0, 0, 0, '', 'Phase 5494 active once Quest 38689 is in the log'),
+(26, 5495, 7872, 0, 0, 47, 0, 38690, 106, 0, '', 0, 0, 0, '', 'Phase 5495 active once Quest 38690 is in the log'),
+(26, 5495, 7873, 0, 0, 47, 0, 38690, 106, 0, '', 0, 0, 0, '', 'Phase 5495 active once Quest 38690 is in the log');
 
 UPDATE `creature_template` SET `ScriptName` = 'npc_maiev_shadowsong_vault_silence' WHERE `entry` = 92718;
 UPDATE `creature_template` SET `ScriptName` = 'npc_ward_of_the_hunters_vault' WHERE `entry` = 100168;

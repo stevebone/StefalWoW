@@ -22,6 +22,7 @@
 
 #include "Creature.h"
 #include "CreatureAI.h"
+#include "GossipDef.h"
 #include "MotionMaster.h"
 #include "ObjectAccessor.h"
 #include "ObjectGuid.h"
@@ -333,6 +334,24 @@ namespace Scripts::Custom::VaultOfTheWardens
     struct npc_vault_postreward_illidari : public ScriptedAI
     {
         npc_vault_postreward_illidari(Creature* creature) : ScriptedAI(creature) { }
+
+        // accepting the follow-up quest phases the static out (sniffed
+        // -5366/+5495 for Kayn, -5367/+5494 for Altruis) and a personal clone
+        // takes over to run into the hall battle
+        void OnQuestAccept(Player* player, Quest const* quest) override
+        {
+            uint32 followup = me->GetEntry() == KaynSunfuryPostReward ? RiseOfTheIllidari
+                : me->GetEntry() == AltruisTheSuffererPostReward ? FelInfusion : 0;
+            if (quest->GetQuestId() != followup)
+                return;
+
+            me->SummonPersonalClone(me->GetPosition(), TEMPSUMMON_MANUAL_DESPAWN, 0s, 0, 0, player);
+
+            // the core refresh is gated on QUEST_FLAGS_UPDATE_PHASESHIFT; the
+            // phase_area conditions drive -5366/+5495 and -5367/+5494 here
+            if (PhasingHandler::OnConditionChange(player))
+                player->UpdateObjectVisibility();
+        }
     };
 
     // 92980 / 92986 - personal clone: appears at the rally point when 38672 is
@@ -340,7 +359,12 @@ namespace Scripts::Custom::VaultOfTheWardens
     // where the public questgiver spawn takes over on despawn
     struct npc_vault_postreward_illidari_private : public ScriptedAI
     {
-        npc_vault_postreward_illidari_private(Creature* creature) : ScriptedAI(creature) { }
+        npc_vault_postreward_illidari_private(Creature* creature) : ScriptedAI(creature)
+        {
+            // strip before AddToMap so the create packet carries no questgiver
+            // flag - the client never queries status and never paints an icon
+            me->ReplaceAllNpcFlags(UNIT_NPC_FLAG_NONE);
+        }
 
         void JustAppeared() override
         {
@@ -352,6 +376,48 @@ namespace Scripts::Custom::VaultOfTheWardens
             }
 
             ObjectGuid ownerGuid = privateObjectOwner->GetGUID();
+
+            if (Player* player = privateObjectOwner->ToPlayer())
+            {
+                // the accept clone spawns at the static's hall spot (~-548)
+                // while the follow-up quest is active in the owner's log;
+                // reward clones spawn at the rally point (~-583)
+                uint32 followup = me->GetEntry() == KaynSunfuryPostReward ? RiseOfTheIllidari : FelInfusion;
+                QuestStatus status = player->GetQuestStatus(followup);
+                _acceptScene = status != QUEST_STATUS_NONE && status != QUEST_STATUS_REWARDED
+                    && me->GetPositionY() > -560.0f;
+            }
+
+            if (_acceptScene)
+            {
+                // sniffed channel on the accept clone (keeps the glaive anim)
+                me->CastSpell(me, Spells::GlaiveAnimReplacement, true);
+
+                if (me->GetEntry() == KaynSunfuryPostReward)
+                {
+                    // sniffed ~0.26s after the accept, run starts at ~4.8s
+                    _scheduler.Schedule(250ms, [this, ownerGuid](TaskContext& /*task*/)
+                    {
+                        Talk(SayKaynAccept, ObjectAccessor::GetUnit(*me, ownerGuid));
+                    });
+                    _scheduler.Schedule(4800ms, [this](TaskContext& /*task*/)
+                    {
+                        me->GetMotionMaster()->MovePath(KaynAccept, false);
+                    });
+                }
+                else
+                {
+                    _scheduler.Schedule(250ms, [this, ownerGuid](TaskContext& /*task*/)
+                    {
+                        Talk(SayAltruisAccept, ObjectAccessor::GetUnit(*me, ownerGuid));
+                    });
+                    _scheduler.Schedule(5300ms, [this](TaskContext& /*task*/)
+                    {
+                        me->GetMotionMaster()->MovePath(AltruisAccept, false);
+                    });
+                }
+                return;
+            }
 
             if (me->GetEntry() == KaynSunfuryPostReward)
             {
@@ -378,6 +444,15 @@ namespace Scripts::Custom::VaultOfTheWardens
         {
             if (type != WAYPOINT_MOTION_TYPE)
                 return;
+
+            if (_acceptScene)
+            {
+                // sniffed despawn ~0.15s after reaching the battle line
+                uint32 lastNode = me->GetEntry() == KaynSunfuryPostReward ? KaynAcceptLastNode : AltruisAcceptLastNode;
+                if (nodeId == lastNode)
+                    me->DespawnOrUnsummon(200ms);
+                return;
+            }
 
             if (me->GetEntry() == KaynSunfuryPostReward)
             {
@@ -412,6 +487,7 @@ namespace Scripts::Custom::VaultOfTheWardens
 
     private:
         TaskScheduler _scheduler;
+        bool _acceptScene = false;
     };
 
     CreatureAI* PostRewardIllidariVaultAISelector(Creature* creature)

@@ -56,6 +56,9 @@ namespace Scripts::Custom::VaultOfTheWardens
         // "Vault of the Wardens" (39742) - bonus quest added to the log when
         // 38672 is rewarded (sniffed quest-log update in the reward packet)
         static constexpr uint32 VaultOfTheWardensQuest = 39742;
+        // follow-up quests accepted from the hall statics 92980 / 92986
+        static constexpr uint32 RiseOfTheIllidari = 38690; // Kayn
+        static constexpr uint32 FelInfusion       = 38689; // Altruis
     }
 
     namespace Texts
@@ -70,6 +73,9 @@ namespace Scripts::Custom::VaultOfTheWardens
         // creature_text GroupID 0 - post-reward clones (92980 / 92986)
         static constexpr uint8 SayKaynPostReward    = 0; // 92980 "Why would Maiev free us?..."
         static constexpr uint8 SayAltruisPostReward = 0; // 92986 "The Legion is here."
+        // creature_text GroupID 1 - quest-accept clones (92980 / 92986)
+        static constexpr uint8 SayKaynAccept    = 1; // 92980 "The demons aim to destroy our world..."
+        static constexpr uint8 SayAltruisAccept = 1; // 92986 "Time for answers later..."
     }
 
     namespace AnimKits
@@ -121,6 +127,9 @@ namespace Scripts::Custom::VaultOfTheWardens
         // post-reward clones run from the rally point to the main-hall door
         static constexpr uint32 KaynPostReward    = 9298000;
         static constexpr uint32 AltruisPostReward = 9298600;
+        // quest-accept clones run from the hall statics into the north-hall battle
+        static constexpr uint32 KaynAccept    = 9298001; // east flank (4335.8, -503.7)
+        static constexpr uint32 AltruisAccept = 9298601; // west flank (4312.2, -500.9)
     }
 
     namespace Waypoints
@@ -132,6 +141,9 @@ namespace Scripts::Custom::VaultOfTheWardens
         // post-reward paths to the main-hall door
         static constexpr uint32 KaynPostRewardLastNode    = 1;
         static constexpr uint32 AltruisPostRewardLastNode = 14;
+        // quest-accept paths into the north-hall battle
+        static constexpr uint32 KaynAcceptLastNode    = 23;
+        static constexpr uint32 AltruisAcceptLastNode = 30;
     }
 
     namespace Positions
