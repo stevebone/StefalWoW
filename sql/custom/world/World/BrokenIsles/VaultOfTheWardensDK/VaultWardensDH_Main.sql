@@ -1210,6 +1210,13 @@ INSERT INTO `npc_spellclick_spells` (`npc_entry`, `spell_id`, `cast_flags`, `use
 (198509, 224326, 1, 0),
 (207684, 408907, 1, 0);
 
+-- SAI
+UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (92776);
+DELETE FROM `smart_scripts` WHERE `entryorguid` IN (92776) AND source_type = 0;
+INSERT INTO smart_scripts (entryorguid, source_type, id, link, Difficulties, event_type, event_phase_mask, event_chance, event_flags, event_param1, event_param2, event_param3, event_param4, event_param5, event_param_string, action_type, action_param1, action_param2, action_param3, action_param4, action_param5, action_param6, action_param7, action_param_string, target_type, target_param1, target_param2, target_param3, target_param4, target_param_string, target_x, target_y, target_z, target_o, comment) VALUES
+(92776, 0, 2, 0, '', 4, 0, 30, 1, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Fel Shocktrooper - On Aggro - Talk (No Repeat)');
+
+
 -- Quest 38672 - Breaking Out
 DELETE FROM `phase_name` WHERE `ID`=5121;
 INSERT INTO `phase_name` (`ID`, `Name`) VALUES
@@ -1358,6 +1365,21 @@ INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry
 (18, 103658, 177803, 0, 0, 8, 0, 38672, 0, 0, '', 1, 0, 0, '', 'Kayn cell spellclick blocked once quest 38672 rewarded'),
 (18, 103655, 184012, 0, 0, 48, 0, 278274, 0, 0, '', 0, 0, 0, '', 'Altruis cell spellclick blocked once objective 278274 (Altruis freed) complete'),
 (18, 103658, 177803, 0, 0, 48, 0, 278275, 0, 0, '', 0, 0, 0, '', 'Kayn cell spellclick blocked once objective 278275 (Kayn freed) complete');
+
+-- Quest 38690 - Rise of the Illidari
+-- Accept flow: npc_vault_postreward_illidari::OnQuestAccept summons the private
+-- run-clone and refreshes phase_area conditions (static -5366, scene +5495).
+-- The 8 interactable Warden Cells (244588) are spawn-tracked 1:1 to each
+-- cell's named Illidari objective (280065-280072) in VaultWardensDK_Spawns.sql
+-- (SpawnTrackingIds 1074361-1074368, states 0/1 animkit 947 sealed, state 2
+-- animkit 9340 + worldeffects 5424 opened).
+-- Use flow: go_vault_warden_cell::OnReportUse credits 96762 (generic counter
+-- 278285) + the cell's named prisoner entry (marks the cell's tracking
+-- complete -> per-player flip + GO_FLAG_IN_USE), then summons the prisoner as
+-- a private player-owned clone (cell -> prisoner table in
+-- Custom_VaultWardens_GameObjects.cpp).
+UPDATE `gameobject_template` SET `ScriptName`='go_vault_warden_cell' WHERE `entry`=244588;
+UPDATE `creature_template` SET `ScriptName`='npc_vault_freed_named_illidari' WHERE `entry` IN (97614, 97615, 97616, 97617, 97618, 97619, 97620, 97622);
 
 -- Quest 40253 - Stop Gul'dan!
 DELETE FROM `quest_template_addon` WHERE `ID`=40253;

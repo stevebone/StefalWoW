@@ -330,6 +330,29 @@ namespace Scripts::Custom::VaultOfTheWardens
         return new npc_vault_freed_illidari(creature);
     }
 
+    // 97614-97622 - freed named Illidari (private, player-owned summons from
+    // the 38690 warden cells - see go_vault_warden_cell).
+    // TODO: sniffed per-NPC waypoint runs to the east-hall rally
+    // (4323-4327, -344..-380) incl. combat vs 92782 Felstalkers (MOVID+41..+73)
+    struct npc_vault_freed_named_illidari : public ScriptedAI
+    {
+        npc_vault_freed_named_illidari(Creature* creature) : ScriptedAI(creature) { }
+
+        void JustAppeared() override
+        {
+            if (!me->IsPrivateObject())
+                return;
+
+            if (Unit* privateObjectOwner = ObjectAccessor::GetUnit(*me, me->GetPrivateObjectOwner()))
+                Talk(SayNamedIllidariFreed, privateObjectOwner);
+        }
+    };
+
+    CreatureAI* FreedNamedIllidariVaultAISelector(Creature* creature)
+    {
+        return new npc_vault_freed_named_illidari(creature);
+    }
+
     // 92980 / 92986 - Kayn / Altruis (main-hall questgiver statics)
     struct npc_vault_postreward_illidari : public ScriptedAI
     {
@@ -506,5 +529,6 @@ void AddSC_custom_vault_wardens_npcs()
     new FactoryCreatureScript<CreatureAI, &WardOfTheHuntersVaultAISelector>("npc_ward_of_the_hunters_vault");
     new FactoryCreatureScript<CreatureAI, &PrisonCellVaultAISelector>("npc_vault_prison_cell");
     new FactoryCreatureScript<CreatureAI, &FreedIllidariVaultAISelector>("npc_vault_freed_illidari");
+    new FactoryCreatureScript<CreatureAI, &FreedNamedIllidariVaultAISelector>("npc_vault_freed_named_illidari");
     new FactoryCreatureScript<CreatureAI, &PostRewardIllidariVaultAISelector>("npc_vault_postreward_illidari");
 }

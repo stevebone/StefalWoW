@@ -38,6 +38,21 @@ namespace Scripts::Custom::VaultOfTheWardens
         // spawned at the rally point replace these statics and run to them)
         static constexpr uint32 AltruisTheSuffererPostReward = 92986;
         static constexpr uint32 KaynSunfuryPostReward        = 92980;
+        // "Rise of the Illidari" (38690) - named Illidari freed from the warden cells
+        static constexpr uint32 AllariTheSouleater = 97614;
+        static constexpr uint32 JaceDarkweaver     = 97615;
+        static constexpr uint32 CyanaNightglaive   = 97616;
+        static constexpr uint32 AshaRavensong      = 97617;
+        static constexpr uint32 FalaraNightsong    = 97618;
+        static constexpr uint32 MariusFelbane      = 97619;
+        static constexpr uint32 LyanaDarksorrow    = 97620;
+        static constexpr uint32 KorvasBloodthorn   = 97622;
+    }
+
+    namespace GameObjects
+    {
+        // "Rise of the Illidari" (38690) - the 8 interactable warden cells
+        static constexpr uint32 WardenCell = 244588;
     }
 
     namespace Maps
@@ -76,6 +91,8 @@ namespace Scripts::Custom::VaultOfTheWardens
         // creature_text GroupID 1 - quest-accept clones (92980 / 92986)
         static constexpr uint8 SayKaynAccept    = 1; // 92980 "The demons aim to destroy our world..."
         static constexpr uint8 SayAltruisAccept = 1; // 92986 "Time for answers later..."
+        // creature_text GroupID 0 - freed named Illidari whisper (97614-97622)
+        static constexpr uint8 SayNamedIllidariFreed = 0;
     }
 
     namespace AnimKits
@@ -104,6 +121,8 @@ namespace Scripts::Custom::VaultOfTheWardens
         static constexpr uint32 KaynWeapons    = 112276; // objective 286136 - Kayn's Warglaives (kneel)
         static constexpr uint32 AltruisEnd     = 112287; // objective 286143 - Altruis reaches the rally point
         static constexpr uint32 KaynEnd        = 99326;  // objective 280526 - Kayn reaches the rally point
+        // "Rise of the Illidari" (38690) - sniffed SMSG_QUEST_UPDATE_ADD_CREDIT ObjectID
+        static constexpr uint32 ImprisonedIllidariFreed = 96762; // objective 278285 - generic counter, granted per cell use
     }
 
     namespace Phases
