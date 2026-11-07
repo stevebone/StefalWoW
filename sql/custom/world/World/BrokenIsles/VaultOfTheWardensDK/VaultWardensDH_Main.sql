@@ -1220,7 +1220,7 @@ INSERT INTO `phase_area` (`AreaId`, `PhaseId`, `Comment`) VALUES
 (7873, 5121, 'Maiev Shadowsong Vault of Silence');
 
 DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId`=26 AND `SourceGroup`=5121;
-INSERT INTO `conditions` VALUES
+INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `ConditionStringValue1`, `NegativeCondition`, `ErrorType`, `ErrorTextId`, `ScriptName`, `Comment`) VALUES
 (26, 5121, 7873, 0, 0, 14, 0, 38672, 0, 0, '', 0, 0, 0, '', 'Phase 5121 active while quest 38672 is not in the log (not taken or abandoned)');
 
 DELETE FROM `phase_name` WHERE `ID`=5976;
@@ -1232,7 +1232,7 @@ INSERT INTO `phase_area` (`AreaId`, `PhaseId`, `Comment`) VALUES
 (7873, 5976, 'Ward of the Hunters Door - Vault of Silence');
 
 DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId`=26 AND `SourceGroup`=5976;
-INSERT INTO `conditions` VALUES
+INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `ConditionStringValue1`, `NegativeCondition`, `ErrorType`, `ErrorTextId`, `ScriptName`, `Comment`) VALUES
 (26, 5976, 7873, 0, 0, 8, 0, 38672, 0, 0, '', 0, 0, 0, '', 'Phase 5976 active if Quest 38672 rewarded');
 
 -- Ward of the Hunters static + door collision wall: sealed until 38672 is rewarded
@@ -1246,8 +1246,32 @@ INSERT INTO `phase_area` (`AreaId`, `PhaseId`, `Comment`) VALUES
 (7873, 5966, 'Ward of the Hunters - Sealed Door');
 
 DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId`=26 AND `SourceGroup`=5966;
-INSERT INTO `conditions` VALUES
+INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `ConditionStringValue1`, `NegativeCondition`, `ErrorType`, `ErrorTextId`, `ScriptName`, `Comment`) VALUES
 (26, 5966, 7873, 0, 0, 8, 0, 38672, 0, 0, '', 1, 0, 0, '', 'Phase 5966 active while Quest 38672 is not rewarded');
+
+-- 92980/92986 hall questgiver statics (@CGUID+21/@CGUID+28): the sniffed phases
+-- land when 38672 goes complete (the second freed objective) and persist through
+-- the reward, so they gate on quest-state completed|rewarded. 5366 is the
+-- tracked phase of SpawnTrackingId 1048180 (quest 38690 turn-in at Kayn's spot)
+-- and 5367 of 1050760 (quest 38689 turn-in at Altruis's spot).
+DELETE FROM `phase_name` WHERE `ID` IN (5366,5367);
+INSERT INTO `phase_name` (`ID`, `Name`) VALUES
+(5366, 'Kayn Sunfury - Hall Questgiver'),
+(5367, 'Altruis the Sufferer - Hall Questgiver');
+
+DELETE FROM `phase_area` WHERE `PhaseId` IN (5366,5367) AND `AreaId` IN (7872,7873);
+INSERT INTO `phase_area` (`AreaId`, `PhaseId`, `Comment`) VALUES
+(7872, 5366, 'Kayn Sunfury - Hall Questgiver'),
+(7873, 5366, 'Kayn Sunfury - Hall Questgiver'),
+(7872, 5367, 'Altruis the Sufferer - Hall Questgiver'),
+(7873, 5367, 'Altruis the Sufferer - Hall Questgiver');
+
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId`=26 AND `SourceGroup` IN (5366,5367);
+INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `ConditionStringValue1`, `NegativeCondition`, `ErrorType`, `ErrorTextId`, `ScriptName`, `Comment`) VALUES
+(26, 5366, 7872, 0, 0, 47, 0, 38672, 66, 0, '', 0, 0, 0, '', 'Phase 5366 active once Quest 38672 is completed or rewarded'),
+(26, 5366, 7873, 0, 0, 47, 0, 38672, 66, 0, '', 0, 0, 0, '', 'Phase 5366 active once Quest 38672 is completed or rewarded'),
+(26, 5367, 7872, 0, 0, 47, 0, 38672, 66, 0, '', 0, 0, 0, '', 'Phase 5367 active once Quest 38672 is completed or rewarded'),
+(26, 5367, 7873, 0, 0, 47, 0, 38672, 66, 0, '', 0, 0, 0, '', 'Phase 5367 active once Quest 38672 is completed or rewarded');
 
 UPDATE `creature_template` SET `ScriptName` = 'npc_maiev_shadowsong_vault_silence' WHERE `entry` = 92718;
 UPDATE `creature_template` SET `ScriptName` = 'npc_ward_of_the_hunters_vault' WHERE `entry` = 100168;
@@ -1275,7 +1299,7 @@ INSERT INTO `phase_area` (`AreaId`, `PhaseId`, `Comment`) VALUES
 (7873, 5125, 'Kayn Freed - Vault of Silence');
 
 DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId`=26 AND `SourceGroup` IN (5124, 5125);
-INSERT INTO `conditions` VALUES
+INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `ConditionStringValue1`, `NegativeCondition`, `ErrorType`, `ErrorTextId`, `ScriptName`, `Comment`) VALUES
 (26, 5124, 7873, 0, 0, 48, 0, 286143, 0, 1, '', 0, 0, 0, '', 'Phase 5124 while objective 286143 (Altruis End) complete and quest 38672 in log'),
 (26, 5125, 7873, 0, 0, 48, 0, 280526, 0, 1, '', 0, 0, 0, '', 'Phase 5125 while objective 280526 (Kayn End) complete and quest 38672 in log');
 
@@ -1294,7 +1318,7 @@ INSERT INTO `phase_area` (`AreaId`, `PhaseId`, `Comment`) VALUES
 (7873, 5965, 'Kayn Cell - Vault of Silence');
 
 DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId`=26 AND `SourceGroup` IN (5964, 5965);
-INSERT INTO `conditions` VALUES
+INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `ConditionStringValue1`, `NegativeCondition`, `ErrorType`, `ErrorTextId`, `ScriptName`, `Comment`) VALUES
 (26, 5964, 7873, 0, 0, 48, 0, 278274, 0, 1, '', 1, 0, 0, '', 'Phase 5964 off once objective 278274 (Altruis freed) complete'),
 (26, 5964, 7873, 0, 0, 8, 0, 38672, 0, 0, '', 1, 0, 0, '', 'Phase 5964 off once quest 38672 rewarded'),
 (26, 5965, 7873, 0, 0, 48, 0, 278275, 0, 1, '', 1, 0, 0, '', 'Phase 5965 off once objective 278275 (Kayn freed) complete'),
@@ -1302,7 +1326,7 @@ INSERT INTO `conditions` VALUES
 
 -- Spellclick gating: the cells are only clickable while Breaking Out is in progress
 DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId`=18 AND `SourceGroup` IN (103655,103658);
-INSERT INTO `conditions` VALUES
+INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `ConditionStringValue1`, `NegativeCondition`, `ErrorType`, `ErrorTextId`, `ScriptName`, `Comment`) VALUES
 (18, 103655, 184012, 0, 0, 9, 0, 38672, 0, 0, '', 0, 0, 0, '', 'Altruis cell spellclick requires quest 38672 taken'),
 (18, 103655, 184012, 0, 0, 8, 0, 38672, 0, 0, '', 1, 0, 0, '', 'Altruis cell spellclick blocked once quest 38672 rewarded'),
 (18, 103658, 177803, 0, 0, 9, 0, 38672, 0, 0, '', 0, 0, 0, '', 'Kayn cell spellclick requires quest 38672 taken'),

@@ -26,14 +26,14 @@ INSERT INTO `creature` (`guid`, `id`, `map`, `zoneId`, `areaId`, `spawnDifficult
 -- (@CGUID+18, 99631, 1468, 7814, 7873, '0', 2, 5125, 0, -1, 0, 0, 4343.16, -589.579, -281.408, 3.38493, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
 (@CGUID+19, 92782, 1468, 7814, 7872, '0', 0, 0, 0, -1, 0, 0, 4336.37, -507.769, -288.555, 3.97496, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
 (@CGUID+20, 99451, 1468, 7814, 7872, '0', 0, 0, 0, -1, 0, 1, 4340.25, -503.8, -288.637, 2.92782, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
-(@CGUID+21, 92980, 1468, 7814, 7872, '0', 0, 0, 0, -1, 0, 1, 4330.08, -548.288, -281.751, 1.67951, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
+(@CGUID+21, 92980, 1468, 7814, 7872, '0', 0, 5366, 0, -1, 0, 1, 4330.08, -548.288, -281.751, 1.67951, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
 (@CGUID+22, 101648, 1468, 7814, 7872, '0', 0, 0, 0, -1, 0, 0, 4293.3, -473.362, -289.599, 0.0192905, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
 (@CGUID+23, 92782, 1468, 7814, 7872, '0', 0, 0, 0, -1, 0, 0, 4274.85, -471.941, -278.028, 4.44866, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
 (@CGUID+24, 101648, 1468, 7814, 7872, '0', 0, 0, 0, -1, 0, 0, 4322.81, -423.571, -281.737, 4.3361, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
 (@CGUID+25, 92782, 1468, 7814, 7872, '0', 0, 0, 0, -1, 0, 0, 4306.55, -484.877, -288.555, 4.79152, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
 (@CGUID+26, 92782, 1468, 7814, 7872, '0', 0, 0, 0, -1, 0, 0, 4286.51, -476.538, -289.617, 6.07506, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
 (@CGUID+27, 92782, 1468, 7814, 7872, '0', 0, 0, 0, -1, 0, 0, 4277.84, -464.816, -275.085, 6.13953, 3600, 10, 0, 0, 1, NULL, NULL, NULL, NULL, '', NULL, 69814),
-(@CGUID+28, 92986, 1468, 7814, 7814, '0', 0, 0, 0, -1, 0, 1, 4321.75, -547.861, -281.497, 1.68118, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
+(@CGUID+28, 92986, 1468, 7814, 7872, '0', 0, 5367, 0, -1, 0, 1, 4321.75, -547.861, -281.497, 1.68118, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
 (@CGUID+29, 92776, 1468, 7814, 7872, '0', 0, 0, 0, -1, 0, 1, 4284.92, -477.83, -289.617, 5.84746, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
 (@CGUID+30, 99501, 1468, 7814, 7872, '0', 0, 0, 0, -1, 0, 0, 4369.3, -476.839, -289.325, 0.361751, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
 (@CGUID+31, 99501, 1468, 7814, 7872, '0', 0, 0, 0, -1, 0, 0, 4279.66, -511.887, -289.372, 3.61022, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
@@ -1093,6 +1093,12 @@ INSERT INTO `spawn_tracking` (`SpawnTrackingId`, `SpawnType`, `SpawnId`, `QuestO
 DELETE FROM `spawn_tracking_state` WHERE `SpawnType`=1 AND `SpawnId`=@OGUID+58;
 INSERT INTO `spawn_tracking_state` (`SpawnType`, `SpawnId`, `State`, `Visible`, `StateSpellVisualId`, `StateAnimId`, `StateAnimKitId`, `StateWorldEffects`) VALUES
 (1, @OGUID+58, 2, 1, NULL, 1866, NULL, NULL); -- Ward of the Hunters - sniffed anim
+
+-- Sniffed phases of the existing turn-in tracking ids (quest 38690 ends at the
+-- Kayn static, quest 38689 at the Altruis static); the TDB templates predate
+-- the sniffed phase assignments.
+UPDATE `spawn_tracking_template` SET `PhaseId`=5366 WHERE `SpawnTrackingId`=1048180;
+UPDATE `spawn_tracking_template` SET `PhaseId`=5367 WHERE `SpawnTrackingId`=1050760;
 
 -- Freed Illidari public spawns (quest 38672 "Breaking Out" freed phases)
 SET @CGUID := 70064544;
