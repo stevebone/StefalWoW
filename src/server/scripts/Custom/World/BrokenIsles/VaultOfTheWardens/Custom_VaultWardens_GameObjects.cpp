@@ -53,14 +53,14 @@ namespace Scripts::Custom::VaultOfTheWardens
     // the prisoner, and their summon sits ~3-4y in front of the cell.
     static constexpr CellPrisoner CellPrisoners[] =
     {
-        { 70012705, KorvasBloodthorn,  { 4290.173f, -457.68f,  -274.635f, 2.9252677f } }, // @OGUID+101
-        { 70012712, MariusFelbane,     { 4280.579f, -457.95f,  -287.482f, 2.9391234f } }, // @OGUID+108
-        { 70012717, JaceDarkweaver,    { 4345.944f, -427.24f,  -281.401f, 1.6160572f } }, // @OGUID+113
-        { 70012719, AshaRavensong,     { 4361.385f, -457.887f, -274.634f, 1.5773661f } }, // @OGUID+115
-        { 70012761, FalaraNightsong,   { 4305.78f,  -559.222f, -281.4f,   3.795997f  } }, // @OGUID+157
-        { 70012764, LyanaDarksorrow,   { 4391.804f, -513.403f, -281.4f,   5.61684f   } }, // @OGUID+160
-        { 70012774, AllariTheSouleater,{ 4361.7f,   -528.955f, -274.635f, 1.4526027f } }, // @OGUID+170
-        { 70012780, CyanaNightglaive,  { 4280.509f, -528.168f, -274.669f, 6.1850615f } }, // @OGUID+176
+        { 70012705, KorvasBloodthorn,  { 4290.173f, -457.68f,  -274.635f, 5.497787f  } }, // @OGUID+101
+        { 70012712, MariusFelbane,     { 4280.579f, -457.95f,  -287.482f, 4.6251225f } }, // @OGUID+108
+        { 70012717, JaceDarkweaver,    { 4345.944f, -427.24f,  -281.401f, 4.4331365f } }, // @OGUID+113
+        { 70012719, AshaRavensong,     { 4361.385f, -457.887f, -274.634f, 3.9269907f } }, // @OGUID+115
+        { 70012761, FalaraNightsong,   { 4305.78f,  -559.222f, -281.4f,   1.2740903f } }, // @OGUID+157
+        { 70012764, LyanaDarksorrow,   { 4391.804f, -513.403f, -281.4f,   2.8274333f } }, // @OGUID+160
+        { 70012774, AllariTheSouleater,{ 4361.7f,   -528.955f, -274.635f, 2.3561945f } }, // @OGUID+170
+        { 70012780, CyanaNightglaive,  { 4280.509f, -528.168f, -274.669f, 1.6231562f } }, // @OGUID+176
     };
 
     CellPrisoner const* GetCellPrisoner(ObjectGuid::LowType spawnId)
@@ -115,7 +115,7 @@ namespace Scripts::Custom::VaultOfTheWardens
                 return true;
 
             player->KilledMonsterCredit(prisoner->Entry, me->GetGUID());
-            player->SummonCreature(prisoner->Entry, prisoner->SpawnPos, TEMPSUMMON_TIMED_DESPAWN, 40s, 0, 0, player->GetGUID());
+            player->SummonCreature(prisoner->Entry, prisoner->SpawnPos, TEMPSUMMON_TIMED_DESPAWN, 90s, 0, 0, player->GetGUID());
             return true;
         }
 

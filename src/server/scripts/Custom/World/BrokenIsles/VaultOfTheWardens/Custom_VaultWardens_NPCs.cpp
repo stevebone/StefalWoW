@@ -332,8 +332,9 @@ namespace Scripts::Custom::VaultOfTheWardens
 
     // 97614-97622 - freed named Illidari (private, player-owned summons from
     // the 38690 warden cells - see go_vault_warden_cell).
-    // TODO: sniffed per-NPC waypoint runs to the east-hall rally
-    // (4323-4327, -344..-380) incl. combat vs 92782 Felstalkers (MOVID+41..+73)
+    // Sniffed sequence: whisper at ~3.5s, then run a per-NPC path to the
+    // east-hall rally (fighting hall demons that aggro them en route) and
+    // despawn ~2-5s after the last node.
     struct npc_vault_freed_named_illidari : public ScriptedAI
     {
         npc_vault_freed_named_illidari(Creature* creature) : ScriptedAI(creature) { }
@@ -343,9 +344,60 @@ namespace Scripts::Custom::VaultOfTheWardens
             if (!me->IsPrivateObject())
                 return;
 
-            if (Unit* privateObjectOwner = ObjectAccessor::GetUnit(*me, me->GetPrivateObjectOwner()))
-                Talk(SayNamedIllidariFreed, privateObjectOwner);
+            Unit* privateObjectOwner = ObjectAccessor::GetUnit(*me, me->GetPrivateObjectOwner());
+            if (!privateObjectOwner)
+                return;
+
+            me->CastSpell(me, Spells::GlaiveAnimReplacement, true);
+
+            _scheduler.Schedule(3500ms, [this, ownerGuid = privateObjectOwner->GetGUID()](TaskContext& /*task*/)
+            {
+                if (Unit* owner = ObjectAccessor::GetUnit(*me, ownerGuid))
+                    Talk(SayNamedIllidariFreed, owner);
+            });
+
+            if (uint32 pathId = GetFreedPath(me->GetEntry()))
+                _scheduler.Schedule(5500ms, [this, pathId](TaskContext& /*task*/)
+                {
+                    me->GetMotionMaster()->MovePath(pathId, false);
+                });
         }
+
+        void WaypointPathEnded(uint32 /*nodeId*/, uint32 pathId) override
+        {
+            if (pathId == GetFreedPath(me->GetEntry()))
+                me->DespawnOrUnsummon(2s);
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _scheduler.Update(diff);
+
+            // they fight hall demons that aggro them while they keep walking
+            if (!UpdateVictim())
+                return;
+
+            me->DoMeleeAttackIfReady();
+        }
+
+    private:
+        static uint32 GetFreedPath(uint32 entry)
+        {
+            switch (entry)
+            {
+                case AllariTheSouleater: return Paths::AllariFreed;
+                case JaceDarkweaver:     return Paths::JaceFreed;
+                case CyanaNightglaive:   return Paths::CyanaFreed;
+                case AshaRavensong:      return Paths::AshaFreed;
+                case FalaraNightsong:    return Paths::FalaraFreed;
+                case MariusFelbane:      return Paths::MariusFreed;
+                case LyanaDarksorrow:    return Paths::LyanaFreed;
+                case KorvasBloodthorn:   return Paths::KorvasFreed;
+                default:                 return 0;
+            }
+        }
+
+        TaskScheduler _scheduler;
     };
 
     CreatureAI* FreedNamedIllidariVaultAISelector(Creature* creature)

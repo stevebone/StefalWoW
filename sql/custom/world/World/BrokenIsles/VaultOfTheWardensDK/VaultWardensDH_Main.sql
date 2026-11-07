@@ -1214,7 +1214,24 @@ INSERT INTO `npc_spellclick_spells` (`npc_entry`, `spell_id`, `cast_flags`, `use
 UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (92776);
 DELETE FROM `smart_scripts` WHERE `entryorguid` IN (92776) AND source_type = 0;
 INSERT INTO smart_scripts (entryorguid, source_type, id, link, Difficulties, event_type, event_phase_mask, event_chance, event_flags, event_param1, event_param2, event_param3, event_param4, event_param5, event_param_string, action_type, action_param1, action_param2, action_param3, action_param4, action_param5, action_param6, action_param7, action_param_string, target_type, target_param1, target_param2, target_param3, target_param4, target_param_string, target_x, target_y, target_z, target_o, comment) VALUES
-(92776, 0, 2, 0, '', 4, 0, 30, 1, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Fel Shocktrooper - On Aggro - Talk (No Repeat)');
+(92776, 0, 1, 0, '', 4, 0, 30, 1, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Fel Shocktrooper - On Aggro - Talk (No Repeat)'),
+(92776, 0, 2, 0, '', 0, 0, 100, 0, 3000, 8000, 12000, 15000, 0, '', 11, 200930, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Fel Shocktrooper - In Combat - Cast Chaos Slash'),
+(92776, 0, 3, 0, '', 0, 0, 100, 0, 3000, 9000, 15000, 25000, 0, '', 11, 200963, 32, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Fel Shocktrooper - In Combat - Cast Bladestorm (Aura Not Present)');
+
+-- SAI
+UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (92782);
+DELETE FROM `smart_scripts` WHERE `entryorguid` IN (92782) AND source_type = 0;
+INSERT INTO smart_scripts (entryorguid, source_type, id, link, Difficulties, event_type, event_phase_mask, event_chance, event_flags, event_param1, event_param2, event_param3, event_param4, event_param5, event_param_string, action_type, action_param1, action_param2, action_param3, action_param4, action_param5, action_param6, action_param7, action_param_string, target_type, target_param1, target_param2, target_param3, target_param4, target_param_string, target_x, target_y, target_z, target_o, comment) VALUES
+(92782, 0, 1, 0, '', 0, 0, 100, 0, 0, 1500, 12000, 18000, 0, '', 11, 200992, 32, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Savage Felstalker - In Combat - Cast Savage Assault (Aura Not Present)'),
+(92782, 0, 2, 0, '', 0, 0, 100, 0, 4000, 8000, 24000, 27000, 0, '', 11, 200498, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Savage Felstalker - In Combat - Cast Abyss Howl');
+
+-- SAI
+UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (96656);
+DELETE FROM `smart_scripts` WHERE `entryorguid` IN (96656) AND source_type = 0;
+INSERT INTO smart_scripts (entryorguid, source_type, id, link, Difficulties, event_type, event_phase_mask, event_chance, event_flags, event_param1, event_param2, event_param3, event_param4, event_param5, event_param_string, action_type, action_param1, action_param2, action_param3, action_param4, action_param5, action_param6, action_param7, action_param_string, target_type, target_param1, target_param2, target_param3, target_param4, target_param_string, target_x, target_y, target_z, target_o, comment) VALUES
+(96656, 0, 1, 0, '', 0, 0, 100, 0, 0, 2500, 20000, 22000, 0, '', 11, 201122, 32, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Freed Illidari - In Combat - Cast Immolation Aura (Aura Not Present)'),
+(96656, 0, 2, 0, '', 0, 0, 100, 0, 0, 2000, 5500, 6500, 0, '', 11, 197639, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Freed Illidari - In Combat - Cast Chaos Strike'),
+(96656, 0, 3, 0, '', 0, 0, 100, 0, 0, 7000, 20000, 24000, 0, '', 11, 200879, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Freed Illidari - In Combat - Cast Fel Rush');
 
 
 -- Quest 38672 - Breaking Out

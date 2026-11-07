@@ -149,6 +149,17 @@ namespace Scripts::Custom::VaultOfTheWardens
         // quest-accept clones run from the hall statics into the north-hall battle
         static constexpr uint32 KaynAccept    = 9298001; // east flank (4335.8, -503.7)
         static constexpr uint32 AltruisAccept = 9298601; // west flank (4312.2, -500.9)
+
+        // "Rise of the Illidari" (38690) - freed named Illidari walk from their
+        // warden cell to the east-hall rally (sniffed @MOVID+41/42/45/50/59/63/68/73)
+        static constexpr uint32 AllariFreed = 9761400;
+        static constexpr uint32 JaceFreed   = 9761500;
+        static constexpr uint32 CyanaFreed  = 9761600;
+        static constexpr uint32 AshaFreed   = 9761700;
+        static constexpr uint32 FalaraFreed = 9761800;
+        static constexpr uint32 MariusFreed = 9761900;
+        static constexpr uint32 LyanaFreed  = 9762000;
+        static constexpr uint32 KorvasFreed = 9762200;
     }
 
     namespace Waypoints
@@ -161,7 +172,7 @@ namespace Scripts::Custom::VaultOfTheWardens
         static constexpr uint32 KaynPostRewardLastNode    = 1;
         static constexpr uint32 AltruisPostRewardLastNode = 14;
         // quest-accept paths into the north-hall battle
-        static constexpr uint32 KaynAcceptLastNode    = 23;
+        static constexpr uint32 KaynAcceptLastNode    = 5;
         static constexpr uint32 AltruisAcceptLastNode = 30;
     }
 
