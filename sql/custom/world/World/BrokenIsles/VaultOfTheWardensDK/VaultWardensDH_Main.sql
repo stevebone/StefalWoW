@@ -1235,10 +1235,25 @@ DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId`=26 AND `SourceGroup`=59
 INSERT INTO `conditions` VALUES
 (26, 5976, 7873, 0, 0, 8, 0, 38672, 0, 0, '', 0, 0, 0, '', 'Phase 5976 active if Quest 38672 rewarded');
 
+-- Ward of the Hunters static + door collision wall: sealed until 38672 is rewarded
+-- (sniffed phase 5966 is dropped from the player shift at the reward transition)
+DELETE FROM `phase_name` WHERE `ID`=5966;
+INSERT INTO `phase_name` (`ID`, `Name`) VALUES
+(5966, 'Ward of the Hunters - Sealed Door');
+
+DELETE FROM `phase_area` WHERE `PhaseId`=5966 AND `AreaId`=7873;
+INSERT INTO `phase_area` (`AreaId`, `PhaseId`, `Comment`) VALUES
+(7873, 5966, 'Ward of the Hunters - Sealed Door');
+
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId`=26 AND `SourceGroup`=5966;
+INSERT INTO `conditions` VALUES
+(26, 5966, 7873, 0, 0, 8, 0, 38672, 0, 0, '', 1, 0, 0, '', 'Phase 5966 active while Quest 38672 is not rewarded');
+
 UPDATE `creature_template` SET `ScriptName` = 'npc_maiev_shadowsong_vault_silence' WHERE `entry` = 92718;
 UPDATE `creature_template` SET `ScriptName` = 'npc_ward_of_the_hunters_vault' WHERE `entry` = 100168;
 UPDATE `creature_template` SET `ScriptName` = 'npc_vault_prison_cell' WHERE `entry` IN (103655, 103658);
 UPDATE `creature_template` SET `ScriptName` = 'npc_vault_freed_illidari' WHERE `entry` IN (99631, 99632);
+UPDATE `creature_template` SET `ScriptName` = 'npc_vault_postreward_illidari' WHERE `entry` IN (92980, 92986);
 
 -- Quest 38672 - Breaking Out: bind the C++ quest script (abandon cleanup + completion convo)
 INSERT INTO `quest_template_addon` (`ID`, `ScriptName`) VALUES

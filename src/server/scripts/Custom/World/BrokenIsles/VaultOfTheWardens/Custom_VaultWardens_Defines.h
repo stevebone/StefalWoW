@@ -34,6 +34,10 @@ namespace Scripts::Custom::VaultOfTheWardens
         static constexpr uint32 KaynCell           = 103658;
         static constexpr uint32 AltruisTheSufferer = 99632;
         static constexpr uint32 KaynSunfury        = 99631;
+        // post-reward questgiver entries at the main-hall door (the clones
+        // spawned at the rally point replace these statics and run to them)
+        static constexpr uint32 AltruisTheSuffererPostReward = 92986;
+        static constexpr uint32 KaynSunfuryPostReward        = 92980;
     }
 
     namespace Maps
@@ -48,7 +52,10 @@ namespace Scripts::Custom::VaultOfTheWardens
 
     namespace Quests
     {
-        static constexpr uint32 BreakingOut = 38672;
+        static constexpr uint32 BreakingOut            = 38672;
+        // "Vault of the Wardens" (39742) - bonus quest added to the log when
+        // 38672 is rewarded (sniffed quest-log update in the reward packet)
+        static constexpr uint32 VaultOfTheWardensQuest = 39742;
     }
 
     namespace Texts
@@ -60,12 +67,17 @@ namespace Scripts::Custom::VaultOfTheWardens
         // creature_text GroupID 1 - post-completion exchange at the rally point
         static constexpr uint8 SayKaynRally    = 1; // 99631
         static constexpr uint8 SayAltruisRally = 1; // 99632
+        // creature_text GroupID 0 - post-reward clones (92980 / 92986)
+        static constexpr uint8 SayKaynPostReward    = 0; // 92980 "Why would Maiev free us?..."
+        static constexpr uint8 SayAltruisPostReward = 0; // 92986 "The Legion is here."
     }
 
     namespace AnimKits
     {
         // "Breaking Out" (38672) - ward dissolve anim played by the personal ward clone
-        static constexpr uint16 WardOpen = 8930;
+        static constexpr uint16 WardOpen     = 8930;
+        // reward-time ward clone one-shot anim (sniffed SMSG_PLAY_ONE_SHOT_ANIM_KIT)
+        static constexpr uint16 WardDissolve = 3761;
         // prison cell cage-open anim played by the personal cell clone
         static constexpr uint16 CellOpen = 22328;
     }
@@ -93,6 +105,8 @@ namespace Scripts::Custom::VaultOfTheWardens
         // added when the freed prisoner reaches the rally point (sniffed phase swap)
         static constexpr uint32 AltruisFreed = 5124;
         static constexpr uint32 KaynFreed    = 5125;
+        // sealed-door phase (ward static + collision wall) - dropped at reward
+        static constexpr uint32 WardSealed   = 5966;
     }
 
     namespace Paths
@@ -104,6 +118,9 @@ namespace Scripts::Custom::VaultOfTheWardens
         static constexpr uint32 AltruisToRally   = 9963201;
         static constexpr uint32 KaynToWeapons    = 9963100;
         static constexpr uint32 KaynToRally      = 9963101;
+        // post-reward clones run from the rally point to the main-hall door
+        static constexpr uint32 KaynPostReward    = 9298000;
+        static constexpr uint32 AltruisPostReward = 9298600;
     }
 
     namespace Waypoints
@@ -112,5 +129,19 @@ namespace Scripts::Custom::VaultOfTheWardens
         static constexpr uint32 AltruisToWeaponsLastNode = 3;
         static constexpr uint32 KaynToWeaponsLastNode    = 4;
         static constexpr uint32 ToRallyLastNode          = 2;
+        // post-reward paths to the main-hall door
+        static constexpr uint32 KaynPostRewardLastNode    = 1;
+        static constexpr uint32 AltruisPostRewardLastNode = 14;
+    }
+
+    namespace Positions
+    {
+        // in-cell spawn spots of the freed-prisoner clones (sniffed create data;
+        // retail has no in-cell statics - the cell model shows the caged prisoner)
+        static constexpr Position AltruisCellPrisoner = { 4309.94f, -589.618f, -281.407f, 6.131255f };
+        static constexpr Position KaynCellPrisoner    = { 4343.16f, -589.579f, -281.408f, 3.38493f };
+        // rally-point spawn spots of the post-reward clones (sniffed create data)
+        static constexpr Position KaynPostRewardSpawn    = { 4328.46f, -583.66f, -281.924f, 3.36849f };
+        static constexpr Position AltruisPostRewardSpawn = { 4323.64f, -583.668f, -281.924f, 6.12611f };
     }
 }

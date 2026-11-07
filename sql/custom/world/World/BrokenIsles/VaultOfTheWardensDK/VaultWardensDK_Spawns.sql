@@ -6,7 +6,7 @@ DELETE FROM `creature` WHERE `guid` BETWEEN @CGUID+0 AND @CGUID+439;
 
 INSERT INTO `creature` (`guid`, `id`, `map`, `zoneId`, `areaId`, `spawnDifficulties`, `phaseUseFlags`, `PhaseId`, `PhaseGroup`, `terrainSwapMap`, `modelid`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `wander_distance`, `currentwaypoint`, `curHealthPct`, `MovementType`, `npcflag`, `unit_flags`, `unit_flags2`, `unit_flags3`, `ScriptName`, `StringId`, `VerifiedBuild`) VALUES
 (@CGUID+0, 149919, 1468, 7814, 7872, '0', 0, 0, 0, -1, 0, 0, 4315.5, -547.411, -281.842, 5.13833, 180, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
-(@CGUID+1, 100168, 1468, 7814, 7873, '0', 0, 0, 0, -1, 0, 0, 4325.98, -578.061, -281.724, 4.69097, 180, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
+(@CGUID+1, 100168, 1468, 7814, 7873, '0', 0, 5966, 0, -1, 0, 0, 4325.98, -578.061, -281.724, 4.69097, 180, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
 -- (@CGUID+2, 100168, 1468, 7814, 7873, '0', 0, 0, 0, -1, 0, 0, 4325.98, -578.061, -281.641, 4.69097, 180, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
 (@CGUID+3, 103655, 1468, 7814, 7873, '0', 0, 5964, 0, -1, 0, 0, 4312.78, -590.177, -281.27, 6.08924, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
 (@CGUID+4, 103658, 1468, 7814, 7873, '0', 0, 5965, 0, -1, 0, 0, 4339.06, -590.076, -281.241, 3.3436, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
@@ -22,8 +22,8 @@ INSERT INTO `creature` (`guid`, `id`, `map`, `zoneId`, `areaId`, `spawnDifficult
 (@CGUID+14, 96656, 1468, 7814, 7872, '0', 0, 0, 0, -1, 0, 1, 4305.65, -498.814, -288.433, 6.21231, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
 (@CGUID+15, 96656, 1468, 7814, 7872, '0', 0, 0, 0, -1, 0, 1, 4309.92, -499.379, -288.525, 6.27806, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
 (@CGUID+16, 92782, 1468, 7814, 7872, '0', 0, 0, 0, -1, 0, 0, 4296.89, -544.042, -275.002, 1.41697, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
-(@CGUID+17, 99632, 1468, 7814, 7873, '0', 2, 5124, 0, -1, 0, 0, 4309.94, -589.618, -281.407, 6.13126, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
-(@CGUID+18, 99631, 1468, 7814, 7873, '0', 2, 5125, 0, -1, 0, 0, 4343.16, -589.579, -281.408, 3.38493, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
+-- (@CGUID+17, 99632, 1468, 7814, 7873, '0', 2, 5124, 0, -1, 0, 0, 4309.94, -589.618, -281.407, 6.13126, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
+-- (@CGUID+18, 99631, 1468, 7814, 7873, '0', 2, 5125, 0, -1, 0, 0, 4343.16, -589.579, -281.408, 3.38493, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
 (@CGUID+19, 92782, 1468, 7814, 7872, '0', 0, 0, 0, -1, 0, 0, 4336.37, -507.769, -288.555, 3.97496, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
 (@CGUID+20, 99451, 1468, 7814, 7872, '0', 0, 0, 0, -1, 0, 1, 4340.25, -503.8, -288.637, 2.92782, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
 (@CGUID+21, 92980, 1468, 7814, 7872, '0', 0, 0, 0, -1, 0, 1, 4330.08, -548.288, -281.751, 1.67951, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
@@ -454,8 +454,8 @@ INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `MountCreatureID`, `Sta
 (@CGUID+14, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '42459'),
 (@CGUID+15, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '42459'),
 (@CGUID+16, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, NULL),
-(@CGUID+17, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '222589'),
-(@CGUID+18, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '222589'),
+-- (@CGUID+17, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '222589'),
+-- (@CGUID+18, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '222589'),
 (@CGUID+20, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '42459 200401 195834'),
 (@CGUID+21, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '222589'),
 (@CGUID+25, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, NULL),
@@ -753,7 +753,7 @@ INSERT INTO `gameobject` (`guid`, `id`, `map`, `zoneId`, `areaId`, `spawnDifficu
 (@OGUID+55, 244416, 1468, 7814, 7871, '0', 0, 0, 0, -1, 4397.73, -296.399, -260.56, 0, 0, 0, 0, 1, 7200, 255, 1, '', NULL, 69814),
 (@OGUID+56, 244416, 1468, 7814, 7871, '0', 0, 0, 0, -1, 4351.18, -306.618, -261.586, 0, 0, 0, 0, 1, 7200, 255, 1, '', NULL, 69814),
 (@OGUID+57, 244416, 1468, 7814, 7871, '0', 0, 0, 0, -1, 4353.85, -278.234, -260.463, 5.82087, 0, 0, 0.229105, -0.973402, 7200, 255, 1, '', NULL, 69814),
-(@OGUID+58, 244925, 1468, 0, 0, '0', 0, 5976, 0, -1, 4325.98, -578.061, -281.808, 1.62673, 0, 0, -0.726604, -0.687056, 180, 255, 1, '', NULL, 69814),
+(@OGUID+58, 244925, 1468, 0, 0, '0', 0, 5976, 0, -1, 4325.9844, -578.0608, -281.80768, 4.6909733, 0, 0, -0.71463776, 0.6994947, 180, 255, 0, '', NULL, 69814),
 (@OGUID+59, 240647, 1468, 7814, 7819, '0', 0, 0, 0, -1, 4024.46, -297.998, -283.832, 0, 0, 0, 0, 1, 7200, 255, 1, '', NULL, 69814),
 (@OGUID+60, 240647, 1468, 7814, 7819, '0', 0, 0, 0, -1, 4025.35, -317.455, -281.113, 0, 0, 0, 0, 1, 7200, 255, 1, '', NULL, 69814),
 (@OGUID+61, 240647, 1468, 7814, 7819, '0', 0, 0, 0, -1, 4024.85, -279.984, -281.113, 0, 0, 0, 0, 1, 7200, 255, 1, '', NULL, 69814),
@@ -1075,9 +1075,36 @@ INSERT INTO `spawn_tracking_state` (`SpawnType`, `SpawnId`, `State`, `Visible`, 
 (0, @CGUID+3, 2, 1, 61500), -- Altruis's Cell - opened
 (0, @CGUID+4, 2, 1, 61500); -- Kayn's Cell - opened
 
+-- Ward of the Hunters gameobject (@OGUID+58): spawn-tracked to the Altruis End
+-- objective (286143); the complete state applies the sniffed state anim 1866.
+-- Retail template id is unresolved; 1074360 matches the client's tracked list.
+DELETE FROM `spawn_tracking_template` WHERE `SpawnTrackingId`=1074360;
+INSERT INTO `spawn_tracking_template` (`SpawnTrackingId`, `MapId`, `PhaseId`, `PhaseGroup`, `PhaseUseFlags`) VALUES
+(1074360, 1468, 5976, 0, 0); -- Ward of the Hunters GO
+
+DELETE FROM `spawn_tracking_quest_objective` WHERE `SpawnTrackingId`=1074360;
+INSERT INTO `spawn_tracking_quest_objective` (`SpawnTrackingId`, `QuestObjectiveId`) VALUES
+(1074360, 286143); -- Altruis End
+
+DELETE FROM `spawn_tracking` WHERE `SpawnType`=1 AND `SpawnId`=@OGUID+58;
+INSERT INTO `spawn_tracking` (`SpawnTrackingId`, `SpawnType`, `SpawnId`, `QuestObjectiveIds`) VALUES
+(1074360, 1, @OGUID+58, '286143'); -- Ward of the Hunters
+
+DELETE FROM `spawn_tracking_state` WHERE `SpawnType`=1 AND `SpawnId`=@OGUID+58;
+INSERT INTO `spawn_tracking_state` (`SpawnType`, `SpawnId`, `State`, `Visible`, `StateSpellVisualId`, `StateAnimId`, `StateAnimKitId`, `StateWorldEffects`) VALUES
+(1, @OGUID+58, 2, 1, NULL, 1866, NULL, NULL); -- Ward of the Hunters - sniffed anim
+
 -- Freed Illidari public spawns (quest 38672 "Breaking Out" freed phases)
 SET @CGUID := 70064544;
 DELETE FROM `creature` WHERE `guid` BETWEEN @CGUID+0 AND @CGUID+1;
 INSERT INTO `creature` (`guid`, `id`, `map`, `zoneId`, `areaId`, `spawnDifficulties`, `phaseUseFlags`, `PhaseId`, `PhaseGroup`, `terrainSwapMap`, `modelid`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `wander_distance`, `currentwaypoint`, `curHealthPct`, `MovementType`, `npcflag`, `unit_flags`, `unit_flags2`, `unit_flags3`, `ScriptName`, `StringId`, `VerifiedBuild`) VALUES
 (@CGUID+0, 99632, 1468, 7814, 7873, '0', 0, 5124, 0, -1, 0, 1, 4323.643, -583.6684, -281.8404, 6.13126, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814), -- Altruis the Sufferer (freed, rally)
 (@CGUID+1, 99631, 1468, 7814, 7873, '0', 0, 5125, 0, -1, 0, 1, 4328.461, -583.6597, -281.8405, 3.38493, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814); -- Kayn Sunfury (freed, rally)
+
+-- Custom gameobject additions — dedicated range. The WPP block above owns
+-- 70012604..70012794; 70012795..70012809 belongs to Mardum's OGUID block,
+-- so new hand-added GOs start at 70012810.
+SET @OGUID := 70012810;
+DELETE FROM `gameobject` WHERE `guid` BETWEEN @OGUID+0 AND @OGUID+99;
+INSERT INTO `gameobject` (`guid`, `id`, `map`, `zoneId`, `areaId`, `spawnDifficulties`, `phaseUseFlags`, `PhaseId`, `PhaseGroup`, `terrainSwapMap`, `position_x`, `position_y`, `position_z`, `orientation`, `rotation0`, `rotation1`, `rotation2`, `rotation3`, `spawntimesecs`, `animprogress`, `state`, `ScriptName`, `StringId`, `VerifiedBuild`) VALUES
+(@OGUID+0, 244927, 1468, 7814, 7873, '0', 0, 5966, 0, -1, 4326.56, -576.727, -282.75, 4.61954, 0, 0, -0.739161, 0.673528, 120, 255, 1, '', NULL, 69814); -- Ward of the Hunters collision wall (sealed phase)

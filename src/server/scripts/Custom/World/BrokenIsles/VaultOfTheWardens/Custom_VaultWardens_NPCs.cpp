@@ -43,6 +43,7 @@ namespace Scripts::Custom::VaultOfTheWardens
     using namespace AnimKits;
     using namespace Paths;
     using namespace Waypoints;
+    using namespace Positions;
 
     // 92718 - Maiev Shadowsong (Vault of Silence cell, phase 5121)
     struct npc_maiev_shadowsong_vault_silence : public ScriptedAI
@@ -126,6 +127,17 @@ namespace Scripts::Custom::VaultOfTheWardens
 
         void JustAppeared() override
         {
+            Player* privateObjectOwner = ObjectAccessor::GetPlayer(*me, me->GetPrivateObjectOwner());
+
+            if (privateObjectOwner && privateObjectOwner->GetQuestStatus(BreakingOut) == QUEST_STATUS_REWARDED)
+            {
+                // reward-time clone: dissolves the sealed door while the ward
+                // gameobject takes over (sniffed SMSG_PLAY_ONE_SHOT_ANIM_KIT)
+                me->PlayOneShotAnimKitId(WardDissolve);
+                me->DespawnOrUnsummon(1900ms);
+                return;
+            }
+
             _scheduler.Schedule(1s, [this](TaskContext& /*task*/)
             {
                 me->SetAIAnimKitId(WardOpen);
@@ -177,9 +189,11 @@ namespace Scripts::Custom::VaultOfTheWardens
                 me->SummonPersonalClone(me->GetPosition(), TEMPSUMMON_MANUAL_DESPAWN, 0s, 0, 0, clickerPlayer);
 
                 bool altruisCell = me->GetEntry() == AltruisCell;
-                if (Creature* prisoner = GetClosestCreatureWithOptions(me, 10.0f, { .CreatureId = altruisCell ? AltruisTheSufferer : KaynSunfury, .IgnorePhases = true }))
+                // the freed clone spawns inside the cell and ReplaceObjects the
+                // freed-phase rally static - retail has no in-cell prisoner spawns
+                if (Creature* rallyPrisoner = GetClosestCreatureWithOptions(me, 60.0f, { .CreatureId = altruisCell ? AltruisTheSufferer : KaynSunfury, .IgnorePhases = true, .IgnorePrivateObjects = true }))
                 {
-                    prisoner->SummonPersonalClone(prisoner->GetPosition(), TEMPSUMMON_MANUAL_DESPAWN, 0s, 0, 0, clickerPlayer);
+                    rallyPrisoner->SummonPersonalClone(altruisCell ? AltruisCellPrisoner : KaynCellPrisoner, TEMPSUMMON_MANUAL_DESPAWN, 0s, 0, 0, clickerPlayer);
                     clickerPlayer->KilledMonsterCredit(altruisCell ? KillCredits::AltruisFreed : KillCredits::KaynFreed);
                     // the freed objective credit drops the cell's phase (5964/5965)
                     PhasingHandler::OnConditionChange(clickerPlayer);
@@ -314,6 +328,98 @@ namespace Scripts::Custom::VaultOfTheWardens
             return new npc_vault_freed_illidari_private(creature);
         return new npc_vault_freed_illidari(creature);
     }
+
+    // 92980 / 92986 - Kayn / Altruis (main-hall questgiver statics)
+    struct npc_vault_postreward_illidari : public ScriptedAI
+    {
+        npc_vault_postreward_illidari(Creature* creature) : ScriptedAI(creature) { }
+    };
+
+    // 92980 / 92986 - personal clone: appears at the rally point when 38672 is
+    // rewarded (ReplaceObject hides the static), runs to the main-hall door
+    // where the public questgiver spawn takes over on despawn
+    struct npc_vault_postreward_illidari_private : public ScriptedAI
+    {
+        npc_vault_postreward_illidari_private(Creature* creature) : ScriptedAI(creature) { }
+
+        void JustAppeared() override
+        {
+            Unit* privateObjectOwner = ObjectAccessor::GetUnit(*me, me->GetPrivateObjectOwner());
+            if (!privateObjectOwner)
+            {
+                me->DespawnOrUnsummon();
+                return;
+            }
+
+            ObjectGuid ownerGuid = privateObjectOwner->GetGUID();
+
+            if (me->GetEntry() == KaynSunfuryPostReward)
+            {
+                // sniffed ~150ms after the reward phase swap
+                _scheduler.Schedule(150ms, [this, ownerGuid](TaskContext& /*task*/)
+                {
+                    Talk(SayKaynPostReward, ObjectAccessor::GetUnit(*me, ownerGuid));
+                });
+                _scheduler.Schedule(2300ms, [this](TaskContext& /*task*/)
+                {
+                    me->GetMotionMaster()->MovePath(KaynPostReward, false);
+                });
+            }
+            else
+            {
+                _scheduler.Schedule(3900ms, [this](TaskContext& /*task*/)
+                {
+                    me->GetMotionMaster()->MovePath(AltruisPostReward, false);
+                });
+            }
+        }
+
+        void MovementInform(uint32 type, uint32 nodeId) override
+        {
+            if (type != WAYPOINT_MOTION_TYPE)
+                return;
+
+            if (me->GetEntry() == KaynSunfuryPostReward)
+            {
+                if (nodeId != KaynPostRewardLastNode)
+                    return;
+
+                // sniffed ~0.8s linger on arrival, then the static takes over
+                me->DespawnOrUnsummon(800ms);
+                return;
+            }
+
+            if (nodeId != AltruisPostRewardLastNode)
+                return;
+
+            Unit* privateObjectOwner = ObjectAccessor::GetUnit(*me, me->GetPrivateObjectOwner());
+            if (!privateObjectOwner)
+                return;
+
+            // sniffed ~0.5s after reaching the door, ~3.2s total linger
+            ObjectGuid ownerGuid = privateObjectOwner->GetGUID();
+            _scheduler.Schedule(500ms, [this, ownerGuid](TaskContext& /*task*/)
+            {
+                Talk(SayAltruisPostReward, ObjectAccessor::GetUnit(*me, ownerGuid));
+            });
+            me->DespawnOrUnsummon(3200ms);
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _scheduler.Update(diff);
+        }
+
+    private:
+        TaskScheduler _scheduler;
+    };
+
+    CreatureAI* PostRewardIllidariVaultAISelector(Creature* creature)
+    {
+        if (creature->IsPrivateObject())
+            return new npc_vault_postreward_illidari_private(creature);
+        return new npc_vault_postreward_illidari(creature);
+    }
 }
 
 void AddSC_custom_vault_wardens_npcs()
@@ -324,4 +430,5 @@ void AddSC_custom_vault_wardens_npcs()
     new FactoryCreatureScript<CreatureAI, &WardOfTheHuntersVaultAISelector>("npc_ward_of_the_hunters_vault");
     new FactoryCreatureScript<CreatureAI, &PrisonCellVaultAISelector>("npc_vault_prison_cell");
     new FactoryCreatureScript<CreatureAI, &FreedIllidariVaultAISelector>("npc_vault_freed_illidari");
+    new FactoryCreatureScript<CreatureAI, &PostRewardIllidariVaultAISelector>("npc_vault_postreward_illidari");
 }

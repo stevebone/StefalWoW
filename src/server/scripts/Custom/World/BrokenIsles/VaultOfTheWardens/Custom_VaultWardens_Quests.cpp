@@ -23,11 +23,13 @@
 #include "Creature.h"
 #include "EventProcessor.h"
 #include "ObjectAccessor.h"
+#include "ObjectMgr.h"
 #include "PhasingHandler.h"
 #include "Player.h"
 #include "QuestDef.h"
 #include "ScriptMgr.h"
 #include "ScriptedCreature.h"
+#include "TemporarySummon.h"
 
 #include "Custom_VaultWardens_Defines.h"
 
@@ -36,6 +38,7 @@ namespace Scripts::Custom::VaultOfTheWardens
     using namespace Creatures;
     using namespace Quests;
     using namespace Texts;
+    using namespace Positions;
 
     // 38672 - Breaking Out
     // Bound through quest_template_addon.ScriptName - only fires for this quest.
@@ -54,7 +57,7 @@ namespace Scripts::Custom::VaultOfTheWardens
             {
                 // abandoning mid-scene: remove leftover personal clones so the
                 // static/tracked spawns take over again (cell phases re-enable)
-                for (uint32 entry : { AltruisCell, KaynCell, AltruisTheSufferer, KaynSunfury, MaievShadowsong, WardOfTheHunters })
+                for (uint32 entry : { AltruisCell, KaynCell, AltruisTheSufferer, KaynSunfury, MaievShadowsong, WardOfTheHunters, AltruisTheSuffererPostReward, KaynSunfuryPostReward })
                 {
                     std::list<Creature*> creatures;
                     player->GetCreatureListWithEntryInGrid(creatures, entry, 150.0f);
@@ -75,6 +78,27 @@ namespace Scripts::Custom::VaultOfTheWardens
                     if (Creature* altruis = player->FindNearestCreatureWithOptions(40.0f, { .CreatureId = AltruisTheSufferer, .IgnorePrivateObjects = true }))
                         altruis->AI()->Talk(SayAltruisRally, player); // "It has been a long time, Kayn..."
                 }, 5s);
+            }
+            else if (newStatus == QUEST_STATUS_REWARDED)
+            {
+                // bonus quest enters the log with the reward (sniffed quest-log
+                // update in the reward packet)
+                if (Quest const* vaultQuest = sObjectMgr->GetQuestTemplate(VaultOfTheWardensQuest))
+                    player->AddQuestAndCheckCompletion(vaultQuest, nullptr);
+
+                // the ward static is already phased out by the condition refresh
+                // above; its clone dissolves the sealed door for this player
+                if (Creature* ward = player->FindNearestCreatureWithOptions(50.0f, { .CreatureId = WardOfTheHunters, .IgnorePhases = true, .IgnorePrivateObjects = true }))
+                    ward->SummonPersonalClone(ward->GetPosition(), TEMPSUMMON_MANUAL_DESPAWN, 0s, 0, 0, player);
+
+                // post-reward clones replace the main-hall questgiver statics at
+                // the rally point, then run to them; the statics reappear on
+                // clone despawn (sniffed ReplaceObject swap)
+                if (Creature* kayn = player->FindNearestCreatureWithOptions(60.0f, { .CreatureId = KaynSunfuryPostReward, .IgnorePrivateObjects = true }))
+                    kayn->SummonPersonalClone(KaynPostRewardSpawn, TEMPSUMMON_MANUAL_DESPAWN, 0s, 0, 0, player);
+
+                if (Creature* altruis = player->FindNearestCreatureWithOptions(60.0f, { .CreatureId = AltruisTheSuffererPostReward, .IgnorePrivateObjects = true }))
+                    altruis->SummonPersonalClone(AltruisPostRewardSpawn, TEMPSUMMON_MANUAL_DESPAWN, 0s, 0, 0, player);
             }
         }
     };
