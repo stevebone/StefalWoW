@@ -1194,3 +1194,46 @@ UPDATE `areatrigger_template` SET `VerifiedBuild`=70575 WHERE (`Id`=12504 AND `I
 DELETE FROM `areatrigger_template` WHERE (`Id`=10259 AND `IsCustom`=0);
 INSERT INTO `areatrigger_template` (`Id`, `IsCustom`, `VerifiedBuild`) VALUES
 (10259, 0, 70575);
+
+DELETE FROM `npc_spellclick_spells` WHERE `npc_entry` IN (103655,103658,99501,96659,114358,99709,99731,99732,42339,141270,198509,207684);
+INSERT INTO `npc_spellclick_spells` (`npc_entry`, `spell_id`, `cast_flags`, `user_type`) VALUES
+(103655, 184012, 1, 0),
+(103658, 177803, 1, 0),
+(99501, 202064, 1, 0),
+(96659, 195537, 1, 0),
+(114358, 202064, 1, 0),
+(99709, 204588, 1, 0),
+(99732, 204588, 1, 0),
+(99731, 204588, 1, 0),
+(42339, 78974, 1, 0),
+(141270, 224326, 1, 0),
+(198509, 224326, 1, 0),
+(207684, 408907, 1, 0);
+
+-- Quest 38672 - Breaking Out
+DELETE FROM `phase_name` WHERE `ID`=5121;
+INSERT INTO `phase_name` (`ID`, `Name`) VALUES
+(5121, 'Maiev Shadowsong Vault of Silence');
+
+DELETE FROM `phase_area` WHERE `PhaseId`=5121;
+INSERT INTO `phase_area` (`AreaId`, `PhaseId`, `Comment`) VALUES
+(7873, 5121, 'Maiev Shadowsong Vault of Silence');
+
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId`=26 AND `SourceGroup`=5121;
+INSERT INTO `conditions` VALUES
+(26, 5121, 7873, 0, 0, 9, 0, 38672, 0, 0, '', 1, 0, 0, '', 'Phase 5121 active if Quest 38672 NOT taken');
+
+DELETE FROM `phase_name` WHERE `ID`=5976;
+INSERT INTO `phase_name` (`ID`, `Name`) VALUES
+(5976, 'Ward of the Hunters Door - Vault of Silence');
+
+DELETE FROM `phase_area` WHERE `PhaseId`=5976;
+INSERT INTO `phase_area` (`AreaId`, `PhaseId`, `Comment`) VALUES
+(7873, 5976, 'Ward of the Hunters Door - Vault of Silence');
+
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId`=26 AND `SourceGroup`=5976;
+INSERT INTO `conditions` VALUES
+(26, 5976, 7873, 0, 0, 8, 0, 38672, 0, 0, '', 0, 0, 0, '', 'Phase 5976 active if Quest 38672 rewarded');
+
+UPDATE `creature_template` SET `ScriptName` = 'npc_maiev_shadowsong_vault_silence' WHERE `entry` = 92718;
+UPDATE `creature_template` SET `ScriptName` = 'npc_ward_of_the_hunters_vault' WHERE `entry` = 100168;
