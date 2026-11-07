@@ -42,6 +42,7 @@ namespace Scripts::Custom::VaultOfTheWardens
     using namespace Texts;
     using namespace AnimKits;
     using namespace Paths;
+    using namespace Waypoints;
 
     // 92718 - Maiev Shadowsong (Vault of Silence cell, phase 5121)
     struct npc_maiev_shadowsong_vault_silence : public ScriptedAI
@@ -148,6 +149,171 @@ namespace Scripts::Custom::VaultOfTheWardens
             return new npc_ward_of_the_hunters_vault_private(creature);
         return new npc_ward_of_the_hunters_vault(creature);
     }
+
+    // 103655 / 103658 - Altruis's / Kayn's Cell (public spawn, spellclick frees the prisoner)
+    struct npc_vault_prison_cell : public ScriptedAI
+    {
+        npc_vault_prison_cell(Creature* creature) : ScriptedAI(creature) { }
+
+        void OnSpellClick(Unit* clicker, bool spellClickHandled) override
+        {
+            Player* player = clicker->ToPlayer();
+            if (!player || !spellClickHandled)
+                return;
+
+            ObjectGuid playerGuid = player->GetGUID();
+            if (!_pendingPlayers.insert(playerGuid).second)
+                return; // this player's click is already in flight
+
+            // the unlock cast takes ~0.8s; the clones and the kill credit land when it finishes
+            _scheduler.Schedule(800ms, [this, playerGuid](TaskContext& /*task*/)
+            {
+                _pendingPlayers.erase(playerGuid); // re-armed once the cast-end task runs
+                Player* clickerPlayer = ObjectAccessor::GetPlayer(*me, playerGuid);
+                if (!clickerPlayer)
+                    return;
+
+                // cell overlay clone - plays the cage-open anim while the static cell is hidden
+                me->SummonPersonalClone(me->GetPosition(), TEMPSUMMON_MANUAL_DESPAWN, 0s, 0, 0, clickerPlayer);
+
+                bool altruisCell = me->GetEntry() == AltruisCell;
+                if (Creature* prisoner = GetClosestCreatureWithOptions(me, 10.0f, { .CreatureId = altruisCell ? AltruisTheSufferer : KaynSunfury, .IgnorePhases = true }))
+                {
+                    prisoner->SummonPersonalClone(prisoner->GetPosition(), TEMPSUMMON_MANUAL_DESPAWN, 0s, 0, 0, clickerPlayer);
+                    clickerPlayer->KilledMonsterCredit(altruisCell ? KillCredits::AltruisFreed : KillCredits::KaynFreed);
+                    // the freed objective credit drops the cell's phase (5964/5965)
+                    PhasingHandler::OnConditionChange(clickerPlayer);
+                }
+            });
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _scheduler.Update(diff);
+        }
+
+    private:
+        TaskScheduler _scheduler;
+        GuidUnorderedSet _pendingPlayers;
+    };
+
+    // 103655 / 103658 - personal clone: the opened-cage visual over the hidden static cell
+    struct npc_vault_prison_cell_private : public ScriptedAI
+    {
+        npc_vault_prison_cell_private(Creature* creature) : ScriptedAI(creature) { }
+
+        void JustAppeared() override
+        {
+            _scheduler.Schedule(1500ms, [this](TaskContext& /*task*/)
+            {
+                me->SetAIAnimKitId(CellOpen);
+            });
+
+            // the clone only plays the opening animation; the static cell is
+            // already phased out for the clicking player by the freed objective
+            me->DespawnOrUnsummon(15s);
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _scheduler.Update(diff);
+        }
+
+    private:
+        TaskScheduler _scheduler;
+    };
+
+    CreatureAI* PrisonCellVaultAISelector(Creature* creature)
+    {
+        if (creature->IsPrivateObject())
+            return new npc_vault_prison_cell_private(creature);
+        return new npc_vault_prison_cell(creature);
+    }
+
+    // 99632 / 99631 - Altruis / Kayn (caged public spawn + freed public rally spawn)
+    struct npc_vault_freed_illidari : public ScriptedAI
+    {
+        npc_vault_freed_illidari(Creature* creature) : ScriptedAI(creature) { }
+    };
+
+    // 99632 / 99631 - personal clone: walks out of the cell, picks up the glaives,
+    // moves to the rally point where the public freed spawn takes over
+    struct npc_vault_freed_illidari_private : public ScriptedAI
+    {
+        npc_vault_freed_illidari_private(Creature* creature) : ScriptedAI(creature) { }
+
+        void JustAppeared() override
+        {
+            Unit* privateObjectOwner = ObjectAccessor::GetUnit(*me, me->GetPrivateObjectOwner());
+            if (!privateObjectOwner)
+                return;
+
+            // strip the template-addon aura: the glaives are picked up at the kneel
+            me->RemoveAura(Spells::GlaiveAnimReplacement);
+
+            _scheduler.Schedule(4s, [this, ownerGuid = privateObjectOwner->GetGUID()](TaskContext& /*task*/)
+            {
+                Talk(me->GetEntry() == AltruisTheSufferer ? SayAltruisFreed : SayKaynFreed, ObjectAccessor::GetUnit(*me, ownerGuid));
+                me->GetMotionMaster()->MovePath(me->GetEntry() == AltruisTheSufferer ? AltruisToWeapons : KaynToWeapons, false);
+            });
+        }
+
+        void MovementInform(uint32 type, uint32 nodeId) override
+        {
+            if (type != WAYPOINT_MOTION_TYPE)
+                return;
+
+            bool altruis = me->GetEntry() == AltruisTheSufferer;
+
+            if (!_reachedWeapons)
+            {
+                // the multi-node paths fire per node; only the warglaive pickup
+                // spot gets the kneel and the weapon objective credit
+                if (nodeId != (altruis ? AltruisToWeaponsLastNode : KaynToWeaponsLastNode))
+                    return;
+
+                _reachedWeapons = true;
+                me->HandleEmoteCommand(EMOTE_ONESHOT_KNEEL);
+                if (Player* owner = ObjectAccessor::GetPlayer(*me, me->GetPrivateObjectOwner()))
+                    owner->KilledMonsterCredit(altruis ? KillCredits::AltruisWeapons : KillCredits::KaynWeapons);
+                _scheduler.Schedule(4s, [this](TaskContext& /*task*/)
+                {
+                    // kneel done, glaives picked up - sniffed self-cast of the anim aura
+                    me->CastSpell(me, Spells::GlaiveAnimReplacement, true);
+                    me->GetMotionMaster()->MovePath(me->GetEntry() == AltruisTheSufferer ? AltruisToRally : KaynToRally, false);
+                });
+                return;
+            }
+
+            if (nodeId != ToRallyLastNode)
+                return;
+
+            // the End objective credit flips the phase-area condition: the public
+            // freed spawn takes over as this clone despawns (sniffed phase swap)
+            if (Player* owner = ObjectAccessor::GetPlayer(*me, me->GetPrivateObjectOwner()))
+            {
+                owner->KilledMonsterCredit(altruis ? KillCredits::AltruisEnd : KillCredits::KaynEnd);
+                PhasingHandler::OnConditionChange(owner);
+            }
+            me->DespawnOrUnsummon(1s);
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _scheduler.Update(diff);
+        }
+
+    private:
+        TaskScheduler _scheduler;
+        bool _reachedWeapons = false;
+    };
+
+    CreatureAI* FreedIllidariVaultAISelector(Creature* creature)
+    {
+        if (creature->IsPrivateObject())
+            return new npc_vault_freed_illidari_private(creature);
+        return new npc_vault_freed_illidari(creature);
+    }
 }
 
 void AddSC_custom_vault_wardens_npcs()
@@ -156,4 +322,6 @@ void AddSC_custom_vault_wardens_npcs()
 
     new FactoryCreatureScript<CreatureAI, &MaievVaultOfSilenceAISelector>("npc_maiev_shadowsong_vault_silence");
     new FactoryCreatureScript<CreatureAI, &WardOfTheHuntersVaultAISelector>("npc_ward_of_the_hunters_vault");
+    new FactoryCreatureScript<CreatureAI, &PrisonCellVaultAISelector>("npc_vault_prison_cell");
+    new FactoryCreatureScript<CreatureAI, &FreedIllidariVaultAISelector>("npc_vault_freed_illidari");
 }

@@ -84,6 +84,7 @@ void AddSC_custom_mardum_areatriggers();
 void AddSC_custom_mardum_spells();
 
 void AddSC_custom_vault_wardens_npcs();
+void AddSC_custom_vault_wardens_quests();
 
 // ==================== Followship Scripts ==================== //
 void AddSC_followship_bots();                // FSB main Script
@@ -219,6 +220,7 @@ void AddCustomScripts()
     AddSC_custom_mardum_spells();
 
     AddSC_custom_vault_wardens_npcs();
+    AddSC_custom_vault_wardens_quests();
 
     AddSC_followship_bots();
     AddSC_followship_bots_player();

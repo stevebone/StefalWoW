@@ -29,8 +29,8 @@ UPDATE `creature_template` SET `npcflag`=281474976710659, `unit_flags3`=0x200 WH
 UPDATE `creature_template` SET `unit_flags3`=0x40000000 WHERE `entry`=96847; -- Drelanim Whisperwind
 UPDATE `creature_template` SET `faction`=2838, `npcflag`=36028797018968192, `speed_run`=1, `BaseAttackTime`=2000, `unit_flags`=0x300, `unit_flags2`=0x4000800, `unit_flags3`=0x40000000 WHERE `entry`=149919; -- Worn Anvil
 UPDATE `creature_template` SET `unit_flags3`=0x40000000 WHERE `entry`=100168; -- Ward of the Hunters
-UPDATE `creature_template` SET `npcflag`=0, `unit_flags3`=0x41000000 WHERE `entry`=103658; -- Kayn's Cell
-UPDATE `creature_template` SET `unit_flags3`=0x41000000 WHERE `entry`=103655; -- Altruis's Cell
+UPDATE `creature_template` SET `npcflag`=0x01000000, `faction`=35, `unit_flags`=0x300, `unit_flags2`=0x800, `unit_flags3`=0x41000000 WHERE `entry`=103658; -- Kayn's Cell
+UPDATE `creature_template` SET `npcflag`=0x01000000, `faction`=35, `unit_flags`=0x300, `unit_flags2`=0x800, `unit_flags3`=0x41000000 WHERE `entry`=103655; -- Altruis's Cell
 UPDATE `creature_template` SET `unit_flags`=0x0 WHERE `entry`=97069; -- Wrath-Lord Lekos
 
 
@@ -1221,7 +1221,7 @@ INSERT INTO `phase_area` (`AreaId`, `PhaseId`, `Comment`) VALUES
 
 DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId`=26 AND `SourceGroup`=5121;
 INSERT INTO `conditions` VALUES
-(26, 5121, 7873, 0, 0, 9, 0, 38672, 0, 0, '', 1, 0, 0, '', 'Phase 5121 active if Quest 38672 NOT taken');
+(26, 5121, 7873, 0, 0, 14, 0, 38672, 0, 0, '', 0, 0, 0, '', 'Phase 5121 active while quest 38672 is not in the log (not taken or abandoned)');
 
 DELETE FROM `phase_name` WHERE `ID`=5976;
 INSERT INTO `phase_name` (`ID`, `Name`) VALUES
@@ -1237,3 +1237,65 @@ INSERT INTO `conditions` VALUES
 
 UPDATE `creature_template` SET `ScriptName` = 'npc_maiev_shadowsong_vault_silence' WHERE `entry` = 92718;
 UPDATE `creature_template` SET `ScriptName` = 'npc_ward_of_the_hunters_vault' WHERE `entry` = 100168;
+UPDATE `creature_template` SET `ScriptName` = 'npc_vault_prison_cell' WHERE `entry` IN (103655, 103658);
+UPDATE `creature_template` SET `ScriptName` = 'npc_vault_freed_illidari' WHERE `entry` IN (99631, 99632);
+
+-- Quest 38672 - Breaking Out: bind the C++ quest script (abandon cleanup + completion convo)
+INSERT INTO `quest_template_addon` (`ID`, `ScriptName`) VALUES
+(38672, 'quest_vault_wardens_breaking_out')
+ON DUPLICATE KEY UPDATE `ScriptName`='quest_vault_wardens_breaking_out';
+
+DELETE FROM `phase_name` WHERE `ID` IN (5124, 5125);
+INSERT INTO `phase_name` (`ID`, `Name`) VALUES
+(5124, 'Altruis Freed - Vault of Silence'),
+(5125, 'Kayn Freed - Vault of Silence');
+
+-- The in-scene phase swap is applied per-player by npc_vault_freed_illidari when the freed
+-- NPC reaches the rally point (mirrors retail's delayed +5124/+5125 phase shift). The
+-- phase_area conditions below only hold while the freed objective is complete and quest
+-- 38672 is still in the quest log - retail strips both phases at quest reward.
+DELETE FROM `phase_area` WHERE `PhaseId` IN (5124, 5125);
+INSERT INTO `phase_area` (`AreaId`, `PhaseId`, `Comment`) VALUES
+(7873, 5124, 'Altruis Freed - Vault of Silence'),
+(7873, 5125, 'Kayn Freed - Vault of Silence');
+
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId`=26 AND `SourceGroup` IN (5124, 5125);
+INSERT INTO `conditions` VALUES
+(26, 5124, 7873, 0, 0, 48, 0, 286143, 0, 1, '', 0, 0, 0, '', 'Phase 5124 while objective 286143 (Altruis End) complete and quest 38672 in log'),
+(26, 5125, 7873, 0, 0, 48, 0, 280526, 0, 1, '', 0, 0, 0, '', 'Phase 5125 while objective 280526 (Kayn End) complete and quest 38672 in log');
+
+-- Phases 5964/5965: the prison cells are present until their prisoner is freed.
+-- Both conditions are negated and AND-ed: the phase drops the moment the freed
+-- objective is credited, and stays off after the quest is rewarded (the freed
+-- objective row alone would re-enable the phase once the quest leaves the log).
+DELETE FROM `phase_name` WHERE `ID` IN (5964, 5965);
+INSERT INTO `phase_name` (`ID`, `Name`) VALUES
+(5964, 'Altruis Cell - Vault of Silence'),
+(5965, 'Kayn Cell - Vault of Silence');
+
+DELETE FROM `phase_area` WHERE `PhaseId` IN (5964, 5965);
+INSERT INTO `phase_area` (`AreaId`, `PhaseId`, `Comment`) VALUES
+(7873, 5964, 'Altruis Cell - Vault of Silence'),
+(7873, 5965, 'Kayn Cell - Vault of Silence');
+
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId`=26 AND `SourceGroup` IN (5964, 5965);
+INSERT INTO `conditions` VALUES
+(26, 5964, 7873, 0, 0, 48, 0, 278274, 0, 1, '', 1, 0, 0, '', 'Phase 5964 off once objective 278274 (Altruis freed) complete'),
+(26, 5964, 7873, 0, 0, 8, 0, 38672, 0, 0, '', 1, 0, 0, '', 'Phase 5964 off once quest 38672 rewarded'),
+(26, 5965, 7873, 0, 0, 48, 0, 278275, 0, 1, '', 1, 0, 0, '', 'Phase 5965 off once objective 278275 (Kayn freed) complete'),
+(26, 5965, 7873, 0, 0, 8, 0, 38672, 0, 0, '', 1, 0, 0, '', 'Phase 5965 off once quest 38672 rewarded');
+
+-- Spellclick gating: the cells are only clickable while Breaking Out is in progress
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId`=18 AND `SourceGroup` IN (103655,103658);
+INSERT INTO `conditions` VALUES
+(18, 103655, 184012, 0, 0, 9, 0, 38672, 0, 0, '', 0, 0, 0, '', 'Altruis cell spellclick requires quest 38672 taken'),
+(18, 103655, 184012, 0, 0, 8, 0, 38672, 0, 0, '', 1, 0, 0, '', 'Altruis cell spellclick blocked once quest 38672 rewarded'),
+(18, 103658, 177803, 0, 0, 9, 0, 38672, 0, 0, '', 0, 0, 0, '', 'Kayn cell spellclick requires quest 38672 taken'),
+(18, 103658, 177803, 0, 0, 8, 0, 38672, 0, 0, '', 1, 0, 0, '', 'Kayn cell spellclick blocked once quest 38672 rewarded'),
+(18, 103655, 184012, 0, 0, 48, 0, 278274, 0, 0, '', 0, 0, 0, '', 'Altruis cell spellclick blocked once objective 278274 (Altruis freed) complete'),
+(18, 103658, 177803, 0, 0, 48, 0, 278275, 0, 0, '', 0, 0, 0, '', 'Kayn cell spellclick blocked once objective 278275 (Kayn freed) complete');
+
+-- Quest 40253 - Stop Gul'dan!
+DELETE FROM `quest_template_addon` WHERE `ID`=40253;
+INSERT INTO `quest_template_addon` (`ID`, `PrevQuestID`) VALUES
+(40253, 38690);

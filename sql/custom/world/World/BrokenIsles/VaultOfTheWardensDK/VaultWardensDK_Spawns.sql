@@ -8,8 +8,8 @@ INSERT INTO `creature` (`guid`, `id`, `map`, `zoneId`, `areaId`, `spawnDifficult
 (@CGUID+0, 149919, 1468, 7814, 7872, '0', 0, 0, 0, -1, 0, 0, 4315.5, -547.411, -281.842, 5.13833, 180, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
 (@CGUID+1, 100168, 1468, 7814, 7873, '0', 0, 0, 0, -1, 0, 0, 4325.98, -578.061, -281.724, 4.69097, 180, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
 -- (@CGUID+2, 100168, 1468, 7814, 7873, '0', 0, 0, 0, -1, 0, 0, 4325.98, -578.061, -281.641, 4.69097, 180, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
-(@CGUID+3, 103655, 1468, 7814, 7873, '0', 0, 0, 0, -1, 0, 0, 4312.78, -590.177, -281.27, 6.08924, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
-(@CGUID+4, 103658, 1468, 7814, 7873, '0', 0, 0, 0, -1, 0, 0, 4339.06, -590.076, -281.241, 3.3436, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
+(@CGUID+3, 103655, 1468, 7814, 7873, '0', 0, 5964, 0, -1, 0, 0, 4312.78, -590.177, -281.27, 6.08924, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
+(@CGUID+4, 103658, 1468, 7814, 7873, '0', 0, 5965, 0, -1, 0, 0, 4339.06, -590.076, -281.241, 3.3436, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
 (@CGUID+5, 101648, 1468, 7814, 7872, '0', 0, 0, 0, -1, 0, 0, 4341.92, -535.554, -289.599, 5.01218, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
 (@CGUID+6, 92782, 1468, 7814, 7872, '0', 0, 0, 0, -1, 0, 0, 4328.26, -520.517, -287.721, 4.05376, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
 (@CGUID+7, 92782, 1468, 7814, 7872, '0', 0, 0, 0, -1, 0, 0, 4323.38, -520.902, -287.599, 5.45855, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
@@ -22,8 +22,8 @@ INSERT INTO `creature` (`guid`, `id`, `map`, `zoneId`, `areaId`, `spawnDifficult
 (@CGUID+14, 96656, 1468, 7814, 7872, '0', 0, 0, 0, -1, 0, 1, 4305.65, -498.814, -288.433, 6.21231, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
 (@CGUID+15, 96656, 1468, 7814, 7872, '0', 0, 0, 0, -1, 0, 1, 4309.92, -499.379, -288.525, 6.27806, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
 (@CGUID+16, 92782, 1468, 7814, 7872, '0', 0, 0, 0, -1, 0, 0, 4296.89, -544.042, -275.002, 1.41697, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
-(@CGUID+17, 99632, 1468, 7814, 7873, '0', 0, 0, 0, -1, 0, 1, 4309.94, -589.618, -281.407, 6.13126, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
-(@CGUID+18, 99631, 1468, 7814, 7873, '0', 0, 0, 0, -1, 0, 1, 4343.16, -589.579, -281.408, 3.38493, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
+(@CGUID+17, 99632, 1468, 7814, 7873, '0', 2, 5124, 0, -1, 0, 0, 4309.94, -589.618, -281.407, 6.13126, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
+(@CGUID+18, 99631, 1468, 7814, 7873, '0', 2, 5125, 0, -1, 0, 0, 4343.16, -589.579, -281.408, 3.38493, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
 (@CGUID+19, 92782, 1468, 7814, 7872, '0', 0, 0, 0, -1, 0, 0, 4336.37, -507.769, -288.555, 3.97496, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
 (@CGUID+20, 99451, 1468, 7814, 7872, '0', 0, 0, 0, -1, 0, 1, 4340.25, -503.8, -288.637, 2.92782, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
 (@CGUID+21, 92980, 1468, 7814, 7872, '0', 0, 0, 0, -1, 0, 1, 4330.08, -548.288, -281.751, 1.67951, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
@@ -1051,3 +1051,33 @@ INSERT INTO `gameobject_addon` (`guid`, `parent_rotation0`, `parent_rotation1`, 
 (@OGUID+18, 0, 0, -0.0954866, 0.995431, 0, 0, 0, 0),
 (@OGUID+17, 0, 0, 0.999031, 0.0440104, 0, 0, 0, 0),
 (@OGUID+16, 0, 0, -0.999641, 0.0268133, 0, 0, 0, 0);
+
+-- Spawn tracking: the cells live in phases 5964/5965 and are tracked to the
+-- freed objectives. State 2 (Complete) keeps them visible with the sniffed
+-- opened-cage visual (StateSpellVisualId 61500).
+DELETE FROM `spawn_tracking_template` WHERE `SpawnTrackingId` IN (1050065,1050062);
+INSERT INTO `spawn_tracking_template` (`SpawnTrackingId`, `MapId`, `PhaseId`, `PhaseGroup`, `PhaseUseFlags`) VALUES
+(1050065, 1468, 5964, 0, 0), -- Altruis's Cell
+(1050062, 1468, 5965, 0, 0); -- Kayn's Cell
+
+DELETE FROM `spawn_tracking_quest_objective` WHERE `SpawnTrackingId` IN (1050065,1050062);
+INSERT INTO `spawn_tracking_quest_objective` (`SpawnTrackingId`, `QuestObjectiveId`) VALUES
+(1050065, 278274), -- Altruis freed
+(1050062, 278275); -- Kayn freed
+
+DELETE FROM `spawn_tracking` WHERE `SpawnType`=0 AND `SpawnId` IN (@CGUID+3,@CGUID+4);
+INSERT INTO `spawn_tracking` (`SpawnTrackingId`, `SpawnType`, `SpawnId`, `QuestObjectiveIds`) VALUES
+(1050065, 0, @CGUID+3, '278274'), -- Altruis's Cell
+(1050062, 0, @CGUID+4, '278275'); -- Kayn's Cell
+
+DELETE FROM `spawn_tracking_state` WHERE `SpawnType`=0 AND `SpawnId` IN (@CGUID+3,@CGUID+4);
+INSERT INTO `spawn_tracking_state` (`SpawnType`, `SpawnId`, `State`, `Visible`, `StateSpellVisualId`) VALUES
+(0, @CGUID+3, 2, 1, 61500), -- Altruis's Cell - opened
+(0, @CGUID+4, 2, 1, 61500); -- Kayn's Cell - opened
+
+-- Freed Illidari public spawns (quest 38672 "Breaking Out" freed phases)
+SET @CGUID := 70064544;
+DELETE FROM `creature` WHERE `guid` BETWEEN @CGUID+0 AND @CGUID+1;
+INSERT INTO `creature` (`guid`, `id`, `map`, `zoneId`, `areaId`, `spawnDifficulties`, `phaseUseFlags`, `PhaseId`, `PhaseGroup`, `terrainSwapMap`, `modelid`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `wander_distance`, `currentwaypoint`, `curHealthPct`, `MovementType`, `npcflag`, `unit_flags`, `unit_flags2`, `unit_flags3`, `ScriptName`, `StringId`, `VerifiedBuild`) VALUES
+(@CGUID+0, 99632, 1468, 7814, 7873, '0', 0, 5124, 0, -1, 0, 1, 4323.643, -583.6684, -281.8404, 6.13126, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814), -- Altruis the Sufferer (freed, rally)
+(@CGUID+1, 99631, 1468, 7814, 7873, '0', 0, 5125, 0, -1, 0, 1, 4328.461, -583.6597, -281.8405, 3.38493, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814); -- Kayn Sunfury (freed, rally)
