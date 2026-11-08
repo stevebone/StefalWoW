@@ -22,6 +22,7 @@
 
 #include "Creature.h"
 #include "CreatureAI.h"
+#include "EventMap.h"
 #include "GossipDef.h"
 #include "MotionMaster.h"
 #include "ObjectAccessor.h"
@@ -571,6 +572,144 @@ namespace Scripts::Custom::VaultOfTheWardens
             return new npc_vault_postreward_illidari_private(creature);
         return new npc_vault_postreward_illidari(creature);
     }
+
+    // 97069 - Wrath-Lord Lekos (Illidari Ward mini-boss)
+    // Sniffed: stationary demon fighting the wardens in the cell corridor; he
+    // melees between casts and never moves. The rotation repeats while engaged:
+    // - Spiked Bulwark (200936) every ~32-39s: a 10s uninterruptible channel
+    //   giving frontal 100% block and reflecting 200950 bolts at attackers.
+    // - Furious Roar (200929) every ~16s: instant AoE damage around him.
+    // - Fel Shield Blast (200919+200918) every ~31-35s: instant shield-toss
+    //   visual, then a ~2.5s cast whose GO carries Fire damage + frontal knockback.
+    // On death he casts 210038 Shatter Soul at his killer (native demon-death
+    // soul-fragment chain) and says his only line.
+    struct npc_wrath_lord_lekos : public ScriptedAI
+    {
+        npc_wrath_lord_lekos(Creature* creature) : ScriptedAI(creature) { }
+
+        void Reset() override
+        {
+            _events.Reset();
+            _aggroSaid = false;
+        }
+
+        void JustStartedThreateningMe(Unit* who) override
+        {
+            ScriptedAI::JustStartedThreateningMe(who);
+
+            // fires for every unit that newly threatens him - the only "player
+            // attacks" signal while the wardens keep him permanently engaged
+            if (who->IsPlayer() && !_aggroSaid)
+            {
+                _aggroSaid = true;
+                Talk(SayLekosAggro);
+            }
+        }
+
+        void JustEngagedWith(Unit* /*who*/) override
+        {
+            // sniffed first-fight offsets: bulwark opens, roar ~11s, blast ~21s
+            _events.ScheduleEvent(Events::LekosSpikedBulwark, 4s);
+            _events.ScheduleEvent(Events::LekosFuriousRoar, 11s);
+            _events.ScheduleEvent(Events::LekosFelShieldBlast, 21s);
+        }
+
+        void JustDied(Unit* /*killer*/) override
+        {
+            Talk(SayLekosDeath);
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _events.Update(diff);
+
+            // the 10s Bulwark channel delays the rest of the rotation - queued
+            // events fire once the channel ends (sniffed roar gaps widen to ~23-35s
+            // while he is channeling)
+            if (!me->HasUnitState(UNIT_STATE_CASTING))
+            {
+                while (uint32 eventId = _events.ExecuteEvent())
+                {
+                    switch (eventId)
+                    {
+                        case Events::LekosSpikedBulwark:
+                            DoCastSelf(Spells::SpikedBulwark);
+                            _events.Repeat(33s);
+                            break;
+                        case Events::LekosFuriousRoar:
+                            DoCastSelf(Spells::FuriousRoar);
+                            _events.Repeat(16s);
+                            break;
+                        case Events::LekosFelShieldBlast:
+                            DoCastVictim(Spells::FelShieldBlastInstant);
+                            DoCastVictim(Spells::FelShieldBlast);
+                            _events.Repeat(34s);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+
+            if (!UpdateVictim())
+                return;
+
+            if (me->HasUnitState(UNIT_STATE_CASTING))
+                return;
+
+            me->DoMeleeAttackIfReady();
+        }
+
+    private:
+        EventMap _events;
+        bool _aggroSaid = false;
+    };
+
+    // 99501 - Legion Portal (interior rotation pool, see VaultWardensDK_Spawns.sql)
+    // Sniffed lifecycle: on spawn the portal self-casts 158342 Spawn (its
+    // client-side "finished opening" signal) and gains the SPELLCLICK npc flag
+    // ~0.4s later, becoming clickable. A completed Destroying Legion Portal
+    // (202064) cast makes it self-cast 196084 Portal Explosion - sound 56916,
+    // visual kit 58765 and one-shot animkit 9161 all ride the spell data -
+    // and despawn in the same update batch. The pool relocates a portal to
+    // another point ~1-1.7s later (pool max 3, see spawns file).
+    struct npc_legion_portal : public ScriptedAI
+    {
+        npc_legion_portal(Creature* creature) : ScriptedAI(creature) { }
+
+        void JustAppeared() override
+        {
+            me->CastSpell(me, Spells::LegionPortalSpawn);
+            _scheduler.Schedule(400ms, [this](TaskContext& /*task*/)
+            {
+                me->SetNpcFlag(UNIT_NPC_FLAG_SPELLCLICK);
+            });
+        }
+
+        void SpellHit(WorldObject* /*caster*/, SpellInfo const* spellInfo) override
+        {
+            if (spellInfo->Id != Spells::DestroyingLegionPortal || _destroying)
+                return;
+
+            _destroying = true;
+            // sniff: explosion cast and DestroyObject land in the same update
+            // batch ~0.3s after the player's 202064 completes
+            _scheduler.Schedule(300ms, [this](TaskContext& /*task*/)
+            {
+                DoCastSelf(Spells::PortalExplosion);
+                me->DespawnOrUnsummon();
+            });
+        }
+
+        void UpdateAI(uint32 diff) override
+        {
+            _scheduler.Update(diff);
+        }
+
+    private:
+        TaskScheduler _scheduler;
+        bool _destroying = false;
+    };
 }
 
 void AddSC_custom_vault_wardens_npcs()
@@ -583,4 +722,6 @@ void AddSC_custom_vault_wardens_npcs()
     new FactoryCreatureScript<CreatureAI, &FreedIllidariVaultAISelector>("npc_vault_freed_illidari");
     new FactoryCreatureScript<CreatureAI, &FreedNamedIllidariVaultAISelector>("npc_vault_freed_named_illidari");
     new FactoryCreatureScript<CreatureAI, &PostRewardIllidariVaultAISelector>("npc_vault_postreward_illidari");
+    RegisterCreatureAI(npc_wrath_lord_lekos);
+    RegisterCreatureAI(npc_legion_portal);
 }

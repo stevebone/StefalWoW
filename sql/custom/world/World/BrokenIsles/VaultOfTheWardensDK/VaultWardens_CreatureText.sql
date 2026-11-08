@@ -1,6 +1,6 @@
 -- Vault of the Wardens Creature Text
 
-DELETE FROM `creature_text` WHERE `creatureID` IN (92718, 99631, 99632, 92980, 92986, 92776, 97614, 97615, 97616, 97617, 97618, 97619, 97620, 97622);
+DELETE FROM `creature_text` WHERE `creatureID` IN (92718, 96847, 99631, 99632, 92980, 92986, 92776, 97069, 97614, 97615, 97616, 97617, 97618, 97619, 97620, 97622);
 INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `BroadcastTextId`, `TextRange`, `comment`) VALUES
 (92776, 0, 0, 'For the Legion!', 12, 0, 100, 0, 0, 55192, 96663, 0, 'Fel Shocktrooper to Player'),
 (92776, 0, 1, 'The Burning Legion conquers all.', 12, 0, 100, 0, 0, 55198, 102133, 0, 'Fel Shocktrooper to Player'),
@@ -13,6 +13,8 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Lan
 (92776, 0, 8, 'The fel you wield will not be enough.', 12, 0, 100, 0, 0, 55190, 96661, 0, 'Fel Shocktrooper to Demon Hunter'),
 
 (92718, 0, 0, 'I will need your help to stop Gul\'dan. Free the other Illidari, quickly!', 12, 0, 100, 0, 0, 57338, 98734, 0, 'Maiev Shadowsong to Player'),
+
+(96847, 0, 0, 'I hope Maiev was right about freeing you, demon hunter. Go on - I will hold the line.', 12, 0, 100, 0, 0, 57291, 98753, 0, 'Drelanim Whisperwind to Player'),
 
 (99632, 0, 0, 'How many years were wasted in that cell?', 12, 0, 100, 0, 0, 57343, 100833, 0, 'Altruis the Sufferer to Player'),
 (99632, 1, 0, 'It has been a long time, Kayn. I still believe in the cause. But, I do not blindly follow anyone... even Illidan.', 12, 0, 100, 1, 0, 57285, 91916, 0, 'Altruis the Sufferer to Player'),
@@ -33,4 +35,7 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Lan
 (97618, 0, 0, 'We will need weapons and supplies if we are to break out of here. I am on it, $n.', 12, 0, 100, 1, 0, 57289, 98711, 0, 'Falara Nightsong to Player'),
 (97619, 0, 0, 'I sense demons nearby. After all that time in stasis, I am ready to hunt.', 12, 0, 100, 1, 0, 57344, 99505, 0, 'Marius Felbane to Player'),
 (97620, 0, 0, 'My blades are ready, $n. I will check on the situation ahead.', 12, 0, 100, 1, 0, 57293, 99506, 0, 'Lyana Darksorrow to Player'),
-(97622, 0, 0, '$n, it has been a long time since Mardum. I am ready for another fight.', 12, 0, 100, 1, 0, 57288, 98710, 0, 'Kor\'vas Bloodthorn to Player');
+(97622, 0, 0, '$n, it has been a long time since Mardum. I am ready for another fight.', 12, 0, 100, 1, 0, 57288, 98710, 0, 'Kor\'vas Bloodthorn to Player'),
+
+(97069, 0, 0, 'All goes according to HIS plan.', 12, 0, 100, 0, 0, 57392, 102952, 0, 'Wrath-Lord Lekos to Player'),
+(97069, 1, 0, 'Lord Gul''dan will lead us to victory. You cannot stop us.', 12, 0, 100, 0, 0, 57312, 102954, 0, 'Wrath-Lord Lekos to Player');

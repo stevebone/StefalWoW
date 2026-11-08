@@ -1210,6 +1210,12 @@ INSERT INTO `npc_spellclick_spells` (`npc_entry`, `spell_id`, `cast_flags`, `use
 (198509, 224326, 1, 0),
 (207684, 408907, 1, 0);
 
+DELETE FROM `graveyard_zone` WHERE `GhostZone` = 7814;
+INSERT INTO `graveyard_zone` (`ID`, `GhostZone`, `Comment`) VALUES
+(8001, 7814, 'DH Vault of Wardens'),
+(20046, 7814, 'Warden Prision DH Quest');
+
+
 -- SAI
 UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (92776);
 DELETE FROM `smart_scripts` WHERE `entryorguid` IN (92776) AND source_type = 0;
@@ -1232,6 +1238,57 @@ INSERT INTO smart_scripts (entryorguid, source_type, id, link, Difficulties, eve
 (96656, 0, 1, 0, '', 0, 0, 100, 0, 0, 2500, 20000, 22000, 0, '', 11, 201122, 32, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Freed Illidari - In Combat - Cast Immolation Aura (Aura Not Present)'),
 (96656, 0, 2, 0, '', 0, 0, 100, 0, 0, 2000, 5500, 6500, 0, '', 11, 197639, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Freed Illidari - In Combat - Cast Chaos Strike'),
 (96656, 0, 3, 0, '', 0, 0, 100, 0, 0, 7000, 20000, 24000, 0, '', 11, 200879, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Freed Illidari - In Combat - Cast Fel Rush');
+
+-- SAI - Drelanim Whisperwind (96847), warden holding the line vs the demon waves
+-- in the Vault of Silence. Sniffed rotation (cap 4, ~25min of combat):
+-- Rupture spam, Fan of Blades ~30-40s (1291385 is triggered by 195783 - no
+-- separate cast), Knockdown Kick ~60-90s, Turn Kick ~90-120s.
+UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (96847);
+DELETE FROM `smart_scripts` WHERE `entryorguid` IN (96847) AND source_type = 0;
+INSERT INTO smart_scripts (entryorguid, source_type, id, link, Difficulties, event_type, event_phase_mask, event_chance, event_flags, event_param1, event_param2, event_param3, event_param4, event_param5, event_param_string, action_type, action_param1, action_param2, action_param3, action_param4, action_param5, action_param6, action_param7, action_param_string, target_type, target_param1, target_param2, target_param3, target_param4, target_param_string, target_x, target_y, target_z, target_o, comment) VALUES
+(96847, 0, 1, 0, '', 0, 0, 100, 0, 0, 2000, 4000, 7000, 0, '', 11, 15583, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Drelanim Whisperwind - In Combat - Cast Rupture'),
+(96847, 0, 2, 0, '', 0, 0, 100, 0, 6000, 10000, 30000, 40000, 0, '', 11, 195783, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Drelanim Whisperwind - In Combat - Cast Fan of Blades'),
+(96847, 0, 3, 0, '', 0, 0, 100, 0, 10000, 15000, 60000, 90000, 0, '', 11, 189467, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Drelanim Whisperwind - In Combat - Cast Knockdown Kick'),
+(96847, 0, 4, 0, '', 0, 0, 100, 0, 15000, 25000, 90000, 120000, 0, '', 11, 189469, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Drelanim Whisperwind - In Combat - Cast Turn Kick');
+
+-- Drelanim's "I will hold the line" whisper: retail self-casts the CSA aura
+-- 138041 (CSA Area Trigger Dummy Timer Aura B, 15min duration) on the player
+-- inside the Vault of Silence and Drelanim whispers ~150ms later. The aura is
+-- the per-player cooldown - the sniffer's second whisper came ~16.8min after
+-- the first once it expired. No server-side AT exists to hook, so a custom
+-- serverside AT (sphere r=10 at the room center, near both sniffed trigger
+-- points 4328.2,-536.0 / 4331.2,-508.4) drives it via
+-- at_drelanim_hold_the_line, which applies the same aura as the gate.
+DELETE FROM `areatrigger_template` WHERE `Id`=70003 AND `IsCustom`=1;
+INSERT INTO `areatrigger_template` (`Id`, `IsCustom`, `Flags`, `ActionSetId`, `ActionSetFlags`, `VerifiedBuild`) VALUES
+(70003, 1, 1, 0, 0, 70575); -- Flags=1 IsServerSide (invisible unless .debug areatriggers)
+
+DELETE FROM `areatrigger_create_properties` WHERE `Id`=70003 AND `IsCustom`=1;
+INSERT INTO `areatrigger_create_properties` (`Id`, `IsCustom`, `AreaTriggerId`, `IsAreatriggerCustom`, `Flags`, `MoveCurveId`, `ScaleCurveId`, `MorphCurveId`, `FacingCurveId`, `AnimId`, `AnimKitId`, `DecalPropertiesId`, `SpellForVisuals`, `TimeToTargetScale`, `Speed`, `SpeedIsTime`, `Shape`, `ShapeData0`, `ShapeData1`, `ShapeData2`, `ShapeData3`, `ShapeData4`, `ShapeData5`, `ShapeData6`, `ShapeData7`, `VerifiedBuild`) VALUES
+(70003, 1, 70003, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 10, 0, 0, 0, 0, 0, 0, 70575); -- Shape 0 = Sphere, r=10
+
+SET @ATSPAWNID := 100200;
+DELETE FROM `areatrigger` WHERE `SpawnId`=@ATSPAWNID;
+INSERT INTO `areatrigger` (`SpawnId`, `AreaTriggerCreatePropertiesId`, `IsCustom`, `MapId`, `SpawnDifficulties`, `PosX`, `PosY`, `PosZ`, `Orientation`, `PhaseUseFlags`, `PhaseId`, `PhaseGroup`, `ScriptName`, `Comment`, `VerifiedBuild`) VALUES
+(@ATSPAWNID+0, 70003, 1, 1468, '0', 4328.0, -522.0, -287.2, 0, 0, 0, 0, 'at_drelanim_hold_the_line', 'Vault of Silence - Drelanim hold-the-line whisper zone', 70575);
+
+
+-- SAI - Mirana Starlight (99451), warden in a permanent duel with Lekos and the
+-- corridor demons (sniffed ~30min). Eviscerate every ~11-15s in melee; Throwing
+-- Blade (191029) only while out of range after Lekos's knockback or his respawn -
+-- its DUMMY effects hold the two missile variants (190898/191026) and
+-- spell_vault_throwing_blade picks one per target, matching the sniffed pairs.
+-- Fan of Blades rare (2 casts in 30min).
+UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (99451);
+DELETE FROM `smart_scripts` WHERE `entryorguid` IN (99451) AND source_type = 0;
+INSERT INTO smart_scripts (entryorguid, source_type, id, link, Difficulties, event_type, event_phase_mask, event_chance, event_flags, event_param1, event_param2, event_param3, event_param4, event_param5, event_param_string, action_type, action_param1, action_param2, action_param3, action_param4, action_param5, action_param6, action_param7, action_param_string, target_type, target_param1, target_param2, target_param3, target_param4, target_param_string, target_x, target_y, target_z, target_o, comment) VALUES
+(99451, 0, 1, 0, '', 0, 0, 100, 0, 2000, 4000, 11000, 15000, 0, '', 11, 191058, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Mirana Starlight - In Combat - Cast Eviscerate'),
+(99451, 0, 2, 0, '', 9, 0, 100, 0, 8, 30, 1500, 3000, 0, '', 11, 191029, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Mirana Starlight - On Victim in 8-30y - Cast Throwing Blade'),
+(99451, 0, 3, 0, '', 0, 0, 100, 0, 8000, 15000, 180000, 300000, 0, '', 11, 195783, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Mirana Starlight - In Combat - Cast Fan of Blades');
+
+DELETE FROM `spell_script_names` WHERE `spell_id`=191029;
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
+(191029, 'spell_vault_throwing_blade'); -- Throwing Blade - dummy bp pick the blade-missile variant
 
 
 -- Quest 38672 - Breaking Out
@@ -1327,6 +1384,8 @@ UPDATE `creature_template` SET `ScriptName` = 'npc_ward_of_the_hunters_vault' WH
 UPDATE `creature_template` SET `ScriptName` = 'npc_vault_prison_cell' WHERE `entry` IN (103655, 103658);
 UPDATE `creature_template` SET `ScriptName` = 'npc_vault_freed_illidari' WHERE `entry` IN (99631, 99632);
 UPDATE `creature_template` SET `ScriptName` = 'npc_vault_postreward_illidari' WHERE `entry` IN (92980, 92986);
+UPDATE `creature_template` SET `ScriptName` = 'npc_wrath_lord_lekos' WHERE `entry` = 97069;
+UPDATE `creature_template` SET `ScriptName` = 'npc_legion_portal' WHERE `entry` = 99501;
 
 -- Quest 38672 - Breaking Out: bind the C++ quest script (abandon cleanup + completion convo)
 INSERT INTO `quest_template_addon` (`ID`, `ScriptName`) VALUES

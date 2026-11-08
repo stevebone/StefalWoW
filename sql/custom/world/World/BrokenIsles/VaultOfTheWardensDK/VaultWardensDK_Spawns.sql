@@ -440,11 +440,17 @@ INSERT INTO `creature` (`guid`, `id`, `map`, `zoneId`, `areaId`, `spawnDifficult
 (@CGUID+432, 100038, 1468, 7814, 7814, '0', 0, 0, 0, -1, 0, 1, 4172.5, -852.493, 292.209, 4.11554, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
 (@CGUID+433, 100041, 1468, 7814, 7814, '0', 0, 0, 0, -1, 0, 1, 4160.71, -848.521, 291.585, 4.47366, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
 (@CGUID+434, 97978, 1468, 7814, 7814, '0', 0, 0, 0, -1, 0, 1, 4154.08, -868.87, 291.029, 1.11075, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
-(@CGUID+435, 97069, 1468, 7814, 7872, '0', 0, 0, 0, -1, 0, 1, 4398.35, -493.426, -281.718, 3.10847, 180, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
+(@CGUID+435, 97069, 1468, 7814, 7872, '0', 0, 0, 0, -1, 0, 1, 4388.45, -492.676, -281.816, 3.10847, 180, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814), -- Wrath-Lord Lekos, sniffed fight/spawn position
 (@CGUID+436, 99501, 1468, 7814, 7872, '0', 0, 0, 0, -1, 0, 0, 4344.36, -447.537, -289.699, 1.32012, 180, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
 (@CGUID+437, 96665, 1468, 0, 0, '0', 0, 0, 0, -1, 0, 1, 4073.94, -309.192, -281.112, 2.37504, 180, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
 (@CGUID+438, 110533, 1468, 0, 0, '0', 0, 19917, 0, -1, 0, 0, 4032.18, -292.871, -281.59, 0.00902462, 180, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
 (@CGUID+439, 91323, 1468, 0, 0, '0', 0, 19917, 0, -1, 0, 0, 4031.44, -301.642, -281.176, 0.00902462, 180, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814);
+
+-- Mirana Starlight (99451) is sessile by design (StaticFlags1 + sniffed Root
+-- movement flag): she permanently holds position in front of Wrath-Lord Lekos.
+-- The imported row put her at 4340.25,-503.8 - ~43y away, where she can aggro
+-- him but never reach melee or blade range. Sniffed spot, guid 70063872:
+UPDATE `creature` SET `position_x`=4383.139, `position_y`=-493.0521, `position_z`=-281.76892, `orientation`=6.23951 WHERE `guid`=70063872 AND `id`=99451;
 
 DELETE FROM `creature_addon` WHERE `guid` BETWEEN @CGUID+0 AND @CGUID+439;
 INSERT INTO `creature_addon` (`guid`, `PathId`, `mount`, `MountCreatureID`, `StandState`, `AnimTier`, `VisFlags`, `SheathState`, `PvPFlags`, `emote`, `aiAnimKit`, `movementAnimKit`, `meleeAnimKit`, `visibilityDistanceType`, `auras`) VALUES
@@ -1186,3 +1192,45 @@ DELETE FROM `gameobject` WHERE `guid` BETWEEN @OGUID+0 AND @OGUID+99;
 INSERT INTO `gameobject` (`guid`, `id`, `map`, `zoneId`, `areaId`, `spawnDifficulties`, `phaseUseFlags`, `PhaseId`, `PhaseGroup`, `terrainSwapMap`, `position_x`, `position_y`, `position_z`, `orientation`, `rotation0`, `rotation1`, `rotation2`, `rotation3`, `spawntimesecs`, `animprogress`, `state`, `ScriptName`, `StringId`, `VerifiedBuild`) VALUES
 (@OGUID+0, 244927, 1468, 7814, 7873, '0', 0, 5966, 0, -1, 4326.56, -576.727, -282.75, 4.61954, 0, 0, -0.739161, 0.673528, 120, 255, 1, '', NULL, 69814), -- Ward of the Hunters collision wall (sealed phase)
 (@OGUID+1, 244596, 1468, 7814, 7872, '0', 0, 0, 0, -1, 4371.682, -524.5799, -274.772, 1.491, 0, 0, 0.67834, 0.734748, 120, 255, 1, '', NULL, 69814); -- Warden Cell (sniffed @MOVID+116, missing from the old import)
+
+-- Legion Portal (99501) interior rotation pool
+-- Sniff (GUID-tracked): only 7 interior spawn points ever appear; exactly 3 are
+-- alive at once through all 12 destroy->respawn cycles. Each destroy is followed
+-- ~1.0-1.7s later by a DIFFERENT point activating casting 158342 Spawn - a pool
+-- re-roll, not a fixed respawn. Pool mechanics handle it for free: the dead
+-- member's 1s respawn timer makes PoolMgr::UpdatePool pick a random non-spawned
+-- member. Existing portal rows +30/+31/+45 (guids 70063882/83/97) already match
+-- sniffed positions exactly; +40 (4310.5,-536.7) is an unverified import kept as
+-- an extra member; +436 is corrected below to the sniffed (4345.23,-447.94).
+-- The 3 surface portals (areaId 7866, Z~118) are static - never destroyed in the
+-- sniff, all alive simultaneously - and stay out of the pool.
+SET @CGUID := 70064546;
+DELETE FROM `creature` WHERE `guid` BETWEEN @CGUID+0 AND @CGUID+3;
+INSERT INTO `creature` (`guid`, `id`, `map`, `zoneId`, `areaId`, `spawnDifficulties`, `phaseUseFlags`, `PhaseId`, `PhaseGroup`, `terrainSwapMap`, `modelid`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `wander_distance`, `currentwaypoint`, `curHealthPct`, `MovementType`, `npcflag`, `unit_flags`, `unit_flags2`, `unit_flags3`, `ScriptName`, `StringId`, `VerifiedBuild`) VALUES
+(@CGUID+0, 99501, 1468, 7814, 7872, '0', 0, 0, 0, -1, 0, 0, 4247.979, -493.474, -281.706, 3.13659, 1, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
+(@CGUID+1, 99501, 1468, 7814, 7872, '0', 0, 0, 0, -1, 0, 0, 4370.21, -511.698, -289.403, 5.86362, 1, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
+(@CGUID+2, 99501, 1468, 7814, 7872, '0', 0, 0, 0, -1, 0, 0, 4280.18, -476.491, -289.617, 2.77722, 1, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
+(@CGUID+3, 99501, 1468, 7814, 7866, '0', 0, 0, 0, -1, 0, 0, 4431.891, -496.118, 118.938, 4.16924, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814); -- surface portal (sniffed, was missing)
+
+-- existing +436 row held (4344.36,-447.54) ~1y off the verified point; the sniff
+-- consistently spawns this portal at (4345.2256,-447.941) with orientation 1.011
+UPDATE `creature` SET `position_x`=4345.2256, `position_y`=-447.941, `position_z`=-289.3968, `orientation`=1.01097 WHERE `guid`=70064288 AND `id`=99501;
+
+-- pool member respawn delay is what drives the ~1.4s relocation
+UPDATE `creature` SET `spawntimesecs`=1 WHERE `guid` IN (70063882, 70063883, 70063892, 70063897, 70064288, @CGUID+0, @CGUID+1, @CGUID+2) AND `id`=99501;
+
+SET @POOLID := 900000;
+DELETE FROM `pool_template` WHERE `entry`=@POOLID+69;
+INSERT INTO `pool_template` (`entry`,`max_limit`,`description`) VALUES
+(@POOLID+69, 4, 'Vault of the Wardens - Legion Portal rotation (4 active, relocate on destroy)');
+
+DELETE FROM `pool_members` WHERE `poolSpawnId`=@POOLID+69;
+INSERT INTO `pool_members` (`type`,`spawnId`,`poolSpawnId`,`chance`,`description`) VALUES
+(0, 70063882, @POOLID+69, 0, 'Legion Portal (4369.3,-476.8)'),
+(0, 70063883, @POOLID+69, 0, 'Legion Portal (4279.7,-511.9)'),
+(0, 70063892, @POOLID+69, 0, 'Legion Portal (4310.5,-536.7, unverified)'),
+(0, 70063897, @POOLID+69, 0, 'Legion Portal (4307.5,-448.3)'),
+(0, 70064288, @POOLID+69, 0, 'Legion Portal (4345.2,-447.9)'),
+(0, @CGUID+0, @POOLID+69, 0, 'Legion Portal (4248.0,-493.5)'),
+(0, @CGUID+1, @POOLID+69, 0, 'Legion Portal (4370.2,-511.7)'),
+(0, @CGUID+2, @POOLID+69, 0, 'Legion Portal (4280.2,-476.5)');

@@ -47,6 +47,10 @@ namespace Scripts::Custom::VaultOfTheWardens
         static constexpr uint32 MariusFelbane      = 97619;
         static constexpr uint32 LyanaDarksorrow    = 97620;
         static constexpr uint32 KorvasBloodthorn   = 97622;
+        // Illidari Ward mini-boss - demon rare fighting the wardens in the cell corridor
+        static constexpr uint32 WrathLordLekos = 97069;
+        // warden fighting the demon waves in the Vault of Silence
+        static constexpr uint32 DrelanimWhisperwind = 96847;
     }
 
     namespace GameObjects
@@ -93,6 +97,17 @@ namespace Scripts::Custom::VaultOfTheWardens
         static constexpr uint8 SayAltruisAccept = 1; // 92986 "Time for answers later..."
         // creature_text GroupID 0 - freed named Illidari whisper (97614-97622)
         static constexpr uint8 SayNamedIllidariFreed = 0;
+        // creature_text GroupID 0 - Wrath-Lord Lekos (97069) death line
+        // 'All goes according to HIS plan.' (sniffed on his death blow)
+        static constexpr uint8 SayLekosDeath = 0;
+        // creature_text GroupID 1 - Wrath-Lord Lekos (97069) player-engage line
+        // 'Lord Gul'dan will lead us to victory. You cannot stop us.'
+        static constexpr uint8 SayLekosAggro = 1;
+        // creature_text GroupID 0 - Drelanim Whisperwind (96847)
+        // 'I hope Maiev was right about freeing you, demon hunter. Go on - I
+        // will hold the line.' (sniffed whisper when the player crosses the
+        // Vault of Silence areatrigger zone)
+        static constexpr uint8 SayDrelanimHoldTheLine = 0;
     }
 
     namespace AnimKits
@@ -110,6 +125,34 @@ namespace Scripts::Custom::VaultOfTheWardens
         // "Glaive Anim Replacement" - self-cast by the freed prisoner after
         // picking up their warglaives (sniffed SPELL_START on the private clone)
         static constexpr uint32 GlaiveAnimReplacement = 222589;
+        // Wrath-Lord Lekos (97069) - spell rotation (sniffed casts, all mechanics
+        // are native to the spell data - no spell scripts needed)
+        static constexpr uint32 SpikedBulwark         = 200936; // 10s uninterruptible channel: frontal 100% block + reflects 200950 at attackers
+        static constexpr uint32 FuriousRoar           = 200929; // instant AoE Physical damage + dummy aura on nearby enemies
+        static constexpr uint32 FelShieldBlastInstant = 200919; // instant shield-toss visual, cast same tick as 200918
+        static constexpr uint32 FelShieldBlast        = 200918; // 2.5s cast at victim: Fire damage + frontal knockback
+        // Legion Portal (99501) - sniffed lifecycle
+        static constexpr uint32 DestroyingLegionPortal = 202064; // spellclick cast the player lands on the portal
+        static constexpr uint32 PortalExplosion        = 196084; // portal self-cast after 202064 hits (visuals are spell-side)
+        static constexpr uint32 LegionPortalSpawn      = 158342; // instant self-cast at spawn, "finished opening" signal
+        // Mirana Starlight (99451) - Throwing Blade: the parent cast's DUMMY
+        // effects hold the missile variants in their base points; one is picked
+        // per target (sniffed pairs are never both)
+        static constexpr uint32 ThrowingBlade          = 191029;
+        static constexpr uint32 ThrowingBladeMissile    = 190898;
+        static constexpr uint32 ThrowingBladeMissileAlt = 191026;
+        // Drelanim Whisperwind whisper gate - retail self-casts this 15-min
+        // dummy aura when crossing the Vault of Silence AT; its presence is
+        // the per-player cooldown for the talk
+        static constexpr uint32 CsaAreaTriggerDummyTimerAuraB = 138041;
+    }
+
+    namespace Events
+    {
+        // Wrath-Lord Lekos (97069) - EventMap IDs
+        static constexpr int8 LekosSpikedBulwark  = 1;
+        static constexpr int8 LekosFuriousRoar    = 2;
+        static constexpr int8 LekosFelShieldBlast = 3;
     }
 
     namespace KillCredits
