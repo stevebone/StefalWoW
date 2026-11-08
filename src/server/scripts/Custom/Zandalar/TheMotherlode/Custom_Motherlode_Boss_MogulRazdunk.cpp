@@ -44,6 +44,8 @@
 
 #include "Custom_Motherlode_Defines.h"
 
+#include <array>
+
 namespace Scripts::Zandalar::TheMotherlode
 {
     namespace
@@ -362,7 +364,10 @@ namespace Scripts::Zandalar::TheMotherlode
                     next.m_positionY = missile.Pos.GetPositionY() + std::sin(angle) * step;
                     next.m_positionZ = missile.Pos.GetPositionZ();
                     if (at)
-                        at->InitSplines({ PositionToVector3(missile.Pos), PositionToVector3(next) }, MissileSpeed, false);
+                    {
+                        std::array<G3D::Vector3, 2> const splinePoints = { PositionToVector3(missile.Pos), PositionToVector3(next) };
+                        at->InitSplines(splinePoints, MissileSpeed, false);
+                    }
                     missile.Pos = next;
                     return false;
                 }), _missiles.end());
