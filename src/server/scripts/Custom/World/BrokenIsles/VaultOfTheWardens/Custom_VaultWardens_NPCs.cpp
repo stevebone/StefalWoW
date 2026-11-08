@@ -33,6 +33,7 @@
 #include "QuestDef.h"
 #include "ScriptedCreature.h"
 #include "ScriptMgr.h"
+#include "SpellInfo.h"
 #include "TaskScheduler.h"
 #include "TemporarySummon.h"
 
