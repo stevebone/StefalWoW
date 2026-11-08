@@ -64,6 +64,8 @@ INSERT INTO `creature_loot_template` (`Entry`, `ItemType`, `Item`, `Chance`, `Qu
 (97069, 0, 130317, 2.54079, 0, 1, 0, 1, 1, 'Fractured Trophy'),
 (97069, 0, 132753, 1, 0, 1, 0, 1, 2, 'Legion Rations');
 
+UPDATE `gameobject_template` SET `data20`=`data20`|1 WHERE `entry` BETWEEN 246555 AND 246562;
+UPDATE `gameobject_template` SET `data1`=`entry` WHERE `entry` IN (246555, 246556, 246557, 246558, 246559, 246560, 246561, 246562);
 DELETE FROM `gameobject_loot_template` WHERE `Entry` IN (246555, 246556, 246557, 246558, 246559, 246560, 246561, 246562);
 INSERT INTO `gameobject_loot_template` (`Entry`, `ItemType`, `Item`, `Chance`, `QuestRequired`, `LootMode`, `GroupId`, `MinCount`, `MaxCount`, `Comment`) VALUES
 (246555, 0, 129210, 58.2653, 0, 3, 0, 1, 1, 'Fel Crystal Fragments'),
