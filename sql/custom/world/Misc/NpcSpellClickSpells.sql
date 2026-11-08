@@ -2,7 +2,6 @@
 -- Query: select * from shadow_world.npc_spellclick_spells where npc_entry not in  (select npc_entry from npc_spellclick_spells)
 -- Date: 2025-08-12 16:19
 */
-INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (59271,113902,0,0);
 INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (52025,46598,1,0);
 INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (98781,221263,0,0);
 INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (42092,78510,3,0);
@@ -164,7 +163,6 @@ INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,
 INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (48699,90763,1,0);
 INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (49194,91687,1,0);
 INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (49244,86544,1,0);
-INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (49340,91942,1,0);
 INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (49499,90763,1,0);
 INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (49560,92340,1,0);
 INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (49604,92434,1,0);
@@ -205,11 +203,7 @@ INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,
 INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (59819,46598,0,0);
 INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (58794,111690,1,0);
 INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (53566,114746,1,1);
-INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (65476,46598,0,0);
 INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (57690,46598,0,0);
-INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (60877,56685,1,0);
-INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (65477,46598,0,0);
-INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (60848,117848,1,0);
 INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (165709,323117,0,0);
 INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (57741,108933,3,0);
 INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (100696,200569,0,0);
@@ -491,19 +485,9 @@ INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,
 INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (95056,46598,1,0);
 INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (78917,46598,1,0);
 INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (89669,179185,1,0);
-INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (101947,201112,0,0);
 INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (97382,192252,1,0);
 INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (97459,191481,0,0);
-INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (100549,192262,0,0);
-INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (100545,192262,1,0);
-INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (103655,184012,0,0);
-INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (103658,177803,0,0);
-INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (99501,202064,0,0);
-INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (96659,195537,0,0);
-INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (114358,202064,0,0);
-INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (99709,204588,0,0);
-INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (99732,204588,0,0);
-INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (99731,204588,0,0);
+-- (99501, 114358, 103655, 103658, 96659, 99709, 99731, 99732 spellclick rows removed - owned by VaultWardensDH_Main.sql with correct cast_flags=1)
 INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (91975,182478,0,0);
 INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (91983,182492,1,0);
 INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (92017,182551,0,0);
@@ -552,13 +536,9 @@ INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,
 INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (102473,202413,0,0);
 INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (115414,229466,0,0);
 INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (115027,228208,0,0);
-INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (55918,56685,1,0);
 INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (64507,125961,1,0);
-INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (55999,56685,1,0);
 INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (57778,109064,3,0);
 INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (54635,99952,0,0);
-INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (60770,56685,1,0);
-INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (55649,46598,0,0);
 INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (57626,108699,1,0);
 INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (57464,46598,0,0);
 INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (121105,190910,0,0);
@@ -990,8 +970,6 @@ INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,
 INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (36768,69280,1,0);
 INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (38542,73296,1,0);
 INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (48526,70015,3,0);
-INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (55918,46598,0,0);
-INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (55999,129340,1,0);
 INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (56103,46598,1,0);
 INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (57741,115904,1,0);
 INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (59505,114457,3,0);
@@ -1353,7 +1331,6 @@ INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,
 INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (174195,321337,0,0);
 INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (169811,330602,0,0);
 INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (169810,330600,0,0);
-INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (100543,192262,0,0);
 INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (169144,333338,0,0);
 INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (159011,333610,0,0);
 INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (158967,324359,0,0);
@@ -1558,7 +1535,7 @@ INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,
 INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (166246,324060,0,0);
 INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (170525,327907,0,0);
 INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (166157,323953,0,0);
-INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (141270,224326,0,0);
+-- (141270,224326 spellclick row removed - owned by VaultWardensDH_Main.sql with correct cast_flags=1)
 INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (167563,326128,0,0);
 INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (174236,321337,0,0);
 INSERT IGNORE INTO `npc_spellclick_spells` (`npc_entry`,`spell_id`,`cast_flags`,`user_type`) VALUES (160314,312195,0,0);
