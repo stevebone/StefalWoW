@@ -24,6 +24,7 @@
 #include "CreatureAI.h"
 #include "EventMap.h"
 #include "GossipDef.h"
+#include "Map.h"
 #include "MotionMaster.h"
 #include "ObjectAccessor.h"
 #include "ObjectGuid.h"
@@ -619,6 +620,18 @@ namespace Scripts::Custom::VaultOfTheWardens
             Talk(SayLekosDeath);
         }
 
+        void DamageTaken(Unit* attacker, uint32& damage, DamageEffectType /*damageType*/, SpellInfo const* /*spellInfo*/) override
+        {
+            if (me->HealthBelowPct(80) && attacker->GetEntry() == MiranaStarlight)
+                damage = 0;
+        }
+
+        void DamageDealt(Unit* victim, uint32& damage, DamageEffectType /*damageType*/) override
+        {
+            if(victim->GetEntry() == MiranaStarlight && victim->HealthBelowPct(80))
+                damage = 0;
+        }
+
         void UpdateAI(uint32 diff) override
         {
             _events.Update(diff);
@@ -672,7 +685,12 @@ namespace Scripts::Custom::VaultOfTheWardens
     // (202064) cast makes it self-cast 196084 Portal Explosion - sound 56916,
     // visual kit 58765 and one-shot animkit 9161 all ride the spell data -
     // and despawn in the same update batch. The pool relocates a portal to
-    // another point ~1-1.7s later (pool max 3, see spawns file).
+    // another point ~1-1.7s later (pool max 4, see spawns file).
+    // Demons near a portal point only spawn while a portal is alive there
+    // (sniff: 345/345 demon creates gated this way, no summon spell). This is
+    // implemented with MANUAL_SPAWN spawn_groups keyed to the portal's own
+    // spawnId: activation spawns the dead members, deactivation only stops
+    // future respawns so living demons persist like retail.
     struct npc_legion_portal : public ScriptedAI
     {
         npc_legion_portal(Creature* creature) : ScriptedAI(creature) { }
@@ -684,6 +702,21 @@ namespace Scripts::Custom::VaultOfTheWardens
             {
                 me->SetNpcFlag(UNIT_NPC_FLAG_SPELLCLICK);
             });
+            // sniff: a demon wave spawns at this point ~1.0-1.7s after the
+            // portal opens (surface portals have no group -> null check)
+            _scheduler.Schedule(1500ms, [this](TaskContext& /*task*/)
+            {
+                if (me->GetMap()->GetSpawnGroupData(static_cast<uint32>(me->GetSpawnId())))
+                    me->GetMap()->SpawnGroupSpawn(static_cast<uint32>(me->GetSpawnId()));
+            });
+        }
+
+        void OnDespawn() override
+        {
+            // portal dead at this point -> its demon spawn points stop
+            // respawning; demons already alive live out their lives (retail)
+            if (me->GetMap()->GetSpawnGroupData(static_cast<uint32>(me->GetSpawnId())))
+                me->GetMap()->SetSpawnGroupInactive(static_cast<uint32>(me->GetSpawnId()));
         }
 
         void SpellHit(WorldObject* /*caster*/, SpellInfo const* spellInfo) override

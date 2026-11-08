@@ -51,6 +51,14 @@ namespace Scripts::Custom::VaultOfTheWardens
         static constexpr uint32 WrathLordLekos = 97069;
         // warden fighting the demon waves in the Vault of Silence
         static constexpr uint32 DrelanimWhisperwind = 96847;
+        // demon trash waves - their deaths release souls for "Fel Infusion" (38689)
+        static constexpr uint32 SavageFelstalker     = 92782;
+        static constexpr uint32 FelShocktrooper      = 92776;
+        static constexpr uint32 MariusFelbaneFighter = 100298; // combat clone of 97619
+        // kill-credit proxy for quest 38689 ("Fel Energy regained" x100)
+        static constexpr uint32 SoulFragment = 89297;
+
+        static constexpr uint32 MiranaStarlight      = 99451;
     }
 
     namespace GameObjects
@@ -145,6 +153,17 @@ namespace Scripts::Custom::VaultOfTheWardens
         // dummy aura when crossing the Vault of Silence AT; its presence is
         // the per-player cooldown for the talk
         static constexpr uint32 CsaAreaTriggerDummyTimerAuraB = 138041;
+        // "Fel Infusion" (38689) soul absorb - sniffed chain: the player gains
+        // 133508 on accept, dead demons self-cast 133578, and the player casts
+        // 202154 which parents one 133511 kill credit per absorbed soul
+        static constexpr uint32 FelInfusionAura       = 133508;
+        static constexpr uint32 FelInfusionKillCredit = 133511;
+        static constexpr uint32 FillFelForcecast      = 133578;
+        static constexpr uint32 FillFel               = 202154;
+        // 133509 energizes the player's alternate power bar: child of 133508
+        // once on accept (amount 0 - empty bar), then one cast per 202154 wave
+        // energizing by the number of souls absorbed
+        static constexpr uint32 FillFelBar            = 133509;
     }
 
     namespace Events

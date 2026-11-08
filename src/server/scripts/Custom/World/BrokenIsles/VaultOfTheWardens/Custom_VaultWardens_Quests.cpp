@@ -102,6 +102,32 @@ namespace Scripts::Custom::VaultOfTheWardens
             }
         }
     };
+
+    // 38689 - Fel Infusion
+    // Bound through quest_template_addon.ScriptName - only fires for this quest.
+    // Retail applies the invisible aura 133508 on accept - it is the gate for
+    // the soul-absorb sweep (spell_vault_fel_infusion). The sniffed completion
+    // sequence removes it in the same tick as SMSG_QUEST_UPDATE_COMPLETE
+    // (aura slot cleared + alternate Power/MaxPower zeroed), so it only lives
+    // while the quest is INCOMPLETE.
+    class quest_vault_wardens_fel_infusion : public QuestScript
+    {
+    public:
+        quest_vault_wardens_fel_infusion() : QuestScript("quest_vault_wardens_fel_infusion") { }
+
+        void OnQuestStatusChange(Player* player, Quest const* /*quest*/, QuestStatus /*oldStatus*/, QuestStatus newStatus) override
+        {
+            if (newStatus != QUEST_STATUS_INCOMPLETE)
+                player->RemoveAurasDueToSpell(Spells::FelInfusionAura);
+            else if (!player->HasAura(Spells::FelInfusionAura))
+            {
+                player->CastSpell(player, Spells::FelInfusionAura, true);
+                // 133509 fires once as a child of the accept cast on retail -
+                // energizes 0, it only brings up the empty alternate power bar
+                player->CastSpell(player, Spells::FillFelBar, true);
+            }
+        }
+    };
 }
 
 void AddSC_custom_vault_wardens_quests()
@@ -109,4 +135,5 @@ void AddSC_custom_vault_wardens_quests()
     using namespace Scripts::Custom::VaultOfTheWardens;
 
     new quest_vault_wardens_breaking_out();
+    new quest_vault_wardens_fel_infusion();
 }

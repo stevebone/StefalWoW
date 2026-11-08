@@ -495,8 +495,11 @@ INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `StandState`,
 (97265, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '222589 42459'), -- 97265 (Kayn Sunfury) - Glaive Anim Replacement, Dual Wield
 (97267, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '222589 42459'), -- 97267 (Altruis the Sufferer) - Glaive Anim Replacement, Dual Wield
 (97644, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '222589'), -- 97644 (Kor'vas Bloodthorn) - Glaive Anim Replacement
-(97225, 0, 0, 0, 0, 4, 1, 0, 0, 0, 0, 0, 0, '145363'), -- 97225 (Wrathguard Legate) - Permanent Feign Death (Stun, Untrackable, Immune)
-(92782, 0, 0, 0, 0, 4, 1, 0, 0, 0, 0, 0, 0, '145363'), -- 92782 (Savage Felstalker) - Permanent Feign Death (Stun, Untrackable, Immune)
+-- 97225/92782/96645: 145363 is per-spawn, not per-template (sniffed corpse
+-- spawns in Demon Ward/Warden's Court only; live spawns carry no aura).
+-- The corpse guids already get it via creature_addon.
+(97225, 0, 0, 0, 0, 4, 1, 0, 0, 0, 0, 0, 0, ''), -- 97225 (Wrathguard Legate) - feign death moved to creature_addon per guid
+(92782, 0, 0, 0, 0, 4, 1, 0, 0, 0, 0, 0, 0, ''), -- 92782 (Savage Felstalker) - feign death moved to creature_addon per guid
 (96680, 0, 0, 0, 3, 0, 1, 0, 0, 0, 0, 0, 0, '191915'), -- 96680 (Glazer) - Focusing
 (102391, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '222589 202212'), -- 102391 (Altruis the Sufferer) - Glaive Anim Replacement, Cosmetic - Purple Cat Mark State (5.00)
 (99731, 0, 0, 0, 2, 0, 1, 0, 0, 0, 0, 0, 0, '195189'), -- 99731 (Countermeasures) - Countermeasure
@@ -513,7 +516,7 @@ INSERT INTO `creature_template_addon` (`entry`, `PathId`, `mount`, `StandState`,
 (97334, 0, 0, 0, 3, 0, 1, 0, 0, 0, 0, 0, 0, ''), -- 97334 (Kurloth)
 (100667, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, ''), -- 100667 (Jin Featherfall)
 (114358, 0, 0, 0, 0, 0, 1, 0, 0, 3761, 0, 0, 0, ''), -- 114358 (Legion Portal)
-(96645, 0, 0, 0, 0, 4, 1, 0, 0, 0, 0, 0, 0, '145363'), -- 96645 (Vault Warden) - Permanent Feign Death (Stun, Untrackable, Immune)
+(96645, 0, 0, 0, 0, 4, 1, 0, 0, 0, 0, 0, 0, ''), -- 96645 (Vault Warden) - feign death moved to creature_addon per guid
 (97806, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '222589'), -- 97806 (Falara Nightsong) - Glaive Anim Replacement
 (97643, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '222589'), -- 97643 (Kor'vas Bloodthorn) - Glaive Anim Replacement
 (96675, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '222589'), -- 96675 (Allari the Souleater) - Glaive Anim Replacement
@@ -1222,14 +1225,16 @@ DELETE FROM `smart_scripts` WHERE `entryorguid` IN (92776) AND source_type = 0;
 INSERT INTO smart_scripts (entryorguid, source_type, id, link, Difficulties, event_type, event_phase_mask, event_chance, event_flags, event_param1, event_param2, event_param3, event_param4, event_param5, event_param_string, action_type, action_param1, action_param2, action_param3, action_param4, action_param5, action_param6, action_param7, action_param_string, target_type, target_param1, target_param2, target_param3, target_param4, target_param_string, target_x, target_y, target_z, target_o, comment) VALUES
 (92776, 0, 1, 0, '', 4, 0, 30, 1, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Fel Shocktrooper - On Aggro - Talk (No Repeat)'),
 (92776, 0, 2, 0, '', 0, 0, 100, 0, 3000, 8000, 12000, 15000, 0, '', 11, 200930, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Fel Shocktrooper - In Combat - Cast Chaos Slash'),
-(92776, 0, 3, 0, '', 0, 0, 100, 0, 3000, 9000, 15000, 25000, 0, '', 11, 200963, 32, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Fel Shocktrooper - In Combat - Cast Bladestorm (Aura Not Present)');
+(92776, 0, 3, 0, '', 0, 0, 100, 0, 3000, 9000, 15000, 25000, 0, '', 11, 200963, 32, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Fel Shocktrooper - In Combat - Cast Bladestorm (Aura Not Present)'),
+(92776, 0, 5, 0, '', 11, 0, 50, 0, 1, 1468, 0, 0, 0, '', 49, 0, 0, 0, 0, 0, 0, 0, '', 25, 100, 0, 0, 0, '', 0, 0, 0, 0, 'Fel Shocktrooper - On Respawn - Attack Closest Enemy');
 
 -- SAI
 UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (92782);
 DELETE FROM `smart_scripts` WHERE `entryorguid` IN (92782) AND source_type = 0;
 INSERT INTO smart_scripts (entryorguid, source_type, id, link, Difficulties, event_type, event_phase_mask, event_chance, event_flags, event_param1, event_param2, event_param3, event_param4, event_param5, event_param_string, action_type, action_param1, action_param2, action_param3, action_param4, action_param5, action_param6, action_param7, action_param_string, target_type, target_param1, target_param2, target_param3, target_param4, target_param_string, target_x, target_y, target_z, target_o, comment) VALUES
 (92782, 0, 1, 0, '', 0, 0, 100, 0, 0, 1500, 12000, 18000, 0, '', 11, 200992, 32, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Savage Felstalker - In Combat - Cast Savage Assault (Aura Not Present)'),
-(92782, 0, 2, 0, '', 0, 0, 100, 0, 4000, 8000, 24000, 27000, 0, '', 11, 200498, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Savage Felstalker - In Combat - Cast Abyss Howl');
+(92782, 0, 2, 0, '', 0, 0, 100, 0, 4000, 8000, 24000, 27000, 0, '', 11, 200498, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Savage Felstalker - In Combat - Cast Abyss Howl'),
+(92782, 0, 4, 0, '', 11, 0, 30, 0, 1, 1468, 0, 0, 0, '', 49, 0, 0, 0, 0, 0, 0, 0, '', 25, 100, 0, 0, 0, '', 0, 0, 0, 0, 'Savage Felstalker - On Respawn - Attack Closest Enemy');
 
 -- SAI
 UPDATE `creature_template` SET `AIName` = 'SmartAI' WHERE `entry` IN (96656);
@@ -1290,6 +1295,26 @@ DELETE FROM `spell_script_names` WHERE `spell_id`=191029;
 INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 (191029, 'spell_vault_throwing_blade'); -- Throwing Blade - dummy bp pick the blade-missile variant
 
+
+-- Quest 38689 - Fel Infusion (Soul Fragment 89297 x100)
+-- Sniffed chain: quest accept applies invisible aura 133508 on the player, dead
+-- demons self-cast 133578 (soul-release visual 94045), and the aura then makes
+-- the player cast 202154 Fill Fel which parents one 133511 kill credit per
+-- absorbed soul (~8-13 bursts while packs die). quest_vault_wardens_fel_infusion
+-- applies/removes the aura; spell_vault_fel_infusion runs the absorb sweep.
+INSERT INTO `quest_template_addon` (`ID`, `ScriptName`) VALUES
+(38689, 'quest_vault_wardens_fel_infusion')
+ON DUPLICATE KEY UPDATE `ScriptName`='quest_vault_wardens_fel_infusion';
+
+DELETE FROM `spell_script_names` WHERE `spell_id`=133508;
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
+(133508, 'spell_vault_fel_infusion'); -- Fel Infusion aura - absorb sweep on heartbeat
+
+-- Soul-release self-cast on death (sniffed on all three entries; the absorb
+-- credits come from the player-side aura sweep, not the dying unit)
+INSERT INTO smart_scripts (entryorguid, source_type, id, link, Difficulties, event_type, event_phase_mask, event_chance, event_flags, event_param1, event_param2, event_param3, event_param4, event_param5, event_param_string, action_type, action_param1, action_param2, action_param3, action_param4, action_param5, action_param6, action_param7, action_param_string, target_type, target_param1, target_param2, target_param3, target_param4, target_param_string, target_x, target_y, target_z, target_o, comment) VALUES
+(92782, 0, 3, 0, '', 6, 0, 100, 0, 0, 0, 0, 0, 0, '', 11, 133578, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Savage Felstalker - On Just Died - Cast Fill Fel: Forcecast (soul release visual)'),
+(92776, 0, 4, 0, '', 6, 0, 100, 0, 0, 0, 0, 0, 0, '', 11, 133578, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Fel Shocktrooper - On Just Died - Cast Fill Fel: Forcecast (soul release visual)');
 
 -- Quest 38672 - Breaking Out
 DELETE FROM `phase_name` WHERE `ID`=5121;

@@ -1234,3 +1234,80 @@ INSERT INTO `pool_members` (`type`,`spawnId`,`poolSpawnId`,`chance`,`description
 (0, @CGUID+0, @POOLID+69, 0, 'Legion Portal (4248.0,-493.5)'),
 (0, @CGUID+1, @POOLID+69, 0, 'Legion Portal (4370.2,-511.7)'),
 (0, @CGUID+2, @POOLID+69, 0, 'Legion Portal (4280.2,-476.5)');
+
+-- Portal-gated demon spawns (Illidari Ward)
+-- Sniff (GUID-tracked): all 345 demon creates within ~8y of a portal point
+-- happened while a portal was alive at that point - zero while it was dead.
+-- No summon spell is involved (CreatedBy 0x0, no SpawnTracking): this is spawn
+-- gating, not summoning. Each pooled portal's spawnId doubles as a
+-- MANUAL_SPAWN spawn_group id holding the demon spawn points near it;
+-- npc_legion_portal calls SpawnGroupSpawn ~1.5s after the portal opens and
+-- SetSpawnGroupActive(false) when it despawns (respawns stop, living demons
+-- persist - exactly what the sniff shows).
+
+-- retail demons fight the Illidari, die in ~15-35s and respawn on a ~10-30s
+-- cycle (median 25s observed); the old 3600s left the ward full of corpses
+UPDATE `creature` SET `spawntimesecs`=30 WHERE `id` IN (92776, 92782) AND `map`=1468 AND `areaId` IN (7871, 7872);
+
+-- missing portal-adjacent demon spawn points (all sniffed pos+orientation)
+SET @CGUID := 70064550;
+DELETE FROM `creature` WHERE `guid` BETWEEN @CGUID+0 AND @CGUID+14;
+INSERT INTO `creature` (`guid`, `id`, `map`, `zoneId`, `areaId`, `spawnDifficulties`, `phaseUseFlags`, `PhaseId`, `PhaseGroup`, `terrainSwapMap`, `modelid`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `wander_distance`, `currentwaypoint`, `curHealthPct`, `MovementType`, `npcflag`, `unit_flags`, `unit_flags2`, `unit_flags3`, `ScriptName`, `StringId`, `VerifiedBuild`) VALUES
+(@CGUID+0, 92782, 1468, 7814, 7872, '0', 0, 0, 0, -1, 0, 0, 4248.46, -493.266, -281.678, 6.04923, 30, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
+(@CGUID+1, 92782, 1468, 7814, 7872, '0', 0, 0, 0, -1, 0, 0, 4252.467, -491.324, -281.655, 0.01086, 30, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
+(@CGUID+2, 92782, 1468, 7814, 7872, '0', 0, 0, 0, -1, 0, 0, 4264.328, -495.003, -281.703, 0.07004, 30, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
+(@CGUID+3, 92776, 1468, 7814, 7872, '0', 0, 0, 0, -1, 0, 0, 4263.496, -494.652, -281.743, 6.2247, 30, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
+(@CGUID+4, 92782, 1468, 7814, 7872, '0', 0, 0, 0, -1, 0, 0, 4367.833, -511.712, -289.617, 2.97707, 30, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
+(@CGUID+5, 92782, 1468, 7814, 7872, '0', 0, 0, 0, -1, 0, 0, 4362.346, -510.066, -289.656, 3.14261, 30, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
+(@CGUID+6, 92782, 1468, 7814, 7872, '0', 0, 0, 0, -1, 0, 0, 4366.918, -508.493, -289.617, 4.00281, 30, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
+(@CGUID+7, 92782, 1468, 7814, 7872, '0', 0, 0, 0, -1, 0, 0, 4308.557, -449.804, -289.617, 4.80715, 30, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
+(@CGUID+8, 92782, 1468, 7814, 7872, '0', 0, 0, 0, -1, 0, 0, 4311.208, -452.785, -289.617, 4.6831, 30, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
+(@CGUID+9, 92776, 1468, 7814, 7872, '0', 0, 0, 0, -1, 0, 0, 4309.174, -453.102, -289.617, 4.99145, 30, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
+(@CGUID+10, 92782, 1468, 7814, 7872, '0', 0, 0, 0, -1, 0, 0, 4346.491, -448.635, -289.617, 4.43255, 30, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
+(@CGUID+11, 92782, 1468, 7814, 7872, '0', 0, 0, 0, -1, 0, 0, 4365.328, -476.486, -289.617, 3.18789, 30, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
+(@CGUID+12, 92782, 1468, 7814, 7872, '0', 0, 0, 0, -1, 0, 0, 4285.997, -508.188, -289.665, 0.20234, 30, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
+(@CGUID+13, 92782, 1468, 7814, 7872, '0', 0, 0, 0, -1, 0, 0, 4281.317, -479.062, -289.617, 6.09152, 30, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
+(@CGUID+14, 92782, 1468, 7814, 7872, '0', 0, 0, 0, -1, 0, 0, 4289.631, -477.196, -289.678, 6.07506, 30, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814);
+
+-- one MANUAL_SPAWN group per pooled portal; groupId == portal spawnId so the
+-- portal AI needs no position lookup. Members never auto-spawn - only the
+-- portal's SpawnGroupSpawn brings them up, and while the group is active
+-- their own 30s respawn works normally.
+DELETE FROM `spawn_group_template` WHERE `groupId` IN (70063882, 70063883, 70063892, 70063897, 70064288, 70064546, 70064547, 70064548);
+INSERT INTO `spawn_group_template` (`groupId`, `groupName`, `groupFlags`) VALUES
+(70063882, 'Vault DH - Legion Portal demons (4369.3,-476.8)', 4),
+(70063883, 'Vault DH - Legion Portal demons (4279.7,-511.9)', 4),
+(70063892, 'Vault DH - Legion Portal demons (4310.5,-536.7)', 4),
+(70063897, 'Vault DH - Legion Portal demons (4307.5,-448.3)', 4),
+(70064288, 'Vault DH - Legion Portal demons (4345.2,-447.9)', 4),
+(70064546, 'Vault DH - Legion Portal demons (4248.0,-493.5)', 4),
+(70064547, 'Vault DH - Legion Portal demons (4370.2,-511.7)', 4),
+(70064548, 'Vault DH - Legion Portal demons (4280.2,-476.5)', 4);
+
+-- only floor-level (Z~-289) demon points within ~8y of a portal are gated;
+-- Z~-275/-277 ledge spawns are a separate always-on population (they stay
+-- plain statics with the same 30s respawn). Portal 70063892's point is an
+-- unverified import and has no verified gated demons - template kept anyway.
+DELETE FROM `spawn_group` WHERE `groupId` IN (70063882, 70063883, 70063892, 70063897, 70064288, 70064546, 70064547, 70064548);
+INSERT INTO `spawn_group` (`groupId`, `spawnType`, `spawnId`) VALUES
+(70063882, 0, 70063894), -- 92776 (4363.6,-478.2)
+(70063882, 0, 70063896), -- 92782 (4364.6,-480.0)
+(70063882, 0, @CGUID+11), -- 92782 (4365.3,-476.5)
+(70063883, 0, 70063884), -- 92776 (4285.1,-509.3)
+(70063883, 0, 70063885), -- 92782 (4284.7,-507.3)
+(70063883, 0, @CGUID+12), -- 92782 (4286.0,-508.2)
+(70063897, 0, @CGUID+7), -- 92782 (4308.6,-449.8)
+(70063897, 0, @CGUID+8), -- 92782 (4311.2,-452.8)
+(70063897, 0, @CGUID+9), -- 92776 (4309.2,-453.1)
+(70064288, 0, 70063890), -- 92776 (4343.5,-451.2)
+(70064288, 0, @CGUID+10), -- 92782 (4346.5,-448.6)
+(70064546, 0, @CGUID+0), -- 92782 (4248.5,-493.3)
+(70064546, 0, @CGUID+1), -- 92782 (4252.5,-491.3)
+-- +2/+3 (~15-16y out, west side) stay ungated statics - outside verified gate
+(70064547, 0, @CGUID+4), -- 92782 (4367.8,-511.7)
+(70064547, 0, @CGUID+5), -- 92782 (4362.3,-510.1)
+(70064547, 0, @CGUID+6), -- 92782 (4366.9,-508.5)
+(70064548, 0, 70063878), -- 92782 (4286.5,-476.5)
+(70064548, 0, 70063881), -- 92776 (4284.9,-477.8)
+(70064548, 0, @CGUID+13), -- 92782 (4281.3,-479.1)
+(70064548, 0, @CGUID+14); -- 92782 (4289.6,-477.2)

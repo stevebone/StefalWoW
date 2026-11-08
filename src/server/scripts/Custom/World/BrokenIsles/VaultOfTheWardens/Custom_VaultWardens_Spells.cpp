@@ -20,6 +20,9 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "Creature.h"
+#include "ObjectGuid.h"
+#include "Player.h"
 #include "Random.h"
 #include "ScriptMgr.h"
 #include "SpellScript.h"
@@ -48,6 +51,61 @@ namespace Scripts::Custom::VaultOfTheWardens
             OnEffectHitTarget += SpellEffectFn(spell_vault_throwing_blade::CastBladeVariant, EFFECT_0, SPELL_EFFECT_DUMMY);
         }
     };
+
+    // 133508 - Fel Infusion (quest 38689 soul-absorb aura, applied on accept)
+    // Sniffed chain: dead demons release souls (their own 133578 death cast),
+    // the player then casts 202154 Fill Fel which parents one 133511 kill
+    // credit per absorbed soul - bursts of ~8-13 while packs died nearby.
+    // Aura heartbeat is 5.2s; skipping one tick spaces the sweeps to ~10s,
+    // matching the sniffed Fill Fel cadence (~10-25s). _absorbedSouls keeps
+    // each corpse from yielding more than one fragment for this player.
+    class spell_vault_fel_infusion : public AuraScript
+    {
+        void SweepSouls()
+        {
+            if (++_sweepTicks < 2) // every other heartbeat -> ~10s sweep
+                return;
+            _sweepTicks = 0;
+
+            Unit* owner = GetUnitOwner();
+            Player* player = owner->ToPlayer();
+            if (!player)
+                return;
+
+            // retail emits no kill-credit casts once the objective is filled
+            if (player->GetQuestStatus(Quests::FelInfusion) != QUEST_STATUS_INCOMPLETE)
+                return;
+
+            std::vector<Creature*> souls;
+            for (uint32 entry : { Creatures::SavageFelstalker, Creatures::FelShocktrooper })
+            {
+                std::list<Creature*> found;
+                owner->GetCreatureListWithEntryInGrid(found, entry, 50.0f);
+                for (Creature* creature : found)
+                    if (!creature->IsAlive() && _absorbedSouls.insert(creature->GetGUID()).second)
+                        souls.push_back(creature);
+            }
+
+            if (souls.empty())
+                return;
+
+            owner->CastSpell(owner, Spells::FillFel, true);
+            for (Creature* soul [[maybe_unused]] : souls)
+                owner->CastSpell(owner, Spells::FelInfusionKillCredit, true);
+            // 133509 Fill Fel Bar - child of the Fill Fel cast on retail,
+            // energizes the alternate power bar by the wave's soul count
+            owner->CastSpell(owner, Spells::FillFelBar, CastSpellExtraArgs(TRIGGERED_FULL_MASK)
+                .AddSpellMod(SPELLVALUE_BASE_POINT0, int32(souls.size())));
+        }
+
+        void Register() override
+        {
+            OnHeartbeat += AuraHeartbeatFn(spell_vault_fel_infusion::SweepSouls);
+        }
+
+        uint32 _sweepTicks = 0;
+        GuidUnorderedSet _absorbedSouls;
+    };
 }
 
 void AddSC_custom_vault_wardens_spells()
@@ -55,4 +113,5 @@ void AddSC_custom_vault_wardens_spells()
     using namespace Scripts::Custom::VaultOfTheWardens;
 
     RegisterSpellScript(spell_vault_throwing_blade);
+    RegisterSpellScript(spell_vault_fel_infusion);
 }
