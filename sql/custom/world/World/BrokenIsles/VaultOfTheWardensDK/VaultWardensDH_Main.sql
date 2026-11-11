@@ -1486,3 +1486,68 @@ UPDATE `creature_template` SET `ScriptName`='npc_vault_freed_named_illidari' WHE
 DELETE FROM `quest_template_addon` WHERE `ID`=40253;
 INSERT INTO `quest_template_addon` (`ID`, `PrevQuestID`) VALUES
 (40253, 38690);
+
+-- Tomb of the Penitent (area 7871) - phase 7385 trio + private conversation
+-- Sniff (session 4, ~18:53): entering area 7871 adds phase 7385 via
+-- PhaseGroup 920; Maiev/Kayn/Altruis spawn at the tomb entrance in that
+-- phase, and crossing the tomb mouth (~4272.9,-300.1,-283.6) makes the
+-- player self-cast 192605 "Conversation: Illidan's Chamber Arrival", which
+-- creates private conversation 527. Phase is gated on quests 38689/38690
+-- COMPLETE (objectives done, NOT yet rewarded) - condition type 28.
+DELETE FROM `phase_name` WHERE `ID`=7385;
+INSERT INTO `phase_name` (`ID`, `Name`) VALUES
+(7385, 'Tomb of the Penitent - Vault Trio');
+
+DELETE FROM `phase_area` WHERE `PhaseId`=7385;
+INSERT INTO `phase_area` (`AreaId`, `PhaseId`, `Comment`) VALUES
+(7871, 7385, 'Tomb of the Penitent - Vault Trio');
+
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId`=26 AND `SourceGroup`=7385;
+INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `ConditionStringValue1`, `NegativeCondition`, `ErrorType`, `ErrorTextId`, `ScriptName`, `Comment`) VALUES
+(26, 7385, 7871, 0, 0, 28, 0, 38689, 0, 0, '', 0, 0, 0, '', 'Phase 7385 requires quest 38689 Fel Infusion complete (not rewarded)'),
+(26, 7385, 7871, 0, 0, 28, 0, 38690, 0, 0, '', 0, 0, 0, '', 'Phase 7385 requires quest 38690 Rise of the Illidari complete (not rewarded)');
+
+-- Conversation trigger: the sniff carries no server-side AT packet for the
+-- tomb mouth - retail's volume is invisible to the sniffer. A custom
+-- serverside sphere (r=12, centered on the sniffed cast point) drives the
+-- self-cast. The spawn is itself phased to 7385, so it only exists for
+-- players who can see the trio.
+DELETE FROM `areatrigger_template` WHERE `Id`=70004 AND `IsCustom`=1;
+INSERT INTO `areatrigger_template` (`Id`, `IsCustom`, `Flags`, `ActionSetId`, `ActionSetFlags`, `VerifiedBuild`) VALUES
+(70004, 1, 1, 0, 0, 70575); -- Flags=1 IsServerSide (invisible unless .debug areatriggers)
+
+DELETE FROM `areatrigger_create_properties` WHERE `Id`=70004 AND `IsCustom`=1;
+INSERT INTO `areatrigger_create_properties` (`Id`, `IsCustom`, `AreaTriggerId`, `IsAreatriggerCustom`, `Flags`, `MoveCurveId`, `ScaleCurveId`, `MorphCurveId`, `FacingCurveId`, `AnimId`, `AnimKitId`, `DecalPropertiesId`, `SpellForVisuals`, `TimeToTargetScale`, `Speed`, `SpeedIsTime`, `Shape`, `ShapeData0`, `ShapeData1`, `ShapeData2`, `ShapeData3`, `ShapeData4`, `ShapeData5`, `ShapeData6`, `ShapeData7`, `VerifiedBuild`) VALUES
+(70004, 1, 70004, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 12, 12, 0, 0, 0, 0, 0, 0, 70575); -- Shape 0 = Sphere, r=12
+
+SET @ATSPAWNID := 100200;
+DELETE FROM `areatrigger` WHERE `SpawnId`=@ATSPAWNID+1;
+INSERT INTO `areatrigger` (`SpawnId`, `AreaTriggerCreatePropertiesId`, `IsCustom`, `MapId`, `SpawnDifficulties`, `PosX`, `PosY`, `PosZ`, `Orientation`, `PhaseUseFlags`, `PhaseId`, `PhaseGroup`, `ScriptName`, `Comment`, `VerifiedBuild`) VALUES
+(@ATSPAWNID+1, 70004, 1, 1468, '0', 4273.0, -300.14, -283.55, 0, 0, 7385, 0, 'at_tomb_of_the_penitent_conversation', 'Tomb of the Penitent - private conversation 527 trigger', 70575);
+
+-- Illidari Ward (7872) -> Tomb of the Penitent (7871) boundary: sniffed
+-- player crossing at (4325.9,-408.3)->(4325.7,-404.7) creates private
+-- conversation 1181 (Bastillax taunt) while 38689/38690 are both
+-- complete-not-rewarded. Phased to 7385 like the tomb-mouth AT, so the
+-- trigger only exists during that window; at_bastillax_taunt also
+-- re-checks quest status and fires once per player.
+DELETE FROM `areatrigger_template` WHERE `Id`=70005 AND `IsCustom`=1;
+INSERT INTO `areatrigger_template` (`Id`, `IsCustom`, `Flags`, `ActionSetId`, `ActionSetFlags`, `VerifiedBuild`) VALUES
+(70005, 1, 1, 0, 0, 70575); -- Flags=1 IsServerSide (invisible unless .debug areatriggers)
+
+DELETE FROM `areatrigger_create_properties` WHERE `Id`=70005 AND `IsCustom`=1;
+INSERT INTO `areatrigger_create_properties` (`Id`, `IsCustom`, `AreaTriggerId`, `IsAreatriggerCustom`, `Flags`, `MoveCurveId`, `ScaleCurveId`, `MorphCurveId`, `FacingCurveId`, `AnimId`, `AnimKitId`, `DecalPropertiesId`, `SpellForVisuals`, `TimeToTargetScale`, `Speed`, `SpeedIsTime`, `Shape`, `ShapeData0`, `ShapeData1`, `ShapeData2`, `ShapeData3`, `ShapeData4`, `ShapeData5`, `ShapeData6`, `ShapeData7`, `VerifiedBuild`) VALUES
+(70005, 1, 70005, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15, 15, 0, 0, 0, 0, 0, 0, 70575); -- Shape 0 = Sphere, r=15
+
+DELETE FROM `areatrigger` WHERE `SpawnId`=@ATSPAWNID+2;
+INSERT INTO `areatrigger` (`SpawnId`, `AreaTriggerCreatePropertiesId`, `IsCustom`, `MapId`, `SpawnDifficulties`, `PosX`, `PosY`, `PosZ`, `Orientation`, `PhaseUseFlags`, `PhaseId`, `PhaseGroup`, `ScriptName`, `Comment`, `VerifiedBuild`) VALUES
+(@ATSPAWNID+2, 70005, 1, 1468, '0', 4326.0, -405.0, -282.0, 0, 0, 7385, 0, 'at_bastillax_taunt', 'Illidari Ward -> Tomb of the Penitent boundary - private conversation 1181 trigger', 70575);
+
+-- Conversation 527 actors are world-object actors resolved by creature
+-- spawnid at create time (ConversationActorWorldObjectTemplate -> map's
+-- GetCreatureBySpawnIdStore). Spawnid 0 drops the actor, which is why the
+-- cast showed nothing; bind them to the phase-7385 tomb-entrance spawns.
+-- 49446/idx0 = Maiev (92718, guid 70063917), 49445/idx1 = Kayn (96665, guid 70063915)
+UPDATE `conversation_actors` SET `ConversationActorGuid`=70063917 WHERE `ConversationId`=527 AND `ConversationActorId`=49446;
+UPDATE `conversation_actors` SET `ConversationActorGuid`=70063915 WHERE `ConversationId`=527 AND `ConversationActorId`=49445;
+

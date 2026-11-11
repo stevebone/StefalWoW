@@ -68,9 +68,9 @@ INSERT INTO `creature` (`guid`, `id`, `map`, `zoneId`, `areaId`, `spawnDifficult
 (@CGUID+60, 101647, 1468, 7814, 7871, '0', 0, 0, 0, -1, 0, 0, 4392.2, -315.706, -260.05, 4.63449, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
 (@CGUID+61, 96656, 1468, 7814, 7871, '0', 0, 0, 0, -1, 0, 1, 4338.28, -273.507, -278.68, 4.72088, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
 (@CGUID+62, 101647, 1468, 7814, 7871, '0', 0, 0, 0, -1, 0, 0, 4235.64, -301.674, -281.263, 5.83114, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
-(@CGUID+63, 96665, 1468, 7814, 7871, '0', 0, 0, 0, -1, 0, 1, 4238.04, -290.144, -281.311, 3.36936, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
-(@CGUID+64, 92986, 1468, 7814, 7871, '0', 0, 0, 0, -1, 0, 1, 4238.93, -295.142, -281.309, 3.31179, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
-(@CGUID+65, 92718, 1468, 7814, 7871, '0', 0, 0, 0, -1, 0, 1, 4235.61, -292.957, -281.312, 3.31505, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
+(@CGUID+63, 96665, 1468, 7814, 7871, '0', 0, 7385, 0, -1, 0, 1, 4238.04, -290.144, -281.311, 3.36936, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
+(@CGUID+64, 92986, 1468, 7814, 7871, '0', 0, 7385, 0, -1, 0, 1, 4238.93, -295.142, -281.309, 3.31179, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
+(@CGUID+65, 92718, 1468, 7814, 7871, '0', 0, 7385, 0, -1, 0, 1, 4235.61, -292.957, -281.312, 3.31505, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
 (@CGUID+66, 100296, 1468, 7814, 7871, '0', 0, 0, 0, -1, 0, 1, 4343.48, -231.924, -266.521, 0.606664, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
 (@CGUID+67, 96997, 1468, 7814, 7871, '0', 0, 0, 0, -1, 0, 0, 4373.73, -296.683, -260.513, 2.94051, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
 (@CGUID+68, 101647, 1468, 7814, 7871, '0', 0, 0, 0, -1, 0, 0, 4290.1, -307.019, -283.31, 3.86968, 3600, 0, 0, 0, 0, NULL, NULL, NULL, NULL, '', NULL, 69814),
@@ -1311,3 +1311,11 @@ INSERT INTO `spawn_group` (`groupId`, `spawnType`, `spawnId`) VALUES
 (70064548, 0, 70063881), -- 92776 (4284.9,-477.8)
 (70064548, 0, @CGUID+13), -- 92782 (4281.3,-479.1)
 (70064548, 0, @CGUID+14); -- 92782 (4289.6,-477.2)
+
+-- Visibility: phase 7385 is the zone's first non-cosmetic phase - once it
+-- applies the player's Unphased flag is stripped and every PhaseId=0 spawn
+-- goes invisible (PhaseShift::UpdateUnphasedFlag). Restore the pre-phase
+-- behavior for the tomb's previously unphased spawns by marking them
+-- ALWAYS_VISIBLE (phaseUseFlags=1); phased rows and the trio are untouched.
+UPDATE `creature`   SET `phaseUseFlags`=1 WHERE `map`=1468 AND `areaId`=7871 AND `PhaseId`=0 AND `PhaseGroup`=0 AND `phaseUseFlags`=0;
+UPDATE `gameobject` SET `phaseUseFlags`=1 WHERE `map`=1468 AND `areaId`=7871 AND `PhaseId`=0 AND `PhaseGroup`=0 AND `phaseUseFlags`=0;

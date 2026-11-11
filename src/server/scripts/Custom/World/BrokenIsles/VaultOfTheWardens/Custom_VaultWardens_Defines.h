@@ -86,6 +86,9 @@ namespace Scripts::Custom::VaultOfTheWardens
         // follow-up quests accepted from the hall statics 92980 / 92986
         static constexpr uint32 RiseOfTheIllidari = 38690; // Kayn
         static constexpr uint32 FelInfusion       = 38689; // Altruis
+        // tracking quest completed by spell 202116 - its reward status is
+        // retail's persistent once-per-player gate for conversation 1181
+        static constexpr uint32 BastillaxTauntTracking = 40921;
     }
 
     namespace Texts
@@ -164,6 +167,13 @@ namespace Scripts::Custom::VaultOfTheWardens
         // once on accept (amount 0 - empty bar), then one cast per 202154 wave
         // energizing by the number of souls absorbed
         static constexpr uint32 FillFelBar            = 133509;
+        // "Conversation: Illidan's Chamber Arrival" - self-cast on crossing the
+        // tomb mouth; CREATE_PRIVATE_CONVERSATION (conversation 527, Maiev/Kayn)
+        static constexpr uint32 TombPenitentConversation = 192605;
+        // "Mephistos 1" - sniffed self-cast at the Illidari Ward / Tomb of the
+        // Penitent boundary; CREATE_PRIVATE_CONVERSATION (conversation 1181,
+        // Bastillax) + QUEST_COMPLETE (tracking quest 40921, the once-gate)
+        static constexpr uint32 BastillaxTaunt = 202116;
     }
 
     namespace Events
@@ -194,6 +204,9 @@ namespace Scripts::Custom::VaultOfTheWardens
         static constexpr uint32 KaynFreed    = 5125;
         // sealed-door phase (ward static + collision wall) - dropped at reward
         static constexpr uint32 WardSealed   = 5966;
+        // Tomb of the Penitent trio (Maiev/Kayn/Altruis entrance + convo AT) -
+        // sniffed phase add on entering area 7871 via PhaseGroup 920
+        static constexpr uint32 TombOfThePenitent = 7385;
     }
 
     namespace Paths
