@@ -106,6 +106,28 @@ namespace Scripts::Custom::VaultOfTheWardens
         uint32 _sweepTicks = 0;
         GuidUnorderedSet _absorbedSouls;
     };
+
+    // 223661 - Stop Gul'dan: Quest Accept (quest 40253's SourceSpellID, cast by
+    // the player on accept - its KILL_CREDIT2 -> objective 99303 effect is
+    // native spell data). The hidden 1s DUMMY aura on effect 0 is retail's
+    // scripted delay: when it expires the player self-casts 187864 "Play
+    // Scene" -> scene 1016 (sniffed 18:54:13 cast -> 18:54:14 aura remove +
+    // 187864 cast).
+    class spell_vault_stop_guldan_accept : public AuraScript
+    {
+        void OnRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+        {
+            if (GetTargetApplication()->GetRemoveMode() != AURA_REMOVE_BY_EXPIRE)
+                return;
+
+            GetTarget()->CastSpell(GetTarget(), Spells::StopGuldanPlayScene, true);
+        }
+
+        void Register() override
+        {
+            AfterEffectRemove += AuraEffectRemoveFn(spell_vault_stop_guldan_accept::OnRemove, EFFECT_0, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL);
+        }
+    };
 }
 
 void AddSC_custom_vault_wardens_spells()
@@ -114,4 +136,5 @@ void AddSC_custom_vault_wardens_spells()
 
     RegisterSpellScript(spell_vault_throwing_blade);
     RegisterSpellScript(spell_vault_fel_infusion);
+    RegisterSpellScript(spell_vault_stop_guldan_accept);
 }

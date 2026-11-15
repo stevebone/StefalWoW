@@ -75,6 +75,16 @@ namespace Scripts::Custom::VaultOfTheWardens
     namespace Areas
     {
         static constexpr uint32 VaultOfSilence = 7873;
+        // "Stop Gul'dan!" scene-end destination (sniffed SubareaID of the
+        // arena INIT_WORLD_STATES)
+        static constexpr uint32 VaultOfTheBetrayer = 7819;
+    }
+
+    namespace Zones
+    {
+        // parent zone of the whole instance (sniffed AreaID field of the
+        // arena INIT_WORLD_STATES)
+        static constexpr uint32 VaultOfTheWardens = 7814;
     }
 
     namespace Quests
@@ -89,6 +99,12 @@ namespace Scripts::Custom::VaultOfTheWardens
         // tracking quest completed by spell 202116 - its reward status is
         // retail's persistent once-per-player gate for conversation 1181
         static constexpr uint32 BastillaxTauntTracking = 40921;
+        // "Stop Gul'dan!" (40253), and the retail tracking quest rewarded when
+        // scene 1016 finishes ("Tracking Quest: Mephistos 2") - its reward
+        // status drives the persistent 7385 -> 5128 phase swap (same pattern
+        // as 40921's gate for the Bastillax taunt)
+        static constexpr uint32 StopGuldan              = 40253;
+        static constexpr uint32 StopGuldanSceneTracking = 40922;
     }
 
     namespace Texts
@@ -174,6 +190,21 @@ namespace Scripts::Custom::VaultOfTheWardens
         // Penitent boundary; CREATE_PRIVATE_CONVERSATION (conversation 1181,
         // Bastillax) + QUEST_COMPLETE (tracking quest 40921, the once-gate)
         static constexpr uint32 BastillaxTaunt = 202116;
+        // "Stop Gul'dan: Quest Accept" - quest 40253's SourceSpellID, cast by
+        // the player on accept (the KILL_CREDIT2 -> objective 99303 effect is
+        // native); its hidden 1s DUMMY aura expiry casts 187864 - retail marks
+        // the spell as a server-side script
+        static constexpr uint32 StopGuldanQuestAccept = 223661;
+        // "Play Scene" - SPELL_EFFECT_PLAY_SCENE -> scene 1016 (sniffed
+        // self-cast in the same tick the 223661 aura expired)
+        static constexpr uint32 StopGuldanPlayScene   = 187864;
+    }
+
+    namespace Scenes
+    {
+        // played by spell 187864 - "Stop Gul'dan!" tomb cinematic
+        // (scene_template package 1423, flags 26)
+        static constexpr uint32 StopGuldan = 1016;
     }
 
     namespace Events
@@ -207,6 +238,12 @@ namespace Scripts::Custom::VaultOfTheWardens
         // Tomb of the Penitent trio (Maiev/Kayn/Altruis entrance + convo AT) -
         // sniffed phase add on entering area 7871 via PhaseGroup 920
         static constexpr uint32 TombOfThePenitent = 7385;
+        // Vault of the Betrayer arena (area 7819): static demon portals,
+        // Sledge, Crusher and the Kayn/Altruis fight clones - raised by the
+        // scene tracking quest, dropped when 40253 completes
+        static constexpr uint32 VaultOfTheBetrayerArena     = 5128;
+        // post-fight arena state (sniffed phase swap at quest completion)
+        static constexpr uint32 VaultOfTheBetrayerPostFight = 5498;
     }
 
     namespace Paths
@@ -260,5 +297,9 @@ namespace Scripts::Custom::VaultOfTheWardens
         // rally-point spawn spots of the post-reward clones (sniffed create data)
         static constexpr Position KaynPostRewardSpawn    = { 4328.46f, -583.66f, -281.924f, 3.36849f };
         static constexpr Position AltruisPostRewardSpawn = { 4323.64f, -583.668f, -281.924f, 6.12611f };
+        // sniffed SMSG_MOVE_TELEPORT landing at scene 1016 end - the Vault of
+        // the Betrayer arena (no teleport spell exists in the sniff, the
+        // server teleports directly)
+        static constexpr Position StopGuldanArenaTeleport = { 4084.27f, -298.11f, -282.07f, 3.118f };
     }
 }

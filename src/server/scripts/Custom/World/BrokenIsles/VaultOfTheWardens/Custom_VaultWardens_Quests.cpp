@@ -128,6 +128,25 @@ namespace Scripts::Custom::VaultOfTheWardens
             }
         }
     };
+
+    // 40253 - Stop Gul'dan!
+    // Bound through quest_template_addon.ScriptName. The accept cast (223661)
+    // is native quest data (SourceSpellID + PLAYER_CAST_ACCEPT) and the
+    // scene-end transition lives in scene_vault_stop_guldan; here we only keep
+    // the phase_area conditions evaluated: quest completion is what drops
+    // arena phase 5128 and raises 5498. Phase 7385 is deliberately NOT gated
+    // on this quest - the trio are the scene actors and must survive until
+    // the scene tracking quest lands.
+    class quest_vault_wardens_stop_guldan : public QuestScript
+    {
+    public:
+        quest_vault_wardens_stop_guldan() : QuestScript("quest_vault_wardens_stop_guldan") { }
+
+        void OnQuestStatusChange(Player* player, Quest const* /*quest*/, QuestStatus /*oldStatus*/, QuestStatus /*newStatus*/) override
+        {
+            PhasingHandler::OnConditionChange(player);
+        }
+    };
 }
 
 void AddSC_custom_vault_wardens_quests()
@@ -136,4 +155,5 @@ void AddSC_custom_vault_wardens_quests()
 
     new quest_vault_wardens_breaking_out();
     new quest_vault_wardens_fel_infusion();
+    new quest_vault_wardens_stop_guldan();
 }

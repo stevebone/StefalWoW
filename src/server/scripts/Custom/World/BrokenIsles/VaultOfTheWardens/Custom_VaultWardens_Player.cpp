@@ -22,6 +22,7 @@
 
 #include "EventProcessor.h"
 #include "ObjectMgr.h"
+#include "PhasingHandler.h"
 #include "Player.h"
 #include "QuestDef.h"
 #include "ScriptMgr.h"
@@ -57,6 +58,41 @@ namespace Scripts::Custom::VaultOfTheWardens
             }, 2s);
         }
     };
+
+    // 40253 - Stop Gul'dan! - login recovery for the scene transition window.
+    // If the player logged out between accepting and scene end (or the server
+    // went down mid-cinematic), the scene tracking quest never got rewarded,
+    // so the tomb phase never swapped to the arena phase. Finish the
+    // transition for them; the phase_area conditions resolve the rest.
+    class player_vault_wardens_stop_guldan_recovery : public PlayerScript
+    {
+    public:
+        player_vault_wardens_stop_guldan_recovery() : PlayerScript("player_vault_wardens_stop_guldan_recovery") { }
+
+        void OnLogin(Player* player, bool /*firstLogin*/) override
+        {
+            if (player->GetMapId() != Maps::WardenPrisonDH ||
+                player->GetQuestRewardStatus(Quests::StopGuldanSceneTracking))
+                return;
+
+            QuestStatus status = player->GetQuestStatus(Quests::StopGuldan);
+            if (status != QUEST_STATUS_INCOMPLETE && status != QUEST_STATUS_COMPLETE)
+                return;
+
+            player->m_Events.AddEventAtOffset([player]()
+            {
+                // the delayed check covers the case where a still-ticking
+                // 223661 aura relaunched the scene on relog
+                if (player->GetQuestRewardStatus(Quests::StopGuldanSceneTracking))
+                    return;
+
+                player->RemoveAurasDueToSpell(Spells::StopGuldanPlayScene); // stale scene marker
+                player->CompleteQuest(Quests::StopGuldanSceneTracking);
+                player->TeleportTo(WorldLocation(Maps::WardenPrisonDH, Positions::StopGuldanArenaTeleport));
+                PhasingHandler::OnConditionChange(player);
+            }, 1s);
+        }
+    };
 }
 
 void AddSC_custom_vault_wardens_player()
@@ -64,4 +100,5 @@ void AddSC_custom_vault_wardens_player()
     using namespace Scripts::Custom::VaultOfTheWardens;
 
     new player_vault_wardens_auto_reward();
+    new player_vault_wardens_stop_guldan_recovery();
 }

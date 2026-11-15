@@ -1484,8 +1484,8 @@ UPDATE `creature_template` SET `ScriptName`='npc_vault_freed_named_illidari' WHE
 
 -- Quest 40253 - Stop Gul'dan!
 DELETE FROM `quest_template_addon` WHERE `ID`=40253;
-INSERT INTO `quest_template_addon` (`ID`, `PrevQuestID`) VALUES
-(40253, 38690);
+INSERT INTO `quest_template_addon` (`ID`, `PrevQuestID`, `SourceSpellID`, `ScriptName`) VALUES
+(40253, 38690, 223661, 'quest_vault_wardens_stop_guldan');
 
 -- Tomb of the Penitent (area 7871) - phase 7385 trio + private conversation
 -- Sniff (session 4, ~18:53): entering area 7871 adds phase 7385 via
@@ -1504,8 +1504,13 @@ INSERT INTO `phase_area` (`AreaId`, `PhaseId`, `Comment`) VALUES
 
 DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId`=26 AND `SourceGroup`=7385;
 INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `ConditionStringValue1`, `NegativeCondition`, `ErrorType`, `ErrorTextId`, `ScriptName`, `Comment`) VALUES
-(26, 7385, 7871, 0, 0, 28, 0, 38689, 0, 0, '', 0, 0, 0, '', 'Phase 7385 requires quest 38689 Fel Infusion complete (not rewarded)'),
-(26, 7385, 7871, 0, 0, 28, 0, 38690, 0, 0, '', 0, 0, 0, '', 'Phase 7385 requires quest 38690 Rise of the Illidari complete (not rewarded)');
+-- The trio must stay up through both turn-ins and the cinematic: QUESTSTATE
+-- mask 66 (COMPLETE|REWARDED) keeps 7385 once each quest is done, and only
+-- the scene-end tracking quest drops it - the sniffed phase swap removes
+-- 7385 with the arena transition, not before
+(26, 7385, 7871, 0, 0, 47, 0, 38689, 66, 0, '', 0, 0, 0, '', 'Phase 7385 requires quest 38689 Fel Infusion completed or rewarded'),
+(26, 7385, 7871, 0, 1, 47, 0, 38690, 66, 0, '', 0, 0, 0, '', 'Phase 7385 requires quest 38690 Rise of the Illidari completed or rewarded'),
+(26, 7385, 7871, 0, 2, 8, 0, 40922, 0, 0, '', 1, 0, 0, '', 'Phase 7385 drops once the Stop Gul''dan scene transition (40922) is rewarded');
 
 -- Conversation trigger: the sniff carries no server-side AT packet for the
 -- tomb mouth - retail's volume is invisible to the sniffer. A custom
@@ -1550,4 +1555,33 @@ INSERT INTO `areatrigger` (`SpawnId`, `AreaTriggerCreatePropertiesId`, `IsCustom
 -- 49446/idx0 = Maiev (92718, guid 70063917), 49445/idx1 = Kayn (96665, guid 70063915)
 UPDATE `conversation_actors` SET `ConversationActorGuid`=70063917 WHERE `ConversationId`=527 AND `ConversationActorId`=49446;
 UPDATE `conversation_actors` SET `ConversationActorGuid`=70063915 WHERE `ConversationId`=527 AND `ConversationActorId`=49445;
+
+-- Stop Gul'dan! accept chain: aura 223661 expiry casts 187864 (AuraScript);
+-- 187864's native PLAY_SCENE effect runs scene 1016 under the bound script.
+DELETE FROM `spell_script_names` WHERE `spell_id`=223661;
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
+(223661, 'spell_vault_stop_guldan_accept'); -- aura expiry -> 187864 Play Scene
+
+UPDATE `scene_template` SET `ScriptName`='scene_vault_stop_guldan' WHERE `SceneId`=1016;
+
+-- Vault of the Betrayer arena (area 7819)
+-- Sniffed lifecycle: phase 5128 enters at scene end and drops at quest
+-- completion in favor of 5498. Gating on tracking quest 40922 (rewarded by
+-- scene_vault_stop_guldan) keeps the swap persistent across relogs; the
+-- not-complete/not-rewarded rows reproduce the sniffed 5128 -> 5498 swap.
+DELETE FROM `phase_name` WHERE `ID` IN (5128, 5498);
+INSERT INTO `phase_name` (`ID`, `Name`) VALUES
+(5128, 'Vault of the Betrayer - Arena'),
+(5498, 'Vault of the Betrayer - Post Fight');
+
+DELETE FROM `phase_area` WHERE `PhaseId` IN (5128, 5498) AND `AreaId`=7819;
+INSERT INTO `phase_area` (`AreaId`, `PhaseId`, `Comment`) VALUES
+(7819, 5128, 'Vault of the Betrayer - arena (portals, Sledge, Crusher, clones)'),
+(7819, 5498, 'Vault of the Betrayer - post fight');
+
+DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId`=26 AND `SourceGroup` IN (5128, 5498);
+INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `ConditionStringValue1`, `NegativeCondition`, `ErrorType`, `ErrorTextId`, `ScriptName`, `Comment`) VALUES
+(26, 5128, 7819, 0, 0, 8, 0, 40922, 0, 0, '', 0, 0, 0, '', 'Phase 5128 requires the Stop Gul''dan scene transition (40922) rewarded'),
+(26, 5128, 7819, 0, 0, 47, 0, 40253, 66, 0, '', 1, 0, 0, '', 'Phase 5128 drops once quest 40253 is completed or rewarded'),
+(26, 5498, 7819, 0, 0, 47, 0, 40253, 66, 0, '', 0, 0, 0, '', 'Phase 5498 active once quest 40253 is completed or rewarded');
 
