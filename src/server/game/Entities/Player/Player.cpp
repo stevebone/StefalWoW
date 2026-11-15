@@ -9528,6 +9528,7 @@ void Player::SendInitWorldStates(uint32 zoneId, uint32 areaId) const
     WorldStateMgr::FillInitialWorldStates(packet, GetMap(), areaId);
 
     SendDirectMessage(packet.Write());
+    SendDirectMessage(WorldPackets::Misc::StartLightningStorm(0).Write());
 }
 
 void Player::SetBindPoint(ObjectGuid guid) const

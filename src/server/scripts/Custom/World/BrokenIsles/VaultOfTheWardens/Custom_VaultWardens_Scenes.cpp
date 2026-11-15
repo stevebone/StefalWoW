@@ -20,11 +20,9 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "Opcodes.h"
 #include "PhasingHandler.h"
 #include "Player.h"
 #include "ScriptMgr.h"
-#include "WorldPacket.h"
 
 #include "Custom_VaultWardens_Defines.h"
 
@@ -70,15 +68,11 @@ namespace Scripts::Custom::VaultOfTheWardens
                 player->CompleteQuest(Quests::StopGuldanSceneTracking);
 
             // sniffed order: phase shift -> INIT_WORLD_STATES (empty for this
-            // map) -> START_LIGHTNING_STORM (id 0) -> MOVE_TELEPORT. The pair
-            // is retail's generic zone-transition routine; the core only sends
-            // it on real zone changes, so send it here to match the packet
-            // sequence
+            // map) -> START_LIGHTNING_STORM (id 0) -> MOVE_TELEPORT. The core
+            // sends the storm packet itself from SendInitWorldStates, so the
+            // pair is produced here just by calling it
             PhasingHandler::OnConditionChange(player);
             player->SendInitWorldStates(Zones::VaultOfTheWardens, Areas::VaultOfTheBetrayer);
-            WorldPacket lightning(SMSG_START_LIGHTNING_STORM, 4);
-            lightning << uint32(0);
-            player->SendDirectMessage(&lightning);
             player->TeleportTo(WorldLocation(Maps::WardenPrisonDH, Positions::StopGuldanArenaTeleport));
         }
     };

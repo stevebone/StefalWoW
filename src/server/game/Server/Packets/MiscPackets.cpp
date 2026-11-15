@@ -198,6 +198,20 @@ WorldPacket const* TriggerMovie::Write()
     return &_worldPacket;
 }
 
+WorldPacket const* StartLightningStorm::Write()
+{
+    _worldPacket << uint32(LightningStormId);
+
+    return &_worldPacket;
+}
+
+WorldPacket const* EndLightningStorm::Write()
+{
+    _worldPacket << uint32(LightningStormId);
+
+    return &_worldPacket;
+}
+
 WorldPacket const* ServerTimeOffset::Write()
 {
     _worldPacket << Time;

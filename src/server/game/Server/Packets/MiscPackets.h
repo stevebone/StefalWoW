@@ -222,6 +222,30 @@ namespace WorldPackets
             uint32 MovieID = 0;
         };
 
+        class StartLightningStorm final : public ServerPacket
+        {
+        public:
+            explicit StartLightningStorm() : ServerPacket(SMSG_START_LIGHTNING_STORM, 4) { }
+            explicit StartLightningStorm(uint32 lightningStormId) : ServerPacket(SMSG_START_LIGHTNING_STORM, 4),
+                LightningStormId(lightningStormId) { }
+
+            WorldPacket const* Write() override;
+
+            uint32 LightningStormId = 0;
+        };
+
+        class EndLightningStorm final : public ServerPacket
+        {
+        public:
+            explicit EndLightningStorm() : ServerPacket(SMSG_END_LIGHTNING_STORM, 4) { }
+            explicit EndLightningStorm(uint32 lightningStormId) : ServerPacket(SMSG_END_LIGHTNING_STORM, 4),
+                LightningStormId(lightningStormId) { }
+
+            WorldPacket const* Write() override;
+
+            uint32 LightningStormId = 0;
+        };
+
         class ServerTimeOffsetRequest final : public ClientPacket
         {
         public:
