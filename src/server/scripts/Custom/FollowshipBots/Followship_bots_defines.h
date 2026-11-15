@@ -74,7 +74,9 @@ enum class FSB_Class : uint8
     Warlock = 8,
     Shaman = 9,
     Monk = 10,
-    DeathKnight = 11
+    DeathKnight = 11,
+    DemonHunter = 12,
+    Evoker = 13,
 };
 
 enum class FSB_Race : uint8
@@ -102,6 +104,14 @@ enum class FSB_Race : uint8
     EarthenHorde = 20,
     HaranirAlliance = 21,
     HaranirHorde = 22,
+    DarkIronDwarf = 23,
+    KulTiran = 24,
+    Mechagnome = 25,
+    MagharOrc = 26,
+    ZandalariTroll = 27,
+    Vulpera = 28,
+    DracthyrAlliance = 29,
+    DracthyrHorde = 30,
 };
 
 enum FSB_Roles

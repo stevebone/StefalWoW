@@ -86,7 +86,7 @@ public:
             return false;
         }
 
-        if (botClass < static_cast<int32>(FSB_Class::Warrior) || botClass > static_cast<int32>(FSB_Class::DeathKnight))
+        if (botClass < static_cast<int32>(FSB_Class::Warrior) || botClass > static_cast<int32>(FSB_Class::Evoker))
         {
             handler->SendSysMessage("Invalid bot class value.");
             handler->SetSentErrorMessage(true);

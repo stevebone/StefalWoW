@@ -815,6 +815,9 @@ uint32 FSBMgr::GetAvailableRolesForClass(FSB_Class botClass)
     case FSB_Class::Druid:
         return FSB_ROLEMASK_TANK | FSB_ROLEMASK_HEALER | FSB_ROLEMASK_MELEE_DAMAGE | FSB_ROLEMASK_RANGED_DAMAGE;
 
+    case FSB_Class::DemonHunter:
+        return FSB_ROLEMASK_TANK | FSB_ROLEMASK_MELEE_DAMAGE;
+
     //case FSB_Class::DeathKnight:
     //    return FSB_ROLEMASK_TANK | FSB_ROLEMASK_MELEE_DAMAGE;
 
