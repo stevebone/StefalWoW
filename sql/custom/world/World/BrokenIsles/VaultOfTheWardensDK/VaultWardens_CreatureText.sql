@@ -1,6 +1,6 @@
 -- Vault of the Wardens Creature Text
 
-DELETE FROM `creature_text` WHERE `creatureID` IN (92718, 96847, 99631, 99632, 92980, 92986, 92776, 97069, 97614, 97615, 97616, 97617, 97618, 97619, 97620, 97622);
+DELETE FROM `creature_text` WHERE `creatureID` IN (92718, 96847, 99631, 99632, 92980, 92986, 92776, 97069, 92990, 97614, 97615, 97616, 97617, 97618, 97619, 97620, 97622);
 INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `BroadcastTextId`, `TextRange`, `comment`) VALUES
 (92776, 0, 0, 'For the Legion!', 12, 0, 100, 0, 0, 55192, 96663, 0, 'Fel Shocktrooper to Player'),
 (92776, 0, 1, 'The Burning Legion conquers all.', 12, 0, 100, 0, 0, 55198, 102133, 0, 'Fel Shocktrooper to Player'),
@@ -38,4 +38,6 @@ INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Lan
 (97622, 0, 0, '$n, it has been a long time since Mardum. I am ready for another fight.', 12, 0, 100, 1, 0, 57288, 98710, 0, 'Kor\'vas Bloodthorn to Player'),
 
 (97069, 0, 0, 'All goes according to HIS plan.', 12, 0, 100, 0, 0, 57392, 102952, 0, 'Wrath-Lord Lekos to Player'),
-(97069, 1, 0, 'Lord Gul''dan will lead us to victory. You cannot stop us.', 12, 0, 100, 0, 0, 57312, 102954, 0, 'Wrath-Lord Lekos to Player');
+(97069, 1, 0, 'Lord Gul''dan will lead us to victory. You cannot stop us.', 12, 0, 100, 0, 0, 57312, 102954, 0, 'Wrath-Lord Lekos to Player'),
+
+(92990, 0, 0, '|cFFFF0000$n|r attack the brute without the |cFFFF0000|Hspell:199556|h[Brutal Attacks]|h|r buff!', 42, 0, 100, 0, 0, 0, 104480, 0, 'Sledge to Player');

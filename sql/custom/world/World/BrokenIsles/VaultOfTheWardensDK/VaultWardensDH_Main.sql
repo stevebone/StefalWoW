@@ -1585,3 +1585,93 @@ INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry
 (26, 5128, 7819, 0, 0, 47, 0, 40253, 66, 0, '', 1, 0, 0, '', 'Phase 5128 drops once quest 40253 is completed or rewarded'),
 (26, 5498, 7819, 0, 0, 47, 0, 40253, 66, 0, '', 0, 0, 0, '', 'Phase 5498 active once quest 40253 is completed or rewarded');
 
+
+-- ============================================================================
+-- "Stop Gul'dan!" (40253) - Vault of the Betrayer arena fight (phase 5128)
+-- ============================================================================
+-- Sniffed sequence (sniff 4): the teleport lands at 18:56:05.9 and both
+-- clones engage instantly - Kayn clone (92984) duels Sledge, Altruis clone
+-- (92985) duels Crusher (pairing confirmed by spawn geometry: each clone
+-- ~5-10y from its brute). Kayn/Altruis run a shared DH rotation; Sledge adds
+-- three private Kayn<->Altruis banter conversations at ~+14/+34/+54s and
+-- whispers a mechanic hint when it gains Brutal Attacks. Crusher dies at
+-- 18:57:13.8, Sledge at 18:57:18.8, and the Generic Bunny anchor casts
+-- 210439 "Crusher Dies 01" in the same tick - its FORCE_CAST hits removed
+-- spell 210446, so spell_vault_crusher_dies applies the Taking Power ritual
+-- aura (210467) to every arena player instead. The aura natively ticks
+-- 210461 "Taking Power 02" beams onto the corpses for 3s; credit for
+-- objective 280751 ("Crusher & Sledge slain & power taken", 106241) lands on
+-- aura expiry, completing 40253 and swapping 5128 -> 5498.
+
+-- AI bindings: brutes/clones run SmartAI; the ritual anchor is C++ and
+-- bound at SPAWN level (creature.ScriptName on the @CGUID+69 row in the
+-- spawns file) - 59113 is a generic bunny shared across maps, so the
+-- template stays untouched. The brutes' SAI pushes SET_DATA to the bunny
+-- on death (1 = Sledge, 2 = Crusher); it casts 210439 once both arrived.
+UPDATE `creature_template` SET `AIName`='SmartAI' WHERE `entry` IN (92984, 92985, 92990, 97632);
+
+DELETE FROM `spell_script_names` WHERE `spell_id` IN (210439, 210467);
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
+(210439, 'spell_vault_crusher_dies'),  -- replaces the missing 210446 trigger: Taking Power on arena players
+(210467, 'spell_vault_taking_power'); -- aura expiry -> kill credit 106241 (objective 280751)
+
+-- Kayn clone (92984) - duels Sledge; DH rotation from the sniffed cast
+-- sequence (Throw Glaive, Shear, Chaos Strike, Fel Rush, Soul Cleave, Eye
+-- Beam). Soul-fragment / Shattered Souls casts in the sniff are the
+-- passive's own procs, not clone actions.
+DELETE FROM `smart_scripts` WHERE `entryorguid` IN (92984) AND source_type = 0;
+INSERT INTO smart_scripts (entryorguid, source_type, id, link, Difficulties, event_type, event_phase_mask, event_chance, event_flags, event_param1, event_param2, event_param3, event_param4, event_param5, event_param_string, action_type, action_param1, action_param2, action_param3, action_param4, action_param5, action_param6, action_param7, action_param_string, target_type, target_param1, target_param2, target_param3, target_param4, target_param_string, target_x, target_y, target_z, target_o, comment) VALUES
+(92984, 0, 1, 0, '', 11, 0, 100, 0, 1, 1468, 0, 0, 0, '', 49, 0, 0, 0, 0, 0, 0, 0, '', 19, 92990, 60, 0, 0, '', 0, 0, 0, 0, 'Kayn Sunfury (arena) - On Respawn - Attack Sledge'),
+(92984, 0, 2, 0, '', 0, 0, 100, 0, 2000, 4000, 8000, 12000, 0, '', 11, 200881, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Kayn Sunfury (arena) - In Combat - Cast Throw Glaive'),
+(92984, 0, 3, 0, '', 0, 0, 100, 0, 3000, 5000, 4000, 7000, 0, '', 11, 223473, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Kayn Sunfury (arena) - In Combat - Cast Shear'),
+(92984, 0, 4, 0, '', 0, 0, 100, 0, 4000, 6000, 5000, 8000, 0, '', 11, 197639, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Kayn Sunfury (arena) - In Combat - Cast Chaos Strike'),
+(92984, 0, 5, 0, '', 0, 0, 100, 0, 7000, 9000, 10000, 15000, 0, '', 11, 200879, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Kayn Sunfury (arena) - In Combat - Cast Fel Rush'),
+(92984, 0, 6, 0, '', 0, 0, 100, 0, 6000, 8000, 9000, 14000, 0, '', 11, 213241, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Kayn Sunfury (arena) - In Combat - Cast Soul Cleave'),
+(92984, 0, 7, 0, '', 0, 0, 100, 0, 10000, 12000, 18000, 25000, 0, '', 11, 197641, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Kayn Sunfury (arena) - In Combat - Cast Eye Beam');
+
+-- Altruis clone (92985) - duels Crusher; same rotation
+DELETE FROM `smart_scripts` WHERE `entryorguid` IN (92985) AND source_type = 0;
+INSERT INTO smart_scripts (entryorguid, source_type, id, link, Difficulties, event_type, event_phase_mask, event_chance, event_flags, event_param1, event_param2, event_param3, event_param4, event_param5, event_param_string, action_type, action_param1, action_param2, action_param3, action_param4, action_param5, action_param6, action_param7, action_param_string, target_type, target_param1, target_param2, target_param3, target_param4, target_param_string, target_x, target_y, target_z, target_o, comment) VALUES
+(92985, 0, 1, 0, '', 11, 0, 100, 0, 1, 1468, 0, 0, 0, '', 49, 0, 0, 0, 0, 0, 0, 0, '', 19, 97632, 60, 0, 0, '', 0, 0, 0, 0, 'Altruis the Sufferer (arena) - On Respawn - Attack Crusher'),
+(92985, 0, 2, 0, '', 0, 0, 100, 0, 2000, 4000, 8000, 12000, 0, '', 11, 200881, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Altruis the Sufferer (arena) - In Combat - Cast Throw Glaive'),
+(92985, 0, 3, 0, '', 0, 0, 100, 0, 3000, 5000, 4000, 7000, 0, '', 11, 223473, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Altruis the Sufferer (arena) - In Combat - Cast Shear'),
+(92985, 0, 4, 0, '', 0, 0, 100, 0, 4000, 6000, 5000, 8000, 0, '', 11, 197639, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Altruis the Sufferer (arena) - In Combat - Cast Chaos Strike'),
+(92985, 0, 5, 0, '', 0, 0, 100, 0, 7000, 9000, 10000, 15000, 0, '', 11, 200879, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Altruis the Sufferer (arena) - In Combat - Cast Fel Rush'),
+(92985, 0, 6, 0, '', 0, 0, 100, 0, 6000, 8000, 9000, 14000, 0, '', 11, 213241, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Altruis the Sufferer (arena) - In Combat - Cast Soul Cleave'),
+(92985, 0, 7, 0, '', 0, 0, 100, 0, 10000, 12000, 18000, 25000, 0, '', 11, 197641, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Altruis the Sufferer (arena) - In Combat - Cast Eye Beam');
+
+-- Sledge (92990) - ability timers from the sniffed cast cadence. Aggro starts
+-- the banter actionlist (three private Kayn<->Altruis conversations at
+-- ~+14/+34/+54s, sniffed self-casts 192626/192627/192628 -> convs 528/529/530).
+-- Brutal Attacks pairs with the mechanic BossWhisper; Annihilate is the
+-- sniffed 199602+199604 pair. On death it self-casts 210038 (the demon-death
+-- shatter-soul chain, same as Lekos).
+DELETE FROM `smart_scripts` WHERE `entryorguid` IN (92990, 9299001) AND source_type IN (0, 9);
+INSERT INTO smart_scripts (entryorguid, source_type, id, link, Difficulties, event_type, event_phase_mask, event_chance, event_flags, event_param1, event_param2, event_param3, event_param4, event_param5, event_param_string, action_type, action_param1, action_param2, action_param3, action_param4, action_param5, action_param6, action_param7, action_param_string, target_type, target_param1, target_param2, target_param3, target_param4, target_param_string, target_x, target_y, target_z, target_o, comment) VALUES
+(92990, 0, 1, 0, '', 4, 0, 100, 0, 0, 0, 0, 0, 0, '', 80, 9299001, 1, 1, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Sledge - On Aggro - Start combat banter actionlist'),
+(92990, 0, 2, 0, '', 0, 0, 100, 0, 4000, 6000, 12000, 16000, 0, '', 11, 199476, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Sledge - In Combat - Cast Shoulder Charge'),
+(92990, 0, 3, 0, '', 0, 0, 100, 0, 8000, 10000, 18000, 22000, 0, '', 11, 199551, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Sledge - In Combat - Cast Leaping Retreat'),
+(92990, 0, 4, 0, '', 0, 0, 100, 0, 12000, 14000, 20000, 26000, 0, '', 11, 199553, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Sledge - In Combat - Cast Brutal Impact'),
+(92990, 0, 5, 6, '', 0, 0, 100, 0, 20000, 24000, 38000, 45000, 0, '', 11, 199556, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Sledge - In Combat - Cast Brutal Attacks'),
+(92990, 0, 6, 0, '', 61, 0, 100, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 1, 0, 0, 0, 0, '', 25, 100, 1, 0, 0, '', 0, 0, 0, 0, 'Sledge - Linked - BossWhisper to closest player'),
+(92990, 0, 7, 8, '', 0, 0, 100, 0, 16000, 18000, 28000, 34000, 0, '', 11, 199602, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Sledge - In Combat - Cast Annihilate (leap)'),
+(92990, 0, 8, 0, '', 61, 0, 100, 0, 0, 0, 0, 0, 0, '', 11, 199604, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Sledge - Linked - Cast Annihilate (impact cone)'),
+(92990, 0, 9, 0, '', 0, 0, 100, 0, 10000, 12000, 18000, 25000, 0, '', 11, 209980, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Sledge - In Combat - Cast Shatter Soul'),
+(92990, 0, 10, 0, '', 0, 0, 100, 0, 14000, 17000, 21000, 27000, 0, '', 11, 209981, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Sledge - In Combat - Cast Shatter Soul'),
+(92990, 0, 11, 0, '', 6, 0, 100, 0, 0, 0, 0, 0, 0, '', 11, 210038, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Sledge - On Death - Cast Shatter Soul (demon-death chain)'),
+(92990, 0, 12, 0, '', 6, 0, 100, 0, 0, 0, 0, 0, 0, '', 45, 1, 1, 0, 0, 0, 0, 0, '', 19, 59113, 100, 0, 0, '', 0, 0, 0, 0, 'Sledge - On Death - SetData(1,1) on arena bunny'),
+(9299001, 9, 0, 0, '', 0, 0, 100, 0, 14000, 14000, 0, 0, 0, '', 11, 192626, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Sledge banter - +14s - Conversation: Combat A (528)'),
+(9299001, 9, 1, 0, '', 0, 0, 100, 0, 20000, 20000, 0, 0, 0, '', 11, 192627, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Sledge banter - +20s - Conversation: Combat B (529)'),
+(9299001, 9, 2, 0, '', 0, 0, 100, 0, 20000, 20000, 0, 0, 0, '', 11, 192628, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Sledge banter - +20s - Conversation: Combat C (530)');
+
+-- Crusher (97632) - simpler kit (Shoulder Charge, Throw Sword, Face Kick,
+-- Shatter Soul variants) plus the same demon-death 210038
+DELETE FROM `smart_scripts` WHERE `entryorguid` IN (97632) AND source_type = 0;
+INSERT INTO smart_scripts (entryorguid, source_type, id, link, Difficulties, event_type, event_phase_mask, event_chance, event_flags, event_param1, event_param2, event_param3, event_param4, event_param5, event_param_string, action_type, action_param1, action_param2, action_param3, action_param4, action_param5, action_param6, action_param7, action_param_string, target_type, target_param1, target_param2, target_param3, target_param4, target_param_string, target_x, target_y, target_z, target_o, comment) VALUES
+(97632, 0, 1, 0, '', 0, 0, 100, 0, 5000, 7000, 12000, 16000, 0, '', 11, 199481, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Crusher - In Combat - Cast Shoulder Charge'),
+(97632, 0, 2, 0, '', 0, 0, 100, 0, 7000, 9000, 10000, 14000, 0, '', 11, 199577, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Crusher - In Combat - Cast Throw Sword'),
+(97632, 0, 3, 0, '', 0, 0, 100, 0, 14000, 16000, 22000, 30000, 0, '', 11, 199645, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Crusher - In Combat - Cast Face Kick'),
+(97632, 0, 4, 0, '', 0, 0, 100, 0, 10000, 12000, 18000, 25000, 0, '', 11, 209980, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Crusher - In Combat - Cast Shatter Soul'),
+(97632, 0, 5, 0, '', 0, 0, 100, 0, 15000, 18000, 22000, 28000, 0, '', 11, 209981, 0, 0, 0, 0, 0, 0, '', 2, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Crusher - In Combat - Cast Shatter Soul'),
+(97632, 0, 6, 0, '', 6, 0, 100, 0, 0, 0, 0, 0, 0, '', 11, 210038, 0, 0, 0, 0, 0, 0, '', 1, 0, 0, 0, 0, '', 0, 0, 0, 0, 'Crusher - On Death - Cast Shatter Soul (demon-death chain)'),
+(97632, 0, 7, 0, '', 6, 0, 100, 0, 0, 0, 0, 0, 0, '', 45, 2, 1, 0, 0, 0, 0, 0, '', 19, 59113, 100, 0, 0, '', 0, 0, 0, 0, 'Crusher - On Death - SetData(2,1) on arena bunny');

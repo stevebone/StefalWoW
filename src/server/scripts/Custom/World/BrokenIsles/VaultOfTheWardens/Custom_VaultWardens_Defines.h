@@ -59,6 +59,14 @@ namespace Scripts::Custom::VaultOfTheWardens
         static constexpr uint32 SoulFragment = 89297;
 
         static constexpr uint32 MiranaStarlight      = 99451;
+        // "Stop Gul'dan!" (40253) arena fight - the paired brutes and the
+        // Kayn/Altruis fight clones (phase 5128 statics), plus the invisible
+        // ritual anchor that fires 210439 once both brutes are down
+        static constexpr uint32 Crusher         = 97632;
+        static constexpr uint32 Sledge          = 92990;
+        static constexpr uint32 KaynArenaClone    = 92984;
+        static constexpr uint32 AltruisArenaClone = 92985;
+        static constexpr uint32 GenericBunny      = 59113;
     }
 
     namespace GameObjects
@@ -198,6 +206,15 @@ namespace Scripts::Custom::VaultOfTheWardens
         // "Play Scene" - SPELL_EFFECT_PLAY_SCENE -> scene 1016 (sniffed
         // self-cast in the same tick the 223661 aura expired)
         static constexpr uint32 StopGuldanPlayScene   = 187864;
+        // "Stop Gul'dan!: Crusher Dies 01" - Generic Bunny self-cast the tick
+        // the second brute died. Its FORCE_CAST targets 210446 "Taking Power
+        // 01" which is absent from the 7.0.5 client spell data, so
+        // spell_vault_crusher_dies reproduces its job (210467 on the players)
+        static constexpr uint32 CrusherDies = 210439;
+        // "Taking Power" - the 3s ritual aura on the player: native
+        // PERIODIC_TRIGGER casts 210461 "Taking Power 02" on the brute
+        // corpses; credit for objective 280751 lands when the aura expires
+        static constexpr uint32 TakingPower = 210467;
     }
 
     namespace Scenes
@@ -226,6 +243,9 @@ namespace Scripts::Custom::VaultOfTheWardens
         static constexpr uint32 KaynEnd        = 99326;  // objective 280526 - Kayn reaches the rally point
         // "Rise of the Illidari" (38690) - sniffed SMSG_QUEST_UPDATE_ADD_CREDIT ObjectID
         static constexpr uint32 ImprisonedIllidariFreed = 96762; // objective 278285 - generic counter, granted per cell use
+        // "Stop Gul'dan!" (40253) - objective 280751 "Crusher & Sledge slain &
+        // power taken", granted when the Taking Power ritual aura expires
+        static constexpr uint32 PowerTaken = 106241;
     }
 
     namespace Phases

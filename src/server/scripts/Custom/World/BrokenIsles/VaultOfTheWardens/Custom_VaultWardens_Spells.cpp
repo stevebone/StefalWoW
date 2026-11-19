@@ -128,6 +128,47 @@ namespace Scripts::Custom::VaultOfTheWardens
             AfterEffectRemove += AuraEffectRemoveFn(spell_vault_stop_guldan_accept::OnRemove, EFFECT_0, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL);
         }
     };
+
+    // 210439 - Stop Gul'dan!: Crusher Dies 01 (Generic Bunny self-cast when the
+    // second brute dies). Its only effect FORCE_CASTs 210446 "Taking Power 01"
+    // which is absent from the 7.0.5 client spell data - the core's cast
+    // fizzles - so this reproduces 210446's job: every player in the arena
+    // gains the Taking Power ritual aura (sniffed SMSG_AURA_UPDATE on the
+    // player in the same batch).
+    class spell_vault_crusher_dies : public SpellScript
+    {
+        void ApplyTakingPower()
+        {
+            std::list<Player*> players;
+            GetCaster()->GetPlayerListInGrid(players, 100.0f);
+            for (Player* player : players)
+                player->AddAura(Spells::TakingPower, player);
+        }
+
+        void Register() override
+        {
+            AfterCast += SpellCastFn(spell_vault_crusher_dies::ApplyTakingPower);
+        }
+    };
+
+    // 210467 - Taking Power (3s ritual aura on the player). Retail credits
+    // quest objective 280751 "Crusher & Sledge slain & power taken" (kill
+    // credit 106241) exactly when the aura expires - the sniffed
+    // SMSG_QUEST_UPDATE_ADD_CREDIT + UPDATE_COMPLETE pair lands ~3s after the
+    // aura update. Its PERIODIC_TRIGGER -> 210461 corpse-beam casts are native.
+    class spell_vault_taking_power : public AuraScript
+    {
+        void OnRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+        {
+            if (Player* player = GetTarget()->ToPlayer())
+                player->KilledMonsterCredit(KillCredits::PowerTaken, ObjectGuid::Empty);
+        }
+
+        void Register() override
+        {
+            AfterEffectRemove += AuraEffectRemoveFn(spell_vault_taking_power::OnRemove, EFFECT_0, SPELL_AURA_PERIODIC_TRIGGER_SPELL, AURA_EFFECT_HANDLE_REAL);
+        }
+    };
 }
 
 void AddSC_custom_vault_wardens_spells()
@@ -137,4 +178,6 @@ void AddSC_custom_vault_wardens_spells()
     RegisterSpellScript(spell_vault_throwing_blade);
     RegisterSpellScript(spell_vault_fel_infusion);
     RegisterSpellScript(spell_vault_stop_guldan_accept);
+    RegisterSpellScript(spell_vault_crusher_dies);
+    RegisterSpellScript(spell_vault_taking_power);
 }

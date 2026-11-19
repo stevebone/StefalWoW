@@ -744,6 +744,51 @@ namespace Scripts::Custom::VaultOfTheWardens
         TaskScheduler _scheduler;
         bool _destroying = false;
     };
+
+    // 59113 - Generic Bunny (Vault of the Betrayer arena anchor, phase 5128)
+    // Bound at spawn level (creature.ScriptName) — entry is shared by bunnies
+    // all over the map, so the template is never touched. The brutes' SAI
+    // pushes SET_DATA on death; once both arrived the taking-power ritual
+    // is fired and the state re-arms for the next spawn cycle.
+    // (sniffed PARTY_KILL_LOGs: Crusher 18:57:13.834, Sledge 18:57:18.813,
+    // the 210439 cast in Sledge's death batch)
+    struct npc_vault_arena_bunny : public ScriptedAI
+    {
+        enum ArenaData : uint32
+        {
+            SledgeDead  = 1,
+            CrusherDead = 2
+        };
+
+        npc_vault_arena_bunny(Creature* creature) : ScriptedAI(creature) { }
+
+        void SetData(uint32 field, uint32 /*data*/) override
+        {
+            if (me->GetAreaId() != Areas::VaultOfTheBetrayer)
+                return;
+
+            if (field == SledgeDead)
+                _sledgeDead = true;
+            else if (field == CrusherDead)
+                _crusherDead = true;
+            else
+                return;
+
+            if (_sledgeDead && _crusherDead)
+            {
+                _sledgeDead = _crusherDead = false;
+                // stale-flag guard: if a brute respawned between the two
+                // death events, this is not the retail "second death" tick
+                if (!GetClosestCreatureWithOptions(me, 100.0f, { .CreatureId = Sledge, .IsAlive = FindCreatureAliveState::Alive }) &&
+                    !GetClosestCreatureWithOptions(me, 100.0f, { .CreatureId = Crusher, .IsAlive = FindCreatureAliveState::Alive }))
+                    DoCastSelf(Spells::CrusherDies);
+            }
+        }
+
+    private:
+        bool _sledgeDead = false;
+        bool _crusherDead = false;
+    };
 }
 
 void AddSC_custom_vault_wardens_npcs()
@@ -758,4 +803,5 @@ void AddSC_custom_vault_wardens_npcs()
     new FactoryCreatureScript<CreatureAI, &PostRewardIllidariVaultAISelector>("npc_vault_postreward_illidari");
     RegisterCreatureAI(npc_wrath_lord_lekos);
     RegisterCreatureAI(npc_legion_portal);
+    RegisterCreatureAI(npc_vault_arena_bunny);
 }
